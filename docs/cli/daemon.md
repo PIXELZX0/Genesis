@@ -1,26 +1,26 @@
 ---
-summary: "CLI reference for `openclaw daemon` (legacy alias for gateway service management)"
+summary: "CLI reference for `genesis daemon` (legacy alias for gateway service management)"
 read_when:
-  - You still use `openclaw daemon ...` in scripts
+  - You still use `genesis daemon ...` in scripts
   - You need service lifecycle commands (install/start/stop/restart/status)
 title: "Daemon"
 ---
 
-# `openclaw daemon`
+# `genesis daemon`
 
 Legacy alias for Gateway service management commands.
 
-`openclaw daemon ...` maps to the same service control surface as `openclaw gateway ...` service commands.
+`genesis daemon ...` maps to the same service control surface as `genesis gateway ...` service commands.
 
 ## Usage
 
 ```bash
-openclaw daemon status
-openclaw daemon install
-openclaw daemon start
-openclaw daemon stop
-openclaw daemon restart
-openclaw daemon uninstall
+genesis daemon status
+genesis daemon install
+genesis daemon start
+genesis daemon stop
+genesis daemon restart
+genesis daemon uninstall
 ```
 
 ## Subcommands
@@ -54,7 +54,7 @@ Notes:
 
 ## Prefer
 
-Use [`openclaw gateway`](/cli/gateway) for current docs and examples.
+Use [`genesis gateway`](/cli/gateway) for current docs and examples.
 
 ## Related
 

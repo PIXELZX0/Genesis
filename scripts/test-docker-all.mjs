@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DEFAULT_E2E_IMAGE = "openclaw-docker-e2e:local";
+const DEFAULT_E2E_IMAGE = "genesis-docker-e2e:local";
 const DEFAULT_PARALLELISM = 10;
 const DEFAULT_TAIL_PARALLELISM = 10;
 const DEFAULT_FAILURE_TAIL_LINES = 80;
@@ -27,7 +27,7 @@ const DEFAULT_RESOURCE_LIMITS = {
 };
 
 const bundledChannelLaneCommand =
-  "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps";
+  "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps";
 
 function lane(name, command, options = {}) {
   return {
@@ -67,160 +67,156 @@ function serviceLane(name, command, options = {}) {
 const bundledScenarioLanes = [
   npmLane(
     "bundled-channel-telegram",
-    `OPENCLAW_BUNDLED_CHANNELS=telegram ${bundledChannelLaneCommand}`,
+    `GENESIS_BUNDLED_CHANNELS=telegram ${bundledChannelLaneCommand}`,
   ),
   npmLane(
     "bundled-channel-discord",
-    `OPENCLAW_BUNDLED_CHANNELS=discord ${bundledChannelLaneCommand}`,
+    `GENESIS_BUNDLED_CHANNELS=discord ${bundledChannelLaneCommand}`,
   ),
-  npmLane("bundled-channel-slack", `OPENCLAW_BUNDLED_CHANNELS=slack ${bundledChannelLaneCommand}`),
-  npmLane(
-    "bundled-channel-feishu",
-    `OPENCLAW_BUNDLED_CHANNELS=feishu ${bundledChannelLaneCommand}`,
-  ),
+  npmLane("bundled-channel-slack", `GENESIS_BUNDLED_CHANNELS=slack ${bundledChannelLaneCommand}`),
+  npmLane("bundled-channel-feishu", `GENESIS_BUNDLED_CHANNELS=feishu ${bundledChannelLaneCommand}`),
   npmLane(
     "bundled-channel-memory-lancedb",
-    `OPENCLAW_BUNDLED_CHANNELS=memory-lancedb ${bundledChannelLaneCommand}`,
+    `GENESIS_BUNDLED_CHANNELS=memory-lancedb ${bundledChannelLaneCommand}`,
   ),
   npmLane(
     "bundled-channel-update-telegram",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=telegram OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=telegram GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-update-discord",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=discord OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=discord GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-update-slack",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=slack OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=slack GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-update-feishu",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=feishu OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=feishu GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-update-memory-lancedb",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=memory-lancedb OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=memory-lancedb GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-update-acpx",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=acpx OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=acpx GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
     { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
   ),
   npmLane(
     "bundled-channel-root-owned",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
   ),
   npmLane(
     "bundled-channel-setup-entry",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
   ),
   npmLane(
     "bundled-channel-load-failure",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=1 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps",
   ),
   npmLane(
     "bundled-channel-disabled-config",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=1 pnpm test:docker:bundled-channel-deps",
+    "GENESIS_SKIP_DOCKER_BUILD=1 GENESIS_BUNDLED_CHANNEL_SCENARIOS=0 GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=1 pnpm test:docker:bundled-channel-deps",
   ),
 ];
 
 const lanes = [
-  liveLane("live-models", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-models", {
+  liveLane("live-models", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-models", {
     timeoutMs: LIVE_PROFILE_TIMEOUT_MS,
     weight: 4,
   }),
-  liveLane("live-gateway", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-gateway", {
+  liveLane("live-gateway", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-gateway", {
     timeoutMs: LIVE_PROFILE_TIMEOUT_MS,
     weight: 4,
   }),
   liveLane(
     "live-cli-backend-claude",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:claude",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:claude",
     { resources: ["npm"], timeoutMs: LIVE_CLI_TIMEOUT_MS, weight: 3 },
   ),
   liveLane(
     "live-cli-backend-gemini",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:gemini",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:gemini",
     { resources: ["npm"], timeoutMs: LIVE_CLI_TIMEOUT_MS, weight: 3 },
   ),
-  serviceLane("openwebui", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
+  serviceLane("openwebui", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
     timeoutMs: OPENWEBUI_TIMEOUT_MS,
     weight: 5,
   }),
-  serviceLane("onboard", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
+  serviceLane("onboard", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
     weight: 2,
   }),
   npmLane(
     "npm-onboard-channel-agent",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
     { resources: ["service"], weight: 3 },
   ),
-  serviceLane("gateway-network", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
+  serviceLane("gateway-network", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
   serviceLane(
     "agents-delete-shared-workspace",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:agents-delete-shared-workspace",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:agents-delete-shared-workspace",
   ),
-  serviceLane("mcp-channels", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
+  serviceLane("mcp-channels", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
     resources: ["npm"],
     weight: 3,
   }),
-  lane("pi-bundle-mcp-tools", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
-  serviceLane(
-    "cron-mcp-cleanup",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup",
-    { resources: ["npm"], weight: 3 },
-  ),
-  npmLane("doctor-switch", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
+  lane("pi-bundle-mcp-tools", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
+  serviceLane("cron-mcp-cleanup", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup", {
+    resources: ["npm"],
     weight: 3,
   }),
-  npmLane("plugins", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", { weight: 2 }),
-  npmLane("plugin-update", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
-  serviceLane("config-reload", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
+  npmLane("doctor-switch", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
+    weight: 3,
+  }),
+  npmLane("plugins", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", { weight: 2 }),
+  npmLane("plugin-update", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
+  serviceLane("config-reload", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
   ...bundledScenarioLanes,
-  lane("openai-image-auth", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-image-auth"),
+  lane("openai-image-auth", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-image-auth"),
   lane("qr", "pnpm test:docker:qr"),
 ];
 
 const exclusiveLanes = [
   serviceLane(
     "openai-web-search-minimal",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
     { timeoutMs: 8 * 60 * 1000 },
   ),
   liveLane(
     "live-codex-harness",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-harness",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-harness",
     { resources: ["npm"], timeoutMs: LIVE_ACP_TIMEOUT_MS, weight: 3 },
   ),
-  liveLane("live-codex-bind", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-bind", {
+  liveLane("live-codex-bind", "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-bind", {
     resources: ["npm"],
     timeoutMs: LIVE_ACP_TIMEOUT_MS,
     weight: 3,
   }),
   liveLane(
     "live-cli-backend-codex",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:codex",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:codex",
     { resources: ["npm"], timeoutMs: LIVE_CLI_TIMEOUT_MS, weight: 3 },
   ),
   liveLane(
     "live-acp-bind-claude",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:claude",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:claude",
     { resources: ["npm"], timeoutMs: LIVE_ACP_TIMEOUT_MS, weight: 3 },
   ),
   liveLane(
     "live-acp-bind-codex",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:codex",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:codex",
     { resources: ["npm"], timeoutMs: LIVE_ACP_TIMEOUT_MS, weight: 3 },
   ),
   liveLane(
     "live-acp-bind-gemini",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:gemini",
+    "GENESIS_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:gemini",
     { resources: ["npm"], timeoutMs: LIVE_ACP_TIMEOUT_MS, weight: 3 },
   ),
 ];
@@ -257,15 +253,15 @@ function parseBool(raw, fallback) {
 }
 
 function parseResourceLimit(env, resource, parallelism, fallback) {
-  const envName = `OPENCLAW_DOCKER_ALL_${resource.toUpperCase()}_LIMIT`;
+  const envName = `GENESIS_DOCKER_ALL_${resource.toUpperCase()}_LIMIT`;
   return parsePositiveInt(env[envName], Math.min(parallelism, fallback), envName);
 }
 
 function parseSchedulerOptions(env, parallelism) {
   const weightLimit = parsePositiveInt(
-    env.OPENCLAW_DOCKER_ALL_WEIGHT_LIMIT,
+    env.GENESIS_DOCKER_ALL_WEIGHT_LIMIT,
     parallelism,
-    "OPENCLAW_DOCKER_ALL_WEIGHT_LIMIT",
+    "GENESIS_DOCKER_ALL_WEIGHT_LIMIT",
   );
   return {
     resourceLimits: {
@@ -307,12 +303,12 @@ function utcStamp() {
 }
 
 function appendExtension(env, extension) {
-  const current = env.OPENCLAW_DOCKER_BUILD_EXTENSIONS ?? env.OPENCLAW_EXTENSIONS ?? "";
+  const current = env.GENESIS_DOCKER_BUILD_EXTENSIONS ?? env.GENESIS_EXTENSIONS ?? "";
   const tokens = current.split(/\s+/).filter(Boolean);
   if (!tokens.includes(extension)) {
     tokens.push(extension);
   }
-  env.OPENCLAW_DOCKER_BUILD_EXTENSIONS = tokens.join(" ");
+  env.GENESIS_DOCKER_BUILD_EXTENSIONS = tokens.join(" ");
 }
 
 function commandEnv(extra = {}) {
@@ -407,7 +403,7 @@ function dockerPreflightContainerNames(raw) {
     .split(/\r?\n/)
     .map((line) => line.trim().split(/\s+/, 1)[0])
     .filter((name) =>
-      /^(?:openclaw-(?:gateway-e2e|openwebui|openwebui-gateway|config-reload-e2e)-)/.test(name),
+      /^(?:genesis-(?:gateway-e2e|openwebui|openwebui-gateway|config-reload-e2e)-)/.test(name),
     );
 }
 
@@ -590,8 +586,8 @@ async function runDockerPreflight(baseEnv, options) {
 }
 
 async function prepareBundledChannelPackage(baseEnv, logDir) {
-  if (baseEnv.OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ) {
-    console.log(`==> Bundled channel package: ${baseEnv.OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ}`);
+  if (baseEnv.GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ) {
+    console.log(`==> Bundled channel package: ${baseEnv.GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ}`);
     return;
   }
 
@@ -600,16 +596,16 @@ async function prepareBundledChannelPackage(baseEnv, logDir) {
   const packScript = [
     "set -euo pipefail",
     "node --import tsx --input-type=module -e \"const { writePackageDistInventory } = await import('./src/infra/package-dist-inventory.ts'); await writePackageDistInventory(process.cwd());\"",
-    "npm pack --silent --ignore-scripts --pack-destination /tmp/openclaw-pack >/tmp/openclaw-pack.out",
-    "cat /tmp/openclaw-pack.out",
+    "npm pack --silent --ignore-scripts --pack-destination /tmp/genesis-pack >/tmp/genesis-pack.out",
+    "cat /tmp/genesis-pack.out",
   ].join("\n");
   await runForeground(
     "Pack bundled channel package once from Docker E2E image",
     [
       "docker run --rm",
       "-e COREPACK_ENABLE_DOWNLOAD_PROMPT=0",
-      `-v ${shellQuote(packDir)}:/tmp/openclaw-pack`,
-      shellQuote(baseEnv.OPENCLAW_DOCKER_E2E_IMAGE),
+      `-v ${shellQuote(packDir)}:/tmp/genesis-pack`,
+      shellQuote(baseEnv.GENESIS_DOCKER_E2E_IMAGE),
       "bash -lc",
       shellQuote(packScript),
     ].join(" "),
@@ -617,28 +613,28 @@ async function prepareBundledChannelPackage(baseEnv, logDir) {
   );
 
   const packed = (await fs.promises.readdir(packDir))
-    .filter((entry) => /^openclaw-.*\.tgz$/.test(entry))
+    .filter((entry) => /^genesis-.*\.tgz$/.test(entry))
     .toSorted()
     .at(-1);
   if (!packed) {
-    throw new Error(`missing packed OpenClaw tarball in ${packDir}`);
+    throw new Error(`missing packed Genesis tarball in ${packDir}`);
   }
-  baseEnv.OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ = path.join(packDir, packed);
-  baseEnv.OPENCLAW_BUNDLED_CHANNEL_HOST_BUILD = "0";
-  baseEnv.OPENCLAW_NPM_ONBOARD_PACKAGE_TGZ = baseEnv.OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ;
-  baseEnv.OPENCLAW_NPM_ONBOARD_HOST_BUILD = "0";
-  console.log(`==> Bundled channel package: ${baseEnv.OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ}`);
+  baseEnv.GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ = path.join(packDir, packed);
+  baseEnv.GENESIS_BUNDLED_CHANNEL_HOST_BUILD = "0";
+  baseEnv.GENESIS_NPM_ONBOARD_PACKAGE_TGZ = baseEnv.GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ;
+  baseEnv.GENESIS_NPM_ONBOARD_HOST_BUILD = "0";
+  console.log(`==> Bundled channel package: ${baseEnv.GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ}`);
 }
 
 function laneEnv(name, baseEnv, logDir) {
   const env = {
     ...baseEnv,
   };
-  if (!process.env.OPENCLAW_DOCKER_CLI_TOOLS_DIR) {
-    env.OPENCLAW_DOCKER_CLI_TOOLS_DIR = path.join(logDir, `${name}-cli-tools`);
+  if (!process.env.GENESIS_DOCKER_CLI_TOOLS_DIR) {
+    env.GENESIS_DOCKER_CLI_TOOLS_DIR = path.join(logDir, `${name}-cli-tools`);
   }
-  if (!process.env.OPENCLAW_DOCKER_CACHE_HOME_DIR) {
-    env.OPENCLAW_DOCKER_CACHE_HOME_DIR = path.join(logDir, `${name}-cache`);
+  if (!process.env.GENESIS_DOCKER_CACHE_HOME_DIR) {
+    env.GENESIS_DOCKER_CACHE_HOME_DIR = path.join(logDir, `${name}-cache`);
   }
   return env;
 }
@@ -648,13 +644,13 @@ async function runLane(lane, baseEnv, logDir, fallbackTimeoutMs) {
   const timeoutMs = lane.timeoutMs ?? fallbackTimeoutMs;
   const logFile = path.join(logDir, `${name}.log`);
   const env = laneEnv(name, baseEnv, logDir);
-  await mkdir(env.OPENCLAW_DOCKER_CLI_TOOLS_DIR, { recursive: true });
-  await mkdir(env.OPENCLAW_DOCKER_CACHE_HOME_DIR, { recursive: true });
+  await mkdir(env.GENESIS_DOCKER_CLI_TOOLS_DIR, { recursive: true });
+  await mkdir(env.GENESIS_DOCKER_CACHE_HOME_DIR, { recursive: true });
   await fs.promises.writeFile(
     logFile,
     [
-      `==> [${name}] cli tools dir: ${env.OPENCLAW_DOCKER_CLI_TOOLS_DIR}`,
-      `==> [${name}] cache dir: ${env.OPENCLAW_DOCKER_CACHE_HOME_DIR}`,
+      `==> [${name}] cli tools dir: ${env.GENESIS_DOCKER_CLI_TOOLS_DIR}`,
+      `==> [${name}] cache dir: ${env.GENESIS_DOCKER_CACHE_HOME_DIR}`,
       `==> [${name}] timeout: ${timeoutMs}ms`,
       "",
     ].join("\n"),
@@ -880,57 +876,56 @@ process.on("SIGTERM", () => {
 
 async function main() {
   const parallelism = parsePositiveInt(
-    process.env.OPENCLAW_DOCKER_ALL_PARALLELISM,
+    process.env.GENESIS_DOCKER_ALL_PARALLELISM,
     DEFAULT_PARALLELISM,
-    "OPENCLAW_DOCKER_ALL_PARALLELISM",
+    "GENESIS_DOCKER_ALL_PARALLELISM",
   );
   const tailParallelism = parsePositiveInt(
-    process.env.OPENCLAW_DOCKER_ALL_TAIL_PARALLELISM,
+    process.env.GENESIS_DOCKER_ALL_TAIL_PARALLELISM,
     Math.min(parallelism, DEFAULT_TAIL_PARALLELISM),
-    "OPENCLAW_DOCKER_ALL_TAIL_PARALLELISM",
+    "GENESIS_DOCKER_ALL_TAIL_PARALLELISM",
   );
   const tailLines = parsePositiveInt(
-    process.env.OPENCLAW_DOCKER_ALL_FAILURE_TAIL_LINES,
+    process.env.GENESIS_DOCKER_ALL_FAILURE_TAIL_LINES,
     DEFAULT_FAILURE_TAIL_LINES,
-    "OPENCLAW_DOCKER_ALL_FAILURE_TAIL_LINES",
+    "GENESIS_DOCKER_ALL_FAILURE_TAIL_LINES",
   );
   const laneTimeoutMs = parsePositiveInt(
-    process.env.OPENCLAW_DOCKER_ALL_LANE_TIMEOUT_MS,
+    process.env.GENESIS_DOCKER_ALL_LANE_TIMEOUT_MS,
     DEFAULT_LANE_TIMEOUT_MS,
-    "OPENCLAW_DOCKER_ALL_LANE_TIMEOUT_MS",
+    "GENESIS_DOCKER_ALL_LANE_TIMEOUT_MS",
   );
   const laneStartStaggerMs = parseNonNegativeInt(
-    process.env.OPENCLAW_DOCKER_ALL_START_STAGGER_MS,
+    process.env.GENESIS_DOCKER_ALL_START_STAGGER_MS,
     DEFAULT_LANE_START_STAGGER_MS,
-    "OPENCLAW_DOCKER_ALL_START_STAGGER_MS",
+    "GENESIS_DOCKER_ALL_START_STAGGER_MS",
   );
   const statusIntervalMs = parseNonNegativeInt(
-    process.env.OPENCLAW_DOCKER_ALL_STATUS_INTERVAL_MS,
+    process.env.GENESIS_DOCKER_ALL_STATUS_INTERVAL_MS,
     DEFAULT_STATUS_INTERVAL_MS,
-    "OPENCLAW_DOCKER_ALL_STATUS_INTERVAL_MS",
+    "GENESIS_DOCKER_ALL_STATUS_INTERVAL_MS",
   );
   const preflightRunTimeoutMs = parsePositiveInt(
-    process.env.OPENCLAW_DOCKER_ALL_PREFLIGHT_RUN_TIMEOUT_MS,
+    process.env.GENESIS_DOCKER_ALL_PREFLIGHT_RUN_TIMEOUT_MS,
     DEFAULT_PREFLIGHT_RUN_TIMEOUT_MS,
-    "OPENCLAW_DOCKER_ALL_PREFLIGHT_RUN_TIMEOUT_MS",
+    "GENESIS_DOCKER_ALL_PREFLIGHT_RUN_TIMEOUT_MS",
   );
-  const failFast = parseBool(process.env.OPENCLAW_DOCKER_ALL_FAIL_FAST, true);
-  const dryRun = parseBool(process.env.OPENCLAW_DOCKER_ALL_DRY_RUN, false);
-  const preflightEnabled = parseBool(process.env.OPENCLAW_DOCKER_ALL_PREFLIGHT, true);
-  const preflightCleanup = parseBool(process.env.OPENCLAW_DOCKER_ALL_PREFLIGHT_CLEANUP, true);
-  const timingsEnabled = parseBool(process.env.OPENCLAW_DOCKER_ALL_TIMINGS, true);
+  const failFast = parseBool(process.env.GENESIS_DOCKER_ALL_FAIL_FAST, true);
+  const dryRun = parseBool(process.env.GENESIS_DOCKER_ALL_DRY_RUN, false);
+  const preflightEnabled = parseBool(process.env.GENESIS_DOCKER_ALL_PREFLIGHT, true);
+  const preflightCleanup = parseBool(process.env.GENESIS_DOCKER_ALL_PREFLIGHT_CLEANUP, true);
+  const timingsEnabled = parseBool(process.env.GENESIS_DOCKER_ALL_TIMINGS, true);
   const timingsFile = path.resolve(
-    process.env.OPENCLAW_DOCKER_ALL_TIMINGS_FILE || DEFAULT_TIMINGS_FILE,
+    process.env.GENESIS_DOCKER_ALL_TIMINGS_FILE || DEFAULT_TIMINGS_FILE,
   );
-  const runId = process.env.OPENCLAW_DOCKER_ALL_RUN_ID || utcStampForPath();
+  const runId = process.env.GENESIS_DOCKER_ALL_RUN_ID || utcStampForPath();
   const logDir = path.resolve(
-    process.env.OPENCLAW_DOCKER_ALL_LOG_DIR ||
-      path.join(ROOT_DIR, ".artifacts/docker-tests", runId),
+    process.env.GENESIS_DOCKER_ALL_LOG_DIR || path.join(ROOT_DIR, ".artifacts/docker-tests", runId),
   );
   await mkdir(logDir, { recursive: true });
 
   const baseEnv = commandEnv({
-    OPENCLAW_DOCKER_E2E_IMAGE: process.env.OPENCLAW_DOCKER_E2E_IMAGE || DEFAULT_E2E_IMAGE,
+    GENESIS_DOCKER_E2E_IMAGE: process.env.GENESIS_DOCKER_E2E_IMAGE || DEFAULT_E2E_IMAGE,
   });
   appendExtension(baseEnv, "matrix");
   appendExtension(baseEnv, "acpx");
@@ -954,7 +949,7 @@ async function main() {
     }`,
   );
   console.log(`==> Docker lane timings: ${timingStore.enabled ? timingsFile : "disabled"}`);
-  console.log(`==> Live-test bundled plugin deps: ${baseEnv.OPENCLAW_DOCKER_BUILD_EXTENSIONS}`);
+  console.log(`==> Live-test bundled plugin deps: ${baseEnv.GENESIS_DOCKER_BUILD_EXTENSIONS}`);
   const schedulerOptions = parseSchedulerOptions(process.env, parallelism);
   const tailSchedulerOptions = parseSchedulerOptions(process.env, tailParallelism);
   console.log(
@@ -980,7 +975,7 @@ async function main() {
     [
       ["Build shared live-test image once", "pnpm test:docker:live-build"],
       [
-        `Build shared Docker E2E image once: ${baseEnv.OPENCLAW_DOCKER_E2E_IMAGE}`,
+        `Build shared Docker E2E image once: ${baseEnv.GENESIS_DOCKER_E2E_IMAGE}`,
         "pnpm test:docker:e2e-build",
       ],
     ],

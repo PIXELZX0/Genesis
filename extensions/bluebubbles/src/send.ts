@@ -4,7 +4,7 @@ import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
   stripMarkdown,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { resolveBlueBubblesServerAccount } from "./account-resolve.js";
 import { createBlueBubblesClient, createBlueBubblesClientFromParts } from "./client.js";
 import {
@@ -13,7 +13,7 @@ import {
   isBlueBubblesPrivateApiStatusEnabled,
   isMacOS26OrHigher,
 } from "./probe.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import { warnBlueBubbles } from "./runtime.js";
 import { extractBlueBubblesMessageId, resolveBlueBubblesSendTarget } from "./send-helpers.js";
 import { extractHandleFromChatGuid, normalizeBlueBubblesHandle } from "./targets.js";
@@ -24,7 +24,7 @@ export type BlueBubblesSendOpts = {
   password?: string;
   accountId?: string;
   timeoutMs?: number;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   /** Message GUID to reply to (reply threading) */
   replyToMessageGuid?: string;
   /** Part index for reply (default: 0) */

@@ -1,12 +1,12 @@
 import {
   parseAgentSessionKey,
   type MemoryCitationsMode,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/memory-core-host-runtime-core";
-import type { MemorySearchResult } from "openclaw/plugin-sdk/memory-core-host-runtime-files";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/memory-core-host-runtime-core";
+import type { MemorySearchResult } from "genesis/plugin-sdk/memory-core-host-runtime-files";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
-export function resolveMemoryCitationsMode(cfg: OpenClawConfig): MemoryCitationsMode {
+export function resolveMemoryCitationsMode(cfg: GenesisConfig): MemoryCitationsMode {
   const mode = cfg.memory?.citations;
   if (mode === "on" || mode === "off" || mode === "auto") {
     return mode;

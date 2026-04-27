@@ -1,7 +1,7 @@
 import type {
   RealtimeTranscriptionProviderConfig,
   RealtimeTranscriptionProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-transcription";
+} from "genesis/plugin-sdk/realtime-transcription";
 import { expect } from "vitest";
 
 const DEFAULT_ELEVENLABS_BASE_URL = "https://api.elevenlabs.io";
@@ -95,7 +95,7 @@ export async function runRealtimeSttLiveTest(params: {
   const transcripts: string[] = [];
   const partials: string[] = [];
   const errors: Error[] = [];
-  const expected = params.expectedNormalizedText ?? "openclaw";
+  const expected = params.expectedNormalizedText ?? "genesis";
   const session = params.provider.createSession({
     providerConfig: params.providerConfig,
     onPartial: (partial) => partials.push(partial),

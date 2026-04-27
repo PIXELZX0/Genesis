@@ -138,7 +138,7 @@ describe("exec safe-bin runtime policy", () => {
     if (process.platform === "win32") {
       return;
     }
-    await withTempDir({ prefix: "openclaw-safe-bin-runtime-" }, async (dir) => {
+    await withTempDir({ prefix: "genesis-safe-bin-runtime-" }, async (dir) => {
       try {
         await fs.chmod(dir, 0o777);
         const onWarning = vi.fn();

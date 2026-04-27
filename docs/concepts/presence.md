@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw presence entries are produced, merged, and displayed"
+summary: "How Genesis presence entries are produced, merged, and displayed"
 read_when:
   - Debugging the Instances tab
   - Investigating duplicate or stale instance rows
@@ -7,7 +7,7 @@ read_when:
 title: "Presence"
 ---
 
-OpenClaw “presence” is a lightweight, best‑effort view of:
+Genesis “presence” is a lightweight, best‑effort view of:
 
 - the **Gateway** itself, and
 - **clients connected to the Gateway** (mac app, WebChat, CLI, etc.)

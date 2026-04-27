@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { buildRandomTempFilePath, withTempDownloadPath } from "./temp-path.js";
 
 function expectPathInsideTmpRoot(resultPath: string) {
-  const tmpRoot = path.resolve(resolvePreferredOpenClawTmpDir());
+  const tmpRoot = path.resolve(resolvePreferredGenesisTmpDir());
   const resolved = path.resolve(resultPath);
   const rel = path.relative(tmpRoot, resolved);
   expect(rel === ".." || rel.startsWith(`..${path.sep}`)).toBe(false);
@@ -77,7 +77,7 @@ describe("withTempDownloadPath", () => {
     if (expectedBasename) {
       expect(path.basename(capturedPath)).toBe(expectedBasename);
     } else {
-      expect(capturedPath).toContain(path.join(resolvePreferredOpenClawTmpDir(), "line-media-"));
+      expect(capturedPath).toContain(path.join(resolvePreferredGenesisTmpDir(), "line-media-"));
     }
     if (expectCleanup) {
       await expect(fs.stat(capturedPath)).rejects.toMatchObject({ code: "ENOENT" });

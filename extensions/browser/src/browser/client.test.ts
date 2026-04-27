@@ -231,7 +231,7 @@ describe("browser client", () => {
             ok: true,
             json: async () => ({
               ok: true,
-              profile: "openclaw",
+              profile: "genesis",
               transport: "cdp",
               checks: [],
               status: {
@@ -268,7 +268,7 @@ describe("browser client", () => {
     });
     await expect(browserDoctor("http://127.0.0.1:18791")).resolves.toMatchObject({
       ok: true,
-      profile: "openclaw",
+      profile: "genesis",
     });
 
     await expect(browserTabs("http://127.0.0.1:18791")).resolves.toHaveLength(1);

@@ -1,7 +1,7 @@
 import os from "node:os";
-import { resolveLoggerBackedRuntime } from "openclaw/plugin-sdk/extension-shared";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { resolveLoggerBackedRuntime } from "genesis/plugin-sdk/extension-shared";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveNextcloudTalkAccount } from "./accounts.js";
 import { handleNextcloudTalkInbound } from "./inbound.js";
 import {

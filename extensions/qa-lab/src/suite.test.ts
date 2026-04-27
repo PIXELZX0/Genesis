@@ -34,46 +34,46 @@ describe("qa suite", () => {
     );
     expect(
       qaSuiteProgressTesting.resolveQaSuiteTransportReadyTimeoutMs(undefined, {
-        OPENCLAW_QA_TRANSPORT_READY_TIMEOUT_MS: "180000",
+        GENESIS_QA_TRANSPORT_READY_TIMEOUT_MS: "180000",
       }),
     ).toBe(180_000);
     expect(
       qaSuiteProgressTesting.resolveQaSuiteTransportReadyTimeoutMs(undefined, {
-        OPENCLAW_QA_TRANSPORT_READY_TIMEOUT_MS: "bad",
+        GENESIS_QA_TRANSPORT_READY_TIMEOUT_MS: "bad",
       }),
     ).toBe(120_000);
     expect(qaSuiteProgressTesting.resolveQaSuiteTransportReadyTimeoutMs(90_000, {})).toBe(90_000);
   });
 
-  it("applies OPENCLAW_QA_SUITE_PROGRESS override and falls back on invalid values", () => {
+  it("applies GENESIS_QA_SUITE_PROGRESS override and falls back on invalid values", () => {
     expect(
       qaSuiteProgressTesting.shouldLogQaSuiteProgress({
         CI: "false",
-        OPENCLAW_QA_SUITE_PROGRESS: "true",
+        GENESIS_QA_SUITE_PROGRESS: "true",
       }),
     ).toBe(true);
     expect(
       qaSuiteProgressTesting.shouldLogQaSuiteProgress({
         CI: "true",
-        OPENCLAW_QA_SUITE_PROGRESS: "false",
+        GENESIS_QA_SUITE_PROGRESS: "false",
       }),
     ).toBe(false);
     expect(
       qaSuiteProgressTesting.shouldLogQaSuiteProgress({
         CI: "false",
-        OPENCLAW_QA_SUITE_PROGRESS: "on",
+        GENESIS_QA_SUITE_PROGRESS: "on",
       }),
     ).toBe(true);
     expect(
       qaSuiteProgressTesting.shouldLogQaSuiteProgress({
         CI: "true",
-        OPENCLAW_QA_SUITE_PROGRESS: "off",
+        GENESIS_QA_SUITE_PROGRESS: "off",
       }),
     ).toBe(false);
     expect(
       qaSuiteProgressTesting.shouldLogQaSuiteProgress({
         CI: "true",
-        OPENCLAW_QA_SUITE_PROGRESS: "definitely",
+        GENESIS_QA_SUITE_PROGRESS: "definitely",
       }),
     ).toBe(true);
   });

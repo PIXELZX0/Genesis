@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/provider-auth";
-import { CUSTOM_LOCAL_AUTH_MARKER } from "openclaw/plugin-sdk/provider-auth";
+import type { GenesisConfig } from "genesis/plugin-sdk/provider-auth";
+import { CUSTOM_LOCAL_AUTH_MARKER } from "genesis/plugin-sdk/provider-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LMSTUDIO_LOCAL_API_KEY_PLACEHOLDER } from "./defaults.js";
 import {
@@ -11,8 +11,8 @@ import {
 
 const resolveApiKeyForProviderMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/provider-auth-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/provider-auth-runtime")>();
+vi.mock("genesis/plugin-sdk/provider-auth-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("genesis/plugin-sdk/provider-auth-runtime")>();
   return {
     ...actual,
     resolveApiKeyForProvider: (...args: unknown[]) => resolveApiKeyForProviderMock(...args),
@@ -23,7 +23,7 @@ function buildLmstudioConfig(overrides?: {
   apiKey?: unknown;
   headers?: unknown;
   auth?: "api-key";
-}): OpenClawConfig {
+}): GenesisConfig {
   return {
     models: {
       providers: {
@@ -37,7 +37,7 @@ function buildLmstudioConfig(overrides?: {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 describe("lmstudio-runtime", () => {

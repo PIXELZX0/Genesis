@@ -9,7 +9,7 @@ const hoisted = await vi.hoisted(async () => {
   return {
     ...createExportCommandSessionMocks(vi),
     exportTrajectoryBundleMock: vi.fn(() => ({
-      outputDir: "/tmp/workspace/.openclaw/trajectory-exports/openclaw-trajectory-session",
+      outputDir: "/tmp/workspace/.genesis/trajectory-exports/genesis-trajectory-session",
       manifest: {
         eventCount: 7,
         runtimeEventCount: 3,
@@ -20,7 +20,7 @@ const hoisted = await vi.hoisted(async () => {
       supplementalFiles: ["metadata.json", "artifacts.json", "prompts.json"],
     })),
     resolveDefaultTrajectoryExportDirMock: vi.fn(
-      () => "/tmp/workspace/.openclaw/trajectory-exports/openclaw-trajectory-session",
+      () => "/tmp/workspace/.genesis/trajectory-exports/genesis-trajectory-session",
     ),
     existsSyncMock: vi.fn((file: fs.PathLike, actualExistsSync: (path: fs.PathLike) => boolean) =>
       actualExistsSync(file),
@@ -58,7 +58,7 @@ vi.mock("node:fs", async () => {
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-export-command-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-export-command-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -127,7 +127,7 @@ describe("buildExportTrajectoryReply", () => {
       expect.objectContaining({
         sessionId: "session-1",
         sessionKey: "agent:target:session",
-        workspaceDir: expect.stringContaining("openclaw-export-command-"),
+        workspaceDir: expect.stringContaining("genesis-export-command-"),
       }),
     );
   });
@@ -141,7 +141,7 @@ describe("buildExportTrajectoryReply", () => {
 
     expect(hoisted.exportTrajectoryBundleMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        outputDir: path.join(params.workspaceDir, ".openclaw", "trajectory-exports", "my-bundle"),
+        outputDir: path.join(params.workspaceDir, ".genesis", "trajectory-exports", "my-bundle"),
       }),
     );
   });
@@ -186,8 +186,8 @@ describe("buildExportTrajectoryReply", () => {
     const { buildExportTrajectoryReply } = await import("./commands-export-trajectory.js");
     const workspaceDir = makeTempDir();
     const outsideDir = makeTempDir();
-    fs.mkdirSync(path.join(workspaceDir, ".openclaw"), { recursive: true });
-    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".openclaw", "trajectory-exports"));
+    fs.mkdirSync(path.join(workspaceDir, ".genesis"), { recursive: true });
+    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".genesis", "trajectory-exports"));
     const params = makeParams(workspaceDir);
     params.command.commandBodyNormalized = "/export-trajectory my-bundle";
 
@@ -201,8 +201,8 @@ describe("buildExportTrajectoryReply", () => {
     const { buildExportTrajectoryReply } = await import("./commands-export-trajectory.js");
     const workspaceDir = makeTempDir();
     const outsideDir = makeTempDir();
-    fs.mkdirSync(path.join(workspaceDir, ".openclaw"), { recursive: true });
-    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".openclaw", "trajectory-exports"));
+    fs.mkdirSync(path.join(workspaceDir, ".genesis"), { recursive: true });
+    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".genesis", "trajectory-exports"));
 
     const reply = await buildExportTrajectoryReply(makeParams(workspaceDir));
 
@@ -214,7 +214,7 @@ describe("buildExportTrajectoryReply", () => {
     const { buildExportTrajectoryReply } = await import("./commands-export-trajectory.js");
     const workspaceDir = makeTempDir();
     const outsideDir = makeTempDir();
-    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".openclaw"));
+    fs.symlinkSync(outsideDir, path.join(workspaceDir, ".genesis"));
     const params = makeParams(workspaceDir);
     params.command.commandBodyNormalized = "/export-trajectory my-bundle";
 

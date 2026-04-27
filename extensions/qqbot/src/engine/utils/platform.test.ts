@@ -11,20 +11,20 @@ import {
 describe("qqbot local media path remapping", () => {
   const createdPaths: string[] = [];
 
-  function createOpenClawTestRoot() {
+  function createGenesisTestRoot() {
     const actualHome = getHomeDir();
-    const openclawDir = path.join(actualHome, ".openclaw");
-    fs.mkdirSync(openclawDir, { recursive: true });
-    const testRoot = fs.mkdtempSync(path.join(openclawDir, "qqbot-platform-test-"));
+    const genesisDir = path.join(actualHome, ".genesis");
+    fs.mkdirSync(genesisDir, { recursive: true });
+    const testRoot = fs.mkdtempSync(path.join(genesisDir, "qqbot-platform-test-"));
     createdPaths.push(testRoot);
     return { actualHome, testRootName: path.basename(testRoot) };
   }
 
   function createQqbotMediaFile(fileName: string) {
-    const { actualHome, testRootName } = createOpenClawTestRoot();
+    const { actualHome, testRootName } = createGenesisTestRoot();
     const mediaFile = path.join(
       actualHome,
-      ".openclaw",
+      ".genesis",
       "media",
       "qqbot",
       "downloads",
@@ -49,7 +49,7 @@ describe("qqbot local media path remapping", () => {
 
     const missingWorkspacePath = path.join(
       actualHome,
-      ".openclaw",
+      ".genesis",
       "workspace",
       "qqbot",
       "downloads",
@@ -79,7 +79,7 @@ describe("qqbot local media path remapping", () => {
   it("blocks structured payload paths that escape QQ Bot media via '..'", () => {
     const escapedPath = path.join(
       getHomeDir(),
-      ".openclaw",
+      ".genesis",
       "media",
       "qqbot",
       "..",
@@ -96,13 +96,13 @@ describe("qqbot local media path remapping", () => {
     expect(resolveQQBotPayloadLocalFilePath(mediaFile)).toBe(fs.realpathSync(mediaFile));
   });
 
-  it("allows structured payload files inside sibling OpenClaw media subdirectories", () => {
+  it("allows structured payload files inside sibling Genesis media subdirectories", () => {
     // Core helpers such as `saveMediaBuffer(..., "outbound", ...)` place framework
     // attachments under sibling directories of `media/qqbot/`. The plugin must
-    // trust the shared `~/.openclaw/media` root so auto-routed sends can access
+    // trust the shared `~/.genesis/media` root so auto-routed sends can access
     // those files without the path-outside-storage guard firing.
     const actualHome = getHomeDir();
-    const outboundDir = path.join(actualHome, ".openclaw", "media", "outbound");
+    const outboundDir = path.join(actualHome, ".genesis", "media", "outbound");
     fs.mkdirSync(outboundDir, { recursive: true });
     const outboundFile = fs.mkdtempSync(path.join(outboundDir, "qqbot-outbound-"));
     const mediaFile = path.join(outboundFile, "tts.mp3");
@@ -113,11 +113,11 @@ describe("qqbot local media path remapping", () => {
   });
 
   it("blocks structured payload files inside the QQ Bot data directory", () => {
-    const { actualHome, testRootName } = createOpenClawTestRoot();
+    const { actualHome, testRootName } = createGenesisTestRoot();
 
     const dataFile = path.join(
       actualHome,
-      ".openclaw",
+      ".genesis",
       "qqbot",
       "sessions",
       testRootName,
@@ -135,7 +135,7 @@ describe("qqbot local media path remapping", () => {
 
     const missingWorkspacePath = path.join(
       actualHome,
-      ".openclaw",
+      ".genesis",
       "workspace",
       "qqbot",
       "downloads",

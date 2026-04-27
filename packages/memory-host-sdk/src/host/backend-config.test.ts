@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { resolveAgentWorkspaceDir } from "../../../../src/agents/agent-scope.js";
-import type { OpenClawConfig } from "../../../../src/config/config.js";
+import type { GenesisConfig } from "../../../../src/config/config.js";
 import { resolveMemoryBackendConfig } from "./backend-config.js";
 
 type ResolvedMemoryBackendConfig = ReturnType<typeof resolveMemoryBackendConfig>;
@@ -31,7 +31,7 @@ const withMemoryRootEntries = <T>(entries: Dirent[], test: () => T): T => {
   }
 };
 
-const rootMemoryConfig = (workspaceDir: string): OpenClawConfig =>
+const rootMemoryConfig = (workspaceDir: string): GenesisConfig =>
   ({
     agents: {
       defaults: { workspace: workspaceDir },
@@ -41,7 +41,7 @@ const rootMemoryConfig = (workspaceDir: string): OpenClawConfig =>
       backend: "qmd",
       qmd: {},
     },
-  }) as OpenClawConfig;
+  }) as GenesisConfig;
 
 const collectionNames = (resolved: ResolvedMemoryBackendConfig): Set<string> =>
   new Set((resolved.qmd?.collections ?? []).map((collection) => collection.name));
@@ -56,7 +56,7 @@ const customCollectionPaths = (resolved: ResolvedMemoryBackendConfig): string[] 
 
 describe("resolveMemoryBackendConfig", () => {
   it("defaults to builtin backend when config missing", () => {
-    const cfg = { agents: { defaults: { workspace: "/tmp/memory-test" } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { workspace: "/tmp/memory-test" } } } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.backend).toBe("builtin");
     expect(resolved.citations).toBe("auto");
@@ -70,7 +70,7 @@ describe("resolveMemoryBackendConfig", () => {
         backend: "qmd",
         qmd: {},
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.backend).toBe("qmd");
     expect(resolved.qmd?.collections.length).toBe(2);
@@ -126,7 +126,7 @@ describe("resolveMemoryBackendConfig", () => {
           command: '"/Applications/QMD Tools/qmd" --flag',
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.qmd?.command).toBe("/Applications/QMD Tools/qmd");
   });
@@ -149,7 +149,7 @@ describe("resolveMemoryBackendConfig", () => {
           ],
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     const custom = resolved.qmd?.collections.find((c) => c.name.startsWith("custom-notes"));
     expect(custom).toBeDefined();
@@ -173,7 +173,7 @@ describe("resolveMemoryBackendConfig", () => {
           paths: [{ path: "notes", name: "workspace", pattern: "**/*.md" }],
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const mainResolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     const devResolved = resolveMemoryBackendConfig({ cfg, agentId: "dev" });
     const mainNames = collectionNames(mainResolved);
@@ -226,7 +226,7 @@ describe("resolveMemoryBackendConfig", () => {
           includeDefaultMemory: false,
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     const names = collectionNames(resolved);
     expect(names.has("team-notes")).toBe(true);
@@ -249,7 +249,7 @@ describe("resolveMemoryBackendConfig", () => {
           paths: [{ path: "/shared/notion-mirror", name: "notion-mirror", pattern: "**/*.md" }],
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const mainResolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     const devResolved = resolveMemoryBackendConfig({ cfg, agentId: "dev" });
     const mainNames = collectionNames(mainResolved);
@@ -279,7 +279,7 @@ describe("resolveMemoryBackendConfig", () => {
             paths: [{ path: workspaceAliasDir, name: "workspace", pattern: "**/*.md" }],
           },
         },
-      } as OpenClawConfig;
+      } as GenesisConfig;
       const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
       const names = collectionNames(resolved);
       expect(names.has("workspace-main")).toBe(true);
@@ -312,7 +312,7 @@ describe("resolveMemoryBackendConfig", () => {
             ],
           },
         },
-      } as OpenClawConfig;
+      } as GenesisConfig;
       const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
       const names = collectionNames(resolved);
       expect(names.has("notes-main")).toBe(true);
@@ -336,7 +336,7 @@ describe("resolveMemoryBackendConfig", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.qmd?.update.waitForBootSync).toBe(true);
     expect(resolved.qmd?.update.commandTimeoutMs).toBe(12_000);
@@ -353,7 +353,7 @@ describe("resolveMemoryBackendConfig", () => {
           searchMode: "vsearch",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.qmd?.searchMode).toBe("vsearch");
   });
@@ -368,7 +368,7 @@ describe("resolveMemoryBackendConfig", () => {
           searchTool: " hybrid_search ",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.qmd?.searchMode).toBe("query");
     expect(resolved.qmd?.searchTool).toBe("hybrid_search");
@@ -387,7 +387,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const result = resolveMemoryBackendConfig({ cfg, agentId: "test-agent" });
     expect(result.backend).toBe("qmd");
     const paths = customCollectionPaths(result);
@@ -419,7 +419,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         ],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const result = resolveMemoryBackendConfig({ cfg, agentId: "my-agent" });
     expect(result.backend).toBe("qmd");
     const paths = customCollectionPaths(result);
@@ -446,7 +446,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         ],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const result = resolveMemoryBackendConfig({ cfg, agentId: "my-agent" });
     expect(result.backend).toBe("qmd");
     const paths = customCollectionPaths(result);
@@ -472,7 +472,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         ],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const result = resolveMemoryBackendConfig({ cfg, agentId: "my-agent" });
     const paths = customCollectionPaths(result);
@@ -494,7 +494,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const result = resolveMemoryBackendConfig({ cfg, agentId: "my-agent" });
     expect(customQmdCollections(result).map((collection) => collection.name)).toContain(
       "custom-1-my-agent",
@@ -517,7 +517,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         ],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const result = resolveMemoryBackendConfig({ cfg, agentId: "my-agent" });
 
@@ -540,7 +540,7 @@ describe("memorySearch.extraPaths integration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const result = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     const docsCollections = customQmdCollections(result).filter(

@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { parseImageGenerationModelRef } from "../../image-generation/model-ref.js";
 import {
   generateImage,
@@ -98,7 +98,7 @@ const ImageGenerateToolSchema = Type.Object({
   filename: Type.Optional(
     Type.String({
       description:
-        "Optional output filename hint. OpenClaw preserves the basename and saves under its managed media directory.",
+        "Optional output filename hint. Genesis preserves the basename and saves under its managed media directory.",
     }),
   ),
   size: Type.Optional(
@@ -180,7 +180,7 @@ function formatImageGenerationAuthHint(provider: {
 }
 
 export function resolveImageGenerationModelConfigForTool(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir?: string;
 }): ToolModelConfig | null {
   return resolveCapabilityModelConfigForTool({
@@ -324,7 +324,7 @@ function normalizeReferenceImages(args: Record<string, unknown>): string[] {
 }
 
 function resolveSelectedImageGenerationProvider(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   imageGenerationModelConfig: ToolModelConfig;
   modelOverride?: string;
 }): ImageGenerationProvider | undefined {
@@ -537,7 +537,7 @@ async function inferResolutionFromInputImages(
 }
 
 export function createImageGenerateTool(options?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   sandbox?: ImageGenerateSandboxConfig;

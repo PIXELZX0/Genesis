@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw proxy`, the local debug proxy and capture inspector"
+summary: "CLI reference for `genesis proxy`, the local debug proxy and capture inspector"
 read_when:
-  - You need to capture OpenClaw transport traffic locally for debugging
+  - You need to capture Genesis transport traffic locally for debugging
   - You want to inspect debug proxy sessions, blobs, or built-in query presets
 title: "Proxy"
 ---
 
-# `openclaw proxy`
+# `genesis proxy`
 
 Run the local explicit debug proxy and inspect captured traffic.
 
@@ -18,18 +18,18 @@ data.
 ## Commands
 
 ```bash
-openclaw proxy start [--host <host>] [--port <port>]
-openclaw proxy run [--host <host>] [--port <port>] -- <cmd...>
-openclaw proxy coverage
-openclaw proxy sessions [--limit <count>]
-openclaw proxy query --preset <name> [--session <id>]
-openclaw proxy blob --id <blobId>
-openclaw proxy purge
+genesis proxy start [--host <host>] [--port <port>]
+genesis proxy run [--host <host>] [--port <port>] -- <cmd...>
+genesis proxy coverage
+genesis proxy sessions [--limit <count>]
+genesis proxy query --preset <name> [--session <id>]
+genesis proxy blob --id <blobId>
+genesis proxy purge
 ```
 
 ## Query presets
 
-`openclaw proxy query --preset <name>` accepts:
+`genesis proxy query --preset <name>` accepts:
 
 - `double-sends`
 - `retry-storms`
@@ -42,7 +42,7 @@ openclaw proxy purge
 
 - `start` defaults to `127.0.0.1` unless `--host` is set.
 - `run` starts a local debug proxy and then runs the command after `--`.
-- Captures are local debugging data; use `openclaw proxy purge` when finished.
+- Captures are local debugging data; use `genesis proxy purge` when finished.
 
 ## Related
 

@@ -2,7 +2,7 @@
 name: tavily
 description: Tavily web search, content extraction, and research tools.
 metadata:
-  { "openclaw": { "emoji": "🔍", "requires": { "config": ["plugins.entries.tavily.enabled"] } } }
+  { "genesis": { "emoji": "🔍", "requires": { "config": ["plugins.entries.tavily.enabled"] } } }
 ---
 
 # Tavily Tools

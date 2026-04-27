@@ -132,10 +132,10 @@ export async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise
     },
     {
       env: {
-        OPENCLAW_AGENT_DIR: (home) => path.join(home, ".openclaw", "agent"),
-        PI_CODING_AGENT_DIR: (home) => path.join(home, ".openclaw", "agent"),
+        GENESIS_AGENT_DIR: (home) => path.join(home, ".genesis", "agent"),
+        PI_CODING_AGENT_DIR: (home) => path.join(home, ".genesis", "agent"),
       },
-      prefix: "openclaw-reply-",
+      prefix: "genesis-reply-",
     },
   );
 }
@@ -152,7 +152,7 @@ export function makeWhatsAppDirectiveConfig(
   return withFastReplyConfig({
     agents: {
       defaults: {
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "genesis"),
         ...defaults,
       },
     },
@@ -320,7 +320,7 @@ export function makeRestrictedElevatedDisabledConfig(home: string) {
     agents: {
       defaults: {
         model: "anthropic/claude-opus-4-6",
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "genesis"),
       },
       list: [
         {

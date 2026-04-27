@@ -115,7 +115,7 @@ const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
 const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; label: string }> = [
   { value: 0, label: "None" },
   { value: 25, label: "Slight" },
-  { value: 50, label: "Default" },
+  { value: 50, label: "Soft" },
   { value: 75, label: "Round" },
   { value: 100, label: "Full" },
 ];

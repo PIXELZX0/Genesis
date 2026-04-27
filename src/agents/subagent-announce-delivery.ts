@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ConversationRef } from "../infra/outbound/session-binding-service.js";
 import { normalizeAccountId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -151,12 +151,12 @@ function resolveRequesterSessionActivity(requesterSessionKey: string) {
 }
 
 function resolveDirectAnnounceTransientRetryDelaysMs() {
-  return process.env.OPENCLAW_TEST_FAST === "1"
+  return process.env.GENESIS_TEST_FAST === "1"
     ? ([8, 16, 32] as const)
     : ([5_000, 10_000, 20_000] as const);
 }
 
-export function resolveSubagentAnnounceTimeoutMs(cfg: OpenClawConfig): number {
+export function resolveSubagentAnnounceTimeoutMs(cfg: GenesisConfig): number {
   const configured = cfg.agents?.defaults?.subagents?.announceTimeoutMs;
   if (typeof configured !== "number" || !Number.isFinite(configured)) {
     return DEFAULT_SUBAGENT_ANNOUNCE_TIMEOUT_MS;
@@ -549,7 +549,7 @@ function hasVisibleGatewayAgentPayload(response: unknown): boolean {
 }
 
 async function sendThreadCompletionFallback(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string;
   to?: string;
   accountId?: string;

@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/tlon",
+  "name": "@genesis/tlon",
   "version": "2026.4.20",
-  "description": "OpenClaw Tlon/Urbit channel plugin",
+  "description": "Genesis Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "3.1034.0",
@@ -10,18 +10,18 @@
     "@urbit/aura": "^3.0.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -63,7 +63,7 @@
       ]
     },
     "install": {
-      "npmSpec": "@openclaw/tlon",
+      "npmSpec": "@genesis/tlon",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     }

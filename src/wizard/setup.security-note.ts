@@ -9,15 +9,15 @@ export const SECURITY_CONFIRM_MESSAGE =
 const heading = (text: string) => chalk.bold(text);
 
 export const SECURITY_NOTE_MESSAGE = [
-  "OpenClaw is a hobby project and still in beta. Expect sharp edges.",
-  "By default, OpenClaw is a personal agent: one trusted operator boundary.",
+  "Genesis is a hobby project and still in beta. Expect sharp edges.",
+  "By default, Genesis is a personal agent: one trusted operator boundary.",
   "This bot can read files and run actions if tools are enabled.",
   "A bad prompt can trick it into doing unsafe things.",
   "",
-  "OpenClaw is not a hostile multi-tenant boundary by default.",
+  "Genesis is not a hostile multi-tenant boundary by default.",
   "If multiple users can message one tool-enabled agent, they share that delegated tool authority.",
   "",
-  "If you’re not comfortable with security hardening and access control, don’t run OpenClaw.",
+  "If you’re not comfortable with security hardening and access control, don’t run Genesis.",
   "Ask someone experienced to help before enabling tools or exposing it to the internet.",
   "",
   heading("Recommended baseline"),
@@ -29,9 +29,9 @@ export const SECURITY_NOTE_MESSAGE = [
   "- Use the strongest available model for any bot with tools or untrusted inboxes.",
   "",
   heading("Run regularly"),
-  formatCliCommand("openclaw security audit --deep"),
-  formatCliCommand("openclaw security audit --fix"),
+  formatCliCommand("genesis security audit --deep"),
+  formatCliCommand("genesis security audit --fix"),
   "",
   heading("Learn more"),
-  "- https://docs.openclaw.ai/gateway/security",
+  "- https://docs.genesis.ai/gateway/security",
 ].join("\n");

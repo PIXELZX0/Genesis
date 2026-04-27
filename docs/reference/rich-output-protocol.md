@@ -17,7 +17,7 @@ These directives are separate. `MEDIA:` and reply/voice tags remain delivery met
 
 When block streaming is enabled, `MEDIA:` remains single-delivery metadata for a
 turn. If the same media URL is sent in a streamed block and repeated in the final
-assistant payload, OpenClaw delivers the attachment once and strips the duplicate
+assistant payload, Genesis delivers the attachment once and strips the duplicate
 from the final payload.
 
 ## `[embed ...]`
@@ -51,7 +51,7 @@ The normalized/stored assistant content block is a structured `canvas` item:
     "surface": "assistant_message",
     "render": "url",
     "viewId": "cv_123",
-    "url": "/__openclaw__/canvas/documents/cv_123/index.html",
+    "url": "/__genesis__/canvas/documents/cv_123/index.html",
     "title": "Status",
     "preferredHeight": 320
   }

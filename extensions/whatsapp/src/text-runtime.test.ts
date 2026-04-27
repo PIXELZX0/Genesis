@@ -80,24 +80,24 @@ describe("toWhatsappJid", () => {
 
 describe("jidToE164", () => {
   it("maps @lid using reverse mapping file", async () => {
-    await withTempDir("openclaw-state-", async (stateDir) => {
-      const previousStateDir = process.env.OPENCLAW_STATE_DIR;
+    await withTempDir("genesis-state-", async (stateDir) => {
+      const previousStateDir = process.env.GENESIS_STATE_DIR;
       const credentialsDir = path.join(stateDir, "credentials");
       fs.mkdirSync(credentialsDir, { recursive: true });
       fs.writeFileSync(
         path.join(credentialsDir, "lid-mapping-123_reverse.json"),
         JSON.stringify("5551234"),
       );
-      process.env.OPENCLAW_STATE_DIR = stateDir;
+      process.env.GENESIS_STATE_DIR = stateDir;
       vi.resetModules();
       try {
         const { jidToE164: freshJidToE164 } = await import("./text-runtime.js");
         expect(freshJidToE164("123@lid")).toBe("+5551234");
       } finally {
         if (previousStateDir) {
-          process.env.OPENCLAW_STATE_DIR = previousStateDir;
+          process.env.GENESIS_STATE_DIR = previousStateDir;
         } else {
-          delete process.env.OPENCLAW_STATE_DIR;
+          delete process.env.GENESIS_STATE_DIR;
         }
         vi.resetModules();
       }
@@ -105,7 +105,7 @@ describe("jidToE164", () => {
   });
 
   it("maps @lid from authDir mapping files", async () => {
-    await withTempDir("openclaw-auth-", (authDir) => {
+    await withTempDir("genesis-auth-", (authDir) => {
       const mappingPath = path.join(authDir, "lid-mapping-456_reverse.json");
       fs.writeFileSync(mappingPath, JSON.stringify("5559876"));
       expect(jidToE164("456@lid", { authDir })).toBe("+5559876");
@@ -113,7 +113,7 @@ describe("jidToE164", () => {
   });
 
   it("maps @hosted.lid from authDir mapping files", async () => {
-    await withTempDir("openclaw-auth-", (authDir) => {
+    await withTempDir("genesis-auth-", (authDir) => {
       const mappingPath = path.join(authDir, "lid-mapping-789_reverse.json");
       fs.writeFileSync(mappingPath, JSON.stringify(4440001));
       expect(jidToE164("789@hosted.lid", { authDir })).toBe("+4440001");
@@ -125,8 +125,8 @@ describe("jidToE164", () => {
   });
 
   it("falls back through lidMappingDirs in order", async () => {
-    await withTempDir("openclaw-lid-a-", async (first) => {
-      await withTempDir("openclaw-lid-b-", (second) => {
+    await withTempDir("genesis-lid-a-", async (first) => {
+      await withTempDir("genesis-lid-b-", (second) => {
         const mappingPath = path.join(second, "lid-mapping-321_reverse.json");
         fs.writeFileSync(mappingPath, JSON.stringify("123321"));
         expect(jidToE164("321@lid", { lidMappingDirs: [first, second] })).toBe("+123321");

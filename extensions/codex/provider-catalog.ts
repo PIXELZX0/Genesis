@@ -1,7 +1,7 @@
 import type {
   ModelDefinitionConfig,
   ModelProviderConfig,
-} from "openclaw/plugin-sdk/provider-model-shared";
+} from "genesis/plugin-sdk/provider-model-shared";
 import type { CodexAppServerModel } from "./src/app-server/models.js";
 
 export const CODEX_PROVIDER_ID = "codex";

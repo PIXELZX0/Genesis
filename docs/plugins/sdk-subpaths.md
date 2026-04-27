@@ -6,7 +6,7 @@ read_when:
 title: "Plugin SDK subpaths"
 ---
 
-The plugin SDK is exposed as a set of narrow subpaths under `openclaw/plugin-sdk/`.
+The plugin SDK is exposed as a set of narrow subpaths under `genesis/plugin-sdk/`.
 This page catalogs the commonly used subpaths grouped by purpose. The generated
 full list of 200+ subpaths lives in `scripts/lib/plugin-sdk-entrypoints.json`;
 reserved bundled-plugin helper subpaths appear there but are implementation
@@ -20,7 +20,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugin-sdk/plugin-entry`   | `definePluginEntry`                                                                                                                    |
 | `plugin-sdk/core`           | `defineChannelPluginEntry`, `createChatChannelPlugin`, `createChannelPluginBase`, `defineSetupPluginEntry`, `buildChannelConfigSchema` |
-| `plugin-sdk/config-schema`  | `OpenClawSchema`                                                                                                                       |
+| `plugin-sdk/config-schema`  | `GenesisSchema`                                                                                                                        |
 | `plugin-sdk/provider-entry` | `defineSingleProviderPluginEntry`                                                                                                      |
 
 <AccordionGroup>
@@ -28,7 +28,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | Subpath | Key exports |
     | --- | --- |
     | `plugin-sdk/channel-core` | `defineChannelPluginEntry`, `defineSetupPluginEntry`, `createChatChannelPlugin`, `createChannelPluginBase` |
-    | `plugin-sdk/config-schema` | Root `openclaw.json` Zod schema export (`OpenClawSchema`) |
+    | `plugin-sdk/config-schema` | Root `genesis.json` Zod schema export (`GenesisSchema`) |
     | `plugin-sdk/channel-setup` | `createOptionalChannelSetupSurface`, `createOptionalChannelSetupAdapter`, `createOptionalChannelSetupWizard`, plus `DEFAULT_ACCOUNT_ID`, `createTopLevelChannelDmPolicy`, `setSetupChannelEnabled`, `splitSetupEntries` |
     | `plugin-sdk/setup` | Shared setup wizard helpers, allowlist prompts, setup status builders |
     | `plugin-sdk/setup-runtime` | `createPatchedAccountSetupAdapter`, `createEnvPatchedAccountSetupAdapter`, `createSetupInputPresenceValidator`, `noteChannelLookupFailure`, `noteChannelLookupSummary`, `promptResolvedAllowFrom`, `splitSetupEntries`, `createAllowlistSetupWizardProxy`, `createDelegatedSetupWizardProxy` |
@@ -190,7 +190,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/models-provider-runtime` | `/models` command/provider reply helpers |
     | `plugin-sdk/skill-commands-runtime` | Skill command listing helpers |
     | `plugin-sdk/native-command-registry` | Native command registry/build/serialize helpers |
-    | `plugin-sdk/agent-harness` | Experimental trusted-plugin surface for low-level agent harnesses: harness types, active-run steer/abort helpers, OpenClaw tool bridge helpers, tool progress formatting/detail helpers, and attempt result utilities |
+    | `plugin-sdk/agent-harness` | Experimental trusted-plugin surface for low-level agent harnesses: harness types, active-run steer/abort helpers, Genesis tool bridge helpers, tool progress formatting/detail helpers, and attempt result utilities |
     | `plugin-sdk/provider-zai-endpoint` | Z.AI endpoint detection helpers |
     | `plugin-sdk/infra-runtime` | System event/heartbeat helpers |
     | `plugin-sdk/collection-runtime` | Small bounded cache helpers |

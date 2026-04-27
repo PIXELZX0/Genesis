@@ -2,8 +2,8 @@ import {
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
   normalizeOptionalAccountId,
-} from "openclaw/plugin-sdk/account-id";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/account-id";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
 const DEFAULT_AGENT_ID = "main";
 
@@ -21,13 +21,13 @@ function normalizeChannelId(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function resolveDefaultAgentId(cfg: OpenClawConfig): string {
+function resolveDefaultAgentId(cfg: GenesisConfig): string {
   const agents = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
   const chosen = (agents.find((agent) => agent?.default) ?? agents[0])?.id;
   return normalizeAgentId(chosen);
 }
 
-function listConfiguredAccountIds(cfg: OpenClawConfig): string[] {
+function listConfiguredAccountIds(cfg: GenesisConfig): string[] {
   const ids = new Set<string>();
   for (const key of Object.keys(cfg.channels?.telegram?.accounts ?? {})) {
     if (key) {
@@ -61,7 +61,7 @@ function resolveBindingAccount(params: {
   };
 }
 
-function listBoundAccountIds(cfg: OpenClawConfig, channelId: string): string[] {
+function listBoundAccountIds(cfg: GenesisConfig, channelId: string): string[] {
   const ids = new Set<string>();
   for (const binding of cfg.bindings ?? []) {
     const resolved = resolveBindingAccount({ binding, channelId });
@@ -72,7 +72,7 @@ function listBoundAccountIds(cfg: OpenClawConfig, channelId: string): string[] {
   return [...ids].toSorted((left, right) => left.localeCompare(right));
 }
 
-function resolveDefaultAgentBoundAccountId(cfg: OpenClawConfig, channelId: string): string | null {
+function resolveDefaultAgentBoundAccountId(cfg: GenesisConfig, channelId: string): string | null {
   const defaultAgentId = resolveDefaultAgentId(cfg);
   for (const binding of cfg.bindings ?? []) {
     const resolved = resolveBindingAccount({ binding, channelId });
@@ -111,14 +111,14 @@ function resolveListedDefaultAccountId(params: {
   return params.accountIds[0] ?? DEFAULT_ACCOUNT_ID;
 }
 
-export function listTelegramAccountIds(cfg: OpenClawConfig): string[] {
+export function listTelegramAccountIds(cfg: GenesisConfig): string[] {
   return combineAccountIds({
     configuredAccountIds: listConfiguredAccountIds(cfg),
     additionalAccountIds: listBoundAccountIds(cfg, "telegram"),
   });
 }
 
-export function resolveDefaultTelegramAccountSelection(cfg: OpenClawConfig): {
+export function resolveDefaultTelegramAccountSelection(cfg: GenesisConfig): {
   accountId: string;
   accountIds: string[];
   shouldWarnMissingDefault: boolean;
@@ -146,6 +146,6 @@ export function resolveDefaultTelegramAccountSelection(cfg: OpenClawConfig): {
   };
 }
 
-export function resolveDefaultTelegramAccountId(cfg: OpenClawConfig): string {
+export function resolveDefaultTelegramAccountId(cfg: GenesisConfig): string {
   return resolveDefaultTelegramAccountSelection(cfg).accountId;
 }

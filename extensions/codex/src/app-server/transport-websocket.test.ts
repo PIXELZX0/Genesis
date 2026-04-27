@@ -32,9 +32,7 @@ describe("Codex app-server websocket transport", () => {
       socket.on("message", (data) => {
         const message = JSON.parse(rawDataToText(data)) as { id?: number; method?: string };
         if (message.method === "initialize") {
-          socket.send(
-            JSON.stringify({ id: message.id, result: { userAgent: "openclaw/0.118.0" } }),
-          );
+          socket.send(JSON.stringify({ id: message.id, result: { userAgent: "genesis/0.118.0" } }));
           return;
         }
         if (message.method === "model/list") {

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   LIVE_TRANSPORT_BASELINE_STANDARD_SCENARIO_IDS,
@@ -16,9 +16,9 @@ const fetchWithSsrFGuardMock = vi.hoisted(() =>
   })),
 );
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/ssrf-runtime")>(
-    "openclaw/plugin-sdk/ssrf-runtime",
+vi.mock("genesis/plugin-sdk/ssrf-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/ssrf-runtime")>(
+    "genesis/plugin-sdk/ssrf-runtime",
   );
   return {
     ...actual,
@@ -36,11 +36,11 @@ describe("discord live qa runtime", () => {
   it("resolves required Discord QA env vars", () => {
     expect(
       __testing.resolveDiscordQaRuntimeEnv({
-        OPENCLAW_QA_DISCORD_GUILD_ID: "123456789012345678",
-        OPENCLAW_QA_DISCORD_CHANNEL_ID: "223456789012345678",
-        OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
-        OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN: "sut",
-        OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID: "323456789012345678",
+        GENESIS_QA_DISCORD_GUILD_ID: "123456789012345678",
+        GENESIS_QA_DISCORD_CHANNEL_ID: "223456789012345678",
+        GENESIS_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_DISCORD_SUT_BOT_TOKEN: "sut",
+        GENESIS_QA_DISCORD_SUT_APPLICATION_ID: "323456789012345678",
       }),
     ).toEqual({
       guildId: "123456789012345678",
@@ -54,24 +54,24 @@ describe("discord live qa runtime", () => {
   it("fails when a required Discord QA env var is missing", () => {
     expect(() =>
       __testing.resolveDiscordQaRuntimeEnv({
-        OPENCLAW_QA_DISCORD_GUILD_ID: "123456789012345678",
-        OPENCLAW_QA_DISCORD_CHANNEL_ID: "223456789012345678",
-        OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
-        OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN: "sut",
+        GENESIS_QA_DISCORD_GUILD_ID: "123456789012345678",
+        GENESIS_QA_DISCORD_CHANNEL_ID: "223456789012345678",
+        GENESIS_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_DISCORD_SUT_BOT_TOKEN: "sut",
       }),
-    ).toThrow("OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID");
+    ).toThrow("GENESIS_QA_DISCORD_SUT_APPLICATION_ID");
   });
 
   it("fails when Discord IDs are not snowflakes", () => {
     expect(() =>
       __testing.resolveDiscordQaRuntimeEnv({
-        OPENCLAW_QA_DISCORD_GUILD_ID: "qa-guild",
-        OPENCLAW_QA_DISCORD_CHANNEL_ID: "223456789012345678",
-        OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
-        OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN: "sut",
-        OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID: "323456789012345678",
+        GENESIS_QA_DISCORD_GUILD_ID: "qa-guild",
+        GENESIS_QA_DISCORD_CHANNEL_ID: "223456789012345678",
+        GENESIS_QA_DISCORD_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_DISCORD_SUT_BOT_TOKEN: "sut",
+        GENESIS_QA_DISCORD_SUT_APPLICATION_ID: "323456789012345678",
       }),
-    ).toThrow("OPENCLAW_QA_DISCORD_GUILD_ID must be a Discord snowflake.");
+    ).toThrow("GENESIS_QA_DISCORD_GUILD_ID must be a Discord snowflake.");
   });
 
   it("parses Discord pooled credential payloads", () => {
@@ -105,7 +105,7 @@ describe("discord live qa runtime", () => {
   });
 
   it("injects a temporary Discord account into the QA gateway config", () => {
-    const baseCfg: OpenClawConfig = {
+    const baseCfg: GenesisConfig = {
       plugins: {
         allow: ["memory-core", "qa-channel"],
         entries: {
@@ -117,8 +117,8 @@ describe("discord live qa runtime", () => {
         "qa-channel": {
           enabled: true,
           baseUrl: "http://127.0.0.1:43123",
-          botUserId: "openclaw",
-          botDisplayName: "OpenClaw QA",
+          botUserId: "genesis",
+          botDisplayName: "Genesis QA",
           allowFrom: ["*"],
         },
       },

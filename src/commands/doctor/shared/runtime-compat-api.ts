@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { applyLegacyDoctorMigrations } from "./legacy-config-compat.js";
 import { normalizeRuntimeCompatibilityConfigValues } from "./legacy-config-runtime-migrate.js";
 
@@ -13,9 +13,9 @@ export function applyRuntimeLegacyConfigMigrations(raw: unknown): {
 
   const original = raw as Record<string, unknown>;
   const migrated = applyLegacyDoctorMigrations(original);
-  const base = (migrated.next ?? original) as OpenClawConfig;
+  const base = (migrated.next ?? original) as GenesisConfig;
   const normalized = normalizeRuntimeCompatibilityConfigValues(base);
-  const next = normalized.config as OpenClawConfig & Record<string, unknown>;
+  const next = normalized.config as GenesisConfig & Record<string, unknown>;
   const changes = [...migrated.changes, ...normalized.changes];
 
   if (changes.length === 0 || isDeepStrictEqual(next, original)) {

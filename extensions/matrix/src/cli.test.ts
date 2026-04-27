@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { formatZonedTimestamp } from "openclaw/plugin-sdk/matrix-runtime-shared";
+import { formatZonedTimestamp } from "genesis/plugin-sdk/matrix-runtime-shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { registerMatrixCli, resetMatrixCliStateForTests } from "./cli.js";
 
@@ -288,10 +288,10 @@ describe("matrix CLI verification commands", () => {
     expect(consoleLogMock).toHaveBeenCalledWith("Device verified by owner: no");
     expect(consoleLogMock).toHaveBeenCalledWith("Backup: active and trusted on this device");
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Recovery key can unlock the room-key backup, but full Matrix identity trust is still incomplete. Run openclaw matrix verify self and follow the prompts from another Matrix client.",
+      "- Recovery key can unlock the room-key backup, but full Matrix identity trust is still incomplete. Run genesis matrix verify self and follow the prompts from another Matrix client.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- If you intend to replace the current cross-signing identity, run openclaw matrix verify bootstrap --recovery-key '<key>' --force-reset-cross-signing.",
+      "- If you intend to replace the current cross-signing identity, run genesis matrix verify bootstrap --recovery-key '<key>' --force-reset-cross-signing.",
     );
   });
 
@@ -378,13 +378,13 @@ describe("matrix CLI verification commands", () => {
       "- Accept the verification request in another Matrix client for this account.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Then run openclaw matrix verify start --account ops -- txn-1 to start SAS verification.",
+      "- Then run genesis matrix verify start --account ops -- txn-1 to start SAS verification.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify sas --account ops -- txn-1 to display the SAS emoji or decimals.",
+      "- Run genesis matrix verify sas --account ops -- txn-1 to display the SAS emoji or decimals.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- When the SAS matches, run openclaw matrix verify confirm-sas --account ops -- txn-1.",
+      "- When the SAS matches, run genesis matrix verify confirm-sas --account ops -- txn-1.",
     );
   });
 
@@ -425,13 +425,13 @@ describe("matrix CLI verification commands", () => {
     });
     expect(consoleLogMock).toHaveBeenCalledWith("Room id: !room-'$(x):example.org");
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Then run openclaw matrix verify start --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm to start SAS verification.",
+      "- Then run genesis matrix verify start --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm to start SAS verification.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify sas --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm to display the SAS emoji or decimals.",
+      "- Run genesis matrix verify sas --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm to display the SAS emoji or decimals.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- When the SAS matches, run openclaw matrix verify confirm-sas --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm.",
+      "- When the SAS matches, run genesis matrix verify confirm-sas --user-id @alice:example.org --room-id '!room-'\\''$(x):example.org' -- txn-dm.",
     );
   });
 
@@ -451,13 +451,13 @@ describe("matrix CLI verification commands", () => {
     });
 
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Then run openclaw matrix verify start --account ops -- --account=evil to start SAS verification.",
+      "- Then run genesis matrix verify start --account ops -- --account=evil to start SAS verification.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify sas --account ops -- --account=evil to display the SAS emoji or decimals.",
+      "- Run genesis matrix verify sas --account ops -- --account=evil to display the SAS emoji or decimals.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- When the SAS matches, run openclaw matrix verify confirm-sas --account ops -- --account=evil.",
+      "- When the SAS matches, run genesis matrix verify confirm-sas --account ops -- --account=evil.",
     );
   });
 
@@ -486,7 +486,7 @@ describe("matrix CLI verification commands", () => {
 
     expect(listMatrixVerificationsMock).toHaveBeenCalledWith({ accountId: "default", cfg: {} });
     expect(consoleLogMock).toHaveBeenCalledWith("Verification id: incoming-1");
-    expect(consoleLogMock).toHaveBeenCalledWith("Initiated by OpenClaw: no");
+    expect(consoleLogMock).toHaveBeenCalledWith("Initiated by Genesis: no");
   });
 
   it("sanitizes remote Matrix verification metadata before printing it", async () => {
@@ -571,13 +571,13 @@ describe("matrix CLI verification commands", () => {
     });
 
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Then run openclaw matrix verify start -- 'txn-'\\''$(touch /tmp/pwn)' to start SAS verification.",
+      "- Then run genesis matrix verify start -- 'txn-'\\''$(touch /tmp/pwn)' to start SAS verification.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify sas -- 'txn-'\\''$(touch /tmp/pwn)' to display the SAS emoji or decimals.",
+      "- Run genesis matrix verify sas -- 'txn-'\\''$(touch /tmp/pwn)' to display the SAS emoji or decimals.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- When the SAS matches, run openclaw matrix verify confirm-sas -- 'txn-'\\''$(touch /tmp/pwn)'.",
+      "- When the SAS matches, run genesis matrix verify confirm-sas -- 'txn-'\\''$(touch /tmp/pwn)'.",
     );
   });
 
@@ -595,10 +595,10 @@ describe("matrix CLI verification commands", () => {
     });
     expect(consoleLogMock).toHaveBeenCalledWith("SAS decimals: 1234 5678 9012");
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- If they match, run openclaw matrix verify confirm-sas -- self-1.",
+      "- If they match, run genesis matrix verify confirm-sas -- self-1.",
     );
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- If they do not match, run openclaw matrix verify mismatch-sas -- self-1.",
+      "- If they do not match, run genesis matrix verify mismatch-sas -- self-1.",
     );
   });
 
@@ -637,7 +637,7 @@ describe("matrix CLI verification commands", () => {
       verificationDmRoomId: "!dm:example.org",
     });
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- If they match, run openclaw matrix verify confirm-sas --user-id @alice:example.org --room-id '!dm:example.org' --account ops -- txn-dm.",
+      "- If they match, run genesis matrix verify confirm-sas --user-id @alice:example.org --room-id '!dm:example.org' --account ops -- txn-dm.",
     );
   });
 
@@ -653,7 +653,7 @@ describe("matrix CLI verification commands", () => {
     await program.parseAsync(["matrix", "verify", "accept", "verification-1"], { from: "user" });
 
     expect(consoleLogMock).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify start -- txn-stable to start SAS verification.",
+      "- Run genesis matrix verify start -- txn-stable to start SAS verification.",
     );
   });
 
@@ -848,14 +848,14 @@ describe("matrix CLI verification commands", () => {
     listMatrixOwnDevicesMock.mockResolvedValue([
       {
         deviceId: "A7hWr\u001B[31mQ70ea",
-        displayName: "OpenClaw\u001B[2J Gateway",
+        displayName: "Genesis\u001B[2J Gateway",
         lastSeenIp: "127.0.0.1\u009B2J",
         lastSeenTs: 1_741_507_200_000,
         current: true,
       },
       {
         deviceId: "BritdXC6iL",
-        displayName: "OpenClaw Gateway",
+        displayName: "Genesis Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: false,
@@ -867,9 +867,9 @@ describe("matrix CLI verification commands", () => {
 
     expect(listMatrixOwnDevicesMock).toHaveBeenCalledWith({ accountId: "poe", cfg: {} });
     expect(console.log).toHaveBeenCalledWith("Account: poe");
-    expect(console.log).toHaveBeenCalledWith("- A7hWrQ70ea (current, OpenClaw Gateway)");
+    expect(console.log).toHaveBeenCalledWith("- A7hWrQ70ea (current, Genesis Gateway)");
     expect(console.log).toHaveBeenCalledWith("  Last IP: 127.0.0.1");
-    expect(console.log).toHaveBeenCalledWith("- BritdXC6iL (OpenClaw Gateway)");
+    expect(console.log).toHaveBeenCalledWith("- BritdXC6iL (Genesis Gateway)");
   });
 
   it("prunes stale matrix gateway devices", async () => {
@@ -877,14 +877,14 @@ describe("matrix CLI verification commands", () => {
       before: [
         {
           deviceId: "A7hWrQ70ea",
-          displayName: "OpenClaw Gateway",
+          displayName: "Genesis Gateway",
           lastSeenIp: "127.0.0.1",
           lastSeenTs: 1_741_507_200_000,
           current: true,
         },
         {
           deviceId: "BritdXC6iL",
-          displayName: "OpenClaw Gateway",
+          displayName: "Genesis Gateway",
           lastSeenIp: null,
           lastSeenTs: null,
           current: false,
@@ -896,7 +896,7 @@ describe("matrix CLI verification commands", () => {
       remainingDevices: [
         {
           deviceId: "A7hWrQ70ea",
-          displayName: "OpenClaw Gateway",
+          displayName: "Genesis Gateway",
           lastSeenIp: "127.0.0.1",
           lastSeenTs: 1_741_507_200_000,
           current: true,
@@ -913,7 +913,7 @@ describe("matrix CLI verification commands", () => {
       accountId: "poe",
       cfg: {},
     });
-    expect(console.log).toHaveBeenCalledWith("Deleted stale OpenClaw devices: BritdXC6iL");
+    expect(console.log).toHaveBeenCalledWith("Deleted stale Genesis devices: BritdXC6iL");
     expect(console.log).toHaveBeenCalledWith("Current device: A7hWrQ70ea");
     expect(console.log).toHaveBeenCalledWith("Remaining devices: 1");
   });
@@ -979,7 +979,7 @@ describe("matrix CLI verification commands", () => {
     );
     expect(console.log).toHaveBeenCalledWith("Saved matrix account: ops");
     expect(console.log).toHaveBeenCalledWith(
-      "Bind this account to an agent: openclaw agents bind --agent <id> --bind matrix:ops",
+      "Bind this account to an agent: genesis agents bind --agent <id> --bind matrix:ops",
     );
   });
 
@@ -990,14 +990,14 @@ describe("matrix CLI verification commands", () => {
     listMatrixOwnDevicesMock.mockResolvedValue([
       {
         deviceId: "BritdXC6iL",
-        displayName: "OpenClaw Gateway",
+        displayName: "Genesis Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: false,
       },
       {
         deviceId: "du314Zpw3A",
-        displayName: "OpenClaw Gateway",
+        displayName: "Genesis Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: true,
@@ -1041,7 +1041,7 @@ describe("matrix CLI verification commands", () => {
     );
     expect(console.log).toHaveBeenCalledWith("Backup version: 7");
     expect(console.log).toHaveBeenCalledWith(
-      "Matrix device hygiene warning: stale OpenClaw devices detected (BritdXC6iL). Run openclaw matrix devices prune-stale --account ops.",
+      "Matrix device hygiene warning: stale Genesis devices detected (BritdXC6iL). Run genesis matrix devices prune-stale --account ops.",
     );
   });
 
@@ -1143,7 +1143,7 @@ describe("matrix CLI verification commands", () => {
         accountId: "ops",
         deviceHealth: expect.objectContaining({
           currentDeviceId: null,
-          staleOpenClawDeviceIds: [],
+          staleGenesisDeviceIds: [],
           error: "homeserver unavailable",
         }),
       }),
@@ -1185,7 +1185,7 @@ describe("matrix CLI verification commands", () => {
       }),
     );
     expect(console.log).toHaveBeenCalledWith(
-      "Bind this account to an agent: openclaw agents bind --agent <id> --bind matrix:main-bot",
+      "Bind this account to an agent: genesis agents bind --agent <id> --bind matrix:main-bot",
     );
   });
 
@@ -1432,10 +1432,10 @@ describe("matrix CLI verification commands", () => {
       "Backup issue: backup decryption key is not loaded on this device (secret storage did not return a key)",
     );
     expect(console.log).toHaveBeenCalledWith(
-      "- Backup key is not loaded on this device. Run openclaw matrix verify backup restore to load it and restore old room keys.",
+      "- Backup key is not loaded on this device. Run genesis matrix verify backup restore to load it and restore old room keys.",
     );
     expect(console.log).not.toHaveBeenCalledWith(
-      "- Backup is present but not trusted for this device. Re-run 'openclaw matrix verify device <key>'.",
+      "- Backup is present but not trusted for this device. Re-run 'genesis matrix verify device <key>'.",
     );
   });
 
@@ -1499,7 +1499,7 @@ describe("matrix CLI verification commands", () => {
     await program.parseAsync(["matrix", "verify", "status"], { from: "user" });
 
     expect(console.log).toHaveBeenCalledWith(
-      "- If you want a fresh backup baseline and accept losing unrecoverable history, run openclaw matrix verify backup reset --yes. This may also repair secret storage so the new backup key can be loaded after restart.",
+      "- If you want a fresh backup baseline and accept losing unrecoverable history, run genesis matrix verify backup reset --yes. This may also repair secret storage so the new backup key can be loaded after restart.",
     );
   });
 
@@ -1577,10 +1577,10 @@ describe("matrix CLI verification commands", () => {
     });
     expect(console.log).toHaveBeenCalledWith("Account: assistant");
     expect(console.log).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify device '<key>' --account assistant to verify this device.",
+      "- Run genesis matrix verify device '<key>' --account assistant to verify this device.",
     );
     expect(console.log).toHaveBeenCalledWith(
-      "- Run openclaw matrix verify bootstrap --account assistant to create a room key backup.",
+      "- Run genesis matrix verify bootstrap --account assistant to create a room key backup.",
     );
   });
 

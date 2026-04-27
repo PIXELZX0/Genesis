@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
 export type GatewayProbeTargetResolution = {
@@ -7,7 +7,7 @@ export type GatewayProbeTargetResolution = {
   remoteUrlMissing: boolean;
 };
 
-export function resolveGatewayProbeTarget(cfg: OpenClawConfig): GatewayProbeTargetResolution {
+export function resolveGatewayProbeTarget(cfg: GenesisConfig): GatewayProbeTargetResolution {
   const gatewayMode = cfg.gateway?.mode === "remote" ? "remote" : "local";
   const remoteUrlRaw = normalizeOptionalString(cfg.gateway?.remote?.url) ?? "";
   const remoteUrlMissing = gatewayMode === "remote" && !remoteUrlRaw;

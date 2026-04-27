@@ -3,7 +3,7 @@ import {
   type ModelRef,
   normalizeProviderId,
 } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -91,7 +91,7 @@ export function buildModelPickerItems(catalog: ModelPickerCatalogEntry[]): Model
 
 export function resolveProviderEndpointLabel(
   provider: string,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
 ): { endpoint?: string; api?: string } {
   const normalized = normalizeProviderId(provider);
   const providers = (cfg.models?.providers ?? {}) as Record<

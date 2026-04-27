@@ -1,5 +1,5 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 let inboundSessionRuntimePromise: Promise<
   typeof import("../config/sessions/inbound.runtime.js")
@@ -11,7 +11,7 @@ function loadInboundSessionRuntime() {
 }
 
 export async function recordInboundSessionMetaSafe(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   sessionKey: string;
   ctx: MsgContext;

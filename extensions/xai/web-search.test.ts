@@ -1,5 +1,5 @@
-import { NON_ENV_SECRETREF_MARKER } from "openclaw/plugin-sdk/provider-auth-runtime";
-import { createNonExitingRuntime } from "openclaw/plugin-sdk/runtime-env";
+import { NON_ENV_SECRETREF_MARKER } from "genesis/plugin-sdk/provider-auth-runtime";
+import { createNonExitingRuntime } from "genesis/plugin-sdk/runtime-env";
 import { describe, expect, it, vi } from "vitest";
 import { withEnv, withEnvAsync } from "../../test/helpers/plugins/env.js";
 import { createWizardPrompter } from "../../test/helpers/wizard-prompter.js";
@@ -106,7 +106,7 @@ describe("xai web search config resolution", () => {
         throw new Error("expected xai web search tool");
       }
 
-      await expect(maybeTool.execute({ query: "OpenClaw" })).resolves.toMatchObject({
+      await expect(maybeTool.execute({ query: "Genesis" })).resolves.toMatchObject({
         error: "missing_xai_api_key",
       });
     });

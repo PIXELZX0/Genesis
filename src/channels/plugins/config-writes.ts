@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import {
   authorizeConfigWriteShared,
@@ -21,7 +21,7 @@ function isInternalConfigWriteMessageChannel(channel?: string | null): boolean {
 }
 
 export function resolveChannelConfigWrites(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelId?: ChannelId | null;
   accountId?: string | null;
 }): boolean {
@@ -29,7 +29,7 @@ export function resolveChannelConfigWrites(params: {
 }
 
 export function authorizeConfigWrite(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   origin?: ConfigWriteScope;
   target?: ConfigWriteTarget;
   allowBypass?: boolean;

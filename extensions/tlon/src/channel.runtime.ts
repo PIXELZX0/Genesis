@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
-import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk/channel-send-result";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/core";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
+import type { ChannelOutboundAdapter } from "genesis/plugin-sdk/channel-send-result";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { ChannelPlugin } from "genesis/plugin-sdk/core";
 import { monitorTlonProvider } from "./monitor/index.js";
 import { tlonSetupWizard } from "./setup-surface.js";
 import {
@@ -91,7 +91,7 @@ async function createHttpPokeApi(params: {
 }
 
 function resolveOutboundContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   to: string;
 }) {

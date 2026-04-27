@@ -34,7 +34,7 @@ export {
   stripToolMessages,
 } from "./chat-history-text.js";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 
 export type SessionKind = "main" | "group" | "cron" | "hook" | "node" | "other";
@@ -95,7 +95,7 @@ export type SessionListRow = {
 export function resolveSessionToolContext(opts?: {
   agentSessionKey?: string;
   sandboxed?: boolean;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }) {
   const cfg = opts?.config ?? loadConfig();
   return {

@@ -1,13 +1,13 @@
 ---
-summary: "ComfyUI workflow image, video, and music generation setup in OpenClaw"
+summary: "ComfyUI workflow image, video, and music generation setup in Genesis"
 title: "ComfyUI"
 read_when:
-  - You want to use local ComfyUI workflows with OpenClaw
+  - You want to use local ComfyUI workflows with Genesis
   - You want to use Comfy Cloud with image, video, or music workflows
   - You need the bundled comfy plugin config keys
 ---
 
-OpenClaw ships a bundled `comfy` plugin for workflow-driven ComfyUI runs. The plugin is entirely workflow-driven, so OpenClaw does not try to map generic `size`, `aspectRatio`, `resolution`, `durationSeconds`, or TTS-style controls onto your graph.
+Genesis ships a bundled `comfy` plugin for workflow-driven ComfyUI runs. The plugin is entirely workflow-driven, so Genesis does not try to map generic `size`, `aspectRatio`, `resolution`, `durationSeconds`, or TTS-style controls onto your graph.
 
 | Property        | Detail                                                                           |
 | --------------- | -------------------------------------------------------------------------------- |
@@ -39,7 +39,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
         Make sure your local ComfyUI instance is running (defaults to `http://127.0.0.1:8188`).
       </Step>
       <Step title="Prepare your workflow JSON">
-        Export or create a ComfyUI workflow JSON file. Note the node IDs for the prompt input node and the output node you want OpenClaw to read from.
+        Export or create a ComfyUI workflow JSON file. Note the node IDs for the prompt input node and the output node you want Genesis to read from.
       </Step>
       <Step title="Configure the provider">
         Set `mode: "local"` and point at your workflow file. Here is a minimal image example:
@@ -65,7 +65,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
         ```
       </Step>
       <Step title="Set the default model">
-        Point OpenClaw at the `comfy/workflow` model for the capability you configured:
+        Point Genesis at the `comfy/workflow` model for the capability you configured:
 
         ```json5
         {
@@ -81,7 +81,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
       </Step>
       <Step title="Verify">
         ```bash
-        openclaw models list --provider comfy
+        genesis models list --provider comfy
         ```
       </Step>
     </Steps>
@@ -106,7 +106,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
         export COMFY_CLOUD_API_KEY="your-key"
 
         # Or inline in config
-        openclaw config set plugins.entries.comfy.config.apiKey "your-key"
+        genesis config set plugins.entries.comfy.config.apiKey "your-key"
         ```
       </Step>
       <Step title="Prepare your workflow JSON">
@@ -153,7 +153,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
       </Step>
       <Step title="Verify">
         ```bash
-        openclaw models list --provider comfy
+        genesis models list --provider comfy
         ```
       </Step>
     </Steps>
@@ -286,7 +286,7 @@ The `image` and `video` sections also support:
     Comfy video workflows support text-to-video and image-to-video through the configured graph.
 
     <Note>
-    OpenClaw does not pass input videos into Comfy workflows. Only text prompts and single reference images are supported as inputs.
+    Genesis does not pass input videos into Comfy workflows. Only text prompts and single reference images are supported as inputs.
     </Note>
 
   </Accordion>
@@ -321,7 +321,7 @@ The `image` and `video` sections also support:
     }
     ```
 
-    OpenClaw treats that legacy shape as the image workflow config. You do not need to migrate immediately, but the nested `image` / `video` / `music` sections are recommended for new setups.
+    Genesis treats that legacy shape as the image workflow config. You do not need to migrate immediately, but the nested `image` / `video` / `music` sections are recommended for new setups.
 
     <Tip>
     If you only use image generation, the legacy flat config and the new nested `image` section are functionally equivalent.
@@ -333,7 +333,7 @@ The `image` and `video` sections also support:
     Opt-in live coverage exists for the bundled plugin:
 
     ```bash
-    OPENCLAW_LIVE_TEST=1 COMFY_LIVE_TEST=1 pnpm test:live -- extensions/comfy/comfy.live.test.ts
+    GENESIS_LIVE_TEST=1 COMFY_LIVE_TEST=1 pnpm test:live -- extensions/comfy/comfy.live.test.ts
     ```
 
     The live test skips individual image, video, or music cases unless the matching Comfy workflow section is configured.

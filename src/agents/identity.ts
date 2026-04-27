@@ -1,18 +1,18 @@
 import type { HumanDelayConfig, IdentityConfig } from "../config/types.base.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 
 const DEFAULT_ACK_REACTION = "👀";
 
 export function resolveAgentIdentity(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
 ): IdentityConfig | undefined {
   return resolveAgentConfig(cfg, agentId)?.identity;
 }
 
 export function resolveAckReaction(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: { channel?: string; accountId?: string },
 ): string {
@@ -46,10 +46,7 @@ export function resolveAckReaction(
   return emoji || DEFAULT_ACK_REACTION;
 }
 
-export function resolveIdentityNamePrefix(
-  cfg: OpenClawConfig,
-  agentId: string,
-): string | undefined {
+export function resolveIdentityNamePrefix(cfg: GenesisConfig, agentId: string): string | undefined {
   const name = resolveAgentIdentity(cfg, agentId)?.name?.trim();
   if (!name) {
     return undefined;
@@ -58,7 +55,7 @@ export function resolveIdentityNamePrefix(
 }
 
 export function resolveMessagePrefix(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: { configured?: string; hasAllowFrom?: boolean; fallback?: string },
 ): string {
@@ -72,12 +69,12 @@ export function resolveMessagePrefix(
     return "";
   }
 
-  return resolveIdentityNamePrefix(cfg, agentId) ?? opts?.fallback ?? "[openclaw]";
+  return resolveIdentityNamePrefix(cfg, agentId) ?? opts?.fallback ?? "[genesis]";
 }
 
 /** Helper to extract a channel config value by dynamic key. */
 function getChannelConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   channel: string,
 ): Record<string, unknown> | undefined {
   const channels = cfg.channels as Record<string, unknown> | undefined;
@@ -88,7 +85,7 @@ function getChannelConfig(
 }
 
 export function resolveResponsePrefix(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: { channel?: string; accountId?: string },
 ): string | undefined {
@@ -129,7 +126,7 @@ export function resolveResponsePrefix(
 }
 
 export function resolveEffectiveMessagesConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: {
     hasAllowFrom?: boolean;
@@ -151,7 +148,7 @@ export function resolveEffectiveMessagesConfig(
 }
 
 export function resolveHumanDelayConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
 ): HumanDelayConfig | undefined {
   const defaults = cfg.agents?.defaults?.humanDelay;

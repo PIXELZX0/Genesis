@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { normalizeIrcAllowlist, resolveIrcAllowlistMatch } from "./normalize.js";
 import type { IrcAccountConfig, IrcChannelConfig } from "./types.js";
 import type { IrcInboundMessage } from "./types.js";

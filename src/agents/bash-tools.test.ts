@@ -1,7 +1,7 @@
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { drainFormattedSystemEvents } from "../auto-reply/reply/session-system-events.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   resetHeartbeatWakeStateForTests,
   setHeartbeatWakeHandler,
@@ -177,7 +177,7 @@ vi.mock("../process/supervisor/index.js", () => {
 const isWin = process.platform === "win32";
 const defaultShell = isWin
   ? undefined
-  : process.env.OPENCLAW_TEST_SHELL || resolveShellFromPath("bash") || process.env.SHELL || "sh";
+  : process.env.GENESIS_TEST_SHELL || resolveShellFromPath("bash") || process.env.SHELL || "sh";
 // PowerShell: Start-Sleep for delays, ; for command separation, $null for null device
 const shortDelayCmd = isWin ? "Start-Sleep -Milliseconds 4" : "sleep 0.004";
 const POLL_INTERVAL_MS = isWin ? 15 : 2;
@@ -216,7 +216,7 @@ const DEFAULT_NOTIFY_SESSION_KEY = "agent:main:main";
 const ECHO_HI_COMMAND = shellEcho("hi");
 let callIdCounter = 0;
 const nextCallId = () => `call${++callIdCounter}`;
-const notifyCfg = {} as OpenClawConfig;
+const notifyCfg = {} as GenesisConfig;
 type ExecToolInstance = ReturnType<typeof createExecTool>;
 type ProcessToolInstance = ReturnType<typeof createProcessTool>;
 type ExecToolArgs = Parameters<ExecToolInstance["execute"]>[1];

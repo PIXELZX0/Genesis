@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { PluginRuntime, RuntimeLogger } from "openclaw/plugin-sdk/plugin-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { PluginRuntime, RuntimeLogger } from "genesis/plugin-sdk/plugin-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { GoogleMeetConfig, GoogleMeetMode, GoogleMeetTransport } from "./config.js";
 import { addGoogleMeetSetupCheck, getGoogleMeetSetupStatus } from "./setup.js";
 import { isSameMeetUrlForReuse, resolveChromeNodeInfo } from "./transports/chrome-browser-proxy.js";
@@ -62,7 +62,7 @@ export class GoogleMeetRuntime {
   constructor(
     private readonly params: {
       config: GoogleMeetConfig;
-      fullConfig: OpenClawConfig;
+      fullConfig: GenesisConfig;
       runtime: PluginRuntime;
       logger: RuntimeLogger;
     },

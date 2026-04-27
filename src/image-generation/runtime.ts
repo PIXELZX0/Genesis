@@ -1,6 +1,6 @@
 import { describeFailoverError, isFailoverError } from "../agents/failover-error.js";
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
@@ -19,7 +19,7 @@ const log = createSubsystemLogger("image-generation");
 
 export type { GenerateImageParams, GenerateImageRuntimeResult } from "./runtime-types.js";
 
-function buildNoImageGenerationModelConfiguredMessage(cfg: OpenClawConfig): string {
+function buildNoImageGenerationModelConfiguredMessage(cfg: GenesisConfig): string {
   return buildNoCapabilityModelConfiguredMessage({
     capabilityLabel: "image-generation",
     modelConfigKey: "imageGenerationModel",
@@ -27,7 +27,7 @@ function buildNoImageGenerationModelConfiguredMessage(cfg: OpenClawConfig): stri
   });
 }
 
-export function listRuntimeImageGenerationProviders(params?: { config?: OpenClawConfig }) {
+export function listRuntimeImageGenerationProviders(params?: { config?: GenesisConfig }) {
   return listImageGenerationProviders(params?.config);
 }
 

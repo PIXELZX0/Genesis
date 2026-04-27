@@ -2,13 +2,13 @@ import type {
   WebContentExtractionRequest,
   WebContentExtractionResult,
   WebContentExtractorPlugin,
-} from "openclaw/plugin-sdk/web-content-extractor";
+} from "genesis/plugin-sdk/web-content-extractor";
 import {
   htmlToMarkdown,
   normalizeWhitespace,
   sanitizeHtml,
   stripInvisibleUnicode,
-} from "openclaw/plugin-sdk/web-content-extractor";
+} from "genesis/plugin-sdk/web-content-extractor";
 
 const READABILITY_MAX_HTML_CHARS = 1_000_000;
 const READABILITY_MAX_ESTIMATED_NESTING_DEPTH = 3_000;

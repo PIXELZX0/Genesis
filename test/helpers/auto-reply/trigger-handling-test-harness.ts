@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, expect, vi } from "vitest";
 import { clearRuntimeAuthProfileStoreSnapshots } from "../../../src/agents/auth-profiles.js";
 import { withFastReplyConfig } from "../../../src/auto-reply/reply/get-reply-fast-path.js";
-import type { OpenClawConfig } from "../../../src/config/types.openclaw.js";
+import type { GenesisConfig } from "../../../src/config/types.genesis.js";
 import { resetProviderRuntimeHookCacheForTest } from "../../../src/plugins/provider-runtime.js";
 
 // Avoid exporting vitest mock types (TS2742 under pnpm + d.ts emit).
@@ -21,7 +21,7 @@ function getSharedMocks<T>(key: string, create: () => T): T {
   return store[symbol];
 }
 
-const piEmbeddedMocks = getSharedMocks("openclaw.trigger-handling.pi-embedded-mocks", () => ({
+const piEmbeddedMocks = getSharedMocks("genesis.trigger-handling.pi-embedded-mocks", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   compactEmbeddedPiSession: vi.fn(),
   runEmbeddedPiAgent: vi.fn(),
@@ -84,7 +84,7 @@ export function getProviderUsageMocks(): AnyMocks {
 
 vi.mock("../../../src/infra/provider-usage.js", () => providerUsageMocks);
 
-const modelCatalogMocks = getSharedMocks("openclaw.trigger-handling.model-catalog-mocks", () => ({
+const modelCatalogMocks = getSharedMocks("genesis.trigger-handling.model-catalog-mocks", () => ({
   loadModelCatalog: vi.fn().mockResolvedValue([
     {
       provider: "anthropic",
@@ -129,7 +129,7 @@ vi.doMock("../../../src/plugins/provider-runtime.runtime.js", () => ({
   refreshProviderOAuthCredentialWithPlugin: async () => undefined,
 }));
 
-const modelFallbackMocks = getSharedMocks("openclaw.trigger-handling.model-fallback-mocks", () => ({
+const modelFallbackMocks = getSharedMocks("genesis.trigger-handling.model-fallback-mocks", () => ({
   runWithModelFallback: vi.fn(
     async (params: {
       provider: string;
@@ -157,7 +157,7 @@ vi.doMock("../../../src/infra/git-commit.js", () => ({
   resolveCommitHash: vi.fn(() => "abcdef0"),
 }));
 
-const webSessionMocks = getSharedMocks("openclaw.trigger-handling.web-session-mocks", () => ({
+const webSessionMocks = getSharedMocks("genesis.trigger-handling.web-session-mocks", () => ({
   webAuthExists: vi.fn().mockResolvedValue(true),
   getWebAuthAgeMs: vi.fn().mockReturnValue(120_000),
   readWebSelfId: vi.fn().mockReturnValue({ e164: "+1999" }),
@@ -183,7 +183,7 @@ type TempHomeEnvSnapshot = {
   userProfile: string | undefined;
   homeDrive: string | undefined;
   homePath: string | undefined;
-  openclawHome: string | undefined;
+  genesisHome: string | undefined;
   stateDir: string | undefined;
 };
 
@@ -196,8 +196,8 @@ function snapshotTempHomeEnv(): TempHomeEnvSnapshot {
     userProfile: process.env.USERPROFILE,
     homeDrive: process.env.HOMEDRIVE,
     homePath: process.env.HOMEPATH,
-    openclawHome: process.env.OPENCLAW_HOME,
-    stateDir: process.env.OPENCLAW_STATE_DIR,
+    genesisHome: process.env.GENESIS_HOME,
+    stateDir: process.env.GENESIS_STATE_DIR,
   };
 }
 
@@ -214,15 +214,15 @@ function restoreTempHomeEnv(snapshot: TempHomeEnvSnapshot): void {
   restoreKey("USERPROFILE", snapshot.userProfile);
   restoreKey("HOMEDRIVE", snapshot.homeDrive);
   restoreKey("HOMEPATH", snapshot.homePath);
-  restoreKey("OPENCLAW_HOME", snapshot.openclawHome);
-  restoreKey("OPENCLAW_STATE_DIR", snapshot.stateDir);
+  restoreKey("GENESIS_HOME", snapshot.genesisHome);
+  restoreKey("GENESIS_STATE_DIR", snapshot.stateDir);
 }
 
 function setTempHomeEnv(home: string): void {
   process.env.HOME = home;
   process.env.USERPROFILE = home;
-  delete process.env.OPENCLAW_HOME;
-  process.env.OPENCLAW_STATE_DIR = join(home, ".openclaw");
+  delete process.env.GENESIS_HOME;
+  process.env.GENESIS_STATE_DIR = join(home, ".genesis");
 
   if (process.platform !== "win32") {
     return;
@@ -236,7 +236,7 @@ function setTempHomeEnv(home: string): void {
 }
 
 beforeAll(async () => {
-  suiteTempHomeRoot = await fs.mkdtemp(join(os.tmpdir(), "openclaw-triggers-suite-"));
+  suiteTempHomeRoot = await fs.mkdtemp(join(os.tmpdir(), "genesis-triggers-suite-"));
 });
 
 afterAll(async () => {
@@ -255,7 +255,7 @@ afterAll(async () => {
 export async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   const home = join(suiteTempHomeRoot, `case-${++suiteTempHomeId}`);
   const snapshot = snapshotTempHomeEnv();
-  await fs.mkdir(join(home, ".openclaw", "agents", "main", "sessions"), { recursive: true });
+  await fs.mkdir(join(home, ".genesis", "agents", "main", "sessions"), { recursive: true });
   setTempHomeEnv(home);
 
   try {
@@ -273,12 +273,12 @@ export async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise
   }
 }
 
-export function makeCfg(home: string): OpenClawConfig {
+export function makeCfg(home: string): GenesisConfig {
   return withFastReplyConfig({
     agents: {
       defaults: {
         model: { primary: "anthropic/claude-opus-4-6" },
-        workspace: join(home, "openclaw"),
+        workspace: join(home, "genesis"),
         // Test harness: avoid 1s coalescer idle sleeps that dominate trigger suites.
         blockStreamingCoalesce: { idleMs: 1 },
         // Trigger tests assert routing/authorization behavior, not delivery pacing.
@@ -296,7 +296,7 @@ export function makeCfg(home: string): OpenClawConfig {
       },
     },
     session: { store: join(home, "sessions.json") },
-  } as OpenClawConfig);
+  } as GenesisConfig);
 }
 
 export async function loadGetReplyFromConfig() {
@@ -332,7 +332,7 @@ export async function readSessionStore(cfg: {
 export function makeWhatsAppElevatedCfg(
   home: string,
   opts?: { elevatedEnabled?: boolean; requireMentionInGroups?: boolean },
-): OpenClawConfig {
+): GenesisConfig {
   const cfg = makeCfg(home);
   cfg.channels ??= {};
   cfg.channels.whatsapp = {
@@ -354,7 +354,7 @@ export function makeWhatsAppElevatedCfg(
 }
 
 export async function runDirectElevatedToggleAndLoadStore(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   getReplyFromConfig: typeof import("../../../src/auto-reply/reply.js").getReplyFromConfig;
   body?: string;
 }): Promise<{

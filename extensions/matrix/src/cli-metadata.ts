@@ -1,6 +1,6 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/channel-plugin-common";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/channel-plugin-common";
 
-export function registerMatrixCliMetadata(api: OpenClawPluginApi) {
+export function registerMatrixCliMetadata(api: GenesisPluginApi) {
   api.registerCli(
     async ({ program }) => {
       const { registerMatrixCli } = await import("./cli.js");

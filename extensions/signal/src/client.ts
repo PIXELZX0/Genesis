@@ -1,7 +1,7 @@
-import { generateSecureUuid } from "openclaw/plugin-sdk/core";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { resolveFetch } from "openclaw/plugin-sdk/fetch-runtime";
-import { fetchWithTimeout } from "openclaw/plugin-sdk/text-runtime";
+import { generateSecureUuid } from "genesis/plugin-sdk/core";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { resolveFetch } from "genesis/plugin-sdk/fetch-runtime";
+import { fetchWithTimeout } from "genesis/plugin-sdk/text-runtime";
 
 export type SignalRpcOptions = {
   baseUrl: string;

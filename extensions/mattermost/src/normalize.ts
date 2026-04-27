@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 export function normalizeMattermostMessagingTarget(raw: string): string | undefined {
   const trimmed = raw.trim();

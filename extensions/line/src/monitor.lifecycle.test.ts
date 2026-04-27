@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { WEBHOOK_IN_FLIGHT_DEFAULTS } from "openclaw/plugin-sdk/webhook-request-guards";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { WEBHOOK_IN_FLIGHT_DEFAULTS } from "genesis/plugin-sdk/webhook-request-guards";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 type LineNodeWebhookHandler = (req: IncomingMessage, res: ServerResponse) => Promise<void>;
@@ -32,14 +32,14 @@ vi.mock("./bot.js", () => ({
   createLineBot: createLineBotMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/reply-runtime", () => ({
+vi.mock("genesis/plugin-sdk/reply-runtime", () => ({
   chunkMarkdownText: vi.fn(),
   dispatchReplyWithBufferedBlockDispatcher: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/runtime-env")>(
-    "openclaw/plugin-sdk/runtime-env",
+vi.mock("genesis/plugin-sdk/runtime-env", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/runtime-env")>(
+    "genesis/plugin-sdk/runtime-env",
   );
   return {
     ...actual,
@@ -49,11 +49,11 @@ vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/channel-reply-pipeline", () => ({
+vi.mock("genesis/plugin-sdk/channel-reply-pipeline", () => ({
   createChannelReplyPipeline: vi.fn(() => ({})),
 }));
 
-vi.mock("openclaw/plugin-sdk/webhook-ingress", () => ({
+vi.mock("genesis/plugin-sdk/webhook-ingress", () => ({
   normalizePluginHttpPath: (_path: string | undefined, fallback: string) => fallback,
   registerPluginHttpRoute: registerPluginHttpRouteMock,
 }));
@@ -132,7 +132,7 @@ describe("monitorLineProvider lifecycle", () => {
     const task = monitorLineProvider({
       channelAccessToken: "token",
       channelSecret: "secret", // pragma: allowlist secret
-      config: {} as OpenClawConfig,
+      config: {} as GenesisConfig,
       runtime: {} as RuntimeEnv,
       abortSignal: abort.signal,
     }).then((monitor) => {
@@ -158,7 +158,7 @@ describe("monitorLineProvider lifecycle", () => {
     await monitorLineProvider({
       channelAccessToken: "token",
       channelSecret: "secret", // pragma: allowlist secret
-      config: {} as OpenClawConfig,
+      config: {} as GenesisConfig,
       runtime: {} as RuntimeEnv,
       abortSignal: abort.signal,
     });
@@ -170,7 +170,7 @@ describe("monitorLineProvider lifecycle", () => {
     const monitor = await monitorLineProvider({
       channelAccessToken: "token",
       channelSecret: "secret", // pragma: allowlist secret
-      config: {} as OpenClawConfig,
+      config: {} as GenesisConfig,
       runtime: {} as RuntimeEnv,
     });
 
@@ -196,7 +196,7 @@ describe("monitorLineProvider lifecycle", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       runtime: {} as RuntimeEnv,
     });
 
@@ -234,7 +234,7 @@ describe("monitorLineProvider lifecycle", () => {
     const monitor = await monitorLineProvider({
       channelAccessToken: "token",
       channelSecret: "secret", // pragma: allowlist secret
-      config: {} as OpenClawConfig,
+      config: {} as GenesisConfig,
       runtime: {} as RuntimeEnv,
     });
 

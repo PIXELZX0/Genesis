@@ -50,10 +50,10 @@ afterEach(() => {
 
 describe("handleReset", () => {
   it("uses active profile paths for destructive reset targets", async () => {
-    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-reset-profile-"));
-    const profileStateDir = path.join(homeDir, ".openclaw-work");
-    const defaultStateDir = path.join(homeDir, ".openclaw");
-    const profileConfigPath = path.join(profileStateDir, "openclaw.json");
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-reset-profile-"));
+    const profileStateDir = path.join(homeDir, ".genesis-work");
+    const defaultStateDir = path.join(homeDir, ".genesis");
+    const profileConfigPath = path.join(profileStateDir, "genesis.json");
     const profileCredentialsDir = path.join(profileStateDir, "credentials");
     const profileSessionsDir = path.join(profileStateDir, "agents", "main", "sessions");
     const workspaceDir = path.join(profileStateDir, "workspace");
@@ -66,10 +66,10 @@ describe("handleReset", () => {
     fs.writeFileSync(profileConfigPath, "{}\n");
 
     vi.stubEnv("HOME", homeDir);
-    vi.stubEnv("OPENCLAW_HOME", homeDir);
-    vi.stubEnv("OPENCLAW_PROFILE", "work");
-    vi.stubEnv("OPENCLAW_STATE_DIR", profileStateDir);
-    vi.stubEnv("OPENCLAW_CONFIG_PATH", profileConfigPath);
+    vi.stubEnv("GENESIS_HOME", homeDir);
+    vi.stubEnv("GENESIS_PROFILE", "work");
+    vi.stubEnv("GENESIS_STATE_DIR", profileStateDir);
+    vi.stubEnv("GENESIS_CONFIG_PATH", profileConfigPath);
 
     const runtime = { log: vi.fn() } as unknown as RuntimeEnv;
 

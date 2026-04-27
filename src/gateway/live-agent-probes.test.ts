@@ -31,7 +31,7 @@ describe("live-agent-probes", () => {
         attempt: 1,
         exactReply: spec.name,
       }),
-    ).toContain("openclaw-tools/cron");
+    ).toContain("genesis-tools/cron");
     expect(
       buildLiveCronProbeMessage({
         agent: "codex",
@@ -47,7 +47,7 @@ describe("live-agent-probes", () => {
         attempt: 1,
         exactReply: spec.name,
       }),
-    ).toContain("previous OpenClaw cron MCP tool call was cancelled");
+    ).toContain("previous Genesis cron MCP tool call was cancelled");
     expect(JSON.parse(spec.argsJson)).toEqual(
       expect.objectContaining({
         job: expect.objectContaining({

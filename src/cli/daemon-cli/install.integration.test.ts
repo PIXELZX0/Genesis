@@ -44,16 +44,16 @@ describe("runDaemonInstall integration", () => {
   beforeAll(async () => {
     envSnapshot = captureEnv([
       "HOME",
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_GATEWAY_TOKEN",
-      "OPENCLAW_GATEWAY_PASSWORD",
+      "GENESIS_STATE_DIR",
+      "GENESIS_CONFIG_PATH",
+      "GENESIS_GATEWAY_TOKEN",
+      "GENESIS_GATEWAY_PASSWORD",
     ]);
-    tempHome = await makeTempWorkspace("openclaw-daemon-install-int-");
-    configPath = path.join(tempHome, "openclaw.json");
+    tempHome = await makeTempWorkspace("genesis-daemon-install-int-");
+    configPath = path.join(tempHome, "genesis.json");
     process.env.HOME = tempHome;
-    process.env.OPENCLAW_STATE_DIR = tempHome;
-    process.env.OPENCLAW_CONFIG_PATH = configPath;
+    process.env.GENESIS_STATE_DIR = tempHome;
+    process.env.GENESIS_CONFIG_PATH = configPath;
   });
 
   afterAll(async () => {
@@ -66,8 +66,8 @@ describe("runDaemonInstall integration", () => {
     resetRuntimeCapture();
     clearRuntimeConfigSnapshot();
     // Keep these defined-but-empty so dotenv won't repopulate from local .env.
-    process.env.OPENCLAW_GATEWAY_TOKEN = "";
-    process.env.OPENCLAW_GATEWAY_PASSWORD = "";
+    process.env.GENESIS_GATEWAY_TOKEN = "";
+    process.env.GENESIS_GATEWAY_PASSWORD = "";
     serviceMock.isLoaded.mockResolvedValue(false);
     await fs.writeFile(configPath, JSON.stringify({}, null, 2));
     clearConfigCache();
@@ -134,6 +134,6 @@ describe("runDaemonInstall integration", () => {
     expect((persistedToken ?? "").length).toBeGreaterThan(0);
 
     const installEnv = serviceMock.install.mock.calls[0]?.[0]?.environment;
-    expect(installEnv?.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(installEnv?.GENESIS_GATEWAY_TOKEN).toBeUndefined();
   });
 });

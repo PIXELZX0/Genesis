@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 import { pickSandboxToolPolicy } from "./sandbox-tool-policy.js";
 import { isToolAllowedByPolicies } from "./tool-policy-match.js";
@@ -14,7 +14,7 @@ export function createToolFsPolicy(params: { workspaceOnly?: boolean }): ToolFsP
   };
 }
 
-export function resolveToolFsConfig(params: { cfg?: OpenClawConfig; agentId?: string }): {
+export function resolveToolFsConfig(params: { cfg?: GenesisConfig; agentId?: string }): {
   workspaceOnly?: boolean;
 } {
   const cfg = params.cfg;
@@ -27,14 +27,14 @@ export function resolveToolFsConfig(params: { cfg?: OpenClawConfig; agentId?: st
 }
 
 export function resolveEffectiveToolFsWorkspaceOnly(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
 }): boolean {
   return resolveToolFsConfig(params).workspaceOnly === true;
 }
 
 export function resolveEffectiveToolFsRootExpansionAllowed(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
 }): boolean {
   const cfg = params.cfg;

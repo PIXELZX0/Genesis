@@ -78,7 +78,7 @@ stats” or “verify gateway health”), set `agents.defaults.heartbeat.prompt`
 ## Response contract
 
 - If nothing needs attention, reply with **`HEARTBEAT_OK`**.
-- During heartbeat runs, OpenClaw treats `HEARTBEAT_OK` as an ack when it appears
+- During heartbeat runs, Genesis treats `HEARTBEAT_OK` as an ack when it appears
   at the **start or end** of the reply. The token is stripped and the reply is
   dropped if the remaining content is **≤ `ackMaxChars`** (default: 300).
 - If `HEARTBEAT_OK` appears in the **middle** of a reply, it is not treated
@@ -225,7 +225,7 @@ Use `accountId` to target a specific account on multi-account channels like Tele
 - `isolatedSession`: when true, each heartbeat runs in a fresh session with no prior conversation history. Uses the same isolation pattern as cron `sessionTarget: "isolated"`. Dramatically reduces per-heartbeat token cost. Combine with `lightContext: true` for maximum savings. Delivery routing still uses the main session context.
 - `session`: optional session key for heartbeat runs.
   - `main` (default): agent main session.
-  - Explicit session key (copy from `openclaw sessions --json` or the [sessions CLI](/cli/sessions)).
+  - Explicit session key (copy from `genesis sessions --json` or the [sessions CLI](/cli/sessions)).
   - Session key formats: see [Sessions](/concepts/session) and [Groups](/channels/groups).
 - `target`:
   - `last`: deliver to the last used external channel.
@@ -259,8 +259,8 @@ Use `accountId` to target a specific account on multi-account channels like Tele
 - If `target` resolves to no external destination, the run still happens but no
   outbound message is sent.
 - If `showOk`, `showAlerts`, and `useIndicator` are all disabled, the run is skipped up front as `reason=alerts-disabled`.
-- If only alert delivery is disabled, OpenClaw can still run the heartbeat, update due-task timestamps, restore the session idle timestamp, and suppress the outward alert payload.
-- If the resolved heartbeat target supports typing, OpenClaw shows typing while
+- If only alert delivery is disabled, Genesis can still run the heartbeat, update due-task timestamps, restore the session idle timestamp, and suppress the outward alert payload.
+- If the resolved heartbeat target supports typing, Genesis shows typing while
   the heartbeat run is active. This uses the same target the heartbeat would
   send chat output to, and it is disabled by `typingMode: "never"`.
 - Heartbeat-only replies do **not** keep the session alive; the last `updatedAt`
@@ -300,7 +300,7 @@ Precedence: per-account → per-channel → channel defaults → built-in defaul
 - `showAlerts`: sends the alert content when the model returns a non-OK reply.
 - `useIndicator`: emits indicator events for UI status surfaces.
 
-If **all three** are false, OpenClaw skips the heartbeat run entirely (no model call).
+If **all three** are false, Genesis skips the heartbeat run entirely (no model call).
 
 ### Per-channel vs per-account examples
 
@@ -344,7 +344,7 @@ setting `includeSystemPromptSection: false` omits it from normal bootstrap
 context.
 
 If `HEARTBEAT.md` exists but is effectively empty (only blank lines and markdown
-headers like `# Heading`), OpenClaw skips the heartbeat run to save API calls.
+headers like `# Heading`), Genesis skips the heartbeat run to save API calls.
 That skip is reported as `reason=empty-heartbeat-file`.
 If the file is missing, the heartbeat still runs and the model decides what to do.
 
@@ -385,7 +385,7 @@ tasks:
 
 Behavior:
 
-- OpenClaw parses the `tasks:` block and checks each task against its own `interval`.
+- Genesis parses the `tasks:` block and checks each task against its own `interval`.
 - Only **due** tasks are included in the heartbeat prompt for that tick.
 - If no tasks are due, the heartbeat is skipped entirely (`reason=no-tasks-due`) to avoid a wasted model call.
 - Non-task content in `HEARTBEAT.md` is preserved and appended as additional context after the due-task list.
@@ -416,7 +416,7 @@ Safety note: don’t put secrets (API keys, phone numbers, private tokens) into
 You can enqueue a system event and trigger an immediate heartbeat with:
 
 ```bash
-openclaw system event --text "Check for urgent follow-ups" --mode now
+genesis system event --text "Check for urgent follow-ups" --mode now
 ```
 
 If multiple agents have `heartbeat` configured, a manual wake runs each of those

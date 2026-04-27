@@ -16,19 +16,19 @@ Feishu/Lark is an all-in-one collaboration platform where teams chat, share docu
 
 ## Quick start
 
-> **Requires OpenClaw 2026.4.24 or above.** Run `openclaw --version` to check. Upgrade with `openclaw update`.
+> **Requires Genesis 2026.4.24 or above.** Run `genesis --version` to check. Upgrade with `genesis update`.
 
 <Steps>
   <Step title="Run the channel setup wizard">
   ```bash
-  openclaw channels login --channel feishu
+  genesis channels login --channel feishu
   ```
   Scan the QR code with your Feishu/Lark mobile app to create a Feishu/Lark bot automatically.
   </Step>
   
   <Step title="After setup completes, restart the gateway to apply the changes">
   ```bash
-  openclaw gateway restart
+  genesis gateway restart
   ```
   </Step>
 </Steps>
@@ -49,8 +49,8 @@ Configure `dmPolicy` to control who can DM the bot:
 **Approve a pairing request:**
 
 ```bash
-openclaw pairing list feishu
-openclaw pairing approve feishu <CODE>
+genesis pairing list feishu
+genesis pairing approve feishu <CODE>
 ```
 
 ### Group chats
@@ -150,13 +150,13 @@ Open the group in Feishu/Lark, click the menu icon in the top-right corner, and 
 Start the gateway, send a DM to the bot, then check the logs:
 
 ```bash
-openclaw logs --follow
+genesis logs --follow
 ```
 
 Look for `open_id` in the log output. You can also check pending pairing requests:
 
 ```bash
-openclaw pairing list feishu
+genesis pairing list feishu
 ```
 
 ---
@@ -180,7 +180,7 @@ openclaw pairing list feishu
 1. Ensure the bot is added to the group
 2. Ensure you @mention the bot (required by default)
 3. Verify `groupPolicy` is not `"disabled"`
-4. Check logs: `openclaw logs --follow`
+4. Check logs: `genesis logs --follow`
 
 ### Bot does not receive messages
 
@@ -188,14 +188,14 @@ openclaw pairing list feishu
 2. Ensure event subscription includes `im.message.receive_v1`
 3. Ensure **persistent connection** (WebSocket) is selected
 4. Ensure all required permission scopes are granted
-5. Ensure the gateway is running: `openclaw gateway status`
-6. Check logs: `openclaw logs --follow`
+5. Ensure the gateway is running: `genesis gateway status`
+6. Check logs: `genesis logs --follow`
 
 ### App Secret leaked
 
 1. Reset the App Secret in Feishu Open Platform / Lark Developer
 2. Update the value in your config
-3. Restart the gateway: `openclaw gateway restart`
+3. Restart the gateway: `genesis gateway restart`
 
 ---
 
@@ -286,7 +286,7 @@ Feishu/Lark supports ACP for DMs and group thread messages. Feishu/Lark ACP is t
             agent: "codex",
             backend: "acpx",
             mode: "persistent",
-            cwd: "/workspace/openclaw",
+            cwd: "/workspace/genesis",
           },
         },
       },
@@ -432,7 +432,7 @@ Full configuration: [Gateway configuration](/gateway/configuration)
 
 For `groupSessionScope: "group_topic"` and `"group_topic_sender"`, native
 Feishu/Lark topic groups use the event `thread_id` (`omt_*`) as the canonical
-topic session key. Normal group replies that OpenClaw turns into threads keep
+topic session key. Normal group replies that Genesis turns into threads keep
 using the reply root message ID (`om_*`) so the first turn and follow-up turn
 stay in the same session.
 

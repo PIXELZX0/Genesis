@@ -3,7 +3,7 @@ import { filterToolNamesByMessageProvider } from "./pi-tools.message-provider-po
 
 const DEFAULT_TOOL_NAMES = ["read", "write", "tts", "web_search"];
 
-describe("createOpenClawCodingTools message provider policy", () => {
+describe("createGenesisCodingTools message provider policy", () => {
   it.each(["voice", "VOICE", " Voice "])(
     "does not expose tts tool for normalized voice provider: %s",
     (messageProvider) => {

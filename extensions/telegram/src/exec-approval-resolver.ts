@@ -1,9 +1,9 @@
-import { resolveApprovalOverGateway } from "openclaw/plugin-sdk/approval-gateway-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ExecApprovalReplyDecision } from "openclaw/plugin-sdk/infra-runtime";
+import { resolveApprovalOverGateway } from "genesis/plugin-sdk/approval-gateway-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { ExecApprovalReplyDecision } from "genesis/plugin-sdk/infra-runtime";
 
 export type ResolveTelegramExecApprovalParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   approvalId: string;
   decision: ExecApprovalReplyDecision;
   senderId?: string | null;

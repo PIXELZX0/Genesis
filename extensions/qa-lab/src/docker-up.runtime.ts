@@ -106,7 +106,7 @@ export async function runQaDockerUp(
     composeFile,
   });
   await waitForDockerServiceHealth(
-    "openclaw-qa-gateway",
+    "genesis-qa-gateway",
     composeFile,
     repoRoot,
     runCommand,
@@ -119,7 +119,7 @@ export async function runQaDockerUp(
       .catch(() => false))
   ) {
     const containerGatewayUrl = await resolveComposeServiceUrl(
-      "openclaw-qa-gateway",
+      "genesis-qa-gateway",
       18789,
       composeFile,
       repoRoot,

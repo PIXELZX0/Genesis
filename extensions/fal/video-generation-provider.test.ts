@@ -1,5 +1,5 @@
-import * as providerAuth from "openclaw/plugin-sdk/provider-auth-runtime";
-import * as providerHttp from "openclaw/plugin-sdk/provider-http";
+import * as providerAuth from "genesis/plugin-sdk/provider-auth-runtime";
+import * as providerHttp from "genesis/plugin-sdk/provider-http";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { expectExplicitVideoGenerationCapabilities } from "../../test/helpers/media-generation/provider-capability-assertions.js";
 import {
@@ -172,7 +172,7 @@ describe("fal video generation provider", () => {
     const result = await provider.generateVideo({
       provider: "fal",
       model: "fal-ai/heygen/v2/video-agent",
-      prompt: "A founder explains OpenClaw in a concise studio video",
+      prompt: "A founder explains Genesis in a concise studio video",
       durationSeconds: 8,
       aspectRatio: "16:9",
       resolution: "720P",
@@ -190,7 +190,7 @@ describe("fal video generation provider", () => {
       String(fetchGuardMock.mock.calls[0]?.[0]?.init?.body ?? "{}"),
     ) as Record<string, unknown>;
     expect(submitBody).toEqual({
-      prompt: "A founder explains OpenClaw in a concise studio video",
+      prompt: "A founder explains Genesis in a concise studio video",
     });
     expect(result.metadata).toEqual({
       requestId: "heygen-req-123",

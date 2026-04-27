@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/qa-convex-credential-broker",
+  "name": "@genesis/qa-convex-credential-broker",
   "version": "0.1.0",
   "private": true,
-  "description": "Convex HTTP credential lease broker for OpenClaw QA lab",
+  "description": "Convex HTTP credential lease broker for Genesis QA lab",
   "type": "module",
   "scripts": {
     "dashboard": "convex dashboard",

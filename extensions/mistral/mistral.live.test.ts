@@ -15,7 +15,7 @@ const describeLive = LIVE && MISTRAL_KEY && ELEVENLABS_KEY ? describe : describe
 
 describeLive("mistral plugin live", () => {
   it("transcribes synthesized speech through the media provider", async () => {
-    const phrase = "Testing OpenClaw Mistral speech to text integration OK.";
+    const phrase = "Testing Genesis Mistral speech to text integration OK.";
     const audio = await synthesizeElevenLabsLiveSpeech({
       text: phrase,
       apiKey: ELEVENLABS_KEY,
@@ -32,13 +32,13 @@ describeLive("mistral plugin live", () => {
     });
 
     const normalized = normalizeTranscriptForMatch(transcript?.text ?? "");
-    expect(normalized).toContain("openclaw");
+    expect(normalized).toContain("genesis");
     expect(normalized).toContain("mistral");
   }, 90_000);
 
   it("streams realtime STT through the registered transcription provider", async () => {
     const provider = buildMistralRealtimeTranscriptionProvider();
-    const phrase = "Testing OpenClaw Mistral realtime transcription integration OK.";
+    const phrase = "Testing Genesis Mistral realtime transcription integration OK.";
     const speech = await synthesizeElevenLabsLiveSpeech({
       text: phrase,
       apiKey: ELEVENLABS_KEY,

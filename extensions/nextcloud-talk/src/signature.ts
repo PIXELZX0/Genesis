@@ -1,5 +1,5 @@
 import { createHmac, randomBytes } from "node:crypto";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { NextcloudTalkWebhookHeaders } from "./types.js";
 
 const SIGNATURE_HEADER = "x-nextcloud-talk-signature";

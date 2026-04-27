@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { upsertAuthProfile } from "openclaw/plugin-sdk/provider-auth";
+import { upsertAuthProfile } from "genesis/plugin-sdk/provider-auth";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyCodexAppServerAuthProfile,
@@ -53,7 +53,7 @@ afterEach(() => {
 
 describe("bridgeCodexAppServerStartOptions", () => {
   it("leaves Codex app-server start options unchanged", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const startOptions = {
       transport: "stdio" as const,
       command: "codex",
@@ -79,7 +79,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("applies an OpenAI Codex OAuth profile through app-server login", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "chatgptAuthTokens" }));
     try {
       upsertAuthProfile({
@@ -114,7 +114,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("refreshes an expired OpenAI Codex OAuth profile before app-server login", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "chatgptAuthTokens" }));
     oauthMocks.refreshOpenAICodexToken.mockResolvedValueOnce({
       access: "fresh-access-token",
@@ -156,7 +156,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("applies an OpenAI Codex api-key profile backed by a secret ref", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "apiKey" }));
     vi.stubEnv("OPENAI_CODEX_API_KEY", "ref-backed-api-key");
     try {
@@ -186,7 +186,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("applies an OpenAI Codex token profile backed by a secret ref", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "chatgptAuthTokens" }));
     vi.stubEnv("OPENAI_CODEX_TOKEN", "ref-backed-access-token");
     try {
@@ -219,7 +219,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("accepts a legacy Codex auth-provider alias for app-server login", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "chatgptAuthTokens" }));
     try {
       upsertAuthProfile({
@@ -251,7 +251,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("answers app-server ChatGPT token refresh requests from the bound profile", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     oauthMocks.refreshOpenAICodexToken.mockResolvedValueOnce({
       access: "refreshed-access-token",
       refresh: "refreshed-refresh-token",
@@ -290,7 +290,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("accepts a refreshed Codex OAuth credential when the stored provider is a legacy alias", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     oauthMocks.refreshOpenAICodexToken.mockResolvedValueOnce({
       access: "refreshed-alias-access-token",
       refresh: "refreshed-alias-refresh-token",
@@ -329,7 +329,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
   });
 
   it("preserves a stored ChatGPT plan type when building token login params", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-app-server-"));
     const request = vi.fn(async () => ({ type: "chatgptAuthTokens" }));
     try {
       upsertAuthProfile({

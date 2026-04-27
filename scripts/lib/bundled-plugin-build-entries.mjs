@@ -24,22 +24,22 @@ function readBundledPluginPackageJson(packageJsonPath) {
 
 function isManifestlessBundledRuntimeSupportPackage(params) {
   const packageName = typeof params.packageJson?.name === "string" ? params.packageJson.name : "";
-  if (packageName !== `@openclaw/${params.dirName}`) {
+  if (packageName !== `@genesis/${params.dirName}`) {
     return false;
   }
   return params.topLevelPublicSurfaceEntries.length > 0;
 }
 
 function collectPluginSourceEntries(packageJson) {
-  let packageEntries = Array.isArray(packageJson?.openclaw?.extensions)
-    ? packageJson.openclaw.extensions.filter(
+  let packageEntries = Array.isArray(packageJson?.genesis?.extensions)
+    ? packageJson.genesis.extensions.filter(
         (entry) => typeof entry === "string" && entry.trim().length > 0,
       )
     : [];
   const setupEntry =
-    typeof packageJson?.openclaw?.setupEntry === "string" &&
-    packageJson.openclaw.setupEntry.trim().length > 0
-      ? packageJson.openclaw.setupEntry
+    typeof packageJson?.genesis?.setupEntry === "string" &&
+    packageJson.genesis.setupEntry.trim().length > 0
+      ? packageJson.genesis.setupEntry
       : undefined;
   if (setupEntry) {
     packageEntries = Array.from(new Set([...packageEntries, setupEntry]));
@@ -48,7 +48,7 @@ function collectPluginSourceEntries(packageJson) {
 }
 
 function shouldStageBundledPluginRuntimeDependencies(packageJson) {
-  return packageJson?.openclaw?.bundle?.stageRuntimeDependencies === true;
+  return packageJson?.genesis?.bundle?.stageRuntimeDependencies === true;
 }
 
 function collectTopLevelPublicSurfaceEntries(pluginDir) {
@@ -97,7 +97,7 @@ export function collectBundledPluginBuildEntries(params = {}) {
     }
 
     const pluginDir = path.join(extensionsRoot, dirent.name);
-    const manifestPath = path.join(pluginDir, "openclaw.plugin.json");
+    const manifestPath = path.join(pluginDir, "genesis.plugin.json");
     const hasManifest = fs.existsSync(manifestPath);
     const packageJsonPath = path.join(pluginDir, "package.json");
     const packageJson = readBundledPluginPackageJson(packageJsonPath);
@@ -153,7 +153,7 @@ export function listBundledPluginPackArtifacts(params = {}) {
 
   for (const { id, hasManifest, hasPackageJson, sourceEntries } of entries) {
     if (hasManifest) {
-      artifacts.add(bundledDistPluginFile(id, "openclaw.plugin.json"));
+      artifacts.add(bundledDistPluginFile(id, "genesis.plugin.json"));
     }
     if (hasPackageJson) {
       artifacts.add(bundledDistPluginFile(id, "package.json"));

@@ -1,5 +1,5 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { GatewayClient } from "openclaw/plugin-sdk/gateway-runtime";
+import { GatewayClient } from "genesis/plugin-sdk/gateway-runtime";
 import type { GoogleMeetConfig } from "./config.js";
 
 type VoiceCallGatewayClient = InstanceType<typeof GatewayClient>;

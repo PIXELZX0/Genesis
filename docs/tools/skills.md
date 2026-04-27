@@ -6,22 +6,22 @@ read_when:
 title: "Skills"
 ---
 
-OpenClaw uses **[AgentSkills](https://agentskills.io)-compatible** skill folders to teach the agent how to use tools. Each skill is a directory containing a `SKILL.md` with YAML frontmatter and instructions. OpenClaw loads **bundled skills** plus optional local overrides, and filters them at load time based on environment, config, and binary presence.
+Genesis uses **[AgentSkills](https://agentskills.io)-compatible** skill folders to teach the agent how to use tools. Each skill is a directory containing a `SKILL.md` with YAML frontmatter and instructions. Genesis loads **bundled skills** plus optional local overrides, and filters them at load time based on environment, config, and binary presence.
 
 ## Locations and precedence
 
-OpenClaw loads skills from these sources:
+Genesis loads skills from these sources:
 
 1. **Extra skill folders**: configured with `skills.load.extraDirs`
-2. **Bundled skills**: shipped with the install (npm package or OpenClaw.app)
-3. **Managed/local skills**: `~/.openclaw/skills`
+2. **Bundled skills**: shipped with the install (npm package or Genesis.app)
+3. **Managed/local skills**: `~/.genesis/skills`
 4. **Personal agent skills**: `~/.agents/skills`
 5. **Project agent skills**: `<workspace>/.agents/skills`
 6. **Workspace skills**: `<workspace>/skills`
 
 If a skill name conflicts, precedence is:
 
-`<workspace>/skills` (highest) → `<workspace>/.agents/skills` → `~/.agents/skills` → `~/.openclaw/skills` → bundled skills → `skills.load.extraDirs` (lowest)
+`<workspace>/skills` (highest) → `<workspace>/.agents/skills` → `~/.agents/skills` → `~/.genesis/skills` → bundled skills → `skills.load.extraDirs` (lowest)
 
 ## Per-agent vs shared skills
 
@@ -32,7 +32,7 @@ In **multi-agent** setups, each agent has its own workspace. That means:
   that workspace before the normal workspace `skills/` folder.
 - **Personal agent skills** live in `~/.agents/skills` and apply across
   workspaces on that machine.
-- **Shared skills** live in `~/.openclaw/skills` (managed/local) and are visible
+- **Shared skills** live in `~/.genesis/skills` (managed/local) and are visible
   to **all agents** on the same machine.
 - **Shared folders** can also be added via `skills.load.extraDirs` (lowest
   precedence) if you want a common skills pack used by multiple agents.
@@ -74,13 +74,13 @@ Rules:
 - A non-empty `agents.list[].skills` list is the final set for that agent; it
   does not merge with defaults.
 
-OpenClaw applies the effective agent skill set across prompt building, skill
+Genesis applies the effective agent skill set across prompt building, skill
 slash-command discovery, sandbox sync, and skill snapshots.
 
 ## Plugins + skills
 
 Plugins can ship their own skills by listing `skills` directories in
-`openclaw.plugin.json` (paths relative to the plugin root). Plugin skills load
+`genesis.plugin.json` (paths relative to the plugin root). Plugin skills load
 when the plugin is enabled. This is the right place for tool-specific operating
 guides that are too long for the tool description but should be available
 whenever the plugin is installed; for example, the browser plugin ships a
@@ -88,7 +88,7 @@ whenever the plugin is installed; for example, the browser plugin ships a
 directories are merged into the same low-precedence path as
 `skills.load.extraDirs`, so a same-named bundled, managed, agent, or workspace
 skill overrides them.
-You can gate them via `metadata.openclaw.requires.config` on the plugin’s config
+You can gate them via `metadata.genesis.requires.config` on the plugin’s config
 entry. See [Plugins](/tools/plugin) for discovery/config and [Tools](/tools) for the
 tool surface those skills teach.
 
@@ -112,8 +112,8 @@ workspaces after reviewing its proposals. Full guide:
 
 ## ClawHub (install + sync)
 
-ClawHub is the public skills registry for OpenClaw. Browse at
-[https://clawhub.ai](https://clawhub.ai). Use native `openclaw skills`
+ClawHub is the public skills registry for Genesis. Browse at
+[https://clawhub.ai](https://clawhub.ai). Use native `genesis skills`
 commands to discover/install/update skills, or the separate `clawhub` CLI when
 you need publish/sync workflows.
 Full guide: [ClawHub](/tools/clawhub).
@@ -121,16 +121,16 @@ Full guide: [ClawHub](/tools/clawhub).
 Common flows:
 
 - Install a skill into your workspace:
-  - `openclaw skills install <skill-slug>`
+  - `genesis skills install <skill-slug>`
 - Update all installed skills:
-  - `openclaw skills update --all`
+  - `genesis skills update --all`
 - Sync (scan + publish updates):
   - `clawhub sync --all`
 
-Native `openclaw skills install` installs into the active workspace `skills/`
+Native `genesis skills install` installs into the active workspace `skills/`
 directory. The separate `clawhub` CLI also installs into `./skills` under your
-current working directory (or falls back to the configured OpenClaw workspace).
-OpenClaw picks that up as `<workspace>/skills` on the next session.
+current working directory (or falls back to the configured Genesis workspace).
+Genesis picks that up as `<workspace>/skills` on the next session.
 
 ## Security notes
 
@@ -138,7 +138,7 @@ OpenClaw picks that up as `<workspace>/skills` on the next session.
 - Prefer sandboxed runs for untrusted inputs and risky tools. See [Sandboxing](/gateway/sandboxing).
 - Workspace and extra-dir skill discovery only accepts skill roots and `SKILL.md` files whose resolved realpath stays inside the configured root.
 - Gateway-backed skill dependency installs (`skills.install`, onboarding, and the Skills settings UI) run the built-in dangerous-code scanner before executing installer metadata. `critical` findings block by default unless the caller explicitly sets the dangerous override; suspicious findings still warn only.
-- `openclaw skills install <slug>` is different: it downloads a ClawHub skill folder into the workspace and does not use the installer-metadata path above.
+- `genesis skills install <slug>` is different: it downloads a ClawHub skill folder into the workspace and does not use the installer-metadata path above.
 - `skills.entries.*.env` and `skills.entries.*.apiKey` inject secrets into the **host** process
   for that agent turn (not the sandbox). Keep secrets out of prompts and logs.
 - For a broader threat model and checklists, see [Security](/gateway/security).
@@ -161,7 +161,7 @@ Notes:
 - `metadata` should be a **single-line JSON object**.
 - Use `{baseDir}` in instructions to reference the skill folder path.
 - Optional frontmatter keys:
-  - `homepage` — URL surfaced as “Website” in the macOS Skills UI (also supported via `metadata.openclaw.homepage`).
+  - `homepage` — URL surfaced as “Website” in the macOS Skills UI (also supported via `metadata.genesis.homepage`).
   - `user-invocable` — `true|false` (default: `true`). When `true`, the skill is exposed as a user slash command.
   - `disable-model-invocation` — `true|false` (default: `false`). When `true`, the skill is excluded from the model prompt (still available via user invocation).
   - `command-dispatch` — `tool` (optional). When set to `tool`, the slash command bypasses the model and dispatches directly to a tool.
@@ -173,7 +173,7 @@ Notes:
 
 ## Gating (load-time filters)
 
-OpenClaw **filters skills at load time** using `metadata` (single-line JSON):
+Genesis **filters skills at load time** using `metadata` (single-line JSON):
 
 ```markdown
 ---
@@ -181,7 +181,7 @@ name: image-lab
 description: Generate or edit images via a provider-backed image workflow
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "requires": { "bins": ["uv"], "env": ["GEMINI_API_KEY"], "config": ["browser.enabled"] },
         "primaryEnv": "GEMINI_API_KEY",
@@ -190,7 +190,7 @@ metadata:
 ---
 ```
 
-Fields under `metadata.openclaw`:
+Fields under `metadata.genesis`:
 
 - `always: true` — always include the skill (skip other gates).
 - `emoji` — optional emoji used by the macOS Skills UI.
@@ -199,14 +199,14 @@ Fields under `metadata.openclaw`:
 - `requires.bins` — list; each must exist on `PATH`.
 - `requires.anyBins` — list; at least one must exist on `PATH`.
 - `requires.env` — list; env var must exist **or** be provided in config.
-- `requires.config` — list of `openclaw.json` paths that must be truthy.
+- `requires.config` — list of `genesis.json` paths that must be truthy.
 - `primaryEnv` — env var name associated with `skills.entries.<name>.apiKey`.
 - `install` — optional array of installer specs used by the macOS Skills UI (brew/node/go/uv/download).
 
 Legacy `metadata.clawdbot` blocks are still accepted when
-`metadata.openclaw` is absent, so older installed skills keep their dependency
+`metadata.genesis` is absent, so older installed skills keep their dependency
 gates and installer hints. New and updated skills should use
-`metadata.openclaw`.
+`metadata.genesis`.
 
 Note on sandboxing:
 
@@ -226,7 +226,7 @@ name: gemini
 description: Use Gemini CLI for coding assistance and Google search lookups.
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "♊️",
         "requires": { "bins": ["gemini"] },
@@ -248,24 +248,24 @@ metadata:
 Notes:
 
 - If multiple installers are listed, the gateway picks a **single** preferred option (brew when available, otherwise node).
-- If all installers are `download`, OpenClaw lists each entry so you can see the available artifacts.
+- If all installers are `download`, Genesis lists each entry so you can see the available artifacts.
 - Installer specs can include `os: ["darwin"|"linux"|"win32"]` to filter options by platform.
-- Node installs honor `skills.install.nodeManager` in `openclaw.json` (default: npm; options: npm/pnpm/yarn/bun).
+- Node installs honor `skills.install.nodeManager` in `genesis.json` (default: npm; options: npm/pnpm/yarn/bun).
   This only affects **skill installs**; the Gateway runtime should still be Node
   (Bun is not recommended for WhatsApp/Telegram).
 - Gateway-backed installer selection is preference-driven, not node-only:
-  when install specs mix kinds, OpenClaw prefers Homebrew when
+  when install specs mix kinds, Genesis prefers Homebrew when
   `skills.install.preferBrew` is enabled and `brew` exists, then `uv`, then the
   configured node manager, then other fallbacks like `go` or `download`.
-- If every install spec is `download`, OpenClaw surfaces all download options
+- If every install spec is `download`, Genesis surfaces all download options
   instead of collapsing to one preferred installer.
 - Go installs: if `go` is missing and `brew` is available, the gateway installs Go via Homebrew first and sets `GOBIN` to Homebrew’s `bin` when possible.
-- Download installs: `url` (required), `archive` (`tar.gz` | `tar.bz2` | `zip`), `extract` (default: auto when archive detected), `stripComponents`, `targetDir` (default: `~/.openclaw/tools/<skillKey>`).
+- Download installs: `url` (required), `archive` (`tar.gz` | `tar.bz2` | `zip`), `extract` (default: auto when archive detected), `stripComponents`, `targetDir` (default: `~/.genesis/tools/<skillKey>`).
 
-If no `metadata.openclaw` is present, the skill is always eligible (unless
+If no `metadata.genesis` is present, the skill is always eligible (unless
 disabled in config or blocked by `skills.allowBundled` for bundled skills).
 
-## Config overrides (`~/.openclaw/openclaw.json`)
+## Config overrides (`~/.genesis/genesis.json`)
 
 Bundled/managed skills can be toggled and supplied with env values:
 
@@ -293,7 +293,7 @@ Bundled/managed skills can be toggled and supplied with env values:
 
 Note: if the skill name contains hyphens, quote the key (JSON5 allows quoted keys).
 
-If you want stock image generation/editing inside OpenClaw itself, use the core
+If you want stock image generation/editing inside Genesis itself, use the core
 `image_generate` tool with `agents.defaults.imageGenerationModel` instead of a
 bundled skill. Skill examples here are for custom or third-party workflows.
 
@@ -304,13 +304,13 @@ For native image generation/editing, use `image_generate` with
 key too.
 
 Config keys match the **skill name** by default. If a skill defines
-`metadata.openclaw.skillKey`, use that key under `skills.entries`.
+`metadata.genesis.skillKey`, use that key under `skills.entries`.
 
 Rules:
 
 - `enabled: false` disables the skill even if it’s bundled/installed.
 - `env`: injected **only if** the variable isn’t already set in the process.
-- `apiKey`: convenience for skills that declare `metadata.openclaw.primaryEnv`.
+- `apiKey`: convenience for skills that declare `metadata.genesis.primaryEnv`.
   Supports plaintext string or SecretRef object (`{ source, provider, id }`).
 - `config`: optional bag for custom per-skill fields; custom keys must live here.
 - `allowBundled`: optional allowlist for **bundled** skills only. If set, only
@@ -318,7 +318,7 @@ Rules:
 
 ## Environment injection (per agent run)
 
-When an agent run starts, OpenClaw:
+When an agent run starts, Genesis:
 
 1. Reads skill metadata.
 2. Applies any `skills.entries.<key>.env` or `skills.entries.<key>.apiKey` to
@@ -328,32 +328,32 @@ When an agent run starts, OpenClaw:
 
 This is **scoped to the agent run**, not a global shell environment.
 
-For the bundled `claude-cli` backend, OpenClaw also materializes the same
+For the bundled `claude-cli` backend, Genesis also materializes the same
 eligible snapshot as a temporary Claude Code plugin and passes it with
 `--plugin-dir`. Claude Code can then use its native skill resolver while
-OpenClaw still owns precedence, per-agent allowlists, gating, and
+Genesis still owns precedence, per-agent allowlists, gating, and
 `skills.entries.*` env/API key injection. Other CLI backends use the prompt
 catalog only.
 
 ## Session snapshot (performance)
 
-OpenClaw snapshots the eligible skills **when a session starts** and reuses that list for subsequent turns in the same session. Changes to skills or config take effect on the next new session.
+Genesis snapshots the eligible skills **when a session starts** and reuses that list for subsequent turns in the same session. Changes to skills or config take effect on the next new session.
 
 Skills can also refresh mid-session when the skills watcher is enabled or when a new eligible remote node appears (see below). Think of this as a **hot reload**: the refreshed list is picked up on the next agent turn.
 
-If the effective agent skill allowlist changes for that session, OpenClaw
+If the effective agent skill allowlist changes for that session, Genesis
 refreshes the snapshot so the visible skills stay aligned with the current
 agent.
 
 ## Remote macOS nodes (Linux gateway)
 
-If the Gateway is running on Linux but a **macOS node** is connected **with `system.run` allowed** (Exec approvals security not set to `deny`), OpenClaw can treat macOS-only skills as eligible when the required binaries are present on that node. The agent should execute those skills via the `exec` tool with `host=node`.
+If the Gateway is running on Linux but a **macOS node** is connected **with `system.run` allowed** (Exec approvals security not set to `deny`), Genesis can treat macOS-only skills as eligible when the required binaries are present on that node. The agent should execute those skills via the `exec` tool with `host=node`.
 
 This relies on the node reporting its command support and on a bin probe via `system.run`. If the macOS node goes offline later, the skills remain visible; invocations may fail until the node reconnects.
 
 ## Skills watcher (auto-refresh)
 
-By default, OpenClaw watches skill folders and bumps the skills snapshot when `SKILL.md` files change. Configure this under `skills.load`:
+By default, Genesis watches skill folders and bumps the skills snapshot when `SKILL.md` files change. Configure this under `skills.load`:
 
 ```json5
 {
@@ -368,7 +368,7 @@ By default, OpenClaw watches skill folders and bumps the skills snapshot when `S
 
 ## Token impact (skills list)
 
-When skills are eligible, OpenClaw injects a compact XML list of available skills into the system prompt (via `formatSkillsForPrompt` in `pi-coding-agent`). The cost is deterministic:
+When skills are eligible, Genesis injects a compact XML list of available skills into the system prompt (via `formatSkillsForPrompt` in `pi-coding-agent`). The cost is deterministic:
 
 - **Base overhead (only when ≥1 skill):** 195 characters.
 - **Per skill:** 97 characters + the length of the XML-escaped `<name>`, `<description>`, and `<location>` values.
@@ -386,8 +386,8 @@ Notes:
 
 ## Managed skills lifecycle
 
-OpenClaw ships a baseline set of skills as **bundled skills** as part of the
-install (npm package or OpenClaw.app). `~/.openclaw/skills` exists for local
+Genesis ships a baseline set of skills as **bundled skills** as part of the
+install (npm package or Genesis.app). `~/.genesis/skills` exists for local
 overrides (for example, pinning/patching a skill without changing the bundled
 copy). Workspace skills are user-owned and override both on name conflicts.
 

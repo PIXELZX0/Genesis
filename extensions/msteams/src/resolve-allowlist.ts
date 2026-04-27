@@ -1,8 +1,8 @@
-import { mapAllowlistResolutionInputs } from "openclaw/plugin-sdk/allow-from";
+import { mapAllowlistResolutionInputs } from "genesis/plugin-sdk/allow-from";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { searchGraphUsers } from "./graph-users.js";
 import {
   listChannelsForTeam,

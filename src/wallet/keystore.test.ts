@@ -1,0 +1,59 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { resolveWalletKeystorePaths } from "./keystore.js";
+import { initWallet, unlockWalletMnemonic } from "./service.js";
+
+const MNEMONIC =
+  "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+
+async function tempEnv() {
+  const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-wallet-test-"));
+  return { env: { ...process.env, GENESIS_STATE_DIR: stateDir }, stateDir };
+}
+
+describe("wallet keystore", () => {
+  it("encrypts the mnemonic and preserves only public account metadata", async () => {
+    const { env } = await tempEnv();
+    const result = await initWallet({
+      env,
+      mnemonic: MNEMONIC,
+      passphrase: "correct horse battery staple",
+    });
+
+    expect(result.summary.accounts.map((account) => account.chain)).toEqual([
+      "btc",
+      "evm",
+      "sol",
+      "trx",
+    ]);
+
+    const { filePath } = resolveWalletKeystorePaths(env);
+    const raw = await fs.readFile(filePath, "utf8");
+    const stat = await fs.stat(filePath);
+    expect((stat.mode & 0o777).toString(8)).toBe("600");
+    expect(raw).not.toContain(MNEMONIC);
+    expect(raw).not.toContain("abandon");
+    expect(JSON.stringify(result.summary)).not.toContain("abandon");
+
+    const unlocked = await unlockWalletMnemonic({
+      env,
+      passphrase: "correct horse battery staple",
+    });
+    expect(unlocked).toBe(MNEMONIC);
+  });
+
+  it("rejects an incorrect passphrase", async () => {
+    const { env } = await tempEnv();
+    await initWallet({
+      env,
+      mnemonic: MNEMONIC,
+      passphrase: "right passphrase",
+    });
+
+    await expect(unlockWalletMnemonic({ env, passphrase: "wrong passphrase" })).rejects.toThrow(
+      /Unable to decrypt/,
+    );
+  });
+});

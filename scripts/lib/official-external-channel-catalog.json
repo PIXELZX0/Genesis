@@ -1,11 +1,11 @@
 {
   "entries": [
     {
-      "name": "@wecom/wecom-openclaw-plugin",
-      "description": "OpenClaw WeCom channel plugin by the Tencent WeCom team.",
+      "name": "@wecom/wecom-genesis-plugin",
+      "description": "Genesis WeCom channel plugin by the Tencent WeCom team.",
       "source": "external",
       "kind": "channel",
-      "openclaw": {
+      "genesis": {
         "channel": {
           "id": "wecom",
           "label": "WeCom",
@@ -18,7 +18,7 @@
           "order": 45
         },
         "install": {
-          "npmSpec": "@wecom/wecom-openclaw-plugin@2026.4.23",
+          "npmSpec": "@wecom/wecom-genesis-plugin@2026.4.23",
           "defaultChoice": "npm",
           "expectedIntegrity": "sha512-bnzfdIEEu1/LFvcdyjaTkyxt27w6c7dqhkPezU62OWaqmcdFsUGR3T55USK/O9pIKsNcnL1Tnu1pqKYCWHFgWQ=="
         }

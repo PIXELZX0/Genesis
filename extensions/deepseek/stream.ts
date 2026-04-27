@@ -1,5 +1,5 @@
-import type { ProviderWrapStreamFnContext } from "openclaw/plugin-sdk/plugin-entry";
-import { streamWithPayloadPatch } from "openclaw/plugin-sdk/provider-stream-shared";
+import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
+import { streamWithPayloadPatch } from "genesis/plugin-sdk/provider-stream-shared";
 
 type DeepSeekThinkingLevel = ProviderWrapStreamFnContext["thinkingLevel"];
 

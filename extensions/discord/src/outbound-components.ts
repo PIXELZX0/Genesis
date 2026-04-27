@@ -1,4 +1,4 @@
-import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk/channel-send-result";
+import type { ChannelOutboundAdapter } from "genesis/plugin-sdk/channel-send-result";
 import { readDiscordComponentSpec, type DiscordComponentMessageSpec } from "./components.js";
 
 type DiscordComponentSendFn = typeof import("./send.components.js").sendDiscordComponentMessage;

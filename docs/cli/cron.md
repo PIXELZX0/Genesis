@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw cron` (schedule and run background jobs)"
+summary: "CLI reference for `genesis cron` (schedule and run background jobs)"
 read_when:
   - You want scheduled jobs and wakeups
   - You’re debugging cron execution and logs
 title: "Cron"
 ---
 
-# `openclaw cron`
+# `genesis cron`
 
 Manage cron jobs for the Gateway scheduler.
 
@@ -14,9 +14,9 @@ Related:
 
 - Cron jobs: [Cron jobs](/automation/cron-jobs)
 
-Tip: run `openclaw cron --help` for the full command surface.
+Tip: run `genesis cron --help` for the full command surface.
 
-Note: `openclaw cron list` and `openclaw cron show <job-id>` preview the
+Note: `genesis cron list` and `genesis cron show <job-id>` preview the
 resolved delivery route. For `channel: "last"`, the preview shows whether the
 route resolved from the main/current session or will fail closed.
 
@@ -43,9 +43,9 @@ Note: for one-shot CLI jobs, offset-less `--at` datetimes are treated as UTC unl
 
 Note: recurring jobs now use exponential retry backoff after consecutive errors (30s → 1m → 5m → 15m → 60m), then return to normal schedule after the next successful run.
 
-Note: `openclaw cron run` now returns as soon as the manual run is queued for execution. Successful responses include `{ ok: true, enqueued: true, runId }`; use `openclaw cron runs --id <job-id>` to follow the eventual outcome.
+Note: `genesis cron run` now returns as soon as the manual run is queued for execution. Successful responses include `{ ok: true, enqueued: true, runId }`; use `genesis cron runs --id <job-id>` to follow the eventual outcome.
 
-Note: `openclaw cron run <job-id>` force-runs by default. Use `--due` to keep the
+Note: `genesis cron run <job-id>` force-runs by default. Use `--due` to keep the
 older "only run if due" behavior.
 
 Note: isolated cron turns suppress stale acknowledgement-only replies. If the
@@ -83,10 +83,10 @@ announce target when no explicit failure destination is configured.
 Note: retention/pruning is controlled in config:
 
 - `cron.sessionRetention` (default `24h`) prunes completed isolated run sessions.
-- `cron.runLog.maxBytes` + `cron.runLog.keepLines` prune `~/.openclaw/cron/runs/<jobId>.jsonl`.
+- `cron.runLog.maxBytes` + `cron.runLog.keepLines` prune `~/.genesis/cron/runs/<jobId>.jsonl`.
 
 Upgrade note: if you have older cron jobs from before the current delivery/store format, run
-`openclaw doctor --fix`. Doctor now normalizes legacy cron fields (`jobId`, `schedule.cron`,
+`genesis doctor --fix`. Doctor now normalizes legacy cron fields (`jobId`, `schedule.cron`,
 top-level delivery fields including legacy `threadId`, payload `provider` delivery aliases) and migrates simple
 `notify: true` webhook fallback jobs to explicit webhook delivery when `cron.webhook` is
 configured.
@@ -96,31 +96,31 @@ configured.
 Update delivery settings without changing the message:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel telegram --to "123456789"
+genesis cron edit <job-id> --announce --channel telegram --to "123456789"
 ```
 
 Disable delivery for an isolated job:
 
 ```bash
-openclaw cron edit <job-id> --no-deliver
+genesis cron edit <job-id> --no-deliver
 ```
 
 Enable lightweight bootstrap context for an isolated job:
 
 ```bash
-openclaw cron edit <job-id> --light-context
+genesis cron edit <job-id> --light-context
 ```
 
 Announce to a specific channel:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
+genesis cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
 ```
 
 Create an isolated job with lightweight bootstrap context:
 
 ```bash
-openclaw cron add \
+genesis cron add \
   --name "Lightweight morning brief" \
   --cron "0 7 * * *" \
   --session isolated \
@@ -144,11 +144,11 @@ Delivery ownership note:
 Manual run:
 
 ```bash
-openclaw cron list
-openclaw cron show <job-id>
-openclaw cron run <job-id>
-openclaw cron run <job-id> --due
-openclaw cron runs --id <job-id> --limit 50
+genesis cron list
+genesis cron show <job-id>
+genesis cron run <job-id>
+genesis cron run <job-id> --due
+genesis cron runs --id <job-id> --limit 50
 ```
 
 `cron runs` entries include delivery diagnostics with the intended cron target,
@@ -157,19 +157,19 @@ the resolved target, message-tool sends, fallback use, and delivered state.
 Agent/session retargeting:
 
 ```bash
-openclaw cron edit <job-id> --agent ops
-openclaw cron edit <job-id> --clear-agent
-openclaw cron edit <job-id> --session current
-openclaw cron edit <job-id> --session "session:daily-brief"
+genesis cron edit <job-id> --agent ops
+genesis cron edit <job-id> --clear-agent
+genesis cron edit <job-id> --session current
+genesis cron edit <job-id> --session "session:daily-brief"
 ```
 
 Delivery tweaks:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
-openclaw cron edit <job-id> --best-effort-deliver
-openclaw cron edit <job-id> --no-best-effort-deliver
-openclaw cron edit <job-id> --no-deliver
+genesis cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
+genesis cron edit <job-id> --best-effort-deliver
+genesis cron edit <job-id> --no-best-effort-deliver
+genesis cron edit <job-id> --no-deliver
 ```
 
 Failure-delivery note:

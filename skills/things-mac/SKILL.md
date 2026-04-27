@@ -4,7 +4,7 @@ description: Add, update, list, search, or inspect Things 3 todos, inbox, today,
 homepage: https://github.com/ossianhempel/things3-cli
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "✅",
         "os": ["darwin"],
@@ -30,7 +30,7 @@ Use `things` to read your local Things database (inbox/today/search/projects/are
 Setup
 
 - Install (recommended, Apple Silicon): `GOBIN=/opt/homebrew/bin go install github.com/ossianhempel/things3-cli/cmd/things@latest`
-- If DB reads fail: grant **Full Disk Access** to the calling app (Terminal for manual runs; `OpenClaw.app` for gateway runs).
+- If DB reads fail: grant **Full Disk Access** to the calling app (Terminal for manual runs; `Genesis.app` for gateway runs).
 - Optional: set `THINGSDB` (or pass `--db`) to point at your `ThingsData-*` folder.
 - Optional: set `THINGS_AUTH_TOKEN` to avoid passing `--auth-token` for update ops.
 

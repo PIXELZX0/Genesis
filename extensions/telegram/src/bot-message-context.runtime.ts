@@ -1,4 +1,4 @@
-export { createStatusReactionController } from "openclaw/plugin-sdk/channel-feedback";
-export { recordChannelActivity } from "openclaw/plugin-sdk/infra-runtime";
-export { loadConfig } from "openclaw/plugin-sdk/config-runtime";
-export { ensureConfiguredBindingRouteReady } from "openclaw/plugin-sdk/conversation-runtime";
+export { createStatusReactionController } from "genesis/plugin-sdk/channel-feedback";
+export { recordChannelActivity } from "genesis/plugin-sdk/infra-runtime";
+export { loadConfig } from "genesis/plugin-sdk/config-runtime";
+export { ensureConfiguredBindingRouteReady } from "genesis/plugin-sdk/conversation-runtime";

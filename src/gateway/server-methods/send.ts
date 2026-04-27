@@ -4,7 +4,7 @@ import { dispatchChannelMessageAction } from "../../channels/plugins/message-act
 import { createOutboundSendDeps } from "../../cli/deps.js";
 import { loadConfig } from "../../config/config.js";
 import { applyPluginAutoEnable } from "../../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveOutboundChannelPlugin } from "../../infra/outbound/channel-resolution.js";
 import { resolveMessageChannelSelection } from "../../infra/outbound/channel-selection.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
@@ -104,7 +104,7 @@ async function resolveRequestedChannel(params: {
   rejectWebchatAsInternalOnly?: boolean;
 }): Promise<
   | {
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       channel: string;
     }
   | {
@@ -145,7 +145,7 @@ async function resolveRequestedChannel(params: {
 function resolveGatewayOutboundTarget(params: {
   channel: string;
   to: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string;
 }):
   | {

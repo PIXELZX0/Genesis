@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { projectSafeChannelAccountSnapshotFields } from "../account-snapshot-fields.js";
 import { inspectReadOnlyChannelAccount } from "../read-only-account-inspect.js";
@@ -8,7 +8,7 @@ import type { ChannelAccountSnapshot } from "./types.public.js";
 // Channel docking: status snapshots flow through plugin.status hooks here.
 async function buildSnapshotFromAccount<ResolvedAccount>(params: {
   plugin: ChannelPlugin<ResolvedAccount>;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   account: ResolvedAccount;
   runtime?: ChannelAccountSnapshot;
@@ -51,7 +51,7 @@ async function buildSnapshotFromAccount<ResolvedAccount>(params: {
 
 async function inspectChannelAccount<ResolvedAccount>(params: {
   plugin: ChannelPlugin<ResolvedAccount>;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
 }): Promise<ResolvedAccount | null> {
   return (params.plugin.config.inspectAccount?.(params.cfg, params.accountId) ??
@@ -64,7 +64,7 @@ async function inspectChannelAccount<ResolvedAccount>(params: {
 
 export async function buildReadOnlySourceChannelAccountSnapshot<ResolvedAccount>(params: {
   plugin: ChannelPlugin<ResolvedAccount>;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   runtime?: ChannelAccountSnapshot;
   probe?: unknown;
@@ -82,7 +82,7 @@ export async function buildReadOnlySourceChannelAccountSnapshot<ResolvedAccount>
 
 export async function buildChannelAccountSnapshot<ResolvedAccount>(params: {
   plugin: ChannelPlugin<ResolvedAccount>;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   runtime?: ChannelAccountSnapshot;
   probe?: unknown;

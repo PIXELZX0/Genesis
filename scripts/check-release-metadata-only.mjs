@@ -7,7 +7,7 @@ const VERSION_ONLY_TEXT_PATHS = new Set([
   "apps/android/app/build.gradle.kts",
   "apps/ios/Config/Version.xcconfig",
   "apps/ios/version.json",
-  "apps/macos/Sources/OpenClaw/Resources/Info.plist",
+  "apps/macos/Sources/Genesis/Resources/Info.plist",
   "src/config/schema.base.generated.ts",
 ]);
 
@@ -109,8 +109,8 @@ function stableJson(value) {
 
 function normalizeVersionText(raw) {
   return raw
-    .replace(/\b20\d{2}\.\d{1,2}\.\d{1,2}(?:-beta\.\d+|-\d+)?\b/gu, "<OPENCLAW_VERSION>")
-    .replace(/\b20\d{6}(?:\d{2})?\b/gu, "<OPENCLAW_BUILD>");
+    .replace(/\b20\d{2}\.\d{1,2}\.\d{1,2}(?:-beta\.\d+|-\d+)?\b/gu, "<GENESIS_VERSION>")
+    .replace(/\b20\d{6}(?:\d{2})?\b/gu, "<GENESIS_BUILD>");
 }
 
 function fail(message) {

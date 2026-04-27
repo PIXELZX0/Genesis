@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { GenesisConfig } from "../../../config/config.js";
 import type { DoctorConfigPreflightResult } from "../../doctor-config-preflight.js";
 import { applyLegacyCompatibilityStep, applyUnknownConfigKeyStep } from "./config-flow-steps.js";
 
 function createLegacyStepResult(
   snapshot: DoctorConfigPreflightResult["snapshot"],
-  doctorFixCommand = "openclaw doctor --fix",
+  doctorFixCommand = "genesis doctor --fix",
 ) {
   return applyLegacyCompatibilityStep({
     snapshot,
@@ -40,7 +40,7 @@ describe("doctor config flow steps", () => {
     expect(result.issueLines).toEqual([expect.stringContaining("- heartbeat:")]);
     expect(result.changeLines).not.toEqual([]);
     expect(result.state.fixHints).toContain(
-      'Run "openclaw doctor --fix" to migrate legacy config keys.',
+      'Run "genesis doctor --fix" to migrate legacy config keys.',
     );
     expect(result.state.pendingChanges).toBe(true);
   });
@@ -69,7 +69,7 @@ describe("doctor config flow steps", () => {
     expect(result.changeLines).toEqual([]);
     expect(result.state.pendingChanges).toBe(true);
     expect(result.state.fixHints).toContain(
-      'Run "openclaw doctor --fix" to migrate legacy config keys.',
+      'Run "genesis doctor --fix" to migrate legacy config keys.',
     );
   });
 
@@ -77,16 +77,16 @@ describe("doctor config flow steps", () => {
     const result = applyUnknownConfigKeyStep({
       state: {
         cfg: {},
-        candidate: { bogus: true } as unknown as OpenClawConfig,
+        candidate: { bogus: true } as unknown as GenesisConfig,
         pendingChanges: false,
         fixHints: [],
       },
       shouldRepair: false,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "genesis doctor --fix",
     });
 
     expect(result.removed).toEqual(["bogus"]);
     expect(result.state.candidate).toEqual({});
-    expect(result.state.fixHints).toContain('Run "openclaw doctor --fix" to remove these keys.');
+    expect(result.state.fixHints).toContain('Run "genesis doctor --fix" to remove these keys.');
   });
 });

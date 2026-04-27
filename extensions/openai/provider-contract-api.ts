@@ -1,4 +1,4 @@
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 import {
   OPENAI_API_KEY_LABEL,
   OPENAI_CODEX_DEVICE_PAIRING_HINT,

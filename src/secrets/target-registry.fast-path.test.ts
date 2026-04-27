@@ -15,7 +15,7 @@ const { loadBundledPluginPublicArtifactModuleSyncMock } = vi.hoisted(() => ({
             {
               id: "channels.googlechat.serviceAccount",
               targetType: "channels.googlechat.serviceAccount",
-              configFile: "openclaw.json",
+              configFile: "genesis.json",
               pathPattern: "channels.googlechat.serviceAccount",
               refPathPattern: "channels.googlechat.serviceAccountRef",
               secretShape: "sibling_ref",

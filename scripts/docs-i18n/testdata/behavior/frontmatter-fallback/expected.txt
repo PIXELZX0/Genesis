@@ -1,1 +1,1 @@
-Deploying OpenClaw on Fly.io
+Deploying Genesis on Fly.io

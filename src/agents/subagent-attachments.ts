@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { resolveAgentWorkspaceDir } from "./agent-scope.js";
 
@@ -67,7 +67,7 @@ export type MaterializeSubagentAttachmentsResult =
   | { status: "forbidden"; error: string }
   | { status: "error"; error: string };
 
-function resolveAttachmentLimits(config: OpenClawConfig): AttachmentLimits {
+function resolveAttachmentLimits(config: GenesisConfig): AttachmentLimits {
   const attachmentsCfg = (
     config as unknown as {
       tools?: { sessions_spawn?: { attachments?: Record<string, unknown> } };
@@ -94,7 +94,7 @@ function resolveAttachmentLimits(config: OpenClawConfig): AttachmentLimits {
 }
 
 export async function materializeSubagentAttachments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   targetAgentId: string;
   attachments?: SubagentInlineAttachment[];
   mountPathHint?: string;
@@ -121,8 +121,8 @@ export async function materializeSubagentAttachments(params: {
 
   const attachmentId = crypto.randomUUID();
   const childWorkspaceDir = resolveAgentWorkspaceDir(params.config, params.targetAgentId);
-  const absRootDir = path.join(childWorkspaceDir, ".openclaw", "attachments");
-  const relDir = path.posix.join(".openclaw", "attachments", attachmentId);
+  const absRootDir = path.join(childWorkspaceDir, ".genesis", "attachments");
+  const relDir = path.posix.join(".genesis", "attachments", attachmentId);
   const absDir = path.join(absRootDir, attachmentId);
 
   const fail = (error: string): never => {

@@ -113,7 +113,7 @@ async function walkDir(
       continue;
     }
     if (entry.isDirectory()) {
-      if (entry.name === ".openclaw-repair") {
+      if (entry.name === ".genesis-repair") {
         continue;
       }
       await walkDir(full, files, multimodal, shouldSkipPath);

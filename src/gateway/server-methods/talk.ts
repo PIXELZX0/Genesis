@@ -6,7 +6,7 @@ import {
   resolveActiveTalkProviderConfig,
 } from "../../config/talk.js";
 import type { TalkConfigResponse, TalkProviderConfig } from "../../config/types.gateway.js";
-import type { OpenClawConfig, TtsConfig, TtsProviderConfigMap } from "../../config/types.js";
+import type { GenesisConfig, TtsConfig, TtsProviderConfigMap } from "../../config/types.js";
 import {
   REALTIME_VOICE_AGENT_CONSULT_TOOL,
   REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME,
@@ -91,9 +91,9 @@ function resolveTalkVoiceId(
 }
 
 function buildTalkTtsConfig(
-  config: OpenClawConfig,
+  config: GenesisConfig,
 ):
-  | { cfg: OpenClawConfig; provider: string; providerConfig: TalkProviderConfig }
+  | { cfg: GenesisConfig; provider: string; providerConfig: TalkProviderConfig }
   | { error: string; reason: TalkSpeakReason } {
   const resolved = resolveActiveTalkProviderConfig(config.talk);
   const provider = canonicalizeSpeechProviderId(resolved?.provider, config);
@@ -148,7 +148,7 @@ function getRecord(value: unknown): Record<string, unknown> | undefined {
   return asRecord(value) ?? undefined;
 }
 
-function getVoiceCallRealtimeConfig(config: OpenClawConfig): {
+function getVoiceCallRealtimeConfig(config: GenesisConfig): {
   provider?: string;
   providers?: Record<string, RealtimeVoiceProviderConfig>;
 } {
@@ -173,7 +173,7 @@ function getVoiceCallRealtimeConfig(config: OpenClawConfig): {
   };
 }
 
-function buildTalkRealtimeConfig(config: OpenClawConfig, requestedProvider?: string) {
+function buildTalkRealtimeConfig(config: GenesisConfig, requestedProvider?: string) {
   const voiceCallRealtime = getVoiceCallRealtimeConfig(config);
   const talkProviderConfigs = config.talk?.providers as
     | Record<string, RealtimeVoiceProviderConfig>
@@ -196,7 +196,7 @@ function buildTalkRealtimeConfig(config: OpenClawConfig, requestedProvider?: str
 }
 
 function buildRealtimeInstructions(): string {
-  return `You are OpenClaw's realtime voice interface. Keep spoken replies concise. If the user asks for code, repository state, tools, files, current OpenClaw context, or deeper reasoning, call ${REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME} and then summarize the result naturally.`;
+  return `You are Genesis's realtime voice interface. Keep spoken replies concise. If the user asks for code, repository state, tools, files, current Genesis context, or deeper reasoning, call ${REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME} and then summarize the result naturally.`;
 }
 
 function isFallbackEligibleTalkReason(reason: TalkSpeakReason): boolean {
@@ -232,7 +232,7 @@ function resolveTalkSpeed(params: TalkSpeakParams): number | undefined {
 function buildTalkSpeakOverrides(
   provider: string,
   providerConfig: TalkProviderConfig,
-  config: OpenClawConfig,
+  config: GenesisConfig,
   params: TalkSpeakParams,
 ): TtsDirectiveOverrides {
   const speechProvider = getSpeechProvider(provider, config);
@@ -296,8 +296,8 @@ function inferMimeType(
 
 function resolveTalkResponseFromConfig(params: {
   includeSecrets: boolean;
-  sourceConfig: OpenClawConfig;
-  runtimeConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  runtimeConfig: GenesisConfig;
 }): TalkConfigResponse | undefined {
   const normalizedTalk = normalizeTalkSection(params.sourceConfig.talk);
   if (!normalizedTalk) {

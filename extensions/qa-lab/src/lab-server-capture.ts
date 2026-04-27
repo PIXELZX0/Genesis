@@ -1,5 +1,5 @@
 import net from "node:net";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 
 const CAPTURE_QUERY_PRESETS = new Set([
   "double-sends",
@@ -21,7 +21,7 @@ export function isCaptureQueryPreset(
   value: string,
 ): value is Parameters<
   ReturnType<
-    typeof import("openclaw/plugin-sdk/proxy-capture").getDebugProxyCaptureStore
+    typeof import("genesis/plugin-sdk/proxy-capture").getDebugProxyCaptureStore
   >["queryPreset"]
 >[0] {
   return CAPTURE_QUERY_PRESETS.has(value);

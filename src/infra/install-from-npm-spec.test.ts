@@ -24,7 +24,7 @@ describe("installFromValidatedNpmSpecArchive", () => {
       installFromValidatedNpmSpecArchive({
         spec: "  nope  ",
         timeoutMs: 30_000,
-        tempDirPrefix: "openclaw-npm-",
+        tempDirPrefix: "genesis-npm-",
         installFromArchive: vi.fn(),
         archiveInstallParams: {},
       }),
@@ -51,9 +51,9 @@ describe("installFromValidatedNpmSpecArchive", () => {
 
     await expect(
       installFromValidatedNpmSpecArchive({
-        spec: "  @openclaw/demo@beta  ",
+        spec: "  @genesis/demo@beta  ",
         timeoutMs: 45_000,
-        tempDirPrefix: "openclaw-npm-",
+        tempDirPrefix: "genesis-npm-",
         expectedIntegrity: "sha512-demo",
         onIntegrityDrift,
         warn,
@@ -63,8 +63,8 @@ describe("installFromValidatedNpmSpecArchive", () => {
     ).resolves.toBe(finalized);
 
     expect(installFromNpmSpecArchiveWithInstallerMock).toHaveBeenCalledWith({
-      tempDirPrefix: "openclaw-npm-",
-      spec: "@openclaw/demo@beta",
+      tempDirPrefix: "genesis-npm-",
+      spec: "@genesis/demo@beta",
       timeoutMs: 45_000,
       expectedIntegrity: "sha512-demo",
       onIntegrityDrift,

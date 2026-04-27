@@ -2,7 +2,7 @@ import {
   type ImagesDescriptionRequest,
   type ImagesDescriptionResult,
   type MediaUnderstandingProvider,
-} from "openclaw/plugin-sdk/media-understanding";
+} from "genesis/plugin-sdk/media-understanding";
 import { CODEX_PROVIDER_ID, FALLBACK_CODEX_MODELS } from "./provider-catalog.js";
 import { type CodexAppServerClientFactory } from "./src/app-server/client-factory.js";
 import type { CodexAppServerClient } from "./src/app-server/client.js";
@@ -110,9 +110,9 @@ async function describeCodexImages(
           cwd: req.agentDir || process.cwd(),
           approvalPolicy: "never",
           sandbox: "read-only",
-          serviceName: "OpenClaw",
+          serviceName: "Genesis",
           developerInstructions:
-            "You are OpenClaw's bounded image-understanding worker. Describe only the provided image content. Do not call tools, edit files, or ask follow-up questions.",
+            "You are Genesis's bounded image-understanding worker. Describe only the provided image content. Do not call tools, edit files, or ask follow-up questions.",
           dynamicTools: [],
           experimentalRawEvents: true,
           persistExtendedHistory: false,

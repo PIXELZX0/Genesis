@@ -76,7 +76,7 @@ describe("host tool tilde expansion (non-workspace mode)", () => {
   });
 
   it("edit readFile expands ~ to the OS home directory", async () => {
-    const dir = await createTempDir("openclaw-tilde-test-edit-");
+    const dir = await createTempDir("genesis-tilde-test-edit-");
     const testFile = path.join(dir, "test.txt");
     await fs.writeFile(testFile, "hello", "utf8");
 
@@ -87,7 +87,7 @@ describe("host tool tilde expansion (non-workspace mode)", () => {
   });
 
   it("edit access expands ~ to the OS home directory", async () => {
-    const dir = await createTempDir("openclaw-tilde-test-edit-");
+    const dir = await createTempDir("genesis-tilde-test-edit-");
     const testFile = path.join(dir, "test.txt");
     await fs.writeFile(testFile, "hello", "utf8");
 
@@ -97,7 +97,7 @@ describe("host tool tilde expansion (non-workspace mode)", () => {
   });
 
   it("write writeFile expands ~ to the OS home directory", async () => {
-    const dir = await createTempDir("openclaw-tilde-test-write-");
+    const dir = await createTempDir("genesis-tilde-test-write-");
     const testFile = path.join(dir, "tilde-write-test.txt");
 
     createHostWorkspaceWriteTool(dir, { workspaceOnly: false });
@@ -107,7 +107,7 @@ describe("host tool tilde expansion (non-workspace mode)", () => {
   });
 
   it("write mkdir expands ~ to the OS home directory", async () => {
-    const dir = await createTempDir("openclaw-tilde-test-mkdir-");
+    const dir = await createTempDir("genesis-tilde-test-mkdir-");
     const newDir = path.join(dir, "subdir");
 
     createHostWorkspaceWriteTool(dir, { workspaceOnly: false });
@@ -116,56 +116,56 @@ describe("host tool tilde expansion (non-workspace mode)", () => {
     expect((await fs.stat(newDir)).isDirectory()).toBe(true);
   });
 
-  it("ignores OPENCLAW_HOME for write operations", async () => {
-    const openclawHome = await createTempDir("openclaw-home-override-", os.tmpdir());
-    const dir = await createTempDir("openclaw-tilde-test-write-");
+  it("ignores GENESIS_HOME for write operations", async () => {
+    const genesisHome = await createTempDir("genesis-home-override-", os.tmpdir());
+    const dir = await createTempDir("genesis-tilde-test-write-");
     const testFile = path.join(dir, "os-home-write.txt");
-    vi.stubEnv("OPENCLAW_HOME", openclawHome);
+    vi.stubEnv("GENESIS_HOME", genesisHome);
 
-    createHostWorkspaceWriteTool(openclawHome, { workspaceOnly: false });
+    createHostWorkspaceWriteTool(genesisHome, { workspaceOnly: false });
     await mocks.writeOps!.writeFile(toTildePath(testFile), "written via os home");
 
     expect(await fs.readFile(testFile, "utf8")).toBe("written via os home");
-    await expect(fs.access(path.join(openclawHome, path.basename(testFile)))).rejects.toBeDefined();
+    await expect(fs.access(path.join(genesisHome, path.basename(testFile)))).rejects.toBeDefined();
   });
 
-  it("ignores OPENCLAW_HOME for mkdir operations", async () => {
-    const openclawHome = await createTempDir("openclaw-home-override-", os.tmpdir());
-    const dir = await createTempDir("openclaw-tilde-test-mkdir-");
+  it("ignores GENESIS_HOME for mkdir operations", async () => {
+    const genesisHome = await createTempDir("genesis-home-override-", os.tmpdir());
+    const dir = await createTempDir("genesis-tilde-test-mkdir-");
     const newDir = path.join(dir, "os-home-subdir");
-    vi.stubEnv("OPENCLAW_HOME", openclawHome);
+    vi.stubEnv("GENESIS_HOME", genesisHome);
 
-    createHostWorkspaceWriteTool(openclawHome, { workspaceOnly: false });
+    createHostWorkspaceWriteTool(genesisHome, { workspaceOnly: false });
     await mocks.writeOps!.mkdir(toTildePath(newDir));
 
     expect((await fs.stat(newDir)).isDirectory()).toBe(true);
-    await expect(fs.access(path.join(openclawHome, path.basename(newDir)))).rejects.toBeDefined();
+    await expect(fs.access(path.join(genesisHome, path.basename(newDir)))).rejects.toBeDefined();
   });
 
-  it("ignores OPENCLAW_HOME for readFile operations", async () => {
-    const openclawHome = await createTempDir("openclaw-home-override-", os.tmpdir());
-    const dir = await createTempDir("openclaw-tilde-test-edit-");
+  it("ignores GENESIS_HOME for readFile operations", async () => {
+    const genesisHome = await createTempDir("genesis-home-override-", os.tmpdir());
+    const dir = await createTempDir("genesis-tilde-test-edit-");
     const testFile = path.join(dir, "os-home-read.txt");
     await fs.writeFile(testFile, "OS home content", "utf8");
-    vi.stubEnv("OPENCLAW_HOME", openclawHome);
+    vi.stubEnv("GENESIS_HOME", genesisHome);
 
-    createHostWorkspaceEditTool(openclawHome, { workspaceOnly: false });
+    createHostWorkspaceEditTool(genesisHome, { workspaceOnly: false });
     const content = await mocks.editOps!.readFile(toTildePath(testFile));
 
     expect(content.toString("utf8")).toBe("OS home content");
-    await expect(fs.access(path.join(openclawHome, path.basename(testFile)))).rejects.toBeDefined();
+    await expect(fs.access(path.join(genesisHome, path.basename(testFile)))).rejects.toBeDefined();
   });
 
-  it("ignores OPENCLAW_HOME for access operations", async () => {
-    const openclawHome = await createTempDir("openclaw-home-override-", os.tmpdir());
-    const dir = await createTempDir("openclaw-tilde-test-edit-");
+  it("ignores GENESIS_HOME for access operations", async () => {
+    const genesisHome = await createTempDir("genesis-home-override-", os.tmpdir());
+    const dir = await createTempDir("genesis-tilde-test-edit-");
     const testFile = path.join(dir, "os-home-access.txt");
     await fs.writeFile(testFile, "exists", "utf8");
-    vi.stubEnv("OPENCLAW_HOME", openclawHome);
+    vi.stubEnv("GENESIS_HOME", genesisHome);
 
-    createHostWorkspaceEditTool(openclawHome, { workspaceOnly: false });
+    createHostWorkspaceEditTool(genesisHome, { workspaceOnly: false });
 
     await expect(mocks.editOps!.access(toTildePath(testFile))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(openclawHome, path.basename(testFile)))).rejects.toBeDefined();
+    await expect(fs.access(path.join(genesisHome, path.basename(testFile)))).rejects.toBeDefined();
   });
 });

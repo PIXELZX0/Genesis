@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createOllamaWebSearchProvider as createContractOllamaWebSearchProvider } from "../web-search-contract-api.js";
 import {
@@ -11,7 +11,7 @@ const { fetchWithSsrFGuardMock } = vi.hoisted(() => ({
   fetchWithSsrFGuardMock: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchWithSsrFGuardMock,
 }));
 
@@ -20,11 +20,11 @@ type OllamaProviderConfigOverride = Partial<{
   apiKey: string;
   baseUrl: string;
   models: NonNullable<
-    NonNullable<NonNullable<OpenClawConfig["models"]>["providers"]>[string]
+    NonNullable<NonNullable<GenesisConfig["models"]>["providers"]>[string]
   >["models"];
 }>;
 
-function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): OpenClawConfig {
+function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): GenesisConfig {
   return {
     models: {
       providers: {
@@ -39,7 +39,7 @@ function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): OpenCl
   };
 }
 
-function createOllamaConfigWithWebSearchBaseUrl(baseUrl: string): OpenClawConfig {
+function createOllamaConfigWithWebSearchBaseUrl(baseUrl: string): GenesisConfig {
   return {
     ...createOllamaConfig(),
     plugins: {
@@ -132,8 +132,8 @@ describe("ollama web search provider", () => {
         JSON.stringify({
           results: [
             {
-              title: "OpenClaw",
-              url: "https://openclaw.ai/docs",
+              title: "Genesis",
+              url: "https://genesis.ai/docs",
               content: "Gateway docs and setup details",
             },
           ],
@@ -153,7 +153,7 @@ describe("ollama web search provider", () => {
     if (!tool) {
       throw new Error("Expected tool definition");
     }
-    const result = await tool.execute({ query: "openclaw docs", count: 3 });
+    const result = await tool.execute({ query: "genesis docs", count: 3 });
 
     expect(fetchWithSsrFGuardMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -172,14 +172,14 @@ describe("ollama web search provider", () => {
         ),
       ),
     ).toEqual({
-      query: "openclaw docs",
+      query: "genesis docs",
       max_results: 3,
     });
     expect(result).toMatchObject({
-      query: "openclaw docs",
+      query: "genesis docs",
       provider: "ollama",
       count: 1,
-      results: [{ url: "https://openclaw.ai/docs" }],
+      results: [{ url: "https://genesis.ai/docs" }],
     });
     expect(release).toHaveBeenCalledTimes(1);
   });
@@ -190,7 +190,7 @@ describe("ollama web search provider", () => {
       release: vi.fn(async () => {}),
     });
 
-    await expect(runOllamaWebSearch({ query: "latest openclaw release" })).rejects.toThrow(
+    await expect(runOllamaWebSearch({ query: "latest genesis release" })).rejects.toThrow(
       "ollama signin",
     );
   });

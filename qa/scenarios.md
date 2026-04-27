@@ -1,4 +1,4 @@
-# OpenClaw QA Scenarios
+# Genesis QA Scenarios
 
 Canonical scenario source now lives in:
 

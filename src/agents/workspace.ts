@@ -19,11 +19,11 @@ export function resolveDefaultAgentWorkspaceDir(
   homedir: () => string = os.homedir,
 ): string {
   const home = resolveRequiredHomeDir(env, homedir);
-  const profile = env.OPENCLAW_PROFILE?.trim();
+  const profile = env.GENESIS_PROFILE?.trim();
   if (profile && normalizeOptionalLowercaseString(profile) !== "default") {
-    return path.join(home, ".openclaw", `workspace-${profile}`);
+    return path.join(home, ".genesis", `workspace-${profile}`);
   }
-  return path.join(home, ".openclaw", "workspace");
+  return path.join(home, ".genesis", "workspace");
 }
 
 export const DEFAULT_AGENT_WORKSPACE_DIR = resolveDefaultAgentWorkspaceDir();
@@ -35,7 +35,7 @@ export const DEFAULT_USER_FILENAME = "USER.md";
 export const DEFAULT_HEARTBEAT_FILENAME = "HEARTBEAT.md";
 export const DEFAULT_BOOTSTRAP_FILENAME = "BOOTSTRAP.md";
 export const DEFAULT_MEMORY_FILENAME = CANONICAL_ROOT_MEMORY_FILENAME;
-const WORKSPACE_STATE_DIRNAME = ".openclaw";
+const WORKSPACE_STATE_DIRNAME = ".genesis";
 const WORKSPACE_STATE_FILENAME = "workspace-state.json";
 const WORKSPACE_STATE_VERSION = 1;
 const WORKSPACE_ONBOARDING_PROFILE_FILENAMES = [

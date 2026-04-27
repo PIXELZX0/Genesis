@@ -41,7 +41,7 @@ export type { ChannelSetupDmPolicy } from "../channels/plugins/setup-wizard-type
 export type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 export type { ChannelSetupWizard } from "../channels/plugins/setup-wizard.js";
 export { createChannelReplyPipeline } from "./channel-reply-pipeline.js";
-export type { OpenClawConfig } from "../config/config.js";
+export type { GenesisConfig } from "../config/config.js";
 export { mapAllowFromEntries } from "./channel-config-helpers.js";
 export { evaluateMatchedGroupAccessForPolicy } from "./group-access.js";
 export {
@@ -84,7 +84,7 @@ export { waitForAbortSignal } from "../infra/abort-signal.js";
 export { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export type { PluginRuntime } from "../plugins/runtime/types.js";
-export type { OpenClawPluginApi } from "../plugins/types.js";
+export type { GenesisPluginApi } from "../plugins/types.js";
 export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 export type { RuntimeEnv } from "../runtime.js";
 export type { WizardPrompter } from "../wizard/prompts.js";

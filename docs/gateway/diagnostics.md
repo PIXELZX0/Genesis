@@ -7,26 +7,26 @@ read_when:
   - Reviewing what diagnostics data is recorded or redacted
 ---
 
-OpenClaw can create a local diagnostics zip that is safe to attach to bug
+Genesis can create a local diagnostics zip that is safe to attach to bug
 reports. It combines sanitized Gateway status, health, logs, config shape, and
 recent payload-free stability events.
 
 ## Quick start
 
 ```bash
-openclaw gateway diagnostics export
+genesis gateway diagnostics export
 ```
 
 The command prints the written zip path. To choose a path:
 
 ```bash
-openclaw gateway diagnostics export --output openclaw-diagnostics.zip
+genesis gateway diagnostics export --output genesis-diagnostics.zip
 ```
 
 For automation:
 
 ```bash
-openclaw gateway diagnostics export --json
+genesis gateway diagnostics export --json
 ```
 
 ## What the export contains
@@ -74,31 +74,31 @@ diagnostics are enabled. It is for operational facts, not content.
 Inspect the live recorder:
 
 ```bash
-openclaw gateway stability
-openclaw gateway stability --type payload.large
-openclaw gateway stability --json
+genesis gateway stability
+genesis gateway stability --type payload.large
+genesis gateway stability --json
 ```
 
 Inspect the newest persisted stability bundle after a fatal exit, shutdown
 timeout, or restart startup failure:
 
 ```bash
-openclaw gateway stability --bundle latest
+genesis gateway stability --bundle latest
 ```
 
 Create a diagnostics zip from the newest persisted bundle:
 
 ```bash
-openclaw gateway stability --bundle latest --export
+genesis gateway stability --bundle latest --export
 ```
 
-Persisted bundles live under `~/.openclaw/logs/stability/` when events exist.
+Persisted bundles live under `~/.genesis/logs/stability/` when events exist.
 
 ## Useful options
 
 ```bash
-openclaw gateway diagnostics export \
-  --output openclaw-diagnostics.zip \
+genesis gateway diagnostics export \
+  --output genesis-diagnostics.zip \
   --log-lines 5000 \
   --log-bytes 1000000
 ```

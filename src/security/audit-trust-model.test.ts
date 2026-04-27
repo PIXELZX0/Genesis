@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   collectExposureMatrixFindings,
   collectLikelyMultiUserSetupFindings,
 } from "./audit-extra.sync.js";
 
-function audit(cfg: OpenClawConfig) {
+function audit(cfg: GenesisConfig) {
   return [...collectExposureMatrixFindings(cfg), ...collectLikelyMultiUserSetupFindings(cfg)];
 }
 
@@ -17,7 +17,7 @@ describe("security audit trust model findings", () => {
         cfg: {
           tools: { elevated: { enabled: true, allowFrom: { whatsapp: ["+1"] } } },
           channels: { whatsapp: { groupPolicy: "open" } },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[0].cfg);
           expect(
@@ -34,7 +34,7 @@ describe("security audit trust model findings", () => {
         cfg: {
           channels: { whatsapp: { groupPolicy: "open" } },
           tools: { elevated: { enabled: false } },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[1].cfg);
           expect(
@@ -59,7 +59,7 @@ describe("security audit trust model findings", () => {
               sandbox: { mode: "all" },
             },
           },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[2].cfg);
           expect(
@@ -79,7 +79,7 @@ describe("security audit trust model findings", () => {
             deny: ["group:runtime"],
             fs: { workspaceOnly: true },
           },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[3].cfg);
           expect(
@@ -105,7 +105,7 @@ describe("security audit trust model findings", () => {
             },
           },
           tools: { elevated: { enabled: false } },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[4].cfg);
           const finding = findings.find(
@@ -128,7 +128,7 @@ describe("security audit trust model findings", () => {
             },
           },
           tools: { elevated: { enabled: false } },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
         assert: () => {
           const findings = audit(cases[5].cfg);
           expect(

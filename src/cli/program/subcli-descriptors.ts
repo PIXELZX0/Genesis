@@ -90,7 +90,7 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "docs",
-    description: "Search the live OpenClaw docs",
+    description: "Search the live Genesis docs",
     hasSubcommands: false,
   },
   {
@@ -100,7 +100,7 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "proxy",
-    description: "Run the OpenClaw debug proxy and inspect captured traffic",
+    description: "Run the Genesis debug proxy and inspect captured traffic",
     hasSubcommands: true,
   },
   {
@@ -130,7 +130,7 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "plugins",
-    description: "Manage OpenClaw plugins",
+    description: "Manage Genesis plugins",
     hasSubcommands: true,
   },
   {
@@ -160,7 +160,7 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "update",
-    description: "Update OpenClaw and inspect update channel status",
+    description: "Update Genesis and inspect update channel status",
     hasSubcommands: true,
   },
   {

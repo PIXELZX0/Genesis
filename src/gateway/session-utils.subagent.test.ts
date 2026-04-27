@@ -6,7 +6,7 @@ import {
   addSubagentRunForTests,
   resetSubagentRegistryForTests,
 } from "../agents/subagent-registry.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
 import { registerAgentRunContext, resetAgentRunContextForTest } from "../infra/agent-events.js";
 import { withStateDirEnv } from "../test-helpers/state-dir-env.js";
@@ -30,7 +30,7 @@ describe("listSessionsFromStore subagent metadata", () => {
   const cfg = {
     session: { mainKey: "main" },
     agents: { list: [{ id: "main", default: true }] },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 
   test("includes subagent status timing and direct child session keys", () => {
     const now = Date.now();
@@ -645,7 +645,7 @@ describe("listSessionsFromStore subagent metadata", () => {
   });
 
   test("prefers persisted terminal session state when only stale active subagent snapshots remain", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-session-utils-subagent-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-session-utils-subagent-"));
     const stateDir = path.join(tempRoot, "state");
     fs.mkdirSync(stateDir, { recursive: true });
     try {
@@ -691,8 +691,8 @@ describe("listSessionsFromStore subagent metadata", () => {
 
       const row = withEnv(
         {
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_TEST_READ_SUBAGENT_RUNS_FROM_DISK: "1",
+          GENESIS_STATE_DIR: stateDir,
+          GENESIS_TEST_READ_SUBAGENT_RUNS_FROM_DISK: "1",
         },
         () => {
           const result = listSessionsFromStore({
@@ -1054,7 +1054,7 @@ describe("listSessionsFromStore subagent metadata", () => {
 
 describe("loadCombinedSessionStoreForGateway includes disk-only agents (#32804)", () => {
   test("ACP agent sessions are visible even when agents.list is configured", async () => {
-    await withStateDirEnv("openclaw-acp-vis-", async ({ stateDir }) => {
+    await withStateDirEnv("genesis-acp-vis-", async ({ stateDir }) => {
       const customRoot = path.join(stateDir, "custom-state");
       const agentsDir = path.join(customRoot, "agents");
       const mainDir = path.join(agentsDir, "main", "sessions");
@@ -1086,7 +1086,7 @@ describe("loadCombinedSessionStoreForGateway includes disk-only agents (#32804)"
         agents: {
           list: [{ id: "main", default: true }],
         },
-      } as OpenClawConfig;
+      } as GenesisConfig;
 
       const { store } = loadCombinedSessionStoreForGateway(cfg);
       expect(store["agent:main:main"]).toBeDefined();

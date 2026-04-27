@@ -3,9 +3,9 @@ import { createWebSendApi } from "./send-api.js";
 
 const recordChannelActivity = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/infra-runtime")>(
-    "openclaw/plugin-sdk/infra-runtime",
+vi.mock("genesis/plugin-sdk/infra-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/infra-runtime")>(
+    "genesis/plugin-sdk/infra-runtime",
   );
   return {
     ...actual,

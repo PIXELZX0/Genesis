@@ -1,6 +1,6 @@
 ---
 name: tag-duplicate-prs-issues
-description: Search duplicate OpenClaw PRs/issues, group related work in prtags, and sync duplicate state to GitHub.
+description: Search duplicate Genesis PRs/issues, group related work in prtags, and sync duplicate state to GitHub.
 ---
 
 # Tag Duplicate PRs and Issues
@@ -210,16 +210,16 @@ Use `ghr` first for this step even if you would normally reach for `gh`.
 For a PR:
 
 ```bash
-ghr pr view -R openclaw/openclaw <number> --comments
-ghr pr reviews -R openclaw/openclaw <number>
-ghr pr comments -R openclaw/openclaw <number>
+ghr pr view -R genesis/genesis <number> --comments
+ghr pr reviews -R genesis/genesis <number>
+ghr pr comments -R genesis/genesis <number>
 ```
 
 For an issue:
 
 ```bash
-ghr issue view -R openclaw/openclaw <number> --comments
-ghr issue comments -R openclaw/openclaw <number>
+ghr issue view -R genesis/genesis <number> --comments
+ghr issue comments -R genesis/genesis <number>
 ```
 
 Record:
@@ -242,17 +242,17 @@ Do not switch to `gh` for ordinary reads unless `ghr` is missing data or failing
 Run all of these when the target is a PR:
 
 ```bash
-ghr search related-prs -R openclaw/openclaw <pr-number> --mode path_overlap --state all
-ghr search related-prs -R openclaw/openclaw <pr-number> --mode range_overlap --state all
-ghr search mentions -R openclaw/openclaw --query "<key phrase from title or body>" --mode fts --scope pull_requests --state all
-ghr search mentions -R openclaw/openclaw --query "<subsystem or error phrase>" --mode fts --scope issues --state all
+ghr search related-prs -R genesis/genesis <pr-number> --mode path_overlap --state all
+ghr search related-prs -R genesis/genesis <pr-number> --mode range_overlap --state all
+ghr search mentions -R genesis/genesis --query "<key phrase from title or body>" --mode fts --scope pull_requests --state all
+ghr search mentions -R genesis/genesis --query "<subsystem or error phrase>" --mode fts --scope issues --state all
 ```
 
 Use `prs-by-paths` or `prs-by-ranges` when the likely duplicate surface is already known:
 
 ```bash
-ghr search prs-by-paths -R openclaw/openclaw --path src/example.ts --state all
-ghr search prs-by-ranges -R openclaw/openclaw --path src/example.ts --start 20 --end 80 --state all
+ghr search prs-by-paths -R genesis/genesis --path src/example.ts --state all
+ghr search prs-by-ranges -R genesis/genesis --path src/example.ts --start 20 --end 80 --state all
 ```
 
 ### Issue duplicate search
@@ -263,9 +263,9 @@ For issues, search mirrored text and linked PR context instead.
 Run targeted text searches:
 
 ```bash
-ghr search mentions -R openclaw/openclaw --query "<issue title phrase>" --mode fts --scope issues --state all
-ghr search mentions -R openclaw/openclaw --query "<error message or symptom>" --mode fts --scope issues --state all
-ghr search mentions -R openclaw/openclaw --query "<subsystem phrase>" --mode fts --scope pull_requests --state all
+ghr search mentions -R genesis/genesis --query "<issue title phrase>" --mode fts --scope issues --state all
+ghr search mentions -R genesis/genesis --query "<error message or symptom>" --mode fts --scope issues --state all
+ghr search mentions -R genesis/genesis --query "<subsystem phrase>" --mode fts --scope pull_requests --state all
 ```
 
 Then inspect the candidate PRs or issues those searches uncover.
@@ -279,10 +279,10 @@ Run it through the `pr-search` command.
 For a PR:
 
 ```bash
-uvx --from pr-search-cli pr-search -R openclaw/openclaw code similar <pr-number>
-uvx --from pr-search-cli pr-search -R openclaw/openclaw code clusters for-pr <pr-number>
-uvx --from pr-search-cli pr-search -R openclaw/openclaw issues for-pr <pr-number>
-uvx --from pr-search-cli pr-search -R openclaw/openclaw issues duplicate-prs
+uvx --from pr-search-cli pr-search -R genesis/genesis code similar <pr-number>
+uvx --from pr-search-cli pr-search -R genesis/genesis code clusters for-pr <pr-number>
+uvx --from pr-search-cli pr-search -R genesis/genesis issues for-pr <pr-number>
+uvx --from pr-search-cli pr-search -R genesis/genesis issues duplicate-prs
 ```
 
 Interpretation:
@@ -326,9 +326,9 @@ Before creating a group, search `prtags` for an existing one.
 Start with text search over groups:
 
 ```bash
-prtags search text -R openclaw/openclaw "<problem phrase>" --types group --limit 10
-prtags search similar -R openclaw/openclaw "<problem summary>" --types group --limit 10
-prtags group list -R openclaw/openclaw
+prtags search text -R genesis/genesis "<problem phrase>" --types group --limit 10
+prtags search similar -R genesis/genesis "<problem summary>" --types group --limit 10
+prtags group list -R genesis/genesis
 ```
 
 Inspect likely groups:
@@ -352,7 +352,7 @@ Create a new group only when no existing group clearly fits.
 Create the group with a problem-based title and an intent-based description:
 
 ```bash
-prtags group create -R openclaw/openclaw \
+prtags group create -R genesis/genesis \
   --kind mixed \
   --title "<problem-centered title>" \
   --description "<same intent, subsystem, and duplicate-resolution path>" \
@@ -376,20 +376,20 @@ Use `field ensure` so the skill is idempotent.
 Recommended target-level fields:
 
 ```bash
-prtags field ensure -R openclaw/openclaw --name duplicate_status --scope pull_request --type enum --enum-values not_duplicate,candidate,confirmed --filterable
-prtags field ensure -R openclaw/openclaw --name duplicate_status --scope issue --type enum --enum-values not_duplicate,candidate,confirmed --filterable
-prtags field ensure -R openclaw/openclaw --name duplicate_confidence --scope pull_request --type enum --enum-values low,medium,high --filterable
-prtags field ensure -R openclaw/openclaw --name duplicate_confidence --scope issue --type enum --enum-values low,medium,high --filterable
-prtags field ensure -R openclaw/openclaw --name duplicate_rationale --scope pull_request --type text --searchable
-prtags field ensure -R openclaw/openclaw --name duplicate_rationale --scope issue --type text --searchable
+prtags field ensure -R genesis/genesis --name duplicate_status --scope pull_request --type enum --enum-values not_duplicate,candidate,confirmed --filterable
+prtags field ensure -R genesis/genesis --name duplicate_status --scope issue --type enum --enum-values not_duplicate,candidate,confirmed --filterable
+prtags field ensure -R genesis/genesis --name duplicate_confidence --scope pull_request --type enum --enum-values low,medium,high --filterable
+prtags field ensure -R genesis/genesis --name duplicate_confidence --scope issue --type enum --enum-values low,medium,high --filterable
+prtags field ensure -R genesis/genesis --name duplicate_rationale --scope pull_request --type text --searchable
+prtags field ensure -R genesis/genesis --name duplicate_rationale --scope issue --type text --searchable
 ```
 
 Recommended group-level fields:
 
 ```bash
-prtags field ensure -R openclaw/openclaw --name duplicate_confidence --scope group --type enum --enum-values low,medium,high --filterable
-prtags field ensure -R openclaw/openclaw --name duplicate_rationale --scope group --type text --searchable
-prtags field ensure -R openclaw/openclaw --name cluster_summary --scope group --type text --searchable
+prtags field ensure -R genesis/genesis --name duplicate_confidence --scope group --type enum --enum-values low,medium,high --filterable
+prtags field ensure -R genesis/genesis --name duplicate_rationale --scope group --type text --searchable
+prtags field ensure -R genesis/genesis --name cluster_summary --scope group --type text --searchable
 ```
 
 ## Step 7: Save The Maintainer Judgment In prtags
@@ -397,7 +397,7 @@ prtags field ensure -R openclaw/openclaw --name cluster_summary --scope group --
 For a PR:
 
 ```bash
-prtags annotation pr set -R openclaw/openclaw <pr-number> \
+prtags annotation pr set -R genesis/genesis <pr-number> \
   duplicate_status=confirmed \
   duplicate_confidence=high \
   duplicate_rationale="<same problem, same fix direction, overlapping files and comments>"
@@ -406,7 +406,7 @@ prtags annotation pr set -R openclaw/openclaw <pr-number> \
 For an issue:
 
 ```bash
-prtags annotation issue set -R openclaw/openclaw <issue-number> \
+prtags annotation issue set -R genesis/genesis <issue-number> \
   duplicate_status=confirmed \
   duplicate_confidence=high \
   duplicate_rationale="<same user-visible problem and same intended fix path>"
@@ -443,7 +443,7 @@ prtags group sync-comments <group-id>
 If the maintainer needs to see which groups still need attention, use:
 
 ```bash
-prtags group list-comment-sync-targets -R openclaw/openclaw
+prtags group list-comment-sync-targets -R genesis/genesis
 ```
 
 The skill should treat the GitHub comment as a consequence of correct `prtags` group state.

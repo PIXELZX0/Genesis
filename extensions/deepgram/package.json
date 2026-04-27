@@ -1,16 +1,16 @@
 {
-  "name": "@openclaw/deepgram-provider",
+  "name": "@genesis/deepgram-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Deepgram media-understanding provider",
+  "description": "Genesis Deepgram media-understanding provider",
   "type": "module",
   "dependencies": {
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

@@ -58,7 +58,7 @@ export async function dashboardCommand(
   if (resolvedToken.unresolvedRefReason) {
     runtime.log(`Token auto-auth unavailable: ${resolvedToken.unresolvedRefReason}`);
     runtime.log(
-      "Set OPENCLAW_GATEWAY_TOKEN in this shell or resolve your secret provider, then rerun `openclaw dashboard`.",
+      "Set GENESIS_GATEWAY_TOKEN in this shell or resolve your secret provider, then rerun `genesis dashboard`.",
     );
   }
 
@@ -86,7 +86,7 @@ export async function dashboardCommand(
   }
 
   if (opened) {
-    runtime.log("Opened in your browser. Keep that tab to control OpenClaw.");
+    runtime.log("Opened in your browser. Keep that tab to control Genesis.");
   } else if (hint) {
     runtime.log(hint);
   }

@@ -1,4 +1,4 @@
-import { z } from "openclaw/plugin-sdk/zod";
+import { z } from "genesis/plugin-sdk/zod";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MatrixRoomInfo } from "./room-info.js";
 
@@ -300,7 +300,7 @@ vi.mock("../config-update.js", () => ({
 
 vi.mock("../device-health.js", () => ({
   summarizeMatrixDeviceHealth: vi.fn(() => ({
-    staleOpenClawDevices: [],
+    staleGenesisDevices: [],
   })),
 }));
 

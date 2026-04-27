@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { collectChannelStatusIssues as collectChannelStatusIssuesFn } from "../infra/channels-status-issues.js";
 import { resolveOsSummary } from "../infra/os-summary.js";
 import type { UpdateCheckResult } from "../infra/update-check.js";
@@ -75,7 +75,7 @@ function loadCommandSecretTargetsModule() {
 }
 
 async function resolveStatusChannelsStatus(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   gatewayReachable: boolean;
   opts: { timeoutMs?: number; all?: boolean };
   gatewayCallOverrides?: GatewayProbeSnapshot["gatewayCallOverrides"];
@@ -101,8 +101,8 @@ export type StatusScanOverviewResult = {
   coldStart: boolean;
   hasConfiguredChannels: boolean;
   skipColdStartNetworkChecks: boolean;
-  cfg: OpenClawConfig;
-  sourceConfig: OpenClawConfig;
+  cfg: GenesisConfig;
+  sourceConfig: GenesisConfig;
   secretDiagnostics: string[];
   osSummary: ReturnType<typeof resolveOsSummary>;
   tailscaleMode: string;
@@ -133,7 +133,7 @@ export async function collectStatusScanOverview(params: {
   showSecrets: boolean;
   runtime?: RuntimeEnv;
   allowMissingConfigFastPath?: boolean;
-  resolveHasConfiguredChannels?: (cfg: OpenClawConfig, sourceConfig: OpenClawConfig) => boolean;
+  resolveHasConfiguredChannels?: (cfg: GenesisConfig, sourceConfig: GenesisConfig) => boolean;
   includeChannelsData?: boolean;
   useGatewayCallOverridesForChannelsStatus?: boolean;
   progress?: {

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { applyMergePatch } from "../config/merge-patch.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isRecord } from "../utils.js";
 import {
@@ -139,10 +139,10 @@ export function inspectBundleLspRuntimeSupport(params: {
   };
 }
 
-export function loadEnabledBundleLspConfig(params: {
-  workspaceDir: string;
-  cfg?: OpenClawConfig;
-}): { config: BundleLspConfig; diagnostics: Array<{ pluginId: string; message: string }> } {
+export function loadEnabledBundleLspConfig(params: { workspaceDir: string; cfg?: GenesisConfig }): {
+  config: BundleLspConfig;
+  diagnostics: Array<{ pluginId: string; message: string }>;
+} {
   return loadEnabledBundleConfig({
     workspaceDir: params.workspaceDir,
     cfg: params.cfg,

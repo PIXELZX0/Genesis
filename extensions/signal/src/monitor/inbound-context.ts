@@ -1,9 +1,9 @@
-import { resolveChannelContextVisibilityMode } from "openclaw/plugin-sdk/config-runtime";
+import { resolveChannelContextVisibilityMode } from "genesis/plugin-sdk/config-runtime";
 import {
   evaluateSupplementalContextVisibility,
   type ContextVisibilityDecision,
-} from "openclaw/plugin-sdk/security-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/security-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   formatSignalSenderDisplay,
   isSignalSenderAllowed,

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { withTempDir } from "../test-helpers/temp-dir.js";
 import { migrateOrphanedSessionKeys } from "./state-migrations.js";
 
@@ -18,7 +18,7 @@ async function withStateFixture(
   run: (params: { tmpDir: string; stateDir: string }) => Promise<void>,
 ): Promise<void> {
   await withTempDir({ prefix: "orphan-keys-test-" }, async (tmpDir) => {
-    const stateDir = path.join(tmpDir, ".openclaw");
+    const stateDir = path.join(tmpDir, ".genesis");
     fs.mkdirSync(stateDir, { recursive: true });
     await run({ tmpDir, stateDir });
   });
@@ -27,23 +27,23 @@ async function withStateFixture(
 const OPS_WORK_CONFIG = {
   session: { mainKey: "work" },
   agents: { list: [{ id: "ops", default: true }] },
-} as OpenClawConfig;
+} as GenesisConfig;
 
 function opsSessionStorePath(stateDir: string): string {
   return path.join(stateDir, "agents", "ops", "sessions", "sessions.json");
 }
 
-function sharedMainOpsConfig(sharedStorePath: string): OpenClawConfig {
+function sharedMainOpsConfig(sharedStorePath: string): GenesisConfig {
   return {
     session: { mainKey: "work", store: sharedStorePath },
     agents: { list: [{ id: "main" }, { id: "ops", default: true }] },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
-async function migrateFixtureState(stateDir: string, cfg: OpenClawConfig = OPS_WORK_CONFIG) {
+async function migrateFixtureState(stateDir: string, cfg: GenesisConfig = OPS_WORK_CONFIG) {
   return migrateOrphanedSessionKeys({
     cfg,
-    env: { OPENCLAW_STATE_DIR: stateDir },
+    env: { GENESIS_STATE_DIR: stateDir },
   });
 }
 
@@ -111,7 +111,7 @@ describe("migrateOrphanedSessionKeys", () => {
         "agent:main:main": { sessionId: "abc-123", updatedAt: 1000 },
       });
 
-      const env = { OPENCLAW_STATE_DIR: stateDir };
+      const env = { GENESIS_STATE_DIR: stateDir };
       await migrateOrphanedSessionKeys({ cfg: OPS_WORK_CONFIG, env });
       const result2 = await migrateOrphanedSessionKeys({ cfg: OPS_WORK_CONFIG, env });
 
@@ -170,11 +170,11 @@ describe("migrateOrphanedSessionKeys", () => {
         "agent:main:main": { sessionId: "abc-123", updatedAt: 1000 },
       });
 
-      const cfg = {} as OpenClawConfig;
+      const cfg = {} as GenesisConfig;
 
       const result = await migrateOrphanedSessionKeys({
         cfg,
-        env: { OPENCLAW_STATE_DIR: stateDir },
+        env: { GENESIS_STATE_DIR: stateDir },
       });
 
       expect(result.changes).toHaveLength(0);

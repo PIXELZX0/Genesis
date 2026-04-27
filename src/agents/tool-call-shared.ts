@@ -3,7 +3,7 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 export const TOOL_CALL_NAME_MAX_CHARS = 64;
 export const TOOL_CALL_NAME_RE = /^[A-Za-z0-9_:.-]+$/;
 
-export const REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT = "__OPENCLAW_REDACTED__";
+export const REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT = "__GENESIS_REDACTED__";
 export const SESSIONS_SPAWN_ATTACHMENT_METADATA_KEYS = ["name", "encoding", "mimeType"] as const;
 
 export function normalizeAllowedToolNames(allowedToolNames?: Iterable<string>): Set<string> | null {

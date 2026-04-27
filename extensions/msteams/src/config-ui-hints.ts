@@ -1,4 +1,4 @@
-import type { ChannelConfigUiHint } from "openclaw/plugin-sdk/channel-core";
+import type { ChannelConfigUiHint } from "genesis/plugin-sdk/channel-core";
 
 export const msTeamsChannelConfigUiHints = {
   "": {

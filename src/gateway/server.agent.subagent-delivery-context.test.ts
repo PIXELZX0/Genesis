@@ -57,7 +57,7 @@ beforeAll(async () => {
   server = started.server;
   ws = started.ws;
   await connectOk(ws);
-  sessionStoreDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-subagent-delivery-ctx-"));
+  sessionStoreDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-gw-subagent-delivery-ctx-"));
   sessionStorePath = path.join(sessionStoreDir, "sessions.json");
 });
 

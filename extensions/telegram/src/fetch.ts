@@ -1,20 +1,20 @@
 import { randomUUID } from "node:crypto";
 import * as dns from "node:dns";
-import type { TelegramNetworkConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import type { TelegramNetworkConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   createPinnedLookup,
   hasEnvHttpProxyConfigured,
   resolveFetch,
   type PinnedDispatcherPolicy,
-} from "openclaw/plugin-sdk/fetch-runtime";
+} from "genesis/plugin-sdk/fetch-runtime";
 import {
   captureHttpExchange,
   resolveEffectiveDebugProxyUrl,
-} from "openclaw/plugin-sdk/proxy-capture";
-import { resolveRequestUrl } from "openclaw/plugin-sdk/request-url";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/proxy-capture";
+import { resolveRequestUrl } from "genesis/plugin-sdk/request-url";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { Agent, EnvHttpProxyAgent, ProxyAgent, fetch as undiciFetch } from "undici";
 import {
   resolveTelegramAutoSelectFamilyDecision,
@@ -33,7 +33,7 @@ const TELEGRAM_FALLBACK_IPS: readonly string[] = ["149.154.167.220"];
 // strict enough that (a) idle sockets are closed even when the pool is still
 // actively used and (b) the pool itself cannot grow unbounded under transient
 // concurrency spikes. These values are a defence-in-depth layer; the primary
-// fix for the leak observed in openclaw#68128 is the transport lifecycle that
+// fix for the leak observed in genesis#68128 is the transport lifecycle that
 // calls `close()` on abandoned dispatchers.
 const TELEGRAM_DISPATCHER_KEEP_ALIVE_TIMEOUT_MS = 30_000;
 const TELEGRAM_DISPATCHER_KEEP_ALIVE_MAX_TIMEOUT_MS = 600_000;

@@ -2,8 +2,8 @@
  * String normalization and record-coercion helpers.
  *
  * These are self-contained re-implementations of the functions that
- * the plugin previously imported from `openclaw/plugin-sdk/text-runtime`
- * and `openclaw/plugin-sdk/text-runtime` (via record-coerce / string-coerce).
+ * the plugin previously imported from `genesis/plugin-sdk/text-runtime`
+ * and `genesis/plugin-sdk/text-runtime` (via record-coerce / string-coerce).
  *
  * core/ modules use these instead of importing plugin-sdk, keeping the
  * shared layer portable between the built-in and standalone versions.

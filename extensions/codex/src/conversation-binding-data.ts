@@ -1,5 +1,5 @@
 import process from "node:process";
-import type { PluginConversationBinding } from "openclaw/plugin-sdk/plugin-entry";
+import type { PluginConversationBinding } from "genesis/plugin-sdk/plugin-entry";
 
 const BINDING_DATA_VERSION = 1;
 

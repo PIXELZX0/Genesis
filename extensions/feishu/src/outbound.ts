@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createAttachedChannelResultAdapter } from "openclaw/plugin-sdk/channel-send-result";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { createAttachedChannelResultAdapter } from "genesis/plugin-sdk/channel-send-result";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveFeishuAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { cleanupAmbientCommentTypingReaction } from "./comment-reaction.js";

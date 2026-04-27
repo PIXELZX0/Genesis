@@ -39,7 +39,7 @@ async function writePluginFixture(params: {
     manifest.channels = params.channels;
   }
   await fs.writeFile(
-    path.join(params.dir, "openclaw.plugin.json"),
+    path.join(params.dir, "genesis.plugin.json"),
     JSON.stringify(manifest, null, 2),
     "utf-8",
   );
@@ -106,11 +106,11 @@ describe("config plugin validation", () => {
   const suiteEnv = () =>
     ({
       HOME: suiteHome,
-      OPENCLAW_HOME: undefined,
-      OPENCLAW_STATE_DIR: path.join(suiteHome, ".openclaw"),
-      OPENCLAW_PLUGIN_MANIFEST_CACHE_MS: "10000",
-      OPENCLAW_BUNDLED_PLUGINS_DIR: undefined,
-      OPENCLAW_VERSION: undefined,
+      GENESIS_HOME: undefined,
+      GENESIS_STATE_DIR: path.join(suiteHome, ".genesis"),
+      GENESIS_PLUGIN_MANIFEST_CACHE_MS: "10000",
+      GENESIS_BUNDLED_PLUGINS_DIR: undefined,
+      GENESIS_VERSION: undefined,
       VITEST: "true",
     }) satisfies NodeJS.ProcessEnv;
 
@@ -130,7 +130,7 @@ describe("config plugin validation", () => {
     });
 
   beforeAll(async () => {
-    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-config-plugin-validation-"));
+    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-config-plugin-validation-"));
     await chmodSafeDir(fixtureRoot);
     suiteHome = path.join(fixtureRoot, "home");
     await mkdirSafe(suiteHome);
@@ -195,7 +195,7 @@ describe("config plugin validation", () => {
       process.cwd(),
       "extensions",
       "voice-call",
-      "openclaw.plugin.json",
+      "genesis.plugin.json",
     );
     const voiceCallManifest = JSON.parse(await fs.readFile(voiceCallManifestPath, "utf-8")) as {
       configSchema?: Record<string, unknown>;
@@ -312,7 +312,7 @@ describe("config plugin validation", () => {
       {
         env: {
           ...suiteEnv(),
-          OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(suiteHome, "missing-bundled-plugins"),
+          GENESIS_BUNDLED_PLUGINS_DIR: path.join(suiteHome, "missing-bundled-plugins"),
         },
       },
     );

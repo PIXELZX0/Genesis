@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { redactIdentifier } from "../logging/redact-identifier.js";
 import type { AuthProfileFailureReason } from "./auth-profiles.js";
 import { buildAttemptReplayMetadata } from "./pi-embedded-runner/run/incomplete-turn.js";
@@ -100,7 +100,7 @@ const installRunEmbeddedMocks = () => {
     const mod = await vi.importActual<typeof import("./models-config.js")>("./models-config.js");
     return {
       ...mod,
-      ensureOpenClawModelsJson: vi.fn(async () => ({ wrote: false })),
+      ensureGenesisModelsJson: vi.fn(async () => ({ wrote: false })),
     };
   });
 };
@@ -222,7 +222,7 @@ const makeConfig = (opts?: {
   apiKey?: string;
   overloadedBackoffMs?: number;
   overloadedProfileRotations?: number;
-}): OpenClawConfig =>
+}): GenesisConfig =>
   ({
     auth:
       opts?.overloadedBackoffMs != null || opts?.overloadedProfileRotations != null
@@ -264,9 +264,9 @@ const makeConfig = (opts?: {
         },
       },
     },
-  }) satisfies OpenClawConfig;
+  }) satisfies GenesisConfig;
 
-const makeAgentOverrideOnlyFallbackConfig = (agentId: string): OpenClawConfig =>
+const makeAgentOverrideOnlyFallbackConfig = (agentId: string): GenesisConfig =>
   ({
     agents: {
       defaults: {
@@ -303,11 +303,11 @@ const makeAgentOverrideOnlyFallbackConfig = (agentId: string): OpenClawConfig =>
         },
       },
     },
-  }) satisfies OpenClawConfig;
+  }) satisfies GenesisConfig;
 
 const copilotModelId = "gpt-4o";
 
-const makeCopilotConfig = (): OpenClawConfig =>
+const makeCopilotConfig = (): GenesisConfig =>
   ({
     models: {
       providers: {
@@ -328,7 +328,7 @@ const makeCopilotConfig = (): OpenClawConfig =>
         },
       },
     },
-  }) satisfies OpenClawConfig;
+  }) satisfies GenesisConfig;
 
 const writeAuthStore = async (
   agentDir: string,
@@ -448,7 +448,7 @@ async function runAutoPinnedOpenAiTurn(params: {
   sessionKey: string;
   runId: string;
   authProfileId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }) {
   await runEmbeddedPiAgentInline({
     sessionId: "session:test",
@@ -491,7 +491,7 @@ async function runAutoPinnedRotationCase(params: {
   errorMessage: string;
   sessionKey: string;
   runId: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }) {
   runEmbeddedAttemptMock.mockReset();
   return withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
@@ -515,7 +515,7 @@ async function runAutoPinnedPromptErrorRotationCase(params: {
   errorMessage: string;
   sessionKey: string;
   runId: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }) {
   runEmbeddedAttemptMock.mockReset();
   return withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
@@ -570,8 +570,8 @@ async function withTimedAgentWorkspace<T>(
 ) {
   vi.useFakeTimers();
   try {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-workspace-"));
     const now = Date.now();
     vi.setSystemTime(now);
 
@@ -589,8 +589,8 @@ async function withTimedAgentWorkspace<T>(
 async function withAgentWorkspace<T>(
   run: (ctx: { agentDir: string; workspaceDir: string }) => Promise<T>,
 ) {
-  const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
-  const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+  const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
+  const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-workspace-"));
   try {
     return await run({ agentDir, workspaceDir });
   } finally {
@@ -637,8 +637,8 @@ async function runTurnWithCooldownSeed(params: {
 
 describe("runEmbeddedPiAgent auth profile rotation", () => {
   it("refreshes copilot token after auth error and retries once", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-workspace-"));
     try {
       await writeCopilotAuthStore(agentDir);
       const now = Date.now();
@@ -703,8 +703,8 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
   });
 
   it("allows another auth refresh after a successful retry", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-workspace-"));
     try {
       await writeCopilotAuthStore(agentDir);
       const now = Date.now();
@@ -787,8 +787,8 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
   });
 
   it("does not reschedule copilot refresh after shutdown", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-workspace-"));
     vi.useFakeTimers();
     try {
       await writeCopilotAuthStore(agentDir);
@@ -868,7 +868,7 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
     setLoggerOverrideFn({
       level: "trace",
       consoleLevel: "silent",
-      file: path.join(os.tmpdir(), `openclaw-auth-rotation-${Date.now()}.log`),
+      file: path.join(os.tmpdir(), `genesis-auth-rotation-${Date.now()}.log`),
     });
 
     await runAutoPinnedRotationCase({

@@ -1,5 +1,5 @@
 import { normalizeChatType } from "../../channels/chat-type.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   buildAgentMainSessionKey,
   buildAgentPeerSessionKey,
@@ -54,7 +54,7 @@ function resolvePolicyDirectPeerId(ctx?: RuntimePolicyContext): string | undefin
 }
 
 function isMainSessionAlias(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId: string;
   sessionKey: string;
 }): boolean {
@@ -84,7 +84,7 @@ function isMainSessionAlias(params: {
 }
 
 export function resolveRuntimePolicySessionKey(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   ctx?: RuntimePolicyContext;
   sessionKey?: string | null;
 }): string | undefined {

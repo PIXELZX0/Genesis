@@ -78,7 +78,7 @@ function makePluginRegistry(overrides: Partial<PluginRegistry> = {}): PluginRegi
 }
 
 const resolveAgentWorkspaceDir = vi.hoisted(() =>
-  vi.fn((_cfg?: unknown, _agentId?: unknown) => "/tmp/openclaw-workspace"),
+  vi.fn((_cfg?: unknown, _agentId?: unknown) => "/tmp/genesis-workspace"),
 );
 const resolveDefaultAgentId = vi.hoisted(() => vi.fn((_cfg?: unknown) => "default"));
 const listTrustedChannelPluginCatalogEntries = vi.hoisted(() =>
@@ -187,7 +187,7 @@ import { setupChannels } from "./channel-setup.js";
 describe("setupChannels workspace shadow exclusion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resolveAgentWorkspaceDir.mockReturnValue("/tmp/openclaw-workspace");
+    resolveAgentWorkspaceDir.mockReturnValue("/tmp/genesis-workspace");
     resolveDefaultAgentId.mockReturnValue("default");
     listTrustedChannelPluginCatalogEntries.mockReturnValue([
       {
@@ -230,14 +230,14 @@ describe("setupChannels workspace shadow exclusion", () => {
     expect(listTrustedChannelPluginCatalogEntries).toHaveBeenCalledWith(
       expect.objectContaining({
         cfg: {},
-        workspaceDir: "/tmp/openclaw-workspace",
+        workspaceDir: "/tmp/genesis-workspace",
       }),
     );
     expect(loadChannelSetupPluginRegistrySnapshotForChannel).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "external-chat",
         pluginId: "@vendor/external-chat-plugin",
-        workspaceDir: "/tmp/openclaw-workspace",
+        workspaceDir: "/tmp/genesis-workspace",
       }),
     );
   });
@@ -265,7 +265,7 @@ describe("setupChannels workspace shadow exclusion", () => {
       expect.objectContaining({
         channel: "external-chat",
         pluginId: "trusted-external-chat-shadow",
-        workspaceDir: "/tmp/openclaw-workspace",
+        workspaceDir: "/tmp/genesis-workspace",
       }),
     );
   });
@@ -467,7 +467,7 @@ describe("setupChannels workspace shadow exclusion", () => {
       expect.objectContaining({
         channel: "external-chat",
         pluginId: "external-chat",
-        workspaceDir: "/tmp/openclaw-workspace",
+        workspaceDir: "/tmp/genesis-workspace",
         installRuntimeDeps: false,
       }),
     );
@@ -475,7 +475,7 @@ describe("setupChannels workspace shadow exclusion", () => {
       2,
       expect.objectContaining({
         channel: "external-chat",
-        workspaceDir: "/tmp/openclaw-workspace",
+        workspaceDir: "/tmp/genesis-workspace",
         forceSetupOnlyChannelPlugins: true,
         installRuntimeDeps: true,
       }),

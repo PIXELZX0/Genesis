@@ -1,7 +1,7 @@
 import path from "node:path";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-state.js";
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverGenesisPlugins } from "./discovery.js";
 import {
   describePluginInstallSource,
   type PluginInstallSourceInfo,
@@ -25,7 +25,7 @@ export type ProviderInstallCatalogEntry = ProviderAuthChoiceMetadata & {
 };
 
 type ProviderInstallCatalogParams = {
-  config?: import("../config/types.openclaw.js").OpenClawConfig;
+  config?: import("../config/types.genesis.js").GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;
@@ -113,7 +113,7 @@ function resolvePreferredInstallsByPluginId(
 ): Map<string, PreferredInstallSource> {
   const preferredByPluginId = new Map<string, PreferredInstallSource>();
   const normalizedConfig = normalizePluginsConfig(params.config?.plugins);
-  for (const candidate of discoverOpenClawPlugins({
+  for (const candidate of discoverGenesisPlugins({
     workspaceDir: params.workspaceDir,
     env: params.env,
   }).candidates) {

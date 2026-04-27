@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, beforeEach, vi } from "vitest";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import type { PluginWebSearchProviderEntry } from "../plugins/types.js";
@@ -16,8 +16,8 @@ vi.mock("../plugins/web-search-providers.runtime.js", () => ({
   resolvePluginWebSearchProviders: resolvePluginWebSearchProvidersMock,
 }));
 
-export function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+export function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
 export function loadAuthStoreWithProfiles(

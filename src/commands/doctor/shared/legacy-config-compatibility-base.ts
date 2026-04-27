@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import {
   normalizeLegacyBrowserConfig,
   normalizeLegacyCrossContextMessageConfig,
@@ -14,10 +14,10 @@ import { migrateLegacyWebSearchConfig } from "./legacy-web-search-migrate.js";
 import { migrateLegacyXSearchConfig } from "./legacy-x-search-migrate.js";
 
 export function normalizeBaseCompatibilityConfigValues(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   changes: string[],
-  afterBrowser?: (config: OpenClawConfig) => OpenClawConfig,
-): OpenClawConfig {
+  afterBrowser?: (config: GenesisConfig) => GenesisConfig,
+): GenesisConfig {
   let next = seedMissingDefaultAccountsFromSingleAccountBase(cfg, changes);
   next = normalizeLegacyBrowserConfig(next, changes);
   next = afterBrowser ? afterBrowser(next) : next;

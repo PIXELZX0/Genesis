@@ -12,7 +12,7 @@ export function resolveGatewayLogPaths(env: GatewayServiceEnv): {
 } {
   const stateDir = resolveGatewayStateDir(env);
   const logDir = path.join(stateDir, "logs");
-  const prefix = env.OPENCLAW_LOG_PREFIX?.trim() || "gateway";
+  const prefix = env.GENESIS_LOG_PREFIX?.trim() || "gateway";
   return {
     logDir,
     stdoutPath: path.join(logDir, `${prefix}.log`),
@@ -50,7 +50,7 @@ export function renderCmdRestartLogSetup(env: GatewayServiceEnv): {
     quotedLogPath,
     lines: [
       `if not exist ${quotedLogDir} mkdir ${quotedLogDir} >nul 2>&1`,
-      `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart log initialized`,
+      `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] genesis restart log initialized`,
     ],
   };
 }

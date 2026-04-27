@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../src/config/types.openclaw.js";
+import type { GenesisConfig } from "../../src/config/types.genesis.js";
 import {
   __testing,
   buildMistralRealtimeTranscriptionProvider,
@@ -13,7 +13,7 @@ describe("buildMistralRealtimeTranscriptionProvider", () => {
   it("normalizes nested provider config", () => {
     const provider = buildMistralRealtimeTranscriptionProvider();
     const resolved = provider.resolveConfig?.({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       rawConfig: {
         providers: {
           mistral: {

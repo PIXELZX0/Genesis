@@ -1,9 +1,9 @@
-import type { loadConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { loadConfig } from "genesis/plugin-sdk/config-runtime";
 
 export {
   formatInboundEnvelope,
   type EnvelopeFormatOptions,
-} from "openclaw/plugin-sdk/channel-envelope";
+} from "genesis/plugin-sdk/channel-envelope";
 
 type WhatsAppMessagePrefixConfig = ReturnType<typeof loadConfig>;
 
@@ -34,5 +34,5 @@ export function resolveMessagePrefix(
   if (opts?.hasAllowFrom === true) {
     return "";
   }
-  return resolveIdentityNamePrefix(cfg, agentId) ?? opts?.fallback ?? "[openclaw]";
+  return resolveIdentityNamePrefix(cfg, agentId) ?? opts?.fallback ?? "[genesis]";
 }

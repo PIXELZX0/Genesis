@@ -3,7 +3,7 @@ name: xurl
 description: Use xurl for authenticated X API posts, replies, search, DMs, media upload, followers, or raw v2 calls.
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "🐦",
         "requires": { "bins": ["xurl"] },

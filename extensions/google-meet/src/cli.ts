@@ -689,7 +689,7 @@ export function registerGoogleMeetCli(params: {
   const root = params.program
     .command("googlemeet")
     .description("Google Meet participant utilities")
-    .addHelpText("after", () => `\nDocs: https://docs.openclaw.ai/plugins/google-meet\n`);
+    .addHelpText("after", () => `\nDocs: https://docs.genesis.ai/plugins/google-meet\n`);
 
   const auth = root.command("auth").description("Google Meet OAuth helpers");
 
@@ -809,7 +809,7 @@ export function registerGoogleMeetCli(params: {
         if (join) {
           writeStdoutLine("joined: %s", join.session.id);
         } else {
-          writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+          writeStdoutLine("joined: no (run `genesis googlemeet join %s`)", result.meetingUri);
         }
         return;
       }
@@ -852,7 +852,7 @@ export function registerGoogleMeetCli(params: {
       if (join) {
         writeStdoutLine("joined: %s", join.session.id);
       } else {
-        writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+        writeStdoutLine("joined: no (run `genesis googlemeet join %s`)", result.meetingUri);
       }
     });
 

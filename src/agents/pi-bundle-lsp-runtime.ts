@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { logDebug, logWarn } from "../logger.js";
 import { setPluginToolMeta } from "../plugins/tools.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
@@ -294,7 +294,7 @@ function formatLspResult(
 
 export async function createBundleLspToolRuntime(params: {
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   reservedToolNames?: Iterable<string>;
 }): Promise<BundleLspToolRuntime> {
   const loaded = loadEmbeddedPiLspConfig({

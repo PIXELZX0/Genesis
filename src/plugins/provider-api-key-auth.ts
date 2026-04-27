@@ -1,5 +1,5 @@
 import { upsertAuthProfile } from "../agents/auth-profiles/profiles.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { SecretInput } from "../config/types.secrets.js";
 import { createLazyRuntimeSurface } from "../shared/lazy-runtime.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
@@ -29,7 +29,7 @@ type ProviderApiKeyAuthMethodOptions = {
   metadata?: Record<string, string>;
   noteMessage?: string;
   noteTitle?: string;
-  applyConfig?: (cfg: OpenClawConfig) => OpenClawConfig;
+  applyConfig?: (cfg: GenesisConfig) => GenesisConfig;
 };
 
 const loadProviderApiKeyAuthRuntime = createLazyRuntimeSurface(
@@ -62,7 +62,7 @@ async function applyApiKeyConfig(params: {
   providerId: string;
   profileIds: string[];
   defaultModel?: string;
-  applyConfig?: (cfg: OpenClawConfig) => OpenClawConfig;
+  applyConfig?: (cfg: GenesisConfig) => GenesisConfig;
 }) {
   const { applyAuthProfileConfig, applyPrimaryModel } = await loadProviderApiKeyAuthRuntime();
   let next = params.ctx.config;

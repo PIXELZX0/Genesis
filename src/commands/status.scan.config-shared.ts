@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolveConfigPath } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 
 export function shouldSkipStatusScanMissingConfigFastPath(
   env: NodeJS.ProcessEnv = process.env,
@@ -20,16 +20,16 @@ export function resolveStatusScanColdStart(params?: {
 
 export async function loadStatusScanCommandConfig(params: {
   commandName: string;
-  readBestEffortConfig: () => Promise<OpenClawConfig>;
+  readBestEffortConfig: () => Promise<GenesisConfig>;
   resolveConfig: (
-    sourceConfig: OpenClawConfig,
-  ) => Promise<{ resolvedConfig: OpenClawConfig; diagnostics: string[] }>;
+    sourceConfig: GenesisConfig,
+  ) => Promise<{ resolvedConfig: GenesisConfig; diagnostics: string[] }>;
   env?: NodeJS.ProcessEnv;
   allowMissingConfigFastPath?: boolean;
 }): Promise<{
   coldStart: boolean;
-  sourceConfig: OpenClawConfig;
-  resolvedConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  resolvedConfig: GenesisConfig;
   secretDiagnostics: string[];
 }> {
   const env = params.env ?? process.env;

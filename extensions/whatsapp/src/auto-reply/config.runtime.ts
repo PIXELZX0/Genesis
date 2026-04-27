@@ -15,4 +15,4 @@ export {
   resolveThreadFlag,
   resolveChannelResetConfig,
   updateLastRoute,
-} from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/config-runtime";

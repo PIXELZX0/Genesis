@@ -1,3 +1,3 @@
-import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { isRecord } from "genesis/plugin-sdk/string-coerce-runtime";
 
 export { isRecord };

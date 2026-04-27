@@ -1,3 +1,3 @@
-export { resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-export { chunkTextWithMode, resolveChunkMode } from "openclaw/plugin-sdk/reply-runtime";
-export { convertMarkdownTables } from "openclaw/plugin-sdk/text-runtime";
+export { resolveMarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
+export { chunkTextWithMode, resolveChunkMode } from "genesis/plugin-sdk/reply-runtime";
+export { convertMarkdownTables } from "genesis/plugin-sdk/text-runtime";

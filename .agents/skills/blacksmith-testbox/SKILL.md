@@ -81,7 +81,7 @@ Prefer Testbox when:
 - you are reproducing CI-only failures
 - you need the exact workflow image/job environment from GitHub Actions
 
-For OpenClaw specifically, normal local iteration should stay local:
+For Genesis specifically, normal local iteration should stay local:
 
 - `pnpm check:changed`
 - `pnpm test:changed`
@@ -89,7 +89,7 @@ For OpenClaw specifically, normal local iteration should stay local:
 - `pnpm test:serial`
 - `pnpm build`
 
-Only use Testbox in OpenClaw when the user explicitly wants CI-parity or the
+Only use Testbox in Genesis when the user explicitly wants CI-parity or the
 check truly depends on remote secrets/services that the local repo loop cannot
 provide.
 
@@ -255,13 +255,13 @@ checks that need parity or remote state.
    `blacksmith testbox download --id <ID> coverage/ ./coverage/`
 8. Once green, commit and push.
 
-## OpenClaw full test suite
+## Genesis full test suite
 
-For OpenClaw, use the repo package manager and the measured stable full-suite
+For Genesis, use the repo package manager and the measured stable full-suite
 profile below. It keeps six Vitest project shards active while limiting each
 shard to one worker to avoid worker OOMs on Testbox:
 
-    blacksmith testbox run --id <ID> "env NODE_OPTIONS=--max-old-space-size=4096 OPENCLAW_TEST_PROJECTS_PARALLEL=6 OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test"
+    blacksmith testbox run --id <ID> "env NODE_OPTIONS=--max-old-space-size=4096 GENESIS_TEST_PROJECTS_PARALLEL=6 GENESIS_VITEST_MAX_WORKERS=1 pnpm test"
 
 Observed full-suite time on Blacksmith Testbox is about 3-4 minutes:
 

@@ -4,8 +4,8 @@ import {
   normalizeAccountId,
   normalizeSecretInputString,
   type ChannelSetupInput,
-} from "openclaw/plugin-sdk/setup";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+} from "genesis/plugin-sdk/setup";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 import { resolveMatrixEnvAuthReadiness } from "./matrix/client/env-auth.js";
 import { updateMatrixAccountConfig } from "./matrix/config-update.js";
 import { isSupportedMatrixAvatarSource } from "./matrix/profile.js";

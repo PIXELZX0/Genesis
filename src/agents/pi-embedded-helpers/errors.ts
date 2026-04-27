@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   extractLeadingHttpStatus,
@@ -481,7 +481,7 @@ function isOAuthRefreshContentionMessage(raw: string): boolean {
   return (
     /\brefresh_contention\b/i.test(raw) ||
     (/\bfile lock timeout\b/i.test(raw) &&
-      /(?:\/|\\|^)(?:oauth-refresh|openclaw-oauth-refresh)[^/\n\\]*?(?:\.lock)?\b/i.test(raw))
+      /(?:\/|\\|^)(?:oauth-refresh|genesis-oauth-refresh)[^/\n\\]*?(?:\.lock)?\b/i.test(raw))
   );
 }
 
@@ -961,7 +961,7 @@ export function classifyProviderRuntimeFailureKind(
 
 export function formatAssistantErrorText(
   msg: AssistantMessage,
-  opts?: { cfg?: OpenClawConfig; sessionKey?: string; provider?: string; model?: string },
+  opts?: { cfg?: GenesisConfig; sessionKey?: string; provider?: string; model?: string },
 ): string | undefined {
   // Also format errors if errorMessage is present, even if stopReason isn't "error"
   const raw = (msg.errorMessage ?? "").trim();

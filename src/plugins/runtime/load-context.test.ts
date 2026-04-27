@@ -58,7 +58,7 @@ describe("resolvePluginRuntimeLoadContext", () => {
         },
       },
     };
-    const env = { HOME: "/tmp/openclaw-home" } as NodeJS.ProcessEnv;
+    const env = { HOME: "/tmp/genesis-home" } as NodeJS.ProcessEnv;
 
     applyPluginAutoEnableMock.mockReturnValue({
       config: resolvedConfig,
@@ -117,7 +117,7 @@ describe("resolvePluginRuntimeLoadContext", () => {
   it("builds plugin load options from the shared runtime context", () => {
     const context = resolvePluginRuntimeLoadContext({
       config: { plugins: {} },
-      env: { HOME: "/tmp/openclaw-home" } as NodeJS.ProcessEnv,
+      env: { HOME: "/tmp/genesis-home" } as NodeJS.ProcessEnv,
       workspaceDir: "/explicit-workspace",
     });
 

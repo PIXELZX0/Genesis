@@ -6,7 +6,7 @@ import {
   recordSessionMetaFromInbound,
   resolveStorePath,
 } from "../../config/sessions/inbound.runtime.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { RoutePeer } from "../../routing/resolve-route.js";
 import { resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
@@ -24,7 +24,7 @@ export type OutboundSessionRoute = {
 };
 
 export type ResolveOutboundSessionRouteParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: ChannelId;
   agentId: string;
   accountId?: string | null;
@@ -133,7 +133,7 @@ export async function resolveOutboundSessionRoute(
 }
 
 export async function ensureOutboundSessionEntry(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: ChannelId;
   accountId?: string | null;
   route: OutboundSessionRoute;

@@ -1,6 +1,6 @@
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/string-coerce-runtime";
+import { isAutoLinkedFileRef } from "genesis/plugin-sdk/text-autolink-runtime";
 import MarkdownIt from "markdown-it";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";
-import { isAutoLinkedFileRef } from "openclaw/plugin-sdk/text-autolink-runtime";
 import type { MatrixClient } from "./sdk.js";
 import { isMatrixQualifiedUserId } from "./target-ids.js";
 

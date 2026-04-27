@@ -1,7 +1,7 @@
 import {
   embeddedAgentLog,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "genesis/plugin-sdk/agent-harness-runtime";
 import { renderCodexPromptOverlay } from "../../prompt-overlay.js";
 import type { CodexAppServerClient } from "./client.js";
 import { codexSandboxPolicyForTurn, type CodexAppServerRuntimeOptions } from "./config.js";
@@ -103,7 +103,7 @@ export async function startOrResumeThread(params: {
       approvalsReviewer: params.appServer.approvalsReviewer,
       sandbox: params.appServer.sandbox,
       ...(params.appServer.serviceTier ? { serviceTier: params.appServer.serviceTier } : {}),
-      serviceName: "OpenClaw",
+      serviceName: "Genesis",
       ...(params.config ? { config: params.config } : {}),
       developerInstructions:
         params.developerInstructions ?? buildDeveloperInstructions(params.params),
@@ -221,8 +221,8 @@ function stabilizeJsonValue(value: JsonValue): JsonValue {
 export function buildDeveloperInstructions(params: EmbeddedRunAttemptParams): string {
   const promptOverlay = renderCodexRuntimePromptOverlay(params);
   const sections = [
-    "You are running inside OpenClaw. Use OpenClaw dynamic tools for messaging, cron, sessions, and host actions when available.",
-    "Preserve the user's existing channel/session context. If sending a channel reply, use the OpenClaw messaging tool instead of describing that you would reply.",
+    "You are running inside Genesis. Use Genesis dynamic tools for messaging, cron, sessions, and host actions when available.",
+    "Preserve the user's existing channel/session context. If sending a channel reply, use the Genesis messaging tool instead of describing that you would reply.",
     promptOverlay,
     params.extraSystemPrompt,
     params.skillsSnapshot?.prompt,
@@ -276,7 +276,7 @@ function buildUserInput(
 function resolveCodexAppServerModelProvider(provider: string): string | undefined {
   const normalized = provider.trim();
   if (!normalized || normalized === "codex") {
-    // `codex` is OpenClaw's virtual provider; let Codex app-server keep its
+    // `codex` is Genesis's virtual provider; let Codex app-server keep its
     // native provider/auth selection instead of forcing the legacy OpenAI path.
     return undefined;
   }

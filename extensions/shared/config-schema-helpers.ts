@@ -1,5 +1,5 @@
-import { requireOpenAllowFrom } from "openclaw/plugin-sdk/channel-config-primitives";
-import type { z } from "openclaw/plugin-sdk/zod";
+import { requireOpenAllowFrom } from "genesis/plugin-sdk/channel-config-primitives";
+import type { z } from "genesis/plugin-sdk/zod";
 
 export function requireChannelOpenAllowFrom(params: {
   channel: string;

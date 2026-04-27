@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import "./test-helpers/fast-coding-tools.js";
-import "./test-helpers/fast-openclaw-tools.js";
-import { createOpenClawCodingTools } from "./pi-tools.js";
+import "./test-helpers/fast-genesis-tools.js";
+import { createGenesisCodingTools } from "./pi-tools.js";
 
 vi.mock("./channel-tools.js", () => {
   const passthrough = <T>(tool: T) => tool;
@@ -21,7 +21,7 @@ vi.mock("./channel-tools.js", () => {
 
 describe("owner-only tool gating", () => {
   it("removes owner-only tools for unauthorized senders", () => {
-    const tools = createOpenClawCodingTools({ senderIsOwner: false });
+    const tools = createGenesisCodingTools({ senderIsOwner: false });
     const toolNames = tools.map((tool) => tool.name);
     expect(toolNames).not.toContain("plugin_login");
     expect(toolNames).not.toContain("cron");
@@ -30,7 +30,7 @@ describe("owner-only tool gating", () => {
   });
 
   it("keeps owner-only tools for authorized senders", () => {
-    const tools = createOpenClawCodingTools({ senderIsOwner: true });
+    const tools = createGenesisCodingTools({ senderIsOwner: true });
     const toolNames = tools.map((tool) => tool.name);
     expect(toolNames).toContain("plugin_login");
     expect(toolNames).toContain("cron");
@@ -39,13 +39,13 @@ describe("owner-only tool gating", () => {
   });
 
   it("keeps canvas available to unauthorized senders by current trust model", () => {
-    const tools = createOpenClawCodingTools({ senderIsOwner: false });
+    const tools = createGenesisCodingTools({ senderIsOwner: false });
     const toolNames = tools.map((tool) => tool.name);
     expect(toolNames).toContain("canvas");
   });
 
   it("defaults to removing owner-only tools when owner status is unknown", () => {
-    const tools = createOpenClawCodingTools();
+    const tools = createGenesisCodingTools();
     const toolNames = tools.map((tool) => tool.name);
     expect(toolNames).not.toContain("plugin_login");
     expect(toolNames).not.toContain("cron");
@@ -55,7 +55,7 @@ describe("owner-only tool gating", () => {
   });
 
   it("restricts node-originated runs to the node-safe tool subset", () => {
-    const tools = createOpenClawCodingTools({ messageProvider: "node", senderIsOwner: false });
+    const tools = createGenesisCodingTools({ messageProvider: "node", senderIsOwner: false });
     const toolNames = tools.map((tool) => tool.name);
     expect(toolNames).toEqual(expect.arrayContaining(["canvas"]));
     expect(toolNames).not.toContain("exec");

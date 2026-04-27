@@ -3,11 +3,11 @@ import path from "node:path";
 import {
   normalizeOptionalString,
   normalizeOptionalTrimmedStringList,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   type BrowserConfig,
   type BrowserProfileConfig,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../config/config.js";
 import { resolveGatewayPort } from "../config/paths.js";
 import {
@@ -26,9 +26,9 @@ import {
   DEFAULT_BROWSER_TAB_CLEANUP_IDLE_MINUTES,
   DEFAULT_BROWSER_TAB_CLEANUP_MAX_TABS_PER_SESSION,
   DEFAULT_BROWSER_TAB_CLEANUP_SWEEP_MINUTES,
-  DEFAULT_OPENCLAW_BROWSER_COLOR,
-  DEFAULT_OPENCLAW_BROWSER_ENABLED,
-  DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
+  DEFAULT_GENESIS_BROWSER_COLOR,
+  DEFAULT_GENESIS_BROWSER_ENABLED,
+  DEFAULT_GENESIS_BROWSER_PROFILE_NAME,
 } from "./constants.js";
 import { resolveBrowserControlAuth, type BrowserControlAuth } from "./control-auth.js";
 import { DEFAULT_UPLOAD_DIR } from "./paths.js";
@@ -38,9 +38,9 @@ export {
   DEFAULT_BROWSER_ACTION_TIMEOUT_MS,
   DEFAULT_BROWSER_DEFAULT_PROFILE_NAME,
   DEFAULT_BROWSER_EVALUATE_ENABLED,
-  DEFAULT_OPENCLAW_BROWSER_COLOR,
-  DEFAULT_OPENCLAW_BROWSER_ENABLED,
-  DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
+  DEFAULT_GENESIS_BROWSER_COLOR,
+  DEFAULT_GENESIS_BROWSER_ENABLED,
+  DEFAULT_GENESIS_BROWSER_PROFILE_NAME,
   DEFAULT_UPLOAD_DIR,
   parseBrowserHttpUrl,
   redactCdpUrl,
@@ -79,6 +79,8 @@ export type ResolvedBrowserConfig = {
   tabCleanup: ResolvedBrowserTabCleanupConfig;
   ssrfPolicy?: SsrFPolicy;
   extraArgs: string[];
+  torDefaultEnabled: boolean;
+  tor?: ResolvedBrowserTorConfig;
 };
 
 export type ResolvedBrowserTabCleanupConfig = {
@@ -96,22 +98,37 @@ export type ResolvedBrowserProfile = {
   cdpIsLoopback: boolean;
   userDataDir?: string;
   color: string;
-  driver: "openclaw" | "existing-session";
+  driver: "genesis" | "existing-session";
   executablePath?: string;
   headless: boolean;
   attachOnly: boolean;
+  tor?: ResolvedBrowserTorConfig;
+};
+
+export type ResolvedBrowserTorConfig = {
+  enabled: true;
+  mode: "managed" | "external";
+  executablePath?: string;
+  socksHost: string;
+  socksPort: number;
+  dataDir?: string;
+  extraArgs: string[];
 };
 
 const DEFAULT_BROWSER_CDP_PORT_RANGE_START = 18800;
+const DEFAULT_TOR_SOCKS_HOST = "127.0.0.1";
+const DEFAULT_EXTERNAL_TOR_SOCKS_PORT = 9050;
+const MANAGED_TOR_SOCKS_PORT_OFFSET = 100;
+const DEFAULT_TOR_ENABLED = true;
 
 function normalizeHexColor(raw: string | undefined): string {
   const value = (raw ?? "").trim();
   if (!value) {
-    return DEFAULT_OPENCLAW_BROWSER_COLOR;
+    return DEFAULT_GENESIS_BROWSER_COLOR;
   }
   const normalized = value.startsWith("#") ? value : `#${value}`;
   if (!/^#[0-9a-fA-F]{6}$/.test(normalized)) {
-    return DEFAULT_OPENCLAW_BROWSER_COLOR;
+    return DEFAULT_GENESIS_BROWSER_COLOR;
   }
   return normalized.toUpperCase();
 }
@@ -140,6 +157,67 @@ function normalizeExecutablePath(raw: string | undefined): string | undefined {
     return value;
   }
   return path.resolve(value.replace(/^~(?=$|[\\/])/, os.homedir()));
+}
+
+function normalizeUserPath(raw: string | undefined): string | undefined {
+  const value = normalizeOptionalString(raw);
+  if (!value) {
+    return undefined;
+  }
+  if (!/^~(?=$|[\\/])/.test(value)) {
+    return value;
+  }
+  return path.resolve(value.replace(/^~(?=$|[\\/])/, os.homedir()));
+}
+
+function normalizePort(raw: number | undefined, fallback: number, label: string): number {
+  const value = typeof raw === "number" && Number.isFinite(raw) ? Math.floor(raw) : fallback;
+  if (value < 1 || value > 65535) {
+    throw new Error(`${label} must be between 1 and 65535, got: ${value}`);
+  }
+  return value;
+}
+
+function normalizeTorExtraArgs(raw: string[] | undefined): string[] {
+  return Array.isArray(raw)
+    ? raw.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    : [];
+}
+
+function normalizeBrowserTorConfig(
+  raw: BrowserConfig["tor"] | BrowserProfileConfig["tor"] | undefined,
+  inherited: ResolvedBrowserTorConfig | undefined,
+  opts?: { cdpPort?: number; defaultEnabled?: boolean },
+): ResolvedBrowserTorConfig | undefined {
+  const enabled = raw?.enabled ?? inherited?.enabled ?? opts?.defaultEnabled ?? DEFAULT_TOR_ENABLED;
+  if (!enabled) {
+    return undefined;
+  }
+
+  const mode = raw?.mode ?? inherited?.mode ?? "managed";
+  const socksHost =
+    normalizeOptionalString(raw?.socksHost) ?? inherited?.socksHost ?? DEFAULT_TOR_SOCKS_HOST;
+  if (mode === "managed" && !isLoopbackHost(socksHost)) {
+    throw new Error("browser.tor.socksHost must be loopback when browser.tor.mode is managed.");
+  }
+  const fallbackSocksPort =
+    mode === "managed" && opts?.cdpPort && opts.cdpPort + MANAGED_TOR_SOCKS_PORT_OFFSET <= 65535
+      ? opts.cdpPort + MANAGED_TOR_SOCKS_PORT_OFFSET
+      : (inherited?.socksPort ?? DEFAULT_EXTERNAL_TOR_SOCKS_PORT);
+  const socksPort = normalizePort(raw?.socksPort, fallbackSocksPort, "browser.tor.socksPort");
+  const executablePath = normalizeExecutablePath(raw?.executablePath) ?? inherited?.executablePath;
+  const dataDir = normalizeUserPath(raw?.dataDir) ?? inherited?.dataDir;
+  const extraArgs = normalizeTorExtraArgs(raw?.extraArgs ?? inherited?.extraArgs);
+
+  return {
+    enabled: true,
+    mode,
+    ...(executablePath ? { executablePath } : {}),
+    socksHost,
+    socksPort,
+    ...(dataDir ? { dataDir } : {}),
+    extraArgs,
+  };
 }
 
 function resolveBrowserTabCleanupConfig(
@@ -227,8 +305,8 @@ function ensureDefaultProfile(
   legacyCdpUrl?: string,
 ): Record<string, BrowserProfileConfig> {
   const result = { ...profiles };
-  if (!result[DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME]) {
-    result[DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME] = {
+  if (!result[DEFAULT_GENESIS_BROWSER_PROFILE_NAME]) {
+    result[DEFAULT_GENESIS_BROWSER_PROFILE_NAME] = {
       cdpPort: legacyCdpPort ?? derivedDefaultCdpPort ?? DEFAULT_BROWSER_CDP_PORT_RANGE_START,
       color: defaultColor,
       ...(legacyCdpUrl ? { cdpUrl: legacyCdpUrl } : {}),
@@ -254,9 +332,9 @@ function ensureDefaultUserBrowserProfile(
 
 export function resolveBrowserConfig(
   cfg: BrowserConfig | undefined,
-  rootConfig?: OpenClawConfig,
+  rootConfig?: GenesisConfig,
 ): ResolvedBrowserConfig {
-  const enabled = cfg?.enabled ?? DEFAULT_OPENCLAW_BROWSER_ENABLED;
+  const enabled = cfg?.enabled ?? DEFAULT_GENESIS_BROWSER_ENABLED;
   const evaluateEnabled = cfg?.evaluateEnabled ?? DEFAULT_BROWSER_EVALUATE_ENABLED;
   const gatewayPort = resolveGatewayPort(rootConfig);
   const controlPort = deriveDefaultBrowserControlPort(gatewayPort ?? DEFAULT_BROWSER_CONTROL_PORT);
@@ -329,8 +407,8 @@ export function resolveBrowserConfig(
     defaultProfileFromConfig ??
     (profiles[DEFAULT_BROWSER_DEFAULT_PROFILE_NAME]
       ? DEFAULT_BROWSER_DEFAULT_PROFILE_NAME
-      : profiles[DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME]
-        ? DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME
+      : profiles[DEFAULT_GENESIS_BROWSER_PROFILE_NAME]
+        ? DEFAULT_GENESIS_BROWSER_PROFILE_NAME
         : "user");
 
   const extraArgs = Array.isArray(cfg?.extraArgs)
@@ -338,6 +416,10 @@ export function resolveBrowserConfig(
         (value): value is string => typeof value === "string" && value.trim().length > 0,
       )
     : [];
+  const torDefaultEnabled = cfg?.tor?.enabled ?? DEFAULT_TOR_ENABLED;
+  const tor = normalizeBrowserTorConfig(cfg?.tor, undefined, {
+    defaultEnabled: torDefaultEnabled,
+  });
 
   return {
     enabled,
@@ -361,6 +443,8 @@ export function resolveBrowserConfig(
     tabCleanup: resolveBrowserTabCleanupConfig(cfg),
     ssrfPolicy: resolveBrowserSsrFPolicy(cfg),
     extraArgs,
+    torDefaultEnabled,
+    ...(tor ? { tor } : {}),
   };
 }
 
@@ -377,7 +461,7 @@ export function resolveProfile(
   let cdpHost = resolved.cdpHost;
   let cdpPort = profile.cdpPort ?? 0;
   let cdpUrl = "";
-  const driver = profile.driver === "existing-session" ? "existing-session" : "openclaw";
+  const driver = profile.driver === "existing-session" ? "existing-session" : "genesis";
   const headless = profile.headless ?? resolved.headless;
   const executablePath = normalizeExecutablePath(profile.executablePath) ?? resolved.executablePath;
 
@@ -418,6 +502,15 @@ export function resolveProfile(
     throw new Error(`Profile "${profileName}" must define cdpPort or cdpUrl.`);
   }
 
+  const attachOnly = profile.attachOnly ?? resolved.attachOnly;
+  const tor =
+    driver === "genesis" && isLoopbackHost(cdpHost) && !attachOnly
+      ? normalizeBrowserTorConfig(profile.tor, resolved.tor, {
+          cdpPort,
+          defaultEnabled: resolved.torDefaultEnabled,
+        })
+      : undefined;
+
   return {
     name: profileName,
     cdpPort,
@@ -428,7 +521,8 @@ export function resolveProfile(
     driver,
     executablePath,
     headless,
-    attachOnly: profile.attachOnly ?? resolved.attachOnly,
+    attachOnly,
+    ...(tor ? { tor } : {}),
   };
 }
 

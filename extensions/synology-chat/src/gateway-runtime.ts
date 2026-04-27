@@ -1,5 +1,5 @@
-import { DEFAULT_ACCOUNT_ID, type OpenClawConfig } from "openclaw/plugin-sdk/account-resolution";
-import { registerPluginHttpRoute } from "openclaw/plugin-sdk/webhook-ingress";
+import { DEFAULT_ACCOUNT_ID, type GenesisConfig } from "genesis/plugin-sdk/account-resolution";
+import { registerPluginHttpRoute } from "genesis/plugin-sdk/webhook-ingress";
 import { listAccountIds, resolveAccount } from "./accounts.js";
 import { dispatchSynologyChatInboundTurn } from "./inbound-turn.js";
 import type { ResolvedSynologyChatAccount } from "./types.js";
@@ -68,7 +68,7 @@ function createUnknownArgsLogAdapter(
 }
 
 export function collectSynologyGatewayStartupIssues(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedSynologyChatAccount;
   accountId: string;
 }): SynologyGatewayStartupIssue[] {
@@ -134,7 +134,7 @@ export function collectSynologyGatewayStartupIssues(params: {
 }
 
 export function collectSynologyGatewayRoutingWarnings(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedSynologyChatAccount;
 }): string[] {
   return collectSynologyGatewayStartupIssues({
@@ -150,7 +150,7 @@ export function collectSynologyGatewayRoutingWarnings(params: {
 }
 
 export function validateSynologyGatewayAccountStartup(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedSynologyChatAccount;
   accountId: string;
   log?: SynologyGatewayLog;

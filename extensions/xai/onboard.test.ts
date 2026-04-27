@@ -1,7 +1,7 @@
 import {
   resolveAgentModelFallbackValues,
   resolveAgentModelPrimaryValue,
-} from "openclaw/plugin-sdk/provider-onboard";
+} from "genesis/plugin-sdk/provider-onboard";
 import { describe, expect, it } from "vitest";
 import {
   createConfigWithFallbacks,

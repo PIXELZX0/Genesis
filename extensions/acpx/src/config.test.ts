@@ -5,7 +5,7 @@ import { resolveAcpxPluginConfig, resolveAcpxPluginRoot } from "./config.js";
 
 describe("embedded acpx plugin config", () => {
   it("resolves workspace stateDir and cwd by default", () => {
-    const workspaceDir = "/tmp/openclaw-acpx";
+    const workspaceDir = "/tmp/genesis-acpx";
     const resolved = resolveAcpxPluginConfig({
       rawConfig: undefined,
       workspaceDir,
@@ -24,7 +24,7 @@ describe("embedded acpx plugin config", () => {
       rawConfig: {
         timeoutSeconds: 300,
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
     expect(resolved.timeoutSeconds).toBe(300);
@@ -35,7 +35,7 @@ describe("embedded acpx plugin config", () => {
       rawConfig: {
         probeAgent: "claude",
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
     expect(resolved.probeAgent).toBe("claude");
@@ -49,7 +49,7 @@ describe("embedded acpx plugin config", () => {
           codex: { command: "codex custom-acp" },
         },
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
     expect(resolved.agents).toEqual({
@@ -61,7 +61,7 @@ describe("embedded acpx plugin config", () => {
   it("leaves probeAgent undefined by default so the runtime picks its built-in probe agent", () => {
     const resolved = resolveAcpxPluginConfig({
       rawConfig: undefined,
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
     expect(resolved.probeAgent).toBeUndefined();
@@ -72,7 +72,7 @@ describe("embedded acpx plugin config", () => {
       rawConfig: {
         probeAgent: "  OpenCode  ",
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
     expect(resolved.probeAgent).toBe("opencode");
@@ -84,7 +84,7 @@ describe("embedded acpx plugin config", () => {
         rawConfig: {
           probeAgent: "",
         },
-        workspaceDir: "/tmp/openclaw-acpx",
+        workspaceDir: "/tmp/genesis-acpx",
       }),
     ).toThrow(/probeAgent must be a non-empty string/);
   });
@@ -94,25 +94,25 @@ describe("embedded acpx plugin config", () => {
       rawConfig: {
         pluginToolsMcpBridge: true,
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
-    const server = resolved.mcpServers["openclaw-plugin-tools"];
+    const server = resolved.mcpServers["genesis-plugin-tools"];
     expect(server).toBeDefined();
     expect(server.command).toBe(process.execPath);
     expect(Array.isArray(server.args)).toBe(true);
     expect(server.args?.length).toBeGreaterThan(0);
   });
 
-  it("injects the built-in OpenClaw tools MCP server only when explicitly enabled", () => {
+  it("injects the built-in Genesis tools MCP server only when explicitly enabled", () => {
     const resolved = resolveAcpxPluginConfig({
       rawConfig: {
-        openClawToolsMcpBridge: true,
+        genesisToolsMcpBridge: true,
       },
-      workspaceDir: "/tmp/openclaw-acpx",
+      workspaceDir: "/tmp/genesis-acpx",
     });
 
-    const server = resolved.mcpServers["openclaw-tools"];
+    const server = resolved.mcpServers["genesis-tools"];
     expect(server).toBeDefined();
     expect(server.command).toBe(process.execPath);
     expect(Array.isArray(server.args)).toBe(true);
@@ -122,7 +122,7 @@ describe("embedded acpx plugin config", () => {
   it("keeps the runtime json schema in sync with the manifest config schema", () => {
     const pluginRoot = resolveAcpxPluginRoot();
     const manifest = JSON.parse(
-      fs.readFileSync(path.join(pluginRoot, "openclaw.plugin.json"), "utf8"),
+      fs.readFileSync(path.join(pluginRoot, "genesis.plugin.json"), "utf8"),
     ) as { configSchema?: unknown };
 
     expect(manifest.configSchema).toMatchObject({
@@ -137,7 +137,7 @@ describe("embedded acpx plugin config", () => {
         }),
         agents: expect.any(Object),
         mcpServers: expect.any(Object),
-        openClawToolsMcpBridge: expect.any(Object),
+        genesisToolsMcpBridge: expect.any(Object),
       }),
     });
   });

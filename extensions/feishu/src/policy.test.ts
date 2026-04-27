@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import type { GenesisConfig } from "genesis/plugin-sdk/core";
 import { describe, expect, it } from "vitest";
 import { FeishuConfigSchema } from "./config-schema.js";
 import {
@@ -9,12 +9,12 @@ import {
 } from "./policy.js";
 import type { FeishuConfig } from "./types.js";
 
-function createCfg(feishu: Record<string, unknown>): OpenClawConfig {
+function createCfg(feishu: Record<string, unknown>): GenesisConfig {
   return {
     channels: {
       feishu,
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function createFeishuConfig(overrides: Partial<FeishuConfig>): FeishuConfig {

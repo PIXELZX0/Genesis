@@ -1,6 +1,6 @@
 export {
   definePluginEntry,
-  type OpenClawPluginApi,
+  type GenesisPluginApi,
   type PluginLogger,
   type PluginRuntime,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";

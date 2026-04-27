@@ -4,8 +4,8 @@ import type { AuthProfileStore } from "../../agents/auth-profiles/types.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
 import { shouldSuppressBuiltInModel } from "../../agents/model-suppression.js";
 import { normalizeProviderId } from "../../agents/provider-id.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { ModelDefinitionConfig, ModelProviderConfig } from "../../config/types.models.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import type { ListRowModel } from "./list.model-row.js";
 import { toModelRow } from "./list.registry.js";
 import {
@@ -24,7 +24,7 @@ type RowFilter = {
 };
 
 export type RowBuilderContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir: string;
   authStore: AuthProfileStore;
   availableKeys?: Set<string>;

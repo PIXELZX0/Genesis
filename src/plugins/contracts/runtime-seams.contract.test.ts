@@ -11,8 +11,8 @@ import { TEST_UNDICI_RUNTIME_DEPS_KEY } from "../../infra/net/undici-runtime.js"
 import { clearPluginDiscoveryCache } from "../discovery.js";
 import { clearPluginManifestRegistryCache } from "../manifest-registry.js";
 
-const originalBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalBundledPluginsDir = process.env.GENESIS_BUNDLED_PLUGINS_DIR;
+const originalStateDir = process.env.GENESIS_STATE_DIR;
 const originalGlobalFetch = globalThis.fetch;
 const tempDirs: string[] = [];
 
@@ -25,10 +25,10 @@ function createInstalledRuntimePluginDir(
   pluginRoot: string;
 } {
   const bundledDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), `openclaw-runtime-contract-bundled-${pluginId}-`),
+    path.join(os.tmpdir(), `genesis-runtime-contract-bundled-${pluginId}-`),
   );
   const stateDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), `openclaw-runtime-contract-state-${pluginId}-`),
+    path.join(os.tmpdir(), `genesis-runtime-contract-state-${pluginId}-`),
   );
   tempDirs.push(bundledDir, stateDir);
   const pluginRoot = path.join(stateDir, "extensions", pluginId);
@@ -41,9 +41,9 @@ function createInstalledRuntimePluginDir(
   fs.writeFileSync(
     path.join(pluginRoot, "package.json"),
     JSON.stringify({
-      name: `@openclaw/${pluginId}`,
+      name: `@genesis/${pluginId}`,
       version: "0.0.0",
-      openclaw: {
+      genesis: {
         extensions: ["./runtime-api.js"],
         channel: { id: pluginId },
       },
@@ -51,7 +51,7 @@ function createInstalledRuntimePluginDir(
     "utf8",
   );
   fs.writeFileSync(
-    path.join(pluginRoot, "openclaw.plugin.json"),
+    path.join(pluginRoot, "genesis.plugin.json"),
     JSON.stringify({
       id: pluginId,
       channels: [pluginId],
@@ -75,14 +75,14 @@ afterEach(() => {
   clearPluginManifestRegistryCache();
   Reflect.deleteProperty(globalThis as object, TEST_UNDICI_RUNTIME_DEPS_KEY);
   if (originalBundledPluginsDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = originalBundledPluginsDir;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = originalBundledPluginsDir;
   }
   if (originalStateDir === undefined) {
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.GENESIS_STATE_DIR;
   } else {
-    process.env.OPENCLAW_STATE_DIR = originalStateDir;
+    process.env.GENESIS_STATE_DIR = originalStateDir;
   }
   if (originalGlobalFetch) {
     (globalThis as Record<string, unknown>).fetch = originalGlobalFetch;
@@ -98,8 +98,8 @@ describe("shared runtime seam contracts", () => {
   it("allows activated runtime facades when the resolved plugin root matches an installed-style manifest record", async () => {
     const pluginId = "line-contract-fixture";
     const { bundledDir, stateDir } = createInstalledRuntimePluginDir(pluginId, "line-ok");
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = bundledDir;
+    process.env.GENESIS_STATE_DIR = stateDir;
     setRuntimeConfigSnapshot({
       plugins: {
         entries: {

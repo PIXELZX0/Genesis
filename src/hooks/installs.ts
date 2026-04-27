@@ -1,9 +1,9 @@
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { HookInstallRecord } from "../config/types.hooks.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 export type HookInstallUpdate = HookInstallRecord & { hookId: string };
 
-export function recordHookInstall(cfg: OpenClawConfig, update: HookInstallUpdate): OpenClawConfig {
+export function recordHookInstall(cfg: GenesisConfig, update: HookInstallUpdate): GenesisConfig {
   const { hookId, ...record } = update;
   const installs = {
     ...cfg.hooks?.internal?.installs,

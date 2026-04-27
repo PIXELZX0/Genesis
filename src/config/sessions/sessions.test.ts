@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { upsertAcpSessionMeta } from "../../acp/runtime/session-meta.js";
 import * as jsonFiles from "../../infra/json-files.js";
 import { createSuiteTempRootTracker, withTempDirSync } from "../../test-helpers/temp-dir.js";
-import type { OpenClawConfig } from "../config.js";
+import type { GenesisConfig } from "../config.js";
 import type { SessionConfig } from "../types.base.js";
 import {
   resolveSessionFilePath,
@@ -28,18 +28,18 @@ describe("session path safety", () => {
   });
 
   it("resolves transcript path inside an explicit sessions dir", () => {
-    const sessionsDir = "/tmp/openclaw/agents/main/sessions";
+    const sessionsDir = "/tmp/genesis/agents/main/sessions";
     const resolved = resolveSessionTranscriptPathInDir("sess-1", sessionsDir, "topic/a+b");
 
     expect(resolved).toBe(path.resolve(sessionsDir, "sess-1-topic-topic%2Fa%2Bb.jsonl"));
   });
 
   it("falls back to derived path when sessionFile is outside known agent sessions dirs", () => {
-    const sessionsDir = "/tmp/openclaw/agents/main/sessions";
+    const sessionsDir = "/tmp/genesis/agents/main/sessions";
 
     const resolved = resolveSessionFilePath(
       "sess-1",
-      { sessionFile: "/tmp/openclaw/agents/work/not-sessions/abc-123.jsonl" },
+      { sessionFile: "/tmp/genesis/agents/work/not-sessions/abc-123.jsonl" },
       { sessionsDir },
     );
     expect(resolved).toBe(path.resolve(sessionsDir, "sess-1.jsonl"));
@@ -56,7 +56,7 @@ describe("session path safety", () => {
     if (process.platform === "win32") {
       return;
     }
-    withTempDirSync({ prefix: "openclaw-symlink-session-" }, (tmpDir) => {
+    withTempDirSync({ prefix: "genesis-symlink-session-" }, (tmpDir) => {
       const realRoot = path.join(tmpDir, "real-state");
       const aliasRoot = path.join(tmpDir, "alias-state");
       const sessionsDir = path.join(realRoot, "agents", "main", "sessions");
@@ -75,7 +75,7 @@ describe("session path safety", () => {
     if (process.platform === "win32") {
       return;
     }
-    withTempDirSync({ prefix: "openclaw-symlink-escape-" }, (tmpDir) => {
+    withTempDirSync({ prefix: "genesis-symlink-escape-" }, (tmpDir) => {
       const sessionsDir = path.join(tmpDir, "agents", "main", "sessions");
       const outsideDir = path.join(tmpDir, "outside");
       fs.mkdirSync(sessionsDir, { recursive: true });
@@ -145,7 +145,7 @@ describe("resolveSessionResetPolicy", () => {
 });
 
 describe("session store lock (Promise chain mutex)", () => {
-  const lockFixtureRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-lock-test-" });
+  const lockFixtureRootTracker = createSuiteTempRootTracker({ prefix: "genesis-lock-test-" });
   let lockTmpDirs: string[] = [];
 
   async function makeTmpStore(
@@ -327,7 +327,7 @@ describe("session store lock (Promise chain mutex)", () => {
       session: {
         store: storePath,
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const result = await upsertAcpSessionMeta({
       cfg,

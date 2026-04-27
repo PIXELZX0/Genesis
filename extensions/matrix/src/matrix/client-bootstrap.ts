@@ -1,4 +1,4 @@
-import { requireRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
+import { requireRuntimeConfig } from "genesis/plugin-sdk/config-runtime";
 import type { CoreConfig } from "../types.js";
 import { getActiveMatrixClient } from "./active-client.js";
 import { isBunRuntime } from "./client/runtime.js";

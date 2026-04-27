@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 function normalizeUserId(raw?: string | null): string {
   const trimmed = typeof raw === "string" ? raw.trim() : "";

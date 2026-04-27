@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../../src/config/config.js";
+import type { GenesisConfig } from "../../../src/config/config.js";
 import { createPluginRegistry, type PluginRecord } from "../../../src/plugins/registry.js";
 import type { PluginRuntime } from "../../../src/plugins/runtime/types.js";
 import { createPluginRecord } from "../../../src/plugins/status.test-helpers.js";
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { GenesisPluginApi } from "../../../src/plugins/types.js";
 
 export {
   registerProviderPlugins as registerProviders,
@@ -53,7 +53,7 @@ export function assertNoImportTimeSideEffects(params: {
   );
 }
 
-export function createPluginRegistryFixture(config = {} as OpenClawConfig) {
+export function createPluginRegistryFixture(config = {} as GenesisConfig) {
   return {
     config,
     registry: createPluginRegistry({
@@ -70,9 +70,9 @@ export function createPluginRegistryFixture(config = {} as OpenClawConfig) {
 
 export function registerTestPlugin(params: {
   registry: ReturnType<typeof createPluginRegistry>;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   record: PluginRecord;
-  register(api: OpenClawPluginApi): void;
+  register(api: GenesisPluginApi): void;
 }) {
   params.registry.registry.plugins.push(params.record);
   params.register(
@@ -84,13 +84,13 @@ export function registerTestPlugin(params: {
 
 export function registerVirtualTestPlugin(params: {
   registry: ReturnType<typeof createPluginRegistry>;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   id: string;
   name: string;
   source?: string;
   kind?: PluginRecord["kind"];
   contracts?: PluginRecord["contracts"];
-  register(this: void, api: OpenClawPluginApi): void;
+  register(this: void, api: GenesisPluginApi): void;
 }) {
   registerTestPlugin({
     registry: params.registry,

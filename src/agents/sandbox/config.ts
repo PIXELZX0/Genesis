@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { SandboxSshSettings } from "../../config/types.sandbox.js";
 import { normalizeSecretInputString } from "../../config/types.secrets.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -35,7 +35,7 @@ export const DANGEROUS_SANDBOX_DOCKER_BOOLEAN_KEYS = [
 ] as const;
 
 const DEFAULT_SANDBOX_SSH_COMMAND = "ssh";
-const DEFAULT_SANDBOX_SSH_WORKSPACE_ROOT = "/tmp/openclaw-sandboxes";
+const DEFAULT_SANDBOX_SSH_WORKSPACE_ROOT = "/tmp/genesis-sandboxes";
 
 type DangerousSandboxDockerBooleanKey = (typeof DANGEROUS_SANDBOX_DOCKER_BOOLEAN_KEYS)[number];
 type DangerousSandboxDockerBooleans = Pick<SandboxDockerConfig, DangerousSandboxDockerBooleanKey>;
@@ -217,10 +217,7 @@ export function resolveSandboxSshConfig(params: {
   };
 }
 
-export function resolveSandboxConfigForAgent(
-  cfg?: OpenClawConfig,
-  agentId?: string,
-): SandboxConfig {
+export function resolveSandboxConfigForAgent(cfg?: GenesisConfig, agentId?: string): SandboxConfig {
   const agent = cfg?.agents?.defaults?.sandbox;
 
   // Agent-specific sandbox config overrides global

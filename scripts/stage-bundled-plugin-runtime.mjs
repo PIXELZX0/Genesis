@@ -73,12 +73,12 @@ function writeJsonFile(targetPath, value) {
   fs.writeFileSync(targetPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-function removeStaleOpenClawSelfReference(sourcePluginNodeModulesDir, repoRoot) {
+function removeStaleGenesisSelfReference(sourcePluginNodeModulesDir, repoRoot) {
   if (!fs.existsSync(sourcePluginNodeModulesDir)) {
     return;
   }
 
-  const selfReferencePath = path.join(sourcePluginNodeModulesDir, "openclaw");
+  const selfReferencePath = path.join(sourcePluginNodeModulesDir, "genesis");
   try {
     const existing = fs.lstatSync(selfReferencePath);
     if (!existing.isSymbolicLink()) {
@@ -94,17 +94,17 @@ function removeStaleOpenClawSelfReference(sourcePluginNodeModulesDir, repoRoot) 
   }
 }
 
-function ensureOpenClawExtensionAlias(params) {
+function ensureGenesisExtensionAlias(params) {
   const pluginSdkDir = path.join(params.repoRoot, "dist", "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(params.distExtensionsRoot, "node_modules", "openclaw");
+  const aliasDir = path.join(params.distExtensionsRoot, "node_modules", "genesis");
   const pluginSdkAliasPath = path.join(aliasDir, "plugin-sdk");
   fs.mkdirSync(aliasDir, { recursive: true });
   writeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "openclaw",
+    name: "genesis",
     type: "module",
     exports: {
       "./plugin-sdk": "./plugin-sdk/index.js",
@@ -132,7 +132,7 @@ function shouldCopyRuntimeFile(sourcePath) {
   const relativePath = sourcePath.replace(/\\/g, "/");
   return (
     relativePath.endsWith("/package.json") ||
-    relativePath.endsWith("/openclaw.plugin.json") ||
+    relativePath.endsWith("/genesis.plugin.json") ||
     relativePath.endsWith("/.codex-plugin/plugin.json") ||
     relativePath.endsWith("/.claude-plugin/plugin.json") ||
     relativePath.endsWith("/.cursor-plugin/plugin.json") ||
@@ -220,7 +220,7 @@ function linkPluginNodeModules(params) {
   if (!fs.existsSync(params.sourcePluginNodeModulesDir)) {
     return;
   }
-  removeStaleOpenClawSelfReference(params.sourcePluginNodeModulesDir, params.repoRoot);
+  removeStaleGenesisSelfReference(params.sourcePluginNodeModulesDir, params.repoRoot);
   ensureSymlink(
     params.sourcePluginNodeModulesDir,
     runtimeNodeModulesDir,
@@ -243,7 +243,7 @@ export function stageBundledPluginRuntime(params = {}) {
 
   removePathIfExists(runtimeRoot);
   fs.mkdirSync(runtimeExtensionsRoot, { recursive: true });
-  ensureOpenClawExtensionAlias({ repoRoot, distExtensionsRoot });
+  ensureGenesisExtensionAlias({ repoRoot, distExtensionsRoot });
 
   for (const dirent of fs.readdirSync(distExtensionsRoot, { withFileTypes: true })) {
     if (!dirent.isDirectory() || dirent.name === "node_modules") {

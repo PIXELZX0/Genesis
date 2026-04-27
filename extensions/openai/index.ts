@@ -1,6 +1,6 @@
-import { resolvePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { buildProviderToolCompatFamilyHooks } from "openclaw/plugin-sdk/provider-tools";
+import { resolvePluginConfigObject } from "genesis/plugin-sdk/config-runtime";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { buildProviderToolCompatFamilyHooks } from "genesis/plugin-sdk/provider-tools";
 import { buildOpenAICodexCliBackend } from "./cli-backend.js";
 import { buildOpenAIImageGenerationProvider } from "./image-generation-provider.js";
 import {

@@ -2,7 +2,7 @@ import {
   createWebSearchProviderContractFields,
   type WebSearchProviderPlugin,
   type WebSearchProviderSetupContext,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search-config-contract";
 
 const XAI_CREDENTIAL_PATH = "plugins.entries.xai.config.webSearch.apiKey";
 type XaiWebSearchProviderRuntime = typeof import("./src/web-search-provider.runtime.js");
@@ -45,7 +45,7 @@ export function createXaiWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["XAI_API_KEY"],
     placeholder: "xai-...",
     signupUrl: "https://console.x.ai/",
-    docsUrl: "https://docs.openclaw.ai/tools/web",
+    docsUrl: "https://docs.genesis.ai/tools/web",
     autoDetectOrder: 30,
     credentialPath: XAI_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

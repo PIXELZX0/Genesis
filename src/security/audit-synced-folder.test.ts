@@ -4,8 +4,8 @@ import { collectSyncedFolderFindings } from "./audit-extra.sync.js";
 describe("security audit synced folder findings", () => {
   it("warns when state/config look like a synced folder", () => {
     const findings = collectSyncedFolderFindings({
-      stateDir: "/Users/test/Dropbox/.openclaw",
-      configPath: "/Users/test/Dropbox/.openclaw/openclaw.json",
+      stateDir: "/Users/test/Dropbox/.genesis",
+      configPath: "/Users/test/Dropbox/.genesis/genesis.json",
     });
 
     expect(

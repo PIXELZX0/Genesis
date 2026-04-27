@@ -113,7 +113,7 @@ describe("qa suite runtime agent tools helpers", () => {
           gateway: {
             runtimeEnv: {
               PATH: "/usr/bin",
-              OPENCLAW_KEY: "1",
+              GENESIS_KEY: "1",
               EMPTY: undefined,
             },
           },
@@ -131,7 +131,7 @@ describe("qa suite runtime agent tools helpers", () => {
       stderr: "pipe",
       env: {
         PATH: "/usr/bin",
-        OPENCLAW_KEY: "1",
+        GENESIS_KEY: "1",
       },
     });
     expect(callToolMock).toHaveBeenCalledWith({

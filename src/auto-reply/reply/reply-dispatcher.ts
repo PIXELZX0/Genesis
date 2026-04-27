@@ -1,7 +1,7 @@
 import type { TypingCallbacks } from "../../channels/typing.js";
 import { resolveSilentReplySettings } from "../../config/silent-reply.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { HumanDelayConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { generateSecureInt } from "../../infra/secure-random.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
@@ -59,7 +59,7 @@ function getHumanDelay(config: HumanDelayConfig | undefined): number {
 export type ReplyDispatcherOptions = {
   deliver: ReplyDispatchDeliverer;
   silentReplyContext?: {
-    cfg?: OpenClawConfig;
+    cfg?: GenesisConfig;
     sessionKey?: string;
     surface?: string;
     conversationType?: SilentReplyConversationType;

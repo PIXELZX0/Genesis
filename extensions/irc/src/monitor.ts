@@ -1,5 +1,5 @@
-import { resolveLoggerBackedRuntime } from "openclaw/plugin-sdk/extension-shared";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { resolveLoggerBackedRuntime } from "genesis/plugin-sdk/extension-shared";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveIrcAccount } from "./accounts.js";
 import { connectIrcClient, type IrcClient } from "./client.js";
 import { buildIrcConnectOptions } from "./connect-options.js";

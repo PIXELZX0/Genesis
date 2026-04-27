@@ -53,8 +53,8 @@ describe("applyPluginAutoEnable channels", () => {
       JSON.stringify({
         entries: [
           {
-            name: "@openclaw/env-secondary",
-            openclaw: {
+            name: "@genesis/env-secondary",
+            genesis: {
               channel: {
                 id: "env-secondary",
                 label: "Env Secondary",
@@ -64,7 +64,7 @@ describe("applyPluginAutoEnable channels", () => {
                 preferOver: ["env-primary"],
               },
               install: {
-                npmSpec: "@openclaw/env-secondary",
+                npmSpec: "@genesis/env-secondary",
               },
             },
           },
@@ -94,8 +94,8 @@ describe("applyPluginAutoEnable channels", () => {
       ],
       env: {
         ...makeIsolatedEnv(),
-        OPENCLAW_STATE_DIR: stateDir,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+        GENESIS_STATE_DIR: stateDir,
+        GENESIS_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
       },
       manifestRegistry: makeRegistry([]),
     });
@@ -113,8 +113,8 @@ describe("applyPluginAutoEnable channels", () => {
       JSON.stringify({
         entries: [
           {
-            name: "@openclaw/env-primary",
-            openclaw: {
+            name: "@genesis/env-primary",
+            genesis: {
               channel: {
                 id: "env-primary",
                 label: "Env Primary",
@@ -123,13 +123,13 @@ describe("applyPluginAutoEnable channels", () => {
                 blurb: "Env primary entry",
               },
               install: {
-                npmSpec: "@openclaw/env-primary",
+                npmSpec: "@genesis/env-primary",
               },
             },
           },
           {
-            name: "@openclaw/env-secondary",
-            openclaw: {
+            name: "@genesis/env-secondary",
+            genesis: {
               channel: {
                 id: "env-secondary",
                 label: "Env Secondary",
@@ -139,7 +139,7 @@ describe("applyPluginAutoEnable channels", () => {
                 preferOver: ["env-primary"],
               },
               install: {
-                npmSpec: "@openclaw/env-secondary",
+                npmSpec: "@genesis/env-secondary",
               },
             },
           },
@@ -165,8 +165,8 @@ describe("applyPluginAutoEnable channels", () => {
         })),
         env: {
           ...makeIsolatedEnv(),
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+          GENESIS_STATE_DIR: stateDir,
+          GENESIS_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
         },
         manifestRegistry: makeRegistry([]),
       });

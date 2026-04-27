@@ -1,13 +1,13 @@
 import {
   defineBundledChannelEntry,
-  type OpenClawPluginApi,
-} from "openclaw/plugin-sdk/channel-entry-contract";
+  type GenesisPluginApi,
+} from "genesis/plugin-sdk/channel-entry-contract";
 
-type RegisteredLineCardCommand = Parameters<OpenClawPluginApi["registerCommand"]>[0];
+type RegisteredLineCardCommand = Parameters<GenesisPluginApi["registerCommand"]>[0];
 
 let lineCardCommandPromise: Promise<RegisteredLineCardCommand> | null = null;
 
-async function loadLineCardCommand(api: OpenClawPluginApi): Promise<RegisteredLineCardCommand> {
+async function loadLineCardCommand(api: GenesisPluginApi): Promise<RegisteredLineCardCommand> {
   lineCardCommandPromise ??= (async () => {
     let registered: RegisteredLineCardCommand | null = null;
     const { registerLineCardCommand } = await import("./src/card-command.js");

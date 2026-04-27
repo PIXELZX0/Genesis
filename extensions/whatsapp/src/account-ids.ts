@@ -1,4 +1,4 @@
-import { createAccountListHelpers } from "openclaw/plugin-sdk/account-core";
+import { createAccountListHelpers } from "genesis/plugin-sdk/account-core";
 
 const {
   listConfiguredAccountIds,

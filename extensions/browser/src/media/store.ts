@@ -1,1 +1,1 @@
-export { ensureMediaDir, saveMediaBuffer } from "openclaw/plugin-sdk/browser-setup-tools";
+export { ensureMediaDir, saveMediaBuffer } from "genesis/plugin-sdk/browser-setup-tools";

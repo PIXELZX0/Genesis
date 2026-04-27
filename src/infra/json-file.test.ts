@@ -18,7 +18,7 @@ function writeExistingJson(pathname: string) {
 async function withJsonPath<T>(
   run: (params: { root: string; pathname: string }) => Promise<T> | T,
 ): Promise<T> {
-  return withTempDir({ prefix: "openclaw-json-file-" }, async (root) =>
+  return withTempDir({ prefix: "genesis-json-file-" }, async (root) =>
     run({ root, pathname: path.join(root, "config.json") }),
   );
 }
@@ -31,7 +31,7 @@ async function withJsonSymlink<T>(
     linkPath: string;
   }) => Promise<T> | T,
 ): Promise<T> {
-  return withTempDir({ prefix: "openclaw-json-file-" }, async (root) => {
+  return withTempDir({ prefix: "genesis-json-file-" }, async (root) => {
     const targetDir = path.join(root, "target");
     return run({
       root,
@@ -78,7 +78,7 @@ describe("json-file helpers", () => {
   });
 
   it("creates parent dirs, writes a trailing newline, and loads the saved object", async () => {
-    await withTempDir({ prefix: "openclaw-json-file-" }, async (root) => {
+    await withTempDir({ prefix: "genesis-json-file-" }, async (root) => {
       const pathname = path.join(root, "nested", "config.json");
       saveJsonFile(pathname, SAVED_PAYLOAD);
 
@@ -160,7 +160,7 @@ describe("json-file helpers", () => {
   it.runIf(process.platform !== "win32")(
     "does not create missing target directories through an existing symlink",
     async () => {
-      await withTempDir({ prefix: "openclaw-json-file-" }, async (root) => {
+      await withTempDir({ prefix: "genesis-json-file-" }, async (root) => {
         const missingTargetDir = path.join(root, "missing-target");
         const targetPath = path.join(missingTargetDir, "config.json");
         const linkPath = path.join(root, "config-link.json");

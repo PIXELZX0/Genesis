@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import OpenClawProtocol
+import GenesisProtocol
 
 struct RootCanvas: View {
     @Environment(NodeAppModel.self) private var appModel
@@ -274,7 +274,7 @@ struct RootCanvas: View {
             return HomeCanvasPayload(
                 gatewayState: "connecting",
                 eyebrow: "Reconnecting",
-                title: "OpenClaw is syncing back up",
+                title: "Genesis is syncing back up",
                 subtitle:
                     "The gateway session is coming back online. "
                     + "Agent shortcuts should settle automatically in a moment.",
@@ -288,7 +288,7 @@ struct RootCanvas: View {
         case .error, .disconnected:
             return HomeCanvasPayload(
                 gatewayState: self.gatewayStatus == .error ? "error" : "offline",
-                eyebrow: "Welcome to OpenClaw",
+                eyebrow: "Welcome to Genesis",
                 title: "Your phone stays quiet until it is needed",
                 subtitle:
                     "Pair this device to your gateway to wake it only for real work, "

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { TtsAutoMode, TtsConfig, TtsProvider } from "../config/types.tts.js";
 import {
   normalizeOptionalLowercaseString,
@@ -48,7 +48,7 @@ function resolveTtsPrefsPathValue(prefsPath: string | undefined): string {
   if (configuredPath) {
     return resolveUserPath(configuredPath);
   }
-  const envPath = normalizeOptionalString(process.env.OPENCLAW_TTS_PREFS);
+  const envPath = normalizeOptionalString(process.env.GENESIS_TTS_PREFS);
   if (envPath) {
     return resolveUserPath(envPath);
   }
@@ -78,7 +78,7 @@ function resolveTtsAutoModeFromPrefs(prefs: TtsUserPrefs): TtsAutoMode | undefin
 }
 
 export function resolveStatusTtsSnapshot(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionAuto?: string;
 }): TtsStatusSnapshot | null {
   const raw: TtsConfig = params.cfg.messages?.tts ?? {};

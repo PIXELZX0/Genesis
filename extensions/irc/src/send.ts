@@ -1,5 +1,5 @@
-import { requireRuntimeConfig, resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { convertMarkdownTables } from "openclaw/plugin-sdk/text-runtime";
+import { requireRuntimeConfig, resolveMarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
+import { convertMarkdownTables } from "genesis/plugin-sdk/text-runtime";
 import { resolveIrcAccount } from "./accounts.js";
 import type { IrcClient } from "./client.js";
 import { connectIrcClient } from "./client.js";

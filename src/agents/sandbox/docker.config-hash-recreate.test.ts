@@ -58,7 +58,7 @@ function spawnDockerProcess(command: string, args: string[]) {
   } else if (
     args[0] === "inspect" &&
     args[1] === "-f" &&
-    args[2]?.includes('index .Config.Labels "openclaw.configHash"')
+    args[2]?.includes('index .Config.Labels "genesis.configHash"')
   ) {
     stdout = `${spawnState.labelHash}\n`;
   } else if (
@@ -117,9 +117,9 @@ function createSandboxConfig(
     backend: "docker",
     scope: "shared",
     workspaceAccess,
-    workspaceRoot: "~/.openclaw/sandboxes",
+    workspaceRoot: "~/.genesis/sandboxes",
     docker: {
-      image: "openclaw-sandbox:test",
+      image: "genesis-sandbox:test",
       containerPrefix: "oc-test-",
       workdir: "/workspace",
       readOnlyRoot: true,
@@ -134,15 +134,15 @@ function createSandboxConfig(
     },
     ssh: {
       command: "ssh",
-      workspaceRoot: "/tmp/openclaw-sandboxes",
+      workspaceRoot: "/tmp/genesis-sandboxes",
       strictHostKeyChecking: true,
       updateHostKeys: true,
     },
     browser: {
       enabled: false,
-      image: "openclaw-browser:test",
+      image: "genesis-browser:test",
       containerPrefix: "oc-browser-",
-      network: "openclaw-sandbox-browser",
+      network: "genesis-sandbox-browser",
       cdpPort: 9222,
       vncPort: 5900,
       noVncPort: 6080,
@@ -243,7 +243,7 @@ describe("ensureSandboxContainer config-hash recreation", () => {
     ).toBe(true);
     const createCall = dockerCalls.find((call) => call.args[0] === "create");
     expect(createCall).toBeDefined();
-    expect(createCall?.args).toContain(`openclaw.configHash=${newHash}`);
+    expect(createCall?.args).toContain(`genesis.configHash=${newHash}`);
     expect(registryMocks.updateRegistry).toHaveBeenCalledWith(
       expect.objectContaining({
         containerName: "oc-test-shared",
@@ -283,7 +283,7 @@ describe("ensureSandboxContainer config-hash recreation", () => {
     });
 
     const createCall = await ensureSandboxCreateCallForTest({ cfg, workspaceDir });
-    expect(createCall.args).toContain(`openclaw.configHash=${expectedHash}`);
+    expect(createCall.args).toContain(`genesis.configHash=${expectedHash}`);
 
     const bindArgs = collectDockerFlagValues(createCall.args, "-v");
     const workspaceMountIdx = bindArgs.indexOf("/tmp/workspace:/workspace:z");
@@ -323,8 +323,6 @@ describe("ensureSandboxContainer config-hash recreation", () => {
     registryMocks.readRegistry.mockResolvedValue({ entries: [] });
 
     const createCall = await ensureSandboxCreateCallForTest({ cfg, workspaceDir });
-    expect(createCall.args).toContain(
-      `openclaw.mountFormatVersion=${SANDBOX_MOUNT_FORMAT_VERSION}`,
-    );
+    expect(createCall.args).toContain(`genesis.mountFormatVersion=${SANDBOX_MOUNT_FORMAT_VERSION}`);
   });
 });

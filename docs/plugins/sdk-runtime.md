@@ -60,7 +60,7 @@ const result = await api.runtime.agent.runEmbeddedAgent({
 });
 ```
 
-`runEmbeddedAgent(...)` is the neutral helper for starting a normal OpenClaw
+`runEmbeddedAgent(...)` is the neutral helper for starting a normal Genesis
 agent turn from plugin code. It uses the same provider/model resolution and
 agent-harness selection as channel-triggered replies.
 
@@ -137,14 +137,14 @@ const result = await api.runtime.nodes.invoke({
 ```
 
 Inside the Gateway this runtime is in-process. In plugin CLI commands it calls
-the configured Gateway over RPC, so commands such as `openclaw googlemeet
+the configured Gateway over RPC, so commands such as `genesis googlemeet
 recover-tab` can inspect paired nodes from the terminal. Node commands still go
 through normal Gateway node pairing, command allowlists, and node-local command
 handling.
 
 ### `api.runtime.taskFlow`
 
-Bind a Task Flow runtime to an existing OpenClaw session key or trusted tool
+Bind a Task Flow runtime to an existing Genesis session key or trusted tool
 context, then create and manage Task Flows without passing an owner on every call.
 
 ```typescript
@@ -173,7 +173,7 @@ const waiting = taskFlow.setWaiting({
 ```
 
 Use `bindSession({ sessionKey, requesterOrigin })` when you already have a
-trusted OpenClaw session key from your own binding layer. Do not bind from raw
+trusted Genesis session key from your own binding layer. Do not bind from raw
 user input.
 
 ### `api.runtime.tts`
@@ -183,13 +183,13 @@ Text-to-speech synthesis.
 ```typescript
 // Standard TTS
 const clip = await api.runtime.tts.textToSpeech({
-  text: "Hello from OpenClaw",
+  text: "Hello from Genesis",
   cfg: api.config,
 });
 
 // Telephony-optimized TTS
 const telephonyClip = await api.runtime.tts.textToSpeechTelephony({
-  text: "Hello from OpenClaw",
+  text: "Hello from Genesis",
   cfg: api.config,
 });
 
@@ -264,7 +264,7 @@ const providers = api.runtime.webSearch.listProviders({ config: api.config });
 
 const result = await api.runtime.webSearch.search({
   config: api.config,
-  args: { query: "OpenClaw plugin SDK", count: 5 },
+  args: { query: "Genesis plugin SDK", count: 5 },
 });
 ```
 
@@ -279,14 +279,14 @@ const kind = api.runtime.media.mediaKindFromMime("image/jpeg"); // "image"
 const isVoice = api.runtime.media.isVoiceCompatibleAudio(filePath);
 const metadata = await api.runtime.media.getImageMetadata(filePath);
 const resized = await api.runtime.media.resizeToJpeg(buffer, { maxWidth: 800 });
-const terminalQr = await api.runtime.media.renderQrTerminal("https://openclaw.ai");
-const pngQr = await api.runtime.media.renderQrPngBase64("https://openclaw.ai", {
+const terminalQr = await api.runtime.media.renderQrTerminal("https://genesis.ai");
+const pngQr = await api.runtime.media.renderQrPngBase64("https://genesis.ai", {
   scale: 6, // 1-12
   marginModules: 4, // 0-16
 });
-const pngQrDataUrl = await api.runtime.media.renderQrPngDataUrl("https://openclaw.ai");
-const tmpRoot = resolvePreferredOpenClawTmpDir();
-const pngQrFile = await api.runtime.media.writeQrPngTempFile("https://openclaw.ai", {
+const pngQrDataUrl = await api.runtime.media.renderQrPngDataUrl("https://genesis.ai");
+const tmpRoot = resolvePreferredGenesisTmpDir();
+const pngQrFile = await api.runtime.media.writeQrPngTempFile("https://genesis.ai", {
   tmpRoot,
   dirPrefix: "my-plugin-qr-",
   fileName: "qr.png",
@@ -415,8 +415,8 @@ Use `createPluginRuntimeStore` to store the runtime reference for use outside
 the `register` callback:
 
 ```typescript
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
-import type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+import { createPluginRuntimeStore } from "genesis/plugin-sdk/runtime-store";
+import type { PluginRuntime } from "genesis/plugin-sdk/runtime-store";
 
 const store = createPluginRuntimeStore<PluginRuntime>({
   pluginId: "my-plugin",
@@ -454,7 +454,7 @@ Beyond `api.runtime`, the API object also provides:
 | ------------------------ | ------------------------- | ------------------------------------------------------------------------------------------- |
 | `api.id`                 | `string`                  | Plugin id                                                                                   |
 | `api.name`               | `string`                  | Plugin display name                                                                         |
-| `api.config`             | `OpenClawConfig`          | Current config snapshot (active in-memory runtime snapshot when available)                  |
+| `api.config`             | `GenesisConfig`           | Current config snapshot (active in-memory runtime snapshot when available)                  |
 | `api.pluginConfig`       | `Record<string, unknown>` | Plugin-specific config from `plugins.entries.<id>.config`                                   |
 | `api.logger`             | `PluginLogger`            | Scoped logger (`debug`, `info`, `warn`, `error`)                                            |
 | `api.registrationMode`   | `PluginRegistrationMode`  | Current load mode; `"setup-runtime"` is the lightweight pre-full-entry startup/setup window |

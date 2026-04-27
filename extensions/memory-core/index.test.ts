@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/memory-core";
+import type { GenesisConfig } from "genesis/plugin-sdk/memory-core";
 import { describe, expect, it } from "vitest";
 import {
   buildMemoryFlushPlan,
@@ -61,7 +61,7 @@ describe("buildMemoryFlushPlan", () => {
         timeFormat: "12",
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 
   it("replaces YYYY-MM-DD using user timezone and appends current time", () => {
     const plan = buildMemoryFlushPlan({

@@ -1,7 +1,7 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk/core";
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
+import type { PluginRuntime } from "genesis/plugin-sdk/core";
+import { createPluginRuntimeStore } from "genesis/plugin-sdk/runtime-store";
 import type { GatewayPluginRuntime } from "../engine/gateway/types.js";
-import { setOpenClawVersion } from "../engine/messaging/sender.js";
+import { setGenesisVersion } from "../engine/messaging/sender.js";
 
 const { setRuntime: _setRuntime, getRuntime: getQQBotRuntime } =
   createPluginRuntimeStore<PluginRuntime>({
@@ -13,7 +13,7 @@ const { setRuntime: _setRuntime, getRuntime: getQQBotRuntime } =
 function setQQBotRuntime(runtime: PluginRuntime): void {
   _setRuntime(runtime);
   // Inject the framework version into the User-Agent string (same as standalone).
-  setOpenClawVersion(runtime.version);
+  setGenesisVersion(runtime.version);
 }
 
 export { getQQBotRuntime, setQQBotRuntime };

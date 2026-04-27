@@ -22,7 +22,7 @@ class MockChildProcess extends EventEmitter {
   stderr = new PassThrough();
 }
 
-describe("OpenClawStdioClientTransport", () => {
+describe("GenesisStdioClientTransport", () => {
   afterEach(() => {
     vi.useRealTimers();
     spawnMock.mockReset();
@@ -32,9 +32,9 @@ describe("OpenClawStdioClientTransport", () => {
   it("starts stdio MCP servers in a disposable process group on POSIX", async () => {
     const child = new MockChildProcess();
     spawnMock.mockReturnValue(child);
-    const { OpenClawStdioClientTransport } = await import("./mcp-stdio-transport.js");
+    const { GenesisStdioClientTransport } = await import("./mcp-stdio-transport.js");
 
-    const transport = new OpenClawStdioClientTransport({
+    const transport = new GenesisStdioClientTransport({
       command: "npx",
       args: ["-y", "example-mcp"],
       env: { EXAMPLE: "1" },
@@ -80,9 +80,9 @@ describe("OpenClawStdioClientTransport", () => {
     vi.useFakeTimers();
     const child = new MockChildProcess();
     spawnMock.mockReturnValue(child);
-    const { OpenClawStdioClientTransport } = await import("./mcp-stdio-transport.js");
+    const { GenesisStdioClientTransport } = await import("./mcp-stdio-transport.js");
 
-    const transport = new OpenClawStdioClientTransport({ command: "npx" });
+    const transport = new GenesisStdioClientTransport({ command: "npx" });
     const started = transport.start();
     child.emit("spawn");
     await started;
@@ -100,9 +100,9 @@ describe("OpenClawStdioClientTransport", () => {
     vi.useFakeTimers();
     const child = new MockChildProcess();
     spawnMock.mockReturnValue(child);
-    const { OpenClawStdioClientTransport } = await import("./mcp-stdio-transport.js");
+    const { GenesisStdioClientTransport } = await import("./mcp-stdio-transport.js");
 
-    const transport = new OpenClawStdioClientTransport({ command: "npx" });
+    const transport = new GenesisStdioClientTransport({ command: "npx" });
     const started = transport.start();
     child.emit("spawn");
     await started;
@@ -118,9 +118,9 @@ describe("OpenClawStdioClientTransport", () => {
   it("sends and receives JSON-RPC messages over stdio", async () => {
     const child = new MockChildProcess();
     spawnMock.mockReturnValue(child);
-    const { OpenClawStdioClientTransport } = await import("./mcp-stdio-transport.js");
+    const { GenesisStdioClientTransport } = await import("./mcp-stdio-transport.js");
 
-    const transport = new OpenClawStdioClientTransport({ command: "npx" });
+    const transport = new GenesisStdioClientTransport({ command: "npx" });
     const onmessage = vi.fn();
     Object.assign(transport, { onmessage });
     const started = transport.start();

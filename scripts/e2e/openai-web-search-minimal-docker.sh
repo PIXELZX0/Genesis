@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-openai-web-search-minimal-e2e" OPENCLAW_OPENAI_WEB_SEARCH_MINIMAL_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_OPENAI_WEB_SEARCH_MINIMAL_E2E_SKIP_BUILD:-0}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-openai-web-search-minimal-e2e" GENESIS_OPENAI_WEB_SEARCH_MINIMAL_E2E_IMAGE)"
+SKIP_BUILD="${GENESIS_OPENAI_WEB_SEARCH_MINIMAL_E2E_SKIP_BUILD:-0}"
 PORT="18789"
 MOCK_PORT="19191"
 TOKEN="openai-web-search-minimal-e2e-$$"
@@ -14,28 +14,28 @@ docker_e2e_build_or_reuse "$IMAGE_NAME" openai-web-search-minimal "$ROOT_DIR/scr
 
 echo "Running OpenAI web_search minimal reasoning Docker E2E..."
 run_logged openai-web-search-minimal docker run --rm \
-  -e "OPENCLAW_GATEWAY_TOKEN=$TOKEN" \
-  -e "OPENAI_API_KEY=sk-openclaw-web-search-minimal-e2e" \
-  -e "BRAVE_API_KEY=brave-openclaw-web-search-minimal-e2e" \
+  -e "GENESIS_GATEWAY_TOKEN=$TOKEN" \
+  -e "OPENAI_API_KEY=sk-genesis-web-search-minimal-e2e" \
+  -e "BRAVE_API_KEY=brave-genesis-web-search-minimal-e2e" \
   -e "PORT=$PORT" \
   -e "MOCK_PORT=$MOCK_PORT" \
   -i "$IMAGE_NAME" bash -s <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-openai-web-search-minimal.XXXXXX")"
-export OPENCLAW_STATE_DIR="$HOME/.openclaw"
-export OPENCLAW_SKIP_CHANNELS=1
-export OPENCLAW_SKIP_GMAIL_WATCHER=1
-export OPENCLAW_SKIP_CRON=1
-export OPENCLAW_SKIP_CANVAS_HOST=1
+export HOME="$(mktemp -d "/tmp/genesis-openai-web-search-minimal.XXXXXX")"
+export GENESIS_STATE_DIR="$HOME/.genesis"
+export GENESIS_SKIP_CHANNELS=1
+export GENESIS_SKIP_GMAIL_WATCHER=1
+export GENESIS_SKIP_CRON=1
+export GENESIS_SKIP_CANVAS_HOST=1
 
 PORT="${PORT:?missing PORT}"
 MOCK_PORT="${MOCK_PORT:?missing MOCK_PORT}"
-TOKEN="${OPENCLAW_GATEWAY_TOKEN:?missing OPENCLAW_GATEWAY_TOKEN}"
-SUCCESS_MARKER="OPENCLAW_SCHEMA_E2E_OK"
+TOKEN="${GENESIS_GATEWAY_TOKEN:?missing GENESIS_GATEWAY_TOKEN}"
+SUCCESS_MARKER="GENESIS_SCHEMA_E2E_OK"
 RAW_SCHEMA_ERROR="400 The following tools cannot be used with reasoning.effort 'minimal': web_search."
-MOCK_REQUEST_LOG="/tmp/openclaw-openai-web-search-minimal-requests.jsonl"
-GATEWAY_LOG="/tmp/openclaw-openai-web-search-minimal-gateway.log"
+MOCK_REQUEST_LOG="/tmp/genesis-openai-web-search-minimal-requests.jsonl"
+GATEWAY_LOG="/tmp/genesis-openai-web-search-minimal-gateway.log"
 mock_pid=""
 gateway_pid=""
 
@@ -56,11 +56,11 @@ dump_debug_logs() {
   echo "OpenAI web_search minimal Docker E2E failed with exit code $status" >&2
   for file in \
     "$GATEWAY_LOG" \
-    /tmp/openclaw-openai-web-search-minimal-mock.log \
-    /tmp/openclaw-openai-web-search-minimal-client-success.log \
-    /tmp/openclaw-openai-web-search-minimal-client-reject.log \
+    /tmp/genesis-openai-web-search-minimal-mock.log \
+    /tmp/genesis-openai-web-search-minimal-client-success.log \
+    /tmp/genesis-openai-web-search-minimal-client-reject.log \
     "$MOCK_REQUEST_LOG" \
-    "$OPENCLAW_STATE_DIR/openclaw.json"; do
+    "$GENESIS_STATE_DIR/genesis.json"; do
     if [ -f "$file" ]; then
       echo "--- $file ---" >&2
       sed -n '1,260p' "$file" >&2 || true
@@ -71,7 +71,7 @@ trap 'status=$?; dump_debug_logs "$status"; exit "$status"' ERR
 
 entry=dist/index.mjs
 [ -f "$entry" ] || entry=dist/index.js
-mkdir -p "$OPENCLAW_STATE_DIR"
+mkdir -p "$GENESIS_STATE_DIR"
 
 node --input-type=module <<'NODE'
 import { patchOpenAINativeWebSearchPayload } from "./dist/extensions/openai/native-web-search.js";
@@ -107,7 +107,7 @@ if (existingNativePayload.reasoning.effort !== "low") {
 }
 NODE
 
-cat >"$OPENCLAW_STATE_DIR/openclaw.json" <<JSON
+cat >"$GENESIS_STATE_DIR/genesis.json" <<JSON
 {
   "agents": {
     "defaults": {
@@ -176,7 +176,7 @@ cat >"$OPENCLAW_STATE_DIR/openclaw.json" <<JSON
 }
 JSON
 
-cat >/tmp/openclaw-openai-web-search-minimal-mock.mjs <<'NODE'
+cat >/tmp/genesis-openai-web-search-minimal-mock.mjs <<'NODE'
 import http from "node:http";
 import fs from "node:fs";
 
@@ -286,7 +286,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/v1/models") {
     writeJson(res, 200, {
       object: "list",
-      data: [{ id: "gpt-5", object: "model", owned_by: "openclaw-e2e" }],
+      data: [{ id: "gpt-5", object: "model", owned_by: "genesis-e2e" }],
     });
     return;
   }
@@ -325,7 +325,7 @@ MOCK_PORT="$MOCK_PORT" \
 MOCK_REQUEST_LOG="$MOCK_REQUEST_LOG" \
 SUCCESS_MARKER="$SUCCESS_MARKER" \
 RAW_SCHEMA_ERROR="$RAW_SCHEMA_ERROR" \
-node /tmp/openclaw-openai-web-search-minimal-mock.mjs >/tmp/openclaw-openai-web-search-minimal-mock.log 2>&1 &
+node /tmp/genesis-openai-web-search-minimal-mock.mjs >/tmp/genesis-openai-web-search-minimal-mock.log 2>&1 &
 mock_pid="$!"
 
 for _ in $(seq 1 80); do
@@ -358,21 +358,21 @@ node "$entry" gateway health \
   --timeout 120000 \
   --json >/dev/null
 
-cat >/tmp/openclaw-openai-web-search-minimal-client.mjs <<'NODE'
+cat >/tmp/genesis-openai-web-search-minimal-client.mjs <<'NODE'
 import { execFileSync } from "node:child_process";
 
-const entry = process.env.OPENCLAW_ENTRY;
+const entry = process.env.GENESIS_ENTRY;
 const port = process.env.PORT;
-const token = process.env.OPENCLAW_GATEWAY_TOKEN;
+const token = process.env.GENESIS_GATEWAY_TOKEN;
 const mode = process.argv[2];
 const sessionKey = `agent:main:openai-web-search-minimal:${mode}`;
 const message =
   mode === "reject"
     ? "FORCE_SCHEMA_REJECT"
-    : "Return exactly OPENCLAW_SCHEMA_E2E_OK.";
+    : "Return exactly GENESIS_SCHEMA_E2E_OK.";
 const id = mode === "reject" ? "schema-reject" : "schema-success";
 
-if (!entry || !port || !token) throw new Error("missing OPENCLAW_ENTRY/PORT/OPENCLAW_GATEWAY_TOKEN");
+if (!entry || !port || !token) throw new Error("missing GENESIS_ENTRY/PORT/GENESIS_GATEWAY_TOKEN");
 
 const gatewayArgs = [
   entry,
@@ -425,15 +425,15 @@ if (!sendRes.ok) throw sendRes.error;
 const deadline = Date.now() + 120000;
 while (Date.now() < deadline) {
   const history = gatewayCall("chat.history", { sessionKey });
-  if (history.ok && JSON.stringify(history.value).includes("OPENCLAW_SCHEMA_E2E_OK")) {
+  if (history.ok && JSON.stringify(history.value).includes("GENESIS_SCHEMA_E2E_OK")) {
     process.exit(0);
   }
   await new Promise((resolve) => setTimeout(resolve, 250));
 }
-throw new Error("timed out waiting for OPENCLAW_SCHEMA_E2E_OK in chat history");
+throw new Error("timed out waiting for GENESIS_SCHEMA_E2E_OK in chat history");
 NODE
 
-OPENCLAW_ENTRY="$entry" PORT="$PORT" OPENCLAW_GATEWAY_TOKEN="$TOKEN" node /tmp/openclaw-openai-web-search-minimal-client.mjs success >/tmp/openclaw-openai-web-search-minimal-client-success.log 2>&1
+GENESIS_ENTRY="$entry" PORT="$PORT" GENESIS_GATEWAY_TOKEN="$TOKEN" node /tmp/genesis-openai-web-search-minimal-client.mjs success >/tmp/genesis-openai-web-search-minimal-client-success.log 2>&1
 
 node - "$MOCK_REQUEST_LOG" <<'NODE'
 const fs = require("node:fs");
@@ -443,7 +443,7 @@ const responseEntries = entries.filter((entry) => entry.path === "/v1/responses"
 if (responseEntries.length < 1) {
   throw new Error(`mock OpenAI /v1/responses was not used. Requests: ${JSON.stringify(entries)}`);
 }
-const success = responseEntries.find((entry) => JSON.stringify(entry.body).includes("OPENCLAW_SCHEMA_E2E_OK"));
+const success = responseEntries.find((entry) => JSON.stringify(entry.body).includes("GENESIS_SCHEMA_E2E_OK"));
 if (!success) {
   throw new Error(`missing success request. Requests: ${JSON.stringify(responseEntries)}`);
 }
@@ -457,7 +457,7 @@ if (success.body.reasoning?.effort === "minimal") {
 }
 NODE
 
-OPENCLAW_ENTRY="$entry" PORT="$PORT" OPENCLAW_GATEWAY_TOKEN="$TOKEN" node /tmp/openclaw-openai-web-search-minimal-client.mjs reject >/tmp/openclaw-openai-web-search-minimal-client-reject.log 2>&1
+GENESIS_ENTRY="$entry" PORT="$PORT" GENESIS_GATEWAY_TOKEN="$TOKEN" node /tmp/genesis-openai-web-search-minimal-client.mjs reject >/tmp/genesis-openai-web-search-minimal-client-reject.log 2>&1
 
 for _ in $(seq 1 80); do
   if grep -Fq "$RAW_SCHEMA_ERROR" "$GATEWAY_LOG"; then

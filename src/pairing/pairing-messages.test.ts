@@ -7,9 +7,9 @@ describe("buildPairingReply", () => {
   let envSnapshot: ReturnType<typeof captureEnv>;
 
   beforeEach(() => {
-    envSnapshot = captureEnv(["OPENCLAW_CONTAINER_HINT", "OPENCLAW_PROFILE"]);
-    delete process.env.OPENCLAW_CONTAINER_HINT;
-    process.env.OPENCLAW_PROFILE = "isolated";
+    envSnapshot = captureEnv(["GENESIS_CONTAINER_HINT", "GENESIS_PROFILE"]);
+    delete process.env.GENESIS_CONTAINER_HINT;
+    process.env.GENESIS_PROFILE = "isolated";
   });
 
   afterEach(() => {
@@ -51,7 +51,7 @@ describe("buildPairingReply", () => {
 
   function expectPairingApproveCommand(text: string, testCase: (typeof pairingReplyCases)[number]) {
     const commandRe = new RegExp(
-      `(?:openclaw|openclaw) --profile isolated pairing approve ${testCase.channel} ${testCase.code}`,
+      `(?:genesis|genesis) --profile isolated pairing approve ${testCase.channel} ${testCase.code}`,
     );
     expect(text).toMatch(commandRe);
   }

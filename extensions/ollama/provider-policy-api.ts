@@ -1,4 +1,4 @@
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-types";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-types";
 import { OLLAMA_DEFAULT_BASE_URL } from "./src/defaults.js";
 
 type OllamaProviderConfigDraft = Partial<ModelProviderConfig>;

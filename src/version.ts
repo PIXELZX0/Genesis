@@ -1,8 +1,8 @@
 import { createRequire } from "node:module";
 import { normalizeOptionalString } from "./shared/string-coerce.js";
 
-declare const __OPENCLAW_VERSION__: string | undefined;
-const CORE_PACKAGE_NAME = "openclaw";
+declare const __GENESIS_VERSION__: string | undefined;
+const CORE_PACKAGE_NAME = "genesis";
 
 const PACKAGE_JSON_CANDIDATES = [
   "../package.json",
@@ -112,12 +112,12 @@ function resolveVersionFromRuntimeSources(params: {
 }): string {
   const preferredCandidates =
     params.preference === "env-first"
-      ? [params.env["OPENCLAW_VERSION"], params.runtimeVersion]
-      : [params.runtimeVersion, params.env["OPENCLAW_VERSION"]];
+      ? [params.env["GENESIS_VERSION"], params.runtimeVersion]
+      : [params.runtimeVersion, params.env["GENESIS_VERSION"]];
   return (
     firstNonEmpty(
       ...preferredCandidates,
-      params.env["OPENCLAW_SERVICE_VERSION"],
+      params.env["GENESIS_SERVICE_VERSION"],
       params.env["npm_package_version"],
     ) ?? params.fallback
   );
@@ -139,7 +139,7 @@ export function resolveCompatibilityHostVersion(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
   fallback = RUNTIME_SERVICE_VERSION_FALLBACK,
 ): string {
-  const explicitCompatibilityVersion = firstNonEmpty(env.OPENCLAW_COMPATIBILITY_HOST_VERSION);
+  const explicitCompatibilityVersion = firstNonEmpty(env.GENESIS_COMPATIBILITY_HOST_VERSION);
   if (explicitCompatibilityVersion) {
     return explicitCompatibilityVersion;
   }
@@ -151,11 +151,11 @@ export function resolveCompatibilityHostVersion(
   });
 }
 
-// Single source of truth for the current OpenClaw version.
+// Single source of truth for the current Genesis version.
 // - Embedded/bundled builds: injected define or env var.
 // - Dev/npm builds: package.json.
 export const VERSION = resolveBinaryVersion({
   moduleUrl: import.meta.url,
-  injectedVersion: typeof __OPENCLAW_VERSION__ === "string" ? __OPENCLAW_VERSION__ : undefined,
-  bundledVersion: process.env.OPENCLAW_BUNDLED_VERSION,
+  injectedVersion: typeof __GENESIS_VERSION__ === "string" ? __GENESIS_VERSION__ : undefined,
+  bundledVersion: process.env.GENESIS_BUNDLED_VERSION,
 });

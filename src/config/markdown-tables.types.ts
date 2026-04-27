@@ -1,8 +1,8 @@
 import type { MarkdownTableMode } from "./types.base.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { GenesisConfig } from "./types.genesis.js";
 
 export type ResolveMarkdownTableModeParams = {
-  cfg?: Partial<OpenClawConfig>;
+  cfg?: Partial<GenesisConfig>;
   channel?: string | null;
   accountId?: string | null;
 };

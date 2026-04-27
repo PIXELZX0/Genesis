@@ -46,7 +46,7 @@ async function installCa() {
   if (result.status !== 0) {
     throw new Error(`security add-trusted-cert failed with exit code ${result.status ?? 1}`);
   }
-  process.stdout.write("Trusted the OpenClaw debug proxy CA in System.keychain.\n");
+  process.stdout.write("Trusted the Genesis debug proxy CA in System.keychain.\n");
 }
 
 void installCa().catch((error) => {

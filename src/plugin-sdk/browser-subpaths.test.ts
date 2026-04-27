@@ -3,14 +3,14 @@ import { parseBrowserHttpUrl, redactCdpUrl } from "./browser-cdp.js";
 import { resolveBrowserControlAuth } from "./browser-control-auth.js";
 import {
   DEFAULT_BROWSER_DEFAULT_PROFILE_NAME,
-  DEFAULT_OPENCLAW_BROWSER_ENABLED,
+  DEFAULT_GENESIS_BROWSER_ENABLED,
   resolveBrowserConfig,
 } from "./browser-profiles.js";
 
 describe("plugin-sdk browser subpaths", () => {
   it("keeps browser profile helpers available on the narrow subpath", () => {
-    expect(DEFAULT_OPENCLAW_BROWSER_ENABLED).toBe(true);
-    expect(DEFAULT_BROWSER_DEFAULT_PROFILE_NAME).toBe("openclaw");
+    expect(DEFAULT_GENESIS_BROWSER_ENABLED).toBe(true);
+    expect(DEFAULT_BROWSER_DEFAULT_PROFILE_NAME).toBe("genesis");
     expect(resolveBrowserConfig).toBeTypeOf("function");
   });
 

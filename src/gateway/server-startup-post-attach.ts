@@ -1,12 +1,12 @@
 import type { CliDeps } from "../cli/deps.types.js";
 import type { GatewayTailscaleMode } from "../config/types.gateway.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { hasConfiguredInternalHooks } from "../hooks/configured.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import type { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import type { PluginHookGatewayCronService } from "../plugins/hook-types.js";
-import type { loadOpenClawPlugins } from "../plugins/loader.js";
+import type { loadGenesisPlugins } from "../plugins/loader.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import {
   GATEWAY_EVENT_UPDATE_AVAILABLE,
@@ -37,12 +37,12 @@ function shouldCheckRestartSentinel(env: NodeJS.ProcessEnv = process.env): boole
   return !env.VITEST && env.NODE_ENV !== "test";
 }
 
-function shouldStartGatewayMemoryBackend(cfg: OpenClawConfig): boolean {
+function shouldStartGatewayMemoryBackend(cfg: GenesisConfig): boolean {
   return cfg.memory?.backend === "qmd";
 }
 
 function isConfiguredCliBackendPrimary(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   explicitPrimary: string;
   normalizeProviderId: (provider: string) => string;
 }): boolean {
@@ -62,7 +62,7 @@ async function hasGatewayStartupInternalHookListeners(): Promise<boolean> {
 }
 
 async function prewarmConfiguredPrimaryModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   log: { warn: (msg: string) => void };
 }): Promise<void> {
   const { resolveAgentModelPrimaryValue } = await import("../config/model-input.js");
@@ -81,11 +81,11 @@ async function prewarmConfiguredPrimaryModel(params: {
     return;
   }
   const [
-    { resolveOpenClawAgentDir },
+    { resolveGenesisAgentDir },
     { DEFAULT_MODEL, DEFAULT_PROVIDER },
     { selectAgentHarness },
     { isCliProvider, resolveConfiguredModelRef },
-    { ensureOpenClawModelsJson },
+    { ensureGenesisModelsJson },
     { resolveModel, resolveModelAsync },
     { resolveEmbeddedAgentRuntime },
   ] = await Promise.all([
@@ -112,9 +112,9 @@ async function prewarmConfiguredPrimaryModel(params: {
   if (selectAgentHarness({ provider, modelId: model, config: params.cfg }).id !== "pi") {
     return;
   }
-  const agentDir = resolveOpenClawAgentDir();
+  const agentDir = resolveGenesisAgentDir();
   try {
-    await ensureOpenClawModelsJson(params.cfg, agentDir);
+    await ensureGenesisModelsJson(params.cfg, agentDir);
     const resolved = resolveModel(provider, model, agentDir, params.cfg, {
       skipProviderRuntimeHooks: true,
     });
@@ -132,8 +132,8 @@ async function prewarmConfiguredPrimaryModel(params: {
 }
 
 export async function startGatewaySidecars(params: {
-  cfg: OpenClawConfig;
-  pluginRegistry: ReturnType<typeof loadOpenClawPlugins>;
+  cfg: GenesisConfig;
+  pluginRegistry: ReturnType<typeof loadGenesisPlugins>;
   defaultWorkspaceDir: string;
   deps: CliDeps;
   startChannels: () => Promise<void>;
@@ -253,8 +253,8 @@ export async function startGatewaySidecars(params: {
   });
 
   const skipChannels =
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_CHANNELS) ||
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_PROVIDERS);
+    isTruthyEnvValue(process.env.GENESIS_SKIP_CHANNELS) ||
+    isTruthyEnvValue(process.env.GENESIS_SKIP_PROVIDERS);
   await measureStartup(params.startupTrace, "sidecars.channels", async () => {
     if (!skipChannels) {
       try {
@@ -268,7 +268,7 @@ export async function startGatewaySidecars(params: {
       }
     } else {
       params.logChannels.info(
-        "skipping channel start (OPENCLAW_SKIP_CHANNELS=1 or OPENCLAW_SKIP_PROVIDERS=1)",
+        "skipping channel start (GENESIS_SKIP_CHANNELS=1 or GENESIS_SKIP_PROVIDERS=1)",
       );
     }
   });
@@ -398,7 +398,7 @@ const defaultGatewayPostAttachRuntimeDeps: GatewayPostAttachRuntimeDeps = {
 export async function startGatewayPostAttachRuntime(
   params: {
     minimalTestGateway: boolean;
-    cfgAtStart: OpenClawConfig;
+    cfgAtStart: GenesisConfig;
     bindHost: string;
     bindHosts: string[];
     port: number;
@@ -419,8 +419,8 @@ export async function startGatewayPostAttachRuntime(
       error: (msg: string) => void;
       debug?: (msg: string) => void;
     };
-    gatewayPluginConfigAtStart: OpenClawConfig;
-    pluginRegistry: ReturnType<typeof loadOpenClawPlugins>;
+    gatewayPluginConfigAtStart: GenesisConfig;
+    pluginRegistry: ReturnType<typeof loadGenesisPlugins>;
     defaultWorkspaceDir: string;
     deps: CliDeps;
     startChannels: () => Promise<void>;

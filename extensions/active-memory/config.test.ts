@@ -4,7 +4,7 @@ import { validateJsonSchemaValue } from "../../src/plugins/schema-validator.js";
 import type { JsonSchemaObject } from "../../src/shared/json-schema.types.js";
 
 const manifest = JSON.parse(
-  fs.readFileSync(new URL("./openclaw.plugin.json", import.meta.url), "utf-8"),
+  fs.readFileSync(new URL("./genesis.plugin.json", import.meta.url), "utf-8"),
 ) as { configSchema: JsonSchemaObject };
 
 describe("active-memory manifest config schema", () => {

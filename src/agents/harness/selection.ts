@@ -1,5 +1,5 @@
 import type { AgentEmbeddedHarnessConfig } from "../../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
@@ -71,7 +71,7 @@ function compareHarnessSupport(
 export function selectAgentHarness(params: {
   provider: string;
   modelId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   sessionKey?: string;
   agentHarnessId?: string;
@@ -82,7 +82,7 @@ export function selectAgentHarness(params: {
 function selectAgentHarnessDecision(params: {
   provider: string;
   modelId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   sessionKey?: string;
   agentHarnessId?: string;
@@ -318,7 +318,7 @@ export async function maybeCompactAgentHarnessSession(
 export function resolveAgentHarnessPolicy(params: {
   provider?: string;
   modelId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   sessionKey?: string;
   env?: NodeJS.ProcessEnv;
@@ -331,7 +331,7 @@ export function resolveAgentHarnessPolicy(params: {
     sessionKey: params.sessionKey,
   });
   const defaultsPolicy = params.config?.agents?.defaults?.embeddedHarness;
-  const runtime = env.OPENCLAW_AGENT_RUNTIME?.trim()
+  const runtime = env.GENESIS_AGENT_RUNTIME?.trim()
     ? resolveEmbeddedAgentRuntime(env)
     : normalizeEmbeddedAgentRuntime(agentPolicy?.runtime ?? defaultsPolicy?.runtime);
   return {
@@ -356,7 +356,7 @@ function resolveAgentHarnessFallbackPolicy(params: {
     return envFallback;
   }
 
-  const envRuntime = params.env.OPENCLAW_AGENT_RUNTIME?.trim();
+  const envRuntime = params.env.GENESIS_AGENT_RUNTIME?.trim();
   if (envRuntime && isPluginAgentRuntime(params.runtime)) {
     return normalizeAgentHarnessFallback(undefined, params.runtime);
   }
@@ -376,7 +376,7 @@ function isPluginAgentRuntime(runtime: EmbeddedAgentRuntime): boolean {
 }
 
 function resolveAgentEmbeddedHarnessConfig(
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
   params: { agentId?: string; sessionKey?: string },
 ): AgentEmbeddedHarnessConfig | undefined {
   if (!config) {

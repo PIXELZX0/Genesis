@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import type {
   QaBusAttachment,
   QaBusConversation,

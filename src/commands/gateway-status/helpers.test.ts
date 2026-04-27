@@ -16,7 +16,7 @@ import { createSecretRefGatewayConfig } from "./test-support.js";
 describe("extractConfigSummary", () => {
   it("marks SecretRef-backed gateway auth credentials as configured", () => {
     const summary = extractConfigSummary({
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       exists: true,
       valid: true,
       issues: [],
@@ -32,7 +32,7 @@ describe("extractConfigSummary", () => {
 
   it("still treats empty plaintext auth values as not configured", () => {
     const summary = extractConfigSummary({
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       exists: true,
       valid: true,
       issues: [],
@@ -94,8 +94,8 @@ describe("resolveAuthForTarget", () => {
   it("resolves local auth token SecretRef before probing local targets", async () => {
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
-        OPENCLAW_GATEWAY_PASSWORD: undefined,
+        GENESIS_GATEWAY_TOKEN: undefined,
+        GENESIS_GATEWAY_PASSWORD: undefined,
         LOCAL_GATEWAY_TOKEN: "resolved-local-token",
       },
       async () => {

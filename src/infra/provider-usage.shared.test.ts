@@ -13,7 +13,7 @@ async function withLegacyPiAuthFile(
   contents: string,
   run: (home: string) => Promise<void> | void,
 ): Promise<void> {
-  await withTempDir({ prefix: "openclaw-provider-usage-" }, async (home) => {
+  await withTempDir({ prefix: "genesis-provider-usage-" }, async (home) => {
     await fs.mkdir(path.join(home, ".pi", "agent"), { recursive: true });
     await fs.writeFile(path.join(home, ".pi", "agent", "auth.json"), contents, "utf8");
     await run(home);

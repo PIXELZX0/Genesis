@@ -44,7 +44,7 @@ describe("qa credential admin runtime", () => {
       actorId: "maintainer-local",
       siteUrl: "https://first-schnauzer-821.convex.site",
       env: {
-        OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+        GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
       },
       fetchImpl,
     });
@@ -84,7 +84,7 @@ describe("qa credential admin runtime", () => {
       listQaCredentialSets({
         siteUrl: "http://qa-cred.example.convex.site",
         env: {
-          OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+          GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
         },
         fetchImpl: vi.fn(),
       }),
@@ -94,7 +94,7 @@ describe("qa credential admin runtime", () => {
     } satisfies Partial<QaCredentialAdminError>);
   });
 
-  it("allows loopback http admin site URLs when OPENCLAW_QA_ALLOW_INSECURE_HTTP is enabled", async () => {
+  it("allows loopback http admin site URLs when GENESIS_QA_ALLOW_INSECURE_HTTP is enabled", async () => {
     const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       jsonResponse({
         status: "ok",
@@ -106,8 +106,8 @@ describe("qa credential admin runtime", () => {
     await listQaCredentialSets({
       siteUrl: "http://127.0.0.1:3210",
       env: {
-        OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
-        OPENCLAW_QA_ALLOW_INSECURE_HTTP: "1",
+        GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+        GENESIS_QA_ALLOW_INSECURE_HTTP: "1",
       },
       fetchImpl,
     });
@@ -121,7 +121,7 @@ describe("qa credential admin runtime", () => {
         siteUrl: "https://first-schnauzer-821.convex.site",
         endpointPrefix: "//evil.example",
         env: {
-          OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+          GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
         },
         fetchImpl: vi.fn(),
       }),
@@ -148,7 +148,7 @@ describe("qa credential admin runtime", () => {
         credentialId: "cred-1",
         siteUrl: "https://first-schnauzer-821.convex.site",
         env: {
-          OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+          GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
         },
         fetchImpl,
       }),
@@ -188,7 +188,7 @@ describe("qa credential admin runtime", () => {
       limit: 5,
       siteUrl: "https://first-schnauzer-821.convex.site",
       env: {
-        OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+        GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
       },
       fetchImpl,
     });
@@ -227,8 +227,8 @@ describe("qa credential admin runtime", () => {
     const result = await diagnoseQaCredentialBroker({
       siteUrl: "https://first-schnauzer-821.convex.site",
       env: {
-        OPENCLAW_QA_CONVEX_SECRET_CI: "ci-secret",
-        OPENCLAW_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
+        GENESIS_QA_CONVEX_SECRET_CI: "ci-secret",
+        GENESIS_QA_CONVEX_SECRET_MAINTAINER: "maint-secret",
       },
       fetchImpl,
     });

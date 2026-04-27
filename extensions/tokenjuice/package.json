@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/tokenjuice",
+  "name": "@genesis/tokenjuice",
   "version": "2026.4.21",
   "description": "Bundled tokenjuice exec output compaction plugin",
   "type": "module",
@@ -7,9 +7,9 @@
     "tokenjuice": "0.6.1"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

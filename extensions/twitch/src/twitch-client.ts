@@ -1,7 +1,7 @@
 import { RefreshingAuthProvider, StaticAuthProvider } from "@twurple/auth";
 import { ChatClient, LogLevel } from "@twurple/chat";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { resolveTwitchToken } from "./token.js";
 import type { ChannelLogSink, TwitchAccountConfig, TwitchChatMessage } from "./types.js";
 import { normalizeToken } from "./utils/twitch.js";
@@ -77,7 +77,7 @@ export class TwitchClientManager {
    */
   async getClient(
     account: TwitchAccountConfig,
-    cfg?: OpenClawConfig,
+    cfg?: GenesisConfig,
     accountId?: string,
   ): Promise<ChatClient> {
     const key = this.getAccountKey(account);
@@ -93,7 +93,7 @@ export class TwitchClientManager {
 
     if (!tokenResolution.token) {
       this.logger.error(
-        `Missing Twitch token for account ${account.username} (set channels.twitch.accounts.${account.username}.token or OPENCLAW_TWITCH_ACCESS_TOKEN for default)`,
+        `Missing Twitch token for account ${account.username} (set channels.twitch.accounts.${account.username}.token or GENESIS_TWITCH_ACCESS_TOKEN for default)`,
       );
       throw new Error("Missing Twitch token");
     }
@@ -237,7 +237,7 @@ export class TwitchClientManager {
     account: TwitchAccountConfig,
     channel: string,
     message: string,
-    cfg?: OpenClawConfig,
+    cfg?: GenesisConfig,
     accountId?: string,
   ): Promise<{ ok: boolean; error?: string; messageId?: string }> {
     try {

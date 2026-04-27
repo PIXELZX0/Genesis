@@ -17,7 +17,7 @@
  * @param file - DriveItem properties from getDriveItemProperties()
  * @returns Attachment object for Bot Framework sendActivity()
  */
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { DriveItemProperties } from "./graph-upload.js";
 
 export function buildTeamsFileInfoCard(file: DriveItemProperties): {

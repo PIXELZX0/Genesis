@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   providerSupportsNativePdfDocument,
   resolveAutoMediaKeyProviders,
@@ -13,7 +13,7 @@ import { hasAuthForProvider, resolveDefaultModelRef } from "./model-config.helpe
 import { coercePdfModelConfig } from "./pdf-tool.helpers.js";
 
 function resolveImageCandidateRefs(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir: string;
   filter?: (providerId: string) => boolean;
 }): string[] {
@@ -37,7 +37,7 @@ function resolveImageCandidateRefs(params: {
 }
 
 export function resolvePdfModelConfigForTool(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir: string;
 }): ImageModelConfig | null {
   const explicitPdf = coercePdfModelConfig(params.cfg);

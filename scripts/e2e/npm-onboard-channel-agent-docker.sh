@@ -4,16 +4,16 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-npm-onboard-channel-agent-e2e" OPENCLAW_NPM_ONBOARD_E2E_IMAGE)"
-DOCKER_TARGET="${OPENCLAW_NPM_ONBOARD_DOCKER_TARGET:-e2e-runner}"
-HOST_BUILD="${OPENCLAW_NPM_ONBOARD_HOST_BUILD:-1}"
-PACKAGE_TGZ="${OPENCLAW_NPM_ONBOARD_PACKAGE_TGZ:-}"
-CHANNEL="${OPENCLAW_NPM_ONBOARD_CHANNEL:-telegram}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-npm-onboard-channel-agent-e2e" GENESIS_NPM_ONBOARD_E2E_IMAGE)"
+DOCKER_TARGET="${GENESIS_NPM_ONBOARD_DOCKER_TARGET:-e2e-runner}"
+HOST_BUILD="${GENESIS_NPM_ONBOARD_HOST_BUILD:-1}"
+PACKAGE_TGZ="${GENESIS_NPM_ONBOARD_PACKAGE_TGZ:-}"
+CHANNEL="${GENESIS_NPM_ONBOARD_CHANNEL:-telegram}"
 
 case "$CHANNEL" in
   telegram | discord) ;;
   *)
-    echo "OPENCLAW_NPM_ONBOARD_CHANNEL must be telegram or discord, got: $CHANNEL" >&2
+    echo "GENESIS_NPM_ONBOARD_CHANNEL must be telegram or discord, got: $CHANNEL" >&2
     exit 1
     ;;
 esac
@@ -23,7 +23,7 @@ docker_e2e_build_or_reuse "$IMAGE_NAME" npm-onboard-channel-agent "$ROOT_DIR/scr
 prepare_package_tgz() {
   if [ -n "$PACKAGE_TGZ" ]; then
     if [ ! -f "$PACKAGE_TGZ" ]; then
-      echo "OPENCLAW_NPM_ONBOARD_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
+      echo "GENESIS_NPM_ONBOARD_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
       exit 1
     fi
     PACKAGE_TGZ="$(cd "$(dirname "$PACKAGE_TGZ")" && pwd)/$(basename "$PACKAGE_TGZ")"
@@ -34,17 +34,17 @@ prepare_package_tgz() {
     echo "Building host package artifacts..."
     run_logged npm-onboard-channel-agent-host-build pnpm build
   else
-    echo "Skipping host build (OPENCLAW_NPM_ONBOARD_HOST_BUILD=0)"
+    echo "Skipping host build (GENESIS_NPM_ONBOARD_HOST_BUILD=0)"
   fi
 
   echo "Writing package inventory and packing once..."
   run_logged npm-onboard-channel-agent-inventory node --import tsx --input-type=module -e 'const { writePackageDistInventory } = await import("./src/infra/package-dist-inventory.ts"); await writePackageDistInventory(process.cwd());'
   local pack_dir
-  pack_dir="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-npm-onboard-pack.XXXXXX")"
+  pack_dir="$(mktemp -d "${TMPDIR:-/tmp}/genesis-npm-onboard-pack.XXXXXX")"
   run_logged npm-onboard-channel-agent-pack npm pack --ignore-scripts --pack-destination "$pack_dir"
-  PACKAGE_TGZ="$(find "$pack_dir" -maxdepth 1 -name 'openclaw-*.tgz' -print -quit)"
+  PACKAGE_TGZ="$(find "$pack_dir" -maxdepth 1 -name 'genesis-*.tgz' -print -quit)"
   if [ -z "$PACKAGE_TGZ" ]; then
-    echo "missing packed OpenClaw tarball" >&2
+    echo "missing packed Genesis tarball" >&2
     exit 1
   fi
   PACKAGE_TGZ="$(cd "$(dirname "$PACKAGE_TGZ")" && pwd)/$(basename "$PACKAGE_TGZ")"
@@ -52,38 +52,38 @@ prepare_package_tgz() {
 
 prepare_package_tgz
 
-DOCKER_PACKAGE_TGZ="/tmp/openclaw-current.tgz"
-run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-npm-onboard-channel-agent.XXXXXX")"
+DOCKER_PACKAGE_TGZ="/tmp/genesis-current.tgz"
+run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-npm-onboard-channel-agent.XXXXXX")"
 
 echo "Running npm tarball onboard/channel/agent Docker E2E ($CHANNEL)..."
 if ! docker run --rm \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e OPENCLAW_NPM_ONBOARD_CHANNEL="$CHANNEL" \
-  -e OPENCLAW_CURRENT_PACKAGE_TGZ="$DOCKER_PACKAGE_TGZ" \
+  -e GENESIS_NPM_ONBOARD_CHANNEL="$CHANNEL" \
+  -e GENESIS_CURRENT_PACKAGE_TGZ="$DOCKER_PACKAGE_TGZ" \
   -v "$PACKAGE_TGZ:$DOCKER_PACKAGE_TGZ:ro" \
   -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-npm-onboard.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-npm-onboard.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENAI_API_KEY="sk-openclaw-npm-onboard-e2e"
-export OPENCLAW_GATEWAY_TOKEN="npm-onboard-channel-agent-token"
+export OPENAI_API_KEY="sk-genesis-npm-onboard-e2e"
+export GENESIS_GATEWAY_TOKEN="npm-onboard-channel-agent-token"
 
-CHANNEL="${OPENCLAW_NPM_ONBOARD_CHANNEL:?missing OPENCLAW_NPM_ONBOARD_CHANNEL}"
+CHANNEL="${GENESIS_NPM_ONBOARD_CHANNEL:?missing GENESIS_NPM_ONBOARD_CHANNEL}"
 PORT="18789"
 MOCK_PORT="44080"
-SUCCESS_MARKER="OPENCLAW_AGENT_E2E_OK_ASSISTANT"
-MOCK_REQUEST_LOG="/tmp/openclaw-mock-openai-requests.jsonl"
+SUCCESS_MARKER="GENESIS_AGENT_E2E_OK_ASSISTANT"
+MOCK_REQUEST_LOG="/tmp/genesis-mock-openai-requests.jsonl"
 mock_pid=""
 
 case "$CHANNEL" in
   telegram)
-    CHANNEL_TOKEN="123456:openclaw-npm-onboard-token"
+    CHANNEL_TOKEN="123456:genesis-npm-onboard-token"
     DEP_SENTINEL="grammy"
     ;;
   discord)
-    CHANNEL_TOKEN="openclaw-npm-onboard-discord-token"
+    CHANNEL_TOKEN="genesis-npm-onboard-discord-token"
     DEP_SENTINEL="discord-api-types"
     ;;
   *)
@@ -104,14 +104,14 @@ dump_debug_logs() {
   local status="$1"
   echo "npm onboard/channel/agent scenario failed with exit code $status" >&2
   for file in \
-    /tmp/openclaw-install.log \
-    /tmp/openclaw-onboard.json \
-    /tmp/openclaw-channel-add.log \
-    /tmp/openclaw-doctor.log \
-    /tmp/openclaw-agent.combined \
-    /tmp/openclaw-agent.err \
-    /tmp/openclaw-agent.json \
-    /tmp/openclaw-mock-openai.log \
+    /tmp/genesis-install.log \
+    /tmp/genesis-onboard.json \
+    /tmp/genesis-channel-add.log \
+    /tmp/genesis-doctor.log \
+    /tmp/genesis-agent.combined \
+    /tmp/genesis-agent.err \
+    /tmp/genesis-agent.json \
+    /tmp/genesis-mock-openai.log \
     "$MOCK_REQUEST_LOG"; do
     if [ -f "$file" ]; then
       echo "--- $file ---" >&2
@@ -121,34 +121,34 @@ dump_debug_logs() {
 }
 trap 'status=$?; dump_debug_logs "$status"; exit "$status"' ERR
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-install.log 2>&1
+echo "Installing mounted Genesis package..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-install.log 2>&1
 
-command -v openclaw >/dev/null
-package_root="$(npm root -g)/openclaw"
+command -v genesis >/dev/null
+package_root="$(npm root -g)/genesis"
 test -d "$package_root/dist/extensions/telegram"
 test -d "$package_root/dist/extensions/discord"
 
 assert_dep_absent() {
   local sentinel="$1"
-  if find "$package_root" "$HOME/.openclaw" -path "*/node_modules/$sentinel/package.json" -print -quit 2>/dev/null | grep -q .; then
+  if find "$package_root" "$HOME/.genesis" -path "*/node_modules/$sentinel/package.json" -print -quit 2>/dev/null | grep -q .; then
     echo "$sentinel should not be installed before channel activation repair" >&2
-    find "$package_root" "$HOME/.openclaw" -path "*/node_modules/$sentinel/package.json" -print 2>/dev/null >&2 || true
+    find "$package_root" "$HOME/.genesis" -path "*/node_modules/$sentinel/package.json" -print 2>/dev/null >&2 || true
     exit 1
   fi
 }
 
 assert_dep_present() {
   local sentinel="$1"
-  if ! find "$package_root" "$HOME/.openclaw" -path "*/node_modules/$sentinel/package.json" -print -quit 2>/dev/null | grep -q .; then
+  if ! find "$package_root" "$HOME/.genesis" -path "*/node_modules/$sentinel/package.json" -print -quit 2>/dev/null | grep -q .; then
     echo "$sentinel was not installed on demand" >&2
-    find "$package_root" "$HOME/.openclaw" -maxdepth 6 -type d -name node_modules -print 2>/dev/null >&2 || true
+    find "$package_root" "$HOME/.genesis" -maxdepth 6 -type d -name node_modules -print 2>/dev/null >&2 || true
     exit 1
   fi
 }
 
-MOCK_PORT="$MOCK_PORT" SUCCESS_MARKER="$SUCCESS_MARKER" MOCK_REQUEST_LOG="$MOCK_REQUEST_LOG" node scripts/e2e/mock-openai-server.mjs >/tmp/openclaw-mock-openai.log 2>&1 &
+MOCK_PORT="$MOCK_PORT" SUCCESS_MARKER="$SUCCESS_MARKER" MOCK_REQUEST_LOG="$MOCK_REQUEST_LOG" node scripts/e2e/mock-openai-server.mjs >/tmp/genesis-mock-openai.log 2>&1 &
 mock_pid="$!"
 for _ in $(seq 1 80); do
   if node -e "fetch('http://127.0.0.1:${MOCK_PORT}/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
@@ -159,7 +159,7 @@ done
 node -e "fetch('http://127.0.0.1:${MOCK_PORT}/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 echo "Running non-interactive onboarding..."
-openclaw onboard --non-interactive --accept-risk \
+genesis onboard --non-interactive --accept-risk \
   --mode local \
   --auth-choice openai-api-key \
   --secret-input-mode ref \
@@ -169,20 +169,20 @@ openclaw onboard --non-interactive --accept-risk \
   --skip-ui \
   --skip-skills \
   --skip-health \
-  --json >/tmp/openclaw-onboard.json
+  --json >/tmp/genesis-onboard.json
 
 node - "$HOME" <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 
 const home = process.argv[2];
-const stateDir = path.join(home, ".openclaw");
-const configPath = path.join(stateDir, "openclaw.json");
+const stateDir = path.join(home, ".genesis");
+const configPath = path.join(stateDir, "genesis.json");
 const agentDir = path.join(stateDir, "agents", "main", "agent");
 const authPath = path.join(agentDir, "auth-profiles.json");
 
 if (!fs.existsSync(configPath)) {
-  throw new Error("onboard did not write openclaw.json");
+  throw new Error("onboard did not write genesis.json");
 }
 if (!fs.existsSync(agentDir)) {
   throw new Error("onboard did not create main agent dir");
@@ -194,7 +194,7 @@ const authRaw = fs.readFileSync(authPath, "utf8");
 if (!authRaw.includes("OPENAI_API_KEY")) {
   throw new Error("auth profile did not persist OPENAI_API_KEY env ref");
 }
-if (authRaw.includes("sk-openclaw-npm-onboard-e2e")) {
+if (authRaw.includes("sk-genesis-npm-onboard-e2e")) {
   throw new Error("auth profile persisted the raw OpenAI test key");
 }
 NODE
@@ -204,7 +204,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const mockPort = Number(process.argv[2]);
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".genesis", "genesis.json");
 const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"));
 const modelRef = "openai/gpt-5.4";
 const cost = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
@@ -257,13 +257,13 @@ NODE
 assert_dep_absent "$DEP_SENTINEL"
 
 echo "Configuring $CHANNEL..."
-openclaw channels add --channel "$CHANNEL" --token "$CHANNEL_TOKEN" >/tmp/openclaw-channel-add.log 2>&1
+genesis channels add --channel "$CHANNEL" --token "$CHANNEL_TOKEN" >/tmp/genesis-channel-add.log 2>&1
 node - "$CHANNEL" "$CHANNEL_TOKEN" <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 const channel = process.argv[2];
 const token = process.argv[3];
-const cfg = JSON.parse(fs.readFileSync(path.join(process.env.HOME, ".openclaw", "openclaw.json"), "utf8"));
+const cfg = JSON.parse(fs.readFileSync(path.join(process.env.HOME, ".genesis", "genesis.json"), "utf8"));
 const entry = cfg.channels?.[channel];
 if (!entry || entry.enabled === false) {
   throw new Error(`${channel} was not enabled`);
@@ -275,22 +275,22 @@ if (!serialized.includes(token)) {
 NODE
 
 echo "Running doctor after channel activation..."
-openclaw doctor --repair --non-interactive >/tmp/openclaw-doctor.log 2>&1
+genesis doctor --repair --non-interactive >/tmp/genesis-doctor.log 2>&1
 assert_dep_present "$DEP_SENTINEL"
 
 echo "Running local agent turn against mocked OpenAI..."
-openclaw agent --local \
+genesis agent --local \
   --agent main \
   --session-id npm-onboard-channel-agent \
   --message "Return the success marker from the test server." \
   --thinking off \
-  --json >/tmp/openclaw-agent.combined 2>&1
+  --json >/tmp/genesis-agent.combined 2>&1
 
 node - "$SUCCESS_MARKER" "$MOCK_REQUEST_LOG" <<'NODE'
 const fs = require("node:fs");
 const marker = process.argv[2];
 const logPath = process.argv[3];
-const output = fs.readFileSync("/tmp/openclaw-agent.combined", "utf8");
+const output = fs.readFileSync("/tmp/genesis-agent.combined", "utf8");
 if (!output.includes(marker)) {
   throw new Error(`agent JSON did not contain success marker. Output: ${output}`);
 }

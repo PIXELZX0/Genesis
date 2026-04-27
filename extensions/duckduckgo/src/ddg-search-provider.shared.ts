@@ -1,4 +1,4 @@
-import { createWebSearchProviderContractFields } from "openclaw/plugin-sdk/provider-web-search-contract";
+import { createWebSearchProviderContractFields } from "genesis/plugin-sdk/provider-web-search-contract";
 
 export function createDuckDuckGoWebSearchProviderBase() {
   return {
@@ -9,7 +9,7 @@ export function createDuckDuckGoWebSearchProviderBase() {
     envVars: [],
     placeholder: "(no key needed)",
     signupUrl: "https://duckduckgo.com/",
-    docsUrl: "https://docs.openclaw.ai/tools/web",
+    docsUrl: "https://docs.genesis.ai/tools/web",
     autoDetectOrder: 100,
     credentialPath: "",
     ...createWebSearchProviderContractFields({

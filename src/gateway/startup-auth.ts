@@ -1,9 +1,5 @@
 import crypto from "node:crypto";
-import type {
-  GatewayAuthConfig,
-  GatewayTailscaleConfig,
-  OpenClawConfig,
-} from "../config/config.js";
+import type { GatewayAuthConfig, GatewayTailscaleConfig, GenesisConfig } from "../config/config.js";
 import { replaceConfigFile } from "../config/config.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import {
@@ -69,7 +65,7 @@ export function mergeGatewayTailscaleConfig(
 }
 
 function resolveGatewayAuthFromConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   authOverride?: GatewayAuthConfig;
   tailscaleOverride?: GatewayTailscaleConfig;
@@ -104,11 +100,11 @@ function shouldPersistGeneratedToken(params: {
 }
 
 function hasGatewayTokenCandidate(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   authOverride?: GatewayAuthConfig;
 }): boolean {
-  const envToken = trimToUndefined(params.env.OPENCLAW_GATEWAY_TOKEN);
+  const envToken = trimToUndefined(params.env.GENESIS_GATEWAY_TOKEN);
   if (envToken) {
     return true;
   }
@@ -141,14 +137,14 @@ function hasGatewayPasswordOverrideCandidate(params: {
 }
 
 export async function ensureGatewayStartupAuth(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   authOverride?: GatewayAuthConfig;
   tailscaleOverride?: GatewayTailscaleConfig;
   persist?: boolean;
   baseHash?: string;
 }): Promise<{
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   auth: ReturnType<typeof resolveGatewayAuth>;
   generatedToken?: string;
   persistedGeneratedToken: boolean;
@@ -205,7 +201,7 @@ export async function ensureGatewayStartupAuth(params: {
   }
 
   const generatedToken = crypto.randomBytes(24).toString("hex");
-  const nextCfg: OpenClawConfig = {
+  const nextCfg: GenesisConfig = {
     ...params.cfg,
     gateway: {
       ...params.cfg.gateway,
@@ -248,7 +244,7 @@ export async function ensureGatewayStartupAuth(params: {
 }
 
 export function assertHooksTokenSeparateFromGatewayAuth(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   auth: ResolvedGatewayAuth;
 }): void {
   if (params.cfg.hooks?.enabled !== true) {

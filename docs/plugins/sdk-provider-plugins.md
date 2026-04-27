@@ -1,25 +1,25 @@
 ---
-summary: "Step-by-step guide to building a model provider plugin for OpenClaw"
+summary: "Step-by-step guide to building a model provider plugin for Genesis"
 title: "Building provider plugins"
 sidebarTitle: "Provider plugins"
 read_when:
   - You are building a new model provider plugin
-  - You want to add an OpenAI-compatible proxy or custom LLM to OpenClaw
+  - You want to add an OpenAI-compatible proxy or custom LLM to Genesis
   - You need to understand provider auth, catalogs, and runtime hooks
 ---
 
 This guide walks through building a provider plugin that adds a model provider
-(LLM) to OpenClaw. By the end you will have a provider with a model catalog,
+(LLM) to Genesis. By the end you will have a provider with a model catalog,
 API key auth, and dynamic model resolution.
 
 <Info>
-  If you have not built any OpenClaw plugin before, read
+  If you have not built any Genesis plugin before, read
   [Getting Started](/plugins/building-plugins) first for the basic package
   structure and manifest setup.
 </Info>
 
 <Tip>
-  Provider plugins add models to OpenClaw's normal inference loop. If the model
+  Provider plugins add models to Genesis's normal inference loop. If the model
   must run through a native agent daemon that owns threads, compaction, or tool
   events, pair the provider with an [agent harness](/plugins/sdk-agent-harness)
   instead of putting daemon protocol details in core.
@@ -32,10 +32,10 @@ API key auth, and dynamic model resolution.
     <CodeGroup>
     ```json package.json
     {
-      "name": "@myorg/openclaw-acme-ai",
+      "name": "@myorg/genesis-acme-ai",
       "version": "1.0.0",
       "type": "module",
-      "openclaw": {
+      "genesis": {
         "extensions": ["./index.ts"],
         "providers": ["acme-ai"],
         "compat": {
@@ -43,14 +43,14 @@ API key auth, and dynamic model resolution.
           "minGatewayVersion": "2026.3.24-beta.2"
         },
         "build": {
-          "openclawVersion": "2026.3.24-beta.2",
+          "genesisVersion": "2026.3.24-beta.2",
           "pluginSdkVersion": "2026.3.24-beta.2"
         }
       }
     }
     ```
 
-    ```json openclaw.plugin.json
+    ```json genesis.plugin.json
     {
       "id": "acme-ai",
       "name": "Acme AI",
@@ -86,12 +86,12 @@ API key auth, and dynamic model resolution.
     ```
     </CodeGroup>
 
-    The manifest declares `providerAuthEnvVars` so OpenClaw can detect
+    The manifest declares `providerAuthEnvVars` so Genesis can detect
     credentials without loading your plugin runtime. Add `providerAuthAliases`
     when a provider variant should reuse another provider id's auth. `modelSupport`
-    is optional and lets OpenClaw auto-load your provider plugin from shorthand
+    is optional and lets Genesis auto-load your provider plugin from shorthand
     model ids like `acme-large` before runtime hooks exist. If you publish the
-    provider on ClawHub, those `openclaw.compat` and `openclaw.build` fields
+    provider on ClawHub, those `genesis.compat` and `genesis.build` fields
     are required in `package.json`.
 
   </Step>
@@ -100,8 +100,8 @@ API key auth, and dynamic model resolution.
     A minimal provider needs an `id`, `label`, `auth`, and `catalog`:
 
     ```typescript index.ts
-    import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-    import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth";
+    import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+    import { createProviderApiKeyAuthMethod } from "genesis/plugin-sdk/provider-auth";
 
     export default definePluginEntry({
       id: "acme-ai",
@@ -169,10 +169,10 @@ API key auth, and dynamic model resolution.
     ```
 
     That is a working provider. Users can now
-    `openclaw onboard --acme-ai-api-key <key>` and select
+    `genesis onboard --acme-ai-api-key <key>` and select
     `acme-ai/acme-large` as their model.
 
-    If the upstream provider uses different control tokens than OpenClaw, add a
+    If the upstream provider uses different control tokens than Genesis, add a
     small bidirectional text transform instead of replacing the stream path:
 
     ```typescript
@@ -192,14 +192,14 @@ API key auth, and dynamic model resolution.
 
     `input` rewrites the final system prompt and text message content before
     transport. `output` rewrites assistant text deltas and final text before
-    OpenClaw parses its own control markers or channel delivery.
+    Genesis parses its own control markers or channel delivery.
 
     For bundled providers that only register one text provider with API-key
     auth plus a single catalog-backed runtime, prefer the narrower
     `defineSingleProviderPluginEntry(...)` helper:
 
     ```typescript
-    import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
+    import { defineSingleProviderPluginEntry } from "genesis/plugin-sdk/provider-entry";
 
     export default defineSingleProviderPluginEntry({
       id: "acme-ai",
@@ -236,24 +236,24 @@ API key auth, and dynamic model resolution.
     });
     ```
 
-    `buildProvider` is the live catalog path used when OpenClaw can resolve real
+    `buildProvider` is the live catalog path used when Genesis can resolve real
     provider auth. It may perform provider-specific discovery. Use
     `buildStaticProvider` only for offline rows that are safe to show before auth
     is configured; it must not require credentials or make network requests.
-    OpenClaw's `models list --all` display currently executes static catalogs
+    Genesis's `models list --all` display currently executes static catalogs
     only for bundled provider plugins, with an empty config, empty env, and no
     agent/workspace paths.
 
     If your auth flow also needs to patch `models.providers.*`, aliases, and
     the agent default model during onboarding, use the preset helpers from
-    `openclaw/plugin-sdk/provider-onboard`. The narrowest helpers are
+    `genesis/plugin-sdk/provider-onboard`. The narrowest helpers are
     `createDefaultModelPresetAppliers(...)`,
     `createDefaultModelsPresetAppliers(...)`, and
     `createModelCatalogPresetAppliers(...)`.
 
     When a provider's native endpoint supports streamed usage blocks on the
     normal `openai-completions` transport, prefer the shared catalog helpers in
-    `openclaw/plugin-sdk/provider-catalog-shared` instead of hardcoding
+    `genesis/plugin-sdk/provider-catalog-shared` instead of hardcoding
     provider-id checks. `supportsNativeStreamingUsageCompat(...)` and
     `applyProviderNativeStreamingUsageCompat(...)` detect support from the
     endpoint capability map, so native Moonshot/DashScope-style endpoints still
@@ -297,9 +297,9 @@ API key auth, and dynamic model resolution.
     families, so plugins usually do not need to hand-wire each hook one by one:
 
     ```typescript
-    import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-model-shared";
-    import { buildProviderStreamFamilyHooks } from "openclaw/plugin-sdk/provider-stream";
-    import { buildProviderToolCompatFamilyHooks } from "openclaw/plugin-sdk/provider-tools";
+    import { buildProviderReplayFamilyHooks } from "genesis/plugin-sdk/provider-model-shared";
+    import { buildProviderStreamFamilyHooks } from "genesis/plugin-sdk/provider-stream";
+    import { buildProviderToolCompatFamilyHooks } from "genesis/plugin-sdk/provider-tools";
 
     const GOOGLE_FAMILY_HOOKS = {
       ...buildProviderReplayFamilyHooks({ family: "google-gemini" }),
@@ -339,13 +339,13 @@ API key auth, and dynamic model resolution.
     <Accordion title="SDK seams powering the family builders">
       Each family builder is composed from lower-level public helpers exported from the same package, which you can reach for when a provider needs to go off the common pattern:
 
-      - `openclaw/plugin-sdk/provider-model-shared` — `ProviderReplayFamily`, `buildProviderReplayFamilyHooks(...)`, and the raw replay builders (`buildOpenAICompatibleReplayPolicy`, `buildAnthropicReplayPolicyForModel`, `buildGoogleGeminiReplayPolicy`, `buildHybridAnthropicOrOpenAIReplayPolicy`). Also exports Gemini replay helpers (`sanitizeGoogleGeminiReplayHistory`, `resolveTaggedReasoningOutputMode`) and endpoint/model helpers (`resolveProviderEndpoint`, `normalizeProviderId`, `normalizeGooglePreviewModelId`, `normalizeNativeXaiModelId`).
-      - `openclaw/plugin-sdk/provider-stream` — `ProviderStreamFamily`, `buildProviderStreamFamilyHooks(...)`, `composeProviderStreamWrappers(...)`, plus the shared OpenAI/Codex wrappers (`createOpenAIAttributionHeadersWrapper`, `createOpenAIFastModeWrapper`, `createOpenAIServiceTierWrapper`, `createOpenAIResponsesContextManagementWrapper`, `createCodexNativeWebSearchWrapper`) and shared proxy/provider wrappers (`createOpenRouterWrapper`, `createToolStreamWrapper`, `createMinimaxFastModeWrapper`).
-      - `openclaw/plugin-sdk/provider-tools` — `ProviderToolCompatFamily`, `buildProviderToolCompatFamilyHooks("gemini")`, underlying Gemini schema helpers (`normalizeGeminiToolSchemas`, `inspectGeminiToolSchemas`), and xAI compat helpers (`resolveXaiModelCompatPatch()`, `applyXaiModelCompat(model)`). The bundled xAI plugin uses `normalizeResolvedModel` + `contributeResolvedModelCompat` with these to keep xAI rules owned by the provider.
+      - `genesis/plugin-sdk/provider-model-shared` — `ProviderReplayFamily`, `buildProviderReplayFamilyHooks(...)`, and the raw replay builders (`buildOpenAICompatibleReplayPolicy`, `buildAnthropicReplayPolicyForModel`, `buildGoogleGeminiReplayPolicy`, `buildHybridAnthropicOrOpenAIReplayPolicy`). Also exports Gemini replay helpers (`sanitizeGoogleGeminiReplayHistory`, `resolveTaggedReasoningOutputMode`) and endpoint/model helpers (`resolveProviderEndpoint`, `normalizeProviderId`, `normalizeGooglePreviewModelId`, `normalizeNativeXaiModelId`).
+      - `genesis/plugin-sdk/provider-stream` — `ProviderStreamFamily`, `buildProviderStreamFamilyHooks(...)`, `composeProviderStreamWrappers(...)`, plus the shared OpenAI/Codex wrappers (`createOpenAIAttributionHeadersWrapper`, `createOpenAIFastModeWrapper`, `createOpenAIServiceTierWrapper`, `createOpenAIResponsesContextManagementWrapper`, `createCodexNativeWebSearchWrapper`) and shared proxy/provider wrappers (`createOpenRouterWrapper`, `createToolStreamWrapper`, `createMinimaxFastModeWrapper`).
+      - `genesis/plugin-sdk/provider-tools` — `ProviderToolCompatFamily`, `buildProviderToolCompatFamilyHooks("gemini")`, underlying Gemini schema helpers (`normalizeGeminiToolSchemas`, `inspectGeminiToolSchemas`), and xAI compat helpers (`resolveXaiModelCompatPatch()`, `applyXaiModelCompat(model)`). The bundled xAI plugin uses `normalizeResolvedModel` + `contributeResolvedModelCompat` with these to keep xAI rules owned by the provider.
 
-      Some stream helpers stay provider-local on purpose. `@openclaw/anthropic-provider` keeps `wrapAnthropicProviderStream`, `resolveAnthropicBetas`, `resolveAnthropicFastMode`, `resolveAnthropicServiceTier`, and the lower-level Anthropic wrapper builders in its own public `api.ts` / `contract-api.ts` seam because they encode Claude OAuth beta handling and `context1m` gating. The xAI plugin similarly keeps native xAI Responses shaping in its own `wrapStreamFn` (`/fast` aliases, default `tool_stream`, unsupported strict-tool cleanup, xAI-specific reasoning-payload removal).
+      Some stream helpers stay provider-local on purpose. `@genesis/anthropic-provider` keeps `wrapAnthropicProviderStream`, `resolveAnthropicBetas`, `resolveAnthropicFastMode`, `resolveAnthropicServiceTier`, and the lower-level Anthropic wrapper builders in its own public `api.ts` / `contract-api.ts` seam because they encode Claude OAuth beta handling and `context1m` gating. The xAI plugin similarly keeps native xAI Responses shaping in its own `wrapStreamFn` (`/fast` aliases, default `tool_stream`, unsupported strict-tool cleanup, xAI-specific reasoning-payload removal).
 
-      The same package-root pattern also backs `@openclaw/openai-provider` (provider builders, default-model helpers, realtime provider builders) and `@openclaw/openrouter-provider` (provider builder plus onboarding/config helpers).
+      The same package-root pattern also backs `@genesis/openai-provider` (provider builders, default-model helpers, realtime provider builders) and `@genesis/openrouter-provider` (provider builder plus onboarding/config helpers).
     </Accordion>
 
     <Tabs>
@@ -419,7 +419,7 @@ API key auth, and dynamic model resolution.
     </Tabs>
 
     <Accordion title="All available provider hooks">
-      OpenClaw calls hooks in this order. Most providers only use 2-3:
+      Genesis calls hooks in this order. Most providers only use 2-3:
 
       | # | Hook | When to use |
       | --- | --- | --- |
@@ -482,7 +482,7 @@ API key auth, and dynamic model resolution.
   <Step title="Add extra capabilities (optional)">
     A provider plugin can register speech, realtime transcription, realtime
     voice, media understanding, image generation, video generation, web fetch,
-    and web search alongside text inference. OpenClaw classifies this as a
+    and web search alongside text inference. Genesis classifies this as a
     **hybrid-capability** plugin — the recommended pattern for company plugins
     (one plugin per vendor). See
     [Internals: Capability Ownership](/plugins/architecture#capability-ownership-model).
@@ -496,7 +496,7 @@ API key auth, and dynamic model resolution.
         import {
           assertOkOrThrowProviderError,
           postJsonRequest,
-        } from "openclaw/plugin-sdk/provider-http";
+        } from "genesis/plugin-sdk/provider-http";
 
         api.registerSpeechProvider({
           id: "acme-ai",
@@ -574,7 +574,7 @@ API key auth, and dynamic model resolution.
 
         Batch STT providers that POST multipart audio should use
         `buildAudioTranscriptionFormData(...)` from
-        `openclaw/plugin-sdk/provider-http`. The helper normalizes upload
+        `genesis/plugin-sdk/provider-http`. The helper normalizes upload
         filenames, including AAC uploads that need an M4A-style filename for
         compatible transcription APIs.
       </Tab>
@@ -716,8 +716,8 @@ Do not use the legacy skill-only publish alias here; plugin packages should use
 
 ```
 <bundled-plugin-root>/acme-ai/
-├── package.json              # openclaw.providers metadata
-├── openclaw.plugin.json      # Manifest with provider auth metadata
+├── package.json              # genesis.providers metadata
+├── genesis.plugin.json      # Manifest with provider auth metadata
 ├── index.ts                  # definePluginEntry + registerProvider
 └── src/
     ├── provider.test.ts      # Tests

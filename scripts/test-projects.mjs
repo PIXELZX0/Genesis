@@ -90,8 +90,8 @@ const FULL_SUITE_CONFIG_WEIGHT = new Map([
   ["test/vitest/vitest.extension-memory.config.ts", 6],
   ["test/vitest/vitest.extension-msteams.config.ts", 4],
 ]);
-const TIMINGS_FILE_ENV_KEY = "OPENCLAW_TEST_PROJECTS_TIMINGS_PATH";
-const TIMINGS_DISABLE_ENV_KEY = "OPENCLAW_TEST_PROJECTS_TIMINGS";
+const TIMINGS_FILE_ENV_KEY = "GENESIS_TEST_PROJECTS_TIMINGS_PATH";
+const TIMINGS_DISABLE_ENV_KEY = "GENESIS_TEST_PROJECTS_TIMINGS";
 const releaseLockOnce = () => {
   if (lockReleased) {
     return;
@@ -220,7 +220,7 @@ function runVitestSpec(spec) {
 }
 
 function applyDefaultParallelVitestWorkerBudget(specs, env) {
-  if (env.OPENCLAW_VITEST_MAX_WORKERS || env.OPENCLAW_TEST_WORKERS || isCiLikeEnv(env)) {
+  if (env.GENESIS_VITEST_MAX_WORKERS || env.GENESIS_TEST_WORKERS || isCiLikeEnv(env)) {
     return specs;
   }
   const { vitestMaxWorkers } = resolveLocalFullSuiteProfile(env);
@@ -228,7 +228,7 @@ function applyDefaultParallelVitestWorkerBudget(specs, env) {
     ...spec,
     env: {
       ...spec.env,
-      OPENCLAW_VITEST_MAX_WORKERS: String(vitestMaxWorkers),
+      GENESIS_VITEST_MAX_WORKERS: String(vitestMaxWorkers),
     },
   }));
 }
@@ -391,7 +391,7 @@ async function main() {
     changedTargetArgs === null &&
     !runSpecs.some((spec) => spec.watchMode);
   const isExplicitParallelMultiConfigRun =
-    Boolean(process.env.OPENCLAW_TEST_PROJECTS_PARALLEL) &&
+    Boolean(process.env.GENESIS_TEST_PROJECTS_PARALLEL) &&
     runSpecs.length > 1 &&
     !runSpecs.some((spec) => spec.watchMode);
   const isParallelShardRun =
@@ -410,9 +410,9 @@ async function main() {
       );
       if (
         !isCiLikeEnv(process.env) &&
-        !process.env.OPENCLAW_TEST_PROJECTS_PARALLEL &&
-        !process.env.OPENCLAW_VITEST_MAX_WORKERS &&
-        !process.env.OPENCLAW_TEST_WORKERS &&
+        !process.env.GENESIS_TEST_PROJECTS_PARALLEL &&
+        !process.env.GENESIS_VITEST_MAX_WORKERS &&
+        !process.env.GENESIS_TEST_WORKERS &&
         localFullSuiteProfile.shardParallelism === 10 &&
         localFullSuiteProfile.vitestMaxWorkers === 2
       ) {

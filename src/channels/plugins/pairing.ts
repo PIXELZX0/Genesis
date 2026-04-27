@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import type { ChannelId } from "./channel-id.types.js";
@@ -46,7 +46,7 @@ export function resolvePairingChannel(raw: unknown): ChannelId {
 export async function notifyPairingApproved(params: {
   channelId: ChannelId;
   id: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime?: RuntimeEnv;
   /** Extension channels can pass their adapter directly to bypass registry lookup. */
   pairingAdapter?: ChannelPairingAdapter;

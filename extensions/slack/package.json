@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/slack",
+  "name": "@genesis/slack",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Slack channel plugin",
+  "description": "Genesis Slack channel plugin",
   "type": "module",
   "dependencies": {
     "@slack/bolt": "^4.7.0",
@@ -11,9 +11,9 @@
     "typebox": "1.1.31"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

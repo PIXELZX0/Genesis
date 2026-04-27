@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { getLogger, resetLogger, setLoggerOverride } from "../logging.js";
 import { createSuiteLogPathTracker } from "./log-test-helpers.js";
 
-const logPathTracker = createSuiteLogPathTracker("openclaw-log-ts-");
+const logPathTracker = createSuiteLogPathTracker("genesis-log-ts-");
 
 describe("logger timestamp format", () => {
   let logPath = "";

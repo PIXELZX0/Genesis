@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleSlackAction, slackActionRuntime } from "./action-runtime.js";
 import { parseSlackBlocksInput } from "./blocks-input.js";
@@ -21,7 +21,7 @@ const sendSlackMessage = vi.fn(async (..._args: unknown[]) => ({ channelId: "C12
 const unpinSlackMessage = vi.fn(async (..._args: unknown[]) => ({}));
 
 describe("handleSlackAction", () => {
-  function slackConfig(overrides?: Record<string, unknown>): OpenClawConfig {
+  function slackConfig(overrides?: Record<string, unknown>): GenesisConfig {
     return {
       channels: {
         slack: {
@@ -29,7 +29,7 @@ describe("handleSlackAction", () => {
           ...overrides,
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
   }
 
   function createReplyToFirstContext(hasRepliedRef: { value: boolean }) {
@@ -42,7 +42,7 @@ describe("handleSlackAction", () => {
   }
 
   function createReplyToFirstScenario() {
-    const cfg = { channels: { slack: { botToken: "tok" } } } as OpenClawConfig;
+    const cfg = { channels: { slack: { botToken: "tok" } } } as GenesisConfig;
     sendSlackMessage.mockClear();
     const hasRepliedRef = { value: false };
     const context = createReplyToFirstContext(hasRepliedRef);
@@ -63,7 +63,7 @@ describe("handleSlackAction", () => {
   }
 
   async function sendSecondMessageAndExpectNoThread(params: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     context: ReturnType<typeof createReplyToFirstContext>;
   }) {
     await handleSlackAction(
@@ -74,7 +74,7 @@ describe("handleSlackAction", () => {
     expectLastSlackSend("Second");
   }
 
-  async function resolveReadToken(cfg: OpenClawConfig): Promise<string | undefined> {
+  async function resolveReadToken(cfg: GenesisConfig): Promise<string | undefined> {
     readSlackMessages.mockClear();
     readSlackMessages.mockResolvedValueOnce({ messages: [], hasMore: false });
     await handleSlackAction({ action: "readMessages", channelId: "C1" }, cfg);
@@ -82,7 +82,7 @@ describe("handleSlackAction", () => {
     return opts?.token;
   }
 
-  async function resolveSendToken(cfg: OpenClawConfig): Promise<string | undefined> {
+  async function resolveSendToken(cfg: GenesisConfig): Promise<string | undefined> {
     sendSlackMessage.mockClear();
     await handleSlackAction({ action: "sendMessage", to: "channel:C1", content: "Hello" }, cfg);
     const opts = sendSlackMessage.mock.calls[0]?.[2] as { token?: string } | undefined;
@@ -268,7 +268,7 @@ describe("handleSlackAction", () => {
 
   it("returns non-image downloadFile results as file metadata instead of image content", async () => {
     downloadSlackFile.mockResolvedValueOnce({
-      path: "/tmp/openclaw-media/report.pdf",
+      path: "/tmp/genesis-media/report.pdf",
       contentType: "application/pdf",
       placeholder: "[Slack file: report.pdf (fileId: F123)]",
     });
@@ -285,7 +285,7 @@ describe("handleSlackAction", () => {
     expect(result.content[0]).toEqual(
       expect.objectContaining({
         type: "text",
-        text: expect.stringContaining("/tmp/openclaw-media/report.pdf"),
+        text: expect.stringContaining("/tmp/genesis-media/report.pdf"),
       }),
     );
     expect(result.content.some((entry) => entry.type === "image")).toBe(false);
@@ -293,10 +293,10 @@ describe("handleSlackAction", () => {
       expect.objectContaining({
         ok: true,
         fileId: "F123",
-        path: "/tmp/openclaw-media/report.pdf",
+        path: "/tmp/genesis-media/report.pdf",
         contentType: "application/pdf",
         media: {
-          mediaUrl: "/tmp/openclaw-media/report.pdf",
+          mediaUrl: "/tmp/genesis-media/report.pdf",
           contentType: "application/pdf",
         },
       }),
@@ -741,7 +741,7 @@ describe("handleSlackAction", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
     expect(token).toBe("xoxp-user");
   });
 

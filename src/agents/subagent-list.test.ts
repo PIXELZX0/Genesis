@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { updateSessionStore } from "../config/sessions/store.js";
 import { buildSubagentList } from "./subagent-list.js";
 import {
@@ -15,7 +15,7 @@ import { STALE_UNENDED_SUBAGENT_RUN_MS } from "./subagent-run-liveness.js";
 let testWorkspaceDir = os.tmpdir();
 
 beforeAll(async () => {
-  testWorkspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-subagent-list-"));
+  testWorkspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-subagent-list-"));
 });
 
 afterAll(async () => {
@@ -36,7 +36,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const list = buildSubagentList({
       cfg,
       runs: [],
@@ -64,7 +64,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const list = buildSubagentList({
       cfg,
       runs: [run],
@@ -106,7 +106,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const list = buildSubagentList({
       cfg,
       runs: [orchestratorRun],
@@ -149,7 +149,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const list = buildSubagentList({
       cfg,
@@ -188,7 +188,7 @@ describe("buildSubagentList", () => {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
       session: { store: storePath },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const list = buildSubagentList({
       cfg,
       runs: [run],
@@ -217,7 +217,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const list = buildSubagentList({
       cfg,
@@ -260,7 +260,7 @@ describe("buildSubagentList", () => {
     const cfg = {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const list = buildSubagentList({
       cfg,

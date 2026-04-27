@@ -14,13 +14,13 @@
 import {
   createChannelApprovalCapability,
   splitChannelApprovalCapability,
-} from "openclaw/plugin-sdk/approval-delivery-runtime";
-import { createLazyChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-adapter-runtime";
-import type { ChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-runtime";
-import { resolveApprovalRequestSessionConversation } from "openclaw/plugin-sdk/approval-native-runtime";
-import type { ChannelApprovalCapability } from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/approval-delivery-runtime";
+import { createLazyChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-adapter-runtime";
+import type { ChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-runtime";
+import { resolveApprovalRequestSessionConversation } from "genesis/plugin-sdk/approval-native-runtime";
+import type { ChannelApprovalCapability } from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveApprovalTarget } from "../../engine/approval/index.js";
 import {
   isQQBotExecApprovalClientEnabled,
@@ -43,7 +43,7 @@ import { getBridgeLogger } from "../logger.js";
  * delivery fails with 500 on the QQ Bot API).
  */
 function shouldHandleRequest(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   request: {
     request: {
@@ -67,15 +67,12 @@ function shouldHandleRequest(params: {
   });
 }
 
-function hasExecApprovalConfig(params: {
-  cfg: OpenClawConfig;
-  accountId?: string | null;
-}): boolean {
+function hasExecApprovalConfig(params: { cfg: GenesisConfig; accountId?: string | null }): boolean {
   return resolveQQBotExecApprovalConfig(params) !== undefined;
 }
 
 function isNativeDeliveryEnabled(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): boolean {
   if (hasExecApprovalConfig(params)) {
@@ -123,7 +120,7 @@ function createQQBotApprovalCapability(): ChannelApprovalCapability {
       cfg,
       accountId,
     }: {
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       accountId?: string | null;
       action: "approve";
     }) => {
@@ -135,7 +132,7 @@ function createQQBotApprovalCapability(): ChannelApprovalCapability {
       cfg,
       accountId,
     }: {
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       accountId?: string | null;
       action: "approve";
     }) => {

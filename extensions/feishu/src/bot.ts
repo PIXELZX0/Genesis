@@ -1,23 +1,23 @@
-import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
+import { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";
 import {
   ensureConfiguredBindingRouteReady,
   resolveConfiguredBindingRoute,
   resolveRuntimeConversationBindingRoute,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { resolveAgentOutboundIdentity } from "openclaw/plugin-sdk/outbound-runtime";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { resolveAgentOutboundIdentity } from "genesis/plugin-sdk/outbound-runtime";
 import {
   buildPendingHistoryContextFromMap,
   clearHistoryEntriesIfEnabled,
   DEFAULT_GROUP_HISTORY_LIMIT,
   recordPendingHistoryEntryIfEnabled,
   type HistoryEntry,
-} from "openclaw/plugin-sdk/reply-history";
+} from "genesis/plugin-sdk/reply-history";
 import {
   resolveDefaultGroupPolicy,
   resolveOpenProviderRuntimeGroupPolicy,
   warnMissingProviderGroupPolicyFallbackOnce,
-} from "openclaw/plugin-sdk/runtime-group-policy";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/runtime-group-policy";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import {
   checkBotMentioned,

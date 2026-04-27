@@ -1,5 +1,5 @@
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   withBundledPluginAllowlistCompat,
   withBundledPluginEnablementCompat,
@@ -25,10 +25,10 @@ export type PluginActivationBundledCompatMode = {
 };
 
 export type PluginActivationInputs = {
-  rawConfig?: OpenClawConfig;
-  config?: OpenClawConfig;
+  rawConfig?: GenesisConfig;
+  config?: GenesisConfig;
   normalized: NormalizedPluginsConfig;
-  activationSourceConfig?: OpenClawConfig;
+  activationSourceConfig?: GenesisConfig;
   activationSource: PluginActivationConfigSource;
   autoEnabledReasons: Record<string, string[]>;
 };
@@ -53,8 +53,8 @@ export type BundledPluginCompatibleLoadValues = Pick<
 >;
 
 type BundledPluginCompatibleActivationParams = {
-  rawConfig?: OpenClawConfig;
-  resolvedConfig?: OpenClawConfig;
+  rawConfig?: GenesisConfig;
+  resolvedConfig?: GenesisConfig;
   autoEnabledReasons?: Record<string, string[]>;
   env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
@@ -62,7 +62,7 @@ type BundledPluginCompatibleActivationParams = {
   applyAutoEnable?: boolean;
   compatMode: PluginActivationBundledCompatMode;
   resolveCompatPluginIds: (params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     onlyPluginIds?: readonly string[];
@@ -70,11 +70,11 @@ type BundledPluginCompatibleActivationParams = {
 };
 
 export function withActivatedPluginIds(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   pluginIds: readonly string[];
   overrideGlobalDisable?: boolean;
   overrideExplicitDisable?: boolean;
-}): OpenClawConfig | undefined {
+}): GenesisConfig | undefined {
   if (params.pluginIds.length === 0) {
     return params.config;
   }
@@ -108,10 +108,10 @@ export function withActivatedPluginIds(params: {
 }
 
 export function applyPluginCompatibilityOverrides(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   compat?: PluginActivationCompatConfig;
   env: NodeJS.ProcessEnv;
-}): OpenClawConfig | undefined {
+}): GenesisConfig | undefined {
   const allowlistCompat = params.compat?.allowlistPluginIds?.length
     ? withBundledPluginAllowlistCompat({
         config: params.config,
@@ -163,8 +163,8 @@ function createBundledPluginCompatConfig(params: {
 }
 
 export function resolvePluginActivationSnapshot(params: {
-  rawConfig?: OpenClawConfig;
-  resolvedConfig?: OpenClawConfig;
+  rawConfig?: GenesisConfig;
+  resolvedConfig?: GenesisConfig;
   autoEnabledReasons?: Record<string, string[]>;
   env?: NodeJS.ProcessEnv;
   applyAutoEnable?: boolean;
@@ -196,8 +196,8 @@ export function resolvePluginActivationSnapshot(params: {
 }
 
 export function resolvePluginActivationInputs(params: {
-  rawConfig?: OpenClawConfig;
-  resolvedConfig?: OpenClawConfig;
+  rawConfig?: GenesisConfig;
+  resolvedConfig?: GenesisConfig;
   autoEnabledReasons?: Record<string, string[]>;
   env?: NodeJS.ProcessEnv;
   compat?: PluginActivationCompatConfig;

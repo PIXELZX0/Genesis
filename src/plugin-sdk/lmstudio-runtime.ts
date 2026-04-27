@@ -1,9 +1,5 @@
 // Manual facade. Keep loader boundary explicit.
-import type {
-  ModelDefinitionConfig,
-  ModelProviderConfig,
-  OpenClawConfig,
-} from "../config/types.js";
+import type { ModelDefinitionConfig, ModelProviderConfig, GenesisConfig } from "../config/types.js";
 import {
   createLazyFacadeValue as createLazyFacadeRuntimeValue,
   loadBundledPluginPublicSurfaceModuleSync,
@@ -81,7 +77,7 @@ type FacadeModule = {
   }) => Promise<FetchLmstudioModelsResult>;
   mapLmstudioWireEntry: (entry: LmstudioModelWire) => LmstudioModelBase | null;
   discoverLmstudioModels: (params?: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     baseUrl?: string;
     apiKey?: string;
     headers?: Record<string, string>;
@@ -93,18 +89,18 @@ type FacadeModule = {
     headers?: Record<string, string>;
   }) => Record<string, string> | undefined;
   resolveLmstudioConfiguredApiKey: (params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     env?: NodeJS.ProcessEnv;
     path?: string;
   }) => Promise<string | undefined>;
   resolveLmstudioProviderHeaders: (params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     env?: NodeJS.ProcessEnv;
     headers?: unknown;
     path?: string;
   }) => Promise<Record<string, string> | undefined>;
   resolveLmstudioRequestContext: (params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     env?: NodeJS.ProcessEnv;
     headers?: unknown;
     providerHeaders?: unknown;
@@ -114,7 +110,7 @@ type FacadeModule = {
     headers?: Record<string, string>;
   }>;
   resolveLmstudioRuntimeApiKey: (params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     agentDir?: string;
     env?: NodeJS.ProcessEnv;
     headers?: unknown;

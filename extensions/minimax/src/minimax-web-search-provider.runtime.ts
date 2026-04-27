@@ -1,7 +1,7 @@
 import {
   createProviderHttpError,
   formatProviderHttpErrorMessage,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import {
   DEFAULT_SEARCH_COUNT,
   buildSearchCacheKey,
@@ -21,8 +21,8 @@ import {
   wrapWebContent,
   writeCachedSearchPayload,
   type SearchConfigRecord,
-} from "openclaw/plugin-sdk/provider-web-search";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-web-search";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 
 const MINIMAX_SEARCH_ENDPOINT_GLOBAL = "https://api.minimax.io/v1/coding_plan/search";
 const MINIMAX_SEARCH_ENDPOINT_CN = "https://api.minimaxi.com/v1/coding_plan/search";
@@ -182,8 +182,8 @@ async function runMiniMaxSearch(params: {
 function missingMiniMaxKeyPayload() {
   return {
     error: "missing_minimax_api_key",
-    message: `web_search (minimax) needs a MiniMax Coding Plan key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set MINIMAX_CODE_PLAN_KEY, MINIMAX_CODING_API_KEY, or MINIMAX_API_KEY in the Gateway environment.`,
-    docs: "https://docs.openclaw.ai/tools/web",
+    message: `web_search (minimax) needs a MiniMax Coding Plan key. Run \`${formatCliCommand("genesis configure --section web")}\` to store it, or set MINIMAX_CODE_PLAN_KEY, MINIMAX_CODING_API_KEY, or MINIMAX_API_KEY in the Gateway environment.`,
+    docs: "https://docs.genesis.ai/tools/web",
   };
 }
 

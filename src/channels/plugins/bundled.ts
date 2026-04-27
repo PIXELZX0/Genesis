@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import type {
@@ -355,7 +355,7 @@ function listBundledChannelPluginIdsForRoot(
 
 function shouldIncludeBundledChannelSetupFeatureForConfig(params: {
   metadata: BundledChannelPluginMetadata;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): boolean {
   if (!params.config) {
     return true;
@@ -397,7 +397,7 @@ function shouldIncludeBundledChannelSetupFeatureForConfig(params: {
 function listBundledChannelPluginIdsForSetupFeature(
   rootScope: BundledChannelRootScope,
   feature: keyof NonNullable<BundledChannelSetupEntryRuntimeContract["features"]>,
-  options: { config?: OpenClawConfig } = {},
+  options: { config?: GenesisConfig } = {},
 ): readonly ChannelId[] {
   const hinted = listBundledChannelMetadata(rootScope)
     .filter(
@@ -691,7 +691,7 @@ export function listBundledChannelSetupPlugins(): readonly ChannelPlugin[] {
 
 export function listBundledChannelSetupPluginsByFeature(
   feature: keyof NonNullable<BundledChannelSetupEntryRuntimeContract["features"]>,
-  options: { config?: OpenClawConfig } = {},
+  options: { config?: GenesisConfig } = {},
 ): readonly ChannelPlugin[] {
   const { rootScope, cacheContext } = resolveActiveBundledChannelCacheScope();
   return listBundledChannelPluginIdsForSetupFeature(rootScope, feature, {
@@ -708,7 +708,7 @@ export function listBundledChannelSetupPluginsByFeature(
 
 export function listBundledChannelLegacySessionSurfaces(
   options: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
   } = {},
 ): readonly BundledChannelLegacySessionSurface[] {
   const { rootScope, cacheContext } = resolveActiveBundledChannelCacheScope();
@@ -730,7 +730,7 @@ export function listBundledChannelLegacySessionSurfaces(
 
 export function listBundledChannelLegacyStateMigrationDetectors(
   options: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
   } = {},
 ): readonly BundledChannelLegacyStateMigrationDetector[] {
   const { rootScope, cacheContext } = resolveActiveBundledChannelCacheScope();

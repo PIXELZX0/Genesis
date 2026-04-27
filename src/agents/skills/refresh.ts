@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import chokidar, { type FSWatcher } from "chokidar";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { CONFIG_DIR, resolveUserPath } from "../../utils.js";
@@ -53,7 +53,7 @@ export const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[] = [
   /(^|[\\/])\.cache([\\/]|$)/,
 ];
 
-function resolveWatchPaths(workspaceDir: string, config?: OpenClawConfig): string[] {
+function resolveWatchPaths(workspaceDir: string, config?: GenesisConfig): string[] {
   const paths: string[] = [];
   if (workspaceDir.trim()) {
     paths.push(path.join(workspaceDir, "skills"));
@@ -78,7 +78,7 @@ function toWatchGlobRoot(raw: string): string {
   return raw.replaceAll("\\", "/").replace(/\/+$/, "");
 }
 
-function resolveWatchTargets(workspaceDir: string, config?: OpenClawConfig): string[] {
+function resolveWatchTargets(workspaceDir: string, config?: GenesisConfig): string[] {
   // Skills are defined by SKILL.md; watch only those files to avoid traversing
   // or watching unrelated large trees (e.g. datasets) that can exhaust FDs.
   const targets = new Set<string>();
@@ -92,7 +92,7 @@ function resolveWatchTargets(workspaceDir: string, config?: OpenClawConfig): str
   return Array.from(targets).toSorted();
 }
 
-export function ensureSkillsWatcher(params: { workspaceDir: string; config?: OpenClawConfig }) {
+export function ensureSkillsWatcher(params: { workspaceDir: string; config?: GenesisConfig }) {
   const workspaceDir = params.workspaceDir.trim();
   if (!workspaceDir) {
     return;

@@ -1,4 +1,4 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 import {
   applyAuthProfileConfig,
   buildApiKeyCredential,
@@ -9,8 +9,8 @@ import {
   normalizeOptionalSecretInput,
   upsertAuthProfile,
   validateApiKeyInput,
-} from "openclaw/plugin-sdk/provider-auth";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-auth";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { buildCloudflareAiGatewayCatalogProvider } from "./catalog-provider.js";
 import { CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF } from "./models.js";
 import { applyCloudflareAiGatewayConfig, buildCloudflareAiGatewayConfigPatch } from "./onboard.js";

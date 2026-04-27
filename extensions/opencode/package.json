@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/opencode-provider",
+  "name": "@genesis/opencode-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw OpenCode Zen provider plugin",
+  "description": "Genesis OpenCode Zen provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

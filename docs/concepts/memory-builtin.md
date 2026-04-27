@@ -39,7 +39,7 @@ To set a provider explicitly:
 Without an embedding provider, only keyword search is available.
 
 To force the built-in local embedding provider, install the optional
-`node-llama-cpp` runtime package next to OpenClaw, then point `local.modelPath`
+`node-llama-cpp` runtime package next to Genesis, then point `local.modelPath`
 at a GGUF file:
 
 ```json5
@@ -74,14 +74,14 @@ order shown. Set `memorySearch.provider` to override.
 
 ## How indexing works
 
-OpenClaw indexes `MEMORY.md` and `memory/*.md` into chunks (~400 tokens with
+Genesis indexes `MEMORY.md` and `memory/*.md` into chunks (~400 tokens with
 80-token overlap) and stores them in a per-agent SQLite database.
 
-- **Index location:** `~/.openclaw/memory/<agentId>.sqlite`
+- **Index location:** `~/.genesis/memory/<agentId>.sqlite`
 - **File watching:** changes to memory files trigger a debounced reindex (1.5s).
 - **Auto-reindex:** when the embedding provider, model, or chunking config
   changes, the entire index is rebuilt automatically.
-- **Reindex on demand:** `openclaw memory index --force`
+- **Reindex on demand:** `genesis memory index --force`
 
 <Info>
 You can also index Markdown files outside the workspace with
@@ -106,24 +106,24 @@ automatic user modeling.
 
 ## Troubleshooting
 
-**Memory search disabled?** Check `openclaw memory status`. If no provider is
+**Memory search disabled?** Check `genesis memory status`. If no provider is
 detected, set one explicitly or add an API key.
 
 **Local provider not detected?** Confirm the local path exists and run:
 
 ```bash
-openclaw memory status --deep --agent main
-openclaw memory index --force --agent main
+genesis memory status --deep --agent main
+genesis memory index --force --agent main
 ```
 
 Both standalone CLI commands and the Gateway use the same `local` provider id.
 If the provider is set to `auto`, local embeddings are considered first only
 when `memorySearch.local.modelPath` points to an existing local file.
 
-**Stale results?** Run `openclaw memory index --force` to rebuild. The watcher
+**Stale results?** Run `genesis memory index --force` to rebuild. The watcher
 may miss changes in rare edge cases.
 
-**sqlite-vec not loading?** OpenClaw falls back to in-process cosine similarity
+**sqlite-vec not loading?** Genesis falls back to in-process cosine similarity
 automatically. Check logs for the specific load error.
 
 ## Configuration

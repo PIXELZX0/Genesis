@@ -8,7 +8,7 @@ export function createUnitFastVitestConfig(
   options: { argv?: string[] } = {},
 ) {
   const sharedTest = sharedVitestConfig.test ?? {};
-  const includeFromEnv = loadPatternListFromEnv("OPENCLAW_VITEST_INCLUDE_FILE", env);
+  const includeFromEnv = loadPatternListFromEnv("GENESIS_VITEST_INCLUDE_FILE", env);
   const unitFastTestFiles = getUnitFastTestFiles();
   const cliInclude = narrowIncludePatternsForCli(unitFastTestFiles, options.argv);
 

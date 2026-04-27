@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { resolveAgentWorkspaceDir } from "../../../../src/agents/agent-scope.js";
 import { parseDurationMs } from "../../../../src/cli/parse-duration.js";
-import type { OpenClawConfig } from "../../../../src/config/config.js";
+import type { GenesisConfig } from "../../../../src/config/config.js";
 import type { SessionSendPolicyConfig } from "../../../../src/config/types.base.js";
 import type {
   MemoryBackend,
@@ -341,7 +341,7 @@ function resolveDefaultCollections(
 }
 
 export function resolveMemoryBackendConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
 }): ResolvedMemoryBackendConfig {
   const normalizedAgentId = normalizeAgentId(params.agentId);

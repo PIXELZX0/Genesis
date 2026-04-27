@@ -1,4 +1,4 @@
-export { loadConfig } from "openclaw/plugin-sdk/browser-config-runtime";
+export { loadConfig } from "genesis/plugin-sdk/browser-config-runtime";
 export {
   callGatewayTool,
   imageResultFromFile,
@@ -7,10 +7,10 @@ export {
   readStringParam,
   resolveNodeIdFromList,
   selectDefaultNodeFromList,
-} from "openclaw/plugin-sdk/browser-setup-tools";
-export type { AnyAgentTool, NodeListNode } from "openclaw/plugin-sdk/browser-setup-tools";
-export { wrapExternalContent } from "openclaw/plugin-sdk/browser-security-runtime";
-export { normalizeOptionalString, readStringValue } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/browser-setup-tools";
+export type { AnyAgentTool, NodeListNode } from "genesis/plugin-sdk/browser-setup-tools";
+export { wrapExternalContent } from "genesis/plugin-sdk/browser-security-runtime";
+export { normalizeOptionalString, readStringValue } from "genesis/plugin-sdk/text-runtime";
 export { BrowserToolSchema } from "./browser-tool.schema.js";
 export {
   browserAct,

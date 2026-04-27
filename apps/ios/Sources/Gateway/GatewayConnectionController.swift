@@ -6,7 +6,7 @@ import CryptoKit
 import EventKit
 import Foundation
 import Darwin
-import OpenClawKit
+import GenesisKit
 import Network
 import Observation
 import os
@@ -772,7 +772,7 @@ final class GatewayConnectionController {
         if manualClientId?.isEmpty == false {
             return manualClientId!
         }
-        return "openclaw-ios"
+        return "genesis-ios"
     }
 
     private func resolveManualPort(host: String, port: Int, useTLS: Bool) -> Int? {
@@ -802,32 +802,32 @@ final class GatewayConnectionController {
     }
 
     private func currentCaps() -> [String] {
-        var caps = [OpenClawCapability.canvas.rawValue, OpenClawCapability.screen.rawValue]
+        var caps = [GenesisCapability.canvas.rawValue, GenesisCapability.screen.rawValue]
 
         // Default-on: if the key doesn't exist yet, treat it as enabled.
         let cameraEnabled =
             UserDefaults.standard.object(forKey: "camera.enabled") == nil
                 ? true
                 : UserDefaults.standard.bool(forKey: "camera.enabled")
-        if cameraEnabled { caps.append(OpenClawCapability.camera.rawValue) }
+        if cameraEnabled { caps.append(GenesisCapability.camera.rawValue) }
 
         let voiceWakeEnabled = UserDefaults.standard.bool(forKey: VoiceWakePreferences.enabledKey)
-        if voiceWakeEnabled { caps.append(OpenClawCapability.voiceWake.rawValue) }
+        if voiceWakeEnabled { caps.append(GenesisCapability.voiceWake.rawValue) }
 
         let locationModeRaw = UserDefaults.standard.string(forKey: "location.enabledMode") ?? "off"
-        let locationMode = OpenClawLocationMode(rawValue: locationModeRaw) ?? .off
-        if locationMode != .off { caps.append(OpenClawCapability.location.rawValue) }
+        let locationMode = GenesisLocationMode(rawValue: locationModeRaw) ?? .off
+        if locationMode != .off { caps.append(GenesisCapability.location.rawValue) }
 
-        caps.append(OpenClawCapability.device.rawValue)
+        caps.append(GenesisCapability.device.rawValue)
         if WatchMessagingService.isSupportedOnDevice() {
-            caps.append(OpenClawCapability.watch.rawValue)
+            caps.append(GenesisCapability.watch.rawValue)
         }
-        caps.append(OpenClawCapability.photos.rawValue)
-        caps.append(OpenClawCapability.contacts.rawValue)
-        caps.append(OpenClawCapability.calendar.rawValue)
-        caps.append(OpenClawCapability.reminders.rawValue)
+        caps.append(GenesisCapability.photos.rawValue)
+        caps.append(GenesisCapability.contacts.rawValue)
+        caps.append(GenesisCapability.calendar.rawValue)
+        caps.append(GenesisCapability.reminders.rawValue)
         if Self.motionAvailable() {
-            caps.append(OpenClawCapability.motion.rawValue)
+            caps.append(GenesisCapability.motion.rawValue)
         }
 
         return caps
@@ -835,58 +835,58 @@ final class GatewayConnectionController {
 
     private func currentCommands() -> [String] {
         var commands: [String] = [
-            OpenClawCanvasCommand.present.rawValue,
-            OpenClawCanvasCommand.hide.rawValue,
-            OpenClawCanvasCommand.navigate.rawValue,
-            OpenClawCanvasCommand.evalJS.rawValue,
-            OpenClawCanvasCommand.snapshot.rawValue,
-            OpenClawCanvasA2UICommand.push.rawValue,
-            OpenClawCanvasA2UICommand.pushJSONL.rawValue,
-            OpenClawCanvasA2UICommand.reset.rawValue,
-            OpenClawScreenCommand.record.rawValue,
-            OpenClawSystemCommand.notify.rawValue,
-            OpenClawChatCommand.push.rawValue,
-            OpenClawTalkCommand.pttStart.rawValue,
-            OpenClawTalkCommand.pttStop.rawValue,
-            OpenClawTalkCommand.pttCancel.rawValue,
-            OpenClawTalkCommand.pttOnce.rawValue,
+            GenesisCanvasCommand.present.rawValue,
+            GenesisCanvasCommand.hide.rawValue,
+            GenesisCanvasCommand.navigate.rawValue,
+            GenesisCanvasCommand.evalJS.rawValue,
+            GenesisCanvasCommand.snapshot.rawValue,
+            GenesisCanvasA2UICommand.push.rawValue,
+            GenesisCanvasA2UICommand.pushJSONL.rawValue,
+            GenesisCanvasA2UICommand.reset.rawValue,
+            GenesisScreenCommand.record.rawValue,
+            GenesisSystemCommand.notify.rawValue,
+            GenesisChatCommand.push.rawValue,
+            GenesisTalkCommand.pttStart.rawValue,
+            GenesisTalkCommand.pttStop.rawValue,
+            GenesisTalkCommand.pttCancel.rawValue,
+            GenesisTalkCommand.pttOnce.rawValue,
         ]
 
         let caps = Set(self.currentCaps())
-        if caps.contains(OpenClawCapability.camera.rawValue) {
-            commands.append(OpenClawCameraCommand.list.rawValue)
-            commands.append(OpenClawCameraCommand.snap.rawValue)
-            commands.append(OpenClawCameraCommand.clip.rawValue)
+        if caps.contains(GenesisCapability.camera.rawValue) {
+            commands.append(GenesisCameraCommand.list.rawValue)
+            commands.append(GenesisCameraCommand.snap.rawValue)
+            commands.append(GenesisCameraCommand.clip.rawValue)
         }
-        if caps.contains(OpenClawCapability.location.rawValue) {
-            commands.append(OpenClawLocationCommand.get.rawValue)
+        if caps.contains(GenesisCapability.location.rawValue) {
+            commands.append(GenesisLocationCommand.get.rawValue)
         }
-        if caps.contains(OpenClawCapability.device.rawValue) {
-            commands.append(OpenClawDeviceCommand.status.rawValue)
-            commands.append(OpenClawDeviceCommand.info.rawValue)
+        if caps.contains(GenesisCapability.device.rawValue) {
+            commands.append(GenesisDeviceCommand.status.rawValue)
+            commands.append(GenesisDeviceCommand.info.rawValue)
         }
-        if caps.contains(OpenClawCapability.watch.rawValue) {
-            commands.append(OpenClawWatchCommand.status.rawValue)
-            commands.append(OpenClawWatchCommand.notify.rawValue)
+        if caps.contains(GenesisCapability.watch.rawValue) {
+            commands.append(GenesisWatchCommand.status.rawValue)
+            commands.append(GenesisWatchCommand.notify.rawValue)
         }
-        if caps.contains(OpenClawCapability.photos.rawValue) {
-            commands.append(OpenClawPhotosCommand.latest.rawValue)
+        if caps.contains(GenesisCapability.photos.rawValue) {
+            commands.append(GenesisPhotosCommand.latest.rawValue)
         }
-        if caps.contains(OpenClawCapability.contacts.rawValue) {
-            commands.append(OpenClawContactsCommand.search.rawValue)
-            commands.append(OpenClawContactsCommand.add.rawValue)
+        if caps.contains(GenesisCapability.contacts.rawValue) {
+            commands.append(GenesisContactsCommand.search.rawValue)
+            commands.append(GenesisContactsCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.calendar.rawValue) {
-            commands.append(OpenClawCalendarCommand.events.rawValue)
-            commands.append(OpenClawCalendarCommand.add.rawValue)
+        if caps.contains(GenesisCapability.calendar.rawValue) {
+            commands.append(GenesisCalendarCommand.events.rawValue)
+            commands.append(GenesisCalendarCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.reminders.rawValue) {
-            commands.append(OpenClawRemindersCommand.list.rawValue)
-            commands.append(OpenClawRemindersCommand.add.rawValue)
+        if caps.contains(GenesisCapability.reminders.rawValue) {
+            commands.append(GenesisRemindersCommand.list.rawValue)
+            commands.append(GenesisRemindersCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.motion.rawValue) {
-            commands.append(OpenClawMotionCommand.activity.rawValue)
-            commands.append(OpenClawMotionCommand.pedometer.rawValue)
+        if caps.contains(GenesisCapability.motion.rawValue) {
+            commands.append(GenesisMotionCommand.activity.rawValue)
+            commands.append(GenesisMotionCommand.pedometer.rawValue)
         }
 
         return commands

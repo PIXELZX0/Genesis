@@ -2,9 +2,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpcMock = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,

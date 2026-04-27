@@ -43,10 +43,10 @@ describe("resolveCliChannelOptions", () => {
   });
 
   it("ignores external catalog env during CLI bootstrap", async () => {
-    process.env.OPENCLAW_PLUGIN_CATALOG_PATHS = "/tmp/plugins-catalog.json";
+    process.env.GENESIS_PLUGIN_CATALOG_PATHS = "/tmp/plugins-catalog.json";
     readFileSyncMock.mockReturnValue(JSON.stringify({ channelOptions: ["cached", "quietchat"] }));
 
     expect(resolveCliChannelOptions()).toEqual(["cached", "quietchat"]);
-    delete process.env.OPENCLAW_PLUGIN_CATALOG_PATHS;
+    delete process.env.GENESIS_PLUGIN_CATALOG_PATHS;
   });
 });

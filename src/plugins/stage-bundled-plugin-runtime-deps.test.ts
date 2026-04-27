@@ -174,19 +174,19 @@ afterEach(() => {
 
 describe("stageBundledPluginRuntimeDeps", () => {
   it("drops Lark SDK type cargo while keeping runtime entrypoints", () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-deps-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-deps-");
 
     writeRepoFile(
       repoRoot,
       "dist/extensions/feishu/package.json",
       JSON.stringify(
         {
-          name: "@openclaw/feishu",
+          name: "@genesis/feishu",
           version: "2026.4.10",
           dependencies: {
             "@larksuiteoapi/node-sdk": "^1.60.0",
           },
-          openclaw: {
+          genesis: {
             bundle: {
               stageRuntimeDependencies: true,
             },
@@ -247,29 +247,29 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("strips non-runtime dependency sections before fallback runtime staging", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-manifest-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-manifest-");
     writeRepoFile(
       repoRoot,
       "dist/extensions/amazon-bedrock/package.json",
       JSON.stringify(
         {
-          name: "@openclaw/amazon-bedrock-provider",
+          name: "@genesis/amazon-bedrock-provider",
           version: "2026.4.10",
           dependencies: {
             "@aws-sdk/client-bedrock": "3.1024.0",
           },
           devDependencies: {
-            "@openclaw/plugin-sdk": "workspace:*",
+            "@genesis/plugin-sdk": "workspace:*",
           },
           peerDependencies: {
-            openclaw: "^0.0.0",
+            genesis: "^0.0.0",
           },
           peerDependenciesMeta: {
-            openclaw: {
+            genesis: {
               optional: true,
             },
           },
-          openclaw: {
+          genesis: {
             bundle: {
               stageRuntimeDependencies: true,
             },
@@ -300,7 +300,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("patches installed Baileys encryptedStream flush ordering for shipped runtime deps", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -337,7 +337,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("patches the Baileys dispatcher guard when the flush hotfix is already present", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-dispatcher-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-dispatcher-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -370,7 +370,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("patches the Baileys dispatcher guard even when the encryptedStream block changed", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-dispatcher-only-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-dispatcher-only-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -403,7 +403,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("fails when the dispatcher block drifts even if encryptedStream is patchable", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-dispatcher-drifted-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-dispatcher-drifted-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -433,7 +433,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
 
   it("patches the Baileys dispatcher guard when sequential awaits include comments", async () => {
     const repoRoot = makeRepoRoot(
-      "openclaw-stage-bundled-runtime-hotfix-dispatcher-sequential-comments-",
+      "genesis-stage-bundled-runtime-hotfix-dispatcher-sequential-comments-",
     );
     const targetPath = path.join(
       repoRoot,
@@ -466,7 +466,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("patches the Baileys dispatcher guard when the flush hotfix uses sequential awaits", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-dispatcher-sequential-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-dispatcher-sequential-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -498,7 +498,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("preserves the original module read mode when replacing Baileys", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-mode-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-mode-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -527,7 +527,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("refuses symlink targets for the Baileys hotfix", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-symlink-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-symlink-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -554,7 +554,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("downgrades Baileys hotfix write failures to a non-fatal result", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-write-failure-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-write-failure-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",
@@ -588,7 +588,7 @@ describe("stageBundledPluginRuntimeDeps", () => {
   });
 
   it("refuses pre-created symlink temp paths instead of following them", async () => {
-    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-hotfix-temp-symlink-");
+    const repoRoot = makeRepoRoot("genesis-stage-bundled-runtime-hotfix-temp-symlink-");
     const targetPath = path.join(
       repoRoot,
       "node_modules",

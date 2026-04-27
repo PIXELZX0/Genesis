@@ -209,8 +209,8 @@ describe("extension runtime dependency manifests", () => {
       for (const filePath of listRuntimeFiles(extensionDir)) {
         for (const packageName of collectRuntimeImports(filePath)) {
           if (
-            packageName === "openclaw" ||
-            packageName.startsWith("@openclaw/") ||
+            packageName === "genesis" ||
+            packageName.startsWith("@genesis/") ||
             BUILTIN_MODULES.has(packageName) ||
             declared.has(packageName) ||
             allowedOptional.has(packageName)

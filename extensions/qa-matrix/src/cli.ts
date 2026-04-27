@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   createLazyCliRuntimeLoader,
   createLiveTransportQaCliRegistration,
@@ -9,7 +9,7 @@ import {
 
 type MatrixQaCliRuntime = typeof import("./cli.runtime.js");
 
-const DISABLE_MATRIX_QA_FORCE_EXIT_ENV = "OPENCLAW_QA_MATRIX_DISABLE_FORCE_EXIT";
+const DISABLE_MATRIX_QA_FORCE_EXIT_ENV = "GENESIS_QA_MATRIX_DISABLE_FORCE_EXIT";
 
 const loadMatrixQaCliRuntime = createLazyCliRuntimeLoader<MatrixQaCliRuntime>(
   () => import("./cli.runtime.js"),

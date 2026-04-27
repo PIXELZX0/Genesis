@@ -5,9 +5,9 @@ import {
   resolveEffectiveToolFsWorkspaceOnly,
 } from "../agents/tool-fs-policy.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { safeFileURLToPath } from "../infra/local-file-access.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { resolveConfigDir, resolveUserPath } from "../utils.js";
 import { isPassThroughRemoteMediaSource } from "./media-source-url.js";
@@ -22,7 +22,7 @@ const WINDOWS_DRIVE_RE = /^[A-Za-z]:[\\/]/;
 
 function resolveCachedPreferredTmpDir(): string {
   if (!cachedPreferredTmpDir) {
-    cachedPreferredTmpDir = resolvePreferredOpenClawTmpDir();
+    cachedPreferredTmpDir = resolvePreferredGenesisTmpDir();
   }
   return cachedPreferredTmpDir;
 }
@@ -52,7 +52,7 @@ export function getDefaultMediaLocalRoots(): readonly string[] {
 }
 
 export function getAgentScopedMediaLocalRoots(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId?: string,
 ): readonly string[] {
   const roots = buildMediaLocalRoots(resolveStateDir(), resolveConfigDir());
@@ -115,7 +115,7 @@ export function appendLocalMediaParentRoots(
 }
 
 export function getAgentScopedMediaLocalRootsForSources(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   mediaSources?: readonly string[];
 }): readonly string[] {

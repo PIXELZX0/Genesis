@@ -9,7 +9,7 @@
  *  - Connection lifecycle cleanup via releaseWsSession
  *
  * Run manually with a valid OPENAI_API_KEY:
- *   OPENCLAW_LIVE_TEST=1 pnpm test:e2e -- src/agents/openai-ws-stream.e2e.test.ts
+ *   GENESIS_LIVE_TEST=1 pnpm test:e2e -- src/agents/openai-ws-stream.e2e.test.ts
  *
  * This now runs only in the keyed live/release lanes.
  */

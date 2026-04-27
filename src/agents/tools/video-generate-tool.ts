@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import type { SsrFPolicy } from "../../infra/net/ssrf.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
@@ -166,7 +166,7 @@ const VideoGenerateToolSchema = Type.Object({
   filename: Type.Optional(
     Type.String({
       description:
-        "Optional output filename hint. OpenClaw preserves the basename and saves under its managed media directory.",
+        "Optional output filename hint. Genesis preserves the basename and saves under its managed media directory.",
     }),
   ),
   size: Type.Optional(
@@ -188,7 +188,7 @@ const VideoGenerateToolSchema = Type.Object({
   durationSeconds: Type.Optional(
     Type.Number({
       description:
-        "Optional target duration in seconds. OpenClaw may round this to the nearest provider-supported duration.",
+        "Optional target duration in seconds. Genesis may round this to the nearest provider-supported duration.",
       minimum: 1,
     }),
   ),
@@ -221,7 +221,7 @@ const VideoGenerateToolSchema = Type.Object({
 });
 
 export function resolveVideoGenerationModelConfigForTool(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir?: string;
 }): ToolModelConfig | null {
   return resolveCapabilityModelConfigForTool({
@@ -315,7 +315,7 @@ function normalizeReferenceInputs(params: {
 }
 
 function resolveSelectedVideoGenerationProvider(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   videoGenerationModelConfig: ToolModelConfig;
   modelOverride?: string;
 }): VideoGenerationProvider | undefined {
@@ -560,7 +560,7 @@ type ExecutedVideoGeneration = {
 };
 
 async function executeVideoGenerationJob(params: {
-  effectiveCfg: OpenClawConfig;
+  effectiveCfg: GenesisConfig;
   prompt: string;
   agentDir?: string;
   model?: string;
@@ -774,7 +774,7 @@ async function executeVideoGenerationJob(params: {
 }
 
 export function createVideoGenerateTool(options?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentDir?: string;
   agentSessionKey?: string;
   requesterOrigin?: DeliveryContext;
@@ -783,7 +783,7 @@ export function createVideoGenerateTool(options?: {
   fsPolicy?: ToolFsPolicy;
   scheduleBackgroundWork?: VideoGenerateBackgroundScheduler;
 }): AnyAgentTool | null {
-  const cfg: OpenClawConfig = options?.config ?? loadConfig();
+  const cfg: GenesisConfig = options?.config ?? loadConfig();
   const videoGenerationModelConfig = resolveVideoGenerationModelConfigForTool({
     cfg,
     agentDir: options?.agentDir,
@@ -807,7 +807,7 @@ export function createVideoGenerateTool(options?: {
     name: "video_generate",
     displaySummary: "Generate videos",
     description:
-      "Generate videos using configured providers. Generated videos are saved under OpenClaw-managed media storage and delivered automatically as attachments. Duration requests may be rounded to the nearest provider-supported value.",
+      "Generate videos using configured providers. Generated videos are saved under Genesis-managed media storage and delivered automatically as attachments. Duration requests may be rounded to the nearest provider-supported value.",
     parameters: VideoGenerateToolSchema,
     execute: async (_toolCallId, rawArgs) => {
       const args = rawArgs as Record<string, unknown>;

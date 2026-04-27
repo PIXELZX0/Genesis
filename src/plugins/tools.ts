@@ -11,7 +11,7 @@ import {
   buildPluginRuntimeLoadOptions,
   resolvePluginRuntimeLoadContext,
 } from "./runtime/load-context.js";
-import type { OpenClawPluginToolContext } from "./types.js";
+import type { GenesisPluginToolContext } from "./types.js";
 
 export type PluginToolMeta = {
   pluginId: string;
@@ -73,7 +73,7 @@ function resolvePluginToolRegistry(params: {
 }
 
 export function resolvePluginTools(params: {
-  context: OpenClawPluginToolContext;
+  context: GenesisPluginToolContext;
   existingToolNames?: Set<string>;
   toolAllowlist?: string[];
   suppressNameConflicts?: boolean;

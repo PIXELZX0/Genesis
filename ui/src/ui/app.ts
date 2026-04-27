@@ -114,7 +114,7 @@ import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.
 
 declare global {
   interface Window {
-    __OPENCLAW_CONTROL_UI_BASE_PATH__?: string;
+    __GENESIS_CONTROL_UI_BASE_PATH__?: string;
   }
 }
 
@@ -134,8 +134,8 @@ function resolveOnboardingMode(): boolean {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
-@customElement("openclaw-app")
-export class OpenClawApp extends LitElement {
+@customElement("genesis-app")
+export class GenesisApp extends LitElement {
   private i18nController = new I18nController(this);
   clientInstanceId = generateUUID();
   connectGeneration = 0;
@@ -465,6 +465,8 @@ export class OpenClawApp extends LitElement {
   @state() overviewShowGatewayPassword = false;
   @state() overviewLogLines: string[] = [];
   @state() overviewLogCursor = 0;
+  @state() walletSummary: import("./types.js").WalletSummaryResult | null = null;
+  @state() walletSummaryError: string | null = null;
 
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;
@@ -804,7 +806,7 @@ export class OpenClawApp extends LitElement {
         }
       },
       onTranscript: (entry) => {
-        this.realtimeTalkTranscript = `${entry.role === "user" ? "You" : "OpenClaw"}: ${entry.text}`;
+        this.realtimeTalkTranscript = `${entry.role === "user" ? "You" : "Genesis"}: ${entry.text}`;
       },
     });
     this.realtimeTalkSession = session;

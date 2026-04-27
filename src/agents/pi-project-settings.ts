@@ -1,5 +1,5 @@
 import { SettingsManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   buildEmbeddedPiSettingsSnapshot,
   loadEnabledBundlePiSettingsSnapshot,
@@ -16,7 +16,7 @@ export {
 export function createEmbeddedPiSettingsManager(params: {
   cwd: string;
   agentDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): SettingsManager {
   const fileSettingsManager = SettingsManager.create(params.cwd, params.agentDir);
   const policy = resolveEmbeddedPiProjectSettingsPolicy(params.cfg);
@@ -40,7 +40,7 @@ export function createEmbeddedPiSettingsManager(params: {
 export function createPreparedEmbeddedPiSettingsManager(params: {
   cwd: string;
   agentDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   /** Resolved context window budget so reserve-token floor can be capped for small models. */
   contextTokenBudget?: number;
 }): SettingsManager {

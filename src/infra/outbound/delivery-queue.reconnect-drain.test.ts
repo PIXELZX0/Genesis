@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import {
   type DeliverFn,
   drainPendingDeliveries,
@@ -17,7 +17,7 @@ import {
   installDeliveryQueueTmpDirHooks,
 } from "./delivery-queue.test-helpers.js";
 
-const stubCfg = {} as OpenClawConfig;
+const stubCfg = {} as GenesisConfig;
 const NO_LISTENER_ERROR = "No active DirectChat listener";
 
 function normalizeReconnectAccountIdForTest(accountId?: string | null): string {
@@ -453,7 +453,7 @@ describe("drainPendingDeliveries for reconnect", () => {
   });
 
   it("skips entries that an in-flight live delivery has actively claimed", async () => {
-    // Regression for openclaw/openclaw#70386: a reconnect drain that runs
+    // Regression for PIXELZX0/Genesis#70386: a reconnect drain that runs
     // while the live send is still writing to the adapter must not re-drive
     // the same entry. The live delivery path holds an in-memory active claim
     // for `queueId` across its send; drain honors that claim via the same

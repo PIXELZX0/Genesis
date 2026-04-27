@@ -1,4 +1,4 @@
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import WebSocket from "ws";
 import { isLoopbackHost } from "../gateway/net.js";
 import {

@@ -1,11 +1,11 @@
-import { createChatChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { createAccountStatusSink } from "openclaw/plugin-sdk/channel-lifecycle";
-import { buildPassiveProbedChannelStatusSummary } from "openclaw/plugin-sdk/extension-shared";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
+import { createChatChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { createAccountStatusSink } from "genesis/plugin-sdk/channel-lifecycle";
+import { buildPassiveProbedChannelStatusSummary } from "genesis/plugin-sdk/extension-shared";
+import { createLazyRuntimeModule } from "genesis/plugin-sdk/lazy-runtime";
 import {
   createAsyncComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
+} from "genesis/plugin-sdk/status-helpers";
 import {
   checkZcaAuthenticated,
   resolveZalouserAccountSync,

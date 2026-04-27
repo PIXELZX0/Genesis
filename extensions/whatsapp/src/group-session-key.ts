@@ -3,7 +3,7 @@ import {
   normalizeAccountId,
   resolveThreadSessionKeys,
   type ResolvedAgentRoute,
-} from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/routing";
 
 function resolveWhatsAppGroupAccountThreadId(accountId: string): string {
   return `whatsapp-account-${normalizeAccountId(accountId)}`;

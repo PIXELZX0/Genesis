@@ -2,14 +2,14 @@
  * Signal reactions via signal-cli JSON-RPC API
  */
 
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { requireRuntimeConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveSignalAccount } from "./accounts.js";
 import { signalRpcRequest } from "./client.js";
 import { resolveSignalRpcContext } from "./rpc-context.js";
 
 export type SignalReactionOpts = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   baseUrl?: string;
   account?: string;
   accountId?: string;

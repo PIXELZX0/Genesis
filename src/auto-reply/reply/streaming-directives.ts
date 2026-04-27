@@ -1,4 +1,4 @@
-import { hasOutboundReplyContent } from "openclaw/plugin-sdk/reply-payload";
+import { hasOutboundReplyContent } from "genesis/plugin-sdk/reply-payload";
 import { splitMediaFromOutput } from "../../media/parse.js";
 import { parseInlineDirectives } from "../../utils/directive-tags.js";
 import {

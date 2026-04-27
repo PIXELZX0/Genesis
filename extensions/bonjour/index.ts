@@ -1,21 +1,21 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 import { startGatewayBonjourAdvertiser } from "./src/advertiser.js";
 
 function formatBonjourInstanceName(displayName: string) {
   const trimmed = displayName.trim();
   if (!trimmed) {
-    return "OpenClaw";
+    return "Genesis";
   }
-  if (/openclaw/i.test(trimmed)) {
+  if (/genesis/i.test(trimmed)) {
     return trimmed;
   }
-  return `${trimmed} (OpenClaw)`;
+  return `${trimmed} (Genesis)`;
 }
 
 export default definePluginEntry({
   id: "bonjour",
   name: "Bonjour Gateway Discovery",
-  description: "Advertise the local OpenClaw gateway over Bonjour/mDNS.",
+  description: "Advertise the local Genesis gateway over Bonjour/mDNS.",
   register(api) {
     api.registerGatewayDiscoveryService({
       id: "bonjour",

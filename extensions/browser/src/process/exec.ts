@@ -1,1 +1,1 @@
-export { runExec } from "openclaw/plugin-sdk/browser-node-runtime";
+export { runExec } from "genesis/plugin-sdk/browser-node-runtime";

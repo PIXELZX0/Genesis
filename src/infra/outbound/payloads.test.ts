@@ -1,7 +1,7 @@
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
 import { describe, expect, it } from "vitest";
 import type { ReplyPayload } from "../../auto-reply/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { typedCases } from "../../test-utils/typed-cases.js";
 import {
   createOutboundPayloadPlan,
@@ -81,7 +81,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
         { text: "Replied in-thread." },
         { text: "Replied in #maintainers." },
         {
-          text: "Updated [wiki/providers.md](/Users/steipete/.openclaw/workspace/wiki/providers.md:33). No channel reply.",
+          text: "Updated [wiki/providers.md](/Users/steipete/.genesis/workspace/wiki/providers.md:33). No channel reply.",
         },
         {
           text: "Updated [wiki/tools.md] with the rollback failure-mode nuance. No channel reply.",
@@ -191,7 +191,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
   });
 
   it("rewrites bare silent replies for direct conversations where silence is disallowed", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -217,7 +217,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
   });
 
   it("drops bare silent replies for groups when policy allows silence", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -241,7 +241,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
   });
 
   it("does not add silent-reply chatter when visible content is already being delivered", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -269,7 +269,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
   });
 
   describe("pending spawned subagent children", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: { direct: "disallow", group: "allow", internal: "allow" },
@@ -316,7 +316,7 @@ describe("normalizeReplyPayloadsForDelivery", () => {
   });
 
   it("keeps bare NO_REPLY visible when silence is disallowed and rewrite is disabled", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {

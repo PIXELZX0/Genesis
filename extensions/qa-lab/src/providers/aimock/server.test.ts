@@ -60,7 +60,7 @@ describe("qa aimock server", () => {
         body: JSON.stringify({
           model: "aimock/gpt-5.4",
           stream: false,
-          input: [makeResponsesInput("@openclaw explain the QA lab")],
+          input: [makeResponsesInput("@genesis explain the QA lab")],
         }),
       });
       expect(response.status).toBe(200);
@@ -72,7 +72,7 @@ describe("qa aimock server", () => {
       expect(debug.status).toBe(200);
       expect(await debug.json()).toEqual([
         expect.objectContaining({
-          prompt: "@openclaw explain the QA lab",
+          prompt: "@genesis explain the QA lab",
         }),
       ]);
     } finally {

@@ -7,7 +7,7 @@ read_when:
 title: "SearXNG search"
 ---
 
-OpenClaw supports [SearXNG](https://docs.searxng.org/) as a **self-hosted,
+Genesis supports [SearXNG](https://docs.searxng.org/) as a **self-hosted,
 key-free** `web_search` provider. SearXNG is an open-source meta-search engine
 that aggregates results from Google, Bing, DuckDuckGo, and other sources.
 
@@ -31,7 +31,7 @@ Advantages:
   </Step>
   <Step title="Configure">
     ```bash
-    openclaw configure --section web
+    genesis configure --section web
     # Select "searxng" as the provider
     ```
 

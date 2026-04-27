@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { Command } from "commander";
 import { readConfigFileSnapshot, replaceConfigFile } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { sanitizeExecApprovalDisplayText } from "../infra/exec-approval-command-display.js";
 import {
   collectExecPolicyScopeSnapshots,
@@ -213,9 +213,9 @@ function applyApprovalsDefaults(
 }
 
 function buildNextExecPolicyConfig(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   policy: ExecPolicyResolved,
-): OpenClawConfig {
+): GenesisConfig {
   const draft = structuredClone(config);
   applyConfigExecPolicy(draft as Record<string, unknown>, policy);
   return draft;
@@ -369,7 +369,7 @@ export function registerExecPolicyCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/approvals", "docs.openclaw.ai/cli/approvals")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/approvals", "docs.genesis.ai/cli/approvals")}\n`,
     );
 
   execPolicy

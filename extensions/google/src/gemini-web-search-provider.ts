@@ -4,7 +4,7 @@ import {
   resolveProviderWebSearchPluginConfig,
   type WebSearchProviderPlugin,
   type WebSearchProviderToolDefinition,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search-config-contract";
 import { resolveGeminiApiKey, resolveGeminiModel } from "./gemini-web-search-provider.shared.js";
 
 const GEMINI_CREDENTIAL_PATH = "plugins.entries.google.config.webSearch.apiKey";
@@ -61,7 +61,7 @@ export function createGeminiWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["GEMINI_API_KEY"],
     placeholder: "AIza...",
     signupUrl: "https://aistudio.google.com/apikey",
-    docsUrl: "https://docs.openclaw.ai/tools/web",
+    docsUrl: "https://docs.genesis.ai/tools/web",
     autoDetectOrder: 20,
     credentialPath: GEMINI_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

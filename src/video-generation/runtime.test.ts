@@ -3,7 +3,7 @@ import {
   getMediaGenerationRuntimeMocks,
   resetVideoGenerationRuntimeMocks,
 } from "../../test/helpers/media-generation/runtime-module-mocks.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { generateVideo, listRuntimeVideoGenerationProviders } from "./runtime.js";
 import type { VideoGenerationProvider, VideoGenerationProviderOptionType } from "./types.js";
 
@@ -72,7 +72,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "video-plugin/vid-v1" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a cat",
       agentDir: "/tmp/agent",
       authStore,
@@ -141,7 +141,7 @@ describe("video-generation runtime", () => {
     ]);
 
     const result = await generateVideo({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompt: "animate a cat",
     });
 
@@ -170,7 +170,7 @@ describe("video-generation runtime", () => {
     await generateVideo({
       cfg: {
         agents: { defaults: { videoGenerationModel: { primary: "video-plugin/vid-v1" } } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "test",
       providerOptions: { seed: 42, draft: true, camera_fixed: false },
     });
@@ -188,7 +188,7 @@ describe("video-generation runtime", () => {
     await generateVideo({
       cfg: {
         agents: { defaults: { videoGenerationModel: { primary: "video-plugin/vid-v1" } } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "test",
       providerOptions: { seed: 42 },
     });
@@ -216,7 +216,7 @@ describe("video-generation runtime", () => {
       generateVideo({
         cfg: {
           agents: { defaults: { videoGenerationModel: { primary: "video-plugin/vid-v1" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "test",
         providerOptions: { seed: 42 },
       }),
@@ -240,7 +240,7 @@ describe("video-generation runtime", () => {
       generateVideo({
         cfg: {
           agents: { defaults: { videoGenerationModel: { primary: "video-plugin/vid-v1" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "test",
         providerOptions: { seed: 42 },
       }),
@@ -264,7 +264,7 @@ describe("video-generation runtime", () => {
       generateVideo({
         cfg: {
           agents: { defaults: { videoGenerationModel: { primary: "video-plugin/vid-v1" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "test",
         providerOptions: { seed: "forty-two" },
       }),
@@ -325,7 +325,7 @@ describe("video-generation runtime", () => {
     ]);
 
     const result = await generateVideo({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompt: "animate a cat",
       providerOptions: { seed: 42 },
     });
@@ -394,7 +394,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "openai/sora-2" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a cat",
       inputAudios: [{ url: "https://example.com/reference-audio.mp3", role: "reference_audio" }],
     });
@@ -419,7 +419,7 @@ describe("video-generation runtime", () => {
       generateVideo({
         cfg: {
           agents: { defaults: { videoGenerationModel: { primary: "openai/sora-2" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "animate a cat",
         inputAudios: [{ url: "https://example.com/reference-audio.mp3" }],
       }),
@@ -489,7 +489,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "openai/sora-2" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a cat",
       durationSeconds: 6,
     });
@@ -519,7 +519,7 @@ describe("video-generation runtime", () => {
       generateVideo({
         cfg: {
           agents: { defaults: { videoGenerationModel: { primary: "openai/sora-2" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "animate a cat",
         durationSeconds: 6,
       }),
@@ -544,7 +544,7 @@ describe("video-generation runtime", () => {
               videoGenerationModel: { primary: "video-plugin/vid-v1" },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         prompt: "animate a cat",
       }),
     ).rejects.toThrow(/neither buffer nor url is set/);
@@ -568,10 +568,8 @@ describe("video-generation runtime", () => {
     ];
     mocks.listVideoGenerationProviders.mockReturnValue(providers);
 
-    expect(listRuntimeVideoGenerationProviders({ config: {} as OpenClawConfig })).toEqual(
-      providers,
-    );
-    expect(mocks.listVideoGenerationProviders).toHaveBeenCalledWith({} as OpenClawConfig);
+    expect(listRuntimeVideoGenerationProviders({ config: {} as GenesisConfig })).toEqual(providers);
+    expect(mocks.listVideoGenerationProviders).toHaveBeenCalledWith({} as GenesisConfig);
   });
 
   it("normalizes requested durations to supported provider values", async () => {
@@ -600,7 +598,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "video-plugin/vid-v1" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a cat",
       durationSeconds: 5,
     });
@@ -661,7 +659,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "openai/sora-2" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a lobster",
       size: "1280x720",
       aspectRatio: "16:9",
@@ -728,7 +726,7 @@ describe("video-generation runtime", () => {
             videoGenerationModel: { primary: "runway/gen4.5" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "animate a lobster",
       size: "1280x720",
       inputImages: [{ buffer: Buffer.from("png"), mimeType: "image/png" }],
@@ -767,7 +765,7 @@ describe("video-generation runtime", () => {
     mocks.getProviderEnvVars.mockReturnValue(["MOTION_ONE_API_KEY"]);
 
     await expect(
-      generateVideo({ cfg: {} as OpenClawConfig, prompt: "animate a cat" }),
+      generateVideo({ cfg: {} as GenesisConfig, prompt: "animate a cat" }),
     ).rejects.toThrow(
       'No video-generation model configured. Set agents.defaults.videoGenerationModel.primary to a provider/model like "motion-one/animate-v1". If you want a specific provider, also configure that provider\'s auth/API key first (motion-one: MOTION_ONE_API_KEY).',
     );

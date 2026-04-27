@@ -15,7 +15,7 @@ import {
   TOOL_PROGRESS_OUTPUT_MAX_CHARS,
   formatToolAggregate,
   type MessagingToolSend,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "genesis/plugin-sdk/agent-harness-runtime";
 import { readCodexTurn } from "./protocol-validators.js";
 import {
   isJsonObject,
@@ -202,7 +202,7 @@ export class CodexAppServerEventProjector {
       },
     ];
     // Codex owns the canonical thread. These mirror records keep enough local
-    // context for OpenClaw history, search, and future harness switching.
+    // context for Genesis history, search, and future harness switching.
     if (reasoningText) {
       messagesSnapshot.push(this.createAssistantMirrorMessage("Codex reasoning", reasoningText));
     }

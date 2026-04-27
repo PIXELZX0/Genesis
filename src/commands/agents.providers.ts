@@ -6,8 +6,8 @@ import {
   normalizeChannelId,
 } from "../channels/plugins/index.js";
 import type { ChannelId } from "../channels/plugins/types.public.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { AgentBinding } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
 
 type ProviderAccountStatus = {
@@ -53,7 +53,7 @@ function formatProviderState(entry: ProviderAccountStatus): string {
 
 async function resolveReadOnlyAccount(params: {
   plugin: ReturnType<typeof listChannelPlugins>[number];
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
 }): Promise<unknown> {
   if (params.plugin.config.inspectAccount) {
@@ -63,7 +63,7 @@ async function resolveReadOnlyAccount(params: {
 }
 
 export async function buildProviderStatusIndex(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
 ): Promise<Map<string, ProviderAccountStatus>> {
   const map = new Map<string, ProviderAccountStatus>();
 
@@ -128,7 +128,7 @@ export async function buildProviderStatusIndex(
   return map;
 }
 
-function resolveDefaultAccountId(cfg: OpenClawConfig, provider: ChannelId): string {
+function resolveDefaultAccountId(cfg: GenesisConfig, provider: ChannelId): string {
   const plugin = getChannelPlugin(provider);
   if (!plugin) {
     return DEFAULT_ACCOUNT_ID;
@@ -136,7 +136,7 @@ function resolveDefaultAccountId(cfg: OpenClawConfig, provider: ChannelId): stri
   return resolveChannelDefaultAccountId({ plugin, cfg });
 }
 
-function shouldShowProviderEntry(entry: ProviderAccountStatus, cfg: OpenClawConfig): boolean {
+function shouldShowProviderEntry(entry: ProviderAccountStatus, cfg: GenesisConfig): boolean {
   const plugin = getChannelPlugin(entry.provider);
   if (!plugin) {
     return Boolean(entry.configured);
@@ -157,7 +157,7 @@ function formatProviderEntry(entry: ProviderAccountStatus): string {
   return `${label}: ${formatProviderState(entry)}`;
 }
 
-export function summarizeBindings(cfg: OpenClawConfig, bindings: AgentBinding[]): string[] {
+export function summarizeBindings(cfg: GenesisConfig, bindings: AgentBinding[]): string[] {
   if (bindings.length === 0) {
     return [];
   }
@@ -182,7 +182,7 @@ export function summarizeBindings(cfg: OpenClawConfig, bindings: AgentBinding[])
 
 export function listProvidersForAgent(params: {
   summaryIsDefault: boolean;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   bindings: AgentBinding[];
   providerStatus: Map<string, ProviderAccountStatus>;
 }): string[] {

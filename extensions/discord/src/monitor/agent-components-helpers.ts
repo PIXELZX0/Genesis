@@ -9,14 +9,14 @@ import {
   type UserSelectMenuInteraction,
 } from "@buape/carbon";
 import { ChannelType } from "discord-api-types/v10";
-import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import { resolveCommandAuthorizedFromAuthorizers } from "openclaw/plugin-sdk/command-auth-native";
-import type { DiscordAccountConfig, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/dangerous-name-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { resolveOpenProviderRuntimeGroupPolicy } from "openclaw/plugin-sdk/runtime-group-policy";
-import { logError } from "openclaw/plugin-sdk/text-runtime";
+import { createChannelPairingChallengeIssuer } from "genesis/plugin-sdk/channel-pairing";
+import { resolveCommandAuthorizedFromAuthorizers } from "genesis/plugin-sdk/command-auth-native";
+import type { DiscordAccountConfig, GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { isDangerousNameMatchingEnabled } from "genesis/plugin-sdk/dangerous-name-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { resolveOpenProviderRuntimeGroupPolicy } from "genesis/plugin-sdk/runtime-group-policy";
+import { logError } from "genesis/plugin-sdk/text-runtime";
 import {
   parseDiscordComponentCustomId,
   parseDiscordModalCustomId,
@@ -68,10 +68,10 @@ export type DiscordChannelContext = {
 };
 
 export type AgentComponentContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   discordConfig?: DiscordAccountConfig;
-  runtime?: import("openclaw/plugin-sdk/runtime-env").RuntimeEnv;
+  runtime?: import("genesis/plugin-sdk/runtime-env").RuntimeEnv;
   token?: string;
   guildEntries?: Record<string, DiscordGuildEntryResolved>;
   allowFrom?: string[];

@@ -1,17 +1,17 @@
 import path from "node:path";
-import type { BrowserConfig, BrowserProfileConfig, OpenClawConfig } from "../config/config.js";
+import type { BrowserConfig, BrowserProfileConfig, GenesisConfig } from "../config/config.js";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { loadBundledPluginPublicSurfaceModuleSync } from "./facade-loader.js";
 
-export const DEFAULT_OPENCLAW_BROWSER_ENABLED = true;
+export const DEFAULT_GENESIS_BROWSER_ENABLED = true;
 export const DEFAULT_BROWSER_EVALUATE_ENABLED = true;
-export const DEFAULT_OPENCLAW_BROWSER_COLOR = "#FF4500";
-export const DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME = "openclaw";
-export const DEFAULT_BROWSER_DEFAULT_PROFILE_NAME = "openclaw";
+export const DEFAULT_GENESIS_BROWSER_COLOR = "#FF4500";
+export const DEFAULT_GENESIS_BROWSER_PROFILE_NAME = "genesis";
+export const DEFAULT_BROWSER_DEFAULT_PROFILE_NAME = "genesis";
 export const DEFAULT_BROWSER_ACTION_TIMEOUT_MS = 60_000;
 export const DEFAULT_AI_SNAPSHOT_MAX_CHARS = 80_000;
-export const DEFAULT_UPLOAD_DIR = path.join(resolvePreferredOpenClawTmpDir(), "uploads");
+export const DEFAULT_UPLOAD_DIR = path.join(resolvePreferredGenesisTmpDir(), "uploads");
 
 export type ResolvedBrowserTabCleanupConfig = {
   enabled: boolean;
@@ -52,7 +52,7 @@ export type ResolvedBrowserProfile = {
   cdpIsLoopback: boolean;
   userDataDir?: string;
   color: string;
-  driver: "openclaw" | "existing-session";
+  driver: "genesis" | "existing-session";
   headless?: boolean;
   attachOnly: boolean;
 };
@@ -60,7 +60,7 @@ export type ResolvedBrowserProfile = {
 type BrowserProfilesSurface = {
   resolveBrowserConfig: (
     cfg: BrowserConfig | undefined,
-    rootConfig?: OpenClawConfig,
+    rootConfig?: GenesisConfig,
   ) => ResolvedBrowserConfig;
   resolveProfile: (
     resolved: ResolvedBrowserConfig,
@@ -82,7 +82,7 @@ function loadBrowserProfilesSurface(): BrowserProfilesSurface {
 
 export function resolveBrowserConfig(
   cfg: BrowserConfig | undefined,
-  rootConfig?: OpenClawConfig,
+  rootConfig?: GenesisConfig,
 ): ResolvedBrowserConfig {
   return loadBrowserProfilesSurface().resolveBrowserConfig(cfg, rootConfig);
 }

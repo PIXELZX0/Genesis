@@ -8,7 +8,7 @@ import { resolveCodexAppServerSpawnInvocation } from "./transport-stdio.js";
 const tempDirs: string[] = [];
 
 async function createTempDir(): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "openclaw-codex-spawn-"));
+  const dir = await mkdtemp(path.join(os.tmpdir(), "genesis-codex-spawn-"));
   tempDirs.push(dir);
   return dir;
 }

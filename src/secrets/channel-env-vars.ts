@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
 export { isSafeChannelEnvVarTriggerName } from "./channel-env-var-names.js";
 
 type ChannelEnvVarLookupParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 };

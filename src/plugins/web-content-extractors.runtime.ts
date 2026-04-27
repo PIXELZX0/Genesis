@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveBundledPluginCompatibleLoadValues } from "./activation-context.js";
 import {
   createPluginActivationSource,
@@ -23,7 +23,7 @@ function compareExtractors(
 }
 
 function resolveBundledWebContentExtractorCompatPluginIds(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -46,7 +46,7 @@ function resolveBundledWebContentExtractorCompatPluginIds(params: {
 }
 
 function resolveEnabledBundledExtractorPlugins(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -98,7 +98,7 @@ function resolveEnabledBundledExtractorPlugins(params: {
 }
 
 export function resolvePluginWebContentExtractors(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];

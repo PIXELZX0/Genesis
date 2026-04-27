@@ -6,7 +6,7 @@ read_when:
 title: "Channel location parsing"
 ---
 
-OpenClaw normalizes shared locations from chat channels into:
+Genesis normalizes shared locations from chat channels into:
 
 - terse coordinate text appended to the inbound body, and
 - structured fields in the auto-reply context payload. Channel-provided labels, addresses, and captions/comments are rendered into the prompt by the shared untrusted metadata JSON block, not inline in the user body.

@@ -12,14 +12,14 @@ import {
 const loadPluginManifestRegistry = vi.hoisted(() => vi.fn());
 const loadBundledPluginPublicSurfaceModuleSync = vi.hoisted(() => vi.fn());
 const tryLoadActivatedBundledPluginPublicSurfaceModuleSync = vi.hoisted(() => vi.fn());
-const resolveOpenClawPackageRootSync = vi.hoisted(() => vi.fn());
+const resolveGenesisPackageRootSync = vi.hoisted(() => vi.fn());
 
 vi.mock("../plugins/manifest-registry.js", () => ({
   loadPluginManifestRegistry,
 }));
 
-vi.mock("../infra/openclaw-root.js", () => ({
-  resolveOpenClawPackageRootSync,
+vi.mock("../infra/genesis-root.js", () => ({
+  resolveGenesisPackageRootSync,
 }));
 
 vi.mock("./facade-runtime.js", () => ({
@@ -29,7 +29,7 @@ vi.mock("./facade-runtime.js", () => ({
 
 describe("plugin-sdk qa-runner-runtime", () => {
   const tempDirs: string[] = [];
-  const originalPrivateQaCli = process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI;
+  const originalPrivateQaCli = process.env.GENESIS_ENABLE_PRIVATE_QA_CLI;
 
   beforeEach(() => {
     loadPluginManifestRegistry.mockReset().mockReturnValue({
@@ -38,8 +38,8 @@ describe("plugin-sdk qa-runner-runtime", () => {
     });
     loadBundledPluginPublicSurfaceModuleSync.mockReset();
     tryLoadActivatedBundledPluginPublicSurfaceModuleSync.mockReset();
-    resolveOpenClawPackageRootSync.mockReset().mockReturnValue(null);
-    delete process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI;
+    resolveGenesisPackageRootSync.mockReset().mockReturnValue(null);
+    delete process.env.GENESIS_ENABLE_PRIVATE_QA_CLI;
   });
 
   afterEach(() => {
@@ -67,13 +67,13 @@ describe("plugin-sdk qa-runner-runtime", () => {
       tempDirs,
       importRuntime: () => import("./qa-runner-runtime.js"),
       loadBundledPluginPublicSurfaceModuleSync,
-      resolveOpenClawPackageRootSync,
+      resolveGenesisPackageRootSync,
     });
   });
 
   it("loads bundled plugin test APIs with the private QA source tree override", async () => {
-    const sourceRoot = makePrivateQaSourceRoot(tempDirs, "openclaw-qa-test-api-root-");
-    resolveOpenClawPackageRootSync.mockReturnValue(sourceRoot);
+    const sourceRoot = makePrivateQaSourceRoot(tempDirs, "genesis-qa-test-api-root-");
+    resolveGenesisPackageRootSync.mockReturnValue(sourceRoot);
 
     const testApi = { marker: "matrix-test-api" };
     loadBundledPluginPublicSurfaceModuleSync.mockReturnValue(testApi);
@@ -85,8 +85,8 @@ describe("plugin-sdk qa-runner-runtime", () => {
       dirName: "matrix",
       artifactBasename: "test-api.js",
       env: expect.objectContaining({
-        OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1",
-        OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
+        GENESIS_ENABLE_PRIVATE_QA_CLI: "1",
+        GENESIS_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
       }),
     });
   });
@@ -169,8 +169,8 @@ describe("plugin-sdk qa-runner-runtime", () => {
   });
 
   it("prefers the source bundled tree for private qa discovery in repo checkouts", async () => {
-    const sourceRoot = makePrivateQaSourceRoot(tempDirs, "openclaw-qa-runner-root-");
-    resolveOpenClawPackageRootSync.mockReturnValue(sourceRoot);
+    const sourceRoot = makePrivateQaSourceRoot(tempDirs, "genesis-qa-runner-root-");
+    resolveGenesisPackageRootSync.mockReturnValue(sourceRoot);
 
     const register = vi.fn((qa: Command) => qa);
     loadPluginManifestRegistry.mockReturnValue({
@@ -204,16 +204,16 @@ describe("plugin-sdk qa-runner-runtime", () => {
     expect(loadPluginManifestRegistry).toHaveBeenCalledWith({
       cache: true,
       env: expect.objectContaining({
-        OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1",
-        OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
+        GENESIS_ENABLE_PRIVATE_QA_CLI: "1",
+        GENESIS_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
       }),
     });
     expect(loadBundledPluginPublicSurfaceModuleSync).toHaveBeenCalledWith({
       dirName: "qa-matrix",
       artifactBasename: "runtime-api.js",
       env: expect.objectContaining({
-        OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1",
-        OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
+        GENESIS_ENABLE_PRIVATE_QA_CLI: "1",
+        GENESIS_BUNDLED_PLUGINS_DIR: path.join(sourceRoot, "extensions"),
       }),
     });
   });
@@ -267,7 +267,7 @@ describe("plugin-sdk qa-runner-runtime", () => {
     const module = await import("./qa-runner-runtime.js");
 
     expect(() => module.listQaRunnerCliContributions()).toThrow(
-      'QA runner plugin "qa-matrix" exported "extra" from runtime-api.js but did not declare it in openclaw.plugin.json',
+      'QA runner plugin "qa-matrix" exported "extra" from runtime-api.js but did not declare it in genesis.plugin.json',
     );
   });
 });

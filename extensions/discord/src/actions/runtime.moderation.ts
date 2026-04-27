@@ -4,7 +4,7 @@ import {
   jsonResult,
   readStringParam,
   type DiscordActionConfig,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../runtime-api.js";
 import {
   banMemberDiscord,
@@ -30,7 +30,7 @@ async function verifySenderModerationPermission(params: {
   senderUserId?: string;
   requiredPermission: bigint;
   accountId?: string;
-  cfgOptions: { cfg: OpenClawConfig };
+  cfgOptions: { cfg: GenesisConfig };
 }) {
   // CLI/manual flows may not have sender context; enforce only when present.
   if (!params.senderUserId) {
@@ -54,7 +54,7 @@ export async function handleDiscordModerationAction(
   action: string,
   params: Record<string, unknown>,
   isActionEnabled: ActionGate<DiscordActionConfig>,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
 ): Promise<AgentToolResult<unknown>> {
   if (!isDiscordModerationAction(action)) {
     throw new Error(`Unknown action: ${action}`);

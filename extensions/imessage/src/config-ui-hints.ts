@@ -1,4 +1,4 @@
-import type { ChannelConfigUiHint } from "openclaw/plugin-sdk/core";
+import type { ChannelConfigUiHint } from "genesis/plugin-sdk/core";
 
 export const iMessageChannelConfigUiHints = {
   "": {

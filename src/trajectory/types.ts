@@ -7,7 +7,7 @@ export type TrajectoryToolDefinition = {
 };
 
 export type TrajectoryEvent = {
-  traceSchema: "openclaw-trajectory";
+  traceSchema: "genesis-trajectory";
   schemaVersion: 1;
   traceId: string;
   source: TrajectoryEventSource;
@@ -28,7 +28,7 @@ export type TrajectoryEvent = {
 };
 
 export type TrajectoryBundleManifest = {
-  traceSchema: "openclaw-trajectory";
+  traceSchema: "genesis-trajectory";
   schemaVersion: 1;
   generatedAt: string;
   traceId: string;

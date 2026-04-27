@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import { resolveSecretInputString } from "../secrets/resolve-secret-input-string.js";
 import {
@@ -21,7 +21,7 @@ import {
 } from "./secret-input-paths.js";
 
 export type GatewayCredentialSecretInputOptions = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   explicitAuth?: ExplicitGatewayAuth;
   urlOverride?: string;
   urlOverrideSource?: "cli" | "env";
@@ -53,7 +53,7 @@ function resolveExplicitGatewayAuth(opts?: ExplicitGatewayAuth): ExplicitGateway
 }
 
 async function resolveGatewaySecretInputString(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   value: unknown;
   path: string;
   env: NodeJS.ProcessEnv;
@@ -74,7 +74,7 @@ async function resolveGatewaySecretInputString(params: {
 }
 
 function hasConfiguredGatewaySecretRef(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   path: SupportedGatewaySecretInputPath,
 ): boolean {
   return Boolean(
@@ -86,7 +86,7 @@ function hasConfiguredGatewaySecretRef(
 }
 
 function resolveGatewayCredentialsFromConfigOptions(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   options: NormalizedGatewayCredentialSecretInputOptions;
 }) {
@@ -127,7 +127,7 @@ function localAuthModeAllowsGatewaySecretInputPath(params: {
 function gatewaySecretInputPathCanWin(params: {
   options: NormalizedGatewayCredentialSecretInputOptions;
   env: NodeJS.ProcessEnv;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   path: SupportedGatewaySecretInputPath;
 }): boolean {
   if (!hasConfiguredGatewaySecretRef(params.config, params.path)) {
@@ -144,7 +144,7 @@ function gatewaySecretInputPathCanWin(params: {
   ) {
     return false;
   }
-  const sentinel = `__OPENCLAW_GATEWAY_SECRET_REF_PROBE_${params.path.replaceAll(".", "_")}__`;
+  const sentinel = `__GENESIS_GATEWAY_SECRET_REF_PROBE_${params.path.replaceAll(".", "_")}__`;
   const probeConfig = structuredClone(params.config);
   for (const candidatePath of ALL_GATEWAY_SECRET_INPUT_PATHS) {
     if (!hasConfiguredGatewaySecretRef(probeConfig, candidatePath)) {
@@ -178,7 +178,7 @@ function gatewaySecretInputPathCanWin(params: {
 }
 
 async function resolveConfiguredGatewaySecretInput(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   path: SupportedGatewaySecretInputPath;
   env: NodeJS.ProcessEnv;
 }): Promise<string | undefined> {
@@ -193,8 +193,8 @@ async function resolveConfiguredGatewaySecretInput(params: {
 async function resolvePreferredGatewaySecretInputs(params: {
   options: NormalizedGatewayCredentialSecretInputOptions;
   env: NodeJS.ProcessEnv;
-  config: OpenClawConfig;
-}): Promise<OpenClawConfig> {
+  config: GenesisConfig;
+}): Promise<GenesisConfig> {
   let nextConfig = params.config;
   for (const path of ALL_GATEWAY_SECRET_INPUT_PATHS) {
     if (

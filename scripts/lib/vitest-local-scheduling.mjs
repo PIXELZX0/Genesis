@@ -16,7 +16,7 @@ function parsePositiveInt(value) {
 }
 
 function isSystemThrottleDisabled(env) {
-  const normalized = env.OPENCLAW_VITEST_DISABLE_SYSTEM_THROTTLE?.trim().toLowerCase();
+  const normalized = env.GENESIS_VITEST_DISABLE_SYSTEM_THROTTLE?.trim().toLowerCase();
   return normalized === "1" || normalized === "true";
 }
 
@@ -67,7 +67,7 @@ export function resolveLocalVitestScheduling(
   system = detectVitestHostInfo(),
   pool = "threads",
 ) {
-  const override = parsePositiveInt(env.OPENCLAW_VITEST_MAX_WORKERS ?? env.OPENCLAW_TEST_WORKERS);
+  const override = parsePositiveInt(env.GENESIS_VITEST_MAX_WORKERS ?? env.GENESIS_TEST_WORKERS);
   if (override !== null) {
     const maxWorkers = clamp(override, 1, 16);
     return {

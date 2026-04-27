@@ -6,17 +6,17 @@ import {
   prepareScopedSetupConfig,
   type ChannelSetupAdapter,
   type DmPolicy,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/setup";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/setup";
 import { applyBlueBubblesConnectionConfig } from "./config-apply.js";
 
 const channel = "bluebubbles" as const;
 
 export function setBlueBubblesDmPolicy(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   dmPolicy: DmPolicy,
-): OpenClawConfig {
+): GenesisConfig {
   const resolvedAccountId = normalizeAccountId(accountId);
   const existingAllowFrom =
     resolvedAccountId === "default"
@@ -40,10 +40,10 @@ export function setBlueBubblesDmPolicy(
 }
 
 export function setBlueBubblesAllowFrom(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   allowFrom: string[],
-): OpenClawConfig {
+): GenesisConfig {
   return patchScopedAccountConfig({
     cfg,
     channelKey: channel,

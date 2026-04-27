@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadPluginManifestRegistry, type PluginManifestRecord } from "./manifest-registry.js";
 import { resolveDiscoveredProviderPluginIds } from "./providers.js";
 import { resolvePluginProviders } from "./providers.runtime.js";
@@ -67,7 +67,7 @@ function dedupeSorted(values: Iterable<string>): string[] {
 }
 
 function resolveProviderDiscoveryEntryPlugins(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
@@ -125,7 +125,7 @@ function resolveSelectiveFullPluginIds(params: {
 }
 
 export function resolvePluginDiscoveryProvidersRuntime(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];

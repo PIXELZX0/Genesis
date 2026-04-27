@@ -81,7 +81,7 @@ describe("ports helpers", () => {
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
 
-  it("prints an OpenClaw-specific hint when port details look like another OpenClaw instance", async () => {
+  it("prints an Genesis-specific hint when port details look like another Genesis instance", async () => {
     const runtime = {
       error: vi.fn(),
       log: vi.fn(),
@@ -89,14 +89,14 @@ describe("ports helpers", () => {
     };
 
     await handlePortError(
-      new PortInUseError(18789, "node dist/index.js openclaw gateway"),
+      new PortInUseError(18789, "node dist/index.js genesis gateway"),
       18789,
       "gateway start",
       runtime,
     ).catch(() => {});
 
     const messages = runtime.error.mock.calls.map((call) => stripAnsi(String(call[0] ?? "")));
-    expect(messages.join("\n")).toContain("another OpenClaw instance is already running");
+    expect(messages.join("\n")).toContain("another Genesis instance is already running");
   });
 });
 
@@ -148,7 +148,7 @@ describeUnix("inspectPortUsage", () => {
       if (command === "ps") {
         if (argv.includes("command=")) {
           return {
-            stdout: "node /tmp/openclaw/dist/index.js gateway --port 18789\n",
+            stdout: "node /tmp/genesis/dist/index.js gateway --port 18789\n",
             stderr: "",
             code: 0,
           };
@@ -176,7 +176,7 @@ describeUnix("inspectPortUsage", () => {
       expect(result.status).toBe("busy");
       expect(result.listeners.length).toBeGreaterThan(0);
       expect(result.listeners[0]?.pid).toBe(process.pid);
-      expect(result.listeners[0]?.commandLine).toContain("openclaw");
+      expect(result.listeners[0]?.commandLine).toContain("genesis");
       expect(result.errors).toBeUndefined();
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));

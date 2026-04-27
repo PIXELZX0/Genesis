@@ -35,8 +35,8 @@ function createRuntime(): RuntimeEnv {
 describe("backupCreateCommand verify wrapper", () => {
   it("optionally verifies the archive after writing it", async () => {
     createBackupArchiveMock.mockResolvedValue({
-      archivePath: "/tmp/openclaw-backup.tar.gz",
-      archiveRoot: "openclaw-backup",
+      archivePath: "/tmp/genesis-backup.tar.gz",
+      archiveRoot: "genesis-backup",
       createdAt: "2026-04-07T00:00:00.000Z",
       runtimeVersion: "test",
       assetCount: 1,
@@ -49,7 +49,7 @@ describe("backupCreateCommand verify wrapper", () => {
     });
     backupVerifyCommandMock.mockResolvedValue({
       ok: true,
-      archivePath: "/tmp/openclaw-backup.tar.gz",
+      archivePath: "/tmp/genesis-backup.tar.gz",
     });
 
     const runtime = createRuntime();
@@ -58,7 +58,7 @@ describe("backupCreateCommand verify wrapper", () => {
     expect(result.verified).toBe(true);
     expect(backupVerifyCommandMock).toHaveBeenCalledWith(
       expect.objectContaining({ log: expect.any(Function) }),
-      expect.objectContaining({ archive: "/tmp/openclaw-backup.tar.gz", json: false }),
+      expect.objectContaining({ archive: "/tmp/genesis-backup.tar.gz", json: false }),
     );
   });
 });

@@ -1,11 +1,17 @@
 {
-  "fallbackKeys": [],
-  "generatedAt": "2026-04-24T20:29:06.508Z",
+  "fallbackKeys": [
+    "overview.wallet.copyAddress",
+    "overview.wallet.empty",
+    "overview.wallet.noAccounts",
+    "overview.wallet.subtitle",
+    "overview.wallet.title"
+  ],
+  "generatedAt": "2026-04-27T09:21:56.403Z",
   "locale": "ja-JP",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "33cba33627744c6bb03182f53b02a9a2640272ef0fa3d039ce52723a96f5099e",
-  "totalKeys": 734,
+  "sourceHash": "77543f4ec4f051cc6aab19799a91f80657f9bb6df4c964d2763149013be42582",
+  "totalKeys": 739,
   "translatedKeys": 734,
   "workflow": 1
 }

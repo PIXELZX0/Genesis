@@ -132,7 +132,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-export function shouldSkipOpenClawSlackSelfEvent(args: SlackSelfFilterArgs): boolean {
+export function shouldSkipGenesisSlackSelfEvent(args: SlackSelfFilterArgs): boolean {
   const botId = args.context?.botId;
   const botUserId = args.context?.botUserId;
   const message = asRecord(args.message);
@@ -188,7 +188,7 @@ export function createSlackBoltApp(params: {
     ignoreSelf: false,
   });
   app.use(async (args) => {
-    if (shouldSkipOpenClawSlackSelfEvent(args)) {
+    if (shouldSkipGenesisSlackSelfEvent(args)) {
       return;
     }
     await args.next();

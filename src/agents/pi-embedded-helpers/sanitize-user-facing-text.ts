@@ -172,7 +172,7 @@ export function formatDiskSpaceErrorCopy(raw: string): string | undefined {
     lower.includes("disk full")
   ) {
     return (
-      "OpenClaw could not write local session data because the disk is full. " +
+      "Genesis could not write local session data because the disk is full. " +
       "Free some disk space and try again."
     );
   }

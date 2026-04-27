@@ -2,7 +2,7 @@ import type { StreamFn } from "@mariozechner/pi-agent-core";
 import type { SimpleStreamOptions } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalLowercaseString, readStringValue } from "../../shared/string-coerce.js";
 import {
   patchCodexNativeWebSearchPayload,
@@ -342,7 +342,7 @@ export function createOpenAITextVerbosityWrapper(
 }
 export function createCodexNativeWebSearchWrapper(
   baseStreamFn: StreamFn | undefined,
-  params: { config?: OpenClawConfig; agentDir?: string },
+  params: { config?: GenesisConfig; agentDir?: string },
 ): StreamFn {
   const underlying = baseStreamFn ?? streamSimple;
   return (model, context, options) => {

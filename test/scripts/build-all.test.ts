@@ -26,7 +26,7 @@ function withBuildCacheFixture(
     };
   }) => void,
 ) {
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-build-cache-"));
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-build-cache-"));
   try {
     const inputPath = path.join(rootDir, "src/input.ts");
     const outputPath = path.join(rootDir, "dist/output.js");

@@ -63,14 +63,14 @@ export type RestartSentinel = {
 };
 
 export const DEFAULT_RESTART_SUCCESS_CONTINUATION_MESSAGE =
-  "The gateway restart completed successfully. Tell the user OpenClaw restarted successfully and continue any pending work.";
+  "The gateway restart completed successfully. Tell the user Genesis restarted successfully and continue any pending work.";
 
 const SENTINEL_FILENAME = "restart-sentinel.json";
 
 export function formatDoctorNonInteractiveHint(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string {
-  return `Run: ${formatCliCommand("openclaw doctor --non-interactive", env)}`;
+  return `Run: ${formatCliCommand("genesis doctor --non-interactive", env)}`;
 }
 
 export function resolveRestartSentinelPath(env: NodeJS.ProcessEnv = process.env): string {

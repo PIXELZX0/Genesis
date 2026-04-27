@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   NODE_BROWSER_PROXY_COMMAND,
   NODE_SYSTEM_NOTIFY_COMMAND,
@@ -176,7 +176,7 @@ function normalizePlatformId(platform?: string, deviceFamily?: string): Platform
 }
 
 export function resolveNodeCommandAllowlist(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   node?: Pick<NodeSession, "platform" | "deviceFamily">,
 ): Set<string> {
   const platformId = normalizePlatformId(node?.platform, node?.deviceFamily);

@@ -1,6 +1,6 @@
-import { createClaimableDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
+import { createClaimableDedupe } from "genesis/plugin-sdk/persistent-dedupe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../runtime-api.js";
+import type { GenesisConfig } from "../../runtime-api.js";
 import { resolveMattermostAccount } from "./accounts.js";
 import * as clientModule from "./client.js";
 import type { MattermostClient } from "./client.js";
@@ -76,7 +76,7 @@ beforeEach(() => {
   updateMattermostPostSpy.mockResolvedValue({ id: "patched" } as never);
 });
 
-function evaluateMentionGateForMessage(params: { cfg: OpenClawConfig; threadRootId?: string }) {
+function evaluateMentionGateForMessage(params: { cfg: GenesisConfig; threadRootId?: string }) {
   const account = resolveMattermostAccount({ cfg: params.cfg, accountId: "default" });
   const resolver = vi.fn(resolveRequireMentionForTest);
   const input: MattermostMentionGateInput = {
@@ -100,7 +100,7 @@ function evaluateMentionGateForMessage(params: { cfg: OpenClawConfig; threadRoot
 
 describe("mattermost mention gating", () => {
   it("accepts unmentioned root channel posts in onmessage mode", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         mattermost: {
           chatmode: "onmessage",
@@ -121,7 +121,7 @@ describe("mattermost mention gating", () => {
   });
 
   it("accepts unmentioned thread replies in onmessage mode", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         mattermost: {
           chatmode: "onmessage",
@@ -141,7 +141,7 @@ describe("mattermost mention gating", () => {
   });
 
   it("rejects unmentioned channel posts in oncall mode", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         mattermost: {
           chatmode: "oncall",

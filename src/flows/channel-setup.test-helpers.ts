@@ -29,7 +29,7 @@ export function makeCatalogEntry(
     id,
     pluginId: overrides.pluginId ?? id,
     meta: makeMeta(id, label, overrides.meta),
-    install: overrides.install ?? { npmSpec: `@openclaw/${id}` },
+    install: overrides.install ?? { npmSpec: `@genesis/${id}` },
     ...overrides,
   };
 }

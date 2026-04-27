@@ -154,9 +154,9 @@ describe("gateway server models + voicewake", () => {
   };
 
   const withModelsConfig = async <T>(config: unknown, run: () => Promise<T>): Promise<T> => {
-    const configPath = process.env.OPENCLAW_CONFIG_PATH;
+    const configPath = process.env.GENESIS_CONFIG_PATH;
     if (!configPath) {
-      throw new Error("Missing OPENCLAW_CONFIG_PATH");
+      throw new Error("Missing GENESIS_CONFIG_PATH");
     }
     let previousConfig: string | undefined;
     try {
@@ -186,7 +186,7 @@ describe("gateway server models + voicewake", () => {
   };
 
   const withTempHome = async <T>(fn: (homeDir: string) => Promise<T>): Promise<T> => {
-    const tempHome = await createTempHomeEnv("openclaw-home-");
+    const tempHome = await createTempHomeEnv("genesis-home-");
     try {
       return await fn(tempHome.home);
     } finally {
@@ -224,7 +224,7 @@ describe("gateway server models + voicewake", () => {
       await withTempHome(async (homeDir) => {
         const initial = await rpcReq<{ triggers: string[] }>(ws, "voicewake.get");
         expect(initial.ok).toBe(true);
-        expect(initial.payload?.triggers).toEqual(["openclaw", "claude", "computer"]);
+        expect(initial.payload?.triggers).toEqual(["genesis", "claude", "computer"]);
 
         const changedP = onceMessage(
           ws,
@@ -249,7 +249,7 @@ describe("gateway server models + voicewake", () => {
         expect(after.payload?.triggers).toEqual(["hi", "there"]);
 
         const onDisk = JSON.parse(
-          await fs.readFile(path.join(homeDir, ".openclaw", "settings", "voicewake.json"), "utf8"),
+          await fs.readFile(path.join(homeDir, ".genesis", "settings", "voicewake.json"), "utf8"),
         ) as { triggers?: unknown; updatedAtMs?: unknown };
         expect(onDisk.triggers).toEqual(["hi", "there"]);
         expect(typeof onDisk.updatedAtMs).toBe("number");
@@ -279,7 +279,7 @@ describe("gateway server models + voicewake", () => {
       const first = (await firstEventP) as { event?: string; payload?: unknown };
       expect(first.event).toBe("voicewake.changed");
       expect((first.payload as { triggers?: unknown } | undefined)?.triggers).toEqual([
-        "openclaw",
+        "genesis",
         "claude",
         "computer",
       ]);
@@ -289,14 +289,14 @@ describe("gateway server models + voicewake", () => {
         (o) => o.type === "event" && o.event === "voicewake.changed",
       );
       const setRes = await rpcReq(ws, "voicewake.set", {
-        triggers: ["openclaw", "computer"],
+        triggers: ["genesis", "computer"],
       });
       expect(setRes.ok).toBe(true);
 
       const broadcast = (await broadcastP) as { event?: string; payload?: unknown };
       expect(broadcast.event).toBe("voicewake.changed");
       expect((broadcast.payload as { triggers?: unknown } | undefined)?.triggers).toEqual([
-        "openclaw",
+        "genesis",
         "computer",
       ]);
 
@@ -456,12 +456,12 @@ describe("gateway server models + voicewake", () => {
 
 describe("gateway server misc", () => {
   test("hello-ok advertises the gateway port for canvas host", async () => {
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "secret" }, async () => {
+    await withEnvAsync({ GENESIS_GATEWAY_TOKEN: "secret" }, async () => {
       testTailnetIPv4.value = "100.64.0.1";
       testState.gatewayBind = "lan";
       const canvasPort = await getFreePort();
       testState.canvasHostPort = canvasPort;
-      await withEnvAsync({ OPENCLAW_CANVAS_HOST_PORT: String(canvasPort) }, async () => {
+      await withEnvAsync({ GENESIS_CANVAS_HOST_PORT: String(canvasPort) }, async () => {
         const testPort = await getFreePort();
         const canvasHostUrl = resolveCanvasHostUrl({
           canvasPort,
@@ -521,9 +521,9 @@ describe("gateway server misc", () => {
   });
 
   test("auto-enables configured channel plugins on startup", async () => {
-    const configPath = process.env.OPENCLAW_CONFIG_PATH;
+    const configPath = process.env.GENESIS_CONFIG_PATH;
     if (!configPath) {
-      throw new Error("Missing OPENCLAW_CONFIG_PATH");
+      throw new Error("Missing GENESIS_CONFIG_PATH");
     }
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
@@ -542,7 +542,7 @@ describe("gateway server misc", () => {
       "utf-8",
     );
 
-    await withEnvAsync({ OPENCLAW_TEST_MINIMAL_GATEWAY: undefined }, async () => {
+    await withEnvAsync({ GENESIS_TEST_MINIMAL_GATEWAY: undefined }, async () => {
       const autoPort = await getFreePort();
       const autoServer = await startGatewayServer(autoPort);
       await autoServer.close();

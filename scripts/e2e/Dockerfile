@@ -16,7 +16,7 @@ ENV HOME="/home/appuser"
 ENV NODE_OPTIONS="--disable-warning=ExperimentalWarning"
 # Docker E2E lanes start many loopback gateways concurrently; mDNS advertising
 # is unrelated to those checks and can flap under container CPU/network load.
-ENV OPENCLAW_DISABLE_BONJOUR="1"
+ENV GENESIS_DISABLE_BONJOUR="1"
 
 USER appuser
 WORKDIR /app
@@ -35,12 +35,12 @@ RUN --mount=type=bind,source=extensions,target=/tmp/extensions,readonly \
       cp "$manifest" "$dest"; \
     done
 
-RUN --mount=type=cache,id=openclaw-pnpm-store,target=/home/appuser/.local/share/pnpm/store,sharing=locked \
+RUN --mount=type=cache,id=genesis-pnpm-store,target=/home/appuser/.local/share/pnpm/store,sharing=locked \
     pnpm install --frozen-lockfile
 
 FROM deps AS build
 
-COPY --chown=appuser:appuser tsconfig.json tsconfig.plugin-sdk.dts.json tsdown.config.ts vitest.config.ts openclaw.mjs ./
+COPY --chown=appuser:appuser tsconfig.json tsconfig.plugin-sdk.dts.json tsdown.config.ts vitest.config.ts genesis.mjs ./
 COPY --chown=appuser:appuser src ./src
 COPY --chown=appuser:appuser test ./test
 COPY --chown=appuser:appuser scripts ./scripts
@@ -50,13 +50,13 @@ COPY --chown=appuser:appuser skills ./skills
 COPY --chown=appuser:appuser ui ./ui
 COPY --link --chown=appuser:appuser extensions ./extensions
 COPY --chown=appuser:appuser vendor/a2ui/renderers/lit ./vendor/a2ui/renderers/lit
-COPY --chown=appuser:appuser apps/shared/OpenClawKit/Sources/OpenClawKit/Resources ./apps/shared/OpenClawKit/Sources/OpenClawKit/Resources
-COPY --chown=appuser:appuser apps/shared/OpenClawKit/Tools/CanvasA2UI ./apps/shared/OpenClawKit/Tools/CanvasA2UI
+COPY --chown=appuser:appuser apps/shared/GenesisKit/Sources/GenesisKit/Resources ./apps/shared/GenesisKit/Sources/GenesisKit/Resources
+COPY --chown=appuser:appuser apps/shared/GenesisKit/Tools/CanvasA2UI ./apps/shared/GenesisKit/Tools/CanvasA2UI
 
 RUN pnpm build
 # Onboard Docker E2E does not exercise the Control UI itself; it only needs the
 # asset-existence check to pass so configure/onboard can continue.
 RUN mkdir -p dist/control-ui \
-  && printf '%s\n' '<!doctype html><title>OpenClaw Control UI</title>' > dist/control-ui/index.html
+  && printf '%s\n' '<!doctype html><title>Genesis Control UI</title>' > dist/control-ui/index.html
 
 CMD ["bash"]

@@ -27,7 +27,7 @@ private func sendReachableWatchMessage(_ payload: [String: Any], with session: W
 }
 
 final class WatchConnectivityTransport: NSObject, @unchecked Sendable {
-    nonisolated private static let logger = Logger(subsystem: "ai.openclaw", category: "watch.messaging")
+    nonisolated private static let logger = Logger(subsystem: "ai.genesis", category: "watch.messaging")
 
     private let session: WCSession?
     private let callbacksLock = NSLock()

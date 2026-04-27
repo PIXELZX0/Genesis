@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bundledPluginRootAt, repoInstallSpec } from "../../test/helpers/bundled-plugin-paths.js";
-import type { OpenClawConfig } from "../config/config.js";
-import type { ConfigFileSnapshot } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/config.js";
+import type { ConfigFileSnapshot } from "../config/types.genesis.js";
 import {
   resolvePluginInstallRequestContext,
   type PluginInstallRequestContext,
@@ -9,7 +9,7 @@ import {
 import { loadConfigForInstall } from "./plugins-install-command.js";
 
 const hoisted = vi.hoisted(() => ({
-  loadConfigMock: vi.fn<() => OpenClawConfig>(),
+  loadConfigMock: vi.fn<() => GenesisConfig>(),
   readConfigFileSnapshotMock: vi.fn<() => Promise<ConfigFileSnapshot>>(),
   collectChannelDoctorStaleConfigMutationsMock: vi.fn(),
 }));
@@ -25,7 +25,7 @@ vi.mock("../config/config.js", () => ({
 }));
 
 vi.mock("../commands/doctor/shared/channel-doctor.js", () => ({
-  collectChannelDoctorStaleConfigMutations: (cfg: OpenClawConfig) =>
+  collectChannelDoctorStaleConfigMutations: (cfg: GenesisConfig) =>
     collectChannelDoctorStaleConfigMutationsMock(cfg),
 }));
 
@@ -38,10 +38,10 @@ function makeSnapshot(overrides: Partial<ConfigFileSnapshot> = {}): ConfigFileSn
     raw: '{ "plugins": {} }',
     parsed: { plugins: {} },
     sourceConfig: { plugins: {} } as ConfigFileSnapshot["sourceConfig"],
-    resolved: { plugins: {} } as OpenClawConfig,
+    resolved: { plugins: {} } as GenesisConfig,
     valid: false,
     runtimeConfig: { plugins: {} } as ConfigFileSnapshot["runtimeConfig"],
-    config: { plugins: {} } as OpenClawConfig,
+    config: { plugins: {} } as GenesisConfig,
     hash: "abc",
     issues: [{ path: "plugins.installs.matrix", message: "stale path" }],
     warnings: [],
@@ -52,8 +52,8 @@ function makeSnapshot(overrides: Partial<ConfigFileSnapshot> = {}): ConfigFileSn
 
 describe("loadConfigForInstall", () => {
   const matrixNpmRequest = {
-    rawSpec: "@openclaw/matrix",
-    normalizedSpec: "@openclaw/matrix",
+    rawSpec: "@genesis/matrix",
+    normalizedSpec: "@genesis/matrix",
     bundledPluginId: "matrix",
     allowInvalidConfigRecovery: true,
   } satisfies PluginInstallRequestContext;
@@ -63,7 +63,7 @@ describe("loadConfigForInstall", () => {
     readConfigFileSnapshotMock.mockReset();
     collectChannelDoctorStaleConfigMutationsMock.mockReset();
 
-    collectChannelDoctorStaleConfigMutationsMock.mockImplementation(async (cfg: OpenClawConfig) => [
+    collectChannelDoctorStaleConfigMutationsMock.mockImplementation(async (cfg: GenesisConfig) => [
       {
         config: cfg,
         changes: [],
@@ -72,7 +72,7 @@ describe("loadConfigForInstall", () => {
   });
 
   it("returns the config directly when loadConfig succeeds", async () => {
-    const cfg = { plugins: { entries: { matrix: { enabled: true } } } } as OpenClawConfig;
+    const cfg = { plugins: { entries: { matrix: { enabled: true } } } } as GenesisConfig;
     loadConfigMock.mockReturnValue(cfg);
 
     const result = await loadConfigForInstall(matrixNpmRequest);
@@ -81,7 +81,7 @@ describe("loadConfigForInstall", () => {
   });
 
   it("does not run stale Matrix cleanup on the happy path", async () => {
-    const cfg = { plugins: {} } as OpenClawConfig;
+    const cfg = { plugins: {} } as GenesisConfig;
     loadConfigMock.mockReturnValue(cfg);
 
     const result = await loadConfigForInstall(matrixNpmRequest);
@@ -98,7 +98,7 @@ describe("loadConfigForInstall", () => {
 
     const snapshotCfg = {
       plugins: { installs: { matrix: { source: "path", installPath: "/gone" } } },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
     readConfigFileSnapshotMock.mockResolvedValue(
       makeSnapshot({
         parsed: { plugins: { installs: { matrix: {} } } },
@@ -123,7 +123,7 @@ describe("loadConfigForInstall", () => {
       throw invalidConfigErr;
     });
 
-    const snapshotCfg = { plugins: {} } as OpenClawConfig;
+    const snapshotCfg = { plugins: {} } as GenesisConfig;
     readConfigFileSnapshotMock.mockResolvedValue(
       makeSnapshot({
         config: snapshotCfg,
@@ -175,7 +175,7 @@ describe("loadConfigForInstall", () => {
         rawSpec: "alpha",
         normalizedSpec: "alpha",
       }),
-    ).rejects.toThrow("Config invalid; run `openclaw doctor --fix` before installing plugins.");
+    ).rejects.toThrow("Config invalid; run `genesis doctor --fix` before installing plugins.");
     expect(readConfigFileSnapshotMock).not.toHaveBeenCalled();
   });
 
@@ -189,12 +189,12 @@ describe("loadConfigForInstall", () => {
     readConfigFileSnapshotMock.mockResolvedValue(
       makeSnapshot({
         parsed: {},
-        config: {} as OpenClawConfig,
+        config: {} as GenesisConfig,
       }),
     );
 
     await expect(loadConfigForInstall(matrixNpmRequest)).rejects.toThrow(
-      "Config file could not be parsed; run `openclaw doctor` to repair it.",
+      "Config file could not be parsed; run `genesis doctor` to repair it.",
     );
   });
 
@@ -208,7 +208,7 @@ describe("loadConfigForInstall", () => {
     readConfigFileSnapshotMock.mockResolvedValue(makeSnapshot({ exists: false, parsed: {} }));
 
     await expect(loadConfigForInstall(matrixNpmRequest)).rejects.toThrow(
-      "Config file could not be parsed; run `openclaw doctor` to repair it.",
+      "Config file could not be parsed; run `genesis doctor` to repair it.",
     );
   });
 

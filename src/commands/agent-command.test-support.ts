@@ -1,10 +1,10 @@
 import path from "node:path";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
-type AgentDefaultConfig = NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>;
+type AgentDefaultConfig = NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]>;
 type LoadConfigMock = {
-  mockReturnValue(value: OpenClawConfig): unknown;
+  mockReturnValue(value: GenesisConfig): unknown;
 };
 
 export async function withAgentCommandTempHome<T>(
@@ -19,18 +19,18 @@ export function mockAgentCommandConfig(
   home: string,
   storePath: string,
   agentOverrides?: Partial<AgentDefaultConfig>,
-): OpenClawConfig {
+): GenesisConfig {
   const cfg = {
     agents: {
       defaults: {
         model: { primary: "anthropic/claude-opus-4-6" },
         models: { "anthropic/claude-opus-4-6": {} },
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "genesis"),
         ...agentOverrides,
       },
     },
     session: { store: storePath, mainKey: "main" },
-  } as OpenClawConfig;
+  } as GenesisConfig;
   configSpy.mockReturnValue(cfg);
   return cfg;
 }

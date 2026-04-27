@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveOpenClawPackageRootSync } from "../infra/openclaw-root.js";
+import { resolveGenesisPackageRootSync } from "../infra/genesis-root.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 type PluginSdkAliasCandidateKind = "dist" | "src";
@@ -51,7 +51,7 @@ function listPluginSdkSubpathsFromPackageJson(pkg: PluginSdkPackageJson): string
     .toSorted();
 }
 
-function hasTrustedOpenClawRootIndicator(params: {
+function hasTrustedGenesisRootIndicator(params: {
   packageRoot: string;
   packageJson: PluginSdkPackageJson;
 }): boolean {
@@ -64,14 +64,14 @@ function hasTrustedOpenClawRootIndicator(params: {
     return false;
   }
   const hasCliEntryExport = Object.prototype.hasOwnProperty.call(packageExports, "./cli-entry");
-  const hasOpenClawBin =
+  const hasGenesisBin =
     (typeof params.packageJson.bin === "string" &&
-      normalizeLowercaseStringOrEmpty(params.packageJson.bin).includes("openclaw")) ||
+      normalizeLowercaseStringOrEmpty(params.packageJson.bin).includes("genesis")) ||
     (typeof params.packageJson.bin === "object" &&
       params.packageJson.bin !== null &&
-      typeof params.packageJson.bin.openclaw === "string");
-  const hasOpenClawEntrypoint = fs.existsSync(path.join(params.packageRoot, "openclaw.mjs"));
-  return hasCliEntryExport || hasOpenClawBin || hasOpenClawEntrypoint;
+      typeof params.packageJson.bin.genesis === "string");
+  const hasGenesisEntrypoint = fs.existsSync(path.join(params.packageRoot, "genesis.mjs"));
+  return hasCliEntryExport || hasGenesisBin || hasGenesisEntrypoint;
 }
 
 function readPluginSdkSubpathsFromPackageRoot(packageRoot: string): string[] | null {
@@ -79,21 +79,21 @@ function readPluginSdkSubpathsFromPackageRoot(packageRoot: string): string[] | n
   if (!pkg) {
     return null;
   }
-  if (!hasTrustedOpenClawRootIndicator({ packageRoot, packageJson: pkg })) {
+  if (!hasTrustedGenesisRootIndicator({ packageRoot, packageJson: pkg })) {
     return null;
   }
   const subpaths = listPluginSdkSubpathsFromPackageJson(pkg);
   return subpaths.length > 0 ? subpaths : null;
 }
 
-function resolveTrustedOpenClawRootFromArgvHint(params: {
+function resolveTrustedGenesisRootFromArgvHint(params: {
   argv1?: string;
   cwd: string;
 }): string | null {
   if (!params.argv1) {
     return null;
   }
-  const packageRoot = resolveOpenClawPackageRootSync({
+  const packageRoot = resolveGenesisPackageRootSync({
     cwd: params.cwd,
     argv1: params.argv1,
   });
@@ -104,7 +104,7 @@ function resolveTrustedOpenClawRootFromArgvHint(params: {
   if (!packageJson) {
     return null;
   }
-  return hasTrustedOpenClawRootIndicator({ packageRoot, packageJson }) ? packageRoot : null;
+  return hasTrustedGenesisRootIndicator({ packageRoot, packageJson }) ? packageRoot : null;
 }
 
 function findNearestPluginSdkPackageRoot(startDir: string, maxDepth = 12): string | null {
@@ -127,13 +127,13 @@ export function resolveLoaderPackageRoot(
   params: LoaderModuleResolveParams & { modulePath: string },
 ): string | null {
   const cwd = params.cwd ?? path.dirname(params.modulePath);
-  const fromModulePath = resolveOpenClawPackageRootSync({ cwd });
+  const fromModulePath = resolveGenesisPackageRootSync({ cwd });
   if (fromModulePath) {
     return fromModulePath;
   }
   const argv1 = params.argv1 ?? process.argv[1];
   const moduleUrl = params.moduleUrl ?? (params.modulePath ? undefined : import.meta.url);
-  return resolveOpenClawPackageRootSync({
+  return resolveGenesisPackageRootSync({
     cwd,
     ...(argv1 ? { argv1 } : {}),
     ...(moduleUrl ? { moduleUrl } : {}),
@@ -144,11 +144,11 @@ function resolveLoaderPluginSdkPackageRoot(
   params: LoaderModuleResolveParams & { modulePath: string },
 ): string | null {
   const cwd = params.cwd ?? path.dirname(params.modulePath);
-  const fromCwd = resolveOpenClawPackageRootSync({ cwd });
+  const fromCwd = resolveGenesisPackageRootSync({ cwd });
   const fromExplicitHints =
-    resolveTrustedOpenClawRootFromArgvHint({ cwd, argv1: params.argv1 }) ??
+    resolveTrustedGenesisRootFromArgvHint({ cwd, argv1: params.argv1 }) ??
     (params.moduleUrl
-      ? resolveOpenClawPackageRootSync({
+      ? resolveGenesisPackageRootSync({
           cwd,
           moduleUrl: params.moduleUrl,
         })
@@ -251,7 +251,7 @@ export function resolvePluginSdkAliasFile(params: {
 
 const cachedPluginSdkExportedSubpaths = new Map<string, string[]>();
 const cachedPluginSdkScopedAliasMaps = new Map<string, Record<string, string>>();
-const PLUGIN_SDK_PACKAGE_NAMES = ["openclaw/plugin-sdk", "@openclaw/plugin-sdk"] as const;
+const PLUGIN_SDK_PACKAGE_NAMES = ["genesis/plugin-sdk", "@genesis/plugin-sdk"] as const;
 const PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS = [
   ".ts",
   ".mts",
@@ -307,7 +307,7 @@ function readPrivateLocalOnlyPluginSdkSubpaths(packageRoot: string): string[] {
 }
 
 function shouldIncludePrivateLocalOnlyPluginSdkSubpaths() {
-  return process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI === "1";
+  return process.env.GENESIS_ENABLE_PRIVATE_QA_CLI === "1";
 }
 
 function hasPluginSdkSubpathArtifact(packageRoot: string, subpath: string) {
@@ -437,7 +437,7 @@ export function resolvePluginSdkScopedAliasMap(
         }
         break;
       }
-      if (Object.prototype.hasOwnProperty.call(aliasMap, `openclaw/plugin-sdk/${subpath}`)) {
+      if (Object.prototype.hasOwnProperty.call(aliasMap, `genesis/plugin-sdk/${subpath}`)) {
         break;
       }
     }
@@ -624,7 +624,7 @@ export function buildPluginLoaderAliasMap(
   const extensionApiAlias = resolveExtensionApiAlias({ modulePath, pluginSdkResolution });
   const result: Record<string, string> = {
     ...(extensionApiAlias
-      ? { "openclaw/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias) }
+      ? { "genesis/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias) }
       : {}),
     ...(pluginSdkAlias
       ? Object.fromEntries(
@@ -787,15 +787,15 @@ export function resolvePluginLoaderJitiConfig(params: {
 
 export function isBundledPluginExtensionPath(params: {
   modulePath: string;
-  openClawPackageRoot: string;
+  genesisPackageRoot: string;
   bundledPluginsDir?: string;
 }): boolean {
   const normalizedModulePath = path.resolve(params.modulePath);
   const roots = [
     params.bundledPluginsDir ? path.resolve(params.bundledPluginsDir) : null,
-    path.join(params.openClawPackageRoot, "extensions"),
-    path.join(params.openClawPackageRoot, "dist", "extensions"),
-    path.join(params.openClawPackageRoot, "dist-runtime", "extensions"),
+    path.join(params.genesisPackageRoot, "extensions"),
+    path.join(params.genesisPackageRoot, "dist", "extensions"),
+    path.join(params.genesisPackageRoot, "dist-runtime", "extensions"),
   ].filter((root): root is string => typeof root === "string");
   return roots.some(
     (root) =>

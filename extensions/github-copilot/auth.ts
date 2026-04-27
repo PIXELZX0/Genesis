@@ -1,15 +1,15 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveRequiredConfiguredSecretRefInputString } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveRequiredConfiguredSecretRefInputString } from "genesis/plugin-sdk/config-runtime";
 import {
   coerceSecretRef,
   ensureAuthProfileStore,
   listProfilesForProvider,
-} from "openclaw/plugin-sdk/provider-auth";
+} from "genesis/plugin-sdk/provider-auth";
 import { PROVIDER_ID } from "./models.js";
 
 export async function resolveFirstGithubToken(params: {
   agentDir?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   env: NodeJS.ProcessEnv;
 }): Promise<{
   githubToken: string;

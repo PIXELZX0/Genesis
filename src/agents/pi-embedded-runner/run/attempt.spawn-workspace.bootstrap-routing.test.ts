@@ -3,8 +3,8 @@ import { resolveAttemptWorkspaceBootstrapRouting } from "./attempt-bootstrap-rou
 
 describe("runEmbeddedAttempt bootstrap routing", () => {
   it("resolves bootstrap pending from the canonical workspace instead of a copied sandbox", async () => {
-    const sandboxWorkspace = "/tmp/openclaw-sandbox-copy";
-    const canonicalWorkspace = "/tmp/openclaw-canonical-workspace";
+    const sandboxWorkspace = "/tmp/genesis-sandbox-copy";
+    const canonicalWorkspace = "/tmp/genesis-canonical-workspace";
     const isWorkspaceBootstrapPending = vi.fn(async (workspaceDir: string) => {
       return workspaceDir === sandboxWorkspace;
     });

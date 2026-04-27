@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { PassThrough, Writable } from "node:stream";
-import type { RealtimeVoiceProviderPlugin } from "openclaw/plugin-sdk/realtime-voice";
+import type { RealtimeVoiceProviderPlugin } from "genesis/plugin-sdk/realtime-voice";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import plugin from "./index.js";
 import { resolveGoogleMeetConfig, resolveGoogleMeetConfigWithEnv } from "./src/config.js";
@@ -39,7 +39,7 @@ const fetchGuardMocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchGuardMocks.fetchWithSsrFGuard,
 }));
 
@@ -203,7 +203,7 @@ describe("google-meet plugin", () => {
       chrome: {
         audioBackend: "blackhole-2ch",
         launch: true,
-        guestName: "OpenClaw Agent",
+        guestName: "Genesis Agent",
         reuseExistingTab: true,
         autoJoin: true,
         waitForInCallMs: 20000,
@@ -247,7 +247,7 @@ describe("google-meet plugin", () => {
       oauth: {},
       auth: { provider: "google-oauth" },
     });
-    expect(resolveGoogleMeetConfig({}).realtime.instructions).toContain("openclaw_agent_consult");
+    expect(resolveGoogleMeetConfig({}).realtime.instructions).toContain("genesis_agent_consult");
   });
 
   it("uses env fallbacks for OAuth, preview, and default meeting values", () => {
@@ -255,13 +255,13 @@ describe("google-meet plugin", () => {
       resolveGoogleMeetConfigWithEnv(
         {},
         {
-          OPENCLAW_GOOGLE_MEET_CLIENT_ID: "client-id",
+          GENESIS_GOOGLE_MEET_CLIENT_ID: "client-id",
           GOOGLE_MEET_CLIENT_SECRET: "client-secret",
-          OPENCLAW_GOOGLE_MEET_REFRESH_TOKEN: "refresh-token",
+          GENESIS_GOOGLE_MEET_REFRESH_TOKEN: "refresh-token",
           GOOGLE_MEET_ACCESS_TOKEN: "access-token",
-          OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT: "123456",
+          GENESIS_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT: "123456",
           GOOGLE_MEET_DEFAULT_MEETING: "https://meet.google.com/abc-defg-hij",
-          OPENCLAW_GOOGLE_MEET_PREVIEW_ACK: "true",
+          GENESIS_GOOGLE_MEET_PREVIEW_ACK: "true",
         },
       ),
     ).toMatchObject({
@@ -639,8 +639,8 @@ describe("google-meet plugin", () => {
   it("reports setup status through the tool", async () => {
     const { tools } = setup({
       chrome: {
-        audioInputCommand: ["openclaw-audio-bridge", "capture"],
-        audioOutputCommand: ["openclaw-audio-bridge", "play"],
+        audioInputCommand: ["genesis-audio-bridge", "capture"],
+        audioOutputCommand: ["genesis-audio-bridge", "play"],
       },
     });
     const tool = tools[0] as {
@@ -1108,7 +1108,7 @@ describe("google-meet plugin", () => {
                     inCall: false,
                     manualActionRequired: true,
                     manualActionReason: "meet-admission-required",
-                    manualActionMessage: "Admit the OpenClaw browser participant in Google Meet.",
+                    manualActionMessage: "Admit the Genesis browser participant in Google Meet.",
                     title: "Meet",
                     url: "https://meet.google.com/abc-defg-hij?authuser=me@example.com",
                   }),
@@ -1199,7 +1199,7 @@ describe("google-meet plugin", () => {
           manualActionRequired: true,
           manualActionReason: "google-login-required",
           manualActionMessage:
-            "Sign in to Google in the OpenClaw browser profile, then retry the Meet join.",
+            "Sign in to Google in the Genesis browser profile, then retry the Meet join.",
           title: "Sign in - Google Accounts",
           url: "https://accounts.google.com/signin",
         },
@@ -1263,7 +1263,7 @@ describe("google-meet plugin", () => {
     });
 
     expect(result.details.error).toContain("No connected Google Meet-capable node");
-    expect(result.details.error).toContain("openclaw node run");
+    expect(result.details.error).toContain("genesis node run");
   });
 
   it("requires chromeNode.node when multiple capable nodes are connected", async () => {
@@ -1445,7 +1445,7 @@ describe("google-meet plugin", () => {
     callbacks?.onToolCall?.({
       itemId: "item-1",
       callId: "tool-call-1",
-      name: "openclaw_agent_consult",
+      name: "genesis_agent_consult",
       args: { question: "What should I say about launch timing?" },
     });
 
@@ -1472,7 +1472,7 @@ describe("google-meet plugin", () => {
     expect(callbacks).toMatchObject({
       tools: [
         expect.objectContaining({
-          name: "openclaw_agent_consult",
+          name: "genesis_agent_consult",
         }),
       ],
     });
@@ -1582,7 +1582,7 @@ describe("google-meet plugin", () => {
     callbacks?.onToolCall?.({
       itemId: "item-1",
       callId: "tool-call-1",
-      name: "openclaw_agent_consult",
+      name: "genesis_agent_consult",
       args: { question: "What should I say?" },
     });
 
@@ -1613,7 +1613,7 @@ describe("google-meet plugin", () => {
     expect(callbacks).toMatchObject({
       tools: [
         expect.objectContaining({
-          name: "openclaw_agent_consult",
+          name: "genesis_agent_consult",
         }),
       ],
     });

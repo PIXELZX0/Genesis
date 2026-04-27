@@ -199,7 +199,7 @@ export function describeAnthropicProviderRuntimeContract(
       });
 
       expect(hint).toContain("suggested profile: anthropic:oauth-user@example.com");
-      expect(hint).toContain("openclaw doctor --yes");
+      expect(hint).toContain("genesis doctor --yes");
     });
 
     it("owns usage snapshot fetching", async () => {
@@ -787,7 +787,7 @@ export function describeZAIProviderRuntimeContract(load: ProviderRuntimeContract
 
     it("falls back to legacy pi auth tokens for usage auth", async () => {
       const provider = requireProviderContractProvider("zai");
-      const home = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-zai-contract-"));
+      const home = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-zai-contract-"));
       await fs.mkdir(path.join(home, ".pi", "agent"), { recursive: true });
       await fs.writeFile(
         path.join(home, ".pi", "agent", "auth.json"),

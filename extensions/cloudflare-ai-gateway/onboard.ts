@@ -1,8 +1,8 @@
 import {
   applyAgentDefaultModelPrimary,
   applyProviderConfigWithDefaultModel,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/provider-onboard";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/provider-onboard";
 import {
   buildCloudflareAiGatewayModelDefinition,
   CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF,
@@ -37,9 +37,9 @@ export function buildCloudflareAiGatewayConfigPatch(params: {
 }
 
 export function applyCloudflareAiGatewayProviderConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params?: { accountId?: string; gatewayId?: string },
-): OpenClawConfig {
+): GenesisConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF] = {
     ...models[CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF],
@@ -81,9 +81,9 @@ export function applyCloudflareAiGatewayProviderConfig(
 }
 
 export function applyCloudflareAiGatewayConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params?: { accountId?: string; gatewayId?: string },
-): OpenClawConfig {
+): GenesisConfig {
   return applyAgentDefaultModelPrimary(
     applyCloudflareAiGatewayProviderConfig(cfg, params),
     CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF,

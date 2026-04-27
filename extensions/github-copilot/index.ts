@@ -1,10 +1,7 @@
-import {
-  resolvePluginConfigObject,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { definePluginEntry, type ProviderAuthContext } from "openclaw/plugin-sdk/plugin-entry";
-import { ensureAuthProfileStore } from "openclaw/plugin-sdk/provider-auth";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { resolvePluginConfigObject, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { definePluginEntry, type ProviderAuthContext } from "genesis/plugin-sdk/plugin-entry";
+import { ensureAuthProfileStore } from "genesis/plugin-sdk/provider-auth";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { resolveFirstGithubToken } from "./auth.js";
 import { githubCopilotMemoryEmbeddingProviderAdapter } from "./embeddings.js";
 import { PROVIDER_ID, resolveCopilotForwardCompatModel } from "./models.js";
@@ -30,7 +27,7 @@ export default definePluginEntry({
   register(api) {
     const startupPluginConfig = (api.pluginConfig ?? {}) as GithubCopilotPluginConfig;
 
-    function resolveCurrentPluginConfig(config?: OpenClawConfig): GithubCopilotPluginConfig {
+    function resolveCurrentPluginConfig(config?: GenesisConfig): GithubCopilotPluginConfig {
       const runtimePluginConfig = resolvePluginConfigObject(config, "github-copilot");
       if (runtimePluginConfig) {
         return runtimePluginConfig as GithubCopilotPluginConfig;

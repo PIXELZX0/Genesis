@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/telegram",
+  "name": "@genesis/telegram",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Telegram channel plugin",
+  "description": "Genesis Telegram channel plugin",
   "type": "module",
   "dependencies": {
     "@grammyjs/runner": "^2.0.3",
@@ -12,9 +12,9 @@
     "undici": "8.1.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -35,7 +35,7 @@
       "selectionDocsPrefix": "",
       "selectionDocsOmitLabel": true,
       "selectionExtras": [
-        "https://openclaw.ai"
+        "https://genesis.ai"
       ],
       "markdownCapable": true,
       "configuredState": {

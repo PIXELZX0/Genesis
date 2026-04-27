@@ -52,8 +52,8 @@ export function registerPluginVersion(version: string): void {
   }
 }
 
-const QQBOT_PLUGIN_GITHUB_URL = "https://github.com/openclaw/openclaw/tree/main/extensions/qqbot";
-const QQBOT_UPGRADE_GUIDE_URL = "https://q.qq.com/qqbot/openclaw/upgrade.html";
+const QQBOT_PLUGIN_GITHUB_URL = "https://github.com/PIXELZX0/Genesis/tree/main/extensions/qqbot";
+const QQBOT_UPGRADE_GUIDE_URL = "https://q.qq.com/qqbot/genesis/upgrade.html";
 
 // ============ Module-level registry instance ============
 
@@ -80,15 +80,15 @@ export function getFrameworkCommands(): QQBotFrameworkCommand[] {
 // ============ Built-in commands ============
 
 /**
- * /bot-ping — test current network latency between OpenClaw and QQ.
+ * /bot-ping — test current network latency between Genesis and QQ.
  */
 registerCommand({
   name: "bot-ping",
-  description: "测试 OpenClaw 与 QQ 之间的网络延迟",
+  description: "测试 Genesis 与 QQ 之间的网络延迟",
   usage: [
     `/bot-ping`,
     ``,
-    `测试当前 OpenClaw 宿主机与 QQ 服务器之间的网络延迟。`,
+    `测试当前 Genesis 宿主机与 QQ 服务器之间的网络延迟。`,
     `返回网络传输耗时和插件处理耗时。`,
   ].join("\n"),
   handler: (ctx) => {
@@ -112,24 +112,24 @@ registerCommand({
 });
 
 /**
- * /bot-version — show both the QQBot plugin version and the OpenClaw
- * framework version. Aligned with the standalone `openclaw-qqbot`
+ * /bot-version — show both the QQBot plugin version and the Genesis
+ * framework version. Aligned with the standalone `genesis-qqbot`
  * build so users see the same identification regardless of which
  * distribution they run.
  *
  * Note: unlike the standalone build, the built-in plugin is released
- * in-tree with the OpenClaw framework (same version), so an online
+ * in-tree with the Genesis framework (same version), so an online
  * npm dist-tag check is not applicable here and is intentionally
  * omitted.
  */
 registerCommand({
   name: "bot-version",
-  description: "查看 QQBot 插件版本和 OpenClaw 框架版本",
-  usage: [`/bot-version`, ``, `查看当前 QQBot 插件版本和 OpenClaw 框架版本。`].join("\n"),
+  description: "查看 QQBot 插件版本和 Genesis 框架版本",
+  usage: [`/bot-version`, ``, `查看当前 QQBot 插件版本和 Genesis 框架版本。`].join("\n"),
   handler: async () => {
     const frameworkVersion = resolveRuntimeServiceVersion();
     const lines = [
-      `🦞 OpenClaw 框架版本：${frameworkVersion}`,
+      `🦞 Genesis 框架版本：${frameworkVersion}`,
       `🤖 QQBot 插件版本：v${PLUGIN_VERSION}`,
       `🌟 官方 GitHub 仓库：[点击前往](${QQBOT_PLUGIN_GITHUB_URL})`,
     ];
@@ -181,7 +181,7 @@ registerCommand({
 function getConfiguredLogFiles(): string[] {
   const homeDir = getHomeDir();
   const files: string[] = [];
-  for (const cli of ["openclaw", "clawdbot", "moltbot"]) {
+  for (const cli of ["genesis", "clawdbot", "moltbot"]) {
     try {
       const cfgPath = path.join(homeDir, `.${cli}`, `${cli}.json`);
       if (!fs.existsSync(cfgPath)) {
@@ -229,12 +229,12 @@ function collectCandidateLogDirs(): string[] {
     if (!value) {
       continue;
     }
-    if (/STATE_DIR$/i.test(key) && /(OPENCLAW|CLAWDBOT|MOLTBOT)/i.test(key)) {
+    if (/STATE_DIR$/i.test(key) && /(GENESIS|CLAWDBOT|MOLTBOT)/i.test(key)) {
       pushStateDir(value);
     }
   }
 
-  for (const name of [".openclaw", ".clawdbot", ".moltbot", "openclaw", "clawdbot", "moltbot"]) {
+  for (const name of [".genesis", ".clawdbot", ".moltbot", "genesis", "clawdbot", "moltbot"]) {
     pushDir(path.join(homeDir, name));
     pushDir(path.join(homeDir, name, "logs"));
   }
@@ -254,7 +254,7 @@ function collectCandidateLogDirs(): string[] {
         if (!entry.isDirectory()) {
           continue;
         }
-        if (!/(openclaw|clawdbot|moltbot)/i.test(entry.name)) {
+        if (!/(genesis|clawdbot|moltbot)/i.test(entry.name)) {
           continue;
         }
         const base = path.join(root, entry.name);
@@ -268,7 +268,7 @@ function collectCandidateLogDirs(): string[] {
 
   // Common Linux log directories under /var/log.
   if (!isWindows()) {
-    for (const name of ["openclaw", "clawdbot", "moltbot"]) {
+    for (const name of ["genesis", "clawdbot", "moltbot"]) {
       pushDir(path.join("/var/log", name));
     }
   }
@@ -291,7 +291,7 @@ function collectCandidateLogDirs(): string[] {
     tmpRoots.add("/tmp");
   }
   for (const tmpRoot of tmpRoots) {
-    for (const name of ["openclaw", "clawdbot", "moltbot"]) {
+    for (const name of ["genesis", "clawdbot", "moltbot"]) {
       pushDir(path.join(tmpRoot, name));
     }
   }
@@ -334,7 +334,7 @@ function collectRecentLogFiles(logDirs: string[]): LogCandidate[] {
   for (const dir of logDirs) {
     pushFile(path.join(dir, "gateway.log"), dir);
     pushFile(path.join(dir, "gateway.err.log"), dir);
-    pushFile(path.join(dir, "openclaw.log"), dir);
+    pushFile(path.join(dir, "genesis.log"), dir);
     pushFile(path.join(dir, "clawdbot.log"), dir);
     pushFile(path.join(dir, "moltbot.log"), dir);
 
@@ -347,7 +347,7 @@ function collectRecentLogFiles(logDirs: string[]): LogCandidate[] {
         if (!/\.(log|txt)$/i.test(entry.name)) {
           continue;
         }
-        if (!/(gateway|openclaw|clawdbot|moltbot)/i.test(entry.name)) {
+        if (!/(gateway|genesis|clawdbot|moltbot)/i.test(entry.name)) {
           continue;
         }
         pushFile(path.join(dir, entry.name), dir);
@@ -516,7 +516,7 @@ registerCommand({
   usage: [
     `/bot-logs`,
     ``,
-    `导出最近的 OpenClaw 日志文件（最多 4 个文件）。`,
+    `导出最近的 Genesis 日志文件（最多 4 个文件）。`,
     `每个文件只保留最后 1000 行，并作为附件返回。`,
   ].join("\n"),
   handler: (ctx) => {
@@ -627,8 +627,8 @@ registerCommand({
     }
 
     const isForce = ctx.args.trim() === "--force";
-    const targetDir = path.join(getHomeDir(), ".openclaw", "media", "qqbot", "downloads", appId);
-    const displayDir = `~/.openclaw/media/qqbot/downloads/${appId}`;
+    const targetDir = path.join(getHomeDir(), ".genesis", "media", "qqbot", "downloads", appId);
+    const displayDir = `~/.genesis/media/qqbot/downloads/${appId}`;
 
     if (!isForce) {
       // Step 1: scan and display file list with a confirmation button.
@@ -660,7 +660,7 @@ registerCommand({
         ``,
         `---`,
         ``,
-        `确认清理后，上述保存在 OpenClaw 运行主机磁盘上的文件将永久删除，后续对话过程中 AI 无法再找回相关文件。`,
+        `确认清理后，上述保存在 Genesis 运行主机磁盘上的文件将永久删除，后续对话过程中 AI 无法再找回相关文件。`,
         `‼️ 点击指令确认删除`,
         `<qqbot-cmd-enter text="/bot-clear-storage --force" />`,
       );
@@ -738,7 +738,7 @@ export function registerApproveRuntimeGetter(
 /**
  * /bot-approve — 管理命令执行审批配置
  *
- * 修改 openclaw.json 中 tools.exec.security / tools.exec.ask 字段。
+ * 修改 genesis.json 中 tools.exec.security / tools.exec.ask 字段。
  *
  * security: deny | allowlist | full
  * ask: off | on-miss | always
@@ -773,12 +773,12 @@ registerCommand({
         ``,
         `\`\`\`shell`,
         `# 开启审批（白名单模式）`,
-        `openclaw config set tools.exec.security allowlist`,
-        `openclaw config set tools.exec.ask on-miss`,
+        `genesis config set tools.exec.security allowlist`,
+        `genesis config set tools.exec.ask on-miss`,
         ``,
         `# 关闭审批`,
-        `openclaw config set tools.exec.security full`,
-        `openclaw config set tools.exec.ask off`,
+        `genesis config set tools.exec.security full`,
+        `genesis config set tools.exec.ask off`,
         `\`\`\``,
       ].join("\n");
     }

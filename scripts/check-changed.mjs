@@ -11,8 +11,8 @@ import { runManagedCommand } from "./lib/managed-child-process.mjs";
 import { resolveChangedTestTargetPlan } from "./test-projects.test-support.mjs";
 
 export const CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS = "600000";
-const VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY = "OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS";
-const VITEST_NO_OUTPUT_RETRY_ENV_KEY = "OPENCLAW_VITEST_NO_OUTPUT_RETRY";
+const VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS";
+const VITEST_NO_OUTPUT_RETRY_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_RETRY";
 
 export function createChangedCheckVitestEnv(baseEnv = process.env) {
   return {

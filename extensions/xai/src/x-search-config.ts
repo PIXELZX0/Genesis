@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { isRecord } from "./tool-config-shared.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -10,13 +10,13 @@ function cloneRecord<T extends JsonRecord | undefined>(value: T): T {
   return { ...value } as T;
 }
 
-export function resolveLegacyXSearchConfig(config?: OpenClawConfig): JsonRecord | undefined {
+export function resolveLegacyXSearchConfig(config?: GenesisConfig): JsonRecord | undefined {
   const web = config?.tools?.web as Record<string, unknown> | undefined;
   const xSearch = web?.x_search;
   return isRecord(xSearch) ? cloneRecord(xSearch) : undefined;
 }
 
-export function resolvePluginXSearchConfig(config?: OpenClawConfig): JsonRecord | undefined {
+export function resolvePluginXSearchConfig(config?: GenesisConfig): JsonRecord | undefined {
   const pluginConfig = config?.plugins?.entries?.xai?.config;
   if (!isRecord(pluginConfig?.xSearch)) {
     return undefined;
@@ -24,7 +24,7 @@ export function resolvePluginXSearchConfig(config?: OpenClawConfig): JsonRecord 
   return cloneRecord(pluginConfig.xSearch);
 }
 
-export function resolveEffectiveXSearchConfig(config?: OpenClawConfig): JsonRecord | undefined {
+export function resolveEffectiveXSearchConfig(config?: GenesisConfig): JsonRecord | undefined {
   const legacy = resolveLegacyXSearchConfig(config);
   const pluginOwned = resolvePluginXSearchConfig(config);
   if (!legacy) {
@@ -40,7 +40,7 @@ export function resolveEffectiveXSearchConfig(config?: OpenClawConfig): JsonReco
 }
 
 export function setPluginXSearchConfigValue(
-  configTarget: OpenClawConfig,
+  configTarget: GenesisConfig,
   key: string,
   value: unknown,
 ): void {

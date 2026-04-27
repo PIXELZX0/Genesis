@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/whatsapp",
+  "name": "@genesis/whatsapp",
   "version": "2026.4.20",
-  "description": "OpenClaw WhatsApp channel plugin",
+  "description": "Genesis WhatsApp channel plugin",
   "type": "module",
   "dependencies": {
     "@whiskeysockets/baileys": "7.0.0-rc.9",
@@ -10,18 +10,18 @@
     "undici": "8.1.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.24"
+    "genesis": ">=2026.4.24"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -51,7 +51,7 @@
       ]
     },
     "install": {
-      "npmSpec": "@openclaw/whatsapp",
+      "npmSpec": "@genesis/whatsapp",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.24"
     },
@@ -62,7 +62,7 @@
       "stageRuntimeDependencies": true
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "release": {
       "publishToClawHub": true,

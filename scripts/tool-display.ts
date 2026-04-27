@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const outputPath = path.join(
   repoRoot,
-  "apps/shared/OpenClawKit/Sources/OpenClawKit/Resources/tool-display.json",
+  "apps/shared/GenesisKit/Sources/GenesisKit/Resources/tool-display.json",
 );
 const toolSources = [
   path.join(repoRoot, "src/agents/apply-patch.ts"),

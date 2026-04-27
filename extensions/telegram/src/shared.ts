@@ -1,14 +1,14 @@
-import { resolveNormalizedAccountEntry } from "openclaw/plugin-sdk/account-core";
-import { normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import { formatAllowFromLowercase } from "openclaw/plugin-sdk/allow-from";
+import { resolveNormalizedAccountEntry } from "genesis/plugin-sdk/account-core";
+import { normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import { formatAllowFromLowercase } from "genesis/plugin-sdk/allow-from";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
-import { createChannelPluginBase, type ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { getChatChannelMeta } from "openclaw/plugin-sdk/channel-plugin-common";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/channel-config-helpers";
+import { createChannelPluginBase, type ChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { getChatChannelMeta } from "genesis/plugin-sdk/channel-plugin-common";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/routing";
 import { inspectTelegramAccount } from "./account-inspect.js";
 import {
   listTelegramAccountIds,
@@ -33,7 +33,7 @@ import { namedAccountPromotionKeys, singleAccountKeysToMove } from "./setup-cont
 export const TELEGRAM_CHANNEL = "telegram" as const;
 
 export function findTelegramTokenOwnerAccountId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
 }): string | null {
   const normalizedAccountId = normalizeAccountId(params.accountId);
@@ -78,9 +78,9 @@ export function formatDuplicateTelegramTokenReason(params: {
  *   2. The config has an explicit `accounts` section with entries, AND
  *   3. The accountId is not found in that `accounts` section.
  *
- * See: https://github.com/openclaw/openclaw/issues/53876
+ * See: https://github.com/PIXELZX0/Genesis/issues/53876
  */
-function isBlockedByMultiBotGuard(cfg: OpenClawConfig, accountId: string): boolean {
+function isBlockedByMultiBotGuard(cfg: GenesisConfig, accountId: string): boolean {
   if (normalizeAccountId(accountId) === DEFAULT_ACCOUNT_ID) {
     return false;
   }
@@ -169,7 +169,7 @@ export function createTelegramPluginBase(params: {
         // channel-level fallback paths not available in resolveTelegramAccount.
         // This ensures binding-created accountIds that inherit the channel-level
         // token are correctly detected as configured.
-        // See: https://github.com/openclaw/openclaw/issues/53876
+        // See: https://github.com/PIXELZX0/Genesis/issues/53876
         if (isBlockedByMultiBotGuard(cfg, account.accountId)) {
           return false;
         }

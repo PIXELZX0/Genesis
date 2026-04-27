@@ -1,9 +1,9 @@
 import { collectUniqueCommandDescriptors } from "../cli/program/command-descriptor-utils.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveManifestActivationPluginIds } from "./activation-planner.js";
 import { createPluginCliGatewayNodesRuntime } from "./cli-gateway-nodes-runtime.js";
 import type { PluginLoadOptions } from "./loader.js";
-import { loadOpenClawPluginCliRegistry, loadOpenClawPlugins } from "./loader.js";
+import { loadGenesisPluginCliRegistry, loadGenesisPlugins } from "./loader.js";
 import type { PluginRegistry } from "./registry.js";
 import {
   buildPluginRuntimeLoadOptions,
@@ -12,15 +12,15 @@ import {
   type PluginRuntimeLoadContext,
 } from "./runtime/load-context.js";
 import type {
-  OpenClawPluginCliCommandDescriptor,
-  OpenClawPluginCliContext,
+  GenesisPluginCliCommandDescriptor,
+  GenesisPluginCliContext,
   PluginLogger,
 } from "./types.js";
 
 export type PluginCliLoaderOptions = Pick<PluginLoadOptions, "pluginSdkResolution">;
 
 export type PluginCliPublicLoadParams = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   loaderOptions?: PluginCliLoaderOptions;
   logger?: PluginLogger;
@@ -35,9 +35,9 @@ export type PluginCliRegistryLoadResult = PluginCliLoadContext & {
 
 export type PluginCliCommandGroupEntry = {
   pluginId: string;
-  placeholders: readonly OpenClawPluginCliCommandDescriptor[];
+  placeholders: readonly GenesisPluginCliCommandDescriptor[];
   names: readonly string[];
-  register: (program: OpenClawPluginCliContext["program"]) => Promise<void>;
+  register: (program: GenesisPluginCliContext["program"]) => Promise<void>;
 };
 
 export function createPluginCliLogger(): PluginLogger {
@@ -80,7 +80,7 @@ function resolvePrimaryCommandPluginIds(
 }
 
 export function resolvePluginCliLoadContext(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   logger: PluginLogger;
 }): PluginCliLoadContext {
@@ -98,7 +98,7 @@ export async function loadPluginCliMetadataRegistryWithContext(
 ): Promise<PluginCliRegistryLoadResult> {
   return {
     ...context,
-    registry: await loadOpenClawPluginCliRegistry(
+    registry: await loadGenesisPluginCliRegistry(
       buildPluginCliLoaderParams(context, params, loaderOptions),
     ),
   };
@@ -112,7 +112,7 @@ export async function loadPluginCliCommandRegistryWithContext(params: {
   const onlyPluginIds = resolvePrimaryCommandPluginIds(params.context, params.primaryCommand);
   return {
     ...params.context,
-    registry: loadOpenClawPlugins(
+    registry: loadGenesisPlugins(
       buildPluginRuntimeLoadOptions(params.context, {
         ...params.loaderOptions,
         ...(onlyPluginIds.length > 0 ? { onlyPluginIds } : {}),
@@ -128,7 +128,7 @@ export async function loadPluginCliCommandRegistryWithContext(params: {
 
 function buildPluginCliCommandGroupEntries(params: {
   registry: PluginRegistry;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   workspaceDir: string | undefined;
   logger: PluginLogger;
 }): PluginCliCommandGroupEntry[] {
@@ -149,7 +149,7 @@ function buildPluginCliCommandGroupEntries(params: {
 
 export async function loadPluginCliDescriptors(
   params: PluginCliPublicLoadParams,
-): Promise<OpenClawPluginCliCommandDescriptor[]> {
+): Promise<GenesisPluginCliCommandDescriptor[]> {
   try {
     const logger = resolvePluginCliLogger(params.logger);
     const context = resolvePluginCliLoadContext({
@@ -171,7 +171,7 @@ export async function loadPluginCliDescriptors(
 }
 
 export async function loadPluginCliRegistrationEntries(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   loaderOptions?: PluginCliLoaderOptions;
   logger?: PluginLogger;

@@ -27,7 +27,7 @@ afterEach(async () => {
 });
 
 function createContext(overrides: Partial<CallManagerContext> = {}): CallManagerContext {
-  const storePath = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-voice-call-events-test-"));
+  const storePath = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-voice-call-events-test-"));
   const ctx: CallManagerContext = {
     activeCalls: new Map(),
     providerCallIdMap: new Map(),

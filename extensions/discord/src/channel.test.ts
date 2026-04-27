@@ -4,7 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { PluginRuntime } from "../../../src/plugins/runtime/types.js";
 import { createStartAccountContext } from "../../../test/helpers/plugins/start-account-context.js";
 import type { ResolvedDiscordAccount } from "./accounts.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import * as sendModule from "./send.js";
 import { EMPTY_DISCORD_TEST_CONFIG } from "./test-support/config.js";
 let discordPlugin: typeof import("./channel.js").discordPlugin;
@@ -18,9 +18,9 @@ const collectDiscordAuditChannelIdsMock = vi.hoisted(() =>
 );
 const sleepWithAbortMock = vi.hoisted(() => vi.fn(async () => undefined));
 
-vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/runtime-env")>(
-    "openclaw/plugin-sdk/runtime-env",
+vi.mock("genesis/plugin-sdk/runtime-env", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/runtime-env")>(
+    "genesis/plugin-sdk/runtime-env",
   );
   return {
     ...actual,
@@ -47,7 +47,7 @@ vi.mock("./audit.js", () => {
   };
 });
 
-function createCfg(): OpenClawConfig {
+function createCfg(): GenesisConfig {
   return {
     channels: {
       discord: {
@@ -55,14 +55,14 @@ function createCfg(): OpenClawConfig {
         token: "discord-token",
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
-function resolveAccount(cfg: OpenClawConfig, accountId = "default"): ResolvedDiscordAccount {
+function resolveAccount(cfg: GenesisConfig, accountId = "default"): ResolvedDiscordAccount {
   return discordPlugin.config.resolveAccount(cfg, accountId);
 }
 
-function startDiscordAccount(cfg: OpenClawConfig, accountId = "default") {
+function startDiscordAccount(cfg: GenesisConfig, accountId = "default") {
   return discordPlugin.gateway!.startAccount!(
     createStartAccountContext({
       account: resolveAccount(cfg, accountId),
@@ -138,7 +138,7 @@ describe("discordPlugin outbound", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(resolveReplyToMode({ cfg, accountId: "work" })).toBe("first");
     expect(resolveReplyToMode({ cfg, accountId: "default" })).toBe("all");
@@ -375,7 +375,7 @@ describe("discordPlugin outbound", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     // First account (index 0) — no delay
     await startDiscordAccount(cfg, "alpha");
@@ -453,7 +453,7 @@ describe("discordPlugin security", () => {
           dm: { policy: "allowlist", allowFrom: ["  discord:<@!123456789>  "] },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const result = resolveDmPolicy({
       cfg,
@@ -490,7 +490,7 @@ describe("discordPlugin groups", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(
       discordPlugin.groups?.resolveRequireMention?.({

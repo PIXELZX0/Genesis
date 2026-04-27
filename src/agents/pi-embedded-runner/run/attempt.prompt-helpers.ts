@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import type {
   ContextEnginePromptCacheInfo,
   ContextEngineRuntimeContext,
@@ -97,7 +97,7 @@ export function resolvePromptModeForSession(sessionKey?: string): "minimal" | "f
 }
 
 export function shouldInjectHeartbeatPrompt(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   defaultAgentId?: string;
   isDefaultAgent: boolean;
@@ -332,7 +332,7 @@ export function mergeOrphanedTrailingUserPrompt(params: {
 }
 
 export function resolveAttemptFsWorkspaceOnly(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   sessionAgentId: string;
 }): boolean {
   return resolveEffectiveToolFsWorkspaceOnly({

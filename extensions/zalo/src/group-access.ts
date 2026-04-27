@@ -1,10 +1,10 @@
-import { isNormalizedSenderAllowed } from "openclaw/plugin-sdk/allow-from";
+import { isNormalizedSenderAllowed } from "genesis/plugin-sdk/allow-from";
 import {
   evaluateSenderGroupAccess,
   resolveOpenProviderRuntimeGroupPolicy,
   type GroupPolicy,
   type SenderGroupAccessDecision,
-} from "openclaw/plugin-sdk/group-access";
+} from "genesis/plugin-sdk/group-access";
 
 const ZALO_ALLOW_FROM_PREFIX_RE = /^(zalo|zl):/i;
 

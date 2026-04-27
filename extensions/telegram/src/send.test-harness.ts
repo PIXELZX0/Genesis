@@ -1,11 +1,11 @@
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
+import { resolveMarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
 import {
   buildOutboundMediaLoadOptions,
   isGifMedia,
   kindFromMime,
   normalizePollInput,
-} from "openclaw/plugin-sdk/media-runtime";
-import type { MockFn } from "openclaw/plugin-sdk/testing";
+} from "genesis/plugin-sdk/media-runtime";
+import type { MockFn } from "genesis/plugin-sdk/testing";
 import { beforeEach, vi } from "vitest";
 
 const { botApi, botCtorSpy } = vi.hoisted(() => ({
@@ -45,7 +45,7 @@ const { imageMetadata } = vi.hoisted(() => ({
 const { loadConfig, resolveStorePath } = vi.hoisted(() => ({
   loadConfig: vi.fn(() => ({})),
   resolveStorePath: vi.fn(
-    (storePath?: string) => storePath ?? "/tmp/openclaw-telegram-send-tests.json",
+    (storePath?: string) => storePath ?? "/tmp/genesis-telegram-send-tests.json",
   ),
 }));
 
@@ -92,7 +92,7 @@ type TelegramSendTestMocks = {
   imageMetadata: { width: number | undefined; height: number | undefined };
 };
 
-vi.mock("openclaw/plugin-sdk/web-media", () => ({
+vi.mock("genesis/plugin-sdk/web-media", () => ({
   loadWebMedia,
 }));
 
@@ -135,9 +135,9 @@ vi.mock("undici", () => ({
   setGlobalDispatcher: undiciSetGlobalDispatcher,
 }));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -177,7 +177,7 @@ export function getTelegramSendTestMocks(): TelegramSendTestMocks {
 export function installTelegramSendTestHooks() {
   beforeEach(() => {
     loadConfig.mockReturnValue({});
-    resolveStorePath.mockReturnValue("/tmp/openclaw-telegram-send-tests.json");
+    resolveStorePath.mockReturnValue("/tmp/genesis-telegram-send-tests.json");
     loadWebMedia.mockReset();
     imageMetadata.width = 1200;
     imageMetadata.height = 800;

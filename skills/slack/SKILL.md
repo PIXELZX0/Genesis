@@ -1,14 +1,14 @@
 ---
 name: slack
 description: Use the Slack tool to react, pin/unpin, send, edit, delete messages, or fetch Slack member info.
-metadata: { "openclaw": { "emoji": "💬", "requires": { "config": ["channels.slack"] } } }
+metadata: { "genesis": { "emoji": "💬", "requires": { "config": ["channels.slack"] } } }
 ---
 
 # Slack Actions
 
 ## Overview
 
-Use `slack` to react, manage pins, send/edit/delete messages, and fetch member info. The tool uses the bot token configured for OpenClaw.
+Use `slack` to react, manage pins, send/edit/delete messages, and fetch member info. The tool uses the bot token configured for Genesis.
 
 ## Inputs to collect
 
@@ -57,7 +57,7 @@ Message context lines include `slack message id` and `channel` fields you can re
 {
   "action": "sendMessage",
   "to": "channel:C123",
-  "content": "Hello from OpenClaw"
+  "content": "Hello from Genesis"
 }
 ```
 

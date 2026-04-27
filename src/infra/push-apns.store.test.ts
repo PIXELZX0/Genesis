@@ -13,7 +13,7 @@ import {
 const tempDirs = createTrackedTempDirs();
 
 async function makeTempDir(): Promise<string> {
-  return await tempDirs.make("openclaw-push-apns-store-test-");
+  return await tempDirs.make("genesis-push-apns-store-test-");
 }
 
 afterEach(async () => {
@@ -26,7 +26,7 @@ describe("push APNs registration store", () => {
     const saved = await registerApnsToken({
       nodeId: "ios-node-1",
       token: "ABCD1234ABCD1234ABCD1234ABCD1234",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "sandbox",
       baseDir,
     });
@@ -35,7 +35,7 @@ describe("push APNs registration store", () => {
     expect(loaded).toMatchObject({
       nodeId: "ios-node-1",
       transport: "direct",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "sandbox",
       updatedAtMs: saved.updatedAtMs,
     });
@@ -52,7 +52,7 @@ describe("push APNs registration store", () => {
       relayHandle: "relay-handle-123",
       sendGrant: "send-grant-123",
       installationId: "install-123",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "production",
       distribution: "official",
       tokenDebugSuffix: " abcd-1234 ",
@@ -67,7 +67,7 @@ describe("push APNs registration store", () => {
       relayHandle: "relay-handle-123",
       sendGrant: "send-grant-123",
       installationId: "install-123",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "production",
       distribution: "official",
       tokenDebugSuffix: "abcd1234",
@@ -87,14 +87,14 @@ describe("push APNs registration store", () => {
             " ios-node-legacy ": {
               nodeId: " ios-node-legacy ",
               token: "<ABCD1234ABCD1234ABCD1234ABCD1234>",
-              topic: " ai.openclaw.ios ",
+              topic: " ai.genesis.ios ",
               environment: " PRODUCTION ",
               updatedAtMs: 3,
             },
             "   ": {
               nodeId: " ios-node-fallback ",
               token: "<ABCD1234ABCD1234ABCD1234ABCD1234>",
-              topic: " ai.openclaw.ios ",
+              topic: " ai.genesis.ios ",
               updatedAtMs: 2,
             },
             "ios-node-bad-relay": {
@@ -103,7 +103,7 @@ describe("push APNs registration store", () => {
               relayHandle: "relay-handle-123",
               sendGrant: "send-grant-123",
               installationId: "install-123",
-              topic: "ai.openclaw.ios",
+              topic: "ai.genesis.ios",
               environment: "production",
               distribution: "beta",
               updatedAtMs: 1,
@@ -120,14 +120,14 @@ describe("push APNs registration store", () => {
       nodeId: "ios-node-legacy",
       transport: "direct",
       token: "abcd1234abcd1234abcd1234abcd1234",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "production",
       updatedAtMs: 3,
     });
     await expect(loadApnsRegistration("ios-node-fallback", baseDir)).resolves.toMatchObject({
       nodeId: "ios-node-fallback",
       transport: "direct",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       environment: "sandbox",
       updatedAtMs: 2,
     });
@@ -154,7 +154,7 @@ describe("push APNs registration store", () => {
       registerApnsToken({
         nodeId: "ios-node-1",
         token: "not-a-token",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         baseDir,
       }),
     ).rejects.toThrow("invalid APNs token");
@@ -162,7 +162,7 @@ describe("push APNs registration store", () => {
       registerApnsToken({
         nodeId: "n".repeat(257),
         token: "ABCD1234ABCD1234ABCD1234ABCD1234",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         baseDir,
       }),
     ).rejects.toThrow("nodeId required");
@@ -170,7 +170,7 @@ describe("push APNs registration store", () => {
       registerApnsToken({
         nodeId: "ios-node-1",
         token: "A".repeat(513),
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         baseDir,
       }),
     ).rejects.toThrow("invalid APNs token");
@@ -189,7 +189,7 @@ describe("push APNs registration store", () => {
         relayHandle: "relay-handle-123",
         sendGrant: "send-grant-123",
         installationId: "install-123",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "staging",
         distribution: "official",
         baseDir,
@@ -202,7 +202,7 @@ describe("push APNs registration store", () => {
         relayHandle: "relay-handle-123",
         sendGrant: "send-grant-123",
         installationId: "install-123",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "production",
         distribution: "beta",
         baseDir,
@@ -215,7 +215,7 @@ describe("push APNs registration store", () => {
         relayHandle: oversized,
         sendGrant: "send-grant-123",
         installationId: "install-123",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "production",
         distribution: "official",
         baseDir,
@@ -228,7 +228,7 @@ describe("push APNs registration store", () => {
         relayHandle: "relay-handle-123",
         sendGrant: "send-grant-123",
         installationId: oversized,
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "production",
         distribution: "official",
         baseDir,
@@ -241,7 +241,7 @@ describe("push APNs registration store", () => {
         relayHandle: "relay-handle-123",
         sendGrant: "x".repeat(1025),
         installationId: "install-123",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "production",
         distribution: "official",
         baseDir,
@@ -254,7 +254,7 @@ describe("push APNs registration store", () => {
     await registerApnsToken({
       nodeId: "ios-node-1",
       token: "ABCD1234ABCD1234ABCD1234ABCD1234",
-      topic: "ai.openclaw.ios",
+      topic: "ai.genesis.ios",
       baseDir,
     });
 
@@ -272,7 +272,7 @@ describe("push APNs registration store", () => {
       const stale = await registerApnsToken({
         nodeId: "ios-node-1",
         token: "ABCD1234ABCD1234ABCD1234ABCD1234",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "sandbox",
         baseDir,
       });
@@ -281,7 +281,7 @@ describe("push APNs registration store", () => {
       const fresh = await registerApnsToken({
         nodeId: "ios-node-1",
         token: "ABCD1234ABCD1234ABCD1234ABCD1234",
-        topic: "ai.openclaw.ios",
+        topic: "ai.genesis.ios",
         environment: "sandbox",
         baseDir,
       });

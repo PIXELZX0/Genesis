@@ -8,7 +8,7 @@ import {
   expectedForwardedAuthProfile,
 } from "../../test/helpers/agents/auth-profile-runtime-contract.js";
 import type { SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type * as ManifestRegistryModule from "../plugins/manifest-registry.js";
 import { runAgentAttempt } from "./command/attempt-execution.js";
 import type { EmbeddedPiRunResult } from "./pi-embedded.js";
@@ -114,10 +114,10 @@ async function runAuthContractAttempt(params: {
   providerOverride: string;
   authProfileProvider: string;
   authProfileOverride: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   sessionHasHistory?: boolean;
 }) {
-  const cfg = params.cfg ?? ({} as OpenClawConfig);
+  const cfg = params.cfg ?? ({} as GenesisConfig);
   const sessionEntry: SessionEntry = {
     sessionId: AUTH_PROFILE_RUNTIME_CONTRACT.sessionId,
     updatedAt: Date.now(),
@@ -171,7 +171,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
   let storePath: string;
 
   beforeEach(async () => {
-    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-contract-"));
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-auth-contract-"));
     storePath = path.join(tmpDir, "sessions.json");
     loadPluginManifestRegistry.mockReset().mockReturnValue(createAuthAliasManifestRegistry());
     runCliAgentMock.mockReset();
@@ -203,7 +203,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
     (provider, expectedAuthProvider) => {
       expect(
         resolveProviderIdForAuth(provider, {
-          config: {} as OpenClawConfig,
+          config: {} as GenesisConfig,
           workspaceDir: tmpDir,
         }),
       ).toBe(expectedAuthProvider);
@@ -289,7 +289,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             embeddedHarness: { runtime: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(runCliAgentMock).toHaveBeenCalledTimes(1);
@@ -372,7 +372,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             embeddedHarness: { runtime: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
@@ -395,7 +395,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             embeddedHarness: { runtime: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
@@ -422,7 +422,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             },
           ],
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);

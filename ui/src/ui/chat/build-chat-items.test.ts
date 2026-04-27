@@ -74,7 +74,7 @@ describe("buildChatItems", () => {
             view: {
               backend: "canvas",
               id: "cv_nearest_turn",
-              url: "/__openclaw__/canvas/documents/cv_nearest_turn/index.html",
+              url: "/__genesis__/canvas/documents/cv_nearest_turn/index.html",
               title: "Nearest turn demo",
               preferred_height: 320,
             },
@@ -116,7 +116,7 @@ describe("buildChatItems", () => {
               view: {
                 backend: "canvas",
                 id: "cv_generic_inline",
-                url: "/__openclaw__/canvas/documents/cv_generic_inline/index.html",
+                url: "/__genesis__/canvas/documents/cv_generic_inline/index.html",
                 title: "Inline generic preview",
                 preferred_height: 420,
               },
@@ -160,7 +160,7 @@ describe("buildChatItems", () => {
                 view: {
                   backend: "canvas",
                   id: "cv_streamed_artifact",
-                  url: "/__openclaw__/canvas/documents/cv_streamed_artifact/index.html",
+                  url: "/__genesis__/canvas/documents/cv_streamed_artifact/index.html",
                   title: "Streamed demo",
                   preferred_height: 320,
                 },

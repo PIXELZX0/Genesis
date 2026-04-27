@@ -1,13 +1,13 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   applyAuthProfileConfig,
   validateAnthropicSetupToken,
-} from "openclaw/plugin-sdk/provider-auth";
+} from "genesis/plugin-sdk/provider-auth";
 import { resolveQaAgentAuthDir, writeQaAuthProfiles } from "../shared/auth-store.js";
 
-export const QA_LIVE_ANTHROPIC_SETUP_TOKEN_ENV = "OPENCLAW_QA_LIVE_ANTHROPIC_SETUP_TOKEN";
-export const QA_LIVE_SETUP_TOKEN_VALUE_ENV = "OPENCLAW_LIVE_SETUP_TOKEN_VALUE";
-const QA_LIVE_ANTHROPIC_SETUP_TOKEN_PROFILE_ENV = "OPENCLAW_QA_LIVE_ANTHROPIC_SETUP_TOKEN_PROFILE";
+export const QA_LIVE_ANTHROPIC_SETUP_TOKEN_ENV = "GENESIS_QA_LIVE_ANTHROPIC_SETUP_TOKEN";
+export const QA_LIVE_SETUP_TOKEN_VALUE_ENV = "GENESIS_LIVE_SETUP_TOKEN_VALUE";
+const QA_LIVE_ANTHROPIC_SETUP_TOKEN_PROFILE_ENV = "GENESIS_QA_LIVE_ANTHROPIC_SETUP_TOKEN_PROFILE";
 const QA_LIVE_ANTHROPIC_SETUP_TOKEN_PROFILE_ID = "anthropic:qa-setup-token";
 
 function resolveQaLiveAnthropicSetupToken(env: NodeJS.ProcessEnv = process.env) {
@@ -30,10 +30,10 @@ function resolveQaLiveAnthropicSetupToken(env: NodeJS.ProcessEnv = process.env) 
 }
 
 export async function stageQaLiveAnthropicSetupToken(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   stateDir: string;
   env?: NodeJS.ProcessEnv;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   const resolved = resolveQaLiveAnthropicSetupToken(params.env);
   if (!resolved) {
     return params.cfg;

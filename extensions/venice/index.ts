@@ -1,6 +1,6 @@
-import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
-import { applyXaiModelCompat } from "openclaw/plugin-sdk/provider-tools";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { defineSingleProviderPluginEntry } from "genesis/plugin-sdk/provider-entry";
+import { applyXaiModelCompat } from "genesis/plugin-sdk/provider-tools";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { applyVeniceConfig, VENICE_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildVeniceProvider } from "./provider-catalog.js";
 

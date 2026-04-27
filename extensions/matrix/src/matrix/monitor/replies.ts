@@ -1,8 +1,8 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/string-coerce-runtime";
 import { getMatrixRuntime } from "../../runtime.js";
 import type { MatrixClient } from "../sdk.js";
 import { chunkMatrixText, sendMessageMatrix } from "../send.js";
-import type { MarkdownTableMode, OpenClawConfig, ReplyPayload, RuntimeEnv } from "./runtime-api.js";
+import type { MarkdownTableMode, GenesisConfig, ReplyPayload, RuntimeEnv } from "./runtime-api.js";
 
 const THINKING_TAG_RE = /<\s*\/?\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>/gi;
 const THINKING_BLOCK_RE =
@@ -30,7 +30,7 @@ function shouldSuppressReasoningReplyText(text?: string): boolean {
 }
 
 export async function deliverMatrixReplies(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   replies: ReplyPayload[];
   roomId: string;
   client: MatrixClient;

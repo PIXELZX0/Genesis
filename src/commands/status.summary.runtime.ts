@@ -4,7 +4,7 @@ import { parseModelRef, resolvePersistedSelectedModelRef } from "../agents/model
 import { normalizeProviderId } from "../agents/provider-id.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -12,7 +12,7 @@ import {
 } from "../shared/string-coerce.js";
 
 function resolveStatusModelRefFromRaw(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   rawModel: string;
   defaultProvider: string;
 }): { provider: string; model: string } | null {
@@ -44,7 +44,7 @@ function resolveStatusModelRefFromRaw(params: {
 }
 
 function resolveConfiguredStatusModelRef(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   defaultProvider: string;
   defaultModel: string;
   agentId?: string;
@@ -89,7 +89,7 @@ function resolveConfiguredStatusModelRef(params: {
 }
 
 function resolveConfiguredProviderContextTokens(
-  cfg: OpenClawConfig | undefined,
+  cfg: GenesisConfig | undefined,
   provider: string,
   model: string,
 ): number | undefined {
@@ -139,7 +139,7 @@ function classifySessionKey(key: string, entry?: SessionEntry) {
 }
 
 function resolveSessionModelRef(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   entry?:
     | SessionEntry
     | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">,
@@ -164,7 +164,7 @@ function resolveSessionModelRef(
 }
 
 function resolveContextTokensForModel(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   provider?: string;
   model?: string;
   contextTokensOverride?: number;

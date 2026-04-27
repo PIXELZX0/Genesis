@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "./registry.js";
-import type { OpenClawPluginService, OpenClawPluginServiceContext } from "./types.js";
+import type { GenesisPluginService, GenesisPluginServiceContext } from "./types.js";
 
 const mockedLogger = vi.hoisted(() => ({
   info: vi.fn<(msg: string) => void>(),
@@ -17,7 +17,7 @@ vi.mock("../logging/subsystem.js", () => ({
 import { STATE_DIR } from "../config/paths.js";
 import { startPluginServices } from "./services.js";
 
-function createRegistry(services: OpenClawPluginService[]) {
+function createRegistry(services: GenesisPluginService[]) {
   const registry = createEmptyPluginRegistry();
   registry.services = services.map((service) => ({
     pluginId: "plugin:test",
@@ -33,7 +33,7 @@ function createServiceConfig() {
 }
 
 function expectServiceContext(
-  ctx: OpenClawPluginServiceContext,
+  ctx: GenesisPluginServiceContext,
   config: Parameters<typeof startPluginServices>[0]["config"],
 ) {
   expect(ctx.config).toBe(config);
@@ -42,7 +42,7 @@ function expectServiceContext(
   expectServiceLogger(ctx);
 }
 
-function expectServiceLogger(ctx: OpenClawPluginServiceContext) {
+function expectServiceLogger(ctx: GenesisPluginServiceContext) {
   expect(ctx.logger).toBeDefined();
   expect(typeof ctx.logger.info).toBe("function");
   expect(typeof ctx.logger.warn).toBe("function");
@@ -50,7 +50,7 @@ function expectServiceLogger(ctx: OpenClawPluginServiceContext) {
 }
 
 function expectServiceContexts(
-  contexts: OpenClawPluginServiceContext[],
+  contexts: GenesisPluginServiceContext[],
   config: Parameters<typeof startPluginServices>[0]["config"],
 ) {
   expect(contexts).not.toHaveLength(0);
@@ -62,7 +62,7 @@ function expectServiceContexts(
 function expectServiceLifecycleState(params: {
   starts: string[];
   stops: string[];
-  contexts: OpenClawPluginServiceContext[];
+  contexts: GenesisPluginServiceContext[];
   config: Parameters<typeof startPluginServices>[0]["config"];
 }) {
   expect(params.starts).toEqual(["a", "b", "c"]);
@@ -72,7 +72,7 @@ function expectServiceLifecycleState(params: {
 }
 
 async function startTrackingServices(params: {
-  services: OpenClawPluginService[];
+  services: GenesisPluginService[];
   config?: Parameters<typeof startPluginServices>[0]["config"];
   workspaceDir?: string;
 }) {
@@ -88,12 +88,12 @@ function createTrackingService(
   params: {
     starts?: string[];
     stops?: string[];
-    contexts?: OpenClawPluginServiceContext[];
+    contexts?: GenesisPluginServiceContext[];
     failOnStart?: boolean;
     failOnStop?: boolean;
     stopSpy?: () => void;
   } = {},
-): OpenClawPluginService {
+): GenesisPluginService {
   return {
     id,
     start: (ctx) => {
@@ -126,7 +126,7 @@ describe("startPluginServices", () => {
   it("starts services and stops them in reverse order", async () => {
     const starts: string[] = [];
     const stops: string[] = [];
-    const contexts: OpenClawPluginServiceContext[] = [];
+    const contexts: GenesisPluginServiceContext[] = [];
 
     const config = createServiceConfig();
     const handle = await startTrackingServices({

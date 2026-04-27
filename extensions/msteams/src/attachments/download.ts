@@ -1,7 +1,7 @@
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { getMSTeamsRuntime } from "../runtime.js";
 import { downloadAndStoreMSTeamsRemoteMedia } from "./remote-media.js";
 import {

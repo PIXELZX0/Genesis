@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeStringEntries } from "../shared/string-normalization.js";
 import { isRecord } from "../utils.js";
 import { projectSafeChannelAccountSnapshotFields } from "./account-snapshot-fields.js";
@@ -8,7 +8,7 @@ import type { ChannelPlugin } from "./plugins/types.plugin.js";
 export function buildChannelAccountSnapshot(params: {
   plugin: ChannelPlugin;
   account: unknown;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   enabled: boolean;
   configured: boolean;
@@ -25,7 +25,7 @@ export function buildChannelAccountSnapshot(params: {
 
 export function formatChannelAllowFrom(params: {
   plugin: ChannelPlugin;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   allowFrom: Array<string | number>;
 }): string[] {
@@ -42,7 +42,7 @@ export function formatChannelAllowFrom(params: {
 export function resolveChannelAccountEnabled(params: {
   plugin: ChannelPlugin;
   account: unknown;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 }): boolean {
   if (params.plugin.config.isEnabled) {
     return params.plugin.config.isEnabled(params.account, params.cfg);
@@ -54,7 +54,7 @@ export function resolveChannelAccountEnabled(params: {
 export async function resolveChannelAccountConfigured(params: {
   plugin: ChannelPlugin;
   account: unknown;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   readAccountConfiguredField?: boolean;
 }): Promise<boolean> {
   if (params.plugin.config.isConfigured) {

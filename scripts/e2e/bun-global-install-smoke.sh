@@ -3,10 +3,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUN_BIN="${BUN_BIN:-bun}"
-HOST_BUILD="${OPENCLAW_BUN_GLOBAL_SMOKE_HOST_BUILD:-1}"
-DIST_IMAGE="${OPENCLAW_BUN_GLOBAL_SMOKE_DIST_IMAGE:-}"
-PACKAGE_TGZ="${OPENCLAW_BUN_GLOBAL_SMOKE_PACKAGE_TGZ:-}"
-COMMAND_TIMEOUT_MS="${OPENCLAW_BUN_GLOBAL_SMOKE_TIMEOUT_MS:-180000}"
+HOST_BUILD="${GENESIS_BUN_GLOBAL_SMOKE_HOST_BUILD:-1}"
+DIST_IMAGE="${GENESIS_BUN_GLOBAL_SMOKE_DIST_IMAGE:-}"
+PACKAGE_TGZ="${GENESIS_BUN_GLOBAL_SMOKE_PACKAGE_TGZ:-}"
+COMMAND_TIMEOUT_MS="${GENESIS_BUN_GLOBAL_SMOKE_TIMEOUT_MS:-180000}"
 SMOKE_DIR=""
 PACK_DIR=""
 
@@ -71,7 +71,7 @@ restore_dist_from_image() {
 resolve_package_tgz() {
   if [ -n "$PACKAGE_TGZ" ]; then
     if [ ! -f "$PACKAGE_TGZ" ]; then
-      echo "OPENCLAW_BUN_GLOBAL_SMOKE_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
+      echo "GENESIS_BUN_GLOBAL_SMOKE_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
       exit 1
     fi
     PACKAGE_TGZ="$(cd "$(dirname "$PACKAGE_TGZ")" && pwd)/$(basename "$PACKAGE_TGZ")"
@@ -84,11 +84,11 @@ resolve_package_tgz() {
     echo "==> Build host package artifacts"
     pnpm build
   else
-    echo "==> Skipping host build (OPENCLAW_BUN_GLOBAL_SMOKE_HOST_BUILD=0)"
+    echo "==> Skipping host build (GENESIS_BUN_GLOBAL_SMOKE_HOST_BUILD=0)"
   fi
 
   if [ ! -d "$ROOT_DIR/dist" ]; then
-    echo "dist/ is missing; run pnpm build or set OPENCLAW_BUN_GLOBAL_SMOKE_DIST_IMAGE" >&2
+    echo "dist/ is missing; run pnpm build or set GENESIS_BUN_GLOBAL_SMOKE_DIST_IMAGE" >&2
     exit 1
   fi
 
@@ -96,10 +96,10 @@ resolve_package_tgz() {
   node --import tsx scripts/write-package-dist-inventory.ts
 
   local pack_json_file
-  PACK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-bun-pack.XXXXXX")"
+  PACK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/genesis-bun-pack.XXXXXX")"
   pack_json_file="$PACK_DIR/pack.json"
 
-  echo "==> Pack OpenClaw tarball"
+  echo "==> Pack Genesis tarball"
   npm pack --ignore-scripts --json --pack-destination "$PACK_DIR" >"$pack_json_file"
   PACKAGE_TGZ="$(
     node -e '
@@ -113,7 +113,7 @@ process.stdout.write(require("node:path").resolve(process.argv[2], last.filename
 ' "$pack_json_file" "$PACK_DIR"
   )"
   if [ -z "$PACKAGE_TGZ" ] || [ ! -f "$PACKAGE_TGZ" ]; then
-    echo "missing packed OpenClaw tarball" >&2
+    echo "missing packed Genesis tarball" >&2
     exit 1
   fi
 }
@@ -129,15 +129,15 @@ main() {
   resolve_package_tgz
 
   local bun_path
-  local openclaw_bin
+  local genesis_bin
   bun_path="$(command -v "$BUN_BIN")"
-  SMOKE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-bun-global.XXXXXX")"
+  SMOKE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/genesis-bun-global.XXXXXX")"
 
   export HOME="$SMOKE_DIR/home"
   export BUN_INSTALL="$HOME/.bun"
   export XDG_CACHE_HOME="$SMOKE_DIR/cache"
-  export OPENCLAW_NO_ONBOARD=1
-  export OPENCLAW_DISABLE_UPDATE_CHECK=1
+  export GENESIS_NO_ONBOARD=1
+  export GENESIS_DISABLE_UPDATE_CHECK=1
   export NO_COLOR=1
   mkdir -p "$HOME" "$BUN_INSTALL/bin" "$XDG_CACHE_HOME"
   export PATH="$BUN_INSTALL/bin:$(dirname "$(command -v node)"):$PATH"
@@ -145,26 +145,26 @@ main() {
   echo "==> Bun version"
   "$bun_path" --version
 
-  echo "==> Bun global install packed OpenClaw"
+  echo "==> Bun global install packed Genesis"
   "$bun_path" install -g "$PACKAGE_TGZ" --no-progress
 
-  openclaw_bin="$BUN_INSTALL/bin/openclaw"
-  if [ ! -x "$openclaw_bin" ]; then
-    openclaw_bin="$(command -v openclaw || true)"
+  genesis_bin="$BUN_INSTALL/bin/genesis"
+  if [ ! -x "$genesis_bin" ]; then
+    genesis_bin="$(command -v genesis || true)"
   fi
-  if [ -z "$openclaw_bin" ] || [ ! -x "$openclaw_bin" ]; then
-    echo "Bun global install did not create an executable openclaw binary" >&2
+  if [ -z "$genesis_bin" ] || [ ! -x "$genesis_bin" ]; then
+    echo "Bun global install did not create an executable genesis binary" >&2
     exit 1
   fi
 
-  echo "==> OpenClaw version through Bun global install"
-  run_with_timeout "$COMMAND_TIMEOUT_MS" "$openclaw_bin" --version
+  echo "==> Genesis version through Bun global install"
+  run_with_timeout "$COMMAND_TIMEOUT_MS" "$genesis_bin" --version
 
-  echo "==> OpenClaw image providers through Bun global install"
+  echo "==> Genesis image providers through Bun global install"
   local providers_json
-  providers_json="$(run_with_timeout "$COMMAND_TIMEOUT_MS" "$openclaw_bin" infer image providers --json)"
-  OPENCLAW_IMAGE_PROVIDERS_JSON="$providers_json" node - <<'NODE'
-const raw = process.env.OPENCLAW_IMAGE_PROVIDERS_JSON ?? "";
+  providers_json="$(run_with_timeout "$COMMAND_TIMEOUT_MS" "$genesis_bin" infer image providers --json)"
+  GENESIS_IMAGE_PROVIDERS_JSON="$providers_json" node - <<'NODE'
+const raw = process.env.GENESIS_IMAGE_PROVIDERS_JSON ?? "";
 let parsed;
 try {
   parsed = JSON.parse(raw);

@@ -40,7 +40,7 @@ function normalizedLogHaystack(log: { message?: string; id?: string; importer?: 
 }
 
 function buildInputOptions(options: InputOptionsArg): InputOptionsReturn {
-  if (process.env.OPENCLAW_BUILD_VERBOSE === "1") {
+  if (process.env.GENESIS_BUILD_VERBOSE === "1") {
     return undefined;
   }
 
@@ -93,7 +93,7 @@ function nodeBuildConfig(config: UserConfig): UserConfig {
 
 const bundledPluginBuildEntries = collectBundledPluginBuildEntries();
 const bundledPluginRuntimeDependencies = listBundledPluginRuntimeDependencies();
-const shouldBuildPrivateQaEntries = process.env.OPENCLAW_BUILD_PRIVATE_QA === "1";
+const shouldBuildPrivateQaEntries = process.env.GENESIS_BUILD_PRIVATE_QA === "1";
 
 function buildBundledHookEntries(): Record<string, string> {
   const hooksRoot = path.join(process.cwd(), "src", "hooks", "bundled");
@@ -141,7 +141,7 @@ function shouldStageBundledPluginRuntimeDependencies(packageJson: unknown): bool
   return (
     typeof packageJson === "object" &&
     packageJson !== null &&
-    (packageJson as { openclaw?: { bundle?: { stageRuntimeDependencies?: boolean } } }).openclaw
+    (packageJson as { genesis?: { bundle?: { stageRuntimeDependencies?: boolean } } }).genesis
       ?.bundle?.stageRuntimeDependencies === true
   );
 }
@@ -173,10 +173,10 @@ function normalizeBundledPluginOutEntry(entry: string): string {
 
 function isPluginSdkSelfReference(id: string): boolean {
   return (
-    id === "openclaw/plugin-sdk" ||
-    id.startsWith("openclaw/plugin-sdk/") ||
-    id === "@openclaw/plugin-sdk" ||
-    id.startsWith("@openclaw/plugin-sdk/")
+    id === "genesis/plugin-sdk" ||
+    id.startsWith("genesis/plugin-sdk/") ||
+    id === "@genesis/plugin-sdk" ||
+    id.startsWith("@genesis/plugin-sdk/")
   );
 }
 

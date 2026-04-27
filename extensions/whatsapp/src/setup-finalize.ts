@@ -6,10 +6,10 @@ import {
   pathExists,
   splitSetupEntries,
   type DmPolicy,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/setup";
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
-import { formatCliCommand, formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/setup";
+import type { ChannelSetupWizard } from "genesis/plugin-sdk/setup";
+import { formatCliCommand, formatDocsLink } from "genesis/plugin-sdk/setup-tools";
 import {
   resolveDefaultWhatsAppAccountId,
   resolveWhatsAppAccount,
@@ -19,7 +19,7 @@ import { whatsappSetupAdapter } from "./setup-core.js";
 
 type SetupPrompter = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0]["prompter"];
 type SetupRuntime = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0]["runtime"];
-type WhatsAppConfig = NonNullable<NonNullable<OpenClawConfig["channels"]>["whatsapp"]>;
+type WhatsAppConfig = NonNullable<NonNullable<GenesisConfig["channels"]>["whatsapp"]>;
 type WhatsAppAccountConfig = NonNullable<NonNullable<WhatsAppConfig["accounts"]>[string]>;
 
 function trimPromptText(value: string | null | undefined): string {
@@ -30,7 +30,7 @@ function isDefaultWhatsAppAccountKey(accountId: string): boolean {
   return accountId.trim().toLowerCase() === DEFAULT_ACCOUNT_ID;
 }
 
-function shouldWriteDefaultWhatsAppAccountConfigAtAccountScope(cfg: OpenClawConfig): boolean {
+function shouldWriteDefaultWhatsAppAccountConfigAtAccountScope(cfg: GenesisConfig): boolean {
   const accounts = cfg.channels?.whatsapp?.accounts;
   if (!accounts) {
     return false;
@@ -41,7 +41,7 @@ function shouldWriteDefaultWhatsAppAccountConfigAtAccountScope(cfg: OpenClawConf
   return Object.keys(accounts).some((accountId) => !isDefaultWhatsAppAccountKey(accountId));
 }
 
-function resolveDefaultWhatsAppAccountWriteKey(cfg: OpenClawConfig): string {
+function resolveDefaultWhatsAppAccountWriteKey(cfg: GenesisConfig): string {
   const accounts = cfg.channels?.whatsapp?.accounts;
   if (!accounts) {
     return DEFAULT_ACCOUNT_ID;
@@ -50,7 +50,7 @@ function resolveDefaultWhatsAppAccountWriteKey(cfg: OpenClawConfig): string {
   return match ?? DEFAULT_ACCOUNT_ID;
 }
 
-function resolveWhatsAppConfigPathPrefix(cfg: OpenClawConfig, accountId: string): string {
+function resolveWhatsAppConfigPathPrefix(cfg: GenesisConfig, accountId: string): string {
   if (
     accountId === DEFAULT_ACCOUNT_ID &&
     shouldWriteDefaultWhatsAppAccountConfigAtAccountScope(cfg)
@@ -63,11 +63,11 @@ function resolveWhatsAppConfigPathPrefix(cfg: OpenClawConfig, accountId: string)
 }
 
 function mergeWhatsAppConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   patch: Partial<WhatsAppAccountConfig>,
   options?: { unsetOnUndefined?: string[] },
-): OpenClawConfig {
+): GenesisConfig {
   const channelConfig: WhatsAppConfig = { ...cfg.channels?.whatsapp };
   const mutableChannelConfig = channelConfig as Record<string, unknown>;
   const targetPathPrefix = resolveWhatsAppConfigPathPrefix(cfg, accountId);
@@ -129,31 +129,31 @@ function mergeWhatsAppConfig(
 }
 
 function setWhatsAppDmPolicy(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   dmPolicy: DmPolicy,
-): OpenClawConfig {
+): GenesisConfig {
   return mergeWhatsAppConfig(cfg, accountId, { dmPolicy });
 }
 
 function setWhatsAppAllowFrom(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   allowFrom?: string[],
-): OpenClawConfig {
+): GenesisConfig {
   return mergeWhatsAppConfig(cfg, accountId, { allowFrom }, { unsetOnUndefined: ["allowFrom"] });
 }
 
 function setWhatsAppSelfChatMode(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   selfChatMode: boolean,
-): OpenClawConfig {
+): GenesisConfig {
   return mergeWhatsAppConfig(cfg, accountId, { selfChatMode });
 }
 
 export async function detectWhatsAppLinked(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): Promise<boolean> {
   const { authDir } = resolveWhatsAppAuthDir({ cfg, accountId });
@@ -168,7 +168,7 @@ async function promptWhatsAppOwnerAllowFrom(params: {
   const { prompter, existingAllowFrom } = params;
 
   await prompter.note(
-    "We need the sender/owner number so OpenClaw can allowlist you.",
+    "We need the sender/owner number so Genesis can allowlist you.",
     "WhatsApp number",
   );
   const entry = await prompter.text({
@@ -200,13 +200,13 @@ async function promptWhatsAppOwnerAllowFrom(params: {
 }
 
 async function applyWhatsAppOwnerAllowlist(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   existingAllowFrom: string[];
   messageLines: string[];
   prompter: SetupPrompter;
   title: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   const { normalized, allowFrom } = await promptWhatsAppOwnerAllowFrom({
     prompter: params.prompter,
     existingAllowFrom: params.existingAllowFrom,
@@ -242,11 +242,11 @@ function parseWhatsAppAllowFromEntries(raw: string): { entries: string[]; invali
 }
 
 async function promptWhatsAppDmAccess(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   forceAllowFrom: boolean;
   prompter: SetupPrompter;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   const accountId = params.accountId.trim() || DEFAULT_ACCOUNT_ID;
   const account = resolveWhatsAppAccount({ cfg: params.cfg, accountId });
   const existingPolicy = account.dmPolicy ?? "pairing";
@@ -285,7 +285,7 @@ async function promptWhatsAppDmAccess(params: {
     message: "WhatsApp phone setup",
     options: [
       { value: "personal", label: "This is my personal phone number" },
-      { value: "separate", label: "Separate phone just for OpenClaw" },
+      { value: "separate", label: "Separate phone just for Genesis" },
     ],
   });
 
@@ -384,7 +384,7 @@ async function promptWhatsAppDmAccess(params: {
 }
 
 export async function finalizeWhatsAppSetup(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   forceAllowFrom: boolean;
   prompter: SetupPrompter;
@@ -434,7 +434,7 @@ export async function finalizeWhatsAppSetup(params: {
     }
   } else if (!linked) {
     await params.prompter.note(
-      `Run \`${formatCliCommand("openclaw channels login")}\` later to link WhatsApp.`,
+      `Run \`${formatCliCommand("genesis channels login")}\` later to link WhatsApp.`,
       "WhatsApp",
     );
   }

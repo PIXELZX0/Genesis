@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { resolveGatewayInstallToken } from "./gateway-install-token.js";
 
 const readConfigFileSnapshotMock = vi.hoisted(() => vi.fn());
@@ -26,7 +26,7 @@ const resolveGatewayAuthMock = vi.hoisted(() =>
 );
 const shouldRequireGatewayTokenForInstallMock = vi.hoisted(() => vi.fn(() => true));
 const resolveSecretRefValuesMock = vi.hoisted(() => vi.fn());
-const secretRefKeyMock = vi.hoisted(() => vi.fn(() => "env:default:OPENCLAW_GATEWAY_TOKEN"));
+const secretRefKeyMock = vi.hoisted(() => vi.fn(() => "env:default:GENESIS_GATEWAY_TOKEN"));
 const randomTokenMock = vi.hoisted(() => vi.fn(() => "generated-token"));
 
 vi.mock("./gateway-install-token.persist.runtime.js", () => ({
@@ -90,7 +90,7 @@ describe("resolveGatewayInstallToken", () => {
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { token: "config-token" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
     });
 
@@ -103,17 +103,17 @@ describe("resolveGatewayInstallToken", () => {
   });
 
   it("validates SecretRef token but does not persist resolved plaintext", async () => {
-    const tokenRef = { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" };
+    const tokenRef = { source: "env", provider: "default", id: "GENESIS_GATEWAY_TOKEN" };
     resolveSecretInputRefMock.mockReturnValue({ ref: tokenRef });
     resolveSecretRefValuesMock.mockResolvedValue(
-      new Map([["env:default:OPENCLAW_GATEWAY_TOKEN", "resolved-token"]]),
+      new Map([["env:default:GENESIS_GATEWAY_TOKEN", "resolved-token"]]),
     );
 
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { mode: "token", token: tokenRef } },
-      } as OpenClawConfig,
-      env: { OPENCLAW_GATEWAY_TOKEN: "resolved-token" } as NodeJS.ProcessEnv,
+      } as GenesisConfig,
+      env: { GENESIS_GATEWAY_TOKEN: "resolved-token" } as NodeJS.ProcessEnv,
     });
 
     expect(result.token).toBeUndefined();
@@ -131,7 +131,7 @@ describe("resolveGatewayInstallToken", () => {
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { mode: "token", token: "${MISSING_GATEWAY_TOKEN}" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
     });
 
@@ -148,7 +148,7 @@ describe("resolveGatewayInstallToken", () => {
             password: "password-value", // pragma: allowlist secret
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
       autoGenerateWhenMissing: true,
       persistGeneratedToken: true,
@@ -156,8 +156,8 @@ describe("resolveGatewayInstallToken", () => {
 
     expect(result.token).toBeUndefined();
     expect(result.unavailableReason).toContain("gateway.auth.mode is unset");
-    expect(result.unavailableReason).toContain("openclaw config set gateway.auth.mode token");
-    expect(result.unavailableReason).toContain("openclaw config set gateway.auth.mode password");
+    expect(result.unavailableReason).toContain("genesis config set gateway.auth.mode token");
+    expect(result.unavailableReason).toContain("genesis config set gateway.auth.mode password");
     expect(writeConfigFileMock).not.toHaveBeenCalled();
     expect(resolveSecretRefValuesMock).not.toHaveBeenCalled();
   });
@@ -166,7 +166,7 @@ describe("resolveGatewayInstallToken", () => {
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { mode: "token" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
       autoGenerateWhenMissing: true,
     });
@@ -183,7 +183,7 @@ describe("resolveGatewayInstallToken", () => {
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { mode: "token" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
       autoGenerateWhenMissing: true,
       persistGeneratedToken: true,
@@ -213,20 +213,20 @@ describe("resolveGatewayInstallToken", () => {
       config: {
         gateway: {
           auth: {
-            token: "${OPENCLAW_GATEWAY_TOKEN}",
+            token: "${GENESIS_GATEWAY_TOKEN}",
           },
         },
       },
       issues: [],
     });
     resolveSecretInputRefMock.mockReturnValueOnce({ ref: undefined }).mockReturnValueOnce({
-      ref: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+      ref: { source: "env", provider: "default", id: "GENESIS_GATEWAY_TOKEN" },
     });
 
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: { mode: "token" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
       autoGenerateWhenMissing: true,
       persistGeneratedToken: true,
@@ -254,7 +254,7 @@ describe("resolveGatewayInstallToken", () => {
             default: { source: "env" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
       autoGenerateWhenMissing: true,
       persistGeneratedToken: true,
@@ -268,7 +268,7 @@ describe("resolveGatewayInstallToken", () => {
 
   it("passes the install env through to gateway auth resolution", async () => {
     const env = {
-      OPENCLAW_GATEWAY_PASSWORD: "dotenv-password", // pragma: allowlist secret
+      GENESIS_GATEWAY_PASSWORD: "dotenv-password", // pragma: allowlist secret
     } as NodeJS.ProcessEnv;
     shouldRequireGatewayTokenForInstallMock.mockReturnValue(false);
     resolveGatewayAuthMock.mockReturnValue({
@@ -281,7 +281,7 @@ describe("resolveGatewayInstallToken", () => {
     const result = await resolveGatewayInstallToken({
       config: {
         gateway: { auth: {} },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env,
       autoGenerateWhenMissing: true,
       persistGeneratedToken: true,
@@ -299,7 +299,7 @@ describe("resolveGatewayInstallToken", () => {
   });
 
   it("skips token SecretRef resolution when token auth is not required", async () => {
-    const tokenRef = { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" };
+    const tokenRef = { source: "env", provider: "default", id: "GENESIS_GATEWAY_TOKEN" };
     resolveSecretInputRefMock.mockReturnValue({ ref: tokenRef });
     shouldRequireGatewayTokenForInstallMock.mockReturnValue(false);
 
@@ -311,7 +311,7 @@ describe("resolveGatewayInstallToken", () => {
             token: tokenRef,
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {} as NodeJS.ProcessEnv,
     });
 

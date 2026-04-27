@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import {
   DEFAULT_ACCOUNT_ID,
   createChannelPairingController,
@@ -9,7 +9,7 @@ import {
   resolveDmGroupAccessWithLists,
   resolveEffectiveAllowFromLists,
   resolveSenderScopedGroupPolicy,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../../runtime-api.js";
 import { normalizeMSTeamsConversationId } from "../inbound.js";
 import { resolveMSTeamsAllowlistMatch, resolveMSTeamsRouteConfig } from "../policy.js";
@@ -19,7 +19,7 @@ import type { MSTeamsTurnContext } from "../sdk-types.js";
 export type MSTeamsResolvedSenderAccess = Awaited<ReturnType<typeof resolveMSTeamsSenderAccess>>;
 
 export async function resolveMSTeamsSenderAccess(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   activity: MSTeamsTurnContext["activity"];
 }) {
   const activity = params.activity;

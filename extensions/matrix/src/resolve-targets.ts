@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/string-coerce-runtime";
 import { listMatrixDirectoryGroupsLive, listMatrixDirectoryPeersLive } from "./directory-live.js";
 import { isMatrixQualifiedUserId, normalizeMatrixMessagingTarget } from "./matrix/target-ids.js";
 import type {

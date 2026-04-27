@@ -1,15 +1,15 @@
 import { normalizeChatChannelId } from "../channels/ids.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 export function setPluginEnabledInConfig(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   pluginId: string,
   enabled: boolean,
-): OpenClawConfig {
+): GenesisConfig {
   const builtInChannelId = normalizeChatChannelId(pluginId);
   const resolvedId = builtInChannelId ?? pluginId;
 
-  const next: OpenClawConfig = {
+  const next: GenesisConfig = {
     ...config,
     plugins: {
       ...config.plugins,

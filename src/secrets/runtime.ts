@@ -1,4 +1,4 @@
-import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
+import { resolveGenesisAgentDir } from "../agents/agent-paths.js";
 import {
   listAgentIds,
   resolveAgentDir,
@@ -16,7 +16,7 @@ import {
   clearRuntimeConfigSnapshot,
   setRuntimeConfigSnapshotRefreshHandler,
   setRuntimeConfigSnapshot,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../config/config.js";
 import { coerceSecretRef } from "../config/types.secrets.js";
 import type { PluginOrigin } from "../plugins/plugin-origin.types.js";
@@ -32,8 +32,8 @@ import type { RuntimeWebToolsMetadata } from "./runtime-web-tools.js";
 export type { SecretResolverWarning } from "./runtime-shared.js";
 
 export type PreparedSecretsRuntimeSnapshot = {
-  sourceConfig: OpenClawConfig;
-  config: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  config: GenesisConfig;
   authStores: Array<{ agentDir: string; store: AuthProfileStore }>;
   warnings: SecretResolverWarning[];
   webTools: RuntimeWebToolsMetadata;
@@ -51,12 +51,12 @@ const RUNTIME_PATH_ENV_KEYS = [
   "USERPROFILE",
   "HOMEDRIVE",
   "HOMEPATH",
-  "OPENCLAW_HOME",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
-  "OPENCLAW_AGENT_DIR",
+  "GENESIS_HOME",
+  "GENESIS_STATE_DIR",
+  "GENESIS_CONFIG_PATH",
+  "GENESIS_AGENT_DIR",
   "PI_CODING_AGENT_DIR",
-  "OPENCLAW_TEST_FAST",
+  "GENESIS_TEST_FAST",
 ] as const;
 
 let activeSnapshot: PreparedSecretsRuntimeSnapshot | null = null;
@@ -110,11 +110,11 @@ function clearActiveSecretsRuntimeState(): void {
 }
 
 function collectCandidateAgentDirs(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
   const dirs = new Set<string>();
-  dirs.add(resolveUserPath(resolveOpenClawAgentDir(env), env));
+  dirs.add(resolveUserPath(resolveGenesisAgentDir(env), env));
   for (const agentId of listAgentIds(config)) {
     dirs.add(resolveUserPath(resolveAgentDir(config, agentId, env), env));
   }
@@ -122,7 +122,7 @@ function collectCandidateAgentDirs(
 }
 
 function resolveRefreshAgentDirs(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   context: SecretsRuntimeRefreshContext,
 ): string[] {
   const configDerived = collectCandidateAgentDirs(config, context.env);
@@ -133,7 +133,7 @@ function resolveRefreshAgentDirs(
 }
 
 async function resolveLoadablePluginOrigins(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
 }): Promise<ReadonlyMap<string, PluginOrigin>> {
   const workspaceDir = resolveAgentWorkspaceDir(
@@ -166,7 +166,7 @@ function mergeSecretsRuntimeEnv(
   return merged;
 }
 
-function hasConfiguredPluginEntries(config: OpenClawConfig): boolean {
+function hasConfiguredPluginEntries(config: GenesisConfig): boolean {
   const entries = config.plugins?.entries;
   return (
     !!entries &&
@@ -190,7 +190,7 @@ function createEmptyRuntimeWebToolsMetadata(): RuntimeWebToolsMetadata {
   };
 }
 
-function hasRuntimeWebToolConfigSurface(config: OpenClawConfig): boolean {
+function hasRuntimeWebToolConfigSurface(config: GenesisConfig): boolean {
   const web = config.tools?.web;
   if (web && typeof web === "object" && ("search" in web || "fetch" in web || "x_search" in web)) {
     return true;
@@ -237,7 +237,7 @@ function hasSecretRefCandidate(
 }
 
 function canUseSecretsRuntimeFastPath(params: {
-  sourceConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
   authStores: Array<{ agentDir: string; store: AuthProfileStore }>;
 }): boolean {
   if (hasRuntimeWebToolConfigSurface(params.sourceConfig)) {
@@ -251,7 +251,7 @@ function canUseSecretsRuntimeFastPath(params: {
 }
 
 export async function prepareSecretsRuntimeSnapshot(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   agentDirs?: string[];
   includeAuthStoreRefs?: boolean;

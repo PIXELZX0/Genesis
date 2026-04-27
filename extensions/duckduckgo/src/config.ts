@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 export const DEFAULT_DDG_SAFE_SEARCH = "moderate";
 
@@ -13,7 +13,7 @@ type DdgPluginConfig = {
 };
 
 export function resolveDdgWebSearchConfig(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): DdgPluginConfig["webSearch"] | undefined {
   const pluginConfig = config?.plugins?.entries?.duckduckgo?.config as DdgPluginConfig | undefined;
   const webSearch = pluginConfig?.webSearch;
@@ -23,7 +23,7 @@ export function resolveDdgWebSearchConfig(
   return undefined;
 }
 
-export function resolveDdgRegion(config?: OpenClawConfig): string | undefined {
+export function resolveDdgRegion(config?: GenesisConfig): string | undefined {
   const region = resolveDdgWebSearchConfig(config)?.region;
   if (typeof region !== "string") {
     return undefined;
@@ -32,7 +32,7 @@ export function resolveDdgRegion(config?: OpenClawConfig): string | undefined {
   return trimmed || undefined;
 }
 
-export function resolveDdgSafeSearch(config?: OpenClawConfig): DdgSafeSearch {
+export function resolveDdgSafeSearch(config?: GenesisConfig): DdgSafeSearch {
   const safeSearch = resolveDdgWebSearchConfig(config)?.safeSearch;
   const normalized = normalizeLowercaseStringOrEmpty(safeSearch);
   if (normalized === "strict" || normalized === "off") {

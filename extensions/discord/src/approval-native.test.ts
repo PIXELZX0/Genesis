@@ -9,7 +9,7 @@ import {
   shouldHandleDiscordApprovalRequest,
 } from "./approval-native.js";
 
-const STORE_PATH = path.join(os.tmpdir(), "openclaw-discord-approval-native-test.json");
+const STORE_PATH = path.join(os.tmpdir(), "genesis-discord-approval-native-test.json");
 const NATIVE_APPROVAL_CFG = {
   commands: {
     ownerAllowFrom: ["discord:555555555"],

@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/kilocode-provider",
+  "name": "@genesis/kilocode-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Kilo Gateway provider plugin",
+  "description": "Genesis Kilo Gateway provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

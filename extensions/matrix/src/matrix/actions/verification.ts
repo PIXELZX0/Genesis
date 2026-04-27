@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { requireRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { requireRuntimeConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 import type { CoreConfig } from "../../types.js";
 import { formatMatrixEncryptionUnavailableError } from "../encryption-guidance.js";
 import type { MatrixDeviceVerificationStatus, MatrixOwnDeviceVerificationStatus } from "../sdk.js";
@@ -203,7 +203,7 @@ async function cancelMatrixSelfVerificationOnFailure(params: {
   }
   await params.crypto
     .cancelVerification(params.request.id, {
-      reason: "OpenClaw self-verification did not complete",
+      reason: "Genesis self-verification did not complete",
       code: "m.user",
     })
     .catch(() => undefined);

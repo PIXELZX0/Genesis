@@ -102,7 +102,7 @@ function normalizeImportRunSummary(raw: unknown): MemoryWikiImportRunSummary | n
 }
 
 function resolveImportRunsDir(vaultRoot: string): string {
-  return path.join(vaultRoot, ".openclaw-wiki", "import-runs");
+  return path.join(vaultRoot, ".genesis-wiki", "import-runs");
 }
 
 export async function listMemoryWikiImportRuns(

@@ -1,4 +1,4 @@
-import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
+import type { ProviderRuntimeModel } from "genesis/plugin-sdk/plugin-entry";
 import { describe, expect, it } from "vitest";
 import { resolveProviderPluginChoice } from "../../src/plugins/provider-auth-choice.runtime.js";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";

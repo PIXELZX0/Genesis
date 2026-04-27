@@ -1,15 +1,15 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { runFfmpeg } from "openclaw/plugin-sdk/media-runtime";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+import { runFfmpeg } from "genesis/plugin-sdk/media-runtime";
+import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
 import type {
   SpeechDirectiveTokenParseContext,
   SpeechProviderConfig,
   SpeechProviderOverrides,
   SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech-core";
-import { asFiniteNumber, asObject, trimToUndefined } from "openclaw/plugin-sdk/speech-core";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+} from "genesis/plugin-sdk/speech-core";
+import { asFiniteNumber, asObject, trimToUndefined } from "genesis/plugin-sdk/speech-core";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import {
   DEFAULT_MINIMAX_TTS_BASE_URL,
   MINIMAX_TTS_MODELS,
@@ -155,7 +155,7 @@ function parseDirectiveToken(ctx: SpeechDirectiveTokenParseContext): {
 }
 
 async function transcodeMp3ToOpus(audioBuffer: Buffer, timeoutMs: number | undefined) {
-  const tempRoot = resolvePreferredOpenClawTmpDir();
+  const tempRoot = resolvePreferredGenesisTmpDir();
   await mkdir(tempRoot, { recursive: true, mode: 0o700 });
   const tempDir = await mkdtemp(path.join(tempRoot, "tts-minimax-"));
   try {

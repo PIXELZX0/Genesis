@@ -5,7 +5,7 @@ import {
 } from "../../acp/persistent-bindings.types.js";
 import { resolveConfiguredBindingRecord } from "../../channels/plugins/binding-registry.js";
 import { listAcpBindings } from "../../config/bindings.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getSessionBindingService } from "../../infra/outbound/session-binding-service.js";
 import { DEFAULT_ACCOUNT_ID, isAcpSessionKey } from "../../routing/session-key.js";
 import {
@@ -36,7 +36,7 @@ export const __testing = {
 };
 
 function resolveResetTargetAccountId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: string;
   accountId?: string | null;
 }): string {
@@ -53,7 +53,7 @@ function resolveResetTargetAccountId(params: {
 }
 
 function resolveRawConfiguredAcpSessionKey(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: string;
   accountId: string;
   conversationId: string;
@@ -101,7 +101,7 @@ function resolveRawConfiguredAcpSessionKey(params: {
 }
 
 export function resolveEffectiveResetTargetSessionKey(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string | null;
   accountId?: string | null;
   conversationId?: string | null;

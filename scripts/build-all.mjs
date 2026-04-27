@@ -344,7 +344,7 @@ if (isMainModule()) {
   const profile = process.argv[2] ?? "full";
   for (const step of resolveBuildAllSteps(profile)) {
     const cacheState = resolveBuildAllStepCacheState(step);
-    if (process.env.OPENCLAW_BUILD_CACHE !== "0" && cacheState.fresh) {
+    if (process.env.GENESIS_BUILD_CACHE !== "0" && cacheState.fresh) {
       restoreBuildAllStepCacheOutputs(cacheState);
       console.error(`[build-all] ${step.label} (cached)`);
       continue;

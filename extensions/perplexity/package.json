@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/perplexity-plugin",
+  "name": "@genesis/perplexity-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Perplexity plugin",
+  "description": "Genesis Perplexity plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

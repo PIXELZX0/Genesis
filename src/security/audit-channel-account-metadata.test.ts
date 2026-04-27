@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { collectChannelSecurityFindings } from "./audit-channel.js";
 
 function stubChannelPlugin(): ChannelPlugin {
@@ -39,7 +39,7 @@ function stubChannelPlugin(): ChannelPlugin {
 
 describe("security audit channel account metadata", () => {
   it("does not treat prototype properties as explicit account config paths", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         discord: {
           enabled: true,

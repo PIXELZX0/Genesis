@@ -1,5 +1,5 @@
-import type { PluginLogger } from "openclaw/plugin-sdk/plugin-entry";
-import { isTruthyEnvValue } from "openclaw/plugin-sdk/runtime-env";
+import type { PluginLogger } from "genesis/plugin-sdk/plugin-entry";
+import { isTruthyEnvValue } from "genesis/plugin-sdk/runtime-env";
 import { classifyCiaoUnhandledRejection } from "./ciao.js";
 import { formatBonjourError } from "./errors.js";
 
@@ -88,7 +88,7 @@ async function loadCiaoModule(): Promise<CiaoModule> {
 }
 
 function isDisabledByEnv() {
-  if (isTruthyEnvValue(process.env.OPENCLAW_DISABLE_BONJOUR)) {
+  if (isTruthyEnvValue(process.env.GENESIS_DISABLE_BONJOUR)) {
     return true;
   }
   if (process.env.NODE_ENV === "test") {
@@ -102,12 +102,12 @@ function isDisabledByEnv() {
 
 function safeServiceName(name: string) {
   const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed : "OpenClaw";
+  return trimmed.length > 0 ? trimmed : "Genesis";
 }
 
 function prettifyInstanceName(name: string) {
   const normalized = name.trim().replace(/\s+/g, " ");
-  return normalized.replace(/\s+\(OpenClaw\)\s*$/i, "").trim() || normalized;
+  return normalized.replace(/\s+\(Genesis\)\s*$/i, "").trim() || normalized;
 }
 
 function serviceSummary(label: string, svc: BonjourService): string {
@@ -191,16 +191,16 @@ export async function startGatewayBonjourAdvertiser(
   };
 
   try {
-    const hostnameRaw = process.env.OPENCLAW_MDNS_HOSTNAME?.trim() || "openclaw";
+    const hostnameRaw = process.env.GENESIS_MDNS_HOSTNAME?.trim() || "genesis";
     const hostname =
       hostnameRaw
         .replace(/\.local$/i, "")
         .split(".")[0]
-        .trim() || "openclaw";
+        .trim() || "genesis";
     const instanceName =
       typeof opts.instanceName === "string" && opts.instanceName.trim()
         ? opts.instanceName.trim()
-        : `${hostname} (OpenClaw)`;
+        : `${hostname} (Genesis)`;
     const displayName = prettifyInstanceName(instanceName);
 
     const txtBase: Record<string, string> = {
@@ -239,7 +239,7 @@ export async function startGatewayBonjourAdvertiser(
 
       const gateway = responder.createService({
         name: safeServiceName(instanceName),
-        type: "openclaw-gw",
+        type: "genesis-gw",
         protocol: Protocol.TCP,
         port: opts.gatewayPort,
         domain: "local",

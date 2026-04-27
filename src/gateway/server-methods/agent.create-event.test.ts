@@ -10,7 +10,7 @@ const configMocks = vi.hoisted(() => ({
     agents: {
       defaults: {
         model: { primary: "anthropic/claude-opus-4-6" },
-        workspace: configMocks.workspaceDir || "/tmp/openclaw-agent-create-event",
+        workspace: configMocks.workspaceDir || "/tmp/genesis-agent-create-event",
       },
     },
     session: {
@@ -47,7 +47,7 @@ describe("agent handler session create events", () => {
   let storePath: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-create-event-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-create-event-"));
     storePath = path.join(tempDir, "sessions.json");
     configMocks.storePath = storePath;
     configMocks.workspaceDir = tempDir;

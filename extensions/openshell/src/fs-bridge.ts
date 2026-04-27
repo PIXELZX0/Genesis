@@ -2,13 +2,13 @@ import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import type { FileHandle } from "node:fs/promises";
 import path from "node:path";
-import { writeFileWithinRoot } from "openclaw/plugin-sdk/infra-runtime";
+import { writeFileWithinRoot } from "genesis/plugin-sdk/infra-runtime";
 import type {
   SandboxFsBridge,
   SandboxFsStat,
   SandboxResolvedPath,
-} from "openclaw/plugin-sdk/sandbox";
-import { createWritableRenameTargetResolver } from "openclaw/plugin-sdk/sandbox";
+} from "genesis/plugin-sdk/sandbox";
+import { createWritableRenameTargetResolver } from "genesis/plugin-sdk/sandbox";
 import type { OpenShellFsBridgeContext, OpenShellSandboxBackend } from "./backend.types.js";
 import { movePathWithCopyFallback } from "./mirror.js";
 
@@ -534,7 +534,7 @@ function normalizeOpenedReadablePath(openedPath: string): string {
 // File identity comparison with win32-aware `dev=0` handling, matching the
 // shared `src/infra/file-identity.ts` contract. Kept local because extension
 // production code is not allowed to reach into core `src/**` by relative
-// import, and this helper is not yet part of the `openclaw/plugin-sdk/*`
+// import, and this helper is not yet part of the `genesis/plugin-sdk/*`
 // public surface. Stats here come from `FileHandle.stat()` / `fs.promises.stat()`
 // with no `{ bigint: true }` option, so all fields are numbers.
 function sameFileIdentity(

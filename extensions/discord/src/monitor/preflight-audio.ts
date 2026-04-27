@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 
 type DiscordPreflightAudioRuntime = typeof import("./preflight-audio.runtime.js");
 
@@ -32,7 +32,7 @@ export async function resolveDiscordPreflightAudioMentionContext(params: {
   isDirectMessage: boolean;
   shouldRequireMention: boolean;
   mentionRegexes: RegExp[];
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   abortSignal?: AbortSignal;
 }): Promise<{
   hasAudioAttachment: boolean;

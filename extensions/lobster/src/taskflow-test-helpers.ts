@@ -1,8 +1,8 @@
 import { vi } from "vitest";
-import type { OpenClawPluginApi } from "../runtime-api.js";
+import type { GenesisPluginApi } from "../runtime-api.js";
 
 export type BoundTaskFlow = ReturnType<
-  NonNullable<OpenClawPluginApi["runtime"]>["taskFlow"]["bindSession"]
+  NonNullable<GenesisPluginApi["runtime"]>["taskFlow"]["bindSession"]
 >;
 
 export function createFakeTaskFlow(overrides?: Partial<BoundTaskFlow>): BoundTaskFlow {

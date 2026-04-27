@@ -1,5 +1,5 @@
 import { Type } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { SsrFBlockedError, type LookupFn } from "../../infra/net/ssrf.js";
 import { logDebug } from "../../logger.js";
 import type { RuntimeWebFetchMetadata } from "../../secrets/runtime-web-tools.types.js";
@@ -66,7 +66,7 @@ const WebFetchSchema = Type.Object({
   ),
 });
 
-type WebFetchConfig = NonNullable<OpenClawConfig["tools"]>["web"] extends infer Web
+type WebFetchConfig = NonNullable<GenesisConfig["tools"]>["web"] extends infer Web
   ? Web extends { fetch?: infer Fetch }
     ? Fetch
     : undefined
@@ -98,7 +98,7 @@ async function loadWebGuardedFetch(): Promise<
   return (await webGuardedFetchPromise).fetchWithWebToolsNetworkGuard;
 }
 
-function resolveFetchConfig(cfg?: OpenClawConfig): WebFetchConfig {
+function resolveFetchConfig(cfg?: GenesisConfig): WebFetchConfig {
   return resolveWebProviderConfig(cfg, "fetch") as NonNullable<WebFetchConfig> | undefined;
 }
 
@@ -271,7 +271,7 @@ type WebFetchRuntimeParams = {
   cacheTtlMs: number;
   userAgent: string;
   readabilityEnabled: boolean;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   ssrfPolicy?: {
     allowRfc2544BenchmarkRange?: boolean;
   };
@@ -595,7 +595,7 @@ async function runWebFetch(params: WebFetchRuntimeParams): Promise<Record<string
 }
 
 export function createWebFetchTool(options?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   sandboxed?: boolean;
   runtimeWebFetch?: RuntimeWebFetchMetadata;
   lookupFn?: LookupFn;

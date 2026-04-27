@@ -1,5 +1,5 @@
 import { resolveSessionConversationRef } from "../channels/plugins/session-conversation.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 import {
@@ -36,7 +36,7 @@ export type ApprovalRequestSessionConversation = {
 
 type ApprovalRequestLike = ExecApprovalRequest | PluginApprovalRequest;
 type ApprovalRequestOriginTargetResolver<TTarget> = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   request: ApprovalRequestLike;
   channel: string;
   accountId?: string | null;
@@ -116,7 +116,7 @@ export function resolveApprovalRequestSessionConversation(params: {
 }
 
 export function resolveExecApprovalSessionTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   request: ExecApprovalRequest;
   turnSourceChannel?: string | null;
   turnSourceTo?: string | null;
@@ -156,7 +156,7 @@ export function resolveExecApprovalSessionTarget(params: {
 }
 
 export function resolveApprovalRequestSessionTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   request: ApprovalRequestLike;
 }): ExecApprovalSessionTarget | null {
   const execLikeRequest = toExecLikeApprovalRequest(params.request);
@@ -171,7 +171,7 @@ export function resolveApprovalRequestSessionTarget(params: {
 }
 
 function resolveApprovalRequestStoredSessionTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   request: ApprovalRequestLike;
 }): ExecApprovalSessionTarget | null {
   const execLikeRequest = toExecLikeApprovalRequest(params.request);

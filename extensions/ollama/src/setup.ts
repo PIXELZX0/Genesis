@@ -1,9 +1,5 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type {
-  OpenClawConfig,
-  SecretInput,
-  SecretInputMode,
-} from "openclaw/plugin-sdk/provider-auth";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { GenesisConfig, SecretInput, SecretInputMode } from "genesis/plugin-sdk/provider-auth";
 import {
   ensureApiKeyFromOptionEnvOrPrompt,
   isNonSecretApiKeyMarker,
@@ -11,15 +7,15 @@ import {
   normalizeOptionalSecretInput,
   upsertAuthProfileWithLock,
   validateApiKeyInput,
-} from "openclaw/plugin-sdk/provider-auth";
-import { applyAgentDefaultModelPrimary } from "openclaw/plugin-sdk/provider-onboard";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-import { WizardCancelledError, type WizardPrompter } from "openclaw/plugin-sdk/setup";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/provider-auth";
+import { applyAgentDefaultModelPrimary } from "genesis/plugin-sdk/provider-onboard";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
+import { WizardCancelledError, type WizardPrompter } from "genesis/plugin-sdk/setup";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   OLLAMA_CLOUD_BASE_URL,
   OLLAMA_DEFAULT_BASE_URL,
@@ -48,7 +44,7 @@ type OllamaSetupOptions = {
 };
 
 type OllamaSetupResult = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   credential: SecretInput;
   credentialMode?: SecretInputMode;
 };
@@ -297,7 +293,7 @@ async function pullOllamaModelNonInteractive(
 }
 
 async function promptForOllamaCloudCredential(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   opts?: Record<string, unknown>;
   prompter: WizardPrompter;
@@ -371,12 +367,12 @@ function mergeUniqueModelNames(...groups: string[][]): string[] {
 }
 
 function applyOllamaProviderConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   baseUrl: string,
   modelNames: string[],
   discoveredModelsByName?: Map<string, OllamaModelWithContext>,
   apiKey: SecretInput = "OLLAMA_API_KEY",
-): OpenClawConfig {
+): GenesisConfig {
   return {
     ...cfg,
     models: {
@@ -436,7 +432,7 @@ async function resolveHostBackedSuggestedModelNames(params: {
 }
 
 async function promptAndConfigureHostBackedOllama(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: HostBackedOllamaInteractiveMode;
   prompter: WizardPrompter;
 }): Promise<OllamaSetupResult> {
@@ -472,7 +468,7 @@ async function promptAndConfigureHostBackedOllama(params: {
 }
 
 export async function promptAndConfigureOllama(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   opts?: Record<string, unknown>;
   prompter: WizardPrompter;
@@ -536,11 +532,11 @@ export async function promptAndConfigureOllama(params: {
 }
 
 export async function configureOllamaNonInteractive(params: {
-  nextConfig: OpenClawConfig;
+  nextConfig: GenesisConfig;
   opts: OllamaSetupOptions;
   runtime: RuntimeEnv;
   agentDir?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   const baseUrl = resolveOllamaApiBase(
     (params.opts.customBaseUrl?.trim() || OLLAMA_DEFAULT_BASE_URL).replace(/\/+$/, ""),
   );
@@ -624,7 +620,7 @@ export async function configureOllamaNonInteractive(params: {
 }
 
 export async function ensureOllamaModelPulled(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   model: string;
   prompter: WizardPrompter;
 }): Promise<void> {

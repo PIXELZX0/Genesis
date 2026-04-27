@@ -8,7 +8,7 @@ import {
   getRuntimeConfigSnapshot,
   getRuntimeConfigSourceSnapshot,
 } from "../config/runtime-snapshot.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { resolveBundledPluginsDir } from "../plugins/bundled-dir.js";
 import {
   createPluginActivationSource,
@@ -26,22 +26,22 @@ const ALWAYS_ALLOWED_RUNTIME_DIR_NAMES = new Set([
   "media-understanding-core",
   "speech-core",
 ]);
-const EMPTY_FACADE_BOUNDARY_CONFIG: OpenClawConfig = {};
+const EMPTY_FACADE_BOUNDARY_CONFIG: GenesisConfig = {};
 
-let cachedBoundaryRawConfig: OpenClawConfig | undefined;
+let cachedBoundaryRawConfig: GenesisConfig | undefined;
 let cachedBoundaryResolvedConfigKey: string | undefined;
 let cachedBoundaryConfigFileState:
   | {
       configPath: string;
       mtimeMs: number;
       size: number;
-      rawConfig: OpenClawConfig;
+      rawConfig: GenesisConfig;
     }
   | undefined;
 let cachedBoundaryResolvedConfig:
   | {
-      rawConfig: OpenClawConfig;
-      config: OpenClawConfig;
+      rawConfig: GenesisConfig;
+      config: GenesisConfig;
       normalizedPluginsConfig: ReturnType<typeof normalizePluginsConfig>;
       activationSource: ReturnType<typeof createPluginActivationSource>;
       autoEnabledReasons: Record<string, string[]>;
@@ -65,7 +65,7 @@ type FacadeModuleLocation = {
 };
 
 function readFacadeBoundaryConfigSafely(): {
-  rawConfig: OpenClawConfig;
+  rawConfig: GenesisConfig;
   cacheKey?: string;
 } {
   try {
@@ -97,7 +97,7 @@ function readFacadeBoundaryConfigSafely(): {
     const parsed = JSON5.parse(raw);
     const rawConfig =
       parsed && typeof parsed === "object"
-        ? (parsed as OpenClawConfig)
+        ? (parsed as GenesisConfig)
         : EMPTY_FACADE_BOUNDARY_CONFIG;
     cachedBoundaryConfigFileState = {
       configPath,
@@ -186,11 +186,7 @@ function readBundledPluginManifestRecordFromDir(params: {
   pluginsRoot: string;
   resolvedDirName: string;
 }): FacadePluginManifestLike | null {
-  const manifestPath = path.join(
-    params.pluginsRoot,
-    params.resolvedDirName,
-    "openclaw.plugin.json",
-  );
+  const manifestPath = path.join(params.pluginsRoot, params.resolvedDirName, "genesis.plugin.json");
   if (!fs.existsSync(manifestPath)) {
     return null;
   }
@@ -366,7 +362,7 @@ export function resolveBundledPluginPublicSurfaceAccess(params: {
 export function evaluateBundledPluginPublicSurfaceAccess(params: {
   params: { dirName: string; artifactBasename: string };
   manifestRecord: FacadePluginManifestLike;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   normalizedPluginsConfig: ReturnType<typeof normalizePluginsConfig>;
   activationSource: ReturnType<typeof createPluginActivationSource>;
   autoEnabledReasons: Record<string, string[]>;

@@ -1,4 +1,4 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk/plugin-runtime";
+import type { PluginRuntime } from "genesis/plugin-sdk/plugin-runtime";
 
 type BrowserProxyResult = {
   result?: unknown;
@@ -62,7 +62,7 @@ export async function resolveChromeNodeInfo(params: {
   const nodes = list.nodes.filter(isGoogleMeetNode);
   if (nodes.length === 0) {
     throw new Error(
-      "No connected Google Meet-capable node with browser proxy. Run `openclaw node run` on the Chrome host with browser proxy enabled, approve pairing, and allow googlemeet.chrome plus browser.proxy.",
+      "No connected Google Meet-capable node with browser proxy. Run `genesis node run` on the Chrome host with browser proxy enabled, approve pairing, and allow googlemeet.chrome plus browser.proxy.",
     );
   }
   const requested = params.requestedNode?.trim();

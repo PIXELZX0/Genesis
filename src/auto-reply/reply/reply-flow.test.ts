@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN } from "../tokens.js";
 import { createReplyDispatcher } from "./reply-dispatcher.js";
 import { createReplyToModeFilter } from "./reply-threading.js";
@@ -23,7 +23,7 @@ describe("createReplyDispatcher", () => {
 
   it("rewrites exact NO_REPLY final payloads for direct sessions where rewrite is enabled", async () => {
     const deliver = vi.fn().mockResolvedValue(undefined);
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -56,7 +56,7 @@ describe("createReplyDispatcher", () => {
 
   it("preserves exact NO_REPLY final payloads for direct sessions where rewrite is disabled", async () => {
     const deliver = vi.fn().mockResolvedValue(undefined);
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -88,7 +88,7 @@ describe("createReplyDispatcher", () => {
 
   it("still drops exact NO_REPLY final payloads for group sessions where silence is allowed", async () => {
     const deliver = vi.fn().mockResolvedValue(undefined);
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {

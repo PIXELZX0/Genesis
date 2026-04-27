@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { isRecord } from "../utils.js";
 import { findBundledPluginMetadataById } from "./bundled-plugin-metadata.js";
 import { loadPluginManifestRegistry } from "./manifest-registry.js";
@@ -98,7 +98,7 @@ export function collectPluginConfigContractMatches(params: {
 }
 
 export function resolvePluginConfigContractsById(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   cache?: boolean;

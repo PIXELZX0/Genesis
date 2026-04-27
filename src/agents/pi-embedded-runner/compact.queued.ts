@@ -14,7 +14,7 @@ import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { resolveUserPath } from "../../utils.js";
-import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { resolveGenesisAgentDir } from "../agent-paths.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import { resolveContextWindowInfo } from "../context-window-guard.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
@@ -48,7 +48,7 @@ export async function compactEmbeddedPiSession(
   });
   ensureContextEnginesInitialized();
   const contextEngine = await resolveContextEngine(params.config);
-  const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
+  const agentDir = params.agentDir ?? resolveGenesisAgentDir();
   let contextTokenBudget = params.contextTokenBudget;
   if (!contextTokenBudget || !Number.isFinite(contextTokenBudget) || contextTokenBudget <= 0) {
     const resolvedCompactionTarget = resolveEmbeddedCompactionTarget({

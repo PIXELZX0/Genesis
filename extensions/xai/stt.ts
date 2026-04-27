@@ -2,15 +2,15 @@ import type {
   AudioTranscriptionRequest,
   AudioTranscriptionResult,
   MediaUnderstandingProvider,
-} from "openclaw/plugin-sdk/media-understanding";
+} from "genesis/plugin-sdk/media-understanding";
 import {
   assertOkOrThrowHttpError,
   buildAudioTranscriptionFormData,
   postTranscriptionRequest,
   resolveProviderHttpRequestConfig,
   requireTranscriptionText,
-} from "openclaw/plugin-sdk/provider-http";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-http";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { XAI_BASE_URL } from "./model-definitions.js";
 
 export const XAI_DEFAULT_STT_MODEL = "grok-stt";

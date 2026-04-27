@@ -1,36 +1,36 @@
-import type { Bot } from "grammy";
 import {
   DEFAULT_TIMING,
   logAckFailure,
   logTypingFailure,
   removeAckReactionAfterReply,
-} from "openclaw/plugin-sdk/channel-feedback";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+} from "genesis/plugin-sdk/channel-feedback";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
 import {
   resolveChannelStreamingBlockEnabled,
   resolveChannelStreamingPreviewToolProgress,
-} from "openclaw/plugin-sdk/channel-streaming";
-import { isAbortRequestText } from "openclaw/plugin-sdk/command-primitives-runtime";
+} from "genesis/plugin-sdk/channel-streaming";
+import { isAbortRequestText } from "genesis/plugin-sdk/command-primitives-runtime";
 import type {
-  OpenClawConfig,
+  GenesisConfig,
   ReplyToMode,
   TelegramAccountConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+} from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   createOutboundPayloadPlan,
   projectOutboundPayloadPlanForDelivery,
-} from "openclaw/plugin-sdk/outbound-runtime";
-import { clearHistoryEntriesIfEnabled } from "openclaw/plugin-sdk/reply-history";
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/outbound-runtime";
+import { clearHistoryEntriesIfEnabled } from "genesis/plugin-sdk/reply-history";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-payload";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import {
   createSubsystemLogger,
   danger,
   logVerbose,
   sleepWithAbort,
-} from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/runtime-env";
+import type { Bot } from "grammy";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import type { TelegramMessageContext } from "./bot-message-context.js";
 import {
@@ -87,7 +87,7 @@ const silentReplyDispatchLogger = createSubsystemLogger("telegram/silent-reply-d
 /** Minimum chars before sending first streaming message (improves push notification UX) */
 const DRAFT_MIN_INITIAL_CHARS = 30;
 
-async function resolveStickerVisionSupport(cfg: OpenClawConfig, agentId: string) {
+async function resolveStickerVisionSupport(cfg: GenesisConfig, agentId: string) {
   try {
     const catalog = await loadModelCatalog({ config: cfg });
     const defaultModel = resolveDefaultModelForAgent({ cfg, agentId });
@@ -104,7 +104,7 @@ async function resolveStickerVisionSupport(cfg: OpenClawConfig, agentId: string)
 type DispatchTelegramMessageParams = {
   context: TelegramMessageContext;
   bot: Bot;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime: RuntimeEnv;
   replyToMode: ReplyToMode;
   streamMode: TelegramStreamMode;
@@ -182,7 +182,7 @@ export function resetTelegramAbortFenceForTests(): void {
 }
 
 function resolveTelegramReasoningLevel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey?: string;
   agentId: string;
   telegramDeps: TelegramBotDeps;

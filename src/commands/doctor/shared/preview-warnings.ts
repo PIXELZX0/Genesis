@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 
 type ChannelDoctorModule = typeof import("./channel-doctor.js");
 
@@ -13,15 +13,15 @@ function hasRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function hasChannels(cfg: OpenClawConfig): boolean {
+function hasChannels(cfg: GenesisConfig): boolean {
   return hasRecord(cfg.channels);
 }
 
-function hasPlugins(cfg: OpenClawConfig): boolean {
+function hasPlugins(cfg: GenesisConfig): boolean {
   return hasRecord(cfg.plugins);
 }
 
-function hasPluginLoadPaths(cfg: OpenClawConfig): boolean {
+function hasPluginLoadPaths(cfg: GenesisConfig): boolean {
   const plugins = cfg.plugins;
   if (!hasRecord(plugins)) {
     return false;
@@ -30,7 +30,7 @@ function hasPluginLoadPaths(cfg: OpenClawConfig): boolean {
   return hasRecord(load) && Array.isArray(load.paths) && load.paths.length > 0;
 }
 
-function hasExplicitChannelPluginBlockerConfig(cfg: OpenClawConfig): boolean {
+function hasExplicitChannelPluginBlockerConfig(cfg: GenesisConfig): boolean {
   if (cfg.plugins?.enabled === false) {
     return true;
   }
@@ -58,7 +58,7 @@ function hasToolsBySenderKey(value: unknown): boolean {
   );
 }
 
-function hasConfiguredSafeBins(cfg: OpenClawConfig): boolean {
+function hasConfiguredSafeBins(cfg: GenesisConfig): boolean {
   const globalExec = cfg.tools?.exec;
   if (
     hasRecord(globalExec) &&
@@ -76,7 +76,7 @@ function hasConfiguredSafeBins(cfg: OpenClawConfig): boolean {
 }
 
 export async function collectDoctorPreviewWarnings(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   doctorFixCommand: string;
   env?: NodeJS.ProcessEnv;
 }): Promise<string[]> {

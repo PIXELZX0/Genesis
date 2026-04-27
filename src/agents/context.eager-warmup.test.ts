@@ -17,8 +17,8 @@ describe("agents/context eager warmup", () => {
   });
 
   it.each([
-    ["models", ["node", "openclaw", "models", "set", "openai/gpt-5.4"]],
-    ["agent", ["node", "openclaw", "agent", "--message", "ok"]],
+    ["models", ["node", "genesis", "models", "set", "openai/gpt-5.4"]],
+    ["agent", ["node", "genesis", "agent", "--message", "ok"]],
   ])("does not eager-load config for %s commands on import", async (_label, argv) => {
     process.argv = argv;
     await importFreshModule(import.meta.url, `./context.js?scope=${_label}`);

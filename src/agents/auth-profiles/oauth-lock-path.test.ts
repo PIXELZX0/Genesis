@@ -6,12 +6,12 @@ import { captureEnv } from "../../test-utils/env.js";
 import { resolveOAuthRefreshLockPath } from "./paths.js";
 
 describe("resolveOAuthRefreshLockPath", () => {
-  const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+  const envSnapshot = captureEnv(["GENESIS_STATE_DIR"]);
   let stateDir = "";
 
   beforeEach(async () => {
-    stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-lock-path-"));
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-auth-lock-path-"));
+    process.env.GENESIS_STATE_DIR = stateDir;
   });
 
   afterEach(async () => {
@@ -114,12 +114,12 @@ describe("resolveOAuthRefreshLockPath", () => {
 });
 
 describe("resolveOAuthRefreshLockPath fuzz", () => {
-  const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+  const envSnapshot = captureEnv(["GENESIS_STATE_DIR"]);
   let stateDir = "";
 
   beforeEach(async () => {
-    stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-lock-path-fuzz-"));
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-auth-lock-path-fuzz-"));
+    process.env.GENESIS_STATE_DIR = stateDir;
   });
 
   afterEach(async () => {

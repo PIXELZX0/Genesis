@@ -2,7 +2,7 @@ import {
   type AgentApprovalEventData,
   formatApprovalDisplayPath,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "genesis/plugin-sdk/agent-harness-runtime";
 import {
   approvalRequestExplicitlyUnavailable,
   mapExecDecisionToOutcome,
@@ -304,7 +304,7 @@ function requestedPermissions(requestParams: JsonObject | undefined): JsonObject
 function unsupportedApprovalResponse(): JsonValue {
   return {
     decision: "decline",
-    reason: "OpenClaw codex app-server bridge does not grant native approvals yet.",
+    reason: "Genesis codex app-server bridge does not grant native approvals yet.",
   };
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-extract_openclaw_semver() {
+extract_genesis_semver() {
   local raw="${1:-}"
   raw="${raw//$'\r'/}"
   if [[ "$raw" =~ v?([0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?(\+[0-9A-Za-z.-]+)?) ]]; then

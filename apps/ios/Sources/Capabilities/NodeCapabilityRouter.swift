@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import GenesisKit
 
 @MainActor
 final class NodeCapabilityRouter {

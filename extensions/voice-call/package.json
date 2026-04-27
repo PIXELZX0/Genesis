@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/voice-call",
+  "name": "@genesis/voice-call",
   "version": "2026.4.20",
-  "description": "OpenClaw voice-call plugin",
+  "description": "Genesis voice-call plugin",
   "type": "module",
   "dependencies": {
     "commander": "^14.0.3",
@@ -9,18 +9,18 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -31,7 +31,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "release": {
       "publishToClawHub": true,

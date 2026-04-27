@@ -1,12 +1,12 @@
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import type { ChannelSetupAdapter } from "openclaw/plugin-sdk/channel-setup";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import type { ChannelSetupAdapter } from "genesis/plugin-sdk/channel-setup";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   applyAccountNameToChannelSection,
   applySetupAccountConfigPatch,
   migrateBaseNameToDefaultAccount,
-} from "openclaw/plugin-sdk/setup";
-import { createSetupInputPresenceValidator } from "openclaw/plugin-sdk/setup-runtime";
+} from "genesis/plugin-sdk/setup";
+import { createSetupInputPresenceValidator } from "genesis/plugin-sdk/setup-runtime";
 import {
   resolveMattermostAccount,
   type ResolvedMattermostAccount,
@@ -22,7 +22,7 @@ export function isMattermostConfigured(account: ResolvedMattermostAccount): bool
   return tokenConfigured && Boolean(account.baseUrl);
 }
 
-export function resolveMattermostAccountWithSecrets(cfg: OpenClawConfig, accountId: string) {
+export function resolveMattermostAccountWithSecrets(cfg: GenesisConfig, accountId: string) {
   return resolveMattermostAccount({
     cfg,
     accountId,

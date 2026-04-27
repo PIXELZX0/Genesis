@@ -16,7 +16,7 @@ import {
   resolveSessionTranscriptsDirForAgent,
 } from "../config/sessions/paths.js";
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { stripEnvelope, stripMessageIdHints } from "../shared/chat-envelope.js";
 import { asFiniteNumber } from "../shared/number-coercion.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
@@ -240,7 +240,7 @@ async function* readJsonlRecords(filePath: string): AsyncGenerator<Record<string
 
 async function scanTranscriptFile(params: {
   filePath: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   onEntry: (entry: ParsedTranscriptEntry) => void;
 }): Promise<void> {
   for await (const parsed of readJsonlRecords(params.filePath)) {
@@ -274,7 +274,7 @@ async function scanTranscriptFile(params: {
 
 async function scanUsageFile(params: {
   filePath: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   onEntry: (entry: ParsedUsageEntry) => void;
 }): Promise<void> {
   await scanTranscriptFile({
@@ -363,7 +363,7 @@ export async function loadCostUsageSummary(params?: {
   startMs?: number;
   endMs?: number;
   days?: number; // Deprecated, for backwards compatibility
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
 }): Promise<CostUsageSummary> {
   const now = new Date();
@@ -555,7 +555,7 @@ export async function loadSessionCostSummary(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   startMs?: number;
   endMs?: number;
@@ -827,7 +827,7 @@ export async function loadSessionUsageTimeSeries(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   maxPoints?: number;
 }): Promise<SessionUsageTimeSeries | null> {
@@ -930,7 +930,7 @@ export async function loadSessionLogs(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   limit?: number;
 }): Promise<SessionLogEntry[] | null> {

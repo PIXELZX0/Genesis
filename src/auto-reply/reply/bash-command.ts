@@ -3,7 +3,7 @@ import { getFinishedSession, getSession } from "../../agents/bash-process-regist
 import { createExecTool } from "../../agents/bash-tools.js";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import { isCommandFlagEnabled } from "../../config/commands.flags.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { logVerbose } from "../../globals.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import {
@@ -40,7 +40,7 @@ type ActiveBashJob =
 
 let activeJob: ActiveBashJob | null = null;
 
-function resolveForegroundMs(cfg: OpenClawConfig): number {
+function resolveForegroundMs(cfg: GenesisConfig): number {
   const raw = cfg.commands?.bashForegroundMs;
   if (typeof raw !== "number" || Number.isNaN(raw)) {
     return DEFAULT_FOREGROUND_MS;
@@ -104,7 +104,7 @@ function parseBashRequest(raw: string): BashRequest | null {
 
 function resolveRawCommandBody(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   isGroup: boolean;
 }) {
@@ -183,7 +183,7 @@ function buildUsageReply(): ReplyPayload {
 
 export async function handleBashChatCommand(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   sessionKey: string;
   isGroup: boolean;
@@ -197,7 +197,7 @@ export async function handleBashChatCommand(params: {
     return buildDisabledCommandReply({
       label: "bash",
       configKey: "bash",
-      docsUrl: "https://docs.openclaw.ai/tools/slash-commands#config",
+      docsUrl: "https://docs.genesis.ai/tools/slash-commands#config",
     });
   }
 

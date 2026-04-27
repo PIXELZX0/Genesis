@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../runtime-api.js";
+import type { GenesisConfig } from "../../runtime-api.js";
 import type { GraphThreadMessage } from "../graph-thread.js";
 import { _resetThreadParentContextCachesForTest } from "../thread-parent-context.js";
 import "./message-handler-mock-support.test-support.js";
@@ -80,7 +80,7 @@ vi.mock("../graph-thread.js", () => {
 });
 
 describe("msteams monitor handler authz", () => {
-  function createDeps(cfg: OpenClawConfig) {
+  function createDeps(cfg: GenesisConfig) {
     const readAllowFromStore = vi.fn(async () => ["attacker-aad"]);
     const upsertPairingRequest = vi.fn(async () => null);
     const recordInboundSession = vi.fn(async () => undefined);
@@ -134,7 +134,7 @@ describe("msteams monitor handler authz", () => {
   function createThreadAllowlistConfig(params: {
     groupAllowFrom: string[];
     dangerouslyAllowNameMatching?: boolean;
-  }): OpenClawConfig {
+  }): GenesisConfig {
     return {
       channels: {
         msteams: {
@@ -152,7 +152,7 @@ describe("msteams monitor handler authz", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
   }
 
   function createMessageActivity(params: {
@@ -276,7 +276,7 @@ describe("msteams monitor handler authz", () => {
           groupAllowFrom: [],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler(createAttackerGroupActivity({ text: "" }));
@@ -305,7 +305,7 @@ describe("msteams monitor handler authz", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler(
@@ -328,7 +328,7 @@ describe("msteams monitor handler authz", () => {
           allowFrom: [],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler({
@@ -415,7 +415,7 @@ describe("msteams monitor handler authz", () => {
           groupAllowFrom: ["sender-aad"],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler({
@@ -473,7 +473,7 @@ describe("msteams monitor handler authz", () => {
           groupAllowFrom: ["sender-aad"],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler({
@@ -522,7 +522,7 @@ describe("msteams monitor handler authz", () => {
           allowFrom: ["trusted-aad"],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler(createAttackerPersonalActivity("msg-drop-dm"));
@@ -547,7 +547,7 @@ describe("msteams monitor handler authz", () => {
           groupAllowFrom: [],
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const handler = createMSTeamsMessageHandler(deps);
     await handler(createAttackerGroupActivity());

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   completeMock: vi.fn(),
-  ensureOpenClawModelsJsonMock: vi.fn(async () => {}),
+  ensureGenesisModelsJsonMock: vi.fn(async () => {}),
   getApiKeyForModelMock: vi.fn(async () => ({
     apiKey: "oauth-test", // pragma: allowlist secret
     source: "test",
@@ -21,7 +21,7 @@ const hoisted = vi.hoisted(() => ({
 }));
 const {
   completeMock,
-  ensureOpenClawModelsJsonMock,
+  ensureGenesisModelsJsonMock,
   getApiKeyForModelMock,
   resolveApiKeyForProviderMock,
   requireApiKeyMock,
@@ -43,7 +43,7 @@ vi.mock("../agents/models-config.js", async () => ({
   ...(await vi.importActual<typeof import("../agents/models-config.js")>(
     "../agents/models-config.js",
   )),
-  ensureOpenClawModelsJson: ensureOpenClawModelsJsonMock,
+  ensureGenesisModelsJson: ensureGenesisModelsJsonMock,
 }));
 
 vi.mock("../agents/model-auth.js", () => ({
@@ -99,7 +99,7 @@ describe("describeImageWithModel", () => {
     const authStore = { version: 1, profiles: {} };
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "minimax-portal",
       model: "MiniMax-VL-01",
       buffer: Buffer.from("png-bytes"),
@@ -114,7 +114,7 @@ describe("describeImageWithModel", () => {
       text: "portal ok",
       model: "MiniMax-VL-01",
     });
-    expect(ensureOpenClawModelsJsonMock).toHaveBeenCalled();
+    expect(ensureGenesisModelsJsonMock).toHaveBeenCalled();
     expect(getApiKeyForModelMock).toHaveBeenCalledWith(
       expect.objectContaining({ store: authStore }),
     );
@@ -127,7 +127,7 @@ describe("describeImageWithModel", () => {
         headers: {
           Authorization: "Bearer oauth-test",
           "Content-Type": "application/json",
-          "MM-API-Source": "OpenClaw",
+          "MM-API-Source": "Genesis",
         },
         body: JSON.stringify({
           prompt: "Describe the image.",
@@ -160,7 +160,7 @@ describe("describeImageWithModel", () => {
 
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "minimax-portal",
       model: "custom-vision",
       buffer: Buffer.from("png-bytes"),
@@ -181,7 +181,7 @@ describe("describeImageWithModel", () => {
           id: "custom-vision",
         }),
         cfg: {},
-        agentDir: "/tmp/openclaw-agent",
+        agentDir: "/tmp/genesis-agent",
       }),
     );
     expect(completeMock).toHaveBeenCalledOnce();
@@ -209,7 +209,7 @@ describe("describeImageWithModel", () => {
 
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "openai-codex",
       model: "gpt-5.4",
       buffer: Buffer.from("png-bytes"),
@@ -271,7 +271,7 @@ describe("describeImageWithModel", () => {
 
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "openrouter",
       model: "google/gemini-2.5-flash",
       buffer: Buffer.from("png-bytes"),
@@ -384,7 +384,7 @@ describe("describeImageWithModel", () => {
 
       const result = await describeImageWithModel({
         cfg: {},
-        agentDir: "/tmp/openclaw-agent",
+        agentDir: "/tmp/genesis-agent",
         provider,
         model: model.id,
         buffer: Buffer.from("png-bytes"),
@@ -437,7 +437,7 @@ describe("describeImageWithModel", () => {
 
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "google",
       model: "gemini-3.1-flash-preview",
       profile: "google:default",
@@ -485,7 +485,7 @@ describe("describeImageWithModel", () => {
 
     const result = await describeImageWithModel({
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
       provider: "google",
       model: "gemini-3.1-flash-lite",
       profile: "google:default",

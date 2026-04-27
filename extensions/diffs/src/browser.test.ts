@@ -4,8 +4,8 @@ import path from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockServerResponse } from "../../../test/helpers/plugins/mock-http-response.js";
 import { createTestPluginApi } from "../../../test/helpers/plugins/plugin-api.js";
-import type { OpenClawConfig } from "../api.js";
-import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../api.js";
+import type { GenesisConfig } from "../api.js";
+import type { GenesisPluginApi, GenesisPluginToolContext } from "../api.js";
 import { registerDiffsPlugin } from "./plugin.js";
 import { createTempDiffRoot } from "./test-helpers.js";
 
@@ -34,7 +34,7 @@ describe("PlaywrightDiffScreenshotter", () => {
 
   beforeEach(async () => {
     vi.useFakeTimers();
-    ({ rootDir, cleanup: cleanupRootDir } = await createTempDiffRoot("openclaw-diffs-browser-"));
+    ({ rootDir, cleanup: cleanupRootDir } = await createTempDiffRoot("genesis-diffs-browser-"));
     outputPath = path.join(rootDir, "preview.png");
     launchMock.mockReset();
     await resetSharedBrowserStateForTests();
@@ -200,13 +200,13 @@ describe("diffs plugin registration", () => {
       req: IncomingMessage,
       res: ServerResponse,
     ) => boolean | Promise<boolean>;
-    type RegisteredHttpRouteParams = Parameters<OpenClawPluginApi["registerHttpRoute"]>[0];
+    type RegisteredHttpRouteParams = Parameters<GenesisPluginApi["registerHttpRoute"]>[0];
 
     let registeredToolFactory:
-      | ((ctx: OpenClawPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
+      | ((ctx: GenesisPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
       | undefined;
     let registeredHttpRouteHandler: HttpRouteHandler | undefined;
-    let configFile: OpenClawConfig = {
+    let configFile: GenesisConfig = {
       gateway: {
         port: 18789,
         bind: "loopback",
@@ -215,7 +215,7 @@ describe("diffs plugin registration", () => {
         entries: {
           diffs: {
             config: {
-              viewerBaseUrl: "https://startup.example.com/openclaw",
+              viewerBaseUrl: "https://startup.example.com/genesis",
               defaults: {
                 mode: "view",
                 theme: "light",
@@ -229,7 +229,7 @@ describe("diffs plugin registration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const api = createTestPluginApi({
       id: "diffs",
@@ -243,7 +243,7 @@ describe("diffs plugin registration", () => {
         },
       },
       pluginConfig: {
-        viewerBaseUrl: "https://startup.example.com/openclaw",
+        viewerBaseUrl: "https://startup.example.com/genesis",
         defaults: {
           mode: "view",
           theme: "light",
@@ -259,7 +259,7 @@ describe("diffs plugin registration", () => {
           loadConfig: () => configFile,
         },
       } as never,
-      registerTool(tool: Parameters<OpenClawPluginApi["registerTool"]>[0]) {
+      registerTool(tool: Parameters<GenesisPluginApi["registerTool"]>[0]) {
         registeredToolFactory = typeof tool === "function" ? tool : () => tool;
       },
       registerHttpRoute(params: RegisteredHttpRouteParams) {
@@ -268,7 +268,7 @@ describe("diffs plugin registration", () => {
       on: vi.fn(),
     });
 
-    registerDiffsPlugin(api as unknown as OpenClawPluginApi);
+    registerDiffsPlugin(api as unknown as GenesisPluginApi);
 
     configFile = {
       ...configFile,
@@ -290,7 +290,7 @@ describe("diffs plugin registration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const registeredTool = registeredToolFactory?.({
       agentId: "main",
@@ -332,14 +332,14 @@ describe("diffs plugin registration", () => {
       req: IncomingMessage,
       res: ServerResponse,
     ) => boolean | Promise<boolean>;
-    type RegisteredHttpRouteParams = Parameters<OpenClawPluginApi["registerHttpRoute"]>[0];
+    type RegisteredHttpRouteParams = Parameters<GenesisPluginApi["registerHttpRoute"]>[0];
 
     let registeredToolFactory:
-      | ((ctx: OpenClawPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
+      | ((ctx: GenesisPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
       | undefined;
     let registeredHttpRouteHandler: HttpRouteHandler | undefined;
     const on = vi.fn();
-    let configFile: OpenClawConfig = {
+    let configFile: GenesisConfig = {
       gateway: {
         port: 18789,
         bind: "loopback",
@@ -355,7 +355,7 @@ describe("diffs plugin registration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const api = createTestPluginApi({
       id: "diffs",
@@ -387,7 +387,7 @@ describe("diffs plugin registration", () => {
           loadConfig: () => configFile,
         },
       } as never,
-      registerTool(tool: Parameters<OpenClawPluginApi["registerTool"]>[0]) {
+      registerTool(tool: Parameters<GenesisPluginApi["registerTool"]>[0]) {
         registeredToolFactory = typeof tool === "function" ? tool : () => tool;
       },
       registerHttpRoute(params: RegisteredHttpRouteParams) {
@@ -396,7 +396,7 @@ describe("diffs plugin registration", () => {
       on,
     });
 
-    registerDiffsPlugin(api as unknown as OpenClawPluginApi);
+    registerDiffsPlugin(api as unknown as GenesisPluginApi);
 
     expect(on).toHaveBeenCalledTimes(1);
     expect(on.mock.calls[0]?.[0]).toBe("before_prompt_build");
@@ -453,7 +453,7 @@ describe("diffs plugin registration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const proxiedRes = createMockServerResponse();
     const proxiedHandled = await registeredHttpRouteHandler?.(
@@ -479,13 +479,13 @@ describe("diffs plugin registration", () => {
       req: IncomingMessage,
       res: ServerResponse,
     ) => boolean | Promise<boolean>;
-    type RegisteredHttpRouteParams = Parameters<OpenClawPluginApi["registerHttpRoute"]>[0];
+    type RegisteredHttpRouteParams = Parameters<GenesisPluginApi["registerHttpRoute"]>[0];
 
     let registeredToolFactory:
-      | ((ctx: OpenClawPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
+      | ((ctx: GenesisPluginToolContext) => RegisteredTool | RegisteredTool[] | null | undefined)
       | undefined;
     let registeredHttpRouteHandler: HttpRouteHandler | undefined;
-    let configFile: OpenClawConfig = {
+    let configFile: GenesisConfig = {
       gateway: {
         port: 18789,
         bind: "loopback",
@@ -501,7 +501,7 @@ describe("diffs plugin registration", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const api = createTestPluginApi({
       id: "diffs",
@@ -524,7 +524,7 @@ describe("diffs plugin registration", () => {
           loadConfig: () => configFile,
         },
       } as never,
-      registerTool(tool: Parameters<OpenClawPluginApi["registerTool"]>[0]) {
+      registerTool(tool: Parameters<GenesisPluginApi["registerTool"]>[0]) {
         registeredToolFactory = typeof tool === "function" ? tool : () => tool;
       },
       registerHttpRoute(params: RegisteredHttpRouteParams) {
@@ -533,7 +533,7 @@ describe("diffs plugin registration", () => {
       on: vi.fn(),
     });
 
-    registerDiffsPlugin(api as unknown as OpenClawPluginApi);
+    registerDiffsPlugin(api as unknown as GenesisPluginApi);
 
     const registeredTool = registeredToolFactory?.({
       agentId: "main",
@@ -554,7 +554,7 @@ describe("diffs plugin registration", () => {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const proxiedRes = createMockServerResponse();
     const proxiedHandled = await registeredHttpRouteHandler?.(
@@ -573,12 +573,12 @@ describe("diffs plugin registration", () => {
   });
 });
 
-function createConfig(): OpenClawConfig {
+function createConfig(): GenesisConfig {
   return {
     browser: {
       executablePath: process.execPath,
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function localReq(input: {

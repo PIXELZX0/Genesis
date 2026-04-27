@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 
 const ttsMocks = vi.hoisted(() => ({
   getResolvedSpeechProviderConfig: vi.fn(),
@@ -37,7 +37,7 @@ const FALLBACK_TTS_PROVIDER = "backup-speech";
 
 function buildTtsParams(
   commandBodyNormalized: string,
-  cfg: OpenClawConfig = {},
+  cfg: GenesisConfig = {},
 ): Parameters<typeof handleTtsCommands>[0] {
   return {
     cfg,
@@ -183,7 +183,7 @@ describe("handleTtsCommands status fallback reporting", () => {
     const result = await handleTtsCommands(
       buildTtsParams("/tts", {
         messages: { tts: { prefsPath: "/tmp/tts.json" } },
-      } as OpenClawConfig),
+      } as GenesisConfig),
       true,
     );
     expect(result?.shouldContinue).toBe(false);

@@ -289,20 +289,20 @@ export function buildServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const profile = env.OPENCLAW_PROFILE;
+  const profile = env.GENESIS_PROFILE;
   const resolvedLaunchdLabel =
     launchdLabel || (platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
   const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
-    OPENCLAW_PROFILE: profile,
-    OPENCLAW_GATEWAY_PORT: String(port),
-    OPENCLAW_LAUNCHD_LABEL: resolvedLaunchdLabel,
-    OPENCLAW_SYSTEMD_UNIT: systemdUnit,
-    OPENCLAW_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
-    OPENCLAW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    GENESIS_PROFILE: profile,
+    GENESIS_GATEWAY_PORT: String(port),
+    GENESIS_LAUNCHD_LABEL: resolvedLaunchdLabel,
+    GENESIS_SYSTEMD_UNIT: systemdUnit,
+    GENESIS_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
+    GENESIS_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
+    GENESIS_SERVICE_KIND: GATEWAY_SERVICE_KIND,
+    GENESIS_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -320,20 +320,20 @@ export function buildNodeServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const gatewayToken = normalizeOptionalString(env.OPENCLAW_GATEWAY_TOKEN);
-  const allowInsecurePrivateWs = normalizeOptionalString(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS);
+  const gatewayToken = normalizeOptionalString(env.GENESIS_GATEWAY_TOKEN);
+  const allowInsecurePrivateWs = normalizeOptionalString(env.GENESIS_ALLOW_INSECURE_PRIVATE_WS);
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
-    OPENCLAW_GATEWAY_TOKEN: gatewayToken,
-    OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
-    OPENCLAW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
-    OPENCLAW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
-    OPENCLAW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
-    OPENCLAW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
-    OPENCLAW_LOG_PREFIX: "node",
-    OPENCLAW_SERVICE_MARKER: NODE_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: NODE_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    GENESIS_GATEWAY_TOKEN: gatewayToken,
+    GENESIS_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
+    GENESIS_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
+    GENESIS_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
+    GENESIS_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
+    GENESIS_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
+    GENESIS_LOG_PREFIX: "node",
+    GENESIS_SERVICE_MARKER: NODE_SERVICE_MARKER,
+    GENESIS_SERVICE_KIND: NODE_SERVICE_KIND,
+    GENESIS_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -347,8 +347,8 @@ function buildCommonServiceEnvironment(
     ...sharedEnv.proxyEnv,
     NODE_EXTRA_CA_CERTS: sharedEnv.nodeCaCerts,
     NODE_USE_SYSTEM_CA: sharedEnv.nodeUseSystemCa,
-    OPENCLAW_STATE_DIR: sharedEnv.stateDir,
-    OPENCLAW_CONFIG_PATH: sharedEnv.configPath,
+    GENESIS_STATE_DIR: sharedEnv.stateDir,
+    GENESIS_CONFIG_PATH: sharedEnv.configPath,
   };
   if (sharedEnv.minimalPath) {
     serviceEnv.PATH = sharedEnv.minimalPath;
@@ -362,8 +362,8 @@ function resolveSharedServiceEnvironmentFields(
   extraPathDirs: string[] | undefined,
   execPath?: string,
 ): SharedServiceEnvironmentFields {
-  const stateDir = env.OPENCLAW_STATE_DIR;
-  const configPath = env.OPENCLAW_CONFIG_PATH;
+  const stateDir = env.GENESIS_STATE_DIR;
+  const configPath = env.GENESIS_CONFIG_PATH;
   // Keep a usable temp directory for supervised services even when the host env omits TMPDIR.
   const tmpDir = env.TMPDIR?.trim() || os.tmpdir();
   const proxyEnv = readServiceProxyEnvironment(env);

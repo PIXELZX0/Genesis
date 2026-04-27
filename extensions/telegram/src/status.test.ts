@@ -1,5 +1,5 @@
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
-import { DEFAULT_EMOJIS } from "openclaw/plugin-sdk/channel-feedback";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
+import { DEFAULT_EMOJIS } from "genesis/plugin-sdk/channel-feedback";
 import { describe, expect, it } from "vitest";
 import type { TelegramChatDetails, TelegramGetChat } from "./bot/types.js";
 import { collectTelegramStatusIssues } from "./status-issues.js";

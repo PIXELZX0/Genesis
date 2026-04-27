@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   normalizePluginsConfigWithResolver,
@@ -45,7 +45,7 @@ function createRegistryPluginIdNormalizer(
 
 export function resolvePluginSkillDirs(params: {
   workspaceDir: string | undefined;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): string[] {
   const workspaceDir = (params.workspaceDir ?? "").trim();
   if (!workspaceDir) {

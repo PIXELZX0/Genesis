@@ -63,7 +63,7 @@ describe("createEmbeddedLobsterRunner", () => {
   });
 
   it("detects workflow files and parses argsJson", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lobster-runner-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lobster-runner-"));
     const workflowPath = path.join(tempDir, "workflow.lobster");
     await fs.writeFile(workflowPath, "steps: []\n", "utf8");
 
@@ -106,7 +106,7 @@ describe("createEmbeddedLobsterRunner", () => {
   });
 
   it("returns a parse error when workflow args are invalid JSON", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lobster-runner-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lobster-runner-"));
     const workflowPath = path.join(tempDir, "workflow.lobster");
     await fs.writeFile(workflowPath, "steps: []\n", "utf8");
 
@@ -191,7 +191,7 @@ describe("createEmbeddedLobsterRunner", () => {
         timeoutMs: 2000,
         maxStdoutBytes: 4096,
       }),
-    ).rejects.toThrow("Lobster input requests are not supported by the OpenClaw Lobster tool yet");
+    ).rejects.toThrow("Lobster input requests are not supported by the Genesis Lobster tool yet");
   });
 
   it("routes resume through the embedded runtime", async () => {

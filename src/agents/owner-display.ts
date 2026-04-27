@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
 export type OwnerDisplaySetting = {
@@ -8,7 +8,7 @@ export type OwnerDisplaySetting = {
 };
 
 export type OwnerDisplaySecretResolution = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   generatedSecret?: string;
 };
 
@@ -16,7 +16,7 @@ export type OwnerDisplaySecretResolution = {
  * Resolve owner display settings for prompt rendering.
  * Keep auth secrets decoupled from owner hash secrets.
  */
-export function resolveOwnerDisplaySetting(config?: OpenClawConfig): OwnerDisplaySetting {
+export function resolveOwnerDisplaySetting(config?: GenesisConfig): OwnerDisplaySetting {
   const ownerDisplay = config?.commands?.ownerDisplay;
   if (ownerDisplay !== "hash") {
     return { ownerDisplay, ownerDisplaySecret: undefined };
@@ -32,7 +32,7 @@ export function resolveOwnerDisplaySetting(config?: OpenClawConfig): OwnerDispla
  * Returns updated config and generated secret when autofill was needed.
  */
 export function ensureOwnerDisplaySecret(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   generateSecret: () => string = () => crypto.randomBytes(32).toString("hex"),
 ): OwnerDisplaySecretResolution {
   const settings = resolveOwnerDisplaySetting(config);

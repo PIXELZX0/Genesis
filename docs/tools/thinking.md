@@ -26,11 +26,11 @@ title: "Thinking levels"
   - Anthropic Claude Opus 4.7 does not default to adaptive thinking. Its API effort default remains provider-owned unless you explicitly set a thinking level.
   - Anthropic Claude Opus 4.7 maps `/think xhigh` to adaptive thinking plus `output_config.effort: "xhigh"`, because `/think` is a thinking directive and `xhigh` is the Opus 4.7 effort setting.
   - Anthropic Claude Opus 4.7 also exposes `/think max`; it maps to the same provider-owned max effort path.
-  - OpenAI GPT models map `/think` through model-specific Responses API effort support. `/think off` sends `reasoning.effort: "none"` only when the target model supports it; otherwise OpenClaw omits the disabled reasoning payload instead of sending an unsupported value.
+  - OpenAI GPT models map `/think` through model-specific Responses API effort support. `/think off` sends `reasoning.effort: "none"` only when the target model supports it; otherwise Genesis omits the disabled reasoning payload instead of sending an unsupported value.
   - Google Gemini maps `/think adaptive` to Gemini's provider-owned dynamic thinking. Gemini 3 requests omit a fixed `thinkingLevel`, while Gemini 2.5 requests send `thinkingBudget: -1`; fixed levels still map to the closest Gemini `thinkingLevel` or budget for that model family.
   - MiniMax (`minimax/*`) on the Anthropic-compatible streaming path defaults to `thinking: { type: "disabled" }` unless you explicitly set thinking in model params or request params. This avoids leaked `reasoning_content` deltas from MiniMax's non-native Anthropic stream format.
   - Z.AI (`zai/*`) only supports binary thinking (`on`/`off`). Any non-`off` level is treated as `on` (mapped to `low`).
-  - Moonshot (`moonshot/*`) maps `/think off` to `thinking: { type: "disabled" }` and any non-`off` level to `thinking: { type: "enabled" }`. When thinking is enabled, Moonshot only accepts `tool_choice` `auto|none`; OpenClaw normalizes incompatible values to `auto`.
+  - Moonshot (`moonshot/*`) maps `/think off` to `thinking: { type: "disabled" }` and any non-`off` level to `thinking: { type: "enabled" }`. When thinking is enabled, Moonshot only accepts `tool_choice` `auto|none`; Genesis normalizes incompatible values to `auto`.
 
 ## Resolution order
 
@@ -56,17 +56,17 @@ title: "Thinking levels"
 - Levels: `on|off`.
 - Directive-only message toggles a session fast-mode override and replies `Fast mode enabled.` / `Fast mode disabled.`.
 - Send `/fast` (or `/fast status`) with no mode to see the current effective fast-mode state.
-- OpenClaw resolves fast mode in this order:
+- Genesis resolves fast mode in this order:
   1. Inline/directive-only `/fast on|off`
   2. Session override
   3. Per-agent default (`agents.list[].fastModeDefault`)
   4. Per-model config: `agents.defaults.models["<provider>/<model>"].params.fastMode`
   5. Fallback: `off`
 - For `openai/*`, fast mode maps to OpenAI priority processing by sending `service_tier=priority` on supported Responses requests.
-- For `openai-codex/*`, fast mode sends the same `service_tier=priority` flag on Codex Responses. OpenClaw keeps one shared `/fast` toggle across both auth paths.
+- For `openai-codex/*`, fast mode sends the same `service_tier=priority` flag on Codex Responses. Genesis keeps one shared `/fast` toggle across both auth paths.
 - For direct public `anthropic/*` requests, including OAuth-authenticated traffic sent to `api.anthropic.com`, fast mode maps to Anthropic service tiers: `/fast on` sets `service_tier=auto`, `/fast off` sets `service_tier=standard_only`.
 - For `minimax/*` on the Anthropic-compatible path, `/fast on` (or `params.fastMode: true`) rewrites `MiniMax-M2.7` to `MiniMax-M2.7-highspeed`.
-- Explicit Anthropic `serviceTier` / `service_tier` model params override the fast-mode default when both are set. OpenClaw still skips Anthropic service-tier injection for non-Anthropic proxy base URLs.
+- Explicit Anthropic `serviceTier` / `service_tier` model params override the fast-mode default when both are set. Genesis still skips Anthropic service-tier injection for non-Anthropic proxy base URLs.
 - `/status` shows `Fast` only when fast mode is enabled.
 
 ## Verbose directives (/verbose or /v)

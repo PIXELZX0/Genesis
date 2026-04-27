@@ -1,18 +1,18 @@
 ---
-summary: "Run OpenClaw through inferrs (OpenAI-compatible local server)"
+summary: "Run Genesis through inferrs (OpenAI-compatible local server)"
 read_when:
-  - You want to run OpenClaw against a local inferrs server
+  - You want to run Genesis against a local inferrs server
   - You are serving Gemma or another model through inferrs
-  - You need the exact OpenClaw compat flags for inferrs
+  - You need the exact Genesis compat flags for inferrs
 title: "Inferrs"
 ---
 
 [inferrs](https://github.com/ericcurtin/inferrs) can serve local models behind an
-OpenAI-compatible `/v1` API. OpenClaw works with `inferrs` through the generic
+OpenAI-compatible `/v1` API. Genesis works with `inferrs` through the generic
 `openai-completions` path.
 
 `inferrs` is currently best treated as a custom self-hosted OpenAI-compatible
-backend, not a dedicated OpenClaw provider plugin.
+backend, not a dedicated Genesis provider plugin.
 
 ## Getting started
 
@@ -31,7 +31,7 @@ backend, not a dedicated OpenClaw provider plugin.
     curl http://127.0.0.1:8080/v1/models
     ```
   </Step>
-  <Step title="Add an OpenClaw provider entry">
+  <Step title="Add an Genesis provider entry">
     Add an explicit provider entry and point your default model at it. See the full config example below.
   </Step>
 </Steps>
@@ -87,7 +87,7 @@ This example uses Gemma 4 on a local `inferrs` server.
     `messages[].content`, not structured content-part arrays.
 
     <Warning>
-    If OpenClaw runs fail with an error like:
+    If Genesis runs fail with an error like:
 
     ```text
     messages[1].content: invalid type: sequence, expected a string
@@ -102,14 +102,14 @@ This example uses Gemma 4 on a local `inferrs` server.
     }
     ```
 
-    OpenClaw will flatten pure text content parts into plain strings before sending
+    Genesis will flatten pure text content parts into plain strings before sending
     the request.
 
   </Accordion>
 
   <Accordion title="Gemma and tool-schema caveat">
     Some current `inferrs` + Gemma combinations accept small direct
-    `/v1/chat/completions` requests but still fail on full OpenClaw agent-runtime
+    `/v1/chat/completions` requests but still fail on full Genesis agent-runtime
     turns.
 
     If that happens, try this first:
@@ -121,12 +121,12 @@ This example uses Gemma 4 on a local `inferrs` server.
     }
     ```
 
-    That disables OpenClaw's tool schema surface for the model and can reduce prompt
+    That disables Genesis's tool schema surface for the model and can reduce prompt
     pressure on stricter local backends.
 
-    If tiny direct requests still work but normal OpenClaw agent turns continue to
+    If tiny direct requests still work but normal Genesis agent turns continue to
     crash inside `inferrs`, the remaining issue is usually upstream model/server
-    behavior rather than OpenClaw's transport layer.
+    behavior rather than Genesis's transport layer.
 
   </Accordion>
 
@@ -140,7 +140,7 @@ This example uses Gemma 4 on a local `inferrs` server.
     ```
 
     ```bash
-    openclaw infer model run \
+    genesis infer model run \
       --model inferrs/google/gemma-4-E2B-it \
       --prompt "What is 2 + 2? Reply with one short sentence." \
       --json
@@ -157,7 +157,7 @@ This example uses Gemma 4 on a local `inferrs` server.
     - Native OpenAI-only request shaping does not apply here
     - No `service_tier`, no Responses `store`, no prompt-cache hints, and no
       OpenAI reasoning-compat payload shaping
-    - Hidden OpenClaw attribution headers (`originator`, `version`, `User-Agent`)
+    - Hidden Genesis attribution headers (`originator`, `version`, `User-Agent`)
       are not injected on custom `inferrs` base URLs
 
   </Accordion>
@@ -177,13 +177,13 @@ This example uses Gemma 4 on a local `inferrs` server.
     `requiresStringContent` section above for details.
   </Accordion>
 
-  <Accordion title="Direct /v1/chat/completions calls pass but openclaw infer model run fails">
+  <Accordion title="Direct /v1/chat/completions calls pass but genesis infer model run fails">
     Try setting `compat.supportsTools: false` to disable the tool schema surface.
     See the Gemma tool-schema caveat above.
   </Accordion>
 
   <Accordion title="inferrs still crashes on larger agent turns">
-    If OpenClaw no longer gets schema errors but `inferrs` still crashes on larger
+    If Genesis no longer gets schema errors but `inferrs` still crashes on larger
     agent turns, treat it as an upstream `inferrs` or model limitation. Reduce
     prompt pressure or switch to a different local backend or model.
   </Accordion>
@@ -197,7 +197,7 @@ For general help, see [Troubleshooting](/help/troubleshooting) and [FAQ](/help/f
 
 <CardGroup cols={2}>
   <Card title="Local models" href="/gateway/local-models" icon="server">
-    Running OpenClaw against local model servers.
+    Running Genesis against local model servers.
   </Card>
   <Card title="Gateway troubleshooting" href="/gateway/troubleshooting#local-openai-compatible-backend-passes-direct-probes-but-agent-runs-fail" icon="wrench">
     Debugging local OpenAI-compatible backends that pass probes but fail agent runs.

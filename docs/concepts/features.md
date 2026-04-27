@@ -1,7 +1,7 @@
 ---
-summary: "OpenClaw capabilities across channels, routing, media, and UX."
+summary: "Genesis capabilities across channels, routing, media, and UX."
 read_when:
-  - You want a full list of what OpenClaw supports
+  - You want a full list of what Genesis supports
 title: "Features"
 ---
 

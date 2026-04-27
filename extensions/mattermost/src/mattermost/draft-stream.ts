@@ -1,4 +1,4 @@
-import { createFinalizableDraftLifecycle } from "openclaw/plugin-sdk/channel-lifecycle";
+import { createFinalizableDraftLifecycle } from "genesis/plugin-sdk/channel-lifecycle";
 import {
   createMattermostPost,
   deleteMattermostPost,

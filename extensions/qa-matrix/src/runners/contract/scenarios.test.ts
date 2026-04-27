@@ -14,15 +14,15 @@ const { createMatrixQaE2eeScenarioClient, runMatrixQaE2eeBootstrap, startMatrixQ
 const {
   formatMatrixQaCliCommand,
   redactMatrixQaCliOutput,
-  resolveMatrixQaOpenClawCliEntryPath,
-  runMatrixQaOpenClawCli,
-  startMatrixQaOpenClawCli,
+  resolveMatrixQaGenesisCliEntryPath,
+  runMatrixQaGenesisCli,
+  startMatrixQaGenesisCli,
 } = vi.hoisted(() => ({
-  formatMatrixQaCliCommand: (args: string[]) => `openclaw ${args.join(" ")}`,
+  formatMatrixQaCliCommand: (args: string[]) => `genesis ${args.join(" ")}`,
   redactMatrixQaCliOutput: (text: string) => text,
-  resolveMatrixQaOpenClawCliEntryPath: (cwd: string) => `${cwd}/dist/index.js`,
-  runMatrixQaOpenClawCli: vi.fn(),
-  startMatrixQaOpenClawCli: vi.fn(),
+  resolveMatrixQaGenesisCliEntryPath: (cwd: string) => `${cwd}/dist/index.js`,
+  runMatrixQaGenesisCli: vi.fn(),
+  startMatrixQaGenesisCli: vi.fn(),
 }));
 
 vi.mock("../../substrate/client.js", () => ({
@@ -38,9 +38,9 @@ vi.mock("../../substrate/fault-proxy.js", () => ({
 vi.mock("./scenario-runtime-cli.js", () => ({
   formatMatrixQaCliCommand,
   redactMatrixQaCliOutput,
-  resolveMatrixQaOpenClawCliEntryPath,
-  runMatrixQaOpenClawCli,
-  startMatrixQaOpenClawCli,
+  resolveMatrixQaGenesisCliEntryPath,
+  runMatrixQaGenesisCli,
+  startMatrixQaGenesisCli,
 }));
 
 import {
@@ -115,8 +115,8 @@ describe("matrix live qa scenarios", () => {
     createMatrixQaClient.mockReset();
     createMatrixQaE2eeScenarioClient.mockReset();
     runMatrixQaE2eeBootstrap.mockReset();
-    runMatrixQaOpenClawCli.mockReset();
-    startMatrixQaOpenClawCli.mockReset();
+    runMatrixQaGenesisCli.mockReset();
+    startMatrixQaGenesisCli.mockReset();
     startMatrixQaFaultProxy.mockReset();
   });
 
@@ -260,7 +260,7 @@ describe("matrix live qa scenarios", () => {
   it("merges default and scenario-requested Matrix topology once per run", () => {
     expect(
       scenarioTesting.buildMatrixQaTopologyForScenarios({
-        defaultRoomName: "OpenClaw Matrix QA run",
+        defaultRoomName: "Genesis Matrix QA run",
         scenarios: [
           MATRIX_QA_SCENARIOS[0],
           {
@@ -297,7 +297,7 @@ describe("matrix live qa scenarios", () => {
           key: "main",
           kind: "group",
           members: ["driver", "observer", "sut"],
-          name: "OpenClaw Matrix QA run",
+          name: "Genesis Matrix QA run",
           requireMention: true,
         },
         {
@@ -320,7 +320,7 @@ describe("matrix live qa scenarios", () => {
   it("rejects conflicting Matrix topology room definitions", () => {
     expect(() =>
       scenarioTesting.buildMatrixQaTopologyForScenarios({
-        defaultRoomName: "OpenClaw Matrix QA run",
+        defaultRoomName: "Genesis Matrix QA run",
         scenarios: [
           {
             id: "matrix-thread-follow-up",
@@ -365,7 +365,7 @@ describe("matrix live qa scenarios", () => {
 
   it("provisions isolated encrypted rooms for each E2EE scenario", () => {
     const topology = scenarioTesting.buildMatrixQaTopologyForScenarios({
-      defaultRoomName: "OpenClaw Matrix QA run",
+      defaultRoomName: "Genesis Matrix QA run",
       scenarios: [
         MATRIX_QA_SCENARIOS.find((scenario) => scenario.id === "matrix-e2ee-basic-reply")!,
         MATRIX_QA_SCENARIOS.find((scenario) => scenario.id === "matrix-e2ee-thread-follow-up")!,
@@ -378,7 +378,7 @@ describe("matrix live qa scenarios", () => {
         key: "main",
         kind: "group",
         members: ["driver", "observer", "sut"],
-        name: "OpenClaw Matrix QA run",
+        name: "Genesis Matrix QA run",
         requireMention: true,
       },
       {
@@ -3017,7 +3017,7 @@ describe("matrix live qa scenarios", () => {
           "Verification id: verification-1\nCompleted: yes\nDevice verified by owner: yes\nCross-signing verified: yes\n",
       });
       const kill = vi.fn();
-      startMatrixQaOpenClawCli.mockReturnValue({
+      startMatrixQaGenesisCli.mockReturnValue({
         args: ["matrix", "verify", "self", "--account", "cli"],
         kill,
         output: vi.fn(() => ({ stderr: "", stdout: "" })),
@@ -3026,11 +3026,9 @@ describe("matrix live qa scenarios", () => {
         writeStdin,
       });
       let cliAccountConfigDuringRun: Record<string, unknown> | null = null;
-      runMatrixQaOpenClawCli.mockImplementation(async ({ args, env }) => {
-        if (!cliAccountConfigDuringRun && env.OPENCLAW_CONFIG_PATH) {
-          const cliConfig = JSON.parse(
-            await readFile(String(env.OPENCLAW_CONFIG_PATH), "utf8"),
-          ) as {
+      runMatrixQaGenesisCli.mockImplementation(async ({ args, env }) => {
+        if (!cliAccountConfigDuringRun && env.GENESIS_CONFIG_PATH) {
+          const cliConfig = JSON.parse(await readFile(String(env.GENESIS_CONFIG_PATH), "utf8")) as {
             channels?: {
               matrix?: {
                 accounts?: Record<string, Record<string, unknown>>;
@@ -3093,8 +3091,8 @@ describe("matrix live qa scenarios", () => {
           driverDeviceId: "DRIVERDEVICE",
           driverPassword: "driver-password",
           gatewayRuntimeEnv: {
-            OPENCLAW_CONFIG_PATH: "/tmp/gateway-config.json",
-            OPENCLAW_STATE_DIR: "/tmp/gateway-state",
+            GENESIS_CONFIG_PATH: "/tmp/gateway-config.json",
+            GENESIS_STATE_DIR: "/tmp/gateway-state",
             PATH: process.env.PATH,
           },
           outputDir,
@@ -3108,8 +3106,8 @@ describe("matrix live qa scenarios", () => {
         },
       });
 
-      expect(startMatrixQaOpenClawCli).toHaveBeenCalledTimes(1);
-      expect(startMatrixQaOpenClawCli.mock.calls[0]?.[0].args).toEqual([
+      expect(startMatrixQaGenesisCli).toHaveBeenCalledTimes(1);
+      expect(startMatrixQaGenesisCli.mock.calls[0]?.[0].args).toEqual([
         "matrix",
         "verify",
         "self",
@@ -3120,8 +3118,8 @@ describe("matrix live qa scenarios", () => {
       expect(writeStdin).toHaveBeenCalledWith("yes\n");
       expect(wait).toHaveBeenCalledTimes(1);
       expect(kill).toHaveBeenCalledTimes(1);
-      expect(runMatrixQaOpenClawCli).toHaveBeenCalledTimes(2);
-      expect(runMatrixQaOpenClawCli.mock.calls.map(([params]) => params.args)).toEqual([
+      expect(runMatrixQaGenesisCli).toHaveBeenCalledTimes(2);
+      expect(runMatrixQaGenesisCli.mock.calls.map(([params]) => params.args)).toEqual([
         [
           "matrix",
           "verify",
@@ -3135,10 +3133,10 @@ describe("matrix live qa scenarios", () => {
         ],
         ["matrix", "verify", "status", "--account", "cli", "--json"],
       ]);
-      const cliEnv = startMatrixQaOpenClawCli.mock.calls[0]?.[0].env;
-      expect(cliEnv?.OPENCLAW_STATE_DIR).toContain("openclaw-matrix-cli-qa-");
-      expect(cliEnv?.OPENCLAW_CONFIG_PATH).toContain("openclaw-matrix-cli-qa-");
-      const configPath = String(cliEnv?.OPENCLAW_CONFIG_PATH);
+      const cliEnv = startMatrixQaGenesisCli.mock.calls[0]?.[0].env;
+      expect(cliEnv?.GENESIS_STATE_DIR).toContain("genesis-matrix-cli-qa-");
+      expect(cliEnv?.GENESIS_CONFIG_PATH).toContain("genesis-matrix-cli-qa-");
+      const configPath = String(cliEnv?.GENESIS_CONFIG_PATH);
       expect(cliAccountConfigDuringRun).toMatchObject({
         accessToken: "cli-token",
         deviceId: "CLIDEVICE",
@@ -3148,7 +3146,7 @@ describe("matrix live qa scenarios", () => {
         userId: "@driver:matrix-qa.test",
       });
       await expect(readFile(configPath, "utf8")).rejects.toThrow();
-      await expect(readdir(String(cliEnv?.OPENCLAW_STATE_DIR))).rejects.toThrow();
+      await expect(readdir(String(cliEnv?.GENESIS_STATE_DIR))).rejects.toThrow();
       expect(acceptVerification).toHaveBeenCalledWith("owner-request");
       expect(confirmVerificationSas).toHaveBeenCalledWith("owner-request");
       expect(deleteOwnDevices).toHaveBeenCalledWith(["CLIDEVICE"]);

@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import http from "node:http";
 
-const port = Number(process.env.MOCK_PORT ?? process.env.OPENCLAW_MOCK_OPENAI_PORT);
-const successMarker = process.env.SUCCESS_MARKER ?? "OPENCLAW_E2E_OK";
+const port = Number(process.env.MOCK_PORT ?? process.env.GENESIS_MOCK_OPENAI_PORT);
+const successMarker = process.env.SUCCESS_MARKER ?? "GENESIS_E2E_OK";
 const requestLog = process.env.MOCK_REQUEST_LOG;
 
 if (!Number.isInteger(port) || port <= 0) {
-  throw new Error("missing valid MOCK_PORT or OPENCLAW_MOCK_OPENAI_PORT");
+  throw new Error("missing valid MOCK_PORT or GENESIS_MOCK_OPENAI_PORT");
 }
 
 function readBody(req) {
@@ -111,7 +111,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/v1/models") {
     writeJson(res, 200, {
       object: "list",
-      data: [{ id: "gpt-5.4", object: "model", owned_by: "openclaw-e2e" }],
+      data: [{ id: "gpt-5.4", object: "model", owned_by: "genesis-e2e" }],
     });
     return;
   }

@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { RootHelpRenderOptions } from "../src/cli/program/root-help.js";
-import type { OpenClawConfig } from "../src/config/config.js";
+import type { GenesisConfig } from "../src/config/config.js";
 
 function dedupe(values: string[]): string[] {
   const seen = new Set<string>();
@@ -84,7 +84,7 @@ export function readBundledChannelCatalog(
       const raw = readFileSync(packageJsonPath, "utf8");
       signature.update(`${dirEntry.name}\0${raw}\0`);
       const parsed = JSON.parse(raw) as {
-        openclaw?: {
+        genesis?: {
           channel?: {
             id?: unknown;
             order?: unknown;
@@ -92,12 +92,12 @@ export function readBundledChannelCatalog(
           };
         };
       };
-      const id = parsed.openclaw?.channel?.id;
+      const id = parsed.genesis?.channel?.id;
       if (typeof id !== "string" || !id.trim()) {
         continue;
       }
-      const orderRaw = parsed.openclaw?.channel?.order;
-      const labelRaw = parsed.openclaw?.channel?.label;
+      const orderRaw = parsed.genesis?.channel?.order;
+      const labelRaw = parsed.genesis?.channel?.label;
       entries.push({
         id: id.trim(),
         order: typeof orderRaw === "number" ? orderRaw : 999,
@@ -126,28 +126,28 @@ export function readBundledChannelCatalogIds(
 function createIsolatedRootHelpRenderContext(
   bundledPluginsDir: string = extensionsDir,
 ): RootHelpRenderContext {
-  const stateDir = path.join(rootDir, ".openclaw-build-root-help");
+  const stateDir = path.join(rootDir, ".genesis-build-root-help");
   const workspaceDir = path.join(stateDir, "workspace");
   const homeDir = path.join(stateDir, "home");
   const env: NodeJS.ProcessEnv = {
     HOME: homeDir,
-    LOGNAME: process.env.LOGNAME ?? process.env.USER ?? "openclaw-build",
-    USER: process.env.USER ?? process.env.LOGNAME ?? "openclaw-build",
+    LOGNAME: process.env.LOGNAME ?? process.env.USER ?? "genesis-build",
+    USER: process.env.USER ?? process.env.LOGNAME ?? "genesis-build",
     PATH: process.env.PATH ?? "",
     TMPDIR: process.env.TMPDIR ?? "/tmp",
     LANG: process.env.LANG ?? "C.UTF-8",
     LC_ALL: process.env.LC_ALL ?? "C.UTF-8",
     TERM: process.env.TERM ?? "dumb",
     NO_COLOR: "1",
-    OPENCLAW_BUNDLED_PLUGINS_DIR: bundledPluginsDir,
-    OPENCLAW_DISABLE_BUNDLED_PLUGINS: "",
-    OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-    OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-    OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "0",
-    OPENCLAW_PLUGIN_MANIFEST_CACHE_MS: "0",
-    OPENCLAW_STATE_DIR: stateDir,
+    GENESIS_BUNDLED_PLUGINS_DIR: bundledPluginsDir,
+    GENESIS_DISABLE_BUNDLED_PLUGINS: "",
+    GENESIS_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+    GENESIS_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+    GENESIS_PLUGIN_DISCOVERY_CACHE_MS: "0",
+    GENESIS_PLUGIN_MANIFEST_CACHE_MS: "0",
+    GENESIS_STATE_DIR: stateDir,
   };
-  const config: OpenClawConfig = {
+  const config: GenesisConfig = {
     agents: {
       defaults: {
         workspace: workspaceDir,

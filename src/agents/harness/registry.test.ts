@@ -13,20 +13,20 @@ import {
 import { selectAgentHarness } from "./selection.js";
 import type { AgentHarness } from "./types.js";
 
-const originalRuntime = process.env.OPENCLAW_AGENT_RUNTIME;
-const originalHarnessFallback = process.env.OPENCLAW_AGENT_HARNESS_FALLBACK;
+const originalRuntime = process.env.GENESIS_AGENT_RUNTIME;
+const originalHarnessFallback = process.env.GENESIS_AGENT_HARNESS_FALLBACK;
 
 afterEach(() => {
   clearAgentHarnesses();
   if (originalRuntime == null) {
-    delete process.env.OPENCLAW_AGENT_RUNTIME;
+    delete process.env.GENESIS_AGENT_RUNTIME;
   } else {
-    process.env.OPENCLAW_AGENT_RUNTIME = originalRuntime;
+    process.env.GENESIS_AGENT_RUNTIME = originalRuntime;
   }
   if (originalHarnessFallback == null) {
-    delete process.env.OPENCLAW_AGENT_HARNESS_FALLBACK;
+    delete process.env.GENESIS_AGENT_HARNESS_FALLBACK;
   } else {
-    process.env.OPENCLAW_AGENT_HARNESS_FALLBACK = originalHarnessFallback;
+    process.env.GENESIS_AGENT_HARNESS_FALLBACK = originalHarnessFallback;
   }
 });
 
@@ -110,7 +110,7 @@ describe("agent harness registry", () => {
   });
 
   it("keeps model-specific harnesses behind plugin registration in auto mode", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "auto";
+    process.env.GENESIS_AGENT_RUNTIME = "auto";
 
     expect(selectAgentHarness({ provider: "plugin-models", modelId: "custom-1" }).id).toBe("pi");
 
@@ -124,13 +124,13 @@ describe("agent harness registry", () => {
   });
 
   it("falls back to PI for other models", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "auto";
+    process.env.GENESIS_AGENT_RUNTIME = "auto";
 
     expect(selectAgentHarness({ provider: "anthropic", modelId: "sonnet-4.6" }).id).toBe("pi");
   });
 
   it("lets a plugin harness win in auto mode by priority", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "auto";
+    process.env.GENESIS_AGENT_RUNTIME = "auto";
     registerAgentHarness(makeHarness("plugin-harness", { priority: 200 }), {
       ownerPluginId: "plugin-a",
     });
@@ -139,7 +139,7 @@ describe("agent harness registry", () => {
   });
 
   it("honors explicit PI mode", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "pi";
+    process.env.GENESIS_AGENT_RUNTIME = "pi";
     registerAgentHarness(makeHarness("plugin-harness", { priority: 200 }), {
       ownerPluginId: "plugin-a",
     });
@@ -148,7 +148,7 @@ describe("agent harness registry", () => {
   });
 
   it("honors explicit plugin harness mode when the plugin harness is registered", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "custom";
+    process.env.GENESIS_AGENT_RUNTIME = "custom";
     registerAgentHarness(makeHarness("custom", { providers: ["custom-provider"] }), {
       ownerPluginId: "plugin-a",
     });

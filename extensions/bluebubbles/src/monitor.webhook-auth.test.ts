@@ -19,7 +19,7 @@ import {
   trackWebhookRegistrationForTest,
   type WebhookRequestParams,
 } from "./monitor.webhook.test-helpers.js";
-import type { OpenClawConfig, PluginRuntime } from "./runtime-api.js";
+import type { GenesisConfig, PluginRuntime } from "./runtime-api.js";
 import { createBlueBubblesFetchGuardPassthroughInstaller } from "./test-harness.js";
 import {
   createBlueBubblesMonitorTestRuntime,
@@ -202,7 +202,7 @@ describe("BlueBubbles webhook monitor", () => {
 
   function setupWebhookTarget(params?: {
     account?: ResolvedBlueBubblesAccount;
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     core?: PluginRuntime;
     statusSink?: (event: unknown) => void;
   }) {
@@ -474,7 +474,7 @@ describe("BlueBubbles webhook monitor", () => {
           gateway: {
             trustedProxies: ["10.0.0.0/8"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       });
 
       let saw429 = false;
@@ -536,7 +536,7 @@ describe("BlueBubbles webhook monitor", () => {
             trustedProxies: ["10.0.0.0/8"],
             allowRealIpFallback: true,
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       });
 
       let saw429 = false;

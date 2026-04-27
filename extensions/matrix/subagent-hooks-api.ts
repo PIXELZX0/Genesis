@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/channel-entry-contract";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/channel-entry-contract";
 
 type MatrixSubagentHooksModule = typeof import("./src/matrix/subagent-hooks.js");
 
@@ -9,7 +9,7 @@ function loadMatrixSubagentHooksModule() {
   return matrixSubagentHooksPromise;
 }
 
-export function registerMatrixSubagentHooks(api: OpenClawPluginApi): void {
+export function registerMatrixSubagentHooks(api: GenesisPluginApi): void {
   api.on("subagent_spawning", async (event) => {
     const { handleMatrixSubagentSpawning } = await loadMatrixSubagentHooksModule();
     return await handleMatrixSubagentSpawning(api, event);

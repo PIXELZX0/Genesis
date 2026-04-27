@@ -1,6 +1,6 @@
 import type { SkillSnapshot } from "../../agents/skills.js";
 import { matchesSkillFilter } from "../../agents/skills/filter.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 
 let skillsSnapshotRuntimePromise:
   | Promise<typeof import("./skills-snapshot.runtime.js")>
@@ -13,7 +13,7 @@ async function loadSkillsSnapshotRuntime() {
 
 export async function resolveCronSkillsSnapshot(params: {
   workspaceDir: string;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   agentId: string;
   existingSnapshot?: SkillSnapshot;
   isFastTestEnv: boolean;

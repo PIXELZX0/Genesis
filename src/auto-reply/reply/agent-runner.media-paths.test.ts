@@ -139,7 +139,7 @@ describe("runReplyAgent media path normalization", () => {
     refreshQueuedFollowupSessionMock.mockReset();
     resolveOutboundAttachmentFromUrlMock.mockReset();
     createReplyMediaContextRuntimeMock.mockReset();
-    vi.stubEnv("OPENCLAW_TEST_FAST", "1");
+    vi.stubEnv("GENESIS_TEST_FAST", "1");
     resolveOutboundAttachmentFromUrlMock.mockImplementation(async (mediaUrl: string) => ({
       path: path.join("/tmp/outbound-media", path.basename(mediaUrl)),
     }));
@@ -248,7 +248,7 @@ describe("runReplyAgent media path normalization", () => {
   });
 
   it("does not create a second media context inside runAgentTurnWithFallback when onBlockReply is provided", async () => {
-    // Regression test for openclaw/openclaw#68056.
+    // Regression test for PIXELZX0/Genesis#68056.
     // Before the fix, runAgentTurnWithFallback created its own media context, separate from
     // the one agent-runner.ts created and passed to buildReplyPayloads. Two separate caches
     // meant the same source could be persisted twice (two UUID outbound files, two sends).

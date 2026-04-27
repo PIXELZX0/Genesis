@@ -1,5 +1,5 @@
-import { getRuntimeConfigSnapshot } from "openclaw/plugin-sdk/config-runtime";
-import { jsonResult, readStringParam } from "openclaw/plugin-sdk/provider-web-search";
+import { getRuntimeConfigSnapshot } from "genesis/plugin-sdk/config-runtime";
+import { jsonResult, readStringParam } from "genesis/plugin-sdk/provider-web-search";
 import { Type } from "typebox";
 import {
   buildXaiCodeExecutionPayload,
@@ -100,7 +100,7 @@ export function createCodeExecutionTool(options?: {
           error: "missing_xai_api_key",
           message:
             "code_execution needs an xAI API key. Set XAI_API_KEY in the Gateway environment, or configure plugins.entries.xai.config.webSearch.apiKey.",
-          docs: "https://docs.openclaw.ai/tools/code-execution",
+          docs: "https://docs.genesis.ai/tools/code-execution",
         });
       }
 

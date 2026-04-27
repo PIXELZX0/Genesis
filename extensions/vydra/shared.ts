@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   createProviderOperationDeadline,
@@ -7,12 +7,12 @@ import {
   resolveProviderOperationTimeoutMs,
   resolveProviderHttpRequestConfig,
   waitProviderOperationPollInterval,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 export const DEFAULT_VYDRA_BASE_URL = "https://www.vydra.ai/api/v1";
 export const DEFAULT_VYDRA_IMAGE_MODEL = "grok-imagine";
@@ -88,7 +88,7 @@ export function resolveVydraBaseUrlFromConfig(cfg: unknown): string {
 }
 
 export async function resolveVydraRequestContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   authStore?: VydraAuthStore;
   capability: "image" | "video";

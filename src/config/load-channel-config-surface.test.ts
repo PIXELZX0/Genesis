@@ -77,7 +77,7 @@ function createDemoConfigSchemaModule(repoRoot: string, sourceLines?: string[]) 
   fs.mkdirSync(path.join(packageRoot, "src"), { recursive: true });
   fs.writeFileSync(
     path.join(packageRoot, "package.json"),
-    JSON.stringify({ name: "@openclaw/demo", type: "module" }, null, 2),
+    JSON.stringify({ name: "@genesis/demo", type: "module" }, null, 2),
     "utf8",
   );
   fs.writeFileSync(
@@ -101,7 +101,7 @@ function createDemoConfigSchemaModule(repoRoot: string, sourceLines?: string[]) 
 
 describe("loadChannelConfigSurfaceModule", () => {
   it("prefers the source-aware loader over bun when both succeed", async () => {
-    await withTempDir({ prefix: "openclaw-config-surface-" }, async (repoRoot) => {
+    await withTempDir({ prefix: "genesis-config-surface-" }, async (repoRoot) => {
       const { modulePath } = createDemoConfigSchemaModule(repoRoot);
 
       const spawnSync = vi.fn(() => ({
@@ -135,7 +135,7 @@ describe("loadChannelConfigSurfaceModule", () => {
   });
 
   it("does not require bun when the source-aware loader succeeds", async () => {
-    await withTempDir({ prefix: "openclaw-config-surface-" }, async (repoRoot) => {
+    await withTempDir({ prefix: "genesis-config-surface-" }, async (repoRoot) => {
       const { modulePath } = createDemoConfigSchemaModule(repoRoot);
 
       const { loadChannelConfigSurfaceModule: loadWithMissingBun, spawnSync } =
@@ -149,7 +149,7 @@ describe("loadChannelConfigSurfaceModule", () => {
   });
 
   it("falls back to bun when the source-aware loader fails", async () => {
-    await withTempDir({ prefix: "openclaw-config-surface-" }, async (repoRoot) => {
+    await withTempDir({ prefix: "genesis-config-surface-" }, async (repoRoot) => {
       const { modulePath } = createDemoConfigSchemaModule(repoRoot);
 
       const {
@@ -167,7 +167,7 @@ describe("loadChannelConfigSurfaceModule", () => {
   });
 
   it("retries from an isolated package copy when extension-local node_modules is broken", async () => {
-    await withTempDir({ prefix: "openclaw-config-surface-" }, async (repoRoot) => {
+    await withTempDir({ prefix: "genesis-config-surface-" }, async (repoRoot) => {
       const { packageRoot, modulePath } = createDemoConfigSchemaModule(repoRoot, [
         "import { z } from 'zod';",
         "export const DemoChannelConfigSchema = {",

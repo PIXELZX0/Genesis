@@ -1,5 +1,5 @@
-import { peekSystemEventEntries } from "openclaw/plugin-sdk/infra-runtime";
-import type { OpenClawConfig, OpenClawPluginApi } from "openclaw/plugin-sdk/memory-core";
+import { peekSystemEventEntries } from "genesis/plugin-sdk/infra-runtime";
+import type { GenesisConfig, GenesisPluginApi } from "genesis/plugin-sdk/memory-core";
 import {
   DEFAULT_MEMORY_DREAMING_FREQUENCY as DEFAULT_MEMORY_DREAMING_CRON_EXPR,
   DEFAULT_MEMORY_DEEP_DREAMING_LIMIT as DEFAULT_MEMORY_DREAMING_LIMIT,
@@ -10,8 +10,8 @@ import {
   resolveMemoryCorePluginConfig,
   resolveMemoryDeepDreamingConfig,
   resolveMemoryDreamingWorkspaces,
-} from "openclaw/plugin-sdk/memory-core-host-status";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/memory-core-host-status";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { writeDeepDreamingReport } from "./dreaming-markdown.js";
 import { generateAndAppendDreamNarrative, type NarrativePhaseData } from "./dreaming-narrative.js";
 import { runDreamingSweepPhases } from "./dreaming-phases.js";
@@ -28,17 +28,17 @@ import {
 
 const MANAGED_DREAMING_CRON_NAME = "Memory Dreaming Promotion";
 const MANAGED_DREAMING_CRON_TAG = "[managed-by=memory-core.short-term-promotion]";
-const DREAMING_SYSTEM_EVENT_TEXT = "__openclaw_memory_core_short_term_promotion_dream__";
+const DREAMING_SYSTEM_EVENT_TEXT = "__genesis_memory_core_short_term_promotion_dream__";
 const LEGACY_LIGHT_SLEEP_CRON_NAME = "Memory Light Dreaming";
 const LEGACY_LIGHT_SLEEP_CRON_TAG = "[managed-by=memory-core.dreaming.light]";
-const LEGACY_LIGHT_SLEEP_EVENT_TEXT = "__openclaw_memory_core_light_sleep__";
+const LEGACY_LIGHT_SLEEP_EVENT_TEXT = "__genesis_memory_core_light_sleep__";
 const LEGACY_REM_SLEEP_CRON_NAME = "Memory REM Dreaming";
 const LEGACY_REM_SLEEP_CRON_TAG = "[managed-by=memory-core.dreaming.rem]";
-const LEGACY_REM_SLEEP_EVENT_TEXT = "__openclaw_memory_core_rem_sleep__";
+const LEGACY_REM_SLEEP_EVENT_TEXT = "__genesis_memory_core_rem_sleep__";
 const RUNTIME_CRON_RECONCILE_INTERVAL_MS = 60_000;
 const HEARTBEAT_ISOLATED_SESSION_SUFFIX = ":heartbeat";
 
-type Logger = Pick<OpenClawPluginApi["logger"], "info" | "warn" | "error">;
+type Logger = Pick<GenesisPluginApi["logger"], "info" | "warn" | "error">;
 
 type CronSchedule = { kind: "cron"; expr: string; tz?: string };
 type CronPayload =
@@ -376,7 +376,7 @@ function hasPendingManagedDreamingCronEvent(sessionKey?: string): boolean {
 
 export function resolveShortTermPromotionDreamingConfig(params: {
   pluginConfig?: Record<string, unknown>;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): ShortTermPromotionDreamingConfig {
   const resolved = resolveMemoryDeepDreamingConfig(params);
   return {
@@ -483,7 +483,7 @@ export async function runShortTermDreamingPromotionIfTriggered(params: {
   cleanedBody: string;
   trigger?: string;
   workspaceDir?: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   config: ShortTermPromotionDreamingConfig;
   logger: Logger;
   subagent?: Parameters<typeof generateAndAppendDreamNarrative>[0]["subagent"];
@@ -661,14 +661,14 @@ export async function runShortTermDreamingPromotionIfTriggered(params: {
   return { handled: true, reason: "memory-core: short-term dreaming processed" };
 }
 
-export function registerShortTermPromotionDreaming(api: OpenClawPluginApi): void {
+export function registerShortTermPromotionDreaming(api: GenesisPluginApi): void {
   let resolveStartupCron: (() => CronServiceLike | null) | null = null;
   let unavailableCronWarningEmitted = false;
   let lastRuntimeReconcileAtMs = 0;
   let lastRuntimeConfigKey: string | null = null;
   let lastRuntimeCronRef: CronServiceLike | null = null;
 
-  const resolveCurrentConfig = (): OpenClawConfig =>
+  const resolveCurrentConfig = (): GenesisConfig =>
     api.runtime.config?.loadConfig?.() ?? api.config;
 
   const runtimeConfigKey = (config: ShortTermPromotionDreamingConfig): string =>
@@ -689,7 +689,7 @@ export function registerShortTermPromotionDreaming(api: OpenClawPluginApi): void
 
   const reconcileManagedDreamingCron = async (params: {
     reason: "startup" | "runtime";
-    startupConfig?: OpenClawConfig;
+    startupConfig?: GenesisConfig;
     startupCron?: (() => CronServiceLike | null) | null;
   }): Promise<ShortTermPromotionDreamingConfig> => {
     const startupCfg =

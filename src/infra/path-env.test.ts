@@ -1,6 +1,6 @@
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ensureOpenClawCliOnPath } from "./path-env.js";
+import { ensureGenesisCliOnPath } from "./path-env.js";
 
 const state = vi.hoisted(() => ({
   dirs: new Set<string>(),
@@ -44,11 +44,11 @@ vi.mock("./env.js", () => ({
   isTruthyEnvValue: (value?: string) => value === "1" || value === "true",
 }));
 
-describe("ensureOpenClawCliOnPath", () => {
+describe("ensureGenesisCliOnPath", () => {
   const envKeys = [
     "PATH",
-    "OPENCLAW_PATH_BOOTSTRAPPED",
-    "OPENCLAW_ALLOW_PROJECT_LOCAL_BIN",
+    "GENESIS_PATH_BOOTSTRAPPED",
+    "GENESIS_ALLOW_PROJECT_LOCAL_BIN",
     "MISE_DATA_DIR",
     "HOMEBREW_PREFIX",
     "HOMEBREW_BREW_FILE",
@@ -78,9 +78,9 @@ describe("ensureOpenClawCliOnPath", () => {
   });
 
   function setupAppCliRoot(name: string) {
-    const tmp = abs(`/tmp/openclaw-path/${name}`);
+    const tmp = abs(`/tmp/genesis-path/${name}`);
     const appBinDir = path.join(tmp, "AppBin");
-    const appCli = path.join(appBinDir, "openclaw");
+    const appCli = path.join(appBinDir, "genesis");
     setDir(tmp);
     setDir(appBinDir);
     setExe(appCli);
@@ -94,14 +94,14 @@ describe("ensureOpenClawCliOnPath", () => {
     platform: NodeJS.Platform;
     allowProjectLocalBin?: boolean;
   }) {
-    ensureOpenClawCliOnPath(params);
+    ensureGenesisCliOnPath(params);
     return (process.env.PATH ?? "").split(path.delimiter);
   }
 
   function resetBootstrapEnv(pathValue = "/usr/bin") {
     process.env.PATH = pathValue;
-    delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
-    delete process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN;
+    delete process.env.GENESIS_PATH_BOOTSTRAPPED;
+    delete process.env.GENESIS_ALLOW_PROJECT_LOCAL_BIN;
     delete process.env.HOMEBREW_PREFIX;
     delete process.env.HOMEBREW_BREW_FILE;
     delete process.env.XDG_BIN_HOME;
@@ -118,7 +118,7 @@ describe("ensureOpenClawCliOnPath", () => {
     }
   }
 
-  it("prepends the bundled app bin dir when a sibling openclaw exists", () => {
+  it("prepends the bundled app bin dir when a sibling genesis exists", () => {
     const { tmp, appBinDir, appCli } = setupAppCliRoot("case-bundled");
     resetBootstrapEnv();
 
@@ -132,7 +132,7 @@ describe("ensureOpenClawCliOnPath", () => {
   });
 
   it("keeps the current runtime directory ahead of system PATH hardening", () => {
-    const tmp = abs("/tmp/openclaw-path/case-runtime-dir");
+    const tmp = abs("/tmp/genesis-path/case-runtime-dir");
     const nodeBinDir = path.join(tmp, "node-bin");
     const nodeExec = path.join(nodeBinDir, "node");
     setDir(tmp);
@@ -153,8 +153,8 @@ describe("ensureOpenClawCliOnPath", () => {
 
   it("is idempotent", () => {
     process.env.PATH = "/bin";
-    process.env.OPENCLAW_PATH_BOOTSTRAPPED = "1";
-    ensureOpenClawCliOnPath({
+    process.env.GENESIS_PATH_BOOTSTRAPPED = "1";
+    ensureGenesisCliOnPath({
       execPath: "/tmp/does-not-matter",
       cwd: "/tmp",
       homeDir: "/tmp",
@@ -198,7 +198,7 @@ describe("ensureOpenClawCliOnPath", () => {
     ({ envValue, allowProjectLocalBin }) => {
       const { tmp, appCli } = setupAppCliRoot("case-project-local");
       const localBinDir = path.join(tmp, "node_modules", ".bin");
-      const localCli = path.join(localBinDir, "openclaw");
+      const localCli = path.join(localBinDir, "genesis");
       setDir(path.join(tmp, "node_modules"));
       setDir(localBinDir);
       setExe(localCli);
@@ -215,9 +215,9 @@ describe("ensureOpenClawCliOnPath", () => {
 
       resetBootstrapEnv();
       if (envValue === undefined) {
-        delete process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN;
+        delete process.env.GENESIS_ALLOW_PROJECT_LOCAL_BIN;
       } else {
-        process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN = envValue;
+        process.env.GENESIS_ALLOW_PROJECT_LOCAL_BIN = envValue;
       }
 
       const withOptIn = bootstrapPath({
@@ -317,7 +317,7 @@ describe("ensureOpenClawCliOnPath", () => {
     {
       name: "appends Linuxbrew dirs after system dirs",
       setup: () => {
-        const tmp = abs("/tmp/openclaw-path/case-linuxbrew");
+        const tmp = abs("/tmp/genesis-path/case-linuxbrew");
         const execDir = path.join(tmp, "exec");
         setDir(tmp);
         setDir(execDir);

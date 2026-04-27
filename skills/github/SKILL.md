@@ -3,7 +3,7 @@ name: github
 description: "Use gh for GitHub issues, PR status, CI/logs, comments, reviews, releases, and API queries."
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "🐙",
         "requires": { "bins": ["gh"] },

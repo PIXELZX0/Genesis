@@ -4,7 +4,7 @@ import {
   isGpt5ModelId,
   renderGpt5PromptOverlay,
   resolveGpt5SystemPromptContribution,
-} from "openclaw/plugin-sdk/provider-model-shared";
+} from "genesis/plugin-sdk/provider-model-shared";
 
 export const CODEX_FRIENDLY_PROMPT_OVERLAY = GPT5_FRIENDLY_PROMPT_OVERLAY;
 export const CODEX_GPT5_BEHAVIOR_CONTRACT = GPT5_BEHAVIOR_CONTRACT;

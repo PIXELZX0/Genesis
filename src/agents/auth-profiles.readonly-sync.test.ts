@@ -41,7 +41,7 @@ describe("auth profiles read-only external auth overlay", () => {
   });
 
   it("overlays runtime-only external auth without writing auth-profiles.json in read-only mode", () => {
-    const agentDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-auth-readonly-sync-"));
+    const agentDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-auth-readonly-sync-"));
     try {
       const authPath = path.join(agentDir, "auth-profiles.json");
       const baseline: AuthProfileStore = {

@@ -87,7 +87,7 @@ import {
   type RuntimeConfigWriteNotification,
 } from "./runtime-snapshot.js";
 import { resolveShellEnvExpectedKeys } from "./shell-env-expected-keys.js";
-import type { OpenClawConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
+import type { GenesisConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
 import {
   validateConfigObjectRawWithPlugins,
   validateConfigObjectWithPlugins,
@@ -240,11 +240,11 @@ export function resolveConfigSnapshotHash(snapshot: {
   return hashConfigRaw(snapshot.raw);
 }
 
-function coerceConfig(value: unknown): OpenClawConfig {
+function coerceConfig(value: unknown): GenesisConfig {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
   }
-  return value as OpenClawConfig;
+  return value as GenesisConfig;
 }
 
 function hasConfigMeta(value: unknown): boolean {
@@ -876,7 +876,7 @@ function warnOnConfigMiskeys(raw: unknown, logger: Pick<typeof console, "warn">)
   }
 }
 
-function stampConfigVersion(cfg: OpenClawConfig): OpenClawConfig {
+function stampConfigVersion(cfg: GenesisConfig): GenesisConfig {
   const now = new Date().toISOString();
   return {
     ...cfg,
@@ -888,14 +888,14 @@ function stampConfigVersion(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-function warnIfConfigFromFuture(cfg: OpenClawConfig, logger: Pick<typeof console, "warn">): void {
+function warnIfConfigFromFuture(cfg: GenesisConfig, logger: Pick<typeof console, "warn">): void {
   const touched = cfg.meta?.lastTouchedVersion;
   if (!touched) {
     return;
   }
   if (shouldWarnOnTouchedVersion(VERSION, touched)) {
     logger.warn(
-      `Config was last written by a newer OpenClaw (${touched}); current version is ${VERSION}.`,
+      `Config was last written by a newer Genesis (${touched}); current version is ${VERSION}.`,
     );
   }
 }
@@ -1060,7 +1060,7 @@ function resolveConfigForRead(
 ): ConfigReadResolution {
   // Apply config.env to process.env BEFORE substitution so ${VAR} can reference config-defined vars.
   if (resolvedIncludes && typeof resolvedIncludes === "object" && "env" in resolvedIncludes) {
-    applyConfigEnvVars(resolvedIncludes as OpenClawConfig, env);
+    applyConfigEnvVars(resolvedIncludes as GenesisConfig, env);
   }
 
   // Collect missing env var references as warnings instead of throwing,
@@ -1109,9 +1109,9 @@ function createConfigFileSnapshot(params: {
   exists: boolean;
   raw: string | null;
   parsed: unknown;
-  sourceConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
   valid: boolean;
-  runtimeConfig: OpenClawConfig;
+  runtimeConfig: GenesisConfig;
   hash?: string;
   issues: ConfigFileSnapshot["issues"];
   warnings: ConfigFileSnapshot["warnings"];
@@ -1155,7 +1155,7 @@ export function createConfigIO(
     return snapshot;
   }
 
-  function finalizeLoadedRuntimeConfig(cfg: OpenClawConfig): OpenClawConfig {
+  function finalizeLoadedRuntimeConfig(cfg: GenesisConfig): GenesisConfig {
     const duplicates = findDuplicateAgentDirs(cfg, {
       env: deps.env,
       homedir: deps.homedir,
@@ -1198,7 +1198,7 @@ export function createConfigIO(
     return applyConfigOverrides(cfgWithOwnerDisplaySecret);
   }
 
-  function loadConfig(): OpenClawConfig {
+  function loadConfig(): GenesisConfig {
     try {
       maybeLoadDotEnvForConfig(deps.env);
       if (!deps.fs.existsSync(configPath)) {
@@ -1255,7 +1255,7 @@ export function createConfigIO(
         });
         return {};
       }
-      const preValidationDuplicates = findDuplicateAgentDirs(effectiveConfigRaw as OpenClawConfig, {
+      const preValidationDuplicates = findDuplicateAgentDirs(effectiveConfigRaw as GenesisConfig, {
         env: deps.env,
         homedir: deps.homedir,
       });
@@ -1357,7 +1357,7 @@ export function createConfigIO(
 
     let fallbackRaw: string | null = null;
     let fallbackParsed: unknown = {};
-    let fallbackSourceConfig: OpenClawConfig = {};
+    let fallbackSourceConfig: GenesisConfig = {};
     let fallbackHash = hashConfigRaw(null);
 
     try {
@@ -1566,7 +1566,7 @@ export function createConfigIO(
     };
   }
 
-  async function readBestEffortConfig(): Promise<OpenClawConfig> {
+  async function readBestEffortConfig(): Promise<GenesisConfig> {
     const result = await readConfigFileSnapshotInternal();
     if (!result.snapshot.valid) {
       return result.snapshot.config;
@@ -1576,7 +1576,7 @@ export function createConfigIO(
     );
   }
 
-  async function readSourceConfigBestEffort(): Promise<OpenClawConfig> {
+  async function readSourceConfigBestEffort(): Promise<GenesisConfig> {
     maybeLoadDotEnvForConfig(deps.env);
     const exists = deps.fs.existsSync(configPath);
     if (!exists) {
@@ -1616,9 +1616,9 @@ export function createConfigIO(
   }
 
   async function writeConfigFile(
-    cfg: OpenClawConfig,
+    cfg: GenesisConfig,
     options: ConfigWriteOptions = {},
-  ): Promise<{ persistedHash: string; persistedConfig: OpenClawConfig }> {
+  ): Promise<{ persistedHash: string; persistedConfig: GenesisConfig }> {
     clearConfigCache();
     let persistCandidate: unknown = cfg;
     const snapshot = options.baseSnapshot ?? (await readConfigFileSnapshotInternal()).snapshot;
@@ -1682,7 +1682,7 @@ export function createConfigIO(
     // persisted to disk (issue #56772).
     // Apply legacy web-search normalization so that migration results are still
     // persisted even though we bypass validated.config.
-    let cfgToWrite = persistCandidate as OpenClawConfig;
+    let cfgToWrite = persistCandidate as GenesisConfig;
     try {
       if (deps.fs.existsSync(configPath)) {
         const currentRaw = await deps.fs.promises.readFile(configPath, "utf-8");
@@ -1696,7 +1696,7 @@ export function createConfigIO(
             cfgToWrite,
             parsedRes.parsed,
             envForRestore,
-          ) as OpenClawConfig;
+          ) as GenesisConfig;
         }
       }
     } catch {
@@ -1713,7 +1713,7 @@ export function createConfigIO(
     });
     const outputConfigBase =
       envRefMap && changedPaths
-        ? (restoreEnvRefsFromMap(cfgToWrite, "", envRefMap, changedPaths) as OpenClawConfig)
+        ? (restoreEnvRefsFromMap(cfgToWrite, "", envRefMap, changedPaths) as GenesisConfig)
         : cfgToWrite;
     let outputConfig = outputConfigBase;
     if (options.unsetPaths?.length) {
@@ -1760,7 +1760,7 @@ export function createConfigIO(
         return;
       }
       const isVitest = deps.env.VITEST === "true";
-      const shouldLogInVitest = deps.env.OPENCLAW_TEST_CONFIG_OVERWRITE_LOG === "1";
+      const shouldLogInVitest = deps.env.GENESIS_TEST_CONFIG_OVERWRITE_LOG === "1";
       if (isVitest && !shouldLogInVitest) {
         return;
       }
@@ -1782,7 +1782,7 @@ export function createConfigIO(
       }
       // Tests often write minimal configs (missing meta, etc); keep output quiet unless requested.
       const isVitest = deps.env.VITEST === "true";
-      const shouldLogInVitest = deps.env.OPENCLAW_TEST_CONFIG_WRITE_ANOMALY_LOG === "1";
+      const shouldLogInVitest = deps.env.GENESIS_TEST_CONFIG_WRITE_ANOMALY_LOG === "1";
       if (isVitest && !shouldLogInVitest) {
         return;
       }
@@ -1914,7 +1914,7 @@ export function createConfigIO(
 }
 
 // NOTE: These wrappers intentionally do *not* cache the resolved config path at
-// module scope. `OPENCLAW_CONFIG_PATH` (and friends) are expected to work even
+// module scope. `GENESIS_CONFIG_PATH` (and friends) are expected to work even
 // when set after the module has been imported (tests, one-off scripts, etc.).
 const AUTO_OWNER_DISPLAY_SECRET_BY_PATH = new Map<string, string>();
 const AUTO_OWNER_DISPLAY_SECRET_PERSIST_IN_FLIGHT = new Set<string>();
@@ -1930,8 +1930,8 @@ export function registerConfigWriteListener(
 }
 
 function isCompatibleTopLevelRuntimeProjectionShape(params: {
-  runtimeSnapshot: OpenClawConfig;
-  candidate: OpenClawConfig;
+  runtimeSnapshot: GenesisConfig;
+  candidate: GenesisConfig;
 }): boolean {
   const runtime = params.runtimeSnapshot as Record<string, unknown>;
   const candidate = params.candidate as Record<string, unknown>;
@@ -1958,7 +1958,7 @@ function isCompatibleTopLevelRuntimeProjectionShape(params: {
   return true;
 }
 
-export function projectConfigOntoRuntimeSourceSnapshot(config: OpenClawConfig): OpenClawConfig {
+export function projectConfigOntoRuntimeSourceSnapshot(config: GenesisConfig): GenesisConfig {
   const runtimeConfigSnapshot = getRuntimeConfigSnapshotState();
   const runtimeConfigSourceSnapshot = getRuntimeConfigSourceSnapshotState();
   if (!runtimeConfigSnapshot || !runtimeConfigSourceSnapshot) {
@@ -1986,22 +1986,22 @@ export function projectConfigOntoRuntimeSourceSnapshot(config: OpenClawConfig): 
   return coerceConfig(applyMergePatch(projectedSource, runtimePatch));
 }
 
-export function loadConfig(): OpenClawConfig {
+export function loadConfig(): GenesisConfig {
   // First successful load becomes the process snapshot. Long-lived runtimes
   // should swap this snapshot via explicit reload/watcher paths instead of
-  // reparsing openclaw.json on hot code paths.
+  // reparsing genesis.json on hot code paths.
   return loadPinnedRuntimeConfig(() => createConfigIO().loadConfig());
 }
 
-export function getRuntimeConfig(): OpenClawConfig {
+export function getRuntimeConfig(): GenesisConfig {
   return loadConfig();
 }
 
-export async function readBestEffortConfig(): Promise<OpenClawConfig> {
+export async function readBestEffortConfig(): Promise<GenesisConfig> {
   return await createConfigIO().readBestEffortConfig();
 }
 
-export async function readSourceConfigBestEffort(): Promise<OpenClawConfig> {
+export async function readSourceConfigBestEffort(): Promise<GenesisConfig> {
   return await createConfigIO().readSourceConfigBestEffort();
 }
 
@@ -2041,7 +2041,7 @@ export async function readSourceConfigSnapshotForWrite(): Promise<ReadConfigFile
 }
 
 export async function writeConfigFile(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   options: ConfigWriteOptions = {},
 ): Promise<void> {
   const io = createConfigIO();

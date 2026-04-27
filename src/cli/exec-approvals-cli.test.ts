@@ -487,7 +487,7 @@ describe("exec approvals CLI", () => {
           }),
           askFallback: expect.objectContaining({
             effective: "full",
-            source: "OpenClaw default (full)",
+            source: "Genesis default (full)",
           }),
         }),
         expect.objectContaining({
@@ -504,7 +504,7 @@ describe("exec approvals CLI", () => {
           }),
           askFallback: expect.objectContaining({
             effective: "allowlist",
-            source: "OpenClaw default (full)",
+            source: "Genesis default (full)",
           }),
         }),
       ]),

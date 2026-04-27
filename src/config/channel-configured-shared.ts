@@ -1,9 +1,9 @@
 import { getChannelEnvVars } from "../secrets/channel-env-vars.js";
 import { isRecord } from "../utils.js";
-import type { OpenClawConfig } from "./config.js";
+import type { GenesisConfig } from "./config.js";
 
 export function resolveChannelConfigRecord(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   channelId: string,
 ): Record<string, unknown> | null {
   const channels = cfg.channels as Record<string, unknown> | undefined;
@@ -19,7 +19,7 @@ export function hasMeaningfulChannelConfigShallow(value: unknown): boolean {
 }
 
 export function isStaticallyChannelConfigured(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   channelId: string,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {

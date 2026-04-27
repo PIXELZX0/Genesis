@@ -1,4 +1,4 @@
-import { isBlockedHostnameOrIp } from "openclaw/plugin-sdk/ssrf-runtime";
+import { isBlockedHostnameOrIp } from "genesis/plugin-sdk/ssrf-runtime";
 
 export function validateUrlSafety(urlStr: string): { ok: true } | { ok: false; error: string } {
   try {

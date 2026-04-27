@@ -88,7 +88,7 @@ describe("command-startup-policy", () => {
     expect(
       shouldHideCliBannerForCommandPath(["status"], {
         ...process.env,
-        OPENCLAW_HIDE_BANNER: "1",
+        GENESIS_HIDE_BANNER: "1",
       }),
     ).toBe(true);
     expect(shouldHideCliBannerForCommandPath(["status"], {})).toBe(false);

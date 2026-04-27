@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { PluginRuntime } from "./runtime/types.js";
-import type { OpenClawPluginApi, PluginLogger } from "./types.js";
+import type { GenesisPluginApi, PluginLogger } from "./types.js";
 
 export type BuildPluginApiParams = {
   id: string;
@@ -9,15 +9,15 @@ export type BuildPluginApiParams = {
   description?: string;
   source: string;
   rootDir?: string;
-  registrationMode: OpenClawPluginApi["registrationMode"];
-  config: OpenClawConfig;
+  registrationMode: GenesisPluginApi["registrationMode"];
+  config: GenesisConfig;
   pluginConfig?: Record<string, unknown>;
   runtime: PluginRuntime;
   logger: PluginLogger;
   resolvePath: (input: string) => string;
   handlers?: Partial<
     Pick<
-      OpenClawPluginApi,
+      GenesisPluginApi,
       | "registerTool"
       | "registerHook"
       | "registerHttpRoute"
@@ -64,64 +64,64 @@ export type BuildPluginApiParams = {
   >;
 };
 
-const noopRegisterTool: OpenClawPluginApi["registerTool"] = () => {};
-const noopRegisterHook: OpenClawPluginApi["registerHook"] = () => {};
-const noopRegisterHttpRoute: OpenClawPluginApi["registerHttpRoute"] = () => {};
-const noopRegisterChannel: OpenClawPluginApi["registerChannel"] = () => {};
-const noopRegisterGatewayMethod: OpenClawPluginApi["registerGatewayMethod"] = () => {};
-const noopRegisterCli: OpenClawPluginApi["registerCli"] = () => {};
-const noopRegisterReload: OpenClawPluginApi["registerReload"] = () => {};
-const noopRegisterNodeHostCommand: OpenClawPluginApi["registerNodeHostCommand"] = () => {};
-const noopRegisterSecurityAuditCollector: OpenClawPluginApi["registerSecurityAuditCollector"] =
+const noopRegisterTool: GenesisPluginApi["registerTool"] = () => {};
+const noopRegisterHook: GenesisPluginApi["registerHook"] = () => {};
+const noopRegisterHttpRoute: GenesisPluginApi["registerHttpRoute"] = () => {};
+const noopRegisterChannel: GenesisPluginApi["registerChannel"] = () => {};
+const noopRegisterGatewayMethod: GenesisPluginApi["registerGatewayMethod"] = () => {};
+const noopRegisterCli: GenesisPluginApi["registerCli"] = () => {};
+const noopRegisterReload: GenesisPluginApi["registerReload"] = () => {};
+const noopRegisterNodeHostCommand: GenesisPluginApi["registerNodeHostCommand"] = () => {};
+const noopRegisterSecurityAuditCollector: GenesisPluginApi["registerSecurityAuditCollector"] =
   () => {};
-const noopRegisterService: OpenClawPluginApi["registerService"] = () => {};
-const noopRegisterGatewayDiscoveryService: OpenClawPluginApi["registerGatewayDiscoveryService"] =
+const noopRegisterService: GenesisPluginApi["registerService"] = () => {};
+const noopRegisterGatewayDiscoveryService: GenesisPluginApi["registerGatewayDiscoveryService"] =
   () => {};
-const noopRegisterCliBackend: OpenClawPluginApi["registerCliBackend"] = () => {};
-const noopRegisterTextTransforms: OpenClawPluginApi["registerTextTransforms"] = () => {};
-const noopRegisterConfigMigration: OpenClawPluginApi["registerConfigMigration"] = () => {};
-const noopRegisterAutoEnableProbe: OpenClawPluginApi["registerAutoEnableProbe"] = () => {};
-const noopRegisterProvider: OpenClawPluginApi["registerProvider"] = () => {};
-const noopRegisterSpeechProvider: OpenClawPluginApi["registerSpeechProvider"] = () => {};
-const noopRegisterRealtimeTranscriptionProvider: OpenClawPluginApi["registerRealtimeTranscriptionProvider"] =
+const noopRegisterCliBackend: GenesisPluginApi["registerCliBackend"] = () => {};
+const noopRegisterTextTransforms: GenesisPluginApi["registerTextTransforms"] = () => {};
+const noopRegisterConfigMigration: GenesisPluginApi["registerConfigMigration"] = () => {};
+const noopRegisterAutoEnableProbe: GenesisPluginApi["registerAutoEnableProbe"] = () => {};
+const noopRegisterProvider: GenesisPluginApi["registerProvider"] = () => {};
+const noopRegisterSpeechProvider: GenesisPluginApi["registerSpeechProvider"] = () => {};
+const noopRegisterRealtimeTranscriptionProvider: GenesisPluginApi["registerRealtimeTranscriptionProvider"] =
   () => {};
-const noopRegisterRealtimeVoiceProvider: OpenClawPluginApi["registerRealtimeVoiceProvider"] =
+const noopRegisterRealtimeVoiceProvider: GenesisPluginApi["registerRealtimeVoiceProvider"] =
   () => {};
-const noopRegisterMediaUnderstandingProvider: OpenClawPluginApi["registerMediaUnderstandingProvider"] =
+const noopRegisterMediaUnderstandingProvider: GenesisPluginApi["registerMediaUnderstandingProvider"] =
   () => {};
-const noopRegisterImageGenerationProvider: OpenClawPluginApi["registerImageGenerationProvider"] =
+const noopRegisterImageGenerationProvider: GenesisPluginApi["registerImageGenerationProvider"] =
   () => {};
-const noopRegisterVideoGenerationProvider: OpenClawPluginApi["registerVideoGenerationProvider"] =
+const noopRegisterVideoGenerationProvider: GenesisPluginApi["registerVideoGenerationProvider"] =
   () => {};
-const noopRegisterMusicGenerationProvider: OpenClawPluginApi["registerMusicGenerationProvider"] =
+const noopRegisterMusicGenerationProvider: GenesisPluginApi["registerMusicGenerationProvider"] =
   () => {};
-const noopRegisterWebFetchProvider: OpenClawPluginApi["registerWebFetchProvider"] = () => {};
-const noopRegisterWebSearchProvider: OpenClawPluginApi["registerWebSearchProvider"] = () => {};
-const noopRegisterInteractiveHandler: OpenClawPluginApi["registerInteractiveHandler"] = () => {};
-const noopOnConversationBindingResolved: OpenClawPluginApi["onConversationBindingResolved"] =
+const noopRegisterWebFetchProvider: GenesisPluginApi["registerWebFetchProvider"] = () => {};
+const noopRegisterWebSearchProvider: GenesisPluginApi["registerWebSearchProvider"] = () => {};
+const noopRegisterInteractiveHandler: GenesisPluginApi["registerInteractiveHandler"] = () => {};
+const noopOnConversationBindingResolved: GenesisPluginApi["onConversationBindingResolved"] =
   () => {};
-const noopRegisterCommand: OpenClawPluginApi["registerCommand"] = () => {};
-const noopRegisterContextEngine: OpenClawPluginApi["registerContextEngine"] = () => {};
-const noopRegisterCompactionProvider: OpenClawPluginApi["registerCompactionProvider"] = () => {};
-const noopRegisterAgentHarness: OpenClawPluginApi["registerAgentHarness"] = () => {};
-const noopRegisterCodexAppServerExtensionFactory: OpenClawPluginApi["registerCodexAppServerExtensionFactory"] =
+const noopRegisterCommand: GenesisPluginApi["registerCommand"] = () => {};
+const noopRegisterContextEngine: GenesisPluginApi["registerContextEngine"] = () => {};
+const noopRegisterCompactionProvider: GenesisPluginApi["registerCompactionProvider"] = () => {};
+const noopRegisterAgentHarness: GenesisPluginApi["registerAgentHarness"] = () => {};
+const noopRegisterCodexAppServerExtensionFactory: GenesisPluginApi["registerCodexAppServerExtensionFactory"] =
   () => {};
-const noopRegisterAgentToolResultMiddleware: OpenClawPluginApi["registerAgentToolResultMiddleware"] =
+const noopRegisterAgentToolResultMiddleware: GenesisPluginApi["registerAgentToolResultMiddleware"] =
   () => {};
-const noopRegisterDetachedTaskRuntime: OpenClawPluginApi["registerDetachedTaskRuntime"] = () => {};
-const noopRegisterMemoryCapability: OpenClawPluginApi["registerMemoryCapability"] = () => {};
-const noopRegisterMemoryPromptSection: OpenClawPluginApi["registerMemoryPromptSection"] = () => {};
-const noopRegisterMemoryPromptSupplement: OpenClawPluginApi["registerMemoryPromptSupplement"] =
+const noopRegisterDetachedTaskRuntime: GenesisPluginApi["registerDetachedTaskRuntime"] = () => {};
+const noopRegisterMemoryCapability: GenesisPluginApi["registerMemoryCapability"] = () => {};
+const noopRegisterMemoryPromptSection: GenesisPluginApi["registerMemoryPromptSection"] = () => {};
+const noopRegisterMemoryPromptSupplement: GenesisPluginApi["registerMemoryPromptSupplement"] =
   () => {};
-const noopRegisterMemoryCorpusSupplement: OpenClawPluginApi["registerMemoryCorpusSupplement"] =
+const noopRegisterMemoryCorpusSupplement: GenesisPluginApi["registerMemoryCorpusSupplement"] =
   () => {};
-const noopRegisterMemoryFlushPlan: OpenClawPluginApi["registerMemoryFlushPlan"] = () => {};
-const noopRegisterMemoryRuntime: OpenClawPluginApi["registerMemoryRuntime"] = () => {};
-const noopRegisterMemoryEmbeddingProvider: OpenClawPluginApi["registerMemoryEmbeddingProvider"] =
+const noopRegisterMemoryFlushPlan: GenesisPluginApi["registerMemoryFlushPlan"] = () => {};
+const noopRegisterMemoryRuntime: GenesisPluginApi["registerMemoryRuntime"] = () => {};
+const noopRegisterMemoryEmbeddingProvider: GenesisPluginApi["registerMemoryEmbeddingProvider"] =
   () => {};
-const noopOn: OpenClawPluginApi["on"] = () => {};
+const noopOn: GenesisPluginApi["on"] = () => {};
 
-export function buildPluginApi(params: BuildPluginApiParams): OpenClawPluginApi {
+export function buildPluginApi(params: BuildPluginApiParams): GenesisPluginApi {
   const handlers = params.handlers ?? {};
   return {
     id: params.id,

@@ -1,4 +1,4 @@
-import type { MarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
+import type { MarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
 import {
   FILE_REF_EXTENSIONS_WITH_TLD,
   isAutoLinkedFileRef,
@@ -7,8 +7,8 @@ import {
   type MarkdownLinkSpan,
   type MarkdownIR,
   renderMarkdownIRChunksWithinLimit,
-} from "openclaw/plugin-sdk/text-runtime";
-import { renderMarkdownWithMarkers } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
+import { renderMarkdownWithMarkers } from "genesis/plugin-sdk/text-runtime";
 
 export type TelegramFormattedChunk = {
   html: string;

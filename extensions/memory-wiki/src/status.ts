@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { listActiveMemoryPublicArtifacts } from "openclaw/plugin-sdk/memory-host-core";
-import type { OpenClawConfig } from "../api.js";
+import { listActiveMemoryPublicArtifacts } from "genesis/plugin-sdk/memory-host-core";
+import type { GenesisConfig } from "../api.js";
 import type { ResolvedMemoryWikiConfig } from "./config.js";
 import { inferWikiPageKind, toWikiPageSummary, type WikiPageKind } from "./markdown.js";
 import { probeObsidianCli } from "./obsidian.js";
@@ -59,7 +59,7 @@ export type MemoryWikiDoctorReport = {
 };
 
 type ResolveMemoryWikiStatusDeps = {
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
   pathExists?: (inputPath: string) => Promise<boolean>;
   listPublicArtifacts?: typeof listActiveMemoryPublicArtifacts;
   resolveCommand?: (command: string) => Promise<string | null>;
@@ -278,7 +278,7 @@ export function buildMemoryWikiDoctorReport(status: MemoryWikiStatus): MemoryWik
     code: warning.code,
     message:
       warning.code === "vault-missing"
-        ? "Run `openclaw wiki init` to create the vault layout."
+        ? "Run `genesis wiki init` to create the vault layout."
         : warning.code === "obsidian-cli-missing"
           ? "Install the official Obsidian CLI or disable `obsidian.useOfficialCli`."
           : warning.code === "bridge-disabled"

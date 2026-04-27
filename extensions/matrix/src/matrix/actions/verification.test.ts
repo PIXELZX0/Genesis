@@ -16,9 +16,9 @@ vi.mock("../../runtime.js", () => ({
   }),
 }));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -395,7 +395,7 @@ describe("matrix verification actions", () => {
     expect(getOwnDeviceVerificationStatus).not.toHaveBeenCalled();
   });
 
-  it("does not complete self-verification until the OpenClaw device has full Matrix identity trust", async () => {
+  it("does not complete self-verification until the Genesis device has full Matrix identity trust", async () => {
     const requested = {
       completed: false,
       hasSas: false,
@@ -620,7 +620,7 @@ describe("matrix verification actions", () => {
     expect(crypto.startVerification).not.toHaveBeenCalled();
     expect(crypto.cancelVerification).toHaveBeenCalledWith("verification-1", {
       code: "m.user",
-      reason: "OpenClaw self-verification did not complete",
+      reason: "Genesis self-verification did not complete",
     });
   });
 
@@ -796,7 +796,7 @@ describe("matrix verification actions", () => {
 
     expect(crypto.cancelVerification).toHaveBeenCalledWith("verification-1", {
       code: "m.user",
-      reason: "OpenClaw self-verification did not complete",
+      reason: "Genesis self-verification did not complete",
     });
   });
 
@@ -830,7 +830,7 @@ describe("matrix verification actions", () => {
     expect(crypto.listVerifications).toHaveBeenCalledTimes(1);
     expect(crypto.cancelVerification).toHaveBeenCalledWith("verification-1", {
       code: "m.user",
-      reason: "OpenClaw self-verification did not complete",
+      reason: "Genesis self-verification did not complete",
     });
   });
 
@@ -863,7 +863,7 @@ describe("matrix verification actions", () => {
 
     expect(crypto.cancelVerification).toHaveBeenCalledWith("verification-1", {
       code: "m.user",
-      reason: "OpenClaw self-verification did not complete",
+      reason: "Genesis self-verification did not complete",
     });
   });
 });

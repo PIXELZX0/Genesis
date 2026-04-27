@@ -3,12 +3,12 @@ import {
   buildApiKeyCredential,
   type ProviderAuthResult,
   type SecretInput,
-} from "openclaw/plugin-sdk/provider-auth";
-import type { ModelApi, ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+} from "genesis/plugin-sdk/provider-auth";
+import type { ModelApi, ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 export const PROVIDER_ID = "microsoft-foundry";
 export const DEFAULT_API = "openai-completions";

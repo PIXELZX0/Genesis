@@ -1,12 +1,12 @@
 ---
 summary: "Voice Call plugin: outbound + inbound calls via Twilio/Telnyx/Plivo (plugin install + config + CLI)"
 read_when:
-  - You want to place an outbound voice call from OpenClaw
+  - You want to place an outbound voice call from Genesis
   - You are configuring or developing the voice-call plugin
 title: "Voice call plugin"
 ---
 
-Voice calls for OpenClaw via a plugin. Supports outbound notifications and
+Voice calls for Genesis via a plugin. Supports outbound notifications and
 multi-turn conversations with inbound policies.
 
 Current providers:
@@ -21,7 +21,7 @@ Quick mental model:
 - Install plugin
 - Restart Gateway
 - Configure under `plugins.entries.voice-call.config`
-- Use `openclaw voicecall ...` or the `voice_call` tool
+- Use `genesis voicecall ...` or the `voice_call` tool
 
 ## Where it runs (local vs remote)
 
@@ -34,7 +34,7 @@ If you use a remote Gateway, install/configure the plugin on the **machine runni
 ### Option A: install from npm (recommended)
 
 ```bash
-openclaw plugins install @openclaw/voice-call
+genesis plugins install @genesis/voice-call
 ```
 
 Restart the Gateway afterwards.
@@ -43,7 +43,7 @@ Restart the Gateway afterwards.
 
 ```bash
 PLUGIN_SRC=./path/to/local/voice-call-plugin
-openclaw plugins install "$PLUGIN_SRC"
+genesis plugins install "$PLUGIN_SRC"
 cd "$PLUGIN_SRC" && pnpm install
 ```
 
@@ -142,13 +142,13 @@ Set config under `plugins.entries.voice-call.config`:
 Check setup before testing with a real provider:
 
 ```bash
-openclaw voicecall setup
+genesis voicecall setup
 ```
 
 The default output is readable in chat logs and terminal sessions. It checks
 whether the plugin is enabled, the provider and credentials are present, webhook
 exposure is configured, and only one audio mode is active. Use
-`openclaw voicecall setup --json` for scripts.
+`genesis voicecall setup --json` for scripts.
 
 For Twilio, Telnyx, and Plivo, setup must resolve to a public webhook URL. If the
 configured `publicUrl`, tunnel URL, Tailscale URL, or serve fallback resolves to
@@ -158,15 +158,15 @@ that cannot receive real carrier webhooks.
 For a no-surprises smoke test, run:
 
 ```bash
-openclaw voicecall smoke
-openclaw voicecall smoke --to "+15555550123"
+genesis voicecall smoke
+genesis voicecall smoke --to "+15555550123"
 ```
 
 The second command is still a dry run. Add `--yes` to place a short outbound
 notify call:
 
 ```bash
-openclaw voicecall smoke --to "+15555550123" --yes
+genesis voicecall smoke --to "+15555550123" --yes
 ```
 
 Notes:
@@ -174,7 +174,7 @@ Notes:
 - Twilio/Telnyx require a **publicly reachable** webhook URL.
 - Plivo requires a **publicly reachable** webhook URL.
 - `mock` is a local dev provider (no network calls).
-- If older configs still use `provider: "log"`, `twilio.from`, or legacy `streaming.*` OpenAI keys, run `openclaw doctor --fix` to rewrite them.
+- If older configs still use `provider: "log"`, `twilio.from`, or legacy `streaming.*` OpenAI keys, run `genesis doctor --fix` to rewrite them.
 - Telnyx requires `telnyx.publicKey` (or `TELNYX_PUBLIC_KEY`) unless `skipSignatureVerification` is true.
 - `skipSignatureVerification` is for local testing only.
 - If you use ngrok free tier, set `publicUrl` to the exact ngrok URL; signature verification is always enforced.
@@ -186,7 +186,7 @@ Notes:
 - `streaming.maxPendingConnections` caps total unauthenticated pre-start sockets.
 - `streaming.maxPendingConnectionsPerIp` caps unauthenticated pre-start sockets per source IP.
 - `streaming.maxConnections` caps total open media stream sockets (pending + active).
-- Runtime fallback still accepts those old voice-call keys for now, but the rewrite path is `openclaw doctor --fix` and the compat shim is temporary.
+- Runtime fallback still accepts those old voice-call keys for now, but the rewrite path is `genesis doctor --fix` and the compat shim is temporary.
 
 ## Realtime voice conversations
 
@@ -203,9 +203,9 @@ Current runtime behavior:
 - Bundled realtime voice providers include Google Gemini Live (`google`) and
   OpenAI (`openai`), registered by their provider plugins.
 - Provider-owned raw config lives under `realtime.providers.<providerId>`.
-- Voice Call exposes the shared `openclaw_agent_consult` realtime tool by
+- Voice Call exposes the shared `genesis_agent_consult` realtime tool by
   default. The realtime model can call it when the caller asks for deeper
-  reasoning, current information, or normal OpenClaw tools.
+  reasoning, current information, or normal Genesis tools.
 - `realtime.toolPolicy` controls the consult run:
   - `safe-read-only`: expose the consult tool and limit the regular agent to
     `read`, `web_search`, `web_fetch`, `x_search`, `memory_search`, and
@@ -242,7 +242,7 @@ Example:
           realtime: {
             enabled: true,
             provider: "google",
-            instructions: "Speak briefly. Call openclaw_agent_consult before using deeper tools.",
+            instructions: "Speak briefly. Call genesis_agent_consult before using deeper tools.",
             toolPolicy: "safe-read-only",
             providers: {
               google: {
@@ -373,7 +373,7 @@ Use xAI instead:
 }
 ```
 
-Legacy keys are still auto-migrated by `openclaw doctor --fix`:
+Legacy keys are still auto-migrated by `genesis doctor --fix`:
 
 - `streaming.sttProvider` → `streaming.provider`
 - `streaming.openaiApiKey` → `streaming.providers.openai.apiKey`
@@ -476,7 +476,7 @@ streaming speech on calls. You can override it under the plugin config with the
 
 Notes:
 
-- Legacy `tts.<provider>` keys inside plugin config (`openai`, `elevenlabs`, `microsoft`, `edge`) are repaired by `openclaw doctor --fix`; committed config should use `tts.providers.<provider>`.
+- Legacy `tts.<provider>` keys inside plugin config (`openai`, `elevenlabs`, `microsoft`, `edge`) are repaired by `genesis doctor --fix`; committed config should use `tts.providers.<provider>`.
 - **Microsoft speech is ignored for voice calls** (telephony audio needs PCM; the current Microsoft transport does not expose telephony PCM output).
 - Core TTS is used when Twilio media streaming is enabled; otherwise calls fall back to provider native voices.
 - If a Twilio media stream is already active, Voice Call does not fall back to TwiML `<Say>`. If telephony TTS is unavailable in that state, the playback request fails instead of mixing two playback paths.
@@ -610,16 +610,16 @@ When a Twilio media stream disconnects, Voice Call waits `2000ms` before auto-en
 ## CLI
 
 ```bash
-openclaw voicecall call --to "+15555550123" --message "Hello from OpenClaw"
-openclaw voicecall start --to "+15555550123"   # alias for call
-openclaw voicecall continue --call-id <id> --message "Any questions?"
-openclaw voicecall speak --call-id <id> --message "One moment"
-openclaw voicecall dtmf --call-id <id> --digits "ww123456#"
-openclaw voicecall end --call-id <id>
-openclaw voicecall status --call-id <id>
-openclaw voicecall tail
-openclaw voicecall latency                     # summarize turn latency from logs
-openclaw voicecall expose --mode funnel
+genesis voicecall call --to "+15555550123" --message "Hello from Genesis"
+genesis voicecall start --to "+15555550123"   # alias for call
+genesis voicecall continue --call-id <id> --message "Any questions?"
+genesis voicecall speak --call-id <id> --message "One moment"
+genesis voicecall dtmf --call-id <id> --digits "ww123456#"
+genesis voicecall end --call-id <id>
+genesis voicecall status --call-id <id>
+genesis voicecall tail
+genesis voicecall latency                     # summarize turn latency from logs
+genesis voicecall expose --mode funnel
 ```
 
 `latency` reads `calls.jsonl` from the default voice-call storage path. Use

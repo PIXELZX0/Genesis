@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto";
-import type { ModelsProviderData } from "openclaw/plugin-sdk/command-auth";
-import { resolveStoredModelOverride } from "openclaw/plugin-sdk/command-auth";
-import { loadSessionStore, resolveStorePath } from "openclaw/plugin-sdk/config-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
-import { normalizeProviderId } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelsProviderData } from "genesis/plugin-sdk/command-auth";
+import { resolveStoredModelOverride } from "genesis/plugin-sdk/command-auth";
+import { loadSessionStore, resolveStorePath } from "genesis/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/core";
+import { normalizeProviderId } from "genesis/plugin-sdk/provider-model-shared";
 import {
   normalizeOptionalString,
   normalizeStringifiedOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type { MattermostInteractiveButtonInput } from "./interactions.js";
 
 const MATTERMOST_MODEL_PICKER_CONTEXT_KEY = "oc_model_picker";
@@ -233,7 +233,7 @@ export function buildMattermostAllowedModelRefs(data: ModelsProviderData): Set<s
 }
 
 export function resolveMattermostModelPickerCurrentModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   route: { agentId: string; sessionKey: string };
   data: ModelsProviderData;
   skipCache?: boolean;

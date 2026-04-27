@@ -23,8 +23,8 @@ describe("stripMatrixMentionPrefix", () => {
 
   it("strips display name with separator", () => {
     const result = stripMatrixMentionPrefix({
-      text: "OpenClaw Bot: /model",
-      displayName: "OpenClaw Bot",
+      text: "Genesis Bot: /model",
+      displayName: "Genesis Bot",
       mentionRegexes: [],
     });
     expect(result).toBe("/model");
@@ -32,8 +32,8 @@ describe("stripMatrixMentionPrefix", () => {
 
   it("strips @display name with comma separator", () => {
     const result = stripMatrixMentionPrefix({
-      text: "@OpenClaw Bot, /model",
-      displayName: "OpenClaw Bot",
+      text: "@Genesis Bot, /model",
+      displayName: "Genesis Bot",
       mentionRegexes: [],
     });
     expect(result).toBe("/model");
@@ -63,15 +63,15 @@ describe("stripMatrixMentionPrefix", () => {
   });
 
   it("strips mention prefix with display name (case-insensitive)", () => {
-    const mentionRegexes = [/@OpenClaw Bot\b/i];
-    const text = "@openclaw bot /model";
+    const mentionRegexes = [/@Genesis Bot\b/i];
+    const text = "@genesis bot /model";
     const result = stripMatrixMentionPrefix({ text, mentionRegexes });
     expect(result).toBe("/model");
   });
 
   it("strips mention prefix with display name (exact case)", () => {
-    const mentionRegexes = [/@OpenClaw Bot\b/i];
-    const text = "@OpenClaw Bot /model";
+    const mentionRegexes = [/@Genesis Bot\b/i];
+    const text = "@Genesis Bot /model";
     const result = stripMatrixMentionPrefix({ text, mentionRegexes });
     expect(result).toBe("/model");
   });

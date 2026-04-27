@@ -10,7 +10,7 @@ import {
   setRuntimeConfigSnapshot,
   writeConfigFile,
 } from "./io.js";
-import type { ConfigFileSnapshot } from "./types.openclaw.js";
+import type { ConfigFileSnapshot } from "./types.genesis.js";
 
 // Mock the plugin manifest registry so we can register a fake channel whose
 // AJV JSON Schema carries a `default` value.  This lets the #56772 regression
@@ -50,7 +50,7 @@ vi.mock("./backup-rotation.js", async (importOriginal) => {
 });
 
 describe("config io write", () => {
-  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-config-io-" });
+  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "genesis-config-io-" });
   const silentLogger = {
     warn: () => {},
     error: () => {},
@@ -94,7 +94,7 @@ describe("config io write", () => {
 
   const createFastConfigIO = (home: string) =>
     createConfigIO({
-      env: { OPENCLAW_TEST_FAST: "1" } as NodeJS.ProcessEnv,
+      env: { GENESIS_TEST_FAST: "1" } as NodeJS.ProcessEnv,
       homedir: () => home,
       logger: silentLogger,
     });
@@ -116,7 +116,7 @@ describe("config io write", () => {
     "tightens world-writable state dir when writing the default config",
     async () => {
       await withSuiteHome(async (home) => {
-        const stateDir = path.join(home, ".openclaw");
+        const stateDir = path.join(home, ".genesis");
         await fs.mkdir(stateDir, { recursive: true, mode: 0o777 });
         await fs.chmod(stateDir, 0o777);
 
@@ -134,9 +134,9 @@ describe("config io write", () => {
     },
   );
 
-  it("keeps writes inside an OPENCLAW_STATE_DIR override even when the real home config exists", async () => {
+  it("keeps writes inside an GENESIS_STATE_DIR override even when the real home config exists", async () => {
     await withSuiteHome(async (home) => {
-      const liveConfigPath = path.join(home, ".openclaw", "openclaw.json");
+      const liveConfigPath = path.join(home, ".genesis", "genesis.json");
       await fs.mkdir(path.dirname(liveConfigPath), { recursive: true });
       await fs.writeFile(
         liveConfigPath,
@@ -145,14 +145,14 @@ describe("config io write", () => {
       );
 
       const overrideDir = path.join(home, "isolated-state");
-      const env = { OPENCLAW_STATE_DIR: overrideDir } as NodeJS.ProcessEnv;
+      const env = { GENESIS_STATE_DIR: overrideDir } as NodeJS.ProcessEnv;
       const io = createConfigIO({
         env,
         homedir: () => home,
         logger: silentLogger,
       });
 
-      expect(io.configPath).toBe(path.join(overrideDir, "openclaw.json"));
+      expect(io.configPath).toBe(path.join(overrideDir, "genesis.json"));
 
       await io.writeConfigFile({
         agents: { list: [{ id: "main", default: true }] },
@@ -166,7 +166,7 @@ describe("config io write", () => {
       expect(livePersisted.gateway).toEqual({ mode: "local", port: 18789 });
 
       const overridePersisted = JSON.parse(
-        await fs.readFile(path.join(overrideDir, "openclaw.json"), "utf-8"),
+        await fs.readFile(path.join(overrideDir, "genesis.json"), "utf-8"),
       ) as {
         session?: { store?: unknown };
       };
@@ -176,7 +176,7 @@ describe("config io write", () => {
 
   it("does not mutate caller config when unsetPaths is applied on first write", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       const io = createConfigIO({
         env: {} as NodeJS.ProcessEnv,
         homedir: () => home,
@@ -224,7 +224,7 @@ describe("config io write", () => {
 
   it("suppresses overwrite audit output when skipOutputLogs is set", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -235,7 +235,7 @@ describe("config io write", () => {
       const io = createConfigIO({
         env: {
           VITEST: "true",
-          OPENCLAW_TEST_CONFIG_OVERWRITE_LOG: "1",
+          GENESIS_TEST_CONFIG_OVERWRITE_LOG: "1",
         } as NodeJS.ProcessEnv,
         homedir: () => home,
         logger: {
@@ -260,13 +260,13 @@ describe("config io write", () => {
 
   it("preserves root $schema during partial writes", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
         `${JSON.stringify(
           {
-            $schema: "https://openclaw.ai/config.json",
+            $schema: "https://genesis.ai/config.json",
             gateway: { mode: "local" },
           },
           null,
@@ -276,14 +276,14 @@ describe("config io write", () => {
       );
 
       const persisted = await writeGatewayPortAndReadConfig(home, configPath);
-      expect(persisted.$schema).toBe("https://openclaw.ai/config.json");
+      expect(persisted.$schema).toBe("https://genesis.ai/config.json");
       expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
     });
   });
 
   it("recovers configs polluted by a leading status line", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       const cleanConfig = {
         gateway: { mode: "local" },
         agents: { list: [{ id: "main", default: true }, { id: "discord-dm" }] },
@@ -321,12 +321,12 @@ describe("config io write", () => {
 
   it("rejects destructive internal writes before replacing the config", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       const original = {
         gateway: { mode: "local" },
         channels: { telegram: { enabled: true, dmPolicy: "pairing" } },
-        agents: { list: [{ id: "main", default: true, workspace: "/tmp/openclaw-main" }] },
+        agents: { list: [{ id: "main", default: true, workspace: "/tmp/genesis-main" }] },
         tools: { profile: "messaging" },
         commands: { ownerDisplay: "hash" },
       } satisfies ConfigFileSnapshot["config"];
@@ -373,7 +373,7 @@ describe("config io write", () => {
 
   it("preserves parsed source config when snapshot validation throws", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".genesis", "genesis.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       const original = {
         gateway: { mode: "local" },
@@ -400,12 +400,12 @@ describe("config io write", () => {
 
   it("rejects root-include partial writes instead of flattening the root config", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
-      const includePath = path.join(home, ".openclaw", "extra.json5");
+      const configPath = path.join(home, ".genesis", "genesis.json");
+      const includePath = path.join(home, ".genesis", "extra.json5");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         includePath,
-        `${JSON.stringify({ $schema: "https://openclaw.ai/config-from-include.json" }, null, 2)}\n`,
+        `${JSON.stringify({ $schema: "https://genesis.ai/config-from-include.json" }, null, 2)}\n`,
         "utf-8",
       );
       await fs.writeFile(
@@ -434,9 +434,9 @@ describe("config io write", () => {
           cliBackends: [],
           skills: [],
           hooks: [],
-          rootDir: "/tmp/openclaw-test-required-plugin",
-          source: "/tmp/openclaw-test-required-plugin/index.ts",
-          manifestPath: "/tmp/openclaw-test-required-plugin/openclaw.plugin.json",
+          rootDir: "/tmp/genesis-test-required-plugin",
+          source: "/tmp/genesis-test-required-plugin/index.ts",
+          manifestPath: "/tmp/genesis-test-required-plugin/genesis.plugin.json",
           configSchema: {
             type: "object",
             properties: {
@@ -478,9 +478,9 @@ describe("config io write", () => {
 
   it("writes runtime-derived edits back to source SecretRef markers", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
-      const previousConfigPath = process.env.OPENCLAW_CONFIG_PATH;
-      process.env.OPENCLAW_CONFIG_PATH = configPath;
+      const configPath = path.join(home, ".genesis", "genesis.json");
+      const previousConfigPath = process.env.GENESIS_CONFIG_PATH;
+      process.env.GENESIS_CONFIG_PATH = configPath;
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -562,9 +562,9 @@ describe("config io write", () => {
         });
       } finally {
         if (previousConfigPath === undefined) {
-          delete process.env.OPENCLAW_CONFIG_PATH;
+          delete process.env.GENESIS_CONFIG_PATH;
         } else {
-          process.env.OPENCLAW_CONFIG_PATH = previousConfigPath;
+          process.env.GENESIS_CONFIG_PATH = previousConfigPath;
         }
       }
     });
@@ -572,11 +572,11 @@ describe("config io write", () => {
 
   it("notifies in-process reloaders with resolved source config when persisted env refs are restored", async () => {
     await withSuiteHome(async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
-      const previousConfigPath = process.env.OPENCLAW_CONFIG_PATH;
-      const previousGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
-      process.env.OPENCLAW_CONFIG_PATH = configPath;
-      process.env.OPENCLAW_GATEWAY_TOKEN = "gateway-token-runtime";
+      const configPath = path.join(home, ".genesis", "genesis.json");
+      const previousConfigPath = process.env.GENESIS_CONFIG_PATH;
+      const previousGatewayToken = process.env.GENESIS_GATEWAY_TOKEN;
+      process.env.GENESIS_CONFIG_PATH = configPath;
+      process.env.GENESIS_GATEWAY_TOKEN = "gateway-token-runtime";
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -584,7 +584,7 @@ describe("config io write", () => {
           {
             gateway: {
               mode: "local",
-              auth: { mode: "token", token: "${OPENCLAW_GATEWAY_TOKEN}" },
+              auth: { mode: "token", token: "${GENESIS_GATEWAY_TOKEN}" },
             },
             agents: { defaults: { model: { primary: "openai/gpt-5.4" } } },
           },
@@ -626,7 +626,7 @@ describe("config io write", () => {
 
         expect(JSON.parse(await fs.readFile(configPath, "utf-8"))).toMatchObject({
           gateway: {
-            auth: { token: "${OPENCLAW_GATEWAY_TOKEN}" },
+            auth: { token: "${GENESIS_GATEWAY_TOKEN}" },
           },
         });
         expect(observedSources).toEqual([
@@ -645,14 +645,14 @@ describe("config io write", () => {
       } finally {
         unsubscribe();
         if (previousConfigPath === undefined) {
-          delete process.env.OPENCLAW_CONFIG_PATH;
+          delete process.env.GENESIS_CONFIG_PATH;
         } else {
-          process.env.OPENCLAW_CONFIG_PATH = previousConfigPath;
+          process.env.GENESIS_CONFIG_PATH = previousConfigPath;
         }
         if (previousGatewayToken === undefined) {
-          delete process.env.OPENCLAW_GATEWAY_TOKEN;
+          delete process.env.GENESIS_GATEWAY_TOKEN;
         } else {
-          process.env.OPENCLAW_GATEWAY_TOKEN = previousGatewayToken;
+          process.env.GENESIS_GATEWAY_TOKEN = previousGatewayToken;
         }
       }
     });

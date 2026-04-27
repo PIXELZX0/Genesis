@@ -1,12 +1,12 @@
 {
-  "name": "@openclaw/irc",
+  "name": "@genesis/irc",
   "version": "2026.4.20",
-  "description": "OpenClaw IRC channel plugin",
+  "description": "Genesis IRC channel plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

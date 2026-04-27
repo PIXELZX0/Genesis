@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { applyDefaultModel, applyProviderAuthConfigPatch } from "./provider-auth-choice-helpers.js";
 
 describe("applyProviderAuthConfigPatch", () => {
@@ -77,7 +77,7 @@ describe("applyProviderAuthConfigPatch", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     const patch = {
       agents: {
         defaults: {
@@ -107,7 +107,7 @@ describe("applyDefaultModel", () => {
   it("sets the primary when none exists", () => {
     const config = {
       agents: { defaults: {} },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const next = applyDefaultModel(config, "openrouter/auto");
     expect(next.agents?.defaults?.model).toEqual({ primary: "openrouter/auto" });
   });
@@ -119,7 +119,7 @@ describe("applyDefaultModel", () => {
           model: { primary: "anthropic/claude-opus-4-6" },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const next = applyDefaultModel(config, "openrouter/auto");
     expect(next.agents?.defaults?.model).toEqual({
       primary: "openrouter/auto",
@@ -133,7 +133,7 @@ describe("applyDefaultModel", () => {
           model: { primary: "anthropic/claude-opus-4-6" },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const next = applyDefaultModel(config, "openrouter/auto", {
       preserveExistingPrimary: true,
     });
@@ -152,7 +152,7 @@ describe("applyDefaultModel", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const next = applyDefaultModel(config, "openrouter/auto", {
       preserveExistingPrimary: true,
     });
@@ -165,7 +165,7 @@ describe("applyDefaultModel", () => {
   it("adds the model to the allowlist", () => {
     const config = {
       agents: { defaults: { models: { "anthropic/claude-sonnet-4-6": {} } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const next = applyDefaultModel(config, "openrouter/auto");
     expect(next.agents?.defaults?.models).toEqual({
       "anthropic/claude-sonnet-4-6": {},

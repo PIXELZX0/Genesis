@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { resetPluginRuntimeStateForTest, setActivePluginRegistry } from "../../plugins/runtime.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../routing/session-key.js";
 import {
@@ -15,8 +15,8 @@ import {
   prepareScopedSetupConfig,
 } from "./setup-helpers.js";
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
 const matrixSingleAccountKeysToMove = [

@@ -1,5 +1,5 @@
 import type { User } from "@buape/carbon";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { PluralKitMessageInfo } from "../pluralkit.js";
 import { formatDiscordUserTag } from "./format.js";
 

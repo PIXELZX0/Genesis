@@ -4,15 +4,15 @@
 const shouldWarnCompatImport =
   process.env.VITEST !== "true" &&
   process.env.NODE_ENV !== "test" &&
-  process.env.OPENCLAW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING !== "1";
+  process.env.GENESIS_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING !== "1";
 
 if (shouldWarnCompatImport) {
   process.emitWarning(
-    "openclaw/plugin-sdk/compat is deprecated for new plugins. Migrate to focused openclaw/plugin-sdk/<subpath> imports. See https://docs.openclaw.ai/plugins/sdk-migration",
+    "genesis/plugin-sdk/compat is deprecated for new plugins. Migrate to focused genesis/plugin-sdk/<subpath> imports. See https://docs.genesis.ai/plugins/sdk-migration",
     {
-      code: "OPENCLAW_PLUGIN_SDK_COMPAT_DEPRECATED",
+      code: "GENESIS_PLUGIN_SDK_COMPAT_DEPRECATED",
       detail:
-        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://docs.openclaw.ai/plugins/sdk-migration",
+        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://docs.genesis.ai/plugins/sdk-migration",
     },
   );
 }

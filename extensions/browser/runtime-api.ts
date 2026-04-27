@@ -6,7 +6,7 @@ export { handleBrowserGatewayRequest } from "./src/gateway/browser-request.js";
 export { browserHandlers } from "./src/gateway/browser-request.js";
 export {
   definePluginEntry,
-  type OpenClawPluginApi,
-  type OpenClawPluginToolContext,
-  type OpenClawPluginToolFactory,
-} from "openclaw/plugin-sdk/plugin-entry";
+  type GenesisPluginApi,
+  type GenesisPluginToolContext,
+  type GenesisPluginToolFactory,
+} from "genesis/plugin-sdk/plugin-entry";

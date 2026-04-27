@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { bundledPluginRootAt } from "../../test/helpers/bundled-plugin-paths.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { PluginNpmIntegrityDriftParams } from "./install.js";
 
 const APP_ROOT = "/app";
@@ -57,8 +57,8 @@ function createSuccessfulNpmUpdateResult(params?: {
 }) {
   return {
     ok: true,
-    pluginId: params?.pluginId ?? "opik-openclaw",
-    targetDir: params?.targetDir ?? "/tmp/opik-openclaw",
+    pluginId: params?.pluginId ?? "opik-genesis",
+    targetDir: params?.targetDir ?? "/tmp/opik-genesis",
     version: params?.version ?? "0.2.6",
     extensions: ["index.ts"],
     ...(params?.npmResolution ? { npmResolution: params.npmResolution } : {}),
@@ -95,7 +95,7 @@ function createMarketplaceInstallConfig(params: {
   marketplaceSource: string;
   marketplacePlugin: string;
   marketplaceName?: string;
-}): OpenClawConfig {
+}): GenesisConfig {
   return {
     plugins: {
       installs: {
@@ -118,7 +118,7 @@ function createClawHubInstallConfig(params: {
   clawhubPackage: string;
   clawhubFamily: "bundle-plugin" | "code-plugin";
   clawhubChannel: "community" | "official" | "private";
-}): OpenClawConfig {
+}): GenesisConfig {
   return {
     plugins: {
       installs: {
@@ -141,7 +141,7 @@ function createBundledPathInstallConfig(params: {
   installPath: string;
   sourcePath?: string;
   spec?: string;
-}): OpenClawConfig {
+}): GenesisConfig {
   return {
     plugins: {
       load: { paths: params.loadPaths },
@@ -165,10 +165,10 @@ function createCodexAppServerInstallConfig(params: {
   return {
     plugins: {
       installs: {
-        "openclaw-codex-app-server": {
+        "genesis-codex-app-server": {
           source: "npm" as const,
           spec: params.spec,
-          installPath: "/tmp/openclaw-codex-app-server",
+          installPath: "/tmp/genesis-codex-app-server",
           ...(params.resolvedName ? { resolvedName: params.resolvedName } : {}),
           ...(params.resolvedSpec ? { resolvedSpec: params.resolvedSpec } : {}),
         },
@@ -178,7 +178,7 @@ function createCodexAppServerInstallConfig(params: {
 }
 
 function createInstalledPackageDir(params: { name?: string; version: string }): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-update-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-plugin-update-test-"));
   tempDirs.push(dir);
   fs.writeFileSync(
     path.join(dir, "package.json"),
@@ -224,7 +224,7 @@ function createBundledSource(params?: { pluginId?: string; localPath?: string; n
   return {
     pluginId,
     localPath: params?.localPath ?? appBundledPluginRoot(pluginId),
-    npmSpec: params?.npmSpec ?? `@openclaw/${pluginId}`,
+    npmSpec: params?.npmSpec ?? `@genesis/${pluginId}`,
   };
 }
 
@@ -254,10 +254,10 @@ function expectCodexAppServerInstallState(params: {
   version: string;
   resolvedSpec?: string;
 }) {
-  expect(params.result.config.plugins?.installs?.["openclaw-codex-app-server"]).toMatchObject({
+  expect(params.result.config.plugins?.installs?.["genesis-codex-app-server"]).toMatchObject({
     source: "npm",
     spec: params.spec,
-    installPath: "/tmp/openclaw-codex-app-server",
+    installPath: "/tmp/genesis-codex-app-server",
     version: params.version,
     ...(params.resolvedSpec ? { resolvedSpec: params.resolvedSpec } : {}),
   });
@@ -282,52 +282,52 @@ describe("updateNpmInstalledPlugins", () => {
     {
       name: "skips integrity drift checks for unpinned npm specs during dry-run updates",
       config: createNpmInstallConfig({
-        pluginId: "opik-openclaw",
-        spec: "@opik/opik-openclaw",
+        pluginId: "opik-genesis",
+        spec: "@opik/opik-genesis",
         integrity: "sha512-old",
-        installPath: "/tmp/opik-openclaw",
+        installPath: "/tmp/opik-genesis",
       }),
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-genesis"],
       dryRun: true,
       expectedCall: {
-        spec: "@opik/opik-openclaw",
+        spec: "@opik/opik-genesis",
         expectedIntegrity: undefined,
       },
     },
     {
       name: "keeps integrity drift checks for exact-version npm specs during dry-run updates",
       config: createNpmInstallConfig({
-        pluginId: "opik-openclaw",
-        spec: "@opik/opik-openclaw@0.2.5",
+        pluginId: "opik-genesis",
+        spec: "@opik/opik-genesis@0.2.5",
         integrity: "sha512-old",
-        installPath: "/tmp/opik-openclaw",
+        installPath: "/tmp/opik-genesis",
       }),
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-genesis"],
       dryRun: true,
       expectedCall: {
-        spec: "@opik/opik-openclaw@0.2.5",
+        spec: "@opik/opik-genesis@0.2.5",
         expectedIntegrity: "sha512-old",
       },
     },
     {
       name: "skips recorded integrity checks when an explicit npm version override changes the spec",
       config: createNpmInstallConfig({
-        pluginId: "openclaw-codex-app-server",
-        spec: "openclaw-codex-app-server@0.2.0-beta.3",
+        pluginId: "genesis-codex-app-server",
+        spec: "genesis-codex-app-server@0.2.0-beta.3",
         integrity: "sha512-old",
-        installPath: "/tmp/openclaw-codex-app-server",
+        installPath: "/tmp/genesis-codex-app-server",
       }),
-      pluginIds: ["openclaw-codex-app-server"],
+      pluginIds: ["genesis-codex-app-server"],
       specOverrides: {
-        "openclaw-codex-app-server": "openclaw-codex-app-server@0.2.0-beta.4",
+        "genesis-codex-app-server": "genesis-codex-app-server@0.2.0-beta.4",
       },
       installerResult: createSuccessfulNpmUpdateResult({
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
+        targetDir: "/tmp/genesis-codex-app-server",
         version: "0.2.0-beta.4",
       }),
       expectedCall: {
-        spec: "openclaw-codex-app-server@0.2.0-beta.4",
+        spec: "genesis-codex-app-server@0.2.0-beta.4",
         expectedIntegrity: undefined,
       },
     },
@@ -361,7 +361,7 @@ describe("updateNpmInstalledPlugins", () => {
       shasum: "same",
     });
     installPluginFromNpmSpecMock.mockRejectedValue(new Error("installer should not run"));
-    const config: OpenClawConfig = {
+    const config: GenesisConfig = {
       plugins: {
         installs: {
           "lossless-claw": {
@@ -510,14 +510,14 @@ describe("updateNpmInstalledPlugins", () => {
           actualIntegrity: "sha512-new",
           resolution: {
             integrity: "sha512-new",
-            resolvedSpec: "@opik/opik-openclaw@0.2.5",
+            resolvedSpec: "@opik/opik-genesis@0.2.5",
             version: "0.2.5",
           },
         });
         if (proceed === false) {
           return {
             ok: false,
-            error: "aborted: npm package integrity drift detected for @opik/opik-openclaw@0.2.5",
+            error: "aborted: npm package integrity drift detected for @opik/opik-genesis@0.2.5",
           };
         }
         return createSuccessfulNpmUpdateResult();
@@ -525,28 +525,28 @@ describe("updateNpmInstalledPlugins", () => {
     );
 
     const config = createNpmInstallConfig({
-      pluginId: "opik-openclaw",
-      spec: "@opik/opik-openclaw@0.2.5",
+      pluginId: "opik-genesis",
+      spec: "@opik/opik-genesis@0.2.5",
       integrity: "sha512-old",
-      installPath: "/tmp/opik-openclaw",
+      installPath: "/tmp/opik-genesis",
     });
     const result = await updateNpmInstalledPlugins({
       config,
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-genesis"],
       logger: { warn },
     });
 
     expect(warn).toHaveBeenCalledWith(
-      'Integrity drift for "opik-openclaw" (@opik/opik-openclaw@0.2.5): expected sha512-old, got sha512-new',
+      'Integrity drift for "opik-genesis" (@opik/opik-genesis@0.2.5): expected sha512-old, got sha512-new',
     );
     expect(result.changed).toBe(false);
     expect(result.config).toBe(config);
     expect(result.outcomes).toEqual([
       {
-        pluginId: "opik-openclaw",
+        pluginId: "opik-genesis",
         status: "error",
         message:
-          "Failed to update opik-openclaw: aborted: npm package integrity drift detected for @opik/opik-openclaw@0.2.5",
+          "Failed to update opik-genesis: aborted: npm package integrity drift detected for @opik/opik-genesis@0.2.5",
       },
     ]);
   });
@@ -557,15 +557,15 @@ describe("updateNpmInstalledPlugins", () => {
       installerResult: {
         ok: false,
         code: "npm_package_not_found",
-        error: "Package not found on npm: @openclaw/missing.",
+        error: "Package not found on npm: @genesis/missing.",
       },
       config: createNpmInstallConfig({
         pluginId: "missing",
-        spec: "@openclaw/missing",
+        spec: "@genesis/missing",
         installPath: "/tmp/missing",
       }),
       pluginId: "missing",
-      expectedMessage: "Failed to check missing: npm package not found for @openclaw/missing.",
+      expectedMessage: "Failed to check missing: npm package not found for @genesis/missing.",
     },
     {
       name: "falls back to raw installer error for unknown error codes",
@@ -605,42 +605,42 @@ describe("updateNpmInstalledPlugins", () => {
       name: "reuses a recorded npm dist-tag spec for id-based updates",
       installerResult: {
         ok: true,
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
+        targetDir: "/tmp/genesis-codex-app-server",
         version: "0.2.0-beta.4",
         extensions: ["index.ts"],
       },
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server@beta",
-        resolvedName: "openclaw-codex-app-server",
-        resolvedSpec: "openclaw-codex-app-server@0.2.0-beta.3",
+        spec: "genesis-codex-app-server@beta",
+        resolvedName: "genesis-codex-app-server",
+        resolvedSpec: "genesis-codex-app-server@0.2.0-beta.3",
       }),
-      expectedSpec: "openclaw-codex-app-server@beta",
+      expectedSpec: "genesis-codex-app-server@beta",
       expectedVersion: "0.2.0-beta.4",
     },
     {
       name: "uses and persists an explicit npm spec override during updates",
       installerResult: {
         ok: true,
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
+        targetDir: "/tmp/genesis-codex-app-server",
         version: "0.2.0-beta.4",
         extensions: ["index.ts"],
         npmResolution: {
-          name: "openclaw-codex-app-server",
+          name: "genesis-codex-app-server",
           version: "0.2.0-beta.4",
-          resolvedSpec: "openclaw-codex-app-server@0.2.0-beta.4",
+          resolvedSpec: "genesis-codex-app-server@0.2.0-beta.4",
         },
       },
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server",
+        spec: "genesis-codex-app-server",
       }),
       specOverrides: {
-        "openclaw-codex-app-server": "openclaw-codex-app-server@beta",
+        "genesis-codex-app-server": "genesis-codex-app-server@beta",
       },
-      expectedSpec: "openclaw-codex-app-server@beta",
+      expectedSpec: "genesis-codex-app-server@beta",
       expectedVersion: "0.2.0-beta.4",
-      expectedResolvedSpec: "openclaw-codex-app-server@0.2.0-beta.4",
+      expectedResolvedSpec: "genesis-codex-app-server@0.2.0-beta.4",
     },
   ] as const)(
     "$name",
@@ -656,13 +656,13 @@ describe("updateNpmInstalledPlugins", () => {
 
       const result = await updateNpmInstalledPlugins({
         config,
-        pluginIds: ["openclaw-codex-app-server"],
+        pluginIds: ["genesis-codex-app-server"],
         ...(specOverrides ? { specOverrides } : {}),
       });
 
       expectNpmUpdateCall({
         spec: expectedSpec,
-        expectedPluginId: "openclaw-codex-app-server",
+        expectedPluginId: "genesis-codex-app-server",
       });
       expectCodexAppServerInstallState({
         result,
@@ -725,8 +725,8 @@ describe("updateNpmInstalledPlugins", () => {
   it("migrates legacy unscoped install keys when a scoped npm package updates", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue({
       ok: true,
-      pluginId: "@openclaw/voice-call",
-      targetDir: "/tmp/openclaw-voice-call",
+      pluginId: "@genesis/voice-call",
+      targetDir: "/tmp/genesis-voice-call",
       version: "0.0.2",
       extensions: ["index.ts"],
     });
@@ -746,7 +746,7 @@ describe("updateNpmInstalledPlugins", () => {
           installs: {
             "voice-call": {
               source: "npm",
-              spec: "@openclaw/voice-call",
+              spec: "@genesis/voice-call",
               installPath: "/tmp/voice-call",
             },
           },
@@ -757,22 +757,22 @@ describe("updateNpmInstalledPlugins", () => {
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "@openclaw/voice-call",
+        spec: "@genesis/voice-call",
         expectedPluginId: "voice-call",
       }),
     );
-    expect(result.config.plugins?.allow).toEqual(["@openclaw/voice-call"]);
-    expect(result.config.plugins?.deny).toEqual(["@openclaw/voice-call"]);
-    expect(result.config.plugins?.slots?.memory).toBe("@openclaw/voice-call");
-    expect(result.config.plugins?.entries?.["@openclaw/voice-call"]).toEqual({
+    expect(result.config.plugins?.allow).toEqual(["@genesis/voice-call"]);
+    expect(result.config.plugins?.deny).toEqual(["@genesis/voice-call"]);
+    expect(result.config.plugins?.slots?.memory).toBe("@genesis/voice-call");
+    expect(result.config.plugins?.entries?.["@genesis/voice-call"]).toEqual({
       enabled: false,
       hooks: { allowPromptInjection: false },
     });
     expect(result.config.plugins?.entries?.["voice-call"]).toBeUndefined();
-    expect(result.config.plugins?.installs?.["@openclaw/voice-call"]).toMatchObject({
+    expect(result.config.plugins?.installs?.["@genesis/voice-call"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/voice-call",
-      installPath: "/tmp/openclaw-voice-call",
+      spec: "@genesis/voice-call",
+      installPath: "/tmp/genesis-voice-call",
       version: "0.0.2",
     });
     expect(result.config.plugins?.installs?.["voice-call"]).toBeUndefined();
@@ -856,25 +856,25 @@ describe("updateNpmInstalledPlugins", () => {
   it("forwards dangerous force unsafe install to plugin update installers", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue(
       createSuccessfulNpmUpdateResult({
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
+        targetDir: "/tmp/genesis-codex-app-server",
         version: "0.2.0-beta.4",
       }),
     );
 
     await updateNpmInstalledPlugins({
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server@beta",
+        spec: "genesis-codex-app-server@beta",
       }),
-      pluginIds: ["openclaw-codex-app-server"],
+      pluginIds: ["genesis-codex-app-server"],
       dangerouslyForceUnsafeInstall: true,
     });
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "openclaw-codex-app-server@beta",
+        spec: "genesis-codex-app-server@beta",
         dangerouslyForceUnsafeInstall: true,
-        expectedPluginId: "openclaw-codex-app-server",
+        expectedPluginId: "genesis-codex-app-server",
       }),
     );
   });
@@ -892,7 +892,7 @@ describe("syncPluginsForUpdateChannel", () => {
       config: createBundledPathInstallConfig({
         loadPaths: [appBundledPluginRoot("feishu")],
         installPath: appBundledPluginRoot("feishu"),
-        spec: "@openclaw/feishu",
+        spec: "@genesis/feishu",
       }),
       expectedChanged: false,
       expectedLoadPaths: [appBundledPluginRoot("feishu")],
@@ -903,7 +903,7 @@ describe("syncPluginsForUpdateChannel", () => {
       config: createBundledPathInstallConfig({
         loadPaths: [],
         installPath: "/tmp/old-feishu",
-        spec: "@openclaw/feishu",
+        spec: "@genesis/feishu",
       }),
       expectedChanged: true,
       expectedLoadPaths: [appBundledPluginRoot("feishu")],
@@ -927,14 +927,14 @@ describe("syncPluginsForUpdateChannel", () => {
         install: result.config.plugins?.installs?.feishu,
         sourcePath: appBundledPluginRoot("feishu"),
         installPath: expectedInstallPath,
-        spec: "@openclaw/feishu",
+        spec: "@genesis/feishu",
       });
     },
   );
 
   it("forwards an explicit env to bundled plugin source resolution", async () => {
     resolveBundledPluginSourcesMock.mockReturnValue(new Map());
-    const env = { OPENCLAW_HOME: "/srv/openclaw-home" } as NodeJS.ProcessEnv;
+    const env = { GENESIS_HOME: "/srv/genesis-home" } as NodeJS.ProcessEnv;
 
     await syncPluginsForUpdateChannel({
       channel: "beta",
@@ -950,7 +950,7 @@ describe("syncPluginsForUpdateChannel", () => {
   });
 
   it("uses the provided env when matching bundled load and install paths", async () => {
-    const bundledHome = "/tmp/openclaw-home";
+    const bundledHome = "/tmp/genesis-home";
     mockBundledSources(
       createBundledSource({
         localPath: `${bundledHome}/plugins/feishu`,
@@ -964,7 +964,7 @@ describe("syncPluginsForUpdateChannel", () => {
         channel: "beta",
         env: {
           ...process.env,
-          OPENCLAW_HOME: bundledHome,
+          GENESIS_HOME: bundledHome,
           HOME: "/tmp/ignored-home",
         },
         config: {
@@ -975,7 +975,7 @@ describe("syncPluginsForUpdateChannel", () => {
                 source: "path",
                 sourcePath: "~/plugins/feishu",
                 installPath: "~/plugins/feishu",
-                spec: "@openclaw/feishu",
+                spec: "@genesis/feishu",
               },
             },
           },

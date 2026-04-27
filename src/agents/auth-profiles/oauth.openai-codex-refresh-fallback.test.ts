@@ -99,7 +99,7 @@ describe("resolveApiKeyForProfile openai-codex refresh fallback", () => {
   let caseIndex = 0;
 
   beforeAll(async () => {
-    tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-refresh-fallback-"));
+    tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-refresh-fallback-"));
     ({ resolveApiKeyForProfile } = await import("./oauth.js"));
   });
 
@@ -121,8 +121,8 @@ describe("resolveApiKeyForProfile openai-codex refresh fallback", () => {
     const caseRoot = path.join(tempRoot, `case-${++caseIndex}`);
     agentDir = path.join(caseRoot, "agents", "main", "agent");
     await fs.mkdir(agentDir, { recursive: true });
-    process.env.OPENCLAW_STATE_DIR = caseRoot;
-    process.env.OPENCLAW_AGENT_DIR = agentDir;
+    process.env.GENESIS_STATE_DIR = caseRoot;
+    process.env.GENESIS_AGENT_DIR = agentDir;
     process.env.PI_CODING_AGENT_DIR = agentDir;
   });
 

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveConfiguredCapabilityProvider } from "../plugin-sdk/provider-selection-runtime.js";
 import type { RealtimeVoiceProviderPlugin } from "../plugins/types.js";
 import { getRealtimeVoiceProvider, listRealtimeVoiceProviders } from "./provider-registry.js";
@@ -12,8 +12,8 @@ export type ResolvedRealtimeVoiceProvider = {
 export type ResolveConfiguredRealtimeVoiceProviderParams = {
   configuredProviderId?: string;
   providerConfigs?: Record<string, Record<string, unknown> | undefined>;
-  cfg?: OpenClawConfig;
-  cfgForResolve?: OpenClawConfig;
+  cfg?: GenesisConfig;
+  cfgForResolve?: GenesisConfig;
   providers?: RealtimeVoiceProviderPlugin[];
   defaultModel?: string;
   noRegisteredProviderMessage?: string;
@@ -22,7 +22,7 @@ export type ResolveConfiguredRealtimeVoiceProviderParams = {
 export function resolveConfiguredRealtimeVoiceProvider(
   params: ResolveConfiguredRealtimeVoiceProviderParams,
 ): ResolvedRealtimeVoiceProvider {
-  const cfgForResolve = params.cfgForResolve ?? params.cfg ?? ({} as OpenClawConfig);
+  const cfgForResolve = params.cfgForResolve ?? params.cfg ?? ({} as GenesisConfig);
   const providers = params.providers ?? listRealtimeVoiceProviders(params.cfg);
   const resolution = resolveConfiguredCapabilityProvider({
     configuredProviderId: params.configuredProviderId,

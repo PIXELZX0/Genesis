@@ -74,13 +74,13 @@ const THREAD_BINDING_RULES: LegacyConfigRule[] = [
   {
     path: ["session", "threadBindings"],
     message:
-      'session.threadBindings.ttlHours was renamed to session.threadBindings.idleHours. Run "openclaw doctor --fix".',
+      'session.threadBindings.ttlHours was renamed to session.threadBindings.idleHours. Run "genesis doctor --fix".',
     match: (value) => hasLegacyThreadBindingTtl(value),
   },
   {
     path: ["channels"],
     message:
-      'channels.<id>.threadBindings.ttlHours was renamed to channels.<id>.threadBindings.idleHours. Run "openclaw doctor --fix".',
+      'channels.<id>.threadBindings.ttlHours was renamed to channels.<id>.threadBindings.idleHours. Run "genesis doctor --fix".',
     match: (value) => hasLegacyThreadBindingTtlInAnyChannel(value),
   },
 ];

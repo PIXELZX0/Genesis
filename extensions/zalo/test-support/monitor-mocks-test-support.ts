@@ -5,7 +5,7 @@ import {
 } from "../../../test/helpers/plugins/plugin-registry.js";
 import { createPluginRuntimeMock } from "../../../test/helpers/plugins/plugin-runtime-mock.js";
 import { createRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import type { ResolvedZaloAccount } from "../src/types.js";
 
 type MonitorModule = typeof import("../src/monitor.js");
@@ -151,7 +151,7 @@ export async function loadCachedLifecycleMonitorModule(cacheKey: string): Promis
 
 export async function startWebhookLifecycleMonitor(params: {
   account: ResolvedZaloAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   token?: string;
   webhookUrl?: string;
   webhookSecret?: string;

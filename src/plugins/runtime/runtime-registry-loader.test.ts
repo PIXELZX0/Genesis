@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "../registry.js";
 
 const mocks = vi.hoisted(() => ({
-  loadOpenClawPlugins: vi.fn<typeof import("../loader.js").loadOpenClawPlugins>(),
+  loadGenesisPlugins: vi.fn<typeof import("../loader.js").loadGenesisPlugins>(),
   resolveRuntimePluginRegistry: vi.fn<typeof import("../loader.js").resolveRuntimePluginRegistry>(),
   getActivePluginRegistry: vi.fn<typeof import("../runtime.js").getActivePluginRegistry>(),
   resolveConfiguredChannelPluginIds:
@@ -23,8 +23,8 @@ let ensurePluginRegistryLoaded: typeof import("./runtime-registry-loader.js").en
 let resetPluginRegistryLoadedForTests: typeof import("./runtime-registry-loader.js").__testing.resetPluginRegistryLoadedForTests;
 
 vi.mock("../loader.js", () => ({
-  loadOpenClawPlugins: (...args: Parameters<typeof mocks.loadOpenClawPlugins>) =>
-    mocks.loadOpenClawPlugins(...args),
+  loadGenesisPlugins: (...args: Parameters<typeof mocks.loadGenesisPlugins>) =>
+    mocks.loadGenesisPlugins(...args),
   resolveRuntimePluginRegistry: (...args: Parameters<typeof mocks.resolveRuntimePluginRegistry>) =>
     mocks.resolveRuntimePluginRegistry(...args),
 }));
@@ -63,7 +63,7 @@ describe("ensurePluginRegistryLoaded", () => {
   });
 
   beforeEach(() => {
-    mocks.loadOpenClawPlugins.mockReset();
+    mocks.loadGenesisPlugins.mockReset();
     mocks.resolveRuntimePluginRegistry.mockReset();
     mocks.getActivePluginRegistry.mockReset();
     mocks.resolveConfiguredChannelPluginIds.mockReset();
@@ -74,9 +74,9 @@ describe("ensurePluginRegistryLoaded", () => {
     resetPluginRegistryLoadedForTests();
 
     mocks.getActivePluginRegistry.mockReturnValue(createEmptyPluginRegistry());
-    mocks.loadOpenClawPlugins.mockReturnValue(createEmptyPluginRegistry());
+    mocks.loadGenesisPlugins.mockReturnValue(createEmptyPluginRegistry());
     mocks.resolveRuntimePluginRegistry.mockImplementation(
-      (...args: Parameters<typeof mocks.loadOpenClawPlugins>) => mocks.loadOpenClawPlugins(...args),
+      (...args: Parameters<typeof mocks.loadGenesisPlugins>) => mocks.loadGenesisPlugins(...args),
     );
     mocks.applyPluginAutoEnable.mockImplementation((params) => ({
       config:
@@ -107,7 +107,7 @@ describe("ensurePluginRegistryLoaded", () => {
         },
       },
     };
-    const env = { HOME: "/tmp/openclaw-home" } as NodeJS.ProcessEnv;
+    const env = { HOME: "/tmp/genesis-home" } as NodeJS.ProcessEnv;
 
     mocks.resolveConfiguredChannelPluginIds.mockReturnValue(["demo-channel"]);
     ensurePluginRegistryLoaded({
@@ -129,7 +129,7 @@ describe("ensurePluginRegistryLoaded", () => {
       config: rawConfig,
       env,
     });
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
           ...resolvedConfig,
@@ -169,7 +169,7 @@ describe("ensurePluginRegistryLoaded", () => {
       config: rawConfig as never,
     });
 
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
           plugins: expect.objectContaining({
@@ -204,12 +204,12 @@ describe("ensurePluginRegistryLoaded", () => {
       onlyPluginIds: ["demo-b"],
     });
 
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledTimes(2);
-    expect(mocks.loadOpenClawPlugins).toHaveBeenNthCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledTimes(2);
+    expect(mocks.loadGenesisPlugins).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ onlyPluginIds: ["demo-a"] }),
     );
-    expect(mocks.loadOpenClawPlugins).toHaveBeenNthCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ onlyPluginIds: ["demo-b"] }),
     );
@@ -224,7 +224,7 @@ describe("ensurePluginRegistryLoaded", () => {
 
     expect(mocks.resolveConfiguredChannelPluginIds).not.toHaveBeenCalled();
     expect(mocks.resolveChannelPluginIds).not.toHaveBeenCalled();
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
         onlyPluginIds: [],
       }),
@@ -239,7 +239,7 @@ describe("ensurePluginRegistryLoaded", () => {
       config: { channels: { demo: { enabled: true } } } as never,
     });
 
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
         onlyPluginIds: [],
       }),
@@ -254,13 +254,13 @@ describe("ensurePluginRegistryLoaded", () => {
       config: {} as never,
     });
 
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledWith(
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
       expect.not.objectContaining({
         onlyPluginIds: [],
       }),
     );
     expect(
-      (mocks.loadOpenClawPlugins.mock.calls[0]?.[0] as { onlyPluginIds?: string[] }).onlyPluginIds,
+      (mocks.loadGenesisPlugins.mock.calls[0]?.[0] as { onlyPluginIds?: string[] }).onlyPluginIds,
     ).toBeUndefined();
   });
 
@@ -283,6 +283,6 @@ describe("ensurePluginRegistryLoaded", () => {
         onlyPluginIds: expect.any(Array),
       }),
     );
-    expect(mocks.loadOpenClawPlugins).not.toHaveBeenCalled();
+    expect(mocks.loadGenesisPlugins).not.toHaveBeenCalled();
   });
 });

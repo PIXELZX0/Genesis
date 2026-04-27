@@ -1,5 +1,5 @@
 import type { ChatType } from "../channels/chat-type.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveFirstBoundAccountId } from "../routing/bound-account-read.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.shared.js";
 
@@ -92,7 +92,7 @@ export function extractRequesterPeer(
 }
 
 export function resolveRequesterOriginForChild(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   targetAgentId: string;
   requesterAgentId: string;
   requesterChannel?: string;

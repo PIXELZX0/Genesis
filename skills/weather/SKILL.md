@@ -4,7 +4,7 @@ description: "Get current weather, rain, temperature, and forecasts for location
 homepage: https://wttr.in/:help
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "☔",
         "requires": { "bins": ["curl"] },

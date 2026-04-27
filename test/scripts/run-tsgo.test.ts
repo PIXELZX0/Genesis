@@ -8,7 +8,7 @@ const { createTempDir } = createScriptTestHarness();
 
 describe("run-tsgo sparse guard", () => {
   it("ignores non-core-test projects", () => {
-    const cwd = createTempDir("openclaw-run-tsgo-");
+    const cwd = createTempDir("genesis-run-tsgo-");
 
     expect(
       getSparseTsgoGuardError(["-p", "tsconfig.core.json"], {
@@ -19,7 +19,7 @@ describe("run-tsgo sparse guard", () => {
   });
 
   it("ignores full worktrees", () => {
-    const cwd = createTempDir("openclaw-run-tsgo-");
+    const cwd = createTempDir("genesis-run-tsgo-");
 
     expect(
       getSparseTsgoGuardError(["-p", "tsconfig.core.test.json"], {
@@ -30,7 +30,7 @@ describe("run-tsgo sparse guard", () => {
   });
 
   it("ignores metadata-only commands", () => {
-    const cwd = createTempDir("openclaw-run-tsgo-");
+    const cwd = createTempDir("genesis-run-tsgo-");
 
     expect(
       getSparseTsgoGuardError(["-p", "tsconfig.core.test.json", "--showConfig"], {
@@ -41,7 +41,7 @@ describe("run-tsgo sparse guard", () => {
   });
 
   it("ignores sparse worktrees when the required files are present", () => {
-    const cwd = createTempDir("openclaw-run-tsgo-");
+    const cwd = createTempDir("genesis-run-tsgo-");
     const requiredPaths = [
       "packages/plugin-package-contract/src/index.ts",
       "ui/src/i18n/lib/registry.ts",
@@ -66,7 +66,7 @@ describe("run-tsgo sparse guard", () => {
   });
 
   it("returns a helpful message for sparse core-test worktrees missing ui and packages files", () => {
-    const cwd = createTempDir("openclaw-run-tsgo-");
+    const cwd = createTempDir("genesis-run-tsgo-");
 
     expect(
       getSparseTsgoGuardError(["-p", "tsconfig.core.test.json"], {

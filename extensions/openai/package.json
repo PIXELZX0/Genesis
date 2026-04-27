@@ -1,17 +1,17 @@
 {
-  "name": "@openclaw/openai-provider",
+  "name": "@genesis/openai-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw OpenAI provider plugins",
+  "description": "Genesis OpenAI provider plugins",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2",
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

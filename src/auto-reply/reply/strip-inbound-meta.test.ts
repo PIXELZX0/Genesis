@@ -200,7 +200,7 @@ Hello`;
   it("strips a timestamp prefix that remains after removing metadata blocks", () => {
     const input = `Sender (untrusted metadata):
 \`\`\`json
-{"label":"OpenClaw UI"}
+{"label":"Genesis UI"}
 \`\`\`
 
 [Thu 2026-03-12 07:00 UTC] what time is it?`;

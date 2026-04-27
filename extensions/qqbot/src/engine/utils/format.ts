@@ -3,7 +3,7 @@
  * 通用格式化与字符串工具。
  *
  * Pure utility functions with zero external dependencies.
- * Replaces `openclaw/plugin-sdk/error-runtime` and `text-runtime`
+ * Replaces `genesis/plugin-sdk/error-runtime` and `text-runtime`
  * helpers for use inside engine/.
  *
  * NOTE: The framework `formatErrorMessage` also applies `redactSensitiveText()`

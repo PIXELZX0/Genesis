@@ -90,7 +90,7 @@ describe("browser control HTTP auth", () => {
 
     const password = await realFetch(`${base}/`, {
       headers: {
-        "x-openclaw-password": "browser-password",
+        "x-genesis-password": "browser-password",
       },
     });
     expect(password.status).toBe(200);
@@ -101,7 +101,7 @@ describe("browser control HTTP auth", () => {
 
     const password = await realFetch(`${base}/`, {
       headers: {
-        "x-openclaw-password": "browser-control-secret",
+        "x-genesis-password": "browser-control-secret",
       },
     });
     expect(password.status).toBe(401);

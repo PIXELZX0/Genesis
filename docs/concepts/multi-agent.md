@@ -7,7 +7,7 @@ status: active
 
 Run multiple _isolated_ agents — each with its own workspace, state directory (`agentDir`), and session history — plus multiple channel accounts (e.g. two WhatsApps) in one running Gateway. Inbound messages are routed to the right agent through bindings.
 
-An **agent** here is the full per-persona scope: workspace files, auth profiles, model registry, and session store. `agentDir` is the on-disk state directory that holds this per-agent config at `~/.openclaw/agents/<agentId>/`. A **binding** maps a channel account (e.g. a Slack workspace or a WhatsApp number) to one of those agents.
+An **agent** here is the full per-persona scope: workspace files, auth profiles, model registry, and session store. `agentDir` is the on-disk state directory that holds this per-agent config at `~/.genesis/agents/<agentId>/`. A **binding** maps a channel account (e.g. a Slack workspace or a WhatsApp number) to one of those agents.
 
 ## What is "one agent"?
 
@@ -15,12 +15,12 @@ An **agent** is a fully scoped brain with its own:
 
 - **Workspace** (files, AGENTS.md/SOUL.md/USER.md, local notes, persona rules).
 - **State directory** (`agentDir`) for auth profiles, model registry, and per-agent config.
-- **Session store** (chat history + routing state) under `~/.openclaw/agents/<agentId>/sessions`.
+- **Session store** (chat history + routing state) under `~/.genesis/agents/<agentId>/sessions`.
 
 Auth profiles are **per-agent**. Each agent reads from its own:
 
 ```text
-~/.openclaw/agents/<agentId>/agent/auth-profiles.json
+~/.genesis/agents/<agentId>/agent/auth-profiles.json
 ```
 
 `sessions_history` is the safer cross-session recall path here too: it returns
@@ -37,7 +37,7 @@ across agents (it causes auth/session collisions). If you want to share creds,
 copy `auth-profiles.json` into the other agent's `agentDir`.
 
 Skills are loaded from each agent workspace plus shared roots such as
-`~/.openclaw/skills`, then filtered by the effective agent skill allowlist when
+`~/.genesis/skills`, then filtered by the effective agent skill allowlist when
 configured. Use `agents.defaults.skills` for a shared baseline and
 `agents.list[].skills` for per-agent replacement. See
 [Skills: per-agent vs shared](/tools/skills#per-agent-vs-shared-skills) and
@@ -52,27 +52,27 @@ reach other host locations unless sandboxing is enabled. See
 
 ## Paths (quick map)
 
-- Config: `~/.openclaw/openclaw.json` (or `OPENCLAW_CONFIG_PATH`)
-- State dir: `~/.openclaw` (or `OPENCLAW_STATE_DIR`)
-- Workspace: `~/.openclaw/workspace` (or `~/.openclaw/workspace-<agentId>`)
-- Agent dir: `~/.openclaw/agents/<agentId>/agent` (or `agents.list[].agentDir`)
-- Sessions: `~/.openclaw/agents/<agentId>/sessions`
+- Config: `~/.genesis/genesis.json` (or `GENESIS_CONFIG_PATH`)
+- State dir: `~/.genesis` (or `GENESIS_STATE_DIR`)
+- Workspace: `~/.genesis/workspace` (or `~/.genesis/workspace-<agentId>`)
+- Agent dir: `~/.genesis/agents/<agentId>/agent` (or `agents.list[].agentDir`)
+- Sessions: `~/.genesis/agents/<agentId>/sessions`
 
 ### Single-agent mode (default)
 
-If you do nothing, OpenClaw runs a single agent:
+If you do nothing, Genesis runs a single agent:
 
 - `agentId` defaults to **`main`**.
 - Sessions are keyed as `agent:main:<mainKey>`.
-- Workspace defaults to `~/.openclaw/workspace` (or `~/.openclaw/workspace-<profile>` when `OPENCLAW_PROFILE` is set).
-- State defaults to `~/.openclaw/agents/main/agent`.
+- Workspace defaults to `~/.genesis/workspace` (or `~/.genesis/workspace-<profile>` when `GENESIS_PROFILE` is set).
+- State defaults to `~/.genesis/agents/main/agent`.
 
 ## Agent helper
 
 Use the agent wizard to add a new isolated agent:
 
 ```bash
-openclaw agents add work
+genesis agents add work
 ```
 
 Then add `bindings` (or let the wizard do it) to route inbound messages.
@@ -80,7 +80,7 @@ Then add `bindings` (or let the wizard do it) to route inbound messages.
 Verify with:
 
 ```bash
-openclaw agents list --bindings
+genesis agents list --bindings
 ```
 
 ## Quick start
@@ -91,11 +91,11 @@ openclaw agents list --bindings
 Use the wizard or create workspaces manually:
 
 ```bash
-openclaw agents add coding
-openclaw agents add social
+genesis agents add coding
+genesis agents add social
 ```
 
-Each agent gets its own workspace with `SOUL.md`, `AGENTS.md`, and optional `USER.md`, plus a dedicated `agentDir` and session store under `~/.openclaw/agents/<agentId>`.
+Each agent gets its own workspace with `SOUL.md`, `AGENTS.md`, and optional `USER.md`, plus a dedicated `agentDir` and session store under `~/.genesis/agents/<agentId>`.
 
   </Step>
 
@@ -108,7 +108,7 @@ Create one account per agent on your preferred channels:
 - WhatsApp: link each phone number per account.
 
 ```bash
-openclaw channels login --channel whatsapp --account work
+genesis channels login --channel whatsapp --account work
 ```
 
 See channel guides: [Discord](/channels/discord), [Telegram](/channels/telegram), [WhatsApp](/channels/whatsapp).
@@ -124,9 +124,9 @@ Add agents under `agents.list`, channel accounts under `channels.<channel>.accou
   <Step title="Restart and verify">
 
 ```bash
-openclaw gateway restart
-openclaw agents list --bindings
-openclaw channels status --probe
+genesis gateway restart
+genesis agents list --bindings
+genesis channels status --probe
 ```
 
   </Step>
@@ -196,8 +196,8 @@ Example:
 {
   agents: {
     list: [
-      { id: "alex", workspace: "~/.openclaw/workspace-alex" },
-      { id: "mia", workspace: "~/.openclaw/workspace-mia" },
+      { id: "alex", workspace: "~/.genesis/workspace-alex" },
+      { id: "mia", workspace: "~/.genesis/workspace-mia" },
     ],
   },
   bindings: [
@@ -244,7 +244,7 @@ Important account-scope detail:
 
 - A binding that omits `accountId` matches the default account only.
 - Use `accountId: "*"` for a channel-wide fallback across all accounts.
-- If you later add the same binding for the same agent with an explicit account id, OpenClaw upgrades the existing channel-only binding to account-scoped instead of duplicating it.
+- If you later add the same binding for the same agent with an explicit account id, Genesis upgrades the existing channel-only binding to account-scoped instead of duplicating it.
 
 ## Multiple accounts / phone numbers
 
@@ -253,7 +253,7 @@ each login. Each `accountId` can be routed to a different agent, so one server c
 multiple phone numbers without mixing sessions.
 
 If you want a channel-wide default account when `accountId` is omitted, set
-`channels.<channel>.defaultAccount` (optional). When unset, OpenClaw falls back
+`channels.<channel>.defaultAccount` (optional). When unset, Genesis falls back
 to `default` if present, otherwise the first configured account id (sorted).
 
 Common channels supporting this pattern include:
@@ -279,8 +279,8 @@ Each Discord bot account maps to a unique `accountId`. Bind each account to an a
 {
   agents: {
     list: [
-      { id: "main", workspace: "~/.openclaw/workspace-main" },
-      { id: "coding", workspace: "~/.openclaw/workspace-coding" },
+      { id: "main", workspace: "~/.genesis/workspace-main" },
+      { id: "coding", workspace: "~/.genesis/workspace-coding" },
     ],
   },
   bindings: [
@@ -328,8 +328,8 @@ Notes:
 {
   agents: {
     list: [
-      { id: "main", workspace: "~/.openclaw/workspace-main" },
-      { id: "alerts", workspace: "~/.openclaw/workspace-alerts" },
+      { id: "main", workspace: "~/.genesis/workspace-main" },
+      { id: "alerts", workspace: "~/.genesis/workspace-alerts" },
     ],
   },
   bindings: [
@@ -364,11 +364,11 @@ Notes:
 Link each account before starting the gateway:
 
 ```bash
-openclaw channels login --channel whatsapp --account personal
-openclaw channels login --channel whatsapp --account biz
+genesis channels login --channel whatsapp --account personal
+genesis channels login --channel whatsapp --account biz
 ```
 
-`~/.openclaw/openclaw.json` (JSON5):
+`~/.genesis/genesis.json` (JSON5):
 
 ```js
 {
@@ -378,14 +378,14 @@ openclaw channels login --channel whatsapp --account biz
         id: "home",
         default: true,
         name: "Home",
-        workspace: "~/.openclaw/workspace-home",
-        agentDir: "~/.openclaw/agents/home/agent",
+        workspace: "~/.genesis/workspace-home",
+        agentDir: "~/.genesis/agents/home/agent",
       },
       {
         id: "work",
         name: "Work",
-        workspace: "~/.openclaw/workspace-work",
-        agentDir: "~/.openclaw/agents/work/agent",
+        workspace: "~/.genesis/workspace-work",
+        agentDir: "~/.genesis/agents/work/agent",
       },
     ],
   },
@@ -418,12 +418,12 @@ openclaw channels login --channel whatsapp --account biz
     whatsapp: {
       accounts: {
         personal: {
-          // Optional override. Default: ~/.openclaw/credentials/whatsapp/personal
-          // authDir: "~/.openclaw/credentials/whatsapp/personal",
+          // Optional override. Default: ~/.genesis/credentials/whatsapp/personal
+          // authDir: "~/.genesis/credentials/whatsapp/personal",
         },
         biz: {
-          // Optional override. Default: ~/.openclaw/credentials/whatsapp/biz
-          // authDir: "~/.openclaw/credentials/whatsapp/biz",
+          // Optional override. Default: ~/.genesis/credentials/whatsapp/biz
+          // authDir: "~/.genesis/credentials/whatsapp/biz",
         },
       },
     },
@@ -442,13 +442,13 @@ Split by channel: route WhatsApp to a fast everyday agent and Telegram to an Opu
       {
         id: "chat",
         name: "Everyday",
-        workspace: "~/.openclaw/workspace-chat",
+        workspace: "~/.genesis/workspace-chat",
         model: "anthropic/claude-sonnet-4-6",
       },
       {
         id: "opus",
         name: "Deep Work",
-        workspace: "~/.openclaw/workspace-opus",
+        workspace: "~/.genesis/workspace-opus",
         model: "anthropic/claude-opus-4-6",
       },
     ],
@@ -476,13 +476,13 @@ Keep WhatsApp on the fast agent, but route one DM to Opus:
       {
         id: "chat",
         name: "Everyday",
-        workspace: "~/.openclaw/workspace-chat",
+        workspace: "~/.genesis/workspace-chat",
         model: "anthropic/claude-sonnet-4-6",
       },
       {
         id: "opus",
         name: "Deep Work",
-        workspace: "~/.openclaw/workspace-opus",
+        workspace: "~/.genesis/workspace-opus",
         model: "anthropic/claude-opus-4-6",
       },
     ],
@@ -511,7 +511,7 @@ and a tighter tool policy:
       {
         id: "family",
         name: "Family",
-        workspace: "~/.openclaw/workspace-family",
+        workspace: "~/.genesis/workspace-family",
         identity: { name: "Family Bot" },
         groupChat: {
           mentionPatterns: ["@family", "@familybot", "@Family Bot"],
@@ -564,7 +564,7 @@ Each agent can have its own sandbox and tool restrictions:
     list: [
       {
         id: "personal",
-        workspace: "~/.openclaw/workspace-personal",
+        workspace: "~/.genesis/workspace-personal",
         sandbox: {
           mode: "off",  // No sandbox for personal agent
         },
@@ -572,7 +572,7 @@ Each agent can have its own sandbox and tool restrictions:
       },
       {
         id: "family",
-        workspace: "~/.openclaw/workspace-family",
+        workspace: "~/.genesis/workspace-family",
         sandbox: {
           mode: "all",     // Always sandboxed
           scope: "agent",  // One container per agent

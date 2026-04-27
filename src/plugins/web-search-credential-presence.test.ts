@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 const { resolvePluginWebSearchProvidersMock } = vi.hoisted(() => ({
   resolvePluginWebSearchProvidersMock: vi.fn(() => [
@@ -31,7 +31,7 @@ describe("hasConfiguredWebSearchCredential", () => {
   it("keeps empty config and env on the manifest-only path", () => {
     expect(
       hasConfiguredWebSearchCredential({
-        config: {} as OpenClawConfig,
+        config: {} as GenesisConfig,
         env: {},
         origin: "bundled",
         bundledAllowlistCompat: true,
@@ -45,7 +45,7 @@ describe("hasConfiguredWebSearchCredential", () => {
       hasConfiguredWebSearchCredential({
         config: {
           tools: { web: { search: { apiKey: "brave-key" } } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         env: {},
         origin: "bundled",
         bundledAllowlistCompat: true,

@@ -18,7 +18,7 @@ describeLive("minimax plugin live", () => {
       searchConfig: { apiKey: MINIMAX_SEARCH_KEY, cacheTtlMinutes: 0 },
     } as never);
 
-    const result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+    const result = await tool?.execute({ query: "Genesis GitHub", count: 1 });
 
     expect(result?.provider).toBe("minimax");
     expect(result?.count).toBeGreaterThan(0);

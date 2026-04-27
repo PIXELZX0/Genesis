@@ -4,14 +4,14 @@ import {
   readNumberParam,
   readReactionParams,
   readStringParam,
-} from "openclaw/plugin-sdk/channel-actions";
+} from "genesis/plugin-sdk/channel-actions";
 import type {
   ChannelMessageActionAdapter,
   ChannelMessageActionName,
-} from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { loadOutboundMediaFromUrl } from "openclaw/plugin-sdk/outbound-media";
-import { extractToolSend } from "openclaw/plugin-sdk/tool-send";
+} from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { loadOutboundMediaFromUrl } from "genesis/plugin-sdk/outbound-media";
+import { extractToolSend } from "genesis/plugin-sdk/tool-send";
 import { listEnabledGoogleChatAccounts, resolveGoogleChatAccount } from "./accounts.js";
 import {
   createGoogleChatReaction,
@@ -25,7 +25,7 @@ import { resolveGoogleChatOutboundSpace } from "./targets.js";
 
 const providerId = "googlechat";
 
-function listEnabledAccounts(cfg: OpenClawConfig) {
+function listEnabledAccounts(cfg: GenesisConfig) {
   return listEnabledGoogleChatAccounts(cfg).filter(
     (account) => account.enabled && account.credentialSource !== "none",
   );

@@ -8,7 +8,7 @@
  * user sees "card action not supported".
  *
  * This FS store persists pending uploads to a JSON file (with the file buffer
- * base64-encoded) so any process that shares the OpenClaw state dir can read
+ * base64-encoded) so any process that shares the Genesis state dir can read
  * them back. The in-memory store in `pending-uploads.ts` is still the fast
  * path for same-process flows (for example the messenger reply path); this FS
  * store is a cross-process fallback.

@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { normalizeString } from "../record-shared.js";
 import type { SnapshotAriaNode } from "./client.types.js";
 import {

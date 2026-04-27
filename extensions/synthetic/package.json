@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/synthetic-provider",
+  "name": "@genesis/synthetic-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Synthetic provider plugin",
+  "description": "Genesis Synthetic provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

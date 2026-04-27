@@ -1,9 +1,9 @@
 import {
   type ChannelSetupWizard,
-  type OpenClawConfig,
+  type GenesisConfig,
   type WizardPrompter,
-} from "openclaw/plugin-sdk/setup-runtime";
-import { formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
+} from "genesis/plugin-sdk/setup-runtime";
+import { formatDocsLink } from "genesis/plugin-sdk/setup-tools";
 import { resolveDiscordChannelAllowlist } from "./resolve-channels.js";
 import { resolveDiscordUserAllowlist } from "./resolve-users.js";
 import {
@@ -43,10 +43,10 @@ async function resolveDiscordAllowFromEntries(params: { token?: string; entries:
 }
 
 async function promptDiscordAllowFrom(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: WizardPrompter;
   accountId?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   return await promptLegacyChannelAllowFromForAccount({
     cfg: params.cfg,
     channel,
@@ -89,7 +89,7 @@ async function promptDiscordAllowFrom(params: {
 }
 
 async function resolveDiscordGroupAllowlist(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   credentialValues: { token?: string };
   entries: string[];

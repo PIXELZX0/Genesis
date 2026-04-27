@@ -134,7 +134,7 @@ async function setupSandboxWorkspace(home: string): Promise<{
   sandboxDir: string;
 }> {
   const cfg = createSandboxMediaStageConfig(home);
-  const workspaceDir = join(home, "openclaw");
+  const workspaceDir = join(home, "genesis");
   const sandboxDir = join(home, "sandboxes", "session");
   await fs.mkdir(sandboxDir, { recursive: true });
   sandboxMocks.ensureSandboxWorkspaceForSession.mockResolvedValue({
@@ -149,7 +149,7 @@ async function writeInboundMedia(
   fileName: string,
   payload: string | Buffer,
 ): Promise<string> {
-  const inboundDir = join(home, ".openclaw", "media", "inbound");
+  const inboundDir = join(home, ".genesis", "media", "inbound");
   await fs.mkdir(inboundDir, { recursive: true });
   const mediaPath = join(inboundDir, fileName);
   await fs.writeFile(mediaPath, payload);
@@ -158,7 +158,7 @@ async function writeInboundMedia(
 
 describe("stageSandboxMedia", () => {
   it("stages allowed media and blocks unsafe paths", async () => {
-    await withSandboxMediaTempHome("openclaw-triggers-", async (home) => {
+    await withSandboxMediaTempHome("genesis-triggers-", async (home) => {
       const { cfg, workspaceDir, sandboxDir } = await setupSandboxWorkspace(home);
 
       {
@@ -226,7 +226,7 @@ describe("stageSandboxMedia", () => {
   });
 
   it("blocks destination symlink escapes when staging into sandbox workspace", async () => {
-    await withSandboxMediaTempHome("openclaw-triggers-", async (home) => {
+    await withSandboxMediaTempHome("genesis-triggers-", async (home) => {
       const { cfg, workspaceDir, sandboxDir } = await setupSandboxWorkspace(home);
 
       const mediaPath = await writeInboundMedia(home, "payload.txt", "PAYLOAD");
@@ -257,7 +257,7 @@ describe("stageSandboxMedia", () => {
   });
 
   it("skips oversized media staging and keeps original media paths", async () => {
-    await withSandboxMediaTempHome("openclaw-triggers-", async (home) => {
+    await withSandboxMediaTempHome("genesis-triggers-", async (home) => {
       const { cfg, workspaceDir, sandboxDir } = await setupSandboxWorkspace(home);
 
       const mediaPath = await writeInboundMedia(

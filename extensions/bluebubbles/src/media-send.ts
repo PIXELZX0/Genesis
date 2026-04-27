@@ -2,13 +2,13 @@ import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { basenameFromMediaSource, safeFileURLToPath } from "openclaw/plugin-sdk/infra-runtime";
-import { resolveChannelMediaMaxBytes } from "openclaw/plugin-sdk/media-runtime";
-import { lowercasePreservingWhitespace } from "openclaw/plugin-sdk/text-runtime";
+import { basenameFromMediaSource, safeFileURLToPath } from "genesis/plugin-sdk/infra-runtime";
+import { resolveChannelMediaMaxBytes } from "genesis/plugin-sdk/media-runtime";
+import { lowercasePreservingWhitespace } from "genesis/plugin-sdk/text-runtime";
 import { resolveBlueBubblesAccount } from "./accounts.js";
 import { sendBlueBubblesAttachment } from "./attachments.js";
 import { resolveBlueBubblesMessageId } from "./monitor-reply-cache.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import { getBlueBubblesRuntime } from "./runtime.js";
 import { sendMessageBlueBubbles } from "./send.js";
 
@@ -82,7 +82,7 @@ function isPathInsideRoot(candidate: string, root: string): boolean {
   return normalizedCandidate === normalizedRoot || normalizedCandidate.startsWith(rootWithSep);
 }
 
-function resolveMediaLocalRoots(params: { cfg: OpenClawConfig; accountId?: string }): string[] {
+function resolveMediaLocalRoots(params: { cfg: GenesisConfig; accountId?: string }): string[] {
   const account = resolveBlueBubblesAccount({
     cfg: params.cfg,
     accountId: params.accountId,
@@ -173,7 +173,7 @@ function resolveFilenameFromSource(source?: string): string | undefined {
 }
 
 export async function sendBlueBubblesMedia(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   mediaUrl?: string;
   mediaPath?: string;

@@ -1,8 +1,8 @@
 import {
   coerceSecretRef,
   resolveNonEnvSecretRefApiKeyMarker,
-} from "openclaw/plugin-sdk/provider-auth";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-auth";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   buildCloudflareAiGatewayModelDefinition,
   resolveCloudflareAiGatewayBaseUrl,

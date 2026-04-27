@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig, PluginRuntime } from "../../runtime-api.js";
+import type { GenesisConfig, PluginRuntime } from "../../runtime-api.js";
 import type { MSTeamsMessageHandlerDeps } from "../monitor-handler.js";
 import { setMSTeamsRuntime } from "../runtime.js";
 import { createMSTeamsReactionHandler } from "./reaction-handler.js";
@@ -27,7 +27,7 @@ function buildMockRuntime(overrides?: Partial<PluginRuntime>): PluginRuntime {
   } as unknown as PluginRuntime;
 }
 
-function buildDeps(cfg: OpenClawConfig, _runtime?: PluginRuntime): MSTeamsMessageHandlerDeps {
+function buildDeps(cfg: GenesisConfig, _runtime?: PluginRuntime): MSTeamsMessageHandlerDeps {
   return {
     cfg,
     runtime: { error: vi.fn() } as unknown as MSTeamsMessageHandlerDeps["runtime"],
@@ -55,9 +55,9 @@ function createReactionTestHarness() {
   const mockRuntime = buildMockRuntime();
   setMSTeamsRuntime(mockRuntime);
 
-  const cfg: OpenClawConfig = {
+  const cfg: GenesisConfig = {
     channels: { msteams: { allowFrom: ["allowed-aad"] } },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 
   const deps = buildDeps(cfg, mockRuntime);
   const handler = createMSTeamsReactionHandler(deps);
@@ -90,13 +90,13 @@ describe("createMSTeamsReactionHandler", () => {
       const mockRuntime = buildMockRuntime();
       setMSTeamsRuntime(mockRuntime);
 
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         channels: {
           msteams: {
             allowFrom: ["allowed-aad"],
           },
         },
-      } as OpenClawConfig;
+      } as GenesisConfig;
 
       const deps = buildDeps(cfg);
       const handler = createMSTeamsReactionHandler(deps);
@@ -136,9 +136,9 @@ describe("createMSTeamsReactionHandler", () => {
         const mockRuntime = buildMockRuntime();
         setMSTeamsRuntime(mockRuntime);
 
-        const cfg: OpenClawConfig = {
+        const cfg: GenesisConfig = {
           channels: { msteams: { allowFrom: ["allowed-aad"] } },
-        } as OpenClawConfig;
+        } as GenesisConfig;
 
         const deps = buildDeps(cfg, mockRuntime);
         const handler = createMSTeamsReactionHandler(deps);

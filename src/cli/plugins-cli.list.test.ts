@@ -69,7 +69,7 @@ describe("plugins cli list", () => {
   it("shows conversation-access hook policy in inspect output", async () => {
     buildPluginInspectReport.mockReturnValue({
       workspaceDir: "/workspace",
-      plugin: createPluginRecord({ id: "openclaw-mem0", name: "Mem0" }),
+      plugin: createPluginRecord({ id: "genesis-mem0", name: "Mem0" }),
       shape: "hook-only",
       capabilityMode: "plain",
       capabilityCount: 1,
@@ -96,7 +96,7 @@ describe("plugins cli list", () => {
       compatibility: [],
     });
 
-    await runPluginsCommand(["plugins", "inspect", "openclaw-mem0"]);
+    await runPluginsCommand(["plugins", "inspect", "genesis-mem0"]);
 
     expect(runtimeLogs.join("\n")).toContain("Policy");
     expect(runtimeLogs.join("\n")).toContain("allowConversationAccess: true");

@@ -1,13 +1,13 @@
-import { buildDmGroupAccountAllowlistAdapter } from "openclaw/plugin-sdk/allowlist-config-edit";
-import { createChatChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { buildPassiveProbedChannelStatusSummary } from "openclaw/plugin-sdk/extension-shared";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
-import { sanitizeForPlainText } from "openclaw/plugin-sdk/outbound-runtime";
-import { buildOutboundBaseSessionKey, type RoutePeer } from "openclaw/plugin-sdk/routing";
+import { buildDmGroupAccountAllowlistAdapter } from "genesis/plugin-sdk/allowlist-config-edit";
+import { createChatChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { buildPassiveProbedChannelStatusSummary } from "genesis/plugin-sdk/extension-shared";
+import { createLazyRuntimeModule } from "genesis/plugin-sdk/lazy-runtime";
+import { sanitizeForPlainText } from "genesis/plugin-sdk/outbound-runtime";
+import { buildOutboundBaseSessionKey, type RoutePeer } from "genesis/plugin-sdk/routing";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
+} from "genesis/plugin-sdk/status-helpers";
 import { resolveIMessageAccount, type ResolvedIMessageAccount } from "./accounts.js";
 import {
   chunkTextForOutbound,
@@ -232,7 +232,7 @@ export const imessagePlugin: ChannelPlugin<ResolvedIMessageAccount, IMessageProb
     pairing: {
       text: {
         idLabel: "imessageSenderId",
-        message: "OpenClaw: your access has been approved.",
+        message: "Genesis: your access has been approved.",
         notify: async ({ id, cfg }) =>
           await (await loadIMessageChannelRuntime()).notifyIMessageApproval({ id, cfg }),
       },

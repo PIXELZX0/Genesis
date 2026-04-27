@@ -1,6 +1,6 @@
 import { DisconnectReason, type WASocket } from "@whiskeysockets/baileys";
-import { info } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import { info } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import {
   registerWhatsAppConnectionController,
   unregisterWhatsAppConnectionController,
@@ -19,7 +19,7 @@ const LOGGED_OUT_STATUS = DisconnectReason?.loggedOut ?? 401;
 const WHATSAPP_LOGIN_RESTART_MESSAGE =
   "WhatsApp asked for a restart after pairing (code 515); waiting for creds to save…";
 export const WHATSAPP_LOGGED_OUT_RELINK_MESSAGE =
-  "WhatsApp reported the session is logged out. Cleared cached web session; please rerun openclaw channels login and scan the QR again.";
+  "WhatsApp reported the session is logged out. Cleared cached web session; please rerun genesis channels login and scan the QR again.";
 export const WHATSAPP_LOGGED_OUT_QR_MESSAGE =
   "WhatsApp reported the session is logged out. Cleared cached web session; please scan a new QR.";
 

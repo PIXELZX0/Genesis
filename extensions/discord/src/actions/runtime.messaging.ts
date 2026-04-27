@@ -12,7 +12,7 @@ import {
   readStringParam,
   resolvePollMaxSelections,
   type DiscordActionConfig,
-  type OpenClawConfig,
+  type GenesisConfig,
   withNormalizedTimestamp,
   readBooleanParam,
 } from "../runtime-api.js";
@@ -73,7 +73,7 @@ export const discordMessagingActionRuntime = {
 
 export async function resolveDiscordReactionTargetChannelId(params: {
   target: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string;
 }): Promise<string> {
   try {
@@ -118,7 +118,7 @@ export async function handleDiscordMessagingAction(
   action: string,
   params: Record<string, unknown>,
   isActionEnabled: ActionGate<DiscordActionConfig>,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   options?: {
     mediaLocalRoots?: readonly string[];
     mediaReadFile?: (filePath: string) => Promise<Buffer>;

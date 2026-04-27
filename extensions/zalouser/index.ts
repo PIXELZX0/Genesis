@@ -2,7 +2,7 @@ import {
   type AnyAgentTool,
   defineBundledChannelEntry,
   loadBundledEntryExportSync,
-} from "openclaw/plugin-sdk/channel-entry-contract";
+} from "genesis/plugin-sdk/channel-entry-contract";
 
 function createZalouserTool(context?: unknown): AnyAgentTool {
   const createTool = loadBundledEntryExportSync<(context?: unknown) => AnyAgentTool>(

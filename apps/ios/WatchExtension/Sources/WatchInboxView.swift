@@ -305,6 +305,6 @@ private struct WatchGenericInboxView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
         }
-        .navigationTitle("OpenClaw")
+        .navigationTitle("Genesis")
     }
 }

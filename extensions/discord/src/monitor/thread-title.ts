@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 import {
   completeWithPreparedSimpleCompletionModel,
   extractAssistantText,
   prepareSimpleCompletionModelForAgent,
-} from "openclaw/plugin-sdk/simple-completion-runtime";
+} from "genesis/plugin-sdk/simple-completion-runtime";
 
 const DEFAULT_THREAD_TITLE_TIMEOUT_MS = 10_000;
 const MAX_THREAD_TITLE_SOURCE_CHARS = 600;
@@ -20,7 +20,7 @@ const DISCORD_THREAD_TITLE_SYSTEM_PROMPT =
   "Generate a concise Discord thread title (3-6 words). Return only the title. Use channel context when provided and avoid redundant channel-name words unless needed for clarity.";
 
 export async function generateThreadTitle(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   messageText: string;
   modelRef?: string;

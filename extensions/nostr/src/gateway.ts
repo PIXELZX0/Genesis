@@ -1,6 +1,6 @@
-import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
-import { attachChannelToResult } from "openclaw/plugin-sdk/channel-send-result";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";
+import { attachChannelToResult } from "genesis/plugin-sdk/channel-send-result";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   createPreCryptoDirectDmAuthorizer,
   DEFAULT_ACCOUNT_ID,
@@ -54,7 +54,7 @@ function isNostrSenderAllowed(senderPubkey: string, allowFrom: string[]): boolea
 }
 
 async function resolveNostrDirectAccess(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   dmPolicy: "pairing" | "allowlist" | "open" | "disabled";
   allowFrom: Array<string | number> | undefined;
@@ -261,7 +261,7 @@ export const nostrPairingTextAdapter = {
     message,
     accountId,
   }: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     id: string;
     message: string;
     accountId?: string;

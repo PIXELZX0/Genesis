@@ -1,6 +1,6 @@
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { DANGEROUS_SANDBOX_DOCKER_BOOLEAN_KEYS } from "../agents/sandbox/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   collectPluginConfigContractMatches,
   resolvePluginConfigContractsById,
@@ -24,7 +24,7 @@ function getAgentDangerousFlagPathSegment(agent: unknown, index: number): string
   return id ? `agents.list[id=${JSON.stringify(id)}]` : `agents.list[${index}]`;
 }
 
-export function collectEnabledInsecureOrDangerousFlags(cfg: OpenClawConfig): string[] {
+export function collectEnabledInsecureOrDangerousFlags(cfg: GenesisConfig): string[] {
   const enabledFlags = collectCoreInsecureOrDangerousFlags(cfg);
 
   const collectSandboxDockerDangerousFlags = (

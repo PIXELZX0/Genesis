@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/microsoft-foundry",
+  "name": "@genesis/microsoft-foundry",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Microsoft Foundry provider plugin",
+  "description": "Genesis Microsoft Foundry provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

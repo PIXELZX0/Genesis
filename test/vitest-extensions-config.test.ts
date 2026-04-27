@@ -3,7 +3,7 @@ import { bundledPluginFile } from "./helpers/bundled-plugin-paths.js";
 import { createPatternFileHelper } from "./helpers/pattern-file.js";
 import { loadIncludePatternsFromEnv } from "./vitest/vitest.extensions.config.ts";
 
-const patternFiles = createPatternFileHelper("openclaw-vitest-extensions-config-");
+const patternFiles = createPatternFileHelper("genesis-vitest-extensions-config-");
 
 afterEach(() => {
   patternFiles.cleanup();
@@ -24,7 +24,7 @@ describe("extensions vitest include patterns", () => {
 
     expect(
       loadIncludePatternsFromEnv({
-        OPENCLAW_VITEST_INCLUDE_FILE: filePath,
+        GENESIS_VITEST_INCLUDE_FILE: filePath,
       }),
     ).toEqual([
       bundledPluginFile("feishu", "index.test.ts"),
@@ -39,7 +39,7 @@ describe("extensions vitest include patterns", () => {
 
     expect(() =>
       loadIncludePatternsFromEnv({
-        OPENCLAW_VITEST_INCLUDE_FILE: filePath,
+        GENESIS_VITEST_INCLUDE_FILE: filePath,
       }),
     ).toThrow(/JSON array/u);
   });

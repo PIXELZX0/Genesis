@@ -43,33 +43,33 @@ npx convex deploy
 
 4. In Convex deployment environment variables, set:
 
-- `OPENCLAW_QA_CONVEX_SECRET_MAINTAINER`
-- `OPENCLAW_QA_CONVEX_SECRET_CI`
+- `GENESIS_QA_CONVEX_SECRET_MAINTAINER`
+- `GENESIS_QA_CONVEX_SECRET_CI`
 
 Client URL policy:
 
-- `OPENCLAW_QA_CONVEX_SITE_URL` must use `https://` in normal use.
-- Local development may use loopback `http://` only when `OPENCLAW_QA_ALLOW_INSECURE_HTTP=1`.
+- `GENESIS_QA_CONVEX_SITE_URL` must use `https://` in normal use.
+- Local development may use loopback `http://` only when `GENESIS_QA_ALLOW_INSECURE_HTTP=1`.
 
 ## Manage credentials from qa-lab CLI
 
 Maintainers can manage rows without using the Convex dashboard:
 
 ```bash
-pnpm openclaw qa credentials add \
+pnpm genesis qa credentials add \
   --kind telegram \
   --payload-file qa/telegram-credential.json
 
-pnpm openclaw qa credentials add \
+pnpm genesis qa credentials add \
   --kind discord \
   --payload-file qa/discord-credential.json
 
-pnpm openclaw qa credentials list --kind telegram
+pnpm genesis qa credentials list --kind telegram
 
-pnpm openclaw qa credentials remove --credential-id <credential-id>
+pnpm genesis qa credentials remove --credential-id <credential-id>
 ```
 
-Admin endpoints require `OPENCLAW_QA_CONVEX_SECRET_MAINTAINER`.
+Admin endpoints require `GENESIS_QA_CONVEX_SECRET_MAINTAINER`.
 
 ## Local request examples
 

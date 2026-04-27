@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/litellm-provider",
+  "name": "@genesis/litellm-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw LiteLLM provider plugin",
+  "description": "Genesis LiteLLM provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

@@ -2,12 +2,12 @@ import {
   getRuntimeConfigSnapshot,
   getRuntimeConfigSourceSnapshot,
 } from "../config/runtime-snapshot.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 export function resolvePluginActivationSourceConfig(params: {
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
-}): OpenClawConfig {
+  config?: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
+}): GenesisConfig {
   if (params.activationSourceConfig !== undefined) {
     return params.activationSourceConfig;
   }

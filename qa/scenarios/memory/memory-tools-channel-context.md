@@ -29,7 +29,7 @@ execution:
     memoryFact: "Hidden QA fact: the project codename is ORBIT-9."
     memoryQuery: "project codename ORBIT-9"
     expectedNeedle: ORBIT-9
-    prompt: "@openclaw Memory tools check: what is the hidden project codename stored only in memory? Use memory tools first."
+    prompt: "@genesis Memory tools check: what is the hidden project codename stored only in memory? Use memory tools first."
     promptSnippet: "Memory tools check"
 ```
 

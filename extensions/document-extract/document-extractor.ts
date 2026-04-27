@@ -3,7 +3,7 @@ import type {
   DocumentExtractionRequest,
   DocumentExtractionResult,
   DocumentExtractorPlugin,
-} from "openclaw/plugin-sdk/document-extractor";
+} from "genesis/plugin-sdk/document-extractor";
 
 type CanvasLike = {
   toBuffer(type: "image/png"): Buffer;

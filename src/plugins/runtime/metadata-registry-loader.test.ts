@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const loadConfigMock = vi.fn();
 const applyPluginAutoEnableMock = vi.fn();
-const loadOpenClawPluginsMock = vi.fn();
+const loadGenesisPluginsMock = vi.fn();
 
 let loadPluginMetadataRegistrySnapshot: typeof import("./metadata-registry-loader.js").loadPluginMetadataRegistrySnapshot;
 
@@ -15,7 +15,7 @@ vi.mock("../../config/plugin-auto-enable.js", () => ({
 }));
 
 vi.mock("../loader.js", () => ({
-  loadOpenClawPlugins: (...args: unknown[]) => loadOpenClawPluginsMock(...args),
+  loadGenesisPlugins: (...args: unknown[]) => loadGenesisPluginsMock(...args),
 }));
 
 vi.mock("../../agents/agent-scope.js", () => ({
@@ -31,31 +31,31 @@ describe("loadPluginMetadataRegistrySnapshot", () => {
   beforeEach(() => {
     loadConfigMock.mockReset();
     applyPluginAutoEnableMock.mockReset();
-    loadOpenClawPluginsMock.mockReset();
+    loadGenesisPluginsMock.mockReset();
     loadConfigMock.mockReturnValue({ plugins: {} });
     applyPluginAutoEnableMock.mockImplementation((params: { config: unknown }) => ({
       config: params.config,
       changes: [],
       autoEnabledReasons: {},
     }));
-    loadOpenClawPluginsMock.mockReturnValue({ plugins: [], diagnostics: [] });
+    loadGenesisPluginsMock.mockReturnValue({ plugins: [], diagnostics: [] });
   });
 
   it("defaults to a non-activating validate snapshot", () => {
     loadPluginMetadataRegistrySnapshot({
       config: { plugins: {} },
       activationSourceConfig: { plugins: { allow: ["demo"] } },
-      env: { HOME: "/tmp/openclaw-home" } as NodeJS.ProcessEnv,
+      env: { HOME: "/tmp/genesis-home" } as NodeJS.ProcessEnv,
       workspaceDir: "/workspace",
       onlyPluginIds: ["demo"],
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadGenesisPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         config: { plugins: {} },
         activationSourceConfig: { plugins: { allow: ["demo"] } },
         workspaceDir: "/workspace",
-        env: { HOME: "/tmp/openclaw-home" },
+        env: { HOME: "/tmp/genesis-home" },
         onlyPluginIds: ["demo"],
         cache: false,
         activate: false,
@@ -71,7 +71,7 @@ describe("loadPluginMetadataRegistrySnapshot", () => {
       loadModules: false,
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadGenesisPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         loadModules: false,
         mode: "validate",
@@ -92,7 +92,7 @@ describe("loadPluginMetadataRegistrySnapshot", () => {
       workspaceDir: "/workspace",
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadGenesisPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         config: { plugins: {} },
         logger,
@@ -108,7 +108,7 @@ describe("loadPluginMetadataRegistrySnapshot", () => {
       onlyPluginIds: [],
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadGenesisPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         onlyPluginIds: [],
         mode: "validate",

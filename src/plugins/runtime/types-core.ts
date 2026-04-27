@@ -40,9 +40,9 @@ export type RunHeartbeatOnceOptions = {
 export type PluginRuntimeCore = {
   version: string;
   config: {
-    loadConfig: () => import("../../config/types.openclaw.js").OpenClawConfig;
+    loadConfig: () => import("../../config/types.genesis.js").GenesisConfig;
     writeConfigFile: (
-      cfg: import("../../config/types.openclaw.js").OpenClawConfig,
+      cfg: import("../../config/types.genesis.js").GenesisConfig,
       options?: RuntimeWriteConfigOptions,
     ) => Promise<void>;
   };
@@ -55,7 +55,7 @@ export type PluginRuntimeCore = {
     resolveAgentWorkspaceDir: typeof import("../../agents/agent-scope.js").resolveAgentWorkspaceDir;
     resolveAgentIdentity: typeof import("../../agents/identity.js").resolveAgentIdentity;
     resolveThinkingDefault: (params: {
-      cfg: import("../../config/types.openclaw.js").OpenClawConfig;
+      cfg: import("../../config/types.genesis.js").GenesisConfig;
       provider: string;
       model: string;
       catalog?: import("../../agents/model-catalog.types.js").ModelCatalogEntry[];
@@ -165,18 +165,18 @@ export type PluginRuntimeCore = {
     /** Resolve auth for a model. Only provider/model and optional cfg are used. */
     getApiKeyForModel: (params: {
       model: import("@mariozechner/pi-ai").Model<import("@mariozechner/pi-ai").Api>;
-      cfg?: import("../../config/types.openclaw.js").OpenClawConfig;
+      cfg?: import("../../config/types.genesis.js").GenesisConfig;
     }) => Promise<import("../../agents/model-auth-runtime-shared.js").ResolvedProviderAuth>;
     /** Resolve request-ready auth for a model, including provider runtime exchanges. */
     getRuntimeAuthForModel: (params: {
       model: import("@mariozechner/pi-ai").Model<import("@mariozechner/pi-ai").Api>;
-      cfg?: import("../../config/types.openclaw.js").OpenClawConfig;
+      cfg?: import("../../config/types.genesis.js").GenesisConfig;
       workspaceDir?: string;
     }) => Promise<import("./model-auth-types.js").ResolvedProviderRuntimeAuth>;
     /** Resolve auth for a provider by name. Only provider and optional cfg are used. */
     resolveApiKeyForProvider: (params: {
       provider: string;
-      cfg?: import("../../config/types.openclaw.js").OpenClawConfig;
+      cfg?: import("../../config/types.genesis.js").GenesisConfig;
     }) => Promise<import("../../agents/model-auth-runtime-shared.js").ResolvedProviderAuth>;
   };
 };

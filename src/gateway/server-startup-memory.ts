@@ -1,13 +1,13 @@
 import { listAgentIds } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   getActiveMemorySearchManager,
   resolveActiveMemoryBackendConfig,
 } from "../plugins/memory-runtime.js";
 
 export async function startGatewayMemoryBackend(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   log: { info?: (msg: string) => void; warn: (msg: string) => void };
 }): Promise<void> {
   const agentIds = listAgentIds(params.cfg);

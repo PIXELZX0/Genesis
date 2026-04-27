@@ -1,7 +1,7 @@
 import { realpathSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { resolvePluginInstallDir } from "./install.js";
@@ -20,7 +20,7 @@ export type UninstallActions = {
 export type UninstallPluginResult =
   | {
       ok: true;
-      config: OpenClawConfig;
+      config: GenesisConfig;
       pluginId: string;
       actions: UninstallActions;
       warnings: string[];
@@ -107,10 +107,10 @@ function resolveComparablePath(value: string): string {
  * and owned channel config.
  */
 export function removePluginFromConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   pluginId: string,
   opts?: { channelIds?: string[] },
-): { config: OpenClawConfig; actions: Omit<UninstallActions, "directory"> } {
+): { config: GenesisConfig; actions: Omit<UninstallActions, "directory"> } {
   const actions: Omit<UninstallActions, "directory"> = {
     entry: false,
     install: false,
@@ -224,17 +224,17 @@ export function removePluginFromConfig(
     }
   }
 
-  const config: OpenClawConfig = {
+  const config: GenesisConfig = {
     ...cfg,
     plugins: Object.keys(cleanedPlugins).length > 0 ? cleanedPlugins : undefined,
-    channels: channels as OpenClawConfig["channels"],
+    channels: channels as GenesisConfig["channels"],
   };
 
   return { config, actions };
 }
 
 export type UninstallPluginParams = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   pluginId: string;
   channelIds?: string[];
   deleteFiles?: boolean;

@@ -6,7 +6,7 @@ read_when:
   - Looking for version naming and cadence
 ---
 
-OpenClaw has three public release lanes:
+Genesis has three public release lanes:
 
 - stable: tagged releases that publish to npm `beta` by default, or to npm `latest` when explicitly requested
 - beta: prerelease tags that publish to npm `beta`
@@ -24,7 +24,7 @@ OpenClaw has three public release lanes:
 - `latest` means the current promoted stable npm release
 - `beta` means the current beta install target
 - Stable and stable correction releases publish to npm `beta` by default; release operators can target `latest` explicitly, or promote a vetted beta build later
-- Every stable OpenClaw release ships the npm package and macOS app together;
+- Every stable Genesis release ships the npm package and macOS app together;
   beta releases normally validate and publish the npm/package path first, with
   mac app build/sign/notarize reserved for stable unless explicitly requested
 
@@ -51,15 +51,15 @@ OpenClaw has three public release lanes:
   validation step
 - Run `pnpm release:check` before every tagged release
 - Release checks now run in a separate manual workflow:
-  `OpenClaw Release Checks`
-- `OpenClaw Release Checks` also runs the QA Lab mock parity gate plus the live
+  `Genesis Release Checks`
+- `Genesis Release Checks` also runs the QA Lab mock parity gate plus the live
   Matrix and Telegram QA lanes before release approval. The live lanes use the
   `qa-live-shared` environment; Telegram also uses Convex CI credential leases.
 - Cross-OS install and upgrade runtime validation is dispatched from the
   private caller workflow
-  `openclaw/releases-private/.github/workflows/openclaw-cross-os-release-checks.yml`,
+  `genesis/releases-private/.github/workflows/genesis-cross-os-release-checks.yml`,
   which invokes the reusable public workflow
-  `.github/workflows/openclaw-cross-os-release-checks-reusable.yml`
+  `.github/workflows/genesis-cross-os-release-checks-reusable.yml`
 - This split is intentional: keep the real npm release path short,
   deterministic, and artifact-focused, while slower live checks stay in their
   own lane so they do not stall or block publish
@@ -70,7 +70,7 @@ OpenClaw has three public release lanes:
   40-character workflow-branch commit SHA
 - In commit-SHA mode it only accepts the current workflow-branch HEAD; use a
   release tag for older release commits
-- `OpenClaw NPM Release` validation-only preflight also accepts the current
+- `Genesis NPM Release` validation-only preflight also accepts the current
   full 40-character workflow-branch commit SHA without requiring a pushed tag
 - That SHA path is validation-only and cannot be promoted into a real publish
 - In SHA mode the workflow synthesizes `v<package.json version>` only for the
@@ -79,20 +79,20 @@ OpenClaw has three public release lanes:
   runners, while the non-mutating validation path can use the larger
   Blacksmith Linux runners
 - That workflow runs
-  `OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_CACHE_TEST=1 pnpm test:live:cache`
+  `GENESIS_LIVE_TEST=1 GENESIS_LIVE_CACHE_TEST=1 pnpm test:live:cache`
   using both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` workflow secrets
 - npm release preflight no longer waits on the separate release checks lane
-- Run `RELEASE_TAG=vYYYY.M.D node --import tsx scripts/openclaw-npm-release-check.ts`
+- Run `RELEASE_TAG=vYYYY.M.D node --import tsx scripts/genesis-npm-release-check.ts`
   (or the matching beta/correction tag) before approval
 - After npm publish, run
-  `node --import tsx scripts/openclaw-npm-postpublish-verify.ts YYYY.M.D`
+  `node --import tsx scripts/genesis-npm-postpublish-verify.ts YYYY.M.D`
   (or the matching beta/correction version) to verify the published registry
   install path in a fresh temp prefix
-- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@YYYY.M.D-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
+- After a beta publish, run `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=genesis@YYYY.M.D-beta.N GENESIS_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex GENESIS_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential
   pool. Local maintainer one-offs may omit the Convex vars and pass the three
-  `OPENCLAW_QA_TELEGRAM_*` env credentials directly.
+  `GENESIS_QA_TELEGRAM_*` env credentials directly.
 - Maintainers can run the same post-publish check from GitHub Actions via the
   manual `NPM Telegram Beta E2E` workflow. It is intentionally manual-only and
   does not run on every merge.
@@ -103,7 +103,7 @@ OpenClaw has three public release lanes:
   - stable npm releases default to `beta`
   - stable npm publish can target `latest` explicitly via workflow input
   - token-based npm dist-tag mutation now lives in
-    `openclaw/releases-private/.github/workflows/openclaw-npm-dist-tags.yml`
+    `genesis/releases-private/.github/workflows/genesis-npm-dist-tags.yml`
     for security, because `npm dist-tag add` still needs `NPM_TOKEN` while the
     public repo keeps OIDC-only publish
   - public `macOS Release` is validation-only
@@ -139,7 +139,7 @@ OpenClaw has three public release lanes:
 
 ## NPM workflow inputs
 
-`OpenClaw NPM Release` accepts these operator-controlled inputs:
+`Genesis NPM Release` accepts these operator-controlled inputs:
 
 - `tag`: required release tag such as `v2026.4.2`, `v2026.4.2-1`, or
   `v2026.4.2-beta.1`; when `preflight_only=true`, it may also be the current
@@ -150,7 +150,7 @@ OpenClaw has three public release lanes:
   the prepared tarball from the successful preflight run
 - `npm_dist_tag`: npm target tag for the publish path; defaults to `beta`
 
-`OpenClaw Release Checks` accepts these operator-controlled inputs:
+`Genesis Release Checks` accepts these operator-controlled inputs:
 
 - `ref`: existing release tag or the current full 40-character `main` commit
   SHA to validate when dispatched from `main`; from a release branch, use an
@@ -161,9 +161,9 @@ Rules:
 
 - Stable and correction tags may publish to either `beta` or `latest`
 - Beta prerelease tags may publish only to `beta`
-- For `OpenClaw NPM Release`, full commit SHA input is allowed only when
+- For `Genesis NPM Release`, full commit SHA input is allowed only when
   `preflight_only=true`
-- `OpenClaw Release Checks` is always validation-only and also accepts the
+- `Genesis Release Checks` is always validation-only and also accepts the
   current workflow-branch commit SHA
 - Release checks commit-SHA mode also requires the current workflow-branch HEAD
 - The real publish path must use the same `npm_dist_tag` used during preflight;
@@ -173,21 +173,21 @@ Rules:
 
 When cutting a stable npm release:
 
-1. Run `OpenClaw NPM Release` with `preflight_only=true`
+1. Run `Genesis NPM Release` with `preflight_only=true`
    - Before a tag exists, you may use the current full workflow-branch commit
      SHA for a validation-only dry run of the preflight workflow
 2. Choose `npm_dist_tag=beta` for the normal beta-first flow, or `latest` only
    when you intentionally want a direct stable publish
-3. Run `OpenClaw Release Checks` separately with the same tag or the
+3. Run `Genesis Release Checks` separately with the same tag or the
    full current workflow-branch commit SHA when you want live prompt cache,
    QA Lab parity, Matrix, and Telegram coverage
    - This is separate on purpose so live coverage stays available without
      recoupling long-running or flaky checks to the publish workflow
 4. Save the successful `preflight_run_id`
-5. Run `OpenClaw NPM Release` again with `preflight_only=false`, the same
+5. Run `Genesis NPM Release` again with `preflight_only=false`, the same
    `tag`, the same `npm_dist_tag`, and the saved `preflight_run_id`
 6. If the release landed on `beta`, use the private
-   `openclaw/releases-private/.github/workflows/openclaw-npm-dist-tags.yml`
+   `genesis/releases-private/.github/workflows/genesis-npm-dist-tags.yml`
    workflow to promote that stable version from `beta` to `latest`
 7. If the release intentionally published directly to `latest` and `beta`
    should follow the same stable build immediately, use that same private
@@ -207,15 +207,15 @@ alerts, and OTP handling observable and prevents repeated host alerts.
 
 ## Public references
 
-- [`.github/workflows/openclaw-npm-release.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-npm-release.yml)
-- [`.github/workflows/openclaw-release-checks.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-release-checks.yml)
-- [`.github/workflows/openclaw-cross-os-release-checks-reusable.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-cross-os-release-checks-reusable.yml)
-- [`scripts/openclaw-npm-release-check.ts`](https://github.com/openclaw/openclaw/blob/main/scripts/openclaw-npm-release-check.ts)
-- [`scripts/package-mac-dist.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/package-mac-dist.sh)
-- [`scripts/make_appcast.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/make_appcast.sh)
+- [`.github/workflows/genesis-npm-release.yml`](https://github.com/PIXELZX0/Genesis/blob/main/.github/workflows/genesis-npm-release.yml)
+- [`.github/workflows/genesis-release-checks.yml`](https://github.com/PIXELZX0/Genesis/blob/main/.github/workflows/genesis-release-checks.yml)
+- [`.github/workflows/genesis-cross-os-release-checks-reusable.yml`](https://github.com/PIXELZX0/Genesis/blob/main/.github/workflows/genesis-cross-os-release-checks-reusable.yml)
+- [`scripts/genesis-npm-release-check.ts`](https://github.com/PIXELZX0/Genesis/blob/main/scripts/genesis-npm-release-check.ts)
+- [`scripts/package-mac-dist.sh`](https://github.com/PIXELZX0/Genesis/blob/main/scripts/package-mac-dist.sh)
+- [`scripts/make_appcast.sh`](https://github.com/PIXELZX0/Genesis/blob/main/scripts/make_appcast.sh)
 
 Maintainers use the private release docs in
-[`openclaw/maintainers/release/README.md`](https://github.com/openclaw/maintainers/blob/main/release/README.md)
+[`genesis/maintainers/release/README.md`](https://github.com/genesis/maintainers/blob/main/release/README.md)
 for the actual runbook.
 
 ## Related

@@ -26,7 +26,7 @@ describeLive("google plugin live", () => {
     const provider = requireRegisteredProvider(speechProviders, "google");
 
     const audioFile = await provider.synthesize({
-      text: "OpenClaw Google text to speech integration test OK.",
+      text: "Genesis Google text to speech integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig: { apiKey: GOOGLE_API_KEY },
       target: "audio-file",
@@ -43,7 +43,7 @@ describeLive("google plugin live", () => {
     const speechProvider = requireRegisteredProvider(speechProviders, "google");
     const mediaProvider = requireRegisteredProvider(mediaProviders, "google");
 
-    const phrase = "Testing Google audio transcription with OpenClaw.";
+    const phrase = "Testing Google audio transcription with Genesis.";
     const audioFile = await speechProvider.synthesize({
       text: phrase,
       cfg: { plugins: { enabled: true } } as never,
@@ -62,7 +62,7 @@ describeLive("google plugin live", () => {
 
     const normalized = normalizeTranscriptForMatch(transcript?.text ?? "");
     expect(normalized).toContain("google");
-    expect(normalized).toContain("openclaw");
+    expect(normalized).toContain("genesis");
   }, 180_000);
 
   it("runs Gemini web search through the registered provider tool", async () => {
@@ -72,7 +72,7 @@ describeLive("google plugin live", () => {
       searchConfig: { gemini: { apiKey: GOOGLE_API_KEY }, cacheTtlMinutes: 0 },
     } as never);
 
-    const result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+    const result = await tool?.execute({ query: "Genesis GitHub", count: 1 });
 
     expect(result?.provider).toBe("gemini");
     expect(typeof result?.content).toBe("string");

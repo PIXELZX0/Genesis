@@ -1,27 +1,27 @@
 ---
-summary: "Updating OpenClaw safely (global install or source), plus rollback strategy"
+summary: "Updating Genesis safely (global install or source), plus rollback strategy"
 read_when:
-  - Updating OpenClaw
+  - Updating Genesis
   - Something breaks after an update
 title: "Updating"
 ---
 
-Keep OpenClaw up to date.
+Keep Genesis up to date.
 
-## Recommended: `openclaw update`
+## Recommended: `genesis update`
 
-The fastest way to update. It detects your install type (npm or git), fetches the latest version, runs `openclaw doctor`, and restarts the gateway.
+The fastest way to update. It detects your install type (npm or git), fetches the latest version, runs `genesis doctor`, and restarts the gateway.
 
 ```bash
-openclaw update
+genesis update
 ```
 
 To switch channels or target a specific version:
 
 ```bash
-openclaw update --channel beta
-openclaw update --tag main
-openclaw update --dry-run   # preview without applying
+genesis update --channel beta
+genesis update --tag main
+genesis update --dry-run   # preview without applying
 ```
 
 `--channel beta` prefers beta, but the runtime falls back to stable/latest when
@@ -33,7 +33,7 @@ See [Development channels](/install/development-channels) for channel semantics.
 ## Alternative: re-run the installer
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://genesis.ai/install.sh | bash
 ```
 
 Add `--no-onboard` to skip onboarding. For source installs, pass `--install-method git --no-onboard`.
@@ -41,55 +41,55 @@ Add `--no-onboard` to skip onboarding. For source installs, pass `--install-meth
 ## Alternative: manual npm, pnpm, or bun
 
 ```bash
-npm i -g openclaw@latest
+npm i -g genesis@latest
 ```
 
 ```bash
-pnpm add -g openclaw@latest
+pnpm add -g genesis@latest
 ```
 
 ```bash
-bun add -g openclaw@latest
+bun add -g genesis@latest
 ```
 
 ### Global npm installs and runtime dependencies
 
-OpenClaw treats packaged global installs as read-only at runtime, even when the
+Genesis treats packaged global installs as read-only at runtime, even when the
 global package directory is writable by the current user. Bundled plugin runtime
 dependencies are staged into a writable runtime directory instead of mutating the
-package tree. This keeps `openclaw update` from racing with a running gateway or
+package tree. This keeps `genesis update` from racing with a running gateway or
 local agent that is repairing plugin dependencies during the same install.
 
 Some Linux npm setups install global packages under root-owned directories such
-as `/usr/lib/node_modules/openclaw`. OpenClaw supports that layout through the
+as `/usr/lib/node_modules/genesis`. Genesis supports that layout through the
 same external staging path.
 
 For hardened systemd units, set a writable stage directory that is included in
 `ReadWritePaths`:
 
 ```ini
-Environment=OPENCLAW_PLUGIN_STAGE_DIR=/var/lib/openclaw/plugin-runtime-deps
-ReadWritePaths=/var/lib/openclaw /home/openclaw/.openclaw /tmp
+Environment=GENESIS_PLUGIN_STAGE_DIR=/var/lib/genesis/plugin-runtime-deps
+ReadWritePaths=/var/lib/genesis /home/genesis/.genesis /tmp
 ```
 
-If `OPENCLAW_PLUGIN_STAGE_DIR` is not set, OpenClaw uses `$STATE_DIRECTORY` when
-systemd provides it, then falls back to `~/.openclaw/plugin-runtime-deps`.
+If `GENESIS_PLUGIN_STAGE_DIR` is not set, Genesis uses `$STATE_DIRECTORY` when
+systemd provides it, then falls back to `~/.genesis/plugin-runtime-deps`.
 
 ### Bundled plugin runtime dependencies
 
 Packaged installs keep bundled plugin runtime dependencies out of the read-only
-package tree. On startup and during `openclaw doctor --fix`, OpenClaw repairs
+package tree. On startup and during `genesis doctor --fix`, Genesis repairs
 runtime dependencies only for bundled plugins that are active in config, active
 through legacy channel config, or enabled by their bundled manifest default.
 
 Explicit disablement wins. A disabled plugin or channel does not get its
 runtime dependencies repaired just because it exists in the package. External
-plugins and custom load paths still use `openclaw plugins install` or
-`openclaw plugins update`.
+plugins and custom load paths still use `genesis plugins install` or
+`genesis plugins update`.
 
 ## Auto-updater
 
-The auto-updater is off by default. Enable it in `~/.openclaw/openclaw.json`:
+The auto-updater is off by default. Enable it in `~/.genesis/genesis.json`:
 
 ```json5
 {
@@ -109,7 +109,7 @@ The auto-updater is off by default. Enable it in `~/.openclaw/openclaw.json`:
 | -------- | ------------------------------------------------------------------------------------------------------------- |
 | `stable` | Waits `stableDelayHours`, then applies with deterministic jitter across `stableJitterHours` (spread rollout). |
 | `beta`   | Checks every `betaCheckIntervalHours` (default: hourly) and applies immediately.                              |
-| `dev`    | No automatic apply. Use `openclaw update` manually.                                                           |
+| `dev`    | No automatic apply. Use `genesis update` manually.                                                            |
 
 The gateway also logs an update hint on startup (disable with `update.checkOnStart: false`).
 
@@ -120,7 +120,7 @@ The gateway also logs an update hint on startup (disable with `update.checkOnSta
 ### Run doctor
 
 ```bash
-openclaw doctor
+genesis doctor
 ```
 
 Migrates config, audits DM policies, and checks gateway health. Details: [Doctor](/gateway/doctor)
@@ -128,13 +128,13 @@ Migrates config, audits DM policies, and checks gateway health. Details: [Doctor
 ### Restart the gateway
 
 ```bash
-openclaw gateway restart
+genesis gateway restart
 ```
 
 ### Verify
 
 ```bash
-openclaw health
+genesis health
 ```
 
 </Steps>
@@ -144,12 +144,12 @@ openclaw health
 ### Pin a version (npm)
 
 ```bash
-npm i -g openclaw@<version>
-openclaw doctor
-openclaw gateway restart
+npm i -g genesis@<version>
+genesis doctor
+genesis gateway restart
 ```
 
-Tip: `npm view openclaw version` shows the current published version.
+Tip: `npm view genesis version` shows the current published version.
 
 ### Pin a commit (source)
 
@@ -157,15 +157,15 @@ Tip: `npm view openclaw version` shows the current published version.
 git fetch origin
 git checkout "$(git rev-list -n 1 --before=\"2026-01-01\" origin/main)"
 pnpm install && pnpm build
-openclaw gateway restart
+genesis gateway restart
 ```
 
 To return to latest: `git checkout main && git pull`.
 
 ## If you are stuck
 
-- Run `openclaw doctor` again and read the output carefully.
-- For `openclaw update --channel dev` on source checkouts, the updater auto-bootstraps `pnpm` when needed. If you see a pnpm/corepack bootstrap error, install `pnpm` manually (or re-enable `corepack`) and rerun the update.
+- Run `genesis doctor` again and read the output carefully.
+- For `genesis update --channel dev` on source checkouts, the updater auto-bootstraps `pnpm` when needed. If you see a pnpm/corepack bootstrap error, install `pnpm` manually (or re-enable `corepack`) and rerun the update.
 - Check: [Troubleshooting](/gateway/troubleshooting)
 - Ask in Discord: [https://discord.gg/clawd](https://discord.gg/clawd)
 

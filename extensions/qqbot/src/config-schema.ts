@@ -1,8 +1,8 @@
 import {
   AllowFromListSchema,
   buildChannelConfigSchema,
-} from "openclaw/plugin-sdk/channel-config-schema";
-import { buildSecretInputSchema } from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/channel-config-schema";
+import { buildSecretInputSchema } from "genesis/plugin-sdk/secret-input";
 import { z } from "zod";
 
 const AudioFormatPolicySchema = z

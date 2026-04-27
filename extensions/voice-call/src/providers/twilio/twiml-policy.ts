@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { WebhookContext } from "../../types.js";
 
 export type TwimlResponseKind = "empty" | "pause" | "queue" | "stored" | "stream";

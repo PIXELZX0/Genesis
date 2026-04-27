@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { runExec } from "../process/exec.js";
 
 type Sharp = typeof import("sharp");
@@ -27,8 +27,8 @@ function isBun(): boolean {
 
 function prefersSips(): boolean {
   return (
-    process.env.OPENCLAW_IMAGE_BACKEND === "sips" ||
-    (process.env.OPENCLAW_IMAGE_BACKEND !== "sharp" && isBun() && process.platform === "darwin")
+    process.env.GENESIS_IMAGE_BACKEND === "sips" ||
+    (process.env.GENESIS_IMAGE_BACKEND !== "sharp" && isBun() && process.platform === "darwin")
   );
 }
 
@@ -314,7 +314,7 @@ function readJpegExifOrientation(buffer: Buffer): number | null {
 }
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
-  const dir = await fs.mkdtemp(path.join(resolvePreferredOpenClawTmpDir(), "openclaw-img-"));
+  const dir = await fs.mkdtemp(path.join(resolvePreferredGenesisTmpDir(), "genesis-img-"));
   try {
     return await fn(dir);
   } finally {

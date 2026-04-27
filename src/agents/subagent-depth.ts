@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { resolveStorePath } from "../config/sessions/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { getSubagentDepth, parseAgentSessionKey } from "../sessions/session-key-utils.js";
 import { parseJsonWithJson5Fallback } from "../utils/parse-json-compat.js";
 import { resolveDefaultAgentId } from "./agent-scope.js";
@@ -40,7 +40,7 @@ function readSessionStore(storePath: string): Record<string, SessionDepthEntry> 
   return {};
 }
 
-function buildKeyCandidates(rawKey: string, cfg?: OpenClawConfig): string[] {
+function buildKeyCandidates(rawKey: string, cfg?: GenesisConfig): string[] {
   if (!cfg) {
     return [rawKey];
   }
@@ -74,7 +74,7 @@ function findEntryBySessionId(
 
 function resolveEntryForSessionKey(params: {
   sessionKey: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   store?: Record<string, SessionDepthEntry>;
   cache: Map<string, Record<string, SessionDepthEntry>>;
 }): SessionDepthEntry | undefined {
@@ -117,7 +117,7 @@ function resolveEntryForSessionKey(params: {
 export function getSubagentDepthFromSessionStore(
   sessionKey: string | undefined | null,
   opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: GenesisConfig;
     store?: Record<string, SessionDepthEntry>;
   },
 ): number {

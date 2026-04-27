@@ -1,7 +1,7 @@
 ---
-summary: "Run OpenClaw with LM Studio"
+summary: "Run Genesis with LM Studio"
 read_when:
-  - You want to run OpenClaw with open source models via LM Studio
+  - You want to run Genesis with open source models via LM Studio
   - You want to set up and configure LM Studio
 title: "LM Studio"
 ---
@@ -30,7 +30,7 @@ lms server start --port 1234
 
 If you are using the app, make sure you have JIT enabled for a smooth experience. Learn more in the [LM Studio JIT and TTL guide](https://lmstudio.ai/docs/developer/core/ttl-and-auto-evict).
 
-3. OpenClaw requires an LM Studio token value. Set `LM_API_TOKEN`:
+3. Genesis requires an LM Studio token value. Set `LM_API_TOKEN`:
 
 ```bash
 export LM_API_TOKEN="your-lm-studio-api-token"
@@ -47,7 +47,7 @@ For LM Studio auth setup details, see [LM Studio Authentication](https://lmstudi
 4. Run onboarding and choose `LM Studio`:
 
 ```bash
-openclaw onboard
+genesis onboard
 ```
 
 5. In onboarding, use the `Default model` prompt to pick your LM Studio model.
@@ -55,10 +55,10 @@ openclaw onboard
 You can also set or change it later:
 
 ```bash
-openclaw models set lmstudio/qwen/qwen3.5-9b
+genesis models set lmstudio/qwen/qwen3.5-9b
 ```
 
-LM Studio model keys follow a `author/model-name` format (e.g. `qwen/qwen3.5-9b`). OpenClaw
+LM Studio model keys follow a `author/model-name` format (e.g. `qwen/qwen3.5-9b`). Genesis
 model refs prepend the provider name: `lmstudio/qwen/qwen3.5-9b`. You can find the exact key for
 a model by running `curl http://localhost:1234/api/v1/models` and looking at the `key` field.
 
@@ -67,7 +67,7 @@ a model by running `curl http://localhost:1234/api/v1/models` and looking at the
 Use non-interactive onboarding when you want to script setup (CI, provisioning, remote bootstrap):
 
 ```bash
-openclaw onboard \
+genesis onboard \
   --non-interactive \
   --accept-risk \
   --auth-choice lmstudio
@@ -76,7 +76,7 @@ openclaw onboard \
 Or specify base URL or model with API key:
 
 ```bash
-openclaw onboard \
+genesis onboard \
   --non-interactive \
   --accept-risk \
   --auth-choice lmstudio \
@@ -103,7 +103,7 @@ Interactive setup can prompt for an optional preferred load context length and a
 ### Streaming usage compatibility
 
 LM Studio is streaming-usage compatible. When it does not emit an OpenAI-shaped
-`usage` object, OpenClaw recovers token counts from llama.cpp-style
+`usage` object, Genesis recovers token counts from llama.cpp-style
 `timings.prompt_n` / `timings.predicted_n` metadata instead.
 
 Same behavior applies to these OpenAI-compatible local backends:

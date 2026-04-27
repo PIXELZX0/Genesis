@@ -6,7 +6,7 @@ import {
   type ResolverContext,
   type SecretDefaults,
   type SecretTargetRegistryEntry,
-} from "openclaw/plugin-sdk/channel-secret-basic-runtime";
+} from "genesis/plugin-sdk/channel-secret-basic-runtime";
 
 function normalizeOptionalString(value: unknown): string | undefined {
   if (typeof value !== "string") {
@@ -20,7 +20,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.telegram.accounts.*.botToken",
     targetType: "channels.telegram.accounts.*.botToken",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.telegram.accounts.*.botToken",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -31,7 +31,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.telegram.accounts.*.webhookSecret",
     targetType: "channels.telegram.accounts.*.webhookSecret",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.telegram.accounts.*.webhookSecret",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -42,7 +42,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.telegram.botToken",
     targetType: "channels.telegram.botToken",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.telegram.botToken",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -53,7 +53,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.telegram.webhookSecret",
     targetType: "channels.telegram.webhookSecret",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.telegram.webhookSecret",
     secretShape: "secret_input",
     expectedResolvedValue: "string",

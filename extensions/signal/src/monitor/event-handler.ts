@@ -1,5 +1,5 @@
-import { resolveHumanDelayConfig } from "openclaw/plugin-sdk/agent-runtime";
-import { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
+import { resolveHumanDelayConfig } from "genesis/plugin-sdk/agent-runtime";
+import { logTypingFailure } from "genesis/plugin-sdk/channel-feedback";
 import {
   buildMentionRegexes,
   createChannelInboundDebouncer,
@@ -9,40 +9,40 @@ import {
   resolveInboundMentionDecision,
   resolveEnvelopeFormatOptions,
   shouldDebounceTextInbound,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { logInboundDrop } from "openclaw/plugin-sdk/channel-inbound";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-import { resolveControlCommandGate } from "openclaw/plugin-sdk/command-auth";
-import { hasControlCommand } from "openclaw/plugin-sdk/command-auth";
+} from "genesis/plugin-sdk/channel-inbound";
+import { logInboundDrop } from "genesis/plugin-sdk/channel-inbound";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
+import { resolveControlCommandGate } from "genesis/plugin-sdk/command-auth";
+import { hasControlCommand } from "genesis/plugin-sdk/command-auth";
 import {
   resolveChannelGroupPolicy,
   resolveChannelGroupRequireMention,
-} from "openclaw/plugin-sdk/config-runtime";
-import { readSessionUpdatedAt, resolveStorePath } from "openclaw/plugin-sdk/config-runtime";
-import { recordInboundSession } from "openclaw/plugin-sdk/conversation-runtime";
+} from "genesis/plugin-sdk/config-runtime";
+import { readSessionUpdatedAt, resolveStorePath } from "genesis/plugin-sdk/config-runtime";
+import { recordInboundSession } from "genesis/plugin-sdk/conversation-runtime";
 import {
   createInternalHookEvent,
   fireAndForgetHook,
   toInternalMessageReceivedContext,
   triggerInternalHook,
-} from "openclaw/plugin-sdk/hook-runtime";
-import { enqueueSystemEvent } from "openclaw/plugin-sdk/infra-runtime";
-import { kindFromMime } from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/hook-runtime";
+import { enqueueSystemEvent } from "genesis/plugin-sdk/infra-runtime";
+import { kindFromMime } from "genesis/plugin-sdk/media-runtime";
 import {
   buildPendingHistoryContextFromMap,
   clearHistoryEntriesIfEnabled,
   recordPendingHistoryEntryIfEnabled,
-} from "openclaw/plugin-sdk/reply-history";
-import { dispatchInboundMessage } from "openclaw/plugin-sdk/reply-runtime";
-import { finalizeInboundContext } from "openclaw/plugin-sdk/reply-runtime";
-import { createReplyDispatcherWithTyping } from "openclaw/plugin-sdk/reply-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { danger, logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/reply-history";
+import { dispatchInboundMessage } from "genesis/plugin-sdk/reply-runtime";
+import { finalizeInboundContext } from "genesis/plugin-sdk/reply-runtime";
+import { createReplyDispatcherWithTyping } from "genesis/plugin-sdk/reply-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { danger, logVerbose, shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
 import {
   DM_GROUP_ACCESS_REASON,
   resolvePinnedMainDmOwnerFromAllowlist,
-} from "openclaw/plugin-sdk/security-runtime";
-import { normalizeE164, normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/security-runtime";
+import { normalizeE164, normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   formatSignalPairingIdLine,
   formatSignalSenderDisplay,

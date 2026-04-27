@@ -19,11 +19,11 @@ vi.mock("../plugins/manifest-registry.js", async () => {
   const path = await import("node:path");
   return {
     loadPluginManifestRegistry: (params: { workspaceDir?: string }) => {
-      const extensionsRoot = path.join(params.workspaceDir ?? "", ".openclaw", "extensions");
+      const extensionsRoot = path.join(params.workspaceDir ?? "", ".genesis", "extensions");
       const plugins = [];
       for (const id of ["open-prose", "browser"]) {
         const rootDir = path.join(extensionsRoot, id);
-        const manifestPath = path.join(rootDir, "openclaw.plugin.json");
+        const manifestPath = path.join(rootDir, "genesis.plugin.json");
         if (!fs.existsSync(manifestPath)) {
           continue;
         }
@@ -82,7 +82,7 @@ function loadTestWorkspaceSkillEntries(
 }
 
 beforeAll(async () => {
-  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-skills-workspace-"));
+  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-skills-workspace-"));
   fakeHome = path.join(tempRoot, "home");
   await fs.mkdir(fakeHome, { recursive: true });
   envSnapshot = setMockSkillsHomeEnv(fakeHome);
@@ -106,7 +106,7 @@ async function setupWorkspaceWithProsePlugin() {
   const workspaceDir = await createTempWorkspaceDir();
   const managedDir = path.join(workspaceDir, ".managed");
   const bundledDir = path.join(workspaceDir, ".bundled");
-  const pluginRoot = path.join(workspaceDir, ".openclaw", "extensions", "open-prose");
+  const pluginRoot = path.join(workspaceDir, ".genesis", "extensions", "open-prose");
 
   await writePluginWithSkill({
     pluginRoot,
@@ -167,7 +167,7 @@ describe("loadWorkspaceSkillEntries", () => {
   it("loads the browser plugin automation skill when the bundled plugin is enabled", async () => {
     const workspaceDir = await createTempWorkspaceDir();
     const managedDir = path.join(workspaceDir, ".managed");
-    const pluginRoot = path.join(workspaceDir, ".openclaw", "extensions", "browser");
+    const pluginRoot = path.join(workspaceDir, ".genesis", "extensions", "browser");
 
     await writePluginWithSkill({
       pluginRoot,
@@ -176,7 +176,7 @@ describe("loadWorkspaceSkillEntries", () => {
       skillDescription: "Browser automation",
     });
     await fs.writeFile(
-      path.join(pluginRoot, "openclaw.plugin.json"),
+      path.join(pluginRoot, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "browser",
@@ -277,7 +277,7 @@ describe("loadWorkspaceSkillEntries", () => {
       dir: path.join(workspaceDir, "skills", "remote-only"),
       name: "remote-only",
       description: "Needs a remote bin",
-      metadata: '{"openclaw":{"requires":{"anyBins":["missingbin","sandboxbin"]}}}',
+      metadata: '{"genesis":{"requires":{"anyBins":["missingbin","sandboxbin"]}}}',
     });
 
     const entries = loadTestWorkspaceSkillEntries(workspaceDir, {
@@ -340,7 +340,7 @@ describe("loadWorkspaceSkillEntries", () => {
       const warningLine = String(line);
       expect(warningLine).toContain("Skipping escaped skill path outside its configured root:");
       expect(warningLine).toContain("reason=symlink-escape");
-      expect(warningLine).toContain("source=openclaw-workspace");
+      expect(warningLine).toContain("source=genesis-workspace");
       expect(warningLine).toContain(`root=${path.join(workspaceDir, "skills")}`);
       expect(warningLine).toContain(`requested=${requestedPath}`);
       expect(warningLine).toContain("resolved=");
@@ -361,7 +361,7 @@ describe("loadWorkspaceSkillEntries", () => {
       const [line] = warn.mock.calls[0] ?? [];
       const warningLine = String(line);
       expect(warningLine).toContain("Skipping escaped skill path outside its configured root:");
-      expect(warningLine).toContain("source=openclaw-bundled");
+      expect(warningLine).toContain("source=genesis-bundled");
       expect(warningLine).toContain("reason=bundled-symlink-escape");
       expect(warningLine).toContain("hint=likely-stray-local-symlink-or-checkout-mutation");
       expect(warningLine).toContain(`requested=${requestedPath}`);

@@ -16,7 +16,7 @@ vi.mock("../markdown.ts", () => ({
 }));
 
 vi.mock("../views/agents-utils.ts", () => ({
-  agentLogoUrl: () => "/openclaw-logo.svg",
+  agentLogoUrl: () => "/genesis-logo.svg",
   isRenderableControlUiAvatarUrl: (value: string) =>
     /^data:image\//i.test(value) || (value.startsWith("/") && !value.startsWith("//")),
   resolveChatAvatarRenderUrl: (
@@ -79,7 +79,7 @@ function renderGroupedMessage(
     renderMessageGroup(group, {
       showReasoning: true,
       showToolCalls: true,
-      assistantName: "OpenClaw",
+      assistantName: "Genesis",
       assistantAvatar: null,
       ...opts,
     }),
@@ -112,7 +112,7 @@ function createAssistantCanvasBlock(params: {
   presentationTarget?: "assistant_message" | "tool_card";
 }) {
   const viewId = `cv_inline_${params.suffix}`;
-  const url = params.url ?? `/__openclaw__/canvas/documents/${viewId}/index.html`;
+  const url = params.url ?? `/__genesis__/canvas/documents/${viewId}/index.html`;
   const title = params.title ?? "Inline demo";
   const preferredHeight = params.preferredHeight ?? 360;
   return {
@@ -152,7 +152,7 @@ function renderMessageGroups(
       renderMessageGroup(group, {
         showReasoning: true,
         showToolCalls: true,
-        assistantName: "OpenClaw",
+        assistantName: "Genesis",
         assistantAvatar: null,
         ...opts,
       }),
@@ -163,7 +163,7 @@ function renderMessageGroups(
 
 function clearDeleteConfirmSkip() {
   try {
-    getSafeLocalStorage()?.removeItem("openclaw:skipDeleteConfirm");
+    getSafeLocalStorage()?.removeItem("genesis:skipDeleteConfirm");
   } catch {
     /* noop */
   }
@@ -196,7 +196,7 @@ describe("grouped chat rendering", () => {
     );
 
     const img = container.querySelector("img.chat-avatar");
-    expect(img?.getAttribute("src")).toBe("/openclaw-logo.svg");
+    expect(img?.getAttribute("src")).toBe("/genesis-logo.svg");
   });
 
   it("positions delete confirm by message side", () => {
@@ -258,7 +258,7 @@ describe("grouped chat rendering", () => {
 
     const avatar = container.querySelector<HTMLImageElement>(".chat-avatar.assistant");
     expect(avatar).not.toBeNull();
-    expect(avatar?.getAttribute("src")).toBe("/openclaw-logo.svg");
+    expect(avatar?.getAttribute("src")).toBe("/genesis-logo.svg");
   });
 
   it("renders a blob: assistant avatar as an image", () => {
@@ -640,9 +640,9 @@ describe("grouped chat rendering", () => {
       const container = document.createElement("div");
       renderGroupedMessage(container, message, "user", {
         showToolCalls: false,
-        basePath: "/openclaw",
+        basePath: "/genesis",
         assistantAttachmentAuthToken: "session-token",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        localMediaPreviewRoots: ["/tmp/genesis"],
       });
       return container;
     };
@@ -651,34 +651,34 @@ describe("grouped chat rendering", () => {
       id: "user-history-image",
       role: "user",
       content: "",
-      MediaPath: "/tmp/openclaw/user-upload.png",
+      MediaPath: "/tmp/genesis/user-upload.png",
       timestamp: Date.now(),
     });
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
     ).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png&token=session-token",
     );
 
     container = renderUserMedia({
       id: "user-history-image-octet-stream",
       role: "user",
       content: "",
-      MediaPath: "/tmp/openclaw/user-upload.png",
+      MediaPath: "/tmp/genesis/user-upload.png",
       MediaType: "application/octet-stream",
       timestamp: Date.now(),
     });
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
     ).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png&token=session-token",
     );
 
     container = renderUserMedia({
       id: "user-history-images",
       role: "user",
       content: "",
-      MediaPaths: ["/tmp/openclaw/first.png", "/tmp/openclaw/second.jpg"],
+      MediaPaths: ["/tmp/genesis/first.png", "/tmp/genesis/second.jpg"],
       MediaTypes: ["image/png", "application/octet-stream"],
       timestamp: Date.now(),
     });
@@ -687,8 +687,8 @@ describe("grouped chat rendering", () => {
         image.getAttribute("src"),
       ),
     ).toEqual([
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ffirst.png&token=session-token",
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fsecond.jpg&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ffirst.png&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fsecond.jpg&token=session-token",
     ]);
 
     container = renderUserMedia({
@@ -706,7 +706,7 @@ describe("grouped chat rendering", () => {
       id: "user-history-document",
       role: "user",
       content: "",
-      MediaPath: "/tmp/openclaw/user-upload.pdf",
+      MediaPath: "/tmp/genesis/user-upload.pdf",
       MediaType: "application/pdf",
       timestamp: Date.now(),
     });
@@ -743,7 +743,7 @@ describe("grouped chat rendering", () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       const headers = init?.headers as Headers;
       expect(headers.get("Authorization")).toBe("Bearer session-token");
-      expect(headers.get("x-openclaw-requester-session-key")).toBe("agent:main:main");
+      expect(headers.get("x-genesis-requester-session-key")).toBe("agent:main:main");
       return {
         ok: true,
         blob: async () => new Blob(["png"], { type: "image/png" }),
@@ -903,14 +903,14 @@ describe("grouped chat rendering", () => {
           id: "assistant-local-media-inline",
           role: "assistant",
           content:
-            "Local image\nMEDIA:/tmp/openclaw/test image.png\nMEDIA:/tmp/openclaw/test-doc.pdf",
+            "Local image\nMEDIA:/tmp/genesis/test image.png\nMEDIA:/tmp/genesis/test-doc.pdf",
           timestamp: Date.now(),
         },
         {
           showToolCalls: false,
-          basePath: "/openclaw",
+          basePath: "/genesis",
           assistantAttachmentAuthToken: "session-token",
-          localMediaPreviewRoots: ["/tmp/openclaw"],
+          localMediaPreviewRoots: ["/tmp/genesis"],
           onRequestUpdate: renderMessage,
         },
       );
@@ -920,7 +920,7 @@ describe("grouped chat rendering", () => {
     await flushAssistantAttachmentAvailabilityChecks();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token&meta=1",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=session-token&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
 
@@ -929,10 +929,10 @@ describe("grouped chat rendering", () => {
       ".chat-assistant-attachment-card__link",
     );
     expect(image?.getAttribute("src")).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=session-token",
     );
     expect(docLink?.getAttribute("href")).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest-doc.pdf&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest-doc.pdf&token=session-token",
     );
     expect(container.textContent).not.toContain("test image.png");
     vi.unstubAllGlobals();
@@ -958,14 +958,14 @@ describe("grouped chat rendering", () => {
         {
           id: "assistant-local-media-auth-refresh",
           role: "assistant",
-          content: "Local image\nMEDIA:/tmp/openclaw/test image.png",
+          content: "Local image\nMEDIA:/tmp/genesis/test image.png",
           timestamp: Date.now(),
         },
         {
           showToolCalls: false,
-          basePath: "/openclaw",
+          basePath: "/genesis",
           assistantAttachmentAuthToken: token,
-          localMediaPreviewRoots: ["/tmp/openclaw"],
+          localMediaPreviewRoots: ["/tmp/genesis"],
           onRequestUpdate: () => renderWithToken(token),
         },
       );
@@ -980,12 +980,12 @@ describe("grouped chat rendering", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&meta=1",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=fresh-token&meta=1",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=fresh-token&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
     expect(container.querySelector(".chat-message-image")).not.toBeNull();
@@ -1002,13 +1002,13 @@ describe("grouped chat rendering", () => {
         id: "assistant-same-origin-media-inline",
         role: "assistant",
         content:
-          "Inline\nMEDIA:/media/inbound/test-image.png\nMEDIA:/__openclaw__/media/test-doc.pdf",
+          "Inline\nMEDIA:/media/inbound/test-image.png\nMEDIA:/__genesis__/media/test-doc.pdf",
         timestamp: Date.now(),
       },
       {
         showToolCalls: false,
-        basePath: "/openclaw",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        basePath: "/genesis",
+        localMediaPreviewRoots: ["/tmp/genesis"],
       },
     );
 
@@ -1017,7 +1017,7 @@ describe("grouped chat rendering", () => {
       ".chat-assistant-attachment-card__link",
     );
     expect(image?.getAttribute("src")).toBe("/media/inbound/test-image.png");
-    expect(docLink?.getAttribute("href")).toBe("/__openclaw__/media/test-doc.pdf");
+    expect(docLink?.getAttribute("href")).toBe("/__genesis__/media/test-doc.pdf");
     expect(container.textContent).not.toContain("Unavailable");
   });
 
@@ -1034,8 +1034,8 @@ describe("grouped chat rendering", () => {
       },
       {
         showToolCalls: false,
-        basePath: "/openclaw",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        basePath: "/genesis",
+        localMediaPreviewRoots: ["/tmp/genesis"],
       },
     );
 
@@ -1064,7 +1064,7 @@ describe("grouped chat rendering", () => {
     const renderCase = (params: { expectedUrl: string; message: unknown; roots: string[] }) => {
       renderAssistantMessage(container, params.message, {
         showToolCalls: false,
-        basePath: "/openclaw",
+        basePath: "/genesis",
         localMediaPreviewRoots: params.roots,
         onRequestUpdate: () => undefined,
       });
@@ -1073,15 +1073,15 @@ describe("grouped chat rendering", () => {
 
     const cases = [
       renderCase({
-        roots: ["C:\\tmp\\openclaw"],
+        roots: ["C:\\tmp\\genesis"],
         message: {
           id: "assistant-windows-file-url",
           role: "assistant",
-          content: "Windows image\nMEDIA:file:///C:/tmp/openclaw/test%20image.png",
+          content: "Windows image\nMEDIA:file:///C:/tmp/genesis/test%20image.png",
           timestamp: Date.now(),
         },
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=%2FC%3A%2Ftmp%2Fopenclaw%2Ftest%2520image.png&meta=1",
+          "/genesis/__genesis__/assistant-media?source=%2FC%3A%2Ftmp%2Fgenesis%2Ftest%2520image.png&meta=1",
       }),
       renderCase({
         roots: ["c:\\users\\test\\pictures"],
@@ -1092,7 +1092,7 @@ describe("grouped chat rendering", () => {
           timestamp: Date.now(),
         },
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=C%3A%5CUsers%5CTest%5CPictures%5Ctest+image.png&meta=1",
+          "/genesis/__genesis__/assistant-media?source=C%3A%5CUsers%5CTest%5CPictures%5Ctest+image.png&meta=1",
       }),
       renderCase({
         roots: ["/Users/test/Pictures"],
@@ -1114,7 +1114,7 @@ describe("grouped chat rendering", () => {
           timestamp: Date.now(),
         }),
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=%7E%2FPictures%2Ftest+image.png&meta=1",
+          "/genesis/__genesis__/assistant-media?source=%7E%2FPictures%2Ftest+image.png&meta=1",
       }),
     ];
 
@@ -1152,13 +1152,13 @@ describe("grouped chat rendering", () => {
         {
           id: "assistant-local-media-retry-after-unavailable",
           role: "assistant",
-          content: "Local image\nMEDIA:/tmp/openclaw/test image.png",
+          content: "Local image\nMEDIA:/tmp/genesis/test image.png",
           timestamp: Date.now(),
         },
         {
           showToolCalls: false,
-          basePath: "/openclaw",
-          localMediaPreviewRoots: ["/tmp/openclaw"],
+          basePath: "/genesis",
+          localMediaPreviewRoots: ["/tmp/genesis"],
           onRequestUpdate: renderMessage,
         },
       );
@@ -1199,7 +1199,7 @@ describe("grouped chat rendering", () => {
               render: "url",
               viewId: "cv_inline_scoped",
               title: "Scoped preview",
-              url: "/__openclaw__/canvas/documents/cv_inline_scoped/index.html",
+              url: "/__genesis__/canvas/documents/cv_inline_scoped/index.html",
               preferredHeight: 320,
             },
           },
@@ -1207,13 +1207,13 @@ describe("grouped chat rendering", () => {
         timestamp: Date.now(),
       },
       {
-        canvasHostUrl: "http://127.0.0.1:19003/__openclaw__/cap/cap_123",
+        canvasHostUrl: "http://127.0.0.1:19003/__genesis__/cap/cap_123",
       },
     );
 
     const iframe = container.querySelector(".chat-tool-card__preview-frame");
     expect(iframe?.getAttribute("src")).toBe(
-      "http://127.0.0.1:19003/__openclaw__/cap/cap_123/__openclaw__/canvas/documents/cv_inline_scoped/index.html",
+      "http://127.0.0.1:19003/__genesis__/cap/cap_123/__genesis__/canvas/documents/cv_inline_scoped/index.html",
     );
   });
 
@@ -1235,7 +1235,7 @@ describe("grouped chat rendering", () => {
               render: "url",
               viewId: "cv_canvas_live_history",
               title: "Live history preview",
-              url: "/__openclaw__/canvas/documents/cv_canvas_live_history/index.html",
+              url: "/__genesis__/canvas/documents/cv_canvas_live_history/index.html",
               preferredHeight: 420,
             },
             rawText: JSON.stringify({
@@ -1243,7 +1243,7 @@ describe("grouped chat rendering", () => {
               view: {
                 backend: "canvas",
                 id: "cv_canvas_live_history",
-                url: "/__openclaw__/canvas/documents/cv_canvas_live_history/index.html",
+                url: "/__genesis__/canvas/documents/cv_canvas_live_history/index.html",
               },
               presentation: {
                 target: "assistant_message",
@@ -1294,7 +1294,7 @@ describe("grouped chat rendering", () => {
     expect(iframe).not.toBeNull();
     expect(iframe?.getAttribute("sandbox")).toBe("allow-scripts");
     expect(iframe?.getAttribute("src")).toBe(
-      "/__openclaw__/canvas/documents/cv_inline_default/index.html",
+      "/__genesis__/canvas/documents/cv_inline_default/index.html",
     );
     expect(container.textContent).toContain("Inline canvas result.");
     expect(container.textContent).toContain("Inline demo");
@@ -1333,7 +1333,7 @@ describe("grouped chat rendering", () => {
               view: {
                 backend: "canvas",
                 id: "cv_inline_visible",
-                url: "/__openclaw__/canvas/documents/cv_inline_visible/index.html",
+                url: "/__genesis__/canvas/documents/cv_inline_visible/index.html",
                 title: "Inline demo",
                 preferred_height: 360,
               },

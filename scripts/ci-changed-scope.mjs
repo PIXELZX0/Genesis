@@ -29,12 +29,12 @@ const DOCS_PATH_RE = /^(docs\/|.*\.mdx?$)/;
 const SKILLS_PYTHON_SCOPE_RE = /^(skills\/|pyproject\.toml$)/;
 const INSTALL_SMOKE_WORKFLOW_SCOPE_RE = /^\.github\/workflows\/install-smoke\.yml$/;
 const MACOS_PROTOCOL_GEN_RE =
-  /^(apps\/macos\/Sources\/OpenClawProtocol\/|apps\/shared\/OpenClawKit\/Sources\/OpenClawProtocol\/)/;
+  /^(apps\/macos\/Sources\/GenesisProtocol\/|apps\/shared\/GenesisKit\/Sources\/GenesisProtocol\/)/;
 const MACOS_NATIVE_RE =
   /^(apps\/macos\/|apps\/macos-mlx-tts\/|apps\/ios\/|apps\/shared\/|Swabble\/)/;
 const ANDROID_NATIVE_RE = /^(apps\/android\/|apps\/shared\/)/;
 const NODE_SCOPE_RE =
-  /^(src\/|test\/|extensions\/|packages\/|scripts\/|ui\/|\.github\/|openclaw\.mjs$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig.*\.json$|vitest.*\.ts$|tsdown\.config\.ts$|\.oxlintrc\.json$|\.oxfmtrc\.jsonc$)/;
+  /^(src\/|test\/|extensions\/|packages\/|scripts\/|ui\/|\.github\/|genesis\.mjs$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig.*\.json$|vitest.*\.ts$|tsdown\.config\.ts$|\.oxlintrc\.json$|\.oxfmtrc\.jsonc$)/;
 const WINDOWS_SCOPE_RE =
   /^(src\/process\/|src\/infra\/windows-install-roots\.ts$|scripts\/(?:npm-runner|pnpm-runner|ui|vitest-process-group)\.(?:mjs|js)$|test\/scripts\/(?:npm-runner|pnpm-runner|ui|vitest-process-group)\.test\.ts$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.github\/workflows\/ci\.yml$|\.github\/actions\/setup-node-env\/action\.yml$|\.github\/actions\/setup-pnpm-store-cache\/action\.yml$)/;
 const WINDOWS_TEST_SCOPE_RE =
@@ -46,7 +46,7 @@ const CONTROL_UI_I18N_SCOPE_RE =
 const NATIVE_ONLY_RE =
   /^(apps\/android\/|apps\/ios\/|apps\/macos\/|apps\/macos-mlx-tts\/|apps\/shared\/|Swabble\/|appcast\.xml$)/;
 const FAST_INSTALL_SMOKE_SCOPE_RE =
-  /^(Dockerfile$|\.npmrc$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|scripts\/ci-changed-scope\.mjs$|scripts\/postinstall-bundled-plugins\.mjs$|scripts\/e2e\/(?:Dockerfile(?:\.qr-import)?|agents-delete-shared-workspace-docker\.sh|gateway-network-docker\.sh|bundled-channel-runtime-deps-docker\.sh)$|src\/plugins\/bundled-runtime-deps\.ts$|extensions\/[^/]+\/(?:package\.json|openclaw\.plugin\.json)$|\.github\/workflows\/install-smoke\.yml$|\.github\/actions\/setup-node-env\/action\.yml$)/;
+  /^(Dockerfile$|\.npmrc$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|scripts\/ci-changed-scope\.mjs$|scripts\/postinstall-bundled-plugins\.mjs$|scripts\/e2e\/(?:Dockerfile(?:\.qr-import)?|agents-delete-shared-workspace-docker\.sh|gateway-network-docker\.sh|bundled-channel-runtime-deps-docker\.sh)$|src\/plugins\/bundled-runtime-deps\.ts$|extensions\/[^/]+\/(?:package\.json|genesis\.plugin\.json)$|\.github\/workflows\/install-smoke\.yml$|\.github\/actions\/setup-node-env\/action\.yml$)/;
 const FULL_INSTALL_SMOKE_SCOPE_RE =
   /^(Dockerfile$|\.npmrc$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|scripts\/ci-changed-scope\.mjs$|scripts\/install\.sh$|scripts\/test-install-sh-docker\.sh$|scripts\/docker\/|scripts\/e2e\/(?:Dockerfile(?:\.qr-import)?|qr-import-docker\.sh|bun-global-install-smoke\.sh)$|\.github\/workflows\/install-smoke\.yml$|\.github\/actions\/setup-node-env\/action\.yml$)/;
 const FAST_INSTALL_SMOKE_RUNTIME_SCOPE_RE = /^src\/(?:channels|gateway|plugin-sdk|plugins)\//;

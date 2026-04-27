@@ -1,4 +1,4 @@
-import type { ExecApprovalReplyDecision } from "openclaw/plugin-sdk/approval-runtime";
+import type { ExecApprovalReplyDecision } from "genesis/plugin-sdk/approval-runtime";
 
 const MATRIX_APPROVAL_REACTION_META = {
   "allow-once": {

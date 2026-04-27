@@ -4,17 +4,16 @@ import {
   listNativeCommandSpecsForConfig as listNativeCommandSpecsForConfigImpl,
   parseCommandArgs as parseCommandArgsImpl,
   resolveCommandArgMenu as resolveCommandArgMenuImpl,
-} from "openclaw/plugin-sdk/command-auth";
+} from "genesis/plugin-sdk/command-auth";
 
 type BuildCommandTextFromArgs =
-  typeof import("openclaw/plugin-sdk/command-auth").buildCommandTextFromArgs;
+  typeof import("genesis/plugin-sdk/command-auth").buildCommandTextFromArgs;
 type FindCommandByNativeName =
-  typeof import("openclaw/plugin-sdk/command-auth").findCommandByNativeName;
+  typeof import("genesis/plugin-sdk/command-auth").findCommandByNativeName;
 type ListNativeCommandSpecsForConfig =
-  typeof import("openclaw/plugin-sdk/command-auth").listNativeCommandSpecsForConfig;
-type ParseCommandArgs = typeof import("openclaw/plugin-sdk/command-auth").parseCommandArgs;
-type ResolveCommandArgMenu =
-  typeof import("openclaw/plugin-sdk/command-auth").resolveCommandArgMenu;
+  typeof import("genesis/plugin-sdk/command-auth").listNativeCommandSpecsForConfig;
+type ParseCommandArgs = typeof import("genesis/plugin-sdk/command-auth").parseCommandArgs;
+type ResolveCommandArgMenu = typeof import("genesis/plugin-sdk/command-auth").resolveCommandArgMenu;
 
 export function buildCommandTextFromArgs(
   ...args: Parameters<BuildCommandTextFromArgs>

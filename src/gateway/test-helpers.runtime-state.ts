@@ -6,15 +6,15 @@ import type { GetReplyOptions } from "../auto-reply/get-reply-options.types.js";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import type { MsgContext } from "../auto-reply/templating.js";
 import type { AgentBinding } from "../config/types.agents.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { HooksConfig } from "../config/types.hooks.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { TailscaleWhoisIdentity } from "../infra/tailscale.js";
 import { resolveGlobalSingleton } from "../shared/global-singleton.js";
 
 export type GetReplyFromConfigFn = (
   ctx: MsgContext,
   opts?: GetReplyOptions,
-  configOverride?: OpenClawConfig,
+  configOverride?: GenesisConfig,
 ) => Promise<ReplyPayload | ReplyPayload[] | undefined>;
 export type CronIsolatedRunFn = (
   ...args: unknown[]
@@ -25,7 +25,7 @@ export type RunBtwSideQuestionFn = (...args: unknown[]) => Promise<unknown>;
 export type DispatchInboundMessageFn = (...args: unknown[]) => Promise<unknown>;
 export type CompactEmbeddedPiSessionFn = (...args: unknown[]) => Promise<unknown>;
 
-const GATEWAY_TEST_CONFIG_ROOT_KEY = Symbol.for("openclaw.gatewayTestHelpers.configRoot");
+const GATEWAY_TEST_CONFIG_ROOT_KEY = Symbol.for("genesis.gatewayTestHelpers.configRoot");
 
 export type GatewayTestHoistedState = {
   testTailnetIPv4: { value: string | undefined };
@@ -79,7 +79,7 @@ export type GatewayTestHoistedState = {
 };
 
 const gatewayTestHoisted = vi.hoisted(() => {
-  const key = Symbol.for("openclaw.gatewayTestHelpers.hoisted");
+  const key = Symbol.for("genesis.gatewayTestHelpers.hoisted");
   const store = globalThis as Record<PropertyKey, unknown>;
   if (Object.prototype.hasOwnProperty.call(store, key)) {
     return store[key] as GatewayTestHoistedState;
@@ -163,10 +163,10 @@ export const sessionStoreSaveDelayMs = gatewayTestHoisted.sessionStoreSaveDelayM
 export const embeddedRunMock = gatewayTestHoisted.embeddedRunMock;
 
 export const testConfigRoot = resolveGlobalSingleton(GATEWAY_TEST_CONFIG_ROOT_KEY, () => ({
-  value: path.join(os.tmpdir(), `openclaw-gateway-test-${process.pid}-${crypto.randomUUID()}`),
+  value: path.join(os.tmpdir(), `genesis-gateway-test-${process.pid}-${crypto.randomUUID()}`),
 }));
 
 export function setTestConfigRoot(root: string): void {
   testConfigRoot.value = root;
-  process.env.OPENCLAW_CONFIG_PATH = path.join(root, "openclaw.json");
+  process.env.GENESIS_CONFIG_PATH = path.join(root, "genesis.json");
 }

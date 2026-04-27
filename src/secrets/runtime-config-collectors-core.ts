@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { MediaUnderstandingModelConfig } from "../config/types.tools.js";
 import {
   resolveConfiguredMediaEntryCapabilities,
@@ -108,7 +108,7 @@ function collectSkillAssignments(params: {
 }
 
 function collectAgentMemorySearchAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -193,7 +193,7 @@ function collectAgentMemorySearchAssignments(params: {
 }
 
 function collectTalkAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -233,7 +233,7 @@ function collectTalkAssignments(params: {
 }
 
 function collectGatewayAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -391,7 +391,7 @@ function collectProviderRequestAssignments(params: {
 }
 
 function collectMediaRequestAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -490,7 +490,7 @@ function collectMediaRequestAssignments(params: {
 }
 
 function collectMessagesTtsAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -507,7 +507,7 @@ function collectMessagesTtsAssignments(params: {
 }
 
 function collectCronAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -528,7 +528,7 @@ function collectCronAssignments(params: {
 }
 
 function collectSandboxSshAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {
@@ -613,7 +613,7 @@ function collectSandboxSshAssignments(params: {
 }
 
 export function collectCoreConfigAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {

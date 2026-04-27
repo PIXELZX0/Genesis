@@ -12,12 +12,12 @@ import type { DoctorPrompter } from "./doctor-prompter.js";
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-doctor-plugin-manifests", tempDirs);
+  return makeTrackedTempDir("genesis-doctor-plugin-manifests", tempDirs);
 }
 
 function writeManifest(dir: string, manifest: Record<string, unknown>) {
   fs.writeFileSync(
-    path.join(dir, "openclaw.plugin.json"),
+    path.join(dir, "genesis.plugin.json"),
     `${JSON.stringify(manifest, null, 2)}\n`,
     "utf-8",
   );
@@ -28,9 +28,9 @@ function writePackageJson(dir: string) {
     path.join(dir, "package.json"),
     `${JSON.stringify(
       {
-        name: "@openclaw/test-plugin",
+        name: "@genesis/test-plugin",
         version: "1.0.0",
-        openclaw: {
+        genesis: {
           extensions: ["./index.ts"],
         },
       },
@@ -90,7 +90,7 @@ describe("doctor plugin manifest legacy contract repair", () => {
     const migrations = collectLegacyPluginManifestContractMigrations({
       env: {
         ...process.env,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: pluginsRoot,
+        GENESIS_BUNDLED_PLUGINS_DIR: pluginsRoot,
       },
     });
 
@@ -119,14 +119,14 @@ describe("doctor plugin manifest legacy contract repair", () => {
     await maybeRepairLegacyPluginManifestContracts({
       env: {
         ...process.env,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: pluginsRoot,
+        GENESIS_BUNDLED_PLUGINS_DIR: pluginsRoot,
       },
       runtime: createRuntime(),
       prompter: createPrompter(),
       note: vi.fn(),
     });
 
-    const next = JSON.parse(fs.readFileSync(path.join(root, "openclaw.plugin.json"), "utf-8")) as {
+    const next = JSON.parse(fs.readFileSync(path.join(root, "genesis.plugin.json"), "utf-8")) as {
       speechProviders?: string[];
       mediaUnderstandingProviders?: string[];
       contracts?: Record<string, string[]>;
@@ -156,7 +156,7 @@ describe("doctor plugin manifest legacy contract repair", () => {
     const migrations = collectLegacyPluginManifestContractMigrations({
       env: {
         ...process.env,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: pluginsRoot,
+        GENESIS_BUNDLED_PLUGINS_DIR: pluginsRoot,
       },
     });
 

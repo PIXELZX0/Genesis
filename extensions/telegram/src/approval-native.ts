@@ -1,19 +1,19 @@
 import {
   createApproverRestrictedNativeApprovalCapability,
   splitChannelApprovalCapability,
-} from "openclaw/plugin-sdk/approval-delivery-runtime";
-import { createLazyChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-adapter-runtime";
-import type { ChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-runtime";
+} from "genesis/plugin-sdk/approval-delivery-runtime";
+import { createLazyChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-adapter-runtime";
+import type { ChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-runtime";
 import {
   createChannelApproverDmTargetResolver,
   createChannelNativeOriginTargetResolver,
-} from "openclaw/plugin-sdk/approval-native-runtime";
-import type { ChannelApprovalCapability } from "openclaw/plugin-sdk/channel-contract";
-import type { ExecApprovalRequest, PluginApprovalRequest } from "openclaw/plugin-sdk/infra-runtime";
+} from "genesis/plugin-sdk/approval-native-runtime";
+import type { ChannelApprovalCapability } from "genesis/plugin-sdk/channel-contract";
+import type { ExecApprovalRequest, PluginApprovalRequest } from "genesis/plugin-sdk/infra-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { listTelegramAccountIds } from "./accounts.js";
 import {
   getTelegramExecApprovalApprovers,
@@ -96,7 +96,7 @@ const telegramNativeApprovalCapability = createApproverRestrictedNativeApprovalC
       accountId && accountId !== "default"
         ? `channels.telegram.accounts.${accountId}`
         : "channels.telegram";
-    return `Approve it from the Web UI or terminal UI for now. Telegram supports native exec approvals for this account. Configure \`${prefix}.execApprovals.approvers\`; if you leave it unset, OpenClaw can infer numeric owner IDs from \`${prefix}.allowFrom\` or direct-message \`${prefix}.defaultTo\` when possible. Leave \`${prefix}.execApprovals.enabled\` unset/\`auto\` or set it to \`true\`.`;
+    return `Approve it from the Web UI or terminal UI for now. Telegram supports native exec approvals for this account. Configure \`${prefix}.execApprovals.approvers\`; if you leave it unset, Genesis can infer numeric owner IDs from \`${prefix}.allowFrom\` or direct-message \`${prefix}.defaultTo\` when possible. Leave \`${prefix}.execApprovals.enabled\` unset/\`auto\` or set it to \`true\`.`;
   },
   listAccountIds: listTelegramAccountIds,
   hasApprovers: ({ cfg, accountId }) =>

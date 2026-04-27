@@ -1,6 +1,6 @@
 import { type Context, complete } from "@mariozechner/pi-ai";
 import { Type } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   classifyMediaReferenceSource,
   normalizeMediaReferenceSource,
@@ -36,7 +36,7 @@ import {
   createSandboxBridgeReadFile,
   discoverAuthStorage,
   discoverModels,
-  ensureOpenClawModelsJson,
+  ensureGenesisModelsJson,
   resolveSandboxedBridgeMediaPath,
   runWithImageModelFallback,
   type AnyAgentTool,
@@ -115,7 +115,7 @@ type PdfSandboxConfig = {
 };
 
 async function runPdfPrompt(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir: string;
   pdfModelConfig: ImageModelConfig;
   modelOverride?: string;
@@ -132,7 +132,7 @@ async function runPdfPrompt(params: {
 }> {
   const effectiveCfg = applyImageModelConfigDefaults(params.cfg, params.pdfModelConfig);
 
-  await ensureOpenClawModelsJson(effectiveCfg, params.agentDir);
+  await ensureGenesisModelsJson(effectiveCfg, params.agentDir);
   const authStorage = discoverAuthStorage(params.agentDir);
   const modelRegistry = discoverModels(authStorage, params.agentDir);
 
@@ -242,7 +242,7 @@ async function runPdfPrompt(params: {
 // ---------------------------------------------------------------------------
 
 export function createPdfTool(options?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   sandbox?: PdfSandboxConfig;

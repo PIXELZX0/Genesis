@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolveDefaultAgentId, resolveSessionAgentId } from "openclaw/plugin-sdk/memory-host-core";
-import type { MemorySearchResult } from "openclaw/plugin-sdk/memory-host-files";
-import { getActiveMemorySearchManager } from "openclaw/plugin-sdk/memory-host-search";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
-import type { OpenClawConfig } from "../api.js";
+import { resolveDefaultAgentId, resolveSessionAgentId } from "genesis/plugin-sdk/memory-host-core";
+import type { MemorySearchResult } from "genesis/plugin-sdk/memory-host-files";
+import { getActiveMemorySearchManager } from "genesis/plugin-sdk/memory-host-search";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "../api.js";
 import { assessClaimFreshness, isClaimContestedStatus } from "./claim-health.js";
 import type { ResolvedMemoryWikiConfig, WikiSearchBackend, WikiSearchCorpus } from "./config.js";
 import {
@@ -16,8 +16,8 @@ import {
 import { initializeMemoryWikiVault } from "./vault.js";
 
 const QUERY_DIRS = ["entities", "concepts", "sources", "syntheses", "reports"] as const;
-const AGENT_DIGEST_PATH = ".openclaw-wiki/cache/agent-digest.json";
-const CLAIMS_DIGEST_PATH = ".openclaw-wiki/cache/claims.jsonl";
+const AGENT_DIGEST_PATH = ".genesis-wiki/cache/agent-digest.json";
+const CLAIMS_DIGEST_PATH = ".genesis-wiki/cache/claims.jsonl";
 
 type QueryDigestPage = {
   id?: string;
@@ -460,7 +460,7 @@ function shouldSearchWiki(config: ResolvedMemoryWikiConfig): boolean {
 
 function shouldSearchSharedMemory(
   config: ResolvedMemoryWikiConfig,
-  appConfig?: OpenClawConfig,
+  appConfig?: GenesisConfig,
 ): boolean {
   return (
     config.search.backend === "shared" &&
@@ -470,7 +470,7 @@ function shouldSearchSharedMemory(
 }
 
 function resolveActiveMemoryAgentId(params: {
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
   agentId?: string;
   agentSessionKey?: string;
 }): string | null {
@@ -490,7 +490,7 @@ function resolveActiveMemoryAgentId(params: {
 }
 
 async function resolveActiveMemoryManager(params: {
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
   agentId?: string;
   agentSessionKey?: string;
 }) {
@@ -674,7 +674,7 @@ export function resolveQueryableWikiPageByLookup(
 
 export async function searchMemoryWiki(params: {
   config: ResolvedMemoryWikiConfig;
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
   agentId?: string;
   agentSessionKey?: string;
   query: string;
@@ -719,7 +719,7 @@ export async function searchMemoryWiki(params: {
 
 export async function getMemoryWikiPage(params: {
   config: ResolvedMemoryWikiConfig;
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
   agentId?: string;
   agentSessionKey?: string;
   lookup: string;

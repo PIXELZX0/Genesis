@@ -4,8 +4,8 @@ import path from "node:path";
 import type {
   EmbeddedRunAttemptParams,
   EmbeddedRunAttemptResult,
-} from "openclaw/plugin-sdk/agent-harness";
-import { resolveUserPath } from "openclaw/plugin-sdk/agent-harness";
+} from "genesis/plugin-sdk/agent-harness";
+import { resolveUserPath } from "genesis/plugin-sdk/agent-harness";
 
 type CodexTrajectoryRecorder = {
   filePath: string;
@@ -187,7 +187,7 @@ function writeTrajectoryPointerBestEffort(params: {
         fd,
         `${JSON.stringify(
           {
-            traceSchema: "openclaw-trajectory-pointer",
+            traceSchema: "genesis-trajectory-pointer",
             schemaVersion: 1,
             sessionId: params.sessionId,
             runtimeFile: params.filePath,
@@ -235,7 +235,7 @@ export function createCodexTrajectoryRecorder(
     filePath,
     recordEvent: (type, data) => {
       const event = {
-        traceSchema: "openclaw-trajectory",
+        traceSchema: "genesis-trajectory",
         schemaVersion: 1,
         traceId: params.attempt.sessionId,
         source: "runtime",
@@ -310,7 +310,7 @@ export function recordCodexTrajectoryCompletion(
 }
 
 function parseTrajectoryEnabled(env: NodeJS.ProcessEnv): boolean {
-  const value = env.OPENCLAW_TRAJECTORY?.trim().toLowerCase();
+  const value = env.GENESIS_TRAJECTORY?.trim().toLowerCase();
   if (value === "1" || value === "true" || value === "yes" || value === "on") {
     return true;
   }
@@ -325,7 +325,7 @@ function resolveTrajectoryFilePath(params: {
   sessionFile: string;
   sessionId: string;
 }): string {
-  const dirOverride = params.env.OPENCLAW_TRAJECTORY_DIR?.trim();
+  const dirOverride = params.env.GENESIS_TRAJECTORY_DIR?.trim();
   if (dirOverride) {
     return resolveContainedPath(
       resolveUserPath(dirOverride),

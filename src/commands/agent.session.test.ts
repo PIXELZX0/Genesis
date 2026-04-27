@@ -5,12 +5,12 @@ import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.j
 import { resolveAgentDir, resolveSessionAgentId } from "../agents/agent-scope.js";
 import { resolveSession } from "../agents/command/session.js";
 import { clearSessionStoreCacheForTest } from "../config/sessions/store.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { buildOutboundSessionContext } from "../infra/outbound/session-context.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   return withTempHomeBase(fn, {
-    prefix: "openclaw-agent-session-",
+    prefix: "genesis-agent-session-",
     skipSessionCleanup: true,
   });
 }
@@ -19,18 +19,18 @@ function mockConfig(
   home: string,
   storePath: string,
   agentsList?: Array<{ id: string; default?: boolean }>,
-): OpenClawConfig {
+): GenesisConfig {
   return {
     agents: {
       defaults: {
         model: { primary: "anthropic/claude-opus-4-6" },
         models: { "anthropic/claude-opus-4-6": {} },
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "genesis"),
       },
       list: agentsList,
     },
     session: { store: storePath, mainKey: "main" },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function writeSessionStoreSeed(
@@ -42,7 +42,7 @@ function writeSessionStoreSeed(
 }
 
 async function withCrossAgentResumeFixture(
-  run: (params: { sessionId: string; sessionKey: string; cfg: OpenClawConfig }) => Promise<void>,
+  run: (params: { sessionId: string; sessionKey: string; cfg: GenesisConfig }) => Promise<void>,
 ): Promise<void> {
   await withTempHome(async (home) => {
     const storePattern = path.join(home, "sessions", "{agentId}", "sessions.json");

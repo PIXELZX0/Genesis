@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { embeddedAgentLog } from "openclaw/plugin-sdk/agent-harness-runtime";
+import { embeddedAgentLog } from "genesis/plugin-sdk/agent-harness-runtime";
 import type { CodexAppServerApprovalPolicy, CodexAppServerSandboxMode } from "./config.js";
 import type { CodexServiceTier } from "./protocol.js";
 

@@ -1,4 +1,4 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import type { QaTransportState } from "./qa-transport.js";
 import type { QaScenarioFlow, QaSeedScenarioWithSource } from "./scenario-catalog.js";
 

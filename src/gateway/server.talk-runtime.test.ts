@@ -28,7 +28,7 @@ async function setTalkConfig(talk: Record<string, unknown>) {
   const { setRuntimeConfigSnapshot } = await import("../config/config.js");
   const config = {
     commands: {
-      ownerDisplaySecret: "openclaw-test-owner-display-secret",
+      ownerDisplaySecret: "genesis-test-owner-display-secret",
     },
     talk,
   };

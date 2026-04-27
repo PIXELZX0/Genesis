@@ -1,5 +1,5 @@
-import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
-import { PROVIDER_LABELS } from "openclaw/plugin-sdk/provider-usage";
+import { defineSingleProviderPluginEntry } from "genesis/plugin-sdk/provider-entry";
+import { PROVIDER_LABELS } from "genesis/plugin-sdk/provider-usage";
 import { applyXiaomiConfig, XIAOMI_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildXiaomiProvider } from "./provider-catalog.js";
 

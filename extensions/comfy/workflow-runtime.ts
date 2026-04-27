@@ -1,20 +1,20 @@
 import fs from "node:fs/promises";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { canResolveEnvSecretRefInReadOnlyPath } from "openclaw/plugin-sdk/extension-shared";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { canResolveEnvSecretRefInReadOnlyPath } from "genesis/plugin-sdk/extension-shared";
 import {
   isProviderApiKeyConfigured,
   type AuthProfileStore,
-} from "openclaw/plugin-sdk/provider-auth";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+} from "genesis/plugin-sdk/provider-auth";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   normalizeBaseUrl,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import {
   normalizeSecretInputString,
   resolveSecretInputString,
-} from "openclaw/plugin-sdk/secret-input-runtime";
+} from "genesis/plugin-sdk/secret-input-runtime";
 import {
   buildHostnameAllowlistPolicyFromSuffixAllowlist,
   fetchWithSsrFGuard,
@@ -22,13 +22,13 @@ import {
   mergeSsrFPolicies,
   ssrfPolicyFromDangerouslyAllowPrivateNetwork,
   type SsrFPolicy,
-} from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/ssrf-runtime";
 import {
   isRecord,
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
   resolveUserPath,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 const DEFAULT_COMFY_LOCAL_BASE_URL = "http://127.0.0.1:8188";
 const DEFAULT_COMFY_CLOUD_BASE_URL = "https://cloud.comfy.org";
@@ -120,7 +120,7 @@ function readConfigInteger(config: ComfyProviderConfig, key: string): number | u
   return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
-export function getComfyConfig(cfg?: OpenClawConfig): ComfyProviderConfig {
+export function getComfyConfig(cfg?: GenesisConfig): ComfyProviderConfig {
   const pluginConfig = cfg?.plugins?.entries?.comfy?.config;
   if (isRecord(pluginConfig)) {
     return pluginConfig;
@@ -155,7 +155,7 @@ export function resolveComfyMode(config: ComfyProviderConfig): ComfyMode {
 
 function resolveComfyApiKey(
   config: ComfyProviderConfig,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): ComfyApiKeyResolution {
   const resolved = resolveSecretInputString({
     value: config.apiKey,
@@ -588,7 +588,7 @@ async function downloadOutputFile(params: {
 }
 
 export function isComfyCapabilityConfigured(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir?: string;
   capability: ComfyCapability;
 }): boolean {
@@ -619,7 +619,7 @@ export function isComfyCapabilityConfigured(params: {
 }
 
 export async function runComfyWorkflow(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   authStore?: AuthProfileStore;
   prompt: string;

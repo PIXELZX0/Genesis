@@ -1,4 +1,4 @@
-import { getRuntimeConfigSnapshot } from "openclaw/plugin-sdk/config-runtime";
+import { getRuntimeConfigSnapshot } from "genesis/plugin-sdk/config-runtime";
 import {
   jsonResult,
   readCache,
@@ -7,7 +7,7 @@ import {
   resolveCacheTtlMs,
   resolveTimeoutSeconds,
   writeCache,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "genesis/plugin-sdk/provider-web-search";
 import { isXaiToolEnabled, resolveXaiToolApiKey } from "./src/tool-auth-shared.js";
 import { resolveEffectiveXSearchConfig } from "./src/x-search-config.js";
 import {
@@ -30,7 +30,7 @@ class PluginToolInputError extends Error {
   }
 }
 
-const X_SEARCH_CACHE_KEY = Symbol.for("openclaw.xai.x-search.cache");
+const X_SEARCH_CACHE_KEY = Symbol.for("genesis.xai.x-search.cache");
 
 type XSearchCacheEntry = {
   expiresAt: number;

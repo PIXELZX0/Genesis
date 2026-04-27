@@ -10,10 +10,10 @@
  * 6. Optionally sends a proactive follow-up to the user
  */
 
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import {
   dispatchReplyFromConfigWithSettledDispatcher,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../runtime-api.js";
 import type { StoredConversationReference } from "./conversation-store.js";
 import { formatUnknownError } from "./errors.js";
@@ -66,7 +66,7 @@ export function buildFeedbackEvent(params: {
 }
 
 export type RunFeedbackReflectionParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   adapter: MSTeamsAdapter;
   appId: string;
   conversationRef: StoredConversationReference;
@@ -80,7 +80,7 @@ export type RunFeedbackReflectionParams = {
 };
 
 function buildReflectionContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   conversationId: string;
   sessionKey: string;
   reflectionPrompt: string;
@@ -118,7 +118,7 @@ function buildReflectionContext(params: {
 }
 
 function createReflectionCaptureDispatcher(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   log: MSTeamsMonitorLogger;
 }) {

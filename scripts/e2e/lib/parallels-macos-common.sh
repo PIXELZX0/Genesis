@@ -45,7 +45,7 @@ parallels_macos_desktop_user_exec_with_secret_file() {
   shift 7
 
   local secret_path
-  secret_path="/tmp/openclaw-secret-${api_key_env:-env}-$RANDOM-$RANDOM"
+  secret_path="/tmp/genesis-secret-${api_key_env:-env}-$RANDOM-$RANDOM"
 
   if [[ -n "$api_key_env" && -n "$api_key_value" ]]; then
     if [[ "$user_flag" == "current-user" ]]; then
@@ -59,17 +59,17 @@ parallels_macos_desktop_user_exec_with_secret_file() {
 
   local wrapper
   local wrapper_path
-  wrapper_path="/tmp/openclaw-secret-env-wrapper-$RANDOM-$RANDOM.sh"
+  wrapper_path="/tmp/genesis-secret-env-wrapper-$RANDOM-$RANDOM.sh"
   wrapper='#!/bin/bash
 set -e
 cleanup() {
-  rm -f "${OPENCLAW_WRAPPER_FILE:-}"
+  rm -f "${GENESIS_WRAPPER_FILE:-}"
 }
 trap cleanup EXIT
-if [ -n "${OPENCLAW_SECRET_ENV_NAME:-}" ] && [ -n "${OPENCLAW_SECRET_FILE:-}" ] && [ -f "$OPENCLAW_SECRET_FILE" ]; then
-  secret_value="$(cat "$OPENCLAW_SECRET_FILE")"
-  rm -f "$OPENCLAW_SECRET_FILE"
-  export "${OPENCLAW_SECRET_ENV_NAME}=${secret_value}"
+if [ -n "${GENESIS_SECRET_ENV_NAME:-}" ] && [ -n "${GENESIS_SECRET_FILE:-}" ] && [ -f "$GENESIS_SECRET_FILE" ]; then
+  secret_value="$(cat "$GENESIS_SECRET_FILE")"
+  rm -f "$GENESIS_SECRET_FILE"
+  export "${GENESIS_SECRET_ENV_NAME}=${secret_value}"
 fi
 "$@"
 '
@@ -85,9 +85,9 @@ fi
   if [[ "$user_flag" == "current-user" ]]; then
     prlctl exec "$vm_name" --current-user /usr/bin/env \
       "PATH=$path_value" \
-      "OPENCLAW_SECRET_ENV_NAME=$api_key_env" \
-      "OPENCLAW_SECRET_FILE=$secret_path" \
-      "OPENCLAW_WRAPPER_FILE=$wrapper_path" \
+      "GENESIS_SECRET_ENV_NAME=$api_key_env" \
+      "GENESIS_SECRET_FILE=$secret_path" \
+      "GENESIS_WRAPPER_FILE=$wrapper_path" \
       /bin/bash "$wrapper_path" "$@"
     return
   fi
@@ -97,9 +97,9 @@ fi
     "USER=$user_name" \
     "LOGNAME=$user_name" \
     "PATH=$path_value" \
-    "OPENCLAW_SECRET_ENV_NAME=$api_key_env" \
-    "OPENCLAW_SECRET_FILE=$secret_path" \
-    "OPENCLAW_WRAPPER_FILE=$wrapper_path" \
+    "GENESIS_SECRET_ENV_NAME=$api_key_env" \
+    "GENESIS_SECRET_FILE=$secret_path" \
+    "GENESIS_WRAPPER_FILE=$wrapper_path" \
     /bin/bash "$wrapper_path" "$@"
 }
 

@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { Page } from "playwright-core";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { type AriaSnapshotNode, formatAriaSnapshot, type RawAXNode } from "./cdp.js";

@@ -1,4 +1,4 @@
-import { z } from "openclaw/plugin-sdk/zod";
+import { z } from "genesis/plugin-sdk/zod";
 import type { CallMode } from "./config.js";
 
 // -----------------------------------------------------------------------------

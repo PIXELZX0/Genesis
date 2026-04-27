@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveSessionAuthProfileOverride } from "./session-override.js";
 import type { AuthProfileStore } from "./types.js";
 
@@ -53,18 +53,18 @@ vi.mock("./usage.js", () => ({
 }));
 
 async function withAuthStateDir<T>(run: (params: { stateDir: string }) => Promise<T>): Promise<T> {
-  const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-"));
+  const previousStateDir = process.env.GENESIS_STATE_DIR;
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-auth-"));
   const stateDir = path.join(tempRoot, "state");
-  process.env.OPENCLAW_STATE_DIR = stateDir;
+  process.env.GENESIS_STATE_DIR = stateDir;
   try {
     await fs.mkdir(stateDir, { recursive: true });
     return await run({ stateDir });
   } finally {
     if (previousStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.GENESIS_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = previousStateDir;
+      process.env.GENESIS_STATE_DIR = previousStateDir;
     }
     await fs.rm(tempRoot, { recursive: true, force: true });
   }
@@ -114,7 +114,7 @@ describe("resolveSessionAuthProfileOverride", () => {
       const sessionStore = { "agent:main:main": sessionEntry };
 
       const resolved = await resolveSessionAuthProfileOverride({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         provider: "openrouter",
         agentDir,
         sessionEntry,
@@ -148,7 +148,7 @@ describe("resolveSessionAuthProfileOverride", () => {
       const sessionStore = { "agent:main:main": sessionEntry };
 
       const resolved = await resolveSessionAuthProfileOverride({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         provider: "z.ai",
         agentDir,
         sessionEntry,
@@ -195,7 +195,7 @@ describe("resolveSessionAuthProfileOverride", () => {
       const sessionStore = { "agent:main:main": sessionEntry };
 
       const resolved = await resolveSessionAuthProfileOverride({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         provider: "openai-codex",
         agentDir,
         sessionEntry,
@@ -238,7 +238,7 @@ describe("resolveSessionAuthProfileOverride", () => {
       const sessionStore = { "agent:main:main": sessionEntry };
 
       const resolved = await resolveSessionAuthProfileOverride({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         provider: "codex-cli",
         agentDir,
         sessionEntry,

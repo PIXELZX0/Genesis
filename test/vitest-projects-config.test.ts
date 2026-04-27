@@ -26,7 +26,7 @@ import { createUnitFastVitestConfig } from "./vitest/vitest.unit-fast.config.ts"
 import unitUiConfig from "./vitest/vitest.unit-ui.config.ts";
 import { createUnitVitestConfig } from "./vitest/vitest.unit.config.ts";
 
-const patternFiles = createPatternFileHelper("openclaw-vitest-projects-config-");
+const patternFiles = createPatternFileHelper("genesis-vitest-projects-config-");
 
 afterEach(() => {
   patternFiles.cleanup();
@@ -55,7 +55,7 @@ describe("projects vitest config", () => {
   it("honors explicit worker caps in CI vitest lanes", () => {
     expect(
       resolveSharedVitestWorkerConfig({
-        env: { CI: "true", OPENCLAW_VITEST_MAX_WORKERS: "1" },
+        env: { CI: "true", GENESIS_VITEST_MAX_WORKERS: "1" },
         isCI: true,
         isWindows: false,
         localScheduling: {
@@ -131,7 +131,7 @@ describe("projects vitest config", () => {
     const config = createContractsVitestConfig(
       ["src/channels/plugins/contracts/*-shard-a.contract.test.ts"],
       {
-        OPENCLAW_VITEST_INCLUDE_FILE: includeFile,
+        GENESIS_VITEST_INCLUDE_FILE: includeFile,
       },
     );
 
@@ -146,7 +146,7 @@ describe("projects vitest config", () => {
     expect(config.test.isolate).toBe(true);
     expect(config.test.runner).toBeUndefined();
     const setupFiles = normalizeConfigPaths(config.test.setupFiles);
-    expect(setupFiles).not.toContain("test/setup-openclaw-runtime.ts");
+    expect(setupFiles).not.toContain("test/setup-genesis-runtime.ts");
     expect(setupFiles).toContain("ui/src/test-helpers/lit-warnings.setup.ts");
     expect(config.test.deps?.optimizer?.web?.enabled).toBe(true);
   });
@@ -156,7 +156,7 @@ describe("projects vitest config", () => {
     expect(unitUiConfig.test?.isolate).toBe(true);
     expect(unitUiConfig.test?.runner).toBeUndefined();
     const setupFiles = normalizeConfigPaths(unitUiConfig.test?.setupFiles);
-    expect(setupFiles).not.toContain("test/setup-openclaw-runtime.ts");
+    expect(setupFiles).not.toContain("test/setup-genesis-runtime.ts");
     expect(setupFiles).toContain("ui/src/test-helpers/lit-warnings.setup.ts");
   });
 

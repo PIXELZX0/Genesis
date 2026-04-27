@@ -1,15 +1,15 @@
-import { createAccountListHelpers } from "openclaw/plugin-sdk/account-helpers";
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import { resolveMergedAccountConfig } from "openclaw/plugin-sdk/account-resolution";
+import { createAccountListHelpers } from "genesis/plugin-sdk/account-helpers";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import { resolveMergedAccountConfig } from "genesis/plugin-sdk/account-resolution";
 import {
   parseOptionalDelimitedEntries,
   tryReadSecretFileSync,
-} from "openclaw/plugin-sdk/channel-core";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/channel-core";
+import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type { CoreConfig, IrcAccountConfig, IrcNickServConfig } from "./types.js";
 
 const TRUTHY_ENV = new Set(["true", "1", "yes", "on"]);
@@ -164,12 +164,12 @@ export function resolveIrcAccount(params: {
       merged.username?.trim() ||
       (accountId === DEFAULT_ACCOUNT_ID ? process.env.IRC_USERNAME?.trim() : "") ||
       nick ||
-      "openclaw"
+      "genesis"
     ).trim();
     const realname = (
       merged.realname?.trim() ||
       (accountId === DEFAULT_ACCOUNT_ID ? process.env.IRC_REALNAME?.trim() : "") ||
-      "OpenClaw"
+      "Genesis"
     ).trim();
 
     const passwordResolution = resolvePassword(accountId, merged);

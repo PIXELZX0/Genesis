@@ -33,7 +33,7 @@ function isDreamingNarrativeBootstrapRecord(record: unknown): boolean {
   };
   if (
     candidate.type !== "custom" ||
-    candidate.customType !== "openclaw:bootstrap-context:full" ||
+    candidate.customType !== "genesis:bootstrap-context:full" ||
     !candidate.data ||
     typeof candidate.data !== "object" ||
     Array.isArray(candidate.data)
@@ -90,7 +90,7 @@ function collectRawSessionText(content: unknown): string | null {
 }
 
 /**
- * Strip OpenClaw-injected inbound metadata envelopes from a raw text block
+ * Strip Genesis-injected inbound metadata envelopes from a raw text block
  * on user-role messages before normalization. See the authoritative
  * implementation in `src/memory-host-sdk/host/session-files.ts` for the
  * full rationale; duplicated here to keep this parallel copy bug-free.

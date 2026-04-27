@@ -35,7 +35,7 @@ Longer spot-check after that:
 GPT baseline:
 
 ```bash
-pnpm openclaw qa suite \
+pnpm genesis qa suite \
   --provider-mode live-frontier \
   --model openai/gpt-5.5 \
   --alt-model openai/gpt-5.5 \
@@ -48,7 +48,7 @@ pnpm openclaw qa suite \
 Claude sweep:
 
 ```bash
-pnpm openclaw qa suite \
+pnpm genesis qa suite \
   --provider-mode live-frontier \
   --model anthropic/claude-sonnet-4-6 \
   --alt-model anthropic/claude-opus-4-6 \
@@ -60,7 +60,7 @@ pnpm openclaw qa suite \
 Gemini sweep:
 
 ```bash
-pnpm openclaw qa suite \
+pnpm genesis qa suite \
   --provider-mode live-frontier \
   --model <google-pro-model-ref> \
   --alt-model <google-pro-model-ref> \
@@ -69,7 +69,7 @@ pnpm openclaw qa suite \
   --scenario source-docs-discovery-report
 ```
 
-Use the QA Lab runner catalog or `openclaw models list --all` to pick the current Google Pro ref.
+Use the QA Lab runner catalog or `genesis models list --all` to pick the current Google Pro ref.
 
 ## Tuning loop
 
@@ -102,7 +102,7 @@ read QA_KICKOFF_TASK.md, tell me what feels half-baked about this qa mission, an
 GPT manual lane:
 
 ```bash
-pnpm openclaw qa manual \
+pnpm genesis qa manual \
   --provider-mode live-frontier \
   --model openai/gpt-5.5 \
   --alt-model openai/gpt-5.5 \
@@ -113,7 +113,7 @@ pnpm openclaw qa manual \
 Claude manual lane:
 
 ```bash
-pnpm openclaw qa manual \
+pnpm genesis qa manual \
   --provider-mode live-frontier \
   --model anthropic/claude-sonnet-4-6 \
   --alt-model anthropic/claude-opus-4-6 \

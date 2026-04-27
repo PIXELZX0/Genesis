@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { vi } from "vitest";
 import type { createDiscordMessageHandler } from "./message-handler.js";
 import { createNoopThreadBindingManager } from "./thread-bindings.js";
@@ -11,7 +11,7 @@ export function createDiscordHandlerParams(overrides?: {
   abortSignal?: AbortSignal;
   workerRunTimeoutMs?: number;
 }): Parameters<typeof createDiscordMessageHandler>[0] {
-  const cfg: OpenClawConfig = {
+  const cfg: GenesisConfig = {
     channels: {
       discord: {
         enabled: true,

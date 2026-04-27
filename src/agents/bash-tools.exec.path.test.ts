@@ -40,8 +40,8 @@ vi.mock("../process/supervisor/index.js", () => ({
     }) => {
       const command = input.argv?.at(-1) ?? "";
       const env = input.env ?? {};
-      if (command.includes("OPENCLAW_SHELL")) {
-        input.onStdout?.(env.OPENCLAW_SHELL ?? "");
+      if (command.includes("GENESIS_SHELL")) {
+        input.onStdout?.(env.GENESIS_SHELL ?? "");
       } else if (command.includes("SSLKEYLOGFILE")) {
         input.onStdout?.(env.SSLKEYLOGFILE ?? "");
       } else if (command.includes("$PATH")) {
@@ -164,14 +164,14 @@ describe("exec PATH login shell merge", () => {
     expect(shellPathMock).toHaveBeenCalledTimes(1);
   });
 
-  it("sets OPENCLAW_SHELL for host=gateway commands", async () => {
+  it("sets GENESIS_SHELL for host=gateway commands", async () => {
     if (isWin) {
       return;
     }
 
     const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
-    const result = await tool.execute("call-openclaw-shell", {
-      command: 'printf "%s" "${OPENCLAW_SHELL:-}"',
+    const result = await tool.execute("call-genesis-shell", {
+      command: 'printf "%s" "${GENESIS_SHELL:-}"',
       yieldMs: FOREGROUND_TEST_YIELD_MS,
     });
     const value = normalizeText(result.content.find((c) => c.type === "text")?.text);
@@ -221,7 +221,7 @@ describe("exec PATH login shell merge", () => {
       return;
     }
     process.env.PATH = "/usr/bin";
-    const shellDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-shell-env-"));
+    const shellDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-shell-env-"));
     const unregisteredShellPath = path.join(shellDir, "unregistered-shell");
     fs.writeFileSync(unregisteredShellPath, '#!/bin/sh\nexec /bin/sh "$@"\n', {
       encoding: "utf8",
@@ -290,7 +290,7 @@ describe("exec host env validation", () => {
       return;
     }
     const original = process.env.SSLKEYLOGFILE;
-    process.env.SSLKEYLOGFILE = "/tmp/openclaw-ssl-keys.log";
+    process.env.SSLKEYLOGFILE = "/tmp/genesis-ssl-keys.log";
     try {
       const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
       const result = await tool.execute("call1", {
@@ -298,7 +298,7 @@ describe("exec host env validation", () => {
         yieldMs: FOREGROUND_TEST_YIELD_MS,
       });
       const output = normalizeText(result.content.find((c) => c.type === "text")?.text);
-      expect(output).not.toContain("/tmp/openclaw-ssl-keys.log");
+      expect(output).not.toContain("/tmp/genesis-ssl-keys.log");
     } finally {
       if (original === undefined) {
         delete process.env.SSLKEYLOGFILE;
@@ -339,7 +339,7 @@ describe("exec host env validation", () => {
     "env -S '/approve abc123 deny'",
     "command /approve abc123 deny",
     "command -p /approve abc123 deny",
-    "exec -a openclaw /approve abc123 deny",
+    "exec -a genesis /approve abc123 deny",
     "sudo /approve abc123 allow-once",
     "sudo -E /approve abc123 allow-once",
     "bash -lc '/approve abc123 deny'",

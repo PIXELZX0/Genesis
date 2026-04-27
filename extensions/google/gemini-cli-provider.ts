@@ -1,12 +1,12 @@
 import type {
-  OpenClawPluginApi,
+  GenesisPluginApi,
   ProviderAuthContext,
   ProviderFetchUsageSnapshotContext,
-} from "openclaw/plugin-sdk/plugin-entry";
-import { buildOauthProviderAuthResult } from "openclaw/plugin-sdk/provider-auth-result";
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
-import { buildProviderToolCompatFamilyHooks } from "openclaw/plugin-sdk/provider-tools";
-import { fetchGeminiUsage } from "openclaw/plugin-sdk/provider-usage";
+} from "genesis/plugin-sdk/plugin-entry";
+import { buildOauthProviderAuthResult } from "genesis/plugin-sdk/provider-auth-result";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
+import { buildProviderToolCompatFamilyHooks } from "genesis/plugin-sdk/provider-tools";
+import { fetchGeminiUsage } from "genesis/plugin-sdk/provider-usage";
 import { formatGoogleOauthApiKey, parseGoogleUsageToken } from "./oauth-token-shared.js";
 import { GOOGLE_GEMINI_PROVIDER_HOOKS } from "./provider-hooks.js";
 import { isModernGoogleModel, resolveGoogleGeminiForwardCompatModel } from "./provider-models.js";
@@ -15,8 +15,8 @@ const PROVIDER_ID = "google-gemini-cli";
 const PROVIDER_LABEL = "Gemini CLI OAuth";
 const DEFAULT_MODEL = "google/gemini-3.1-pro-preview";
 const ENV_VARS = [
-  "OPENCLAW_GEMINI_OAUTH_CLIENT_ID",
-  "OPENCLAW_GEMINI_OAUTH_CLIENT_SECRET",
+  "GENESIS_GEMINI_OAUTH_CLIENT_ID",
+  "GENESIS_GEMINI_OAUTH_CLIENT_SECRET",
   "GEMINI_CLI_OAUTH_CLIENT_ID",
   "GEMINI_CLI_OAUTH_CLIENT_SECRET",
 ] as const;
@@ -142,6 +142,6 @@ export function buildGoogleGeminiCliProvider(): ProviderPlugin {
   };
 }
 
-export function registerGoogleGeminiCliProvider(api: OpenClawPluginApi) {
+export function registerGoogleGeminiCliProvider(api: GenesisPluginApi) {
   api.registerProvider(buildGoogleGeminiCliProvider());
 }

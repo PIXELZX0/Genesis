@@ -7,7 +7,7 @@
  */
 
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import { readStringValue } from "openclaw/plugin-sdk/text-runtime";
+import { readStringValue } from "genesis/plugin-sdk/text-runtime";
 import { cleanBlocksForDescendant } from "./docx-table-ops.js";
 import type { FeishuDocxBlock, FeishuDocxBlockChild } from "./docx-types.js";
 

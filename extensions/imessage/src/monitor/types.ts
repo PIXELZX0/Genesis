@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 
 export type IMessageAttachment = {
   original_path?: string | null;
@@ -33,7 +33,7 @@ export type MonitorIMessageOpts = {
   cliPath?: string;
   dbPath?: string;
   accountId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   allowFrom?: Array<string | number>;
   groupAllowFrom?: Array<string | number>;
   includeAttachments?: boolean;

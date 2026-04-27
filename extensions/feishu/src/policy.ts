@@ -1,10 +1,10 @@
 import {
   normalizeAccountId,
   resolveMergedAccountConfig,
-} from "openclaw/plugin-sdk/account-resolution";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
-import { evaluateSenderGroupAccessForPolicy } from "openclaw/plugin-sdk/group-access";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/account-resolution";
+import type { GenesisConfig } from "genesis/plugin-sdk/core";
+import { evaluateSenderGroupAccessForPolicy } from "genesis/plugin-sdk/group-access";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import type { AllowlistMatch, ChannelGroupContext } from "../runtime-api.js";
 import { detectIdType } from "./targets.js";
 import type { FeishuConfig } from "./types.js";
@@ -179,7 +179,7 @@ export function isFeishuGroupAllowed(params: {
 
 export function resolveFeishuReplyPolicy(params: {
   isDirectMessage: boolean;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   groupId?: string | null;
   /**

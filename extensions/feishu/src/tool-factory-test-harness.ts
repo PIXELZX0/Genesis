@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../runtime-api.js";
+import type { GenesisPluginApi } from "../runtime-api.js";
 
 type ToolContextLike = {
   agentAccountId?: string;
@@ -37,10 +37,10 @@ function asToolLike(tool: unknown, fallbackName?: string): ToolLike {
   };
 }
 
-export function createToolFactoryHarness(cfg: OpenClawPluginApi["config"]) {
+export function createToolFactoryHarness(cfg: GenesisPluginApi["config"]) {
   const registered: RegisteredTool[] = [];
 
-  const api: Pick<OpenClawPluginApi, "config" | "logger" | "registerTool"> = {
+  const api: Pick<GenesisPluginApi, "config" | "logger" | "registerTool"> = {
     config: cfg,
     logger: {
       info: () => {},
@@ -73,7 +73,7 @@ export function createToolFactoryHarness(cfg: OpenClawPluginApi["config"]) {
   };
 
   return {
-    api: api as OpenClawPluginApi,
+    api: api as GenesisPluginApi,
     resolveTool,
   };
 }

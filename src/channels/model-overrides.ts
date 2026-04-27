@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   parseRawSessionConversationRef,
   parseThreadSessionSuffix,
@@ -31,7 +31,7 @@ export type ChannelModelOverride = {
 type ChannelModelByChannelConfig = Record<string, Record<string, string>>;
 
 type ChannelModelOverrideParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string | null;
   groupId?: string | null;
   groupChatType?: string | null;

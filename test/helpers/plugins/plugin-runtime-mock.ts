@@ -413,7 +413,7 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
       })),
     },
     state: {
-      resolveStateDir: vi.fn(() => "/tmp/openclaw"),
+      resolveStateDir: vi.fn(() => "/tmp/genesis"),
     },
     tasks: {
       runs: {

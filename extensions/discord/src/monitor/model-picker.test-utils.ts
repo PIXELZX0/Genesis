@@ -1,4 +1,4 @@
-import type { ModelsProviderData } from "openclaw/plugin-sdk/models-provider-runtime";
+import type { ModelsProviderData } from "genesis/plugin-sdk/models-provider-runtime";
 
 export function createModelsProviderData(
   entries: Record<string, string[]>,

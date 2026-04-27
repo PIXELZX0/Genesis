@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import {
   isPackageProvenControlUiRootSync,
@@ -54,7 +54,7 @@ import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
 import { resolveRequestClientIp } from "./net.js";
 
 const ROOT_PREFIX = "/";
-const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__openclaw__/assistant-media";
+const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__genesis__/assistant-media";
 const CONTROL_UI_ASSETS_MISSING_MESSAGE =
   "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.";
 const CONTROL_UI_OPERATOR_READ_SCOPE = "operator.read";
@@ -62,7 +62,7 @@ const CONTROL_UI_OPERATOR_ROLE = "operator";
 
 export type ControlUiRequestOptions = {
   basePath?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   root?: ControlUiRootState;
   auth?: ResolvedGatewayAuth;
@@ -417,7 +417,7 @@ export async function handleControlUiAssistantMediaRequest(
   res: ServerResponse,
   opts?: {
     basePath?: string;
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     agentId?: string;
     auth?: ResolvedGatewayAuth;
     trustedProxies?: string[];

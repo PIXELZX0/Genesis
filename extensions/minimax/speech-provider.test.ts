@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runFfmpegMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/media-runtime", () => ({
+vi.mock("genesis/plugin-sdk/media-runtime", () => ({
   runFfmpeg: runFfmpegMock,
 }));
 

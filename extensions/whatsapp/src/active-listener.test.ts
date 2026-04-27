@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getActiveWebListener, resolveWebAccountId } from "./active-listener.js";
 
-vi.mock("openclaw/plugin-sdk/config-runtime", () => ({
+vi.mock("genesis/plugin-sdk/config-runtime", () => ({
   loadConfig: () => ({
     channels: { whatsapp: { accounts: { work: { enabled: true } }, defaultAccount: "work" } },
   }),

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/testing";
+import type { GenesisConfig } from "genesis/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import {
   listWhatsAppDirectoryGroupsFromConfig,
@@ -18,7 +18,7 @@ describe("WhatsApp directory contract", () => {
           groups: { "999@g.us": { requireMention: true }, "*": {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     const peers = await listWhatsAppDirectoryPeersFromConfig({
       cfg,
@@ -43,7 +43,7 @@ describe("WhatsApp directory contract", () => {
           groups: { "111@g.us": {}, "222@g.us": {}, "333@s.whatsapp.net": {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     const groups = await listWhatsAppDirectoryGroupsFromConfig({
       cfg,

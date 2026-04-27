@@ -1,7 +1,7 @@
 import type { SkillCommandSpec } from "../agents/skills.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import { isCommandFlagEnabled } from "../config/commands.flags.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { listPluginCommands } from "../plugins/commands.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -51,7 +51,7 @@ function groupCommandsByCategory(
   return grouped;
 }
 
-export function buildHelpMessage(cfg?: OpenClawConfig): string {
+export function buildHelpMessage(cfg?: GenesisConfig): string {
   const lines = ["ℹ️ Help", ""];
 
   lines.push("Session");
@@ -182,7 +182,7 @@ function formatCommandList(items: CommandsListItem[]): string {
 }
 
 export function buildCommandsMessage(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   skillCommands?: SkillCommandSpec[],
   options?: CommandsMessageOptions,
 ): string {
@@ -191,7 +191,7 @@ export function buildCommandsMessage(
 }
 
 export function buildCommandsMessagePaginated(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   skillCommands?: SkillCommandSpec[],
   options?: CommandsMessageOptions,
 ): CommandsMessageResult {

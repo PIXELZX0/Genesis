@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
 import { promptChannelAccessConfig, type ChannelAccessPolicy } from "./setup-group-access.js";
 
 export async function configureChannelAccessWithAllowlist<TResolved>(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: WizardPrompter;
   label: string;
   currentPolicy: ChannelAccessPolicy;
@@ -11,10 +11,10 @@ export async function configureChannelAccessWithAllowlist<TResolved>(params: {
   placeholder: string;
   updatePrompt: boolean;
   skipAllowlistEntries?: boolean;
-  setPolicy: (cfg: OpenClawConfig, policy: ChannelAccessPolicy) => OpenClawConfig;
-  resolveAllowlist?: (params: { cfg: OpenClawConfig; entries: string[] }) => Promise<TResolved>;
-  applyAllowlist?: (params: { cfg: OpenClawConfig; resolved: TResolved }) => OpenClawConfig;
-}): Promise<OpenClawConfig> {
+  setPolicy: (cfg: GenesisConfig, policy: ChannelAccessPolicy) => GenesisConfig;
+  resolveAllowlist?: (params: { cfg: GenesisConfig; entries: string[] }) => Promise<TResolved>;
+  applyAllowlist?: (params: { cfg: GenesisConfig; resolved: TResolved }) => GenesisConfig;
+}): Promise<GenesisConfig> {
   let next = params.cfg;
   const accessConfig = await promptChannelAccessConfig({
     prompter: params.prompter,

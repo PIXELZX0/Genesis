@@ -9,7 +9,7 @@ import {
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import { resolveStateDir } from "../paths.js";
-import type { OpenClawConfig } from "../types.openclaw.js";
+import type { GenesisConfig } from "../types.genesis.js";
 import { resolveAgentsDirFromSessionStorePath, resolveStorePath } from "./paths.js";
 
 export type SessionStoreSelectionOptions = {
@@ -105,7 +105,7 @@ async function resolveValidatedDiscoveredStorePath(params: {
 }
 
 function resolveSessionStoreDiscoveryState(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv,
 ): {
   configuredTargets: SessionStoreTarget[];
@@ -144,7 +144,7 @@ function toDiscoveredSessionStoreTarget(
 }
 
 export function resolveAllAgentSessionStoreTargetsSync(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params: { env?: NodeJS.ProcessEnv } = {},
 ): SessionStoreTarget[] {
   const env = params.env ?? process.env;
@@ -210,7 +210,7 @@ export function resolveAllAgentSessionStoreTargetsSync(
 }
 
 export async function resolveAllAgentSessionStoreTargets(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params: { env?: NodeJS.ProcessEnv } = {},
 ): Promise<SessionStoreTarget[]> {
   const env = params.env ?? process.env;
@@ -292,7 +292,7 @@ export async function resolveAllAgentSessionStoreTargets(
 }
 
 export function resolveSessionStoreTargets(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   opts: SessionStoreSelectionOptions,
   params: { env?: NodeJS.ProcessEnv } = {},
 ): SessionStoreTarget[] {
@@ -329,7 +329,7 @@ export function resolveSessionStoreTargets(
     const requested = normalizeAgentId(opts.agent ?? "");
     if (!knownAgents.includes(requested)) {
       throw new Error(
-        `Unknown agent id "${opts.agent}". Use "openclaw agents list" to see configured agents.`,
+        `Unknown agent id "${opts.agent}". Use "genesis agents list" to see configured agents.`,
       );
     }
     return [

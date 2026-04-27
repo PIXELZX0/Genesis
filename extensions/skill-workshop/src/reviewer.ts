@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawPluginApi } from "../api.js";
+import type { GenesisPluginApi } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
 import { normalizeSkillName } from "./skills.js";
 import { compactWhitespace, extractTranscriptText } from "./text.js";
@@ -213,7 +213,7 @@ async function buildReviewPrompt(params: {
 }
 
 export async function reviewTranscriptForProposal(params: {
-  api: OpenClawPluginApi;
+  api: GenesisPluginApi;
   config: SkillWorkshopConfig;
   ctx: ReviewContext;
   messages: unknown[];

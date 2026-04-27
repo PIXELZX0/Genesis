@@ -49,7 +49,7 @@ function createContinueDirectivesResult() {
 describe("getReplyFromConfig before_agent_reply wiring", () => {
   beforeEach(async () => {
     await loadGetReplyRuntimeForTest();
-    vi.stubEnv("OPENCLAW_ALLOW_SLOW_REPLY_TESTS", "1");
+    vi.stubEnv("GENESIS_ALLOW_SLOW_REPLY_TESTS", "1");
     mocks.resolveReplyDirectives.mockReset();
     mocks.handleInlineActions.mockReset();
     mocks.initSessionState.mockReset();

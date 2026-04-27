@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 
 export function createPerSenderSessionConfig(
-  overrides: Partial<NonNullable<OpenClawConfig["session"]>> = {},
-): NonNullable<OpenClawConfig["session"]> {
+  overrides: Partial<NonNullable<GenesisConfig["session"]>> = {},
+): NonNullable<GenesisConfig["session"]> {
   return {
     mainKey: "main",
     scope: "per-sender",

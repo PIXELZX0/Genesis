@@ -1,6 +1,6 @@
 import type { Api, Model } from "@mariozechner/pi-ai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type {
   EmbeddedRunAttemptParams,
   EmbeddedRunAttemptResult,
@@ -24,25 +24,25 @@ vi.mock("./builtin-pi.js", () => ({
   }),
 }));
 
-const originalRuntime = process.env.OPENCLAW_AGENT_RUNTIME;
-const originalHarnessFallback = process.env.OPENCLAW_AGENT_HARNESS_FALLBACK;
+const originalRuntime = process.env.GENESIS_AGENT_RUNTIME;
+const originalHarnessFallback = process.env.GENESIS_AGENT_HARNESS_FALLBACK;
 
 afterEach(() => {
   clearAgentHarnesses();
   piRunAttempt.mockClear();
   if (originalRuntime == null) {
-    delete process.env.OPENCLAW_AGENT_RUNTIME;
+    delete process.env.GENESIS_AGENT_RUNTIME;
   } else {
-    process.env.OPENCLAW_AGENT_RUNTIME = originalRuntime;
+    process.env.GENESIS_AGENT_RUNTIME = originalRuntime;
   }
   if (originalHarnessFallback == null) {
-    delete process.env.OPENCLAW_AGENT_HARNESS_FALLBACK;
+    delete process.env.GENESIS_AGENT_HARNESS_FALLBACK;
   } else {
-    process.env.OPENCLAW_AGENT_HARNESS_FALLBACK = originalHarnessFallback;
+    process.env.GENESIS_AGENT_HARNESS_FALLBACK = originalHarnessFallback;
   }
 });
 
-function createAttemptParams(config?: OpenClawConfig): EmbeddedRunAttemptParams {
+function createAttemptParams(config?: GenesisConfig): EmbeddedRunAttemptParams {
   return {
     prompt: "hello",
     sessionId: "session-1",
@@ -101,7 +101,7 @@ function registerFailingCodexHarness(): void {
 
 describe("runAgentHarnessAttemptWithFallback", () => {
   it("fails when a forced plugin harness is unavailable and fallback is omitted", async () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "codex";
+    process.env.GENESIS_AGENT_RUNTIME = "codex";
 
     await expect(runAgentHarnessAttemptWithFallback(createAttemptParams())).rejects.toThrow(
       'Requested agent harness "codex" is not registered and PI fallback is disabled.',
@@ -110,8 +110,8 @@ describe("runAgentHarnessAttemptWithFallback", () => {
   });
 
   it("falls back to the PI harness for a forced plugin harness only when explicitly configured", async () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "codex";
-    process.env.OPENCLAW_AGENT_HARNESS_FALLBACK = "pi";
+    process.env.GENESIS_AGENT_RUNTIME = "codex";
+    process.env.GENESIS_AGENT_HARNESS_FALLBACK = "pi";
 
     const result = await runAgentHarnessAttemptWithFallback(createAttemptParams());
 
@@ -120,7 +120,7 @@ describe("runAgentHarnessAttemptWithFallback", () => {
   });
 
   it("does not inherit config fallback when env forces a plugin harness", async () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "codex";
+    process.env.GENESIS_AGENT_RUNTIME = "codex";
 
     await expect(
       runAgentHarnessAttemptWithFallback(
@@ -200,7 +200,7 @@ describe("runAgentHarnessAttemptWithFallback", () => {
   });
 
   it("honors env fallback override over config fallback", async () => {
-    process.env.OPENCLAW_AGENT_HARNESS_FALLBACK = "none";
+    process.env.GENESIS_AGENT_HARNESS_FALLBACK = "none";
 
     await expect(
       runAgentHarnessAttemptWithFallback(
@@ -370,7 +370,7 @@ describe("selectAgentHarness", () => {
   });
 
   it("allows per-agent embedded harness policy overrides", () => {
-    const config: OpenClawConfig = {
+    const config: GenesisConfig = {
       agents: {
         defaults: { embeddedHarness: { fallback: "pi" } },
         list: [
@@ -407,7 +407,7 @@ describe("selectAgentHarness", () => {
   });
 
   it("keeps an existing session pinned to its plugin harness even when env now forces PI", () => {
-    process.env.OPENCLAW_AGENT_RUNTIME = "pi";
+    process.env.GENESIS_AGENT_RUNTIME = "pi";
     registerFailingCodexHarness();
 
     expect(

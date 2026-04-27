@@ -1,9 +1,9 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import {
   createChannelReplyPipeline,
   logTypingFailure,
   resolveChannelMediaMaxBytes,
-  type OpenClawConfig,
+  type GenesisConfig,
   type MSTeamsReplyStyle,
   type RuntimeEnv,
 } from "../runtime-api.js";
@@ -30,7 +30,7 @@ import type { MSTeamsTurnContext } from "./sdk-types.js";
 export { pickInformativeStatusText } from "./reply-stream-controller.js";
 
 export function createMSTeamsReplyDispatcher(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   sessionKey: string;
   accountId?: string;

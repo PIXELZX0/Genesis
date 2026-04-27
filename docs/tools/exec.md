@@ -66,7 +66,7 @@ Notes:
 - `auto` is the default routing strategy, not a wildcard. Per-call `host=node` is allowed from `auto`; per-call `host=gateway` is only allowed when no sandbox runtime is active.
 - With no extra config, `host=auto` still "just works": no sandbox means it resolves to `gateway`; a live sandbox means it stays in the sandbox.
 - `elevated` escapes the sandbox onto the configured host path: `gateway` by default, or `node` when `tools.exec.host=node` (or the session default is `host=node`). It is only available when elevated access is enabled for the current session/provider.
-- `gateway`/`node` approvals are controlled by `~/.openclaw/exec-approvals.json`.
+- `gateway`/`node` approvals are controlled by `~/.genesis/exec-approvals.json`.
 - `node` requires a paired node (companion app or headless node host).
 - If multiple nodes are available, set `exec.node` or `tools.exec.node` to select one.
 - `exec host=node` is the only shell-execution path for nodes; the legacy `nodes.run` wrapper has been removed.
@@ -76,7 +76,7 @@ Notes:
   then falls back to Windows PowerShell 5.1.
 - Host execution (`gateway`/`node`) rejects `env.PATH` and loader overrides (`LD_*`/`DYLD_*`) to
   prevent binary hijacking or injected code.
-- OpenClaw sets `OPENCLAW_SHELL=exec` in the spawned command environment (including PTY and sandbox execution) so shell/profile rules can detect exec-tool context.
+- Genesis sets `GENESIS_SHELL=exec` in the spawned command environment (including PTY and sandbox execution) so shell/profile rules can detect exec-tool context.
 - Important: sandboxing is **off by default**. If sandboxing is off, implicit `host=auto`
   resolves to `gateway`. Explicit `host=sandbox` still fails closed instead of silently
   running on the gateway host. Enable sandboxing or use `host=gateway` with approvals.
@@ -97,7 +97,7 @@ Notes:
 - `tools.exec.host` (default: `auto`; resolves to `sandbox` when sandbox runtime is active, `gateway` otherwise)
 - `tools.exec.security` (default: `deny` for sandbox, `full` for gateway + node when unset)
 - `tools.exec.ask` (default: `off`)
-- No-approval host exec is the default for gateway + node. If you want approvals/allowlist behavior, tighten both `tools.exec.*` and the host `~/.openclaw/exec-approvals.json`; see [Exec approvals](/tools/exec-approvals#no-approval-yolo-mode).
+- No-approval host exec is the default for gateway + node. If you want approvals/allowlist behavior, tighten both `tools.exec.*` and the host `~/.genesis/exec-approvals.json`; see [Exec approvals](/tools/exec-approvals#no-approval-yolo-mode).
 - YOLO comes from the host-policy defaults (`security=full`, `ask=off`), not from `host=auto`. If you want to force gateway or node routing, set `tools.exec.host` or use `/exec host=...`.
 - In `security=full` plus `ask=off` mode, host exec follows the configured policy directly; there is no extra heuristic command-obfuscation prefilter or script-preflight rejection layer.
 - `tools.exec.node` (default: unset)
@@ -106,6 +106,16 @@ Notes:
 - `tools.exec.safeBins`: stdin-only safe binaries that can run without explicit allowlist entries. For behavior details, see [Safe bins](/tools/exec-approvals-advanced#safe-bins-stdin-only).
 - `tools.exec.safeBinTrustedDirs`: additional explicit directories trusted for `safeBins` path checks. `PATH` entries are never auto-trusted. Built-in defaults are `/bin` and `/usr/bin`.
 - `tools.exec.safeBinProfiles`: optional custom argv policy per safe bin (`minPositional`, `maxPositional`, `allowedValueFlags`, `deniedFlags`).
+
+Wallet note:
+
+- Agents can inspect local wallet public addresses and balances with
+  `genesis wallet ... --json` through normal exec policy.
+- Wallet sends still require the wallet CLI guards in addition to any exec
+  approval: `wallet.spending.enabled`, `--yes`, passphrase input,
+  `GENESIS_WALLET_ALLOW_SPEND=1` by default, and configured spend limits.
+- The Control UI and Gateway wallet summary are read-only and do not provide
+  seed, private key, passphrase, or send surfaces.
 
 Example:
 
@@ -126,7 +136,7 @@ Example:
   - macOS: `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`, `/bin`
   - Linux: `/usr/local/bin`, `/usr/bin`, `/bin`
 - `host=sandbox`: runs `sh -lc` (login shell) inside the container, so `/etc/profile` may reset `PATH`.
-  OpenClaw prepends `env.PATH` after profile sourcing via an internal env var (no shell interpolation);
+  Genesis prepends `env.PATH` after profile sourcing via an internal env var (no shell interpolation);
   `tools.exec.pathPrepend` applies here too.
 - `host=node`: only non-blocked env overrides you pass are sent to the node. `env.PATH` overrides are
   rejected for host execution and ignored by node hosts. If you need additional PATH entries on a node,
@@ -135,8 +145,8 @@ Example:
 Per-agent node binding (use the agent list index in config):
 
 ```bash
-openclaw config get agents.list
-openclaw config set agents.list[0].tools.exec.node "node-id-or-name"
+genesis config get agents.list
+genesis config set agents.list[0].tools.exec.node "node-id-or-name"
 ```
 
 Control UI: the Nodes tab includes a small “Exec node binding” panel for the same settings.
@@ -196,8 +206,8 @@ Use the two controls for different jobs:
 - allowlist: explicit trust for executable paths.
 
 Do not treat `safeBins` as a generic allowlist, and do not add interpreter/runtime binaries (for example `python3`, `node`, `ruby`, `bash`). If you need those, use explicit allowlist entries and keep approval prompts enabled.
-`openclaw security audit` warns when interpreter/runtime `safeBins` entries are missing explicit profiles, and `openclaw doctor --fix` can scaffold missing custom `safeBinProfiles` entries.
-`openclaw security audit` and `openclaw doctor` also warn when you explicitly add broad-behavior bins such as `jq` back into `safeBins`.
+`genesis security audit` warns when interpreter/runtime `safeBins` entries are missing explicit profiles, and `genesis doctor --fix` can scaffold missing custom `safeBinProfiles` entries.
+`genesis security audit` and `genesis doctor` also warn when you explicitly add broad-behavior bins such as `jq` back into `safeBins`.
 If you explicitly allowlist interpreters, enable `tools.exec.strictInlineEval` so inline code-eval forms still require a fresh approval.
 
 For full policy details and examples, see [Exec approvals](/tools/exec-approvals-advanced#safe-bins-stdin-only) and [Safe bins versus allowlist](/tools/exec-approvals-advanced#safe-bins-versus-allowlist).

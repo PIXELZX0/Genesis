@@ -58,7 +58,7 @@ vi.mock("./reply/agent-runner.runtime.js", () => ({
         return "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model.";
       }
       const trimmed = message.replace(/\.\s*$/, "");
-      return `⚠️ Agent failed before reply: ${trimmed}.\nLogs: openclaw logs --follow`;
+      return `⚠️ Agent failed before reply: ${trimmed}.\nLogs: genesis logs --follow`;
     };
     const stripHeartbeat = (text?: string) => {
       const trimmed = text?.trim();
@@ -329,7 +329,7 @@ describe("trigger handling", () => {
     {
       error: "sandbox is not defined.",
       expected:
-        "⚠️ Agent failed before reply: sandbox is not defined.\nLogs: openclaw logs --follow",
+        "⚠️ Agent failed before reply: sandbox is not defined.\nLogs: genesis logs --follow",
     },
     {
       error: "Context window exceeded",
@@ -377,7 +377,7 @@ describe("trigger handling", () => {
 
   it("prepends runtime-loaded daily memory context on bare /new", async () => {
     await withTempHome(async (home) => {
-      const workspaceDir = join(home, "openclaw");
+      const workspaceDir = join(home, "genesis");
       const nowMs = Date.now();
       const todayStamp = formatDateStampForZone(nowMs, TEST_TIME_ZONE);
       const yesterdayStamp = formatDateStampForZone(nowMs - 24 * 60 * 60 * 1000, TEST_TIME_ZONE);
@@ -405,7 +405,7 @@ describe("trigger handling", () => {
 
   it("treats normalized /RESET as reset for startupContext.applyOn", async () => {
     await withTempHome(async (home) => {
-      const workspaceDir = join(home, "openclaw");
+      const workspaceDir = join(home, "genesis");
       const nowMs = Date.now();
       const todayStamp = formatDateStampForZone(nowMs, TEST_TIME_ZONE);
       await writeDailyMemoryNotes(workspaceDir, [
@@ -750,7 +750,7 @@ describe("trigger handling", () => {
       const runEmbeddedPiAgentMock = getRunEmbeddedPiAgentMock();
       runEmbeddedPiAgentMock.mockReset();
       const storePath = requireSessionStorePath(cfg);
-      const authDir = join(home, ".openclaw", "agents", "main", "agent");
+      const authDir = join(home, ".genesis", "agents", "main", "agent");
       await fs.mkdir(authDir, { recursive: true });
       await fs.writeFile(
         join(authDir, "auth-profiles.json"),

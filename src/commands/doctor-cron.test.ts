@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { maybeRepairLegacyCronStore } from "./doctor-cron.js";
 
 type TerminalNote = (message: string, title?: string) => void;
@@ -16,7 +16,7 @@ vi.mock("../terminal/note.js", () => ({
 let tempRoot: string | null = null;
 
 async function makeTempStorePath() {
-  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-doctor-cron-"));
+  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-doctor-cron-"));
   return path.join(tempRoot, "cron", "jobs.json");
 }
 
@@ -34,7 +34,7 @@ function makePrompter(confirmResult = true) {
   };
 }
 
-function createCronConfig(storePath: string): OpenClawConfig {
+function createCronConfig(storePath: string): GenesisConfig {
   return {
     cron: {
       store: storePath,
@@ -351,7 +351,7 @@ describe("maybeRepairLegacyCronStore", () => {
         wakeMode: "now",
         payload: {
           kind: "systemEvent",
-          text: "__openclaw_memory_core_short_term_promotion_dream__",
+          text: "__genesis_memory_core_short_term_promotion_dream__",
         },
         state: {},
       },
@@ -373,7 +373,7 @@ describe("maybeRepairLegacyCronStore", () => {
       sessionTarget: "isolated",
       payload: {
         kind: "agentTurn",
-        message: "__openclaw_memory_core_short_term_promotion_dream__",
+        message: "__genesis_memory_core_short_term_promotion_dream__",
         lightContext: true,
       },
       delivery: { mode: "none" },

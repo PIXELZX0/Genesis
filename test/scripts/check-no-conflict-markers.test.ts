@@ -43,7 +43,7 @@ describe("check-no-conflict-markers", () => {
   });
 
   it("scans text files and skips binary files", () => {
-    const rootDir = createTempDir("openclaw-conflict-markers-");
+    const rootDir = createTempDir("genesis-conflict-markers-");
     const textFile = path.join(rootDir, "CHANGELOG.md");
     const binaryFile = path.join(rootDir, "image.png");
     fs.writeFileSync(textFile, "<<<<<<< HEAD\nconflict\n>>>>>>> main\n");
@@ -60,7 +60,7 @@ describe("check-no-conflict-markers", () => {
   });
 
   it("finds conflict markers in tracked script files", () => {
-    const rootDir = createTempDir("openclaw-conflict-markers-");
+    const rootDir = createTempDir("genesis-conflict-markers-");
     git(rootDir, "init", "-q");
     git(rootDir, "config", "user.email", "test@example.com");
     git(rootDir, "config", "user.name", "Test User");

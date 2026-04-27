@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   normalizeResolvedSecretInputString,
   normalizeSecretInput,
-} from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/secret-input";
 
 type SearxngPluginConfig = {
   webSearch?: {
@@ -49,7 +49,7 @@ function normalizeBaseUrl(value: string | undefined): string | undefined {
 }
 
 export function resolveSearxngWebSearchConfig(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): SearxngPluginConfig["webSearch"] | undefined {
   const pluginConfig = config?.plugins?.entries?.searxng?.config as SearxngPluginConfig | undefined;
   const webSearch = pluginConfig?.webSearch;
@@ -60,7 +60,7 @@ export function resolveSearxngWebSearchConfig(
 }
 
 export function resolveSearxngBaseUrl(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
   const webSearch = resolveSearxngWebSearchConfig(config);
@@ -76,10 +76,10 @@ export function resolveSearxngBaseUrl(
   );
 }
 
-export function resolveSearxngCategories(config?: OpenClawConfig): string | undefined {
+export function resolveSearxngCategories(config?: GenesisConfig): string | undefined {
   return normalizeTrimmedString(resolveSearxngWebSearchConfig(config)?.categories);
 }
 
-export function resolveSearxngLanguage(config?: OpenClawConfig): string | undefined {
+export function resolveSearxngLanguage(config?: GenesisConfig): string | undefined {
   return normalizeTrimmedString(resolveSearxngWebSearchConfig(config)?.language);
 }

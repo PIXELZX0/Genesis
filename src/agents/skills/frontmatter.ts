@@ -1,20 +1,20 @@
 import { validateRegistryNpmSpec } from "../../infra/npm-registry-spec.js";
 import { parseFrontmatterBlock } from "../../markdown/frontmatter.js";
 import {
-  applyOpenClawManifestInstallCommonFields,
+  applyGenesisManifestInstallCommonFields,
   getFrontmatterString,
   normalizeStringList,
-  parseOpenClawManifestInstallBase,
+  parseGenesisManifestInstallBase,
   parseFrontmatterBool,
-  resolveOpenClawManifestBlock,
-  resolveOpenClawManifestInstall,
-  resolveOpenClawManifestOs,
-  resolveOpenClawManifestRequires,
+  resolveGenesisManifestBlock,
+  resolveGenesisManifestInstall,
+  resolveGenesisManifestOs,
+  resolveGenesisManifestRequires,
 } from "../../shared/frontmatter.js";
 import { readStringValue } from "../../shared/string-coerce.js";
 import type { Skill } from "./skill-contract.js";
 import type {
-  OpenClawSkillMetadata,
+  GenesisSkillMetadata,
   ParsedSkillFrontmatter,
   SkillEntry,
   SkillInstallSpec,
@@ -110,12 +110,12 @@ function normalizeSafeDownloadUrl(raw: unknown): string | undefined {
 }
 
 function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
-  const parsed = parseOpenClawManifestInstallBase(input, ["brew", "node", "go", "uv", "download"]);
+  const parsed = parseGenesisManifestInstallBase(input, ["brew", "node", "go", "uv", "download"]);
   if (!parsed) {
     return undefined;
   }
   const { raw } = parsed;
-  const spec = applyOpenClawManifestInstallCommonFields<SkillInstallSpec>(
+  const spec = applyGenesisManifestInstallCommonFields<SkillInstallSpec>(
     {
       kind: parsed.kind as SkillInstallSpec["kind"],
     },
@@ -184,16 +184,16 @@ function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
   return spec;
 }
 
-export function resolveOpenClawMetadata(
+export function resolveGenesisMetadata(
   frontmatter: ParsedSkillFrontmatter,
-): OpenClawSkillMetadata | undefined {
-  const metadataObj = resolveOpenClawManifestBlock({ frontmatter });
+): GenesisSkillMetadata | undefined {
+  const metadataObj = resolveGenesisManifestBlock({ frontmatter });
   if (!metadataObj) {
     return undefined;
   }
-  const requires = resolveOpenClawManifestRequires(metadataObj);
-  const install = resolveOpenClawManifestInstall(metadataObj, parseInstallSpec);
-  const osRaw = resolveOpenClawManifestOs(metadataObj);
+  const requires = resolveGenesisManifestRequires(metadataObj);
+  const install = resolveGenesisManifestInstall(metadataObj, parseInstallSpec);
+  const osRaw = resolveGenesisManifestOs(metadataObj);
   return {
     always: typeof metadataObj.always === "boolean" ? metadataObj.always : undefined,
     emoji: readStringValue(metadataObj.emoji),

@@ -1,14 +1,14 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   resolveConfiguredBindingRoute,
   resolveRuntimeConversationBindingRoute,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 import { resolveBlueBubblesInboundConversationId } from "./conversation-id.js";
 
 export function resolveBlueBubblesConversationRoute(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   isGroup: boolean;
   peerId: string;

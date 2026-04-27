@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import {
   deriveAspectRatioFromSize,
   normalizeDurationToClosestMax,
@@ -34,7 +34,7 @@ describe("media-generation runtime shared candidates", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const candidates = resolveCapabilityModelCandidates({
       cfg,
@@ -72,7 +72,7 @@ describe("media-generation runtime shared candidates", () => {
 
   it("auto-detects auth-backed provider defaults when no explicit media model is configured", () => {
     const candidates = resolveCapabilityModelCandidates({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       modelConfig: undefined,
       parseModelRef,
       listProviders: () => [
@@ -103,7 +103,7 @@ describe("media-generation runtime shared candidates", () => {
             mediaGenerationAutoProviderFallback: false,
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       modelConfig: {
         primary: "google/gemini-3.1-flash-image-preview",
       },
@@ -128,7 +128,7 @@ describe("media-generation runtime shared candidates", () => {
             mediaGenerationAutoProviderFallback: false,
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       modelConfig: {
         primary: "google/gemini-3.1-flash-image-preview",
         fallbacks: ["fal/fal-ai/flux/dev"],

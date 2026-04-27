@@ -24,7 +24,7 @@ describe("resolveChangedClawHubPublishablePluginPackages", () => {
     {
       extensionId: "feishu",
       packageDir: "extensions/feishu",
-      packageName: "@openclaw/feishu",
+      packageName: "@genesis/feishu",
       version: "2026.4.1",
       channel: "stable",
       publishTag: "latest",
@@ -32,7 +32,7 @@ describe("resolveChangedClawHubPublishablePluginPackages", () => {
     {
       extensionId: "zalo",
       packageDir: "extensions/zalo",
-      packageName: "@openclaw/zalo",
+      packageName: "@genesis/zalo",
       version: "2026.4.1-beta.1",
       channel: "beta",
       publishTag: "beta",
@@ -56,7 +56,7 @@ describe("collectClawHubPublishablePluginPackages", () => {
     });
 
     expect(() => collectClawHubPublishablePluginPackages(repoDir)).toThrow(
-      "openclaw.compat.pluginApi is required for external code plugins published to ClawHub.",
+      "genesis.compat.pluginApi is required for external code plugins published to ClawHub.",
     );
   });
 
@@ -99,7 +99,7 @@ describe("collectClawHubVersionGateErrors", () => {
     });
 
     expect(errors).toEqual([
-      "@openclaw/demo-plugin@2026.4.1: changed publishable plugin still has the same version in package.json.",
+      "@genesis/demo-plugin@2026.4.1: changed publishable plugin still has the same version in package.json.",
     ]);
   });
 
@@ -113,15 +113,15 @@ describe("collectClawHubVersionGateErrors", () => {
       join(repoDir, "extensions", "demo-plugin", "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/demo-plugin",
+          name: "@genesis/demo-plugin",
           version: "2026.4.1",
-          openclaw: {
+          genesis: {
             extensions: ["./index.ts"],
             compat: {
               pluginApi: ">=2026.4.1",
             },
             build: {
-              openclawVersion: "2026.4.1",
+              genesisVersion: "2026.4.1",
             },
             release: {
               publishToClawHub: true,
@@ -222,7 +222,7 @@ describe("collectPluginClawHubReleasePlan", () => {
 
     const plan = await collectPluginClawHubReleasePlan({
       rootDir: repoDir,
-      selection: ["@openclaw/demo-plugin"],
+      selection: ["@genesis/demo-plugin"],
       fetchImpl: async () => new Response("{}", { status: 200 }),
       registryBaseUrl: "https://clawhub.ai",
     });
@@ -230,7 +230,7 @@ describe("collectPluginClawHubReleasePlan", () => {
     expect(plan.candidates).toEqual([]);
     expect(plan.skippedPublished).toHaveLength(1);
     expect(plan.skippedPublished[0]).toMatchObject({
-      packageName: "@openclaw/demo-plugin",
+      packageName: "@genesis/demo-plugin",
       version: "2026.4.1",
     });
   });
@@ -261,13 +261,13 @@ function createTempPluginRepo(
     includeClawHubContract?: boolean;
   } = {},
 ) {
-  const repoDir = makeTempRepoRoot(tempDirs, "openclaw-clawhub-release-");
+  const repoDir = makeTempRepoRoot(tempDirs, "genesis-clawhub-release-");
   const extensionId = options.extensionId ?? "demo-plugin";
   const extensionIds = [extensionId, ...(options.extraExtensionIds ?? [])];
 
   writeFileSync(
     join(repoDir, "package.json"),
-    JSON.stringify({ name: "openclaw-test-root" }, null, 2),
+    JSON.stringify({ name: "genesis-test-root" }, null, 2),
   );
   writeFileSync(join(repoDir, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
   for (const currentExtensionId of extensionIds) {
@@ -276,9 +276,9 @@ function createTempPluginRepo(
       join(repoDir, "extensions", currentExtensionId, "package.json"),
       JSON.stringify(
         {
-          name: `@openclaw/${currentExtensionId}`,
+          name: `@genesis/${currentExtensionId}`,
           version: "2026.4.1",
-          openclaw: {
+          genesis: {
             extensions: ["./index.ts"],
             ...(options.includeClawHubContract === false
               ? {}
@@ -287,7 +287,7 @@ function createTempPluginRepo(
                     pluginApi: ">=2026.4.1",
                   },
                   build: {
-                    openclawVersion: "2026.4.1",
+                    genesisVersion: "2026.4.1",
                   },
                 }),
             release: {

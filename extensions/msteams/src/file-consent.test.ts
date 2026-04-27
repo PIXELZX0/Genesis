@@ -260,7 +260,7 @@ describe("CONSENT_UPLOAD_HOST_ALLOWLIST", () => {
 // ─── uploadToConsentUrl (integration with validation) ────────────────────────
 
 describe("uploadToConsentUrl", () => {
-  it("sends the OpenClaw User-Agent header with consent uploads", async () => {
+  it("sends the Genesis User-Agent header with consent uploads", async () => {
     const fetchFn = vi.fn(async () => new Response(null, { status: 200 }));
 
     await uploadToConsentUrl({
@@ -277,7 +277,7 @@ describe("uploadToConsentUrl", () => {
         headers: expect.objectContaining({
           "Content-Range": "bytes 0-4/5",
           "Content-Type": "application/octet-stream",
-          "User-Agent": expect.stringMatching(/^teams\.ts\[apps\]\/.+ OpenClaw\/.+$/),
+          "User-Agent": expect.stringMatching(/^teams\.ts\[apps\]\/.+ Genesis\/.+$/),
         }),
       }),
     );

@@ -1,14 +1,14 @@
-import { resolveNormalizedAccountEntry } from "openclaw/plugin-sdk/account-core";
-import type { BaseTokenResolution } from "openclaw/plugin-sdk/channel-contract";
-import { tryReadSecretFileSync } from "openclaw/plugin-sdk/channel-core";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { TelegramAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveDefaultSecretProviderAlias } from "openclaw/plugin-sdk/provider-auth";
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/routing";
+import { resolveNormalizedAccountEntry } from "genesis/plugin-sdk/account-core";
+import type { BaseTokenResolution } from "genesis/plugin-sdk/channel-contract";
+import { tryReadSecretFileSync } from "genesis/plugin-sdk/channel-core";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { TelegramAccountConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveDefaultSecretProviderAlias } from "genesis/plugin-sdk/provider-auth";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/routing";
 import {
   normalizeSecretInputString,
   resolveSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/secret-input";
 
 export type TelegramTokenSource = "env" | "tokenFile" | "config" | "none";
 
@@ -22,7 +22,7 @@ type RuntimeTokenValueResolution =
   | { status: "missing" };
 
 function resolveEnvSecretRefValue(params: {
-  cfg?: Pick<OpenClawConfig, "secrets">;
+  cfg?: Pick<GenesisConfig, "secrets">;
   provider: string;
   id: string;
   env?: NodeJS.ProcessEnv;
@@ -50,7 +50,7 @@ function resolveEnvSecretRefValue(params: {
 }
 
 function resolveRuntimeTokenValue(params: {
-  cfg?: Pick<OpenClawConfig, "secrets">;
+  cfg?: Pick<GenesisConfig, "secrets">;
   value: unknown;
   path: string;
 }): RuntimeTokenValueResolution {
@@ -100,7 +100,7 @@ type ResolveTelegramTokenOpts = {
 };
 
 export function resolveTelegramToken(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   opts: ResolveTelegramTokenOpts = {},
 ): TelegramTokenResolution {
   const accountId = normalizeAccountId(opts.accountId);
@@ -128,7 +128,7 @@ export function resolveTelegramToken(
   //
   // Single-bot: no accounts section (or empty) → allow fallthrough so that
   // binding-created accountIds inherit the channel-level token.
-  // See: https://github.com/openclaw/openclaw/issues/53876
+  // See: https://github.com/PIXELZX0/Genesis/issues/53876
   if (accountId !== DEFAULT_ACCOUNT_ID && !accountCfg) {
     const accounts = telegramCfg?.accounts;
     const hasConfiguredAccounts =

@@ -52,11 +52,11 @@ export { MediaFileType } from "../types.js";
 // ============ Plugin User-Agent ============
 
 let _pluginVersion = "unknown";
-let _openclawVersion = "unknown";
+let _genesisVersion = "unknown";
 
 /** Build the User-Agent string from the current plugin and framework versions. */
 function buildUserAgent(): string {
-  return `QQBotPlugin/${_pluginVersion} (Node/${process.versions.node}; ${os.platform()}; OpenClaw/${_openclawVersion})`;
+  return `QQBotPlugin/${_pluginVersion} (Node/${process.versions.node}; ${os.platform()}; Genesis/${_genesisVersion})`;
 }
 
 /** Return the current User-Agent string. */
@@ -68,19 +68,19 @@ export function getPluginUserAgent(): string {
  * Initialize sender with the plugin version.
  * Must be called once during startup before any API calls.
  */
-export function initSender(options: { pluginVersion?: string; openclawVersion?: string }): void {
+export function initSender(options: { pluginVersion?: string; genesisVersion?: string }): void {
   if (options.pluginVersion) {
     _pluginVersion = options.pluginVersion;
   }
-  if (options.openclawVersion) {
-    _openclawVersion = options.openclawVersion;
+  if (options.genesisVersion) {
+    _genesisVersion = options.genesisVersion;
   }
 }
 
-/** Update the OpenClaw framework version in the User-Agent (called after runtime injection). */
-export function setOpenClawVersion(version: string): void {
+/** Update the Genesis framework version in the User-Agent (called after runtime injection). */
+export function setGenesisVersion(version: string): void {
   if (version) {
-    _openclawVersion = version;
+    _genesisVersion = version;
   }
 }
 

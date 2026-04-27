@@ -4,7 +4,7 @@ import { isMainThread, threadId } from "node:worker_threads";
 import { resolveStateDir } from "../config/paths.js";
 
 export function resolveTaskStateDir(env: NodeJS.ProcessEnv = process.env): string {
-  const explicit = env.OPENCLAW_STATE_DIR?.trim();
+  const explicit = env.GENESIS_STATE_DIR?.trim();
   if (explicit) {
     return resolveStateDir(env);
   }
@@ -16,7 +16,7 @@ export function resolveTaskStateDir(env: NodeJS.ProcessEnv = process.env): strin
       : isMainThread
         ? String(process.pid)
         : `${process.pid}-${threadId}`;
-    return path.join(os.tmpdir(), "openclaw-test-state", shardSuffix);
+    return path.join(os.tmpdir(), "genesis-test-state", shardSuffix);
   }
   return resolveStateDir(env);
 }

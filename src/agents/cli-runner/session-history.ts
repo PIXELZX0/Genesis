@@ -5,7 +5,7 @@ import {
   resolveSessionFilePath,
   resolveSessionFilePathOptions,
 } from "../../config/sessions/paths.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import {
   limitAgentHookHistoryMessages,
@@ -33,7 +33,7 @@ function resolveSafeCliSessionFile(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): { sessionFile: string; sessionsDir: string } {
   const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
     sessionKey: params.sessionKey,
@@ -60,7 +60,7 @@ export function loadCliSessionHistoryMessages(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): unknown[] {
   try {
     const { sessionFile, sessionsDir } = resolveSafeCliSessionFile(params);

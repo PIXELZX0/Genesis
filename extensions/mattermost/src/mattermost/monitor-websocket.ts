@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { safeParseJsonWithSchema, safeParseWithSchema } from "openclaw/plugin-sdk/extension-shared";
+import { safeParseJsonWithSchema, safeParseWithSchema } from "genesis/plugin-sdk/extension-shared";
 import {
   captureWsEvent,
   createDebugProxyWebSocketAgent,
   resolveDebugProxySettings,
-} from "openclaw/plugin-sdk/proxy-capture";
-import { z } from "openclaw/plugin-sdk/zod";
+} from "genesis/plugin-sdk/proxy-capture";
+import { z } from "genesis/plugin-sdk/zod";
 import WebSocket from "ws";
 import { MattermostPostSchema, type MattermostPost } from "./client.js";
 import { rawDataToString } from "./monitor-helpers.js";

@@ -1,6 +1,6 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   GeneratedImageAsset,
   ImageGenerationIgnoredOverride,
@@ -14,7 +14,7 @@ import type {
 } from "./types.js";
 
 export type GenerateImageParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompt: string;
   agentDir?: string;
   authStore?: AuthProfileStore;
@@ -42,7 +42,7 @@ export type GenerateImageRuntimeResult = {
 };
 
 export type ListRuntimeImageGenerationProvidersParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 };
 
 export type RuntimeImageGenerationProvider = ImageGenerationProvider;

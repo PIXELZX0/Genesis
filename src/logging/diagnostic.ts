@@ -1,5 +1,5 @@
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   areDiagnosticsEnabledForProcess,
   emitDiagnosticEvent,
@@ -87,7 +87,7 @@ function hasRecentDiagnosticActivity(now: number): boolean {
   return lastActivityAt > 0 && now - lastActivityAt <= RECENT_DIAGNOSTIC_ACTIVITY_MS;
 }
 
-export function resolveStuckSessionWarnMs(config?: OpenClawConfig): number {
+export function resolveStuckSessionWarnMs(config?: GenesisConfig): number {
   const raw = config?.diagnostics?.stuckSessionWarnMs;
   if (typeof raw !== "number" || !Number.isFinite(raw)) {
     return DEFAULT_STUCK_SESSION_WARN_MS;
@@ -392,8 +392,8 @@ export function logActiveRuns() {
 let heartbeatInterval: NodeJS.Timeout | null = null;
 
 export function startDiagnosticHeartbeat(
-  config?: OpenClawConfig,
-  opts?: { getConfig?: () => OpenClawConfig; emitMemorySample?: EmitDiagnosticMemorySample },
+  config?: GenesisConfig,
+  opts?: { getConfig?: () => GenesisConfig; emitMemorySample?: EmitDiagnosticMemorySample },
 ) {
   if (!areDiagnosticsEnabledForProcess() || !isDiagnosticsEnabled(config)) {
     return;

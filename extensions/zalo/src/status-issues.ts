@@ -1,11 +1,11 @@
 import type {
   ChannelAccountSnapshot,
   ChannelStatusIssue,
-} from "openclaw/plugin-sdk/channel-contract";
+} from "genesis/plugin-sdk/channel-contract";
 import {
   coerceStatusIssueAccountId,
   readStatusIssueFields,
-} from "openclaw/plugin-sdk/extension-shared";
+} from "genesis/plugin-sdk/extension-shared";
 
 const ZALO_STATUS_FIELDS = ["accountId", "enabled", "configured", "dmPolicy"] as const;
 

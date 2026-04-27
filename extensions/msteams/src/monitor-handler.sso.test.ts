@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import {
   type MSTeamsActivityHandler,
   type MSTeamsMessageHandlerDeps,
@@ -149,7 +149,7 @@ function createBlockedSigninScenarios() {
             allowFrom: ["owner-aad"],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       context: {
         userAadId: "blocked-dm-aad",
       },
@@ -171,7 +171,7 @@ function createBlockedSigninScenarios() {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       context: {
         userAadId: "blocked-channel-aad",
         conversationType: "channel" as const,
@@ -190,7 +190,7 @@ function createBlockedSigninScenarios() {
             groupAllowFrom: ["owner-aad"],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       context: {
         userAadId: "blocked-group-aad",
         conversationType: "groupChat" as const,

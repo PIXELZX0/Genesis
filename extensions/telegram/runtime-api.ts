@@ -1,13 +1,13 @@
-export type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
-export type { ChannelMessageActionAdapter } from "openclaw/plugin-sdk/channel-contract";
+export type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
+export type { ChannelMessageActionAdapter } from "genesis/plugin-sdk/channel-contract";
 export type { TelegramApiOverride } from "./src/send.js";
 export type {
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  GenesisPluginService,
+  GenesisPluginServiceContext,
   PluginLogger,
-} from "openclaw/plugin-sdk/plugin-entry";
-import type { OpenClawConfig as RuntimeOpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-export type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+} from "genesis/plugin-sdk/plugin-entry";
+import type { GenesisConfig as RuntimeGenesisConfig } from "genesis/plugin-sdk/config-runtime";
+export type { PluginRuntime } from "genesis/plugin-sdk/runtime-store";
 export type {
   AcpRuntime,
   AcpRuntimeCapabilities,
@@ -19,23 +19,23 @@ export type {
   AcpRuntimeTurnInput,
   AcpRuntimeErrorCode,
   AcpSessionUpdateTag,
-} from "openclaw/plugin-sdk/acp-runtime";
-export { AcpRuntimeError } from "openclaw/plugin-sdk/acp-runtime";
+} from "genesis/plugin-sdk/acp-runtime";
+export { AcpRuntimeError } from "genesis/plugin-sdk/acp-runtime";
 
 export {
   emptyPluginConfigSchema,
   formatPairingApproveHint,
   getChatChannelMeta,
-} from "openclaw/plugin-sdk/channel-plugin-common";
-export { clearAccountEntryFields } from "openclaw/plugin-sdk/channel-core";
+} from "genesis/plugin-sdk/channel-plugin-common";
+export { clearAccountEntryFields } from "genesis/plugin-sdk/channel-core";
 export { buildChannelConfigSchema, TelegramConfigSchema } from "./config-api.js";
-export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/account-id";
 export {
   PAIRING_APPROVED_MESSAGE,
   buildTokenChannelStatusSummary,
   projectCredentialSnapshotFields,
   resolveConfiguredFromCredentialStatuses,
-} from "openclaw/plugin-sdk/channel-status";
+} from "genesis/plugin-sdk/channel-status";
 export {
   jsonResult,
   readNumberParam,
@@ -44,7 +44,7 @@ export {
   readStringOrNumberParam,
   readStringParam,
   resolvePollMaxSelections,
-} from "openclaw/plugin-sdk/channel-actions";
+} from "genesis/plugin-sdk/channel-actions";
 export type { TelegramProbe } from "./src/probe.js";
 export { auditTelegramGroupMembership, collectTelegramUnmentionedGroupIds } from "./src/audit.js";
 export { resolveTelegramRuntimeGroupPolicy } from "./src/group-access.js";
@@ -85,10 +85,10 @@ export {
 } from "./src/thread-bindings.js";
 export { resolveTelegramToken } from "./src/token.js";
 export { setTelegramRuntime } from "./src/runtime.js";
-export type { ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+export type { ChannelPlugin } from "genesis/plugin-sdk/channel-core";
+export type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 export type TelegramAccountConfig = NonNullable<
-  NonNullable<RuntimeOpenClawConfig["channels"]>["telegram"]
+  NonNullable<RuntimeGenesisConfig["channels"]>["telegram"]
 >;
 export type TelegramActionConfig = NonNullable<TelegramAccountConfig["actions"]>;
 export type TelegramNetworkConfig = NonNullable<TelegramAccountConfig["network"]>;

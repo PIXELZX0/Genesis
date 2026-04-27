@@ -3,7 +3,7 @@ import {
   resolveProviderWebSearchPluginConfig,
   type WebSearchProviderPlugin,
   type WebSearchProviderToolDefinition,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search-config-contract";
 import {
   createPerplexityWebSearchProviderBase,
   resolvePerplexityWebSearchRuntimeMetadata,

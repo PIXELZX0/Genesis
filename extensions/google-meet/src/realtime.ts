@@ -1,17 +1,17 @@
 import { spawn } from "node:child_process";
 import type { Writable } from "node:stream";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { PluginRuntime, RuntimeLogger } from "openclaw/plugin-sdk/plugin-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { PluginRuntime, RuntimeLogger } from "genesis/plugin-sdk/plugin-runtime";
 import {
   createRealtimeVoiceBridgeSession,
   resolveConfiguredRealtimeVoiceProvider,
   type RealtimeVoiceBridgeSession,
   type RealtimeVoiceProviderConfig,
   type RealtimeVoiceProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "genesis/plugin-sdk/realtime-voice";
 import {
-  consultOpenClawAgentForGoogleMeet,
+  consultGenesisAgentForGoogleMeet,
   GOOGLE_MEET_AGENT_CONSULT_TOOL_NAME,
   resolveGoogleMeetRealtimeTools,
 } from "./agent-consult.js";
@@ -62,7 +62,7 @@ function splitCommand(argv: string[]): { command: string; args: string[] } {
 
 export function resolveGoogleMeetRealtimeProvider(params: {
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: GenesisConfig;
   providers?: RealtimeVoiceProviderPlugin[];
 }): ResolvedRealtimeProvider {
   return resolveConfiguredRealtimeVoiceProvider({
@@ -77,7 +77,7 @@ export function resolveGoogleMeetRealtimeProvider(params: {
 
 export async function startCommandRealtimeAudioBridge(params: {
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: GenesisConfig;
   runtime: PluginRuntime;
   meetingSessionId: string;
   inputCommand: string[];
@@ -184,7 +184,7 @@ export async function startCommandRealtimeAudioBridge(params: {
         });
         return;
       }
-      void consultOpenClawAgentForGoogleMeet({
+      void consultGenesisAgentForGoogleMeet({
         config: params.config,
         fullConfig: params.fullConfig,
         runtime: params.runtime,

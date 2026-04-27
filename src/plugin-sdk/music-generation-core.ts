@@ -2,7 +2,7 @@
 
 export type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 export type { FallbackAttempt } from "../agents/model-fallback.types.js";
-export type { OpenClawConfig } from "../config/types.openclaw.js";
+export type { GenesisConfig } from "../config/types.genesis.js";
 export type { MusicGenerationProviderPlugin } from "../plugins/types.js";
 export type {
   GeneratedMusicAsset,

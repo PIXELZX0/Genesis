@@ -22,7 +22,7 @@ function enableAdvertiserUnitMode(hostname = "test-host") {
   delete process.env.VITEST;
   process.env.NODE_ENV = "development";
   vi.spyOn(os, "hostname").mockReturnValue(hostname);
-  process.env.OPENCLAW_MDNS_HOSTNAME = hostname;
+  process.env.GENESIS_MDNS_HOSTNAME = hostname;
 }
 
 function mockCiaoService(params?: {
@@ -128,13 +128,13 @@ describe("gateway bonjour advertiser", () => {
       gatewayPort: 18789,
       sshPort: 2222,
       tailnetDns: "host.tailnet.ts.net",
-      cliPath: "/opt/homebrew/bin/openclaw",
+      cliPath: "/opt/homebrew/bin/genesis",
       minimal: false,
     });
 
     expect(createService).toHaveBeenCalledTimes(1);
     const [gatewayCall] = createService.mock.calls as Array<[Record<string, unknown>]>;
-    expect(gatewayCall?.[0]?.type).toBe("openclaw-gw");
+    expect(gatewayCall?.[0]?.type).toBe("genesis-gw");
     const gatewayType = asString(gatewayCall?.[0]?.type, "");
     expect(gatewayType.length).toBeLessThanOrEqual(15);
     expect(gatewayCall?.[0]?.port).toBe(18789);
@@ -147,7 +147,7 @@ describe("gateway bonjour advertiser", () => {
       "host.tailnet.ts.net",
     );
     expect((gatewayCall?.[0]?.txt as Record<string, string>)?.cliPath).toBe(
-      "/opt/homebrew/bin/openclaw",
+      "/opt/homebrew/bin/genesis",
     );
     expect((gatewayCall?.[0]?.txt as Record<string, string>)?.transport).toBe("gateway");
 
@@ -171,7 +171,7 @@ describe("gateway bonjour advertiser", () => {
     const started = await startAdvertiser({
       gatewayPort: 18789,
       sshPort: 2222,
-      cliPath: "/opt/homebrew/bin/openclaw",
+      cliPath: "/opt/homebrew/bin/genesis",
       tailnetDns: "host.tailnet.ts.net",
       minimal: true,
     });
@@ -184,9 +184,9 @@ describe("gateway bonjour advertiser", () => {
     await started.stop();
   });
 
-  it("honors truthy OPENCLAW_DISABLE_BONJOUR values", async () => {
+  it("honors truthy GENESIS_DISABLE_BONJOUR values", async () => {
     enableAdvertiserUnitMode();
-    process.env.OPENCLAW_DISABLE_BONJOUR = "true";
+    process.env.GENESIS_DISABLE_BONJOUR = "true";
 
     const started = await startAdvertiser({
       gatewayPort: 18789,
@@ -375,7 +375,7 @@ describe("gateway bonjour advertiser", () => {
       });
 
       console.log(
-        "[test._openclaw-gw._tcp.local.] failed probing with reason: Error: Can't probe for a service which is announced already. Received announcing for service test._openclaw-gw._tcp.local.. Trying again in 2 seconds!",
+        "[test._genesis-gw._tcp.local.] failed probing with reason: Error: Can't probe for a service which is announced already. Received announcing for service test._genesis-gw._tcp.local.. Trying again in 2 seconds!",
       );
       console.log("ordinary console line");
 
@@ -549,10 +549,10 @@ describe("gateway bonjour advertiser", () => {
     });
 
     const [gatewayCall] = createService.mock.calls as Array<[ServiceCall]>;
-    expect(gatewayCall?.[0]?.name).toBe("openclaw (OpenClaw)");
+    expect(gatewayCall?.[0]?.name).toBe("genesis (Genesis)");
     expect(gatewayCall?.[0]?.domain).toBe("local");
-    expect(gatewayCall?.[0]?.hostname).toBe("openclaw");
-    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("openclaw.local");
+    expect(gatewayCall?.[0]?.hostname).toBe("genesis");
+    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("genesis.local");
 
     await started.stop();
   });

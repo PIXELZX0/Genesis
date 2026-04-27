@@ -1,5 +1,5 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
 import { normalizeProviderId } from "../provider-id.js";
 
@@ -44,7 +44,7 @@ export function limitHistoryTurns(
  */
 export function getHistoryLimitFromSessionKey(
   sessionKey: string | undefined,
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
 ): number | undefined {
   if (!sessionKey || !config) {
     return undefined;
@@ -63,7 +63,7 @@ export function getHistoryLimitFromSessionKey(
   const userId = stripThreadSuffix(userIdRaw);
 
   const resolveProviderConfig = (
-    cfg: OpenClawConfig | undefined,
+    cfg: GenesisConfig | undefined,
     providerId: string,
   ):
     | {

@@ -42,7 +42,7 @@ function mergeInstallInvocationEnv(params: {
       upper === "HOME" ||
       upper === "PATH" ||
       upper === "TMPDIR" ||
-      upper.startsWith("OPENCLAW_")
+      upper.startsWith("GENESIS_")
     ) {
       continue;
     }
@@ -125,7 +125,7 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
         if (!json) {
           defaultRuntime.log(`Gateway service already ${service.loadedText}.`);
           defaultRuntime.log(
-            `Reinstall with: ${formatCliCommand("openclaw gateway install --force")}`,
+            `Reinstall with: ${formatCliCommand("genesis gateway install --force")}`,
           );
         }
         return;

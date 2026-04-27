@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/core";
 import { RemindSchema, executeRemind } from "../../engine/tools/remind-logic.js";
 import type { RemindParams } from "../../engine/tools/remind-logic.js";
 import { getRequestContext } from "../../engine/utils/request-context.js";
 
-export function registerRemindTool(api: OpenClawPluginApi): void {
+export function registerRemindTool(api: GenesisPluginApi): void {
   api.registerTool(
     {
       name: "qqbot_remind",

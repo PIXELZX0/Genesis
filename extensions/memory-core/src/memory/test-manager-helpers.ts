@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import type { GenesisConfig } from "genesis/plugin-sdk/memory-core-host-engine-foundation";
 import type { MemoryIndexManager } from "./index.js";
 
 type MemoryIndexModule = typeof import("./index.js");
@@ -18,7 +18,7 @@ async function loadGetMemorySearchManager(): Promise<MemoryIndexModule["getMemor
 }
 
 export async function getRequiredMemoryIndexManager(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   purpose?: "default" | "status";
 }): Promise<MemoryIndexManager> {

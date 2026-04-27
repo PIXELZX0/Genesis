@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveGatewayReloadSettings } from "./config-reload.js";
 
 export type SharedGatewayAuthClient = {
@@ -69,7 +69,7 @@ export function setCurrentSharedGatewaySessionGeneration(
 
 export function enforceSharedGatewaySessionGenerationForConfigWrite(params: {
   state: SharedGatewaySessionGenerationState;
-  nextConfig: OpenClawConfig;
+  nextConfig: GenesisConfig;
   resolveRuntimeSnapshotGeneration: () => string | undefined;
   clients: Iterable<SharedGatewayAuthClient>;
 }): void {

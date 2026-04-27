@@ -8,13 +8,13 @@ import {
   resolveDebugProxyDbPath,
 } from "./paths.js";
 
-export const OPENCLAW_DEBUG_PROXY_ENABLED = "OPENCLAW_DEBUG_PROXY_ENABLED";
-export const OPENCLAW_DEBUG_PROXY_URL = "OPENCLAW_DEBUG_PROXY_URL";
-export const OPENCLAW_DEBUG_PROXY_DB_PATH = "OPENCLAW_DEBUG_PROXY_DB_PATH";
-export const OPENCLAW_DEBUG_PROXY_BLOB_DIR = "OPENCLAW_DEBUG_PROXY_BLOB_DIR";
-export const OPENCLAW_DEBUG_PROXY_CERT_DIR = "OPENCLAW_DEBUG_PROXY_CERT_DIR";
-export const OPENCLAW_DEBUG_PROXY_SESSION_ID = "OPENCLAW_DEBUG_PROXY_SESSION_ID";
-export const OPENCLAW_DEBUG_PROXY_REQUIRE = "OPENCLAW_DEBUG_PROXY_REQUIRE";
+export const GENESIS_DEBUG_PROXY_ENABLED = "GENESIS_DEBUG_PROXY_ENABLED";
+export const GENESIS_DEBUG_PROXY_URL = "GENESIS_DEBUG_PROXY_URL";
+export const GENESIS_DEBUG_PROXY_DB_PATH = "GENESIS_DEBUG_PROXY_DB_PATH";
+export const GENESIS_DEBUG_PROXY_BLOB_DIR = "GENESIS_DEBUG_PROXY_BLOB_DIR";
+export const GENESIS_DEBUG_PROXY_CERT_DIR = "GENESIS_DEBUG_PROXY_CERT_DIR";
+export const GENESIS_DEBUG_PROXY_SESSION_ID = "GENESIS_DEBUG_PROXY_SESSION_ID";
+export const GENESIS_DEBUG_PROXY_REQUIRE = "GENESIS_DEBUG_PROXY_REQUIRE";
 
 export type DebugProxySettings = {
   enabled: boolean;
@@ -36,18 +36,18 @@ function isTruthy(value: string | undefined): boolean {
 export function resolveDebugProxySettings(
   env: NodeJS.ProcessEnv = process.env,
 ): DebugProxySettings {
-  const enabled = isTruthy(env[OPENCLAW_DEBUG_PROXY_ENABLED]);
-  const explicitSessionId = env[OPENCLAW_DEBUG_PROXY_SESSION_ID]?.trim() || undefined;
+  const enabled = isTruthy(env[GENESIS_DEBUG_PROXY_ENABLED]);
+  const explicitSessionId = env[GENESIS_DEBUG_PROXY_SESSION_ID]?.trim() || undefined;
   const sessionId = explicitSessionId ?? (cachedImplicitSessionId ??= randomUUID());
   return {
     enabled,
-    required: isTruthy(env[OPENCLAW_DEBUG_PROXY_REQUIRE]),
-    proxyUrl: env[OPENCLAW_DEBUG_PROXY_URL]?.trim() || undefined,
-    dbPath: env[OPENCLAW_DEBUG_PROXY_DB_PATH]?.trim() || resolveDebugProxyDbPath(env),
-    blobDir: env[OPENCLAW_DEBUG_PROXY_BLOB_DIR]?.trim() || resolveDebugProxyBlobDir(env),
-    certDir: env[OPENCLAW_DEBUG_PROXY_CERT_DIR]?.trim() || resolveDebugProxyCertDir(env),
+    required: isTruthy(env[GENESIS_DEBUG_PROXY_REQUIRE]),
+    proxyUrl: env[GENESIS_DEBUG_PROXY_URL]?.trim() || undefined,
+    dbPath: env[GENESIS_DEBUG_PROXY_DB_PATH]?.trim() || resolveDebugProxyDbPath(env),
+    blobDir: env[GENESIS_DEBUG_PROXY_BLOB_DIR]?.trim() || resolveDebugProxyBlobDir(env),
+    certDir: env[GENESIS_DEBUG_PROXY_CERT_DIR]?.trim() || resolveDebugProxyCertDir(env),
     sessionId,
-    sourceProcess: "openclaw",
+    sourceProcess: "genesis",
   };
 }
 
@@ -63,13 +63,13 @@ export function applyDebugProxyEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...env,
-    [OPENCLAW_DEBUG_PROXY_ENABLED]: "1",
-    [OPENCLAW_DEBUG_PROXY_REQUIRE]: "1",
-    [OPENCLAW_DEBUG_PROXY_URL]: params.proxyUrl,
-    [OPENCLAW_DEBUG_PROXY_DB_PATH]: params.dbPath ?? resolveDebugProxyDbPath(env),
-    [OPENCLAW_DEBUG_PROXY_BLOB_DIR]: params.blobDir ?? resolveDebugProxyBlobDir(env),
-    [OPENCLAW_DEBUG_PROXY_CERT_DIR]: params.certDir ?? resolveDebugProxyCertDir(env),
-    [OPENCLAW_DEBUG_PROXY_SESSION_ID]: params.sessionId,
+    [GENESIS_DEBUG_PROXY_ENABLED]: "1",
+    [GENESIS_DEBUG_PROXY_REQUIRE]: "1",
+    [GENESIS_DEBUG_PROXY_URL]: params.proxyUrl,
+    [GENESIS_DEBUG_PROXY_DB_PATH]: params.dbPath ?? resolveDebugProxyDbPath(env),
+    [GENESIS_DEBUG_PROXY_BLOB_DIR]: params.blobDir ?? resolveDebugProxyBlobDir(env),
+    [GENESIS_DEBUG_PROXY_CERT_DIR]: params.certDir ?? resolveDebugProxyCertDir(env),
+    [GENESIS_DEBUG_PROXY_SESSION_ID]: params.sessionId,
     HTTP_PROXY: params.proxyUrl,
     HTTPS_PROXY: params.proxyUrl,
     ALL_PROXY: params.proxyUrl,

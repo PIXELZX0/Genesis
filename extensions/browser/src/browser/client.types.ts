@@ -3,7 +3,7 @@ export type BrowserTransport = "cdp" | "chrome-mcp";
 export type BrowserStatus = {
   enabled: boolean;
   profile?: string;
-  driver?: "openclaw" | "existing-session";
+  driver?: "genesis" | "existing-session";
   transport?: BrowserTransport;
   running: boolean;
   cdpReady?: boolean;
@@ -21,6 +21,15 @@ export type BrowserStatus = {
   noSandbox?: boolean;
   executablePath?: string | null;
   attachOnly: boolean;
+  tor?: BrowserTorStatus | null;
+};
+
+export type BrowserTorStatus = {
+  enabled: true;
+  mode: "managed" | "external";
+  socksHost: string;
+  socksPort: number;
+  running: boolean | null;
 };
 
 export type BrowserTab = {

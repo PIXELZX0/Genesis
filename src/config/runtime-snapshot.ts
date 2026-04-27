@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "./types.js";
+import type { GenesisConfig } from "./types.js";
 
 export type RuntimeConfigSnapshotRefreshParams = {
-  sourceConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
 };
 
 export type RuntimeConfigSnapshotRefreshHandler = {
@@ -11,14 +11,14 @@ export type RuntimeConfigSnapshotRefreshHandler = {
 
 export type RuntimeConfigWriteNotification = {
   configPath: string;
-  sourceConfig: OpenClawConfig;
-  runtimeConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  runtimeConfig: GenesisConfig;
   persistedHash: string;
   writtenAtMs: number;
 };
 
-let runtimeConfigSnapshot: OpenClawConfig | null = null;
-let runtimeConfigSourceSnapshot: OpenClawConfig | null = null;
+let runtimeConfigSnapshot: GenesisConfig | null = null;
+let runtimeConfigSourceSnapshot: GenesisConfig | null = null;
 let runtimeConfigSnapshotRefreshHandler: RuntimeConfigSnapshotRefreshHandler | null = null;
 const runtimeConfigWriteListeners = new Set<(event: RuntimeConfigWriteNotification) => void>();
 
@@ -36,7 +36,7 @@ function stableConfigStringify(value: unknown): string {
     .join(",")}}`;
 }
 
-function configSnapshotsMatch(left: OpenClawConfig, right: OpenClawConfig): boolean {
+function configSnapshotsMatch(left: GenesisConfig, right: GenesisConfig): boolean {
   if (left === right) {
     return true;
   }
@@ -48,8 +48,8 @@ function configSnapshotsMatch(left: OpenClawConfig, right: OpenClawConfig): bool
 }
 
 export function setRuntimeConfigSnapshot(
-  config: OpenClawConfig,
-  sourceConfig?: OpenClawConfig,
+  config: GenesisConfig,
+  sourceConfig?: GenesisConfig,
 ): void {
   runtimeConfigSnapshot = config;
   runtimeConfigSourceSnapshot = sourceConfig ?? null;
@@ -64,19 +64,19 @@ export function clearRuntimeConfigSnapshot(): void {
   resetConfigRuntimeState();
 }
 
-export function getRuntimeConfigSnapshot(): OpenClawConfig | null {
+export function getRuntimeConfigSnapshot(): GenesisConfig | null {
   return runtimeConfigSnapshot;
 }
 
-export function getRuntimeConfigSourceSnapshot(): OpenClawConfig | null {
+export function getRuntimeConfigSourceSnapshot(): GenesisConfig | null {
   return runtimeConfigSourceSnapshot;
 }
 
 export function selectApplicableRuntimeConfig(params: {
-  inputConfig?: OpenClawConfig;
-  runtimeConfig?: OpenClawConfig | null;
-  runtimeSourceConfig?: OpenClawConfig | null;
-}): OpenClawConfig | undefined {
+  inputConfig?: GenesisConfig;
+  runtimeConfig?: GenesisConfig | null;
+  runtimeSourceConfig?: GenesisConfig | null;
+}): GenesisConfig | undefined {
   const runtimeConfig = params.runtimeConfig ?? null;
   if (!runtimeConfig) {
     return params.inputConfig;
@@ -127,7 +127,7 @@ export function notifyRuntimeConfigWriteListeners(event: RuntimeConfigWriteNotif
   }
 }
 
-export function loadPinnedRuntimeConfig(loadFresh: () => OpenClawConfig): OpenClawConfig {
+export function loadPinnedRuntimeConfig(loadFresh: () => GenesisConfig): GenesisConfig {
   if (runtimeConfigSnapshot) {
     return runtimeConfigSnapshot;
   }
@@ -137,10 +137,10 @@ export function loadPinnedRuntimeConfig(loadFresh: () => OpenClawConfig): OpenCl
 }
 
 export async function finalizeRuntimeSnapshotWrite(params: {
-  nextSourceConfig: OpenClawConfig;
+  nextSourceConfig: GenesisConfig;
   hadRuntimeSnapshot: boolean;
   hadBothSnapshots: boolean;
-  loadFreshConfig: () => OpenClawConfig;
+  loadFreshConfig: () => GenesisConfig;
   notifyCommittedWrite: () => void;
   createRefreshError: (detail: string, cause: unknown) => Error;
   formatRefreshError: (error: unknown) => string;

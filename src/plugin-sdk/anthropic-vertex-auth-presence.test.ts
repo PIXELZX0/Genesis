@@ -8,7 +8,7 @@ const { createTempDir } = createPluginSdkTestHarness();
 
 describe("hasAnthropicVertexAvailableAuth", () => {
   it("preserves unicode GOOGLE_APPLICATION_CREDENTIALS paths", async () => {
-    const root = await createTempDir("openclaw-vertex-auth-");
+    const root = await createTempDir("genesis-vertex-auth-");
     const unicodeDir = path.join(root, "認証情報");
     await fs.mkdir(unicodeDir, { recursive: true });
     const credentialsPath = path.join(unicodeDir, "application_default_credentials.json");

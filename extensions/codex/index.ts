@@ -1,5 +1,5 @@
-import { resolveLivePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { resolveLivePluginConfigObject } from "genesis/plugin-sdk/config-runtime";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 import { createCodexAppServerAgentHarness } from "./harness.js";
 import { buildCodexMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { buildCodexProvider } from "./provider.js";

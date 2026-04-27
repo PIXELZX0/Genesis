@@ -2,14 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { sanitizeDiagnosticPayload } from "../agents/payload-redaction.js";
 import { getQueuedFileWriter, type QueuedFileWriter } from "../agents/queued-file-writer.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveUserPath } from "../utils.js";
 import { parseBooleanValue } from "../utils/boolean.js";
 import { safeJsonStringify } from "../utils/safe-json.js";
 import type { TrajectoryEvent, TrajectoryToolDefinition } from "./types.js";
 
 type TrajectoryRuntimeInit = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   runId?: string;
   sessionId: string;
@@ -73,7 +73,7 @@ export function resolveTrajectoryFilePath(params: {
   sessionId: string;
 }): string {
   const env = params.env ?? process.env;
-  const dirOverride = env.OPENCLAW_TRAJECTORY_DIR?.trim();
+  const dirOverride = env.GENESIS_TRAJECTORY_DIR?.trim();
   if (dirOverride) {
     return resolveContainedPath(
       resolveUserPath(dirOverride),
@@ -126,7 +126,7 @@ function writeTrajectoryPointerBestEffort(params: {
         fd,
         `${JSON.stringify(
           {
-            traceSchema: "openclaw-trajectory-pointer",
+            traceSchema: "genesis-trajectory-pointer",
             schemaVersion: 1,
             sessionId: params.sessionId,
             runtimeFile: params.filePath,
@@ -203,8 +203,8 @@ export function createTrajectoryRuntimeRecorder(
 ): TrajectoryRuntimeRecorder | null {
   const env = params.env ?? process.env;
   // Trajectory capture is now default-on. The env var remains as an explicit
-  // override so operators can still disable recording with OPENCLAW_TRAJECTORY=0.
-  const enabled = parseBooleanValue(env.OPENCLAW_TRAJECTORY) ?? true;
+  // override so operators can still disable recording with GENESIS_TRAJECTORY=0.
+  const enabled = parseBooleanValue(env.GENESIS_TRAJECTORY) ?? true;
   if (!enabled) {
     return null;
   }
@@ -235,7 +235,7 @@ export function createTrajectoryRuntimeRecorder(
     filePath,
     recordEvent: (type, data) => {
       const event: TrajectoryEvent = {
-        traceSchema: "openclaw-trajectory",
+        traceSchema: "genesis-trajectory",
         schemaVersion: 1,
         traceId,
         source: "runtime",

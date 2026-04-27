@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/qqbot",
+  "name": "@genesis/qqbot",
   "version": "2026.4.20",
   "private": false,
-  "description": "OpenClaw QQ Bot channel plugin",
+  "description": "Genesis QQ Bot channel plugin",
   "type": "module",
   "dependencies": {
     "@tencent-connect/qqbot-connector": "^1.1.0",
@@ -12,19 +12,19 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@genesis/plugin-sdk": "workspace:*",
     "@types/ws": "^8.18.1",
-    "openclaw": "workspace:*"
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -40,7 +40,7 @@
       "systemImage": "bubble.left.and.bubble.right"
     },
     "install": {
-      "npmSpec": "@openclaw/qqbot",
+      "npmSpec": "@genesis/qqbot",
       "localPath": "extensions/qqbot",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
@@ -49,7 +49,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "bundle": {
       "stageRuntimeDependencies": true

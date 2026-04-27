@@ -20,7 +20,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("embeds a local audio file as a base64 gateway chat block when it is under localRoots", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const audioPath = path.join(tmpDir, "clip.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0xff, 0xfb, 0x90, 0x00]));
 
@@ -51,7 +51,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("skips non-audio local files", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const imagePath = path.join(tmpDir, "clip.png");
     fs.writeFileSync(imagePath, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 
@@ -64,7 +64,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("dedupes repeated paths", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const audioPath = path.join(tmpDir, "clip.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0x00]));
 
@@ -79,7 +79,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("embeds file:// URLs pointing at a local file within localRoots", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const audioPath = path.join(tmpDir, "clip.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0x01]));
 
@@ -116,7 +116,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("rejects a local audio file outside configured localRoots", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const allowedRoot = path.join(tmpDir, "allowed");
     const outsideRoot = path.join(tmpDir, "outside");
     fs.mkdirSync(allowedRoot, { recursive: true });
@@ -142,7 +142,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
     expect(defaultRoot).toBeTruthy();
 
     fs.mkdirSync(defaultRoot, { recursive: true });
-    tmpDir = fs.mkdtempSync(path.join(defaultRoot, "openclaw-webchat-audio-default-"));
+    tmpDir = fs.mkdtempSync(path.join(defaultRoot, "genesis-webchat-audio-default-"));
     const audioPath = path.join(tmpDir, "clip.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0x04]));
 
@@ -155,7 +155,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("does not read file contents when stat reports size over the cap", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const audioPath = path.join(tmpDir, "huge.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0x02]));
 
@@ -181,7 +181,7 @@ describe("buildWebchatAudioContentBlocksFromReplyPayloads", () => {
   });
 
   it("rejects untrusted local audio paths", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-webchat-audio-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-webchat-audio-"));
     const audioPath = path.join(tmpDir, "clip.mp3");
     fs.writeFileSync(audioPath, Buffer.from([0xff, 0xfb, 0x90, 0x00]));
 
@@ -198,15 +198,15 @@ describe("buildWebchatAssistantMessageFromReplyPayloads", () => {
   it("converts image data URLs into webchat image blocks", async () => {
     const message = await buildWebchatAssistantMessageFromReplyPayloads([
       {
-        text: "Scan this QR code with the OpenClaw iOS app:",
+        text: "Scan this QR code with the Genesis iOS app:",
         mediaUrl: "data:image/png;base64,cG5n",
       },
     ]);
 
     expect(message).toEqual({
-      transcriptText: "Scan this QR code with the OpenClaw iOS app:",
+      transcriptText: "Scan this QR code with the Genesis iOS app:",
       content: [
-        { type: "text", text: "Scan this QR code with the OpenClaw iOS app:" },
+        { type: "text", text: "Scan this QR code with the Genesis iOS app:" },
         { type: "input_image", image_url: "data:image/png;base64,cG5n" },
       ],
     });

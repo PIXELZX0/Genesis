@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/minimax-provider",
+  "name": "@genesis/minimax-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw MiniMax provider and OAuth plugin",
+  "description": "Genesis MiniMax provider and OAuth plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

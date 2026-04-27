@@ -1,7 +1,7 @@
 import {
   createWebSearchProviderContractFields,
   type WebSearchProviderPlugin,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search-config-contract";
 
 const MINIMAX_CREDENTIAL_PATH = "plugins.entries.minimax.config.webSearch.apiKey";
 const MINIMAX_CODING_PLAN_ENV_VARS = ["MINIMAX_CODE_PLAN_KEY", "MINIMAX_CODING_API_KEY"] as const;
@@ -37,7 +37,7 @@ export function createMiniMaxWebSearchProvider(): WebSearchProviderPlugin {
     envVars: [...MINIMAX_CODING_PLAN_ENV_VARS],
     placeholder: "sk-cp-...",
     signupUrl: "https://platform.minimax.io/user-center/basic-information/interface-key",
-    docsUrl: "https://docs.openclaw.ai/tools/minimax-search",
+    docsUrl: "https://docs.genesis.ai/tools/minimax-search",
     autoDetectOrder: 15,
     credentialPath: MINIMAX_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

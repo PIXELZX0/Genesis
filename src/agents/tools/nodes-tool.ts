@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { Type } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { OperatorScope } from "../../gateway/method-scopes.js";
 import { readConnectPairingRequiredMessage } from "../../gateway/protocol/connect-error-details.js";
 import { formatErrorMessage } from "../../infra/errors.js";
@@ -14,7 +14,7 @@ import { callGatewayTool, readGatewayCallOptions } from "./gateway.js";
 import { executeNodeCommandAction, type NodeCommandAction } from "./nodes-tool-commands.js";
 import { executeNodeMediaAction, MEDIA_INVOKE_ACTIONS } from "./nodes-tool-media.js";
 import { resolveNodeId } from "./nodes-utils.js";
-import { isOpenClawOwnerOnlyCoreToolName } from "./owner-only-tools.js";
+import { isGenesisOwnerOnlyCoreToolName } from "./owner-only-tools.js";
 
 const NODES_TOOL_ACTIONS = [
   "status",
@@ -124,7 +124,7 @@ export function createNodesTool(options?: {
   agentAccountId?: string;
   currentChannelId?: string;
   currentThreadTs?: string | number;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   modelHasVision?: boolean;
   allowMediaInvokeCommands?: boolean;
 }): AnyAgentTool {
@@ -136,7 +136,7 @@ export function createNodesTool(options?: {
   return {
     label: "Nodes",
     name: "nodes",
-    ownerOnly: isOpenClawOwnerOnlyCoreToolName("nodes"),
+    ownerOnly: isGenesisOwnerOnlyCoreToolName("nodes"),
     description:
       "Discover and control paired nodes (status/describe/pairing/notify/camera/photos/screen/location/notifications/invoke).",
     parameters: NodesToolSchema,

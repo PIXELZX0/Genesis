@@ -9,17 +9,17 @@ const { messageQueueMock, messageAllowMock } = vi.hoisted(() => ({
   messageAllowMock: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", () => ({
+vi.mock("genesis/plugin-sdk/infra-runtime", () => ({
   enqueueSystemEvent: (...args: unknown[]) => messageQueueMock(...args),
 }));
-vi.mock("openclaw/plugin-sdk/infra-runtime.js", () => ({
+vi.mock("genesis/plugin-sdk/infra-runtime.js", () => ({
   enqueueSystemEvent: (...args: unknown[]) => messageQueueMock(...args),
 }));
-vi.mock("openclaw/plugin-sdk/security-runtime", () => ({
+vi.mock("genesis/plugin-sdk/security-runtime", () => ({
   readStoreAllowFromForDmPolicy: async () => [],
 }));
 
-vi.mock("openclaw/plugin-sdk/conversation-runtime", () => ({
+vi.mock("genesis/plugin-sdk/conversation-runtime", () => ({
   readChannelAllowFromStore: (...args: unknown[]) => messageAllowMock(...args),
 }));
 

@@ -1,4 +1,4 @@
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 
 const PROVIDER_ID = "fal";
 const FAL_DEFAULT_IMAGE_MODEL_REF = "fal/fal-ai/flux/dev";

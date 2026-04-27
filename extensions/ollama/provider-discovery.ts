@@ -1,4 +1,4 @@
-import type { ProviderCatalogContext } from "openclaw/plugin-sdk/provider-catalog-shared";
+import type { ProviderCatalogContext } from "genesis/plugin-sdk/provider-catalog-shared";
 import {
   OLLAMA_PROVIDER_ID,
   resolveOllamaDiscoveryResult,

@@ -1,4 +1,4 @@
-# OpenClaw macOS app (dev + signing)
+# Genesis macOS app (dev + signing)
 
 ## Quick dev run
 
@@ -20,7 +20,7 @@ scripts/restart-mac.sh --sign      # force code signing (requires cert)
 scripts/package-mac-app.sh
 ```
 
-Creates `dist/OpenClaw.app` and signs it via `scripts/codesign-mac-app.sh`.
+Creates `dist/Genesis.app` and signs it via `scripts/codesign-mac-app.sh`.
 
 ## Signing behavior
 

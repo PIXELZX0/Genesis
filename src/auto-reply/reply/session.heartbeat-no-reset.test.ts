@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { saveSessionStore } from "../../config/sessions/store.js";
 import type { MsgContext } from "../templating.js";
 import { initSessionState } from "./session.js";
@@ -11,7 +11,7 @@ describe("initSessionState - heartbeat should not trigger session reset", () => 
   let storePath: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp("/tmp/openclaw-test-");
+    tempDir = await fs.mkdtemp("/tmp/genesis-test-");
     storePath = path.join(tempDir, "sessions.json");
   });
 
@@ -19,7 +19,7 @@ describe("initSessionState - heartbeat should not trigger session reset", () => 
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  const createBaseConfig = (): OpenClawConfig => ({
+  const createBaseConfig = (): GenesisConfig => ({
     agents: {
       defaults: {
         workspace: tempDir,

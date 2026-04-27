@@ -32,10 +32,10 @@ describe("installScheduledTask", () => {
   async function withUserProfileDir(
     run: (tmpDir: string, env: Record<string, string>) => Promise<void>,
   ) {
-    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-schtasks-install-"));
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-schtasks-install-"));
     const env = {
       USERPROFILE: tmpDir,
-      OPENCLAW_PROFILE: "default",
+      GENESIS_PROFILE: "default",
     };
     try {
       await run(tmpDir, env);
@@ -55,11 +55,11 @@ describe("installScheduledTask", () => {
 
   function expectInitialTaskQueries(): void {
     expect(schtasksCalls[0]).toEqual(["/Query"]);
-    expect(schtasksCalls[1]).toEqual(["/Query", "/TN", "OpenClaw Gateway"]);
+    expect(schtasksCalls[1]).toEqual(["/Query", "/TN", "Genesis Gateway"]);
   }
 
   function expectTaskRunCall(index: number): void {
-    expect(schtasksCalls[index]).toEqual(["/Run", "/TN", "OpenClaw Gateway"]);
+    expect(schtasksCalls[index]).toEqual(["/Run", "/TN", "Genesis Gateway"]);
   }
 
   it("writes quoted set assignments and escapes metacharacters", async () => {
@@ -125,9 +125,9 @@ describe("installScheduledTask", () => {
       expect(parsed?.environment).not.toHaveProperty("OC_EMPTY");
 
       expect(schtasksCalls[0]).toEqual(["/Query"]);
-      expect(schtasksCalls[1]).toEqual(["/Query", "/TN", "OpenClaw Gateway"]);
+      expect(schtasksCalls[1]).toEqual(["/Query", "/TN", "Genesis Gateway"]);
       expect(schtasksCalls[2]?.[0]).toBe("/Change");
-      expect(schtasksCalls[3]).toEqual(["/Run", "/TN", "OpenClaw Gateway"]);
+      expect(schtasksCalls[3]).toEqual(["/Run", "/TN", "Genesis Gateway"]);
     });
   });
 
@@ -234,13 +234,13 @@ describe("installScheduledTask", () => {
         programArguments: ["node", "gateway.js"],
         environment: {
           PATH: "C:\\Windows\\System32;C:\\Program Files\\Docker\\Docker\\resources\\bin",
-          OPENCLAW_GATEWAY_PORT: "18789",
+          GENESIS_GATEWAY_PORT: "18789",
         },
       });
 
       const script = await fs.readFile(scriptPath, "utf8");
       expect(script).not.toContain('set "PATH=');
-      expect(script).toContain('set "OPENCLAW_GATEWAY_PORT=18789"');
+      expect(script).toContain('set "GENESIS_GATEWAY_PORT=18789"');
     });
   });
 });

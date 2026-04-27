@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   applySecurityFixConfigMutations,
   collectSecurityPermissionTargets,
@@ -32,8 +32,8 @@ describe("security fix", () => {
 
   const createFixEnv = (stateDir: string, configPath: string) => ({
     ...process.env,
-    OPENCLAW_STATE_DIR: stateDir,
-    OPENCLAW_CONFIG_PATH: configPath,
+    GENESIS_STATE_DIR: stateDir,
+    GENESIS_CONFIG_PATH: configPath,
   });
 
   const createWhatsAppConfigFixTestPlugin = (storeAllowFrom: string[]): ChannelPlugin => ({
@@ -135,7 +135,7 @@ describe("security fix", () => {
         channels: {
           whatsapp: params.whatsapp,
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       env: process.env,
       channelPlugins: [createWhatsAppConfigFixTestPlugin(params.allowFromStore)],
     });
@@ -146,7 +146,7 @@ describe("security fix", () => {
   };
 
   beforeAll(async () => {
-    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-security-fix-suite-"));
+    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-security-fix-suite-"));
   });
 
   afterAll(async () => {
@@ -165,7 +165,7 @@ describe("security fix", () => {
         imessage: { groupPolicy: "open" },
       },
       logging: { redactSensitive: "off" },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     const fixed = await applySecurityFixConfigMutations({
       cfg,
       env: process.env,
@@ -223,7 +223,7 @@ describe("security fix", () => {
     const stateDir = await createStateDir("invalid-config");
     await fs.chmod(stateDir, 0o755);
 
-    const configPath = path.join(stateDir, "openclaw.json");
+    const configPath = path.join(stateDir, "genesis.json");
     await fs.writeFile(configPath, "{ this is not json }\n", "utf-8");
     await fs.chmod(configPath, 0o644);
 
@@ -244,7 +244,7 @@ describe("security fix", () => {
     await fs.writeFile(includePath, "{ logging: { redactSensitive: 'off' } }\n", "utf-8");
     await fs.chmod(includePath, 0o644);
 
-    const configPath = path.join(stateDir, "openclaw.json");
+    const configPath = path.join(stateDir, "genesis.json");
     await fs.writeFile(
       configPath,
       `{ "$include": "./includes/extra.json5", channels: { whatsapp: { groupPolicy: "open" } } }\n`,
@@ -283,7 +283,7 @@ describe("security fix", () => {
       configPath,
       cfg: {
         channels: { whatsapp: { groupPolicy: "open" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       includePaths: [includePath],
     });
 

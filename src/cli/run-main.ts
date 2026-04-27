@@ -4,12 +4,12 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { CommanderError } from "commander";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeEnv } from "../infra/env.js";
 import { formatUncaughtError } from "../infra/errors.js";
 import { isMainModule } from "../infra/is-main.js";
 import { ensureGlobalUndiciEnvProxyDispatcher } from "../infra/net/undici-global-dispatcher.js";
-import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { ensureGenesisCliOnPath } from "../infra/path-env.js";
 import { assertSupportedRuntime } from "../infra/runtime-guard.js";
 import { enableConsoleCapture } from "../logging.js";
 import type { PluginManifestCommandAliasRegistry } from "../plugins/manifest-command-aliases.js";
@@ -73,7 +73,7 @@ export function shouldUseRootHelpFastPath(argv: string[]): boolean {
 
 export function resolveMissingPluginCommandMessage(
   pluginId: string,
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
   options?: { registry?: PluginManifestCommandAliasRegistry },
 ): string | null {
   const normalizedPluginId = normalizeLowercaseStringOrEmpty(pluginId);
@@ -103,14 +103,14 @@ export function resolveMissingPluginCommandMessage(
     }
     if (config?.plugins?.entries?.[parentPluginId]?.enabled === false) {
       return (
-        `The \`openclaw ${normalizedPluginId}\` command is unavailable because ` +
+        `The \`genesis ${normalizedPluginId}\` command is unavailable because ` +
         `\`plugins.entries.${parentPluginId}.enabled=false\`. Re-enable that entry if you want ` +
         "the bundled plugin command surface."
       );
     }
     if (commandAlias.kind === "runtime-slash") {
       const cliHint = commandAlias.cliCommand
-        ? `Use \`openclaw ${commandAlias.cliCommand}\` for related CLI operations, or `
+        ? `Use \`genesis ${commandAlias.cliCommand}\` for related CLI operations, or `
         : "Use ";
       return (
         `"${normalizedPluginId}" is a runtime slash command (/${normalizedPluginId}), not a CLI command. ` +
@@ -125,14 +125,14 @@ export function resolveMissingPluginCommandMessage(
       return null;
     }
     return (
-      `The \`openclaw ${normalizedPluginId}\` command is unavailable because ` +
+      `The \`genesis ${normalizedPluginId}\` command is unavailable because ` +
       `\`plugins.allow\` excludes "${normalizedPluginId}". Add "${normalizedPluginId}" to ` +
       `\`plugins.allow\` if you want that bundled plugin CLI surface.`
     );
   }
   if (config?.plugins?.entries?.[normalizedPluginId]?.enabled === false) {
     return (
-      `The \`openclaw ${normalizedPluginId}\` command is unavailable because ` +
+      `The \`genesis ${normalizedPluginId}\` command is unavailable because ` +
       `\`plugins.entries.${normalizedPluginId}.enabled=false\`. Re-enable that entry if you want ` +
       "the bundled plugin CLI surface."
     );
@@ -161,7 +161,7 @@ export async function runCli(argv: string[] = process.argv) {
     applyCliProfileEnv({ profile: parsedProfile.profile });
   }
   const containerTargetName =
-    parsedContainer.container ?? normalizeOptionalString(process.env.OPENCLAW_CONTAINER) ?? null;
+    parsedContainer.container ?? normalizeOptionalString(process.env.GENESIS_CONTAINER) ?? null;
   if (containerTargetName && parsedProfile.profile) {
     throw new Error("--container cannot be combined with --profile/--dev");
   }
@@ -187,7 +187,7 @@ export async function runCli(argv: string[] = process.argv) {
   ensureGlobalUndiciEnvProxyDispatcher();
   maybeWarnAboutDebugProxyCoverage();
   if (shouldEnsureCliPath(normalizedArgv)) {
-    ensureOpenClawCliOnPath();
+    ensureGenesisCliOnPath();
   }
 
   // Enforce the minimum supported runtime before doing any work.
@@ -228,9 +228,9 @@ export async function runCli(argv: string[] = process.argv) {
     installUnhandledRejectionHandler();
 
     process.on("uncaughtException", (error) => {
-      console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
+      console.error("[genesis] Uncaught exception:", formatUncaughtError(error));
       for (const message of runFatalErrorHooks({ reason: "uncaught_exception", error })) {
-        console.error("[openclaw]", message);
+        console.error("[genesis]", message);
       }
       restoreTerminalState("uncaught exception", { resumeStdinIfPaused: false });
       process.exit(1);

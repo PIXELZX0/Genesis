@@ -1,6 +1,6 @@
-export { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+export { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 export type {
-  OpenClawPluginApi,
+  GenesisPluginApi,
   ProviderAuthContext,
   ProviderAuthResult,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";

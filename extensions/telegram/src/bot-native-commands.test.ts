@@ -1,5 +1,5 @@
-import type { OpenClawConfig, TelegramAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import type { GenesisConfig, TelegramAccountConfig } from "genesis/plugin-sdk/config-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createCommandBot,
@@ -24,7 +24,7 @@ type CommandBotHarness = ReturnType<typeof createCommandBot>;
 type CommandHandler = (ctx: unknown) => Promise<void>;
 type PlugCommandHarnessParams = {
   botHarness?: CommandBotHarness;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   command?: Record<string, unknown>;
   args?: string;
   result?: Record<string, unknown>;
@@ -108,7 +108,7 @@ describe("registerTelegramNativeCommands", () => {
   });
 
   it("scopes skill commands when account binding exists", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         list: [{ id: "main", default: true }, { id: "butler" }],
       },
@@ -129,7 +129,7 @@ describe("registerTelegramNativeCommands", () => {
   });
 
   it("scopes skill commands to default agent without a matching binding (#15599)", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         list: [{ id: "main", default: true }, { id: "butler" }],
       },
@@ -266,7 +266,7 @@ describe("registerTelegramNativeCommands", () => {
   });
 
   it("passes agent-scoped media roots for plugin command replies with media", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         list: [{ id: "main", default: true }, { id: "work" }],
       },
@@ -287,7 +287,7 @@ describe("registerTelegramNativeCommands", () => {
     expect(firstDeliverRepliesCall?.[0]).toEqual(
       expect.objectContaining({
         mediaLocalRoots: expect.arrayContaining([
-          expect.stringMatching(/[\\/]\.openclaw[\\/]workspace-work$/),
+          expect.stringMatching(/[\\/]\.genesis[\\/]workspace-work$/),
         ]),
       }),
     );

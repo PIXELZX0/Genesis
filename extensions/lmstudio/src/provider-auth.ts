@@ -2,8 +2,8 @@ import {
   CUSTOM_LOCAL_AUTH_MARKER,
   hasConfiguredSecretInput,
   normalizeOptionalSecretInput,
-} from "openclaw/plugin-sdk/provider-auth";
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+} from "genesis/plugin-sdk/provider-auth";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 import { LMSTUDIO_LOCAL_API_KEY_PLACEHOLDER } from "./defaults.js";
 
 export function hasLmstudioAuthorizationHeader(headers: unknown): boolean {

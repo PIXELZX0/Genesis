@@ -14,7 +14,7 @@ describe("loadVitestExperimentalConfig", () => {
     expect(
       loadVitestExperimentalConfig(
         {
-          OPENCLAW_VITEST_FS_MODULE_CACHE: "1",
+          GENESIS_VITEST_FS_MODULE_CACHE: "1",
         },
         "linux",
       ),
@@ -29,14 +29,14 @@ describe("loadVitestExperimentalConfig", () => {
     expect(
       loadVitestExperimentalConfig(
         {
-          OPENCLAW_VITEST_FS_MODULE_CACHE_PATH: "/tmp/openclaw-vitest-cache",
+          GENESIS_VITEST_FS_MODULE_CACHE_PATH: "/tmp/genesis-vitest-cache",
         },
         "linux",
       ),
     ).toEqual({
       experimental: {
         fsModuleCache: true,
-        fsModuleCachePath: "/tmp/openclaw-vitest-cache",
+        fsModuleCachePath: "/tmp/genesis-vitest-cache",
       },
     });
   });
@@ -49,7 +49,7 @@ describe("loadVitestExperimentalConfig", () => {
     expect(
       loadVitestExperimentalConfig(
         {
-          OPENCLAW_VITEST_FS_MODULE_CACHE: "1",
+          GENESIS_VITEST_FS_MODULE_CACHE: "1",
         },
         "win32",
       ),
@@ -64,7 +64,7 @@ describe("loadVitestExperimentalConfig", () => {
     expect(
       loadVitestExperimentalConfig(
         {
-          OPENCLAW_VITEST_FS_MODULE_CACHE: "0",
+          GENESIS_VITEST_FS_MODULE_CACHE: "0",
         },
         "linux",
       ),
@@ -75,8 +75,8 @@ describe("loadVitestExperimentalConfig", () => {
     expect(
       loadVitestExperimentalConfig(
         {
-          OPENCLAW_VITEST_IMPORT_DURATIONS: "true",
-          OPENCLAW_VITEST_PRINT_IMPORT_BREAKDOWN: "1",
+          GENESIS_VITEST_IMPORT_DURATIONS: "true",
+          GENESIS_VITEST_PRINT_IMPORT_BREAKDOWN: "1",
         },
         "linux",
       ),

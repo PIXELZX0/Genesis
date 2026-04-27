@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import type { ChannelOutboundAdapter } from "../../channels/plugins/types.js";
 import type { CliDeps } from "../../cli/outbound-send-deps.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { setActivePluginRegistry } from "../../plugins/runtime.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
 import { deliverAgentCommandResult, normalizeAgentCommandReplyPayloads } from "./delivery.js";
@@ -72,7 +72,7 @@ async function deliverMediaReplyForTest(outboundSession: DeliverParams["outbound
       agents: {
         list: [{ id: "tester", workspace: "/tmp/agent-workspace" }],
       },
-    } as OpenClawConfig,
+    } as GenesisConfig,
     deps: {} as CliDeps,
     runtime: runtime as never,
     opts: {
@@ -105,7 +105,7 @@ describe("normalizeAgentCommandReplyPayloads", () => {
             capabilities: { interactiveReplies: true },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       opts: { message: "test" } as AgentCommandOpts,
       outboundSession: undefined,
       deliveryChannel: "slack",
@@ -126,7 +126,7 @@ describe("normalizeAgentCommandReplyPayloads", () => {
         messages: {
           responsePrefix: "[{modelFull}]",
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       opts: { message: "test" } as AgentCommandOpts,
       outboundSession: undefined,
       deliveryChannel: "slack",
@@ -162,7 +162,7 @@ describe("normalizeAgentCommandReplyPayloads", () => {
             capabilities: { interactiveReplies: true },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       deps: {} as CliDeps,
       runtime: runtime as never,
       opts: {
@@ -236,7 +236,7 @@ describe("normalizeAgentCommandReplyPayloads", () => {
     };
 
     const delivered = await deliverAgentCommandResult({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       deps: {} as CliDeps,
       runtime: runtime as never,
       opts: {

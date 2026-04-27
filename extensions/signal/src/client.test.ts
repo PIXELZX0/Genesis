@@ -3,21 +3,20 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 const fetchWithTimeoutMock = vi.fn();
 const resolveFetchMock = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/fetch-runtime", () => ({
+vi.mock("genesis/plugin-sdk/fetch-runtime", () => ({
   resolveFetch: (...args: unknown[]) => resolveFetchMock(...args),
 }));
 
-vi.mock("openclaw/plugin-sdk/core", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/core")>(
-    "openclaw/plugin-sdk/core",
-  );
+vi.mock("genesis/plugin-sdk/core", async () => {
+  const actual =
+    await vi.importActual<typeof import("genesis/plugin-sdk/core")>("genesis/plugin-sdk/core");
   return {
     ...actual,
     generateSecureUuid: () => "test-id",
   };
 });
 
-vi.mock("openclaw/plugin-sdk/text-runtime", () => ({
+vi.mock("genesis/plugin-sdk/text-runtime", () => ({
   fetchWithTimeout: (...args: unknown[]) => fetchWithTimeoutMock(...args),
 }));
 

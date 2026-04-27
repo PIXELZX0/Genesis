@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { UpdateCheckResult } from "../infra/update-check.js";
 import {
   buildGatewayStatusJsonPayload,
@@ -37,7 +37,7 @@ type StatusGatewaySelf =
 type StatusServiceSummary = {
   label: string;
   installed: boolean | null;
-  managedByOpenClaw?: boolean;
+  managedByGenesis?: boolean;
   loadedText: string;
   runtimeShort?: string | null;
   runtime?: {
@@ -47,7 +47,7 @@ type StatusServiceSummary = {
 };
 
 export type StatusOverviewSurface = {
-  cfg: Pick<OpenClawConfig, "update" | "gateway">;
+  cfg: Pick<GenesisConfig, "update" | "gateway">;
   update: UpdateCheckResult;
   tailscaleMode: string;
   tailscaleDns?: string | null;

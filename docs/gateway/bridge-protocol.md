@@ -8,7 +8,7 @@ title: "Bridge protocol"
 ---
 
 <Warning>
-The TCP bridge has been **removed**. Current OpenClaw builds do not ship the bridge listener and `bridge.*` config keys are no longer in the schema. This page is kept for historical reference only. Use the [Gateway Protocol](/gateway/protocol) for all node/operator clients.
+The TCP bridge has been **removed**. Current Genesis builds do not ship the bridge listener and `bridge.*` config keys are no longer in the schema. This page is kept for historical reference only. Use the [Gateway Protocol](/gateway/protocol) for all node/operator clients.
 </Warning>
 
 ## Why it existed
@@ -75,7 +75,7 @@ Payload fields (all optional unless noted):
 ## Historical tailnet usage
 
 - Bind the bridge to a tailnet IP: `bridge.bind: "tailnet"` in
-  `~/.openclaw/openclaw.json` (historical only; `bridge.*` is no longer valid).
+  `~/.genesis/genesis.json` (historical only; `bridge.*` is no longer valid).
 - Clients connect via MagicDNS name or tailnet IP.
 - Bonjour does **not** cross networks; use manual host/port or wide-area DNS‑SD
   when needed.

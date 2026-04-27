@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it, vi } from "vitest";
 import {
   createTestWizardPrompter,
@@ -26,7 +26,7 @@ describe("slackSetupWizard.finalize", () => {
         appToken: "xapp-test",
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 
   it("prompts to enable interactive replies for newly configured Slack accounts", async () => {
     const confirm = vi.fn(async () => true);
@@ -92,7 +92,7 @@ describe("slackSetupWizard.dmPolicy", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         "alerts",
       ),
     ).toBe("allowlist");
@@ -119,7 +119,7 @@ describe("slackSetupWizard.dmPolicy", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       "open",
       "alerts",
     );
@@ -151,7 +151,7 @@ describe("slackSetupWizard.status", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(configured).toBe(false);

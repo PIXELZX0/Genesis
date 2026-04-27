@@ -45,7 +45,7 @@ vi.mock("../plugins/cli.js", () => ({
 
 describe("completion-cli write-state", () => {
   const originalHome = process.env.HOME;
-  const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+  const originalStateDir = process.env.GENESIS_STATE_DIR;
   let restoreStderrWriteSpy: (() => void) | null = null;
 
   beforeEach(() => {
@@ -73,29 +73,29 @@ describe("completion-cli write-state", () => {
       process.env.HOME = originalHome;
     }
     if (originalStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.GENESIS_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = originalStateDir;
+      process.env.GENESIS_STATE_DIR = originalStateDir;
     }
   });
 
   it("keeps completion cache generation alive when a subcli fails to register", async () => {
     const { registerCompletionCli } = await import("./completion-cli.js");
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-completion-state-"));
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-completion-home-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-completion-state-"));
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-completion-home-"));
 
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    process.env.GENESIS_STATE_DIR = stateDir;
     process.env.HOME = homeDir;
 
     const program = new Command();
-    program.name("openclaw");
+    program.name("genesis");
     registerCompletionCli(program);
 
     await program.parseAsync(["completion", "--write-state"], { from: "user" });
 
     const cacheDir = path.join(stateDir, "completions");
     expect(await fs.readdir(cacheDir)).toEqual(
-      expect.arrayContaining(["openclaw.bash", "openclaw.fish", "openclaw.ps1", "openclaw.zsh"]),
+      expect.arrayContaining(["genesis.bash", "genesis.fish", "genesis.ps1", "genesis.zsh"]),
     );
     expect(registerSubCliByNameMock).toHaveBeenCalledWith(program, "qa");
     expect(registerPluginCliCommandsFromValidatedConfigMock).toHaveBeenCalledTimes(1);

@@ -1,4 +1,4 @@
-import OpenClawKit
+import GenesisKit
 import SwiftUI
 import UIKit
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type { ChannelMessageActionAdapter, ChannelPlugin } from "./types.js";
 
 const telegramDescribeMessageToolMock = vi.fn();
@@ -121,7 +121,7 @@ describe("channel action capability matrix", () => {
     discordDescribeMessageToolMock.mockReset();
   });
 
-  function getCapabilities(plugin: Pick<ChannelPlugin, "actions">, cfg: OpenClawConfig) {
+  function getCapabilities(plugin: Pick<ChannelPlugin, "actions">, cfg: GenesisConfig) {
     const describeMessageTool: ChannelMessageActionAdapter["describeMessageTool"] | undefined =
       plugin.actions?.describeMessageTool;
     return [...(describeMessageTool?.({ cfg })?.capabilities ?? [])];
@@ -135,7 +135,7 @@ describe("channel action capability matrix", () => {
           appToken: "xapp-test",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const interactiveCfg = {
       channels: {
         slack: {
@@ -144,7 +144,7 @@ describe("channel action capability matrix", () => {
           capabilities: { interactiveReplies: true },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(getCapabilities(slackPlugin, baseCfg)).toEqual(["presentation"]);
     expect(getCapabilities(slackPlugin, interactiveCfg)).toEqual(["presentation"]);
@@ -155,7 +155,7 @@ describe("channel action capability matrix", () => {
       capabilities: ["presentation"],
     });
 
-    const result = getCapabilities(telegramPlugin, {} as OpenClawConfig);
+    const result = getCapabilities(telegramPlugin, {} as GenesisConfig);
 
     expect(result).toEqual(["presentation"]);
     expect(telegramDescribeMessageToolMock).toHaveBeenCalledWith({ cfg: {} });
@@ -163,7 +163,7 @@ describe("channel action capability matrix", () => {
       capabilities: ["presentation"],
     });
 
-    const discordResult = getCapabilities(discordPlugin, {} as OpenClawConfig);
+    const discordResult = getCapabilities(discordPlugin, {} as GenesisConfig);
 
     expect(discordResult).toEqual(["presentation"]);
     expect(discordDescribeMessageToolMock).toHaveBeenCalledWith({ cfg: {} });
@@ -178,14 +178,14 @@ describe("channel action capability matrix", () => {
           baseUrl: "https://chat.example.com",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const unconfiguredCfg = {
       channels: {
         mattermost: {
           enabled: true,
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const configuredFeishuCfg = {
       channels: {
         feishu: {
@@ -194,7 +194,7 @@ describe("channel action capability matrix", () => {
           appSecret: "secret",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const disabledFeishuCfg = {
       channels: {
         feishu: {
@@ -203,7 +203,7 @@ describe("channel action capability matrix", () => {
           appSecret: "secret",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const configuredMsteamsCfg = {
       channels: {
         msteams: {
@@ -213,7 +213,7 @@ describe("channel action capability matrix", () => {
           appPassword: "secret",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const disabledMsteamsCfg = {
       channels: {
         msteams: {
@@ -223,7 +223,7 @@ describe("channel action capability matrix", () => {
           appPassword: "secret",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(getCapabilities(mattermostPlugin, configuredCfg)).toEqual(["presentation"]);
     expect(getCapabilities(mattermostPlugin, unconfiguredCfg)).toEqual([]);
@@ -241,7 +241,7 @@ describe("channel action capability matrix", () => {
           botToken: "zl-token",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(getCapabilities(zaloPlugin, cfg)).toEqual([]);
   });

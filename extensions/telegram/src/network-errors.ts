@@ -3,10 +3,10 @@ import {
   extractErrorCode,
   formatErrorMessage,
   readErrorName,
-} from "openclaw/plugin-sdk/error-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/error-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
-const TELEGRAM_NETWORK_ORIGIN = Symbol("openclaw.telegram.network-origin");
+const TELEGRAM_NETWORK_ORIGIN = Symbol("genesis.telegram.network-origin");
 
 const RECOVERABLE_ERROR_CODES = new Set([
   "ECONNRESET",

@@ -37,11 +37,11 @@ describe("noteDevicePairingHealth", () => {
       initial: Awaited<ReturnType<typeof requestDevicePairing>>;
     }) => Promise<void>,
   ): Promise<void> {
-    await withTempDir("openclaw-doctor-device-pairing-", async (stateDir) => {
+    await withTempDir("genesis-doctor-device-pairing-", async (stateDir) => {
       await withEnvAsync(
         {
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_TEST_FAST: "1",
+          GENESIS_STATE_DIR: stateDir,
+          GENESIS_TEST_FAST: "1",
         },
         async () => {
           const identity = loadOrCreateDeviceIdentity();
@@ -99,7 +99,7 @@ describe("noteDevicePairingHealth", () => {
       expect(noteMock.mock.calls[0]?.[1]).toBe("Device pairing");
       expect(message).toContain("Pending scope upgrade");
       expect(message).toContain("operator.admin");
-      expect(message).toContain("openclaw devices approve");
+      expect(message).toContain("genesis devices approve");
       expect(callGatewayMock).not.toHaveBeenCalled();
     });
   });
@@ -138,7 +138,7 @@ describe("noteDevicePairingHealth", () => {
       expect(noteMock).toHaveBeenCalledTimes(1);
       const message = String(noteMock.mock.calls[0]?.[0] ?? "");
       expect(message).toContain("stale device-token pattern");
-      expect(message).toContain("openclaw devices rotate");
+      expect(message).toContain("genesis devices rotate");
     });
   });
 
@@ -248,9 +248,9 @@ describe("noteDevicePairingHealth", () => {
     });
 
     const message = String(noteMock.mock.calls[0]?.[0] ?? "");
-    expect(message).toContain("openclaw devices remove 'device; echo pwn'");
+    expect(message).toContain("genesis devices remove 'device; echo pwn'");
     expect(message).toContain(
-      "openclaw devices rotate --device 'device; echo pwn' --role 'operator; touch /tmp/pwn'",
+      "genesis devices rotate --device 'device; echo pwn' --role 'operator; touch /tmp/pwn'",
     );
   });
 

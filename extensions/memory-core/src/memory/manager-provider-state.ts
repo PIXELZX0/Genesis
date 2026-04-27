@@ -1,7 +1,7 @@
 import type {
-  OpenClawConfig,
+  GenesisConfig,
   ResolvedMemorySearchConfig,
-} from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+} from "genesis/plugin-sdk/memory-core-host-engine-foundation";
 import {
   resolveEmbeddingProviderFallbackModel,
   type EmbeddingProvider,
@@ -68,7 +68,7 @@ export function applyMemoryFallbackProviderState(params: {
 }
 
 export function resolveMemoryFallbackProviderRequest(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   settings: ResolvedMemorySearchConfig;
   currentProviderId: string | null;
 }): {

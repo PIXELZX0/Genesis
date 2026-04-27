@@ -2,11 +2,11 @@ import {
   resolveChannelGroupRequireMention,
   resolveChannelGroupToolsPolicy,
   type GroupToolPolicyConfig,
-} from "openclaw/plugin-sdk/channel-policy";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/channel-policy";
+import type { GenesisConfig } from "genesis/plugin-sdk/core";
 
 type IMessageGroupContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   groupId?: string | null;
   senderId?: string | null;

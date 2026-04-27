@@ -15,7 +15,7 @@ import {
   loadPluginManifest,
   type PluginManifest,
   resolvePackageExtensionEntries,
-  type OpenClawPackageManifest,
+  type GenesisPackageManifest,
   type PackageManifest,
 } from "./manifest.js";
 import { formatPosixMode, isPathInside, safeRealpathSync, safeStatSync } from "./path-safety.js";
@@ -49,7 +49,7 @@ export type PluginCandidate = {
   packageVersion?: string;
   packageDescription?: string;
   packageDir?: string;
-  packageManifest?: OpenClawPackageManifest;
+  packageManifest?: GenesisPackageManifest;
   bundledManifest?: PluginManifest;
   bundledManifestPath?: string;
 };
@@ -69,7 +69,7 @@ export function clearPluginDiscoveryCache(): void {
 }
 
 function resolveDiscoveryCacheMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS?.trim();
+  const raw = env.GENESIS_PLUGIN_DISCOVERY_CACHE_MS?.trim();
   if (raw === "" || raw === "0") {
     return 0;
   }
@@ -84,7 +84,7 @@ function resolveDiscoveryCacheMs(env: NodeJS.ProcessEnv): number {
 }
 
 function shouldUseDiscoveryCache(env: NodeJS.ProcessEnv): boolean {
-  const disabled = env.OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE?.trim();
+  const disabled = env.GENESIS_DISABLE_PLUGIN_DISCOVERY_CACHE?.trim();
   if (disabled) {
     return false;
   }
@@ -436,7 +436,7 @@ function deriveIdHint(params: {
   }
 
   // Prefer the unscoped name so config keys stay stable even when the npm
-  // package is scoped (example: @openclaw/voice-call -> voice-call).
+  // package is scoped (example: @genesis/voice-call -> voice-call).
   const unscoped = rawPackageName.includes("/")
     ? (rawPackageName.split("/").pop() ?? rawPackageName)
     : rawPackageName;
@@ -498,7 +498,7 @@ function addCandidate(params: {
     setupSource: params.setupSource,
     rootDir: resolvedRoot,
     origin: params.origin,
-    format: params.format ?? "openclaw",
+    format: params.format ?? "genesis",
     bundleFormat: params.bundleFormat,
     workspaceDir: params.workspaceDir,
     packageName: normalizeOptionalString(manifest?.name),
@@ -1112,7 +1112,7 @@ function discoverFromPath(params: {
   }
 }
 
-export function discoverOpenClawPlugins(params: {
+export function discoverGenesisPlugins(params: {
   workspaceDir?: string;
   extraPaths?: string[];
   ownershipUid?: number | null;
@@ -1158,7 +1158,7 @@ export function discoverOpenClawPlugins(params: {
       }
       const workspaceMatchesBundledRoot = resolvesToSameDirectory(workspaceRoot, roots.stock);
       if (roots.workspace && workspaceRoot && !workspaceMatchesBundledRoot) {
-        // Keep workspace auto-discovery constrained to the OpenClaw extensions root.
+        // Keep workspace auto-discovery constrained to the Genesis extensions root.
         // Recursively scanning the full workspace treats arbitrary project folders as
         // plugin candidates and causes noisy "plugin manifest not found" validation failures.
         discoverInDirectory({

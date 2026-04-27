@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { findGitRoot } from "../infra/git-root.js";
 import { resolveHomeRelativePath } from "../infra/home-dir.js";
 import {
@@ -36,7 +36,7 @@ export type SystemPromptRuntimeParams = {
 };
 
 export function buildSystemPromptParams(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentId?: string;
   runtime: Omit<RuntimeInfoInput, "agentId">;
   workspaceDir?: string;
@@ -68,7 +68,7 @@ export function buildSystemPromptParams(params: {
   };
 }
 
-function resolveCanvasRootDir(params: { config?: OpenClawConfig; stateDir: string }): string {
+function resolveCanvasRootDir(params: { config?: GenesisConfig; stateDir: string }): string {
   const configured = params.config?.canvasHost?.root?.trim();
   if (configured) {
     return path.resolve(
@@ -81,7 +81,7 @@ function resolveCanvasRootDir(params: { config?: OpenClawConfig; stateDir: strin
 }
 
 function resolveRepoRoot(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   cwd?: string;
 }): string | undefined {

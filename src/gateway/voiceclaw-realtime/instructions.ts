@@ -10,11 +10,11 @@ const CONVERSATION_RULES = `
 - Keep spoken replies concise.
 
 **Tool call timing:**
-- OpenClaw tools run asynchronously after an initial "working" result.
+- Genesis tools run asynchronously after an initial "working" result.
 - Do not answer with final results from the "working" result.
 - If a tool is still running, say a short verbal bridge like "One sec, let me check."
 - Do not fill the entire wait with filler.
-- When the real OpenClaw tool result is injected, share it naturally if it is still relevant.
+- When the real Genesis tool result is injected, share it naturally if it is still relevant.
 
 **Tone:**
 - Be conversational, warm, and direct.
@@ -25,18 +25,18 @@ const CONVERSATION_RULES = `
 const BRAIN_CAPABILITIES = `
 ## Your Brain
 
-You are running inside OpenClaw as the real-time brain. Use OpenClaw tools directly for anything beyond basic conversation:
+You are running inside Genesis as the real-time brain. Use Genesis tools directly for anything beyond basic conversation:
 - memory and prior conversations
 - calendar, tasks, files, and local tools
 - web research and URLs the user asks you to inspect
 - factual questions where current or user-specific context matters
 - creating, updating, or remembering durable information
 
-When in doubt, use the relevant OpenClaw tool. Do not claim you lack access until an OpenClaw tool confirms the task cannot be done.
+When in doubt, use the relevant Genesis tool. Do not claim you lack access until an Genesis tool confirms the task cannot be done.
 
 ## Mandatory Memory Rule
 
-You do not have reliable memory of past sessions inside this live conversation. If the user asks what happened earlier, recently, last time, today, yesterday, or in any prior conversation, use OpenClaw memory or session-history tools before answering.
+You do not have reliable memory of past sessions inside this live conversation. If the user asks what happened earlier, recently, last time, today, yesterday, or in any prior conversation, use Genesis memory or session-history tools before answering.
 `.trim();
 
 export function buildInstructions(config: VoiceClawSessionConfigEvent): string {

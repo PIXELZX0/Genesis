@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
@@ -28,8 +28,8 @@ export type PluginActivationState = PluginActivationStateLike;
 
 export type PluginActivationConfigSource = {
   plugins: NormalizedPluginsConfig;
-  rootConfig?: OpenClawConfig;
-} & PluginActivationConfigSourceLike<OpenClawConfig>;
+  rootConfig?: GenesisConfig;
+} & PluginActivationConfigSourceLike<GenesisConfig>;
 
 export type NormalizedPluginsConfig = SharedNormalizedPluginsConfig;
 
@@ -91,13 +91,13 @@ export function normalizePluginId(id: string): string {
 }
 
 export const normalizePluginsConfig = (
-  config?: OpenClawConfig["plugins"],
+  config?: GenesisConfig["plugins"],
 ): NormalizedPluginsConfig => {
   return normalizePluginsConfigWithResolver(config, normalizePluginId);
 };
 
 export function createPluginActivationSource(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   plugins?: NormalizedPluginsConfig;
 }): PluginActivationConfigSource {
   return {
@@ -106,22 +106,22 @@ export function createPluginActivationSource(params: {
   };
 }
 
-const hasExplicitMemorySlot = (plugins?: OpenClawConfig["plugins"]) =>
+const hasExplicitMemorySlot = (plugins?: GenesisConfig["plugins"]) =>
   Boolean(plugins?.slots && Object.prototype.hasOwnProperty.call(plugins.slots, "memory"));
 
-const hasExplicitMemoryEntry = (plugins?: OpenClawConfig["plugins"]) =>
+const hasExplicitMemoryEntry = (plugins?: GenesisConfig["plugins"]) =>
   Boolean(
     plugins?.entries &&
     Object.prototype.hasOwnProperty.call(plugins.entries, defaultSlotIdForKey("memory")),
   );
 
-export const hasExplicitPluginConfig = (plugins?: OpenClawConfig["plugins"]) =>
+export const hasExplicitPluginConfig = (plugins?: GenesisConfig["plugins"]) =>
   hasExplicitPluginConfigShared(plugins);
 
 export function applyTestPluginDefaults(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
-): OpenClawConfig {
+): GenesisConfig {
   if (!env.VITEST) {
     return cfg;
   }
@@ -157,7 +157,7 @@ export function applyTestPluginDefaults(
 }
 
 export function isTestDefaultMemorySlotDisabled(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   if (!env.VITEST) {
@@ -174,7 +174,7 @@ export function resolvePluginActivationState(params: {
   id: string;
   origin: PluginOrigin;
   config: NormalizedPluginsConfig;
-  rootConfig?: OpenClawConfig;
+  rootConfig?: GenesisConfig;
   enabledByDefault?: boolean;
   activationSource?: PluginActivationConfigSource;
   autoEnabledReason?: string;
@@ -205,7 +205,7 @@ type EffectiveActivationParams = {
   id: string;
   origin: PluginOrigin;
   config: NormalizedPluginsConfig;
-  rootConfig?: OpenClawConfig;
+  rootConfig?: GenesisConfig;
   enabledByDefault?: boolean;
   activationSource?: PluginActivationConfigSource;
 };

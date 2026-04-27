@@ -11,15 +11,15 @@ import type {
 import { registerProviders, requireProvider } from "./contracts-testkit.js";
 
 type LoginOpenAICodexOAuth =
-  (typeof import("openclaw/plugin-sdk/provider-auth-login"))["loginOpenAICodexOAuth"];
+  (typeof import("genesis/plugin-sdk/provider-auth-login"))["loginOpenAICodexOAuth"];
 type GithubCopilotLoginCommand =
-  (typeof import("openclaw/plugin-sdk/provider-auth-login"))["githubCopilotLoginCommand"];
+  (typeof import("genesis/plugin-sdk/provider-auth-login"))["githubCopilotLoginCommand"];
 type CreateVpsAwareHandlers =
   (typeof import("../../../src/plugins/provider-oauth-flow.js"))["createVpsAwareOAuthHandlers"];
 type EnsureAuthProfileStore =
-  typeof import("openclaw/plugin-sdk/provider-auth").ensureAuthProfileStore;
+  typeof import("genesis/plugin-sdk/provider-auth").ensureAuthProfileStore;
 type ListProfilesForProvider =
-  typeof import("openclaw/plugin-sdk/provider-auth").listProfilesForProvider;
+  typeof import("genesis/plugin-sdk/provider-auth").listProfilesForProvider;
 
 const loginOpenAICodexOAuthMock = vi.hoisted(() => vi.fn<LoginOpenAICodexOAuth>());
 const githubCopilotLoginCommandMock = vi.hoisted(() => vi.fn<GithubCopilotLoginCommand>());
@@ -30,9 +30,9 @@ export type ProviderAuthContractPluginLoader = () => Promise<{
   default: Parameters<typeof registerProviders>[0];
 }>;
 
-vi.mock("openclaw/plugin-sdk/provider-auth-login", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/provider-auth-login")>(
-    "openclaw/plugin-sdk/provider-auth-login",
+vi.mock("genesis/plugin-sdk/provider-auth-login", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/provider-auth-login")>(
+    "genesis/plugin-sdk/provider-auth-login",
   );
   return {
     ...actual,
@@ -41,9 +41,9 @@ vi.mock("openclaw/plugin-sdk/provider-auth-login", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/provider-auth", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/provider-auth")>(
-    "openclaw/plugin-sdk/provider-auth",
+vi.mock("genesis/plugin-sdk/provider-auth", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/provider-auth")>(
+    "genesis/plugin-sdk/provider-auth",
   );
   return {
     ...actual,

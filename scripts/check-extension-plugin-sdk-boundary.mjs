@@ -143,7 +143,7 @@ function classifyReason(mode, kind, resolvedPath, specifier) {
         : "imports";
   if (mode === "relative-outside-package") {
     if (resolvedPath?.startsWith("src/plugin-sdk/")) {
-      return `${verb} plugin-sdk via relative path; use openclaw/plugin-sdk/<subpath>`;
+      return `${verb} plugin-sdk via relative path; use genesis/plugin-sdk/<subpath>`;
     }
     if (resolvedPath?.startsWith("src/")) {
       return `${verb} core src path via relative path outside the extension package`;

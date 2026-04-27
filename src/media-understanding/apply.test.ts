@@ -3,8 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import type { GenesisConfig } from "../config/types.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import { createSafeAudioFixtureBuffer } from "./runner.test-utils.js";
 import type { MediaUnderstandingProvider } from "./types.js";
@@ -35,7 +35,7 @@ const mockedFetchRemoteMedia = fetchRemoteMediaMock;
 const mockedRunFfmpeg = runFfmpegMock;
 const mockedRunExec = runExecMock;
 
-const TEMP_MEDIA_PREFIX = "openclaw-media-";
+const TEMP_MEDIA_PREFIX = "genesis-media-";
 let suiteTempMediaRootDir = "";
 let tempMediaDirCounter = 0;
 let sharedTempMediaCacheDir = "";
@@ -58,7 +58,7 @@ async function getSharedTempMediaCacheDir() {
   return sharedTempMediaCacheDir;
 }
 
-function createGroqAudioConfig(): OpenClawConfig {
+function createGroqAudioConfig(): GenesisConfig {
   return {
     tools: {
       media: {
@@ -106,7 +106,7 @@ function expectTranscriptApplied(params: {
   expect(params.ctx.BodyForCommands).toBe(params.commandBody);
 }
 
-function createMediaDisabledConfig(): OpenClawConfig {
+function createMediaDisabledConfig(): GenesisConfig {
   return {
     tools: {
       media: {
@@ -118,7 +118,7 @@ function createMediaDisabledConfig(): OpenClawConfig {
   };
 }
 
-function createMediaDisabledConfigWithAllowedMimes(allowedMimes: string[]): OpenClawConfig {
+function createMediaDisabledConfigWithAllowedMimes(allowedMimes: string[]): GenesisConfig {
   return {
     ...createMediaDisabledConfig(),
     gateway: {
@@ -169,7 +169,7 @@ async function withMediaAutoDetectEnv<T>(
       GROQ_API_KEY: undefined,
       DEEPGRAM_API_KEY: undefined,
       GEMINI_API_KEY: undefined,
-      OPENCLAW_AGENT_DIR: undefined,
+      GENESIS_AGENT_DIR: undefined,
       PI_CODING_AGENT_DIR: undefined,
       ...env,
     },
@@ -196,14 +196,14 @@ async function createAudioCtx(params?: {
 
 async function setupAudioAutoDetectCase(stdout: string): Promise<{
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 }> {
   const ctx = await createAudioCtx({
     fileName: "sample.wav",
     mediaType: "audio/wav",
     content: createSafeAudioFixtureBuffer(2048),
   });
-  const cfg: OpenClawConfig = { tools: { media: { audio: {} } } };
+  const cfg: GenesisConfig = { tools: { media: { audio: {} } } };
   mockedRunExec.mockResolvedValueOnce({
     stdout,
     stderr: "",
@@ -215,7 +215,7 @@ async function applyWithDisabledMedia(params: {
   body: string;
   mediaPath: string;
   mediaType?: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }) {
   const ctx: MsgContext = {
     Body: params.body,
@@ -296,7 +296,7 @@ describe("applyMediaUnderstanding", () => {
     ({ applyMediaUnderstanding } = await import("./apply.js"));
     ({ clearMediaUnderstandingBinaryCacheForTests } = await import("./runner.js"));
 
-    const baseDir = resolvePreferredOpenClawTmpDir();
+    const baseDir = resolvePreferredGenesisTmpDir();
     await fs.mkdir(baseDir, { recursive: true });
     suiteTempMediaRootDir = await fs.mkdtemp(path.join(baseDir, TEMP_MEDIA_PREFIX));
   });
@@ -393,7 +393,7 @@ describe("applyMediaUnderstanding", () => {
       MediaType: "audio/ogg",
       ChatType: "direct",
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -432,7 +432,7 @@ describe("applyMediaUnderstanding", () => {
     });
     ctx.Surface = "whatsapp";
 
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -474,7 +474,7 @@ describe("applyMediaUnderstanding", () => {
       ChatType: "dm",
     };
     const transcribeAudio = vi.fn(async () => ({ text: "should-not-run" }));
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -509,7 +509,7 @@ describe("applyMediaUnderstanding", () => {
       content: Buffer.from([0, 255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
     });
     const transcribeAudio = vi.fn(async () => ({ text: "should-not-run" }));
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -534,7 +534,7 @@ describe("applyMediaUnderstanding", () => {
 
   it("falls back to CLI model when provider fails", async () => {
     const ctx = await createAudioCtx();
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -577,7 +577,7 @@ describe("applyMediaUnderstanding", () => {
 
   it("reads parakeet-mlx transcript from output-dir txt file", async () => {
     const ctx = await createAudioCtx({ fileName: "sample.wav", mediaType: "audio/wav" });
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -615,7 +615,7 @@ describe("applyMediaUnderstanding", () => {
 
   it("falls back to stdout for parakeet-mlx when output format is not txt", async () => {
     const ctx = await createAudioCtx({ fileName: "sample.wav", mediaType: "audio/wav" });
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -724,7 +724,7 @@ describe("applyMediaUnderstanding", () => {
       mediaType: "audio/ogg",
       content: createSafeAudioFixtureBuffer(2048),
     });
-    const cfg: OpenClawConfig = { tools: { media: { audio: {} } } };
+    const cfg: GenesisConfig = { tools: { media: { audio: {} } } };
 
     mockedRunFfmpeg.mockImplementationOnce(async (args: string[]) => {
       const wavPath = args.at(-1);
@@ -780,7 +780,7 @@ describe("applyMediaUnderstanding", () => {
       mediaType: "audio/wav",
       content: createSafeAudioFixtureBuffer(2048),
     });
-    const cfg: OpenClawConfig = { tools: { media: { audio: {} } } };
+    const cfg: GenesisConfig = { tools: { media: { audio: {} } } };
     mockedResolveApiKey.mockResolvedValue({
       source: "none",
       mode: "api-key",
@@ -789,7 +789,7 @@ describe("applyMediaUnderstanding", () => {
     await withMediaAutoDetectEnv(
       {
         PATH: emptyBinDir,
-        OPENCLAW_AGENT_DIR: isolatedAgentDir,
+        GENESIS_AGENT_DIR: isolatedAgentDir,
         PI_CODING_AGENT_DIR: isolatedAgentDir,
       },
       async () => {
@@ -814,7 +814,7 @@ describe("applyMediaUnderstanding", () => {
       MediaPath: imagePath,
       MediaType: "image/jpeg",
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           image: {
@@ -860,7 +860,7 @@ describe("applyMediaUnderstanding", () => {
       MediaPath: imagePath,
       MediaType: "image/jpeg",
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           models: [
@@ -900,7 +900,7 @@ describe("applyMediaUnderstanding", () => {
       MediaPath: audioPath,
       MediaType: "audio/ogg",
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -939,7 +939,7 @@ describe("applyMediaUnderstanding", () => {
       MediaPaths: [audioPathA, audioPathB],
       MediaTypes: ["audio/ogg", "audio/ogg"],
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           audio: {
@@ -983,7 +983,7 @@ describe("applyMediaUnderstanding", () => {
       MediaPaths: [imagePath, audioPath, videoPath],
       MediaTypes: ["image/jpeg", "audio/ogg", "video/mp4"],
     };
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       tools: {
         media: {
           image: { enabled: true, models: [{ provider: "openai", model: "gpt-5.4" }] },

@@ -14,7 +14,7 @@ describeLive("moonshot plugin live", () => {
       searchConfig: { kimi: { apiKey: KIMI_SEARCH_KEY }, cacheTtlMinutes: 0 },
     } as never);
 
-    const result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+    const result = await tool?.execute({ query: "Genesis GitHub", count: 1 });
 
     expect(result?.provider).toBe("kimi");
     expect(typeof result?.content).toBe("string");

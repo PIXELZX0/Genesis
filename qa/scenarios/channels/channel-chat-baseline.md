@@ -24,7 +24,7 @@ execution:
   kind: flow
   summary: Verify the QA agent can respond correctly in a shared channel and respect mention-driven group semantics.
   config:
-    mentionPrompt: "@openclaw explain the QA lab"
+    mentionPrompt: "@genesis explain the QA lab"
 ```
 
 ```yaml qa-flow

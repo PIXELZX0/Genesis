@@ -112,7 +112,7 @@ const loadCronStoreMock = vi.fn();
 vi.mock("../../cron/store.js", () => {
   return {
     loadCronStore: (...args: unknown[]) => loadCronStoreMock(...args),
-    resolveCronStorePath: (storePath?: string) => storePath ?? "/tmp/openclaw-cron-store.json",
+    resolveCronStorePath: (storePath?: string) => storePath ?? "/tmp/genesis-cron-store.json",
   };
 });
 
@@ -233,7 +233,7 @@ describe("runReplyAgent auto-compaction token update", () => {
   }
 
   it("updates totalTokens from lastCallUsage even without compaction", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-usage-last-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-usage-last-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry = {
@@ -489,7 +489,7 @@ describe("runReplyAgent block streaming", () => {
 
 describe("runReplyAgent Active Memory inline debug", () => {
   it("appends inline Active Memory status payload when verbose is enabled", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-active-memory-inline-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-active-memory-inline-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry: SessionEntry = {
@@ -600,7 +600,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("appends inline Active Memory status and trace payloads when verbose and trace are enabled", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-active-memory-inline-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-active-memory-inline-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry: SessionEntry = {
@@ -712,7 +712,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("appends inline Active Memory trace payload when only trace is enabled", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-active-memory-inline-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-active-memory-inline-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry: SessionEntry = {
@@ -823,7 +823,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("appends raw trace payloads when trace raw is enabled", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-trace-raw-usage-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-trace-raw-usage-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionFile = path.join(tmp, "session.jsonl");
     const sessionKey = "main";
@@ -1060,7 +1060,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("does not emit persisted trace output to an unauthorized sender", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-trace-raw-unauthorized-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-trace-raw-unauthorized-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionFile = path.join(tmp, "session.jsonl");
     const sessionKey = "main";
@@ -1156,7 +1156,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("shows session and last-turn usage totals without per-call usage blocks", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-trace-raw-usage-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-trace-raw-usage-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionFile = path.join(tmp, "session.jsonl");
     const sessionKey = "main";
@@ -1276,7 +1276,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("escapes markdown fence delimiters inside raw trace blocks", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-trace-raw-fence-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-trace-raw-fence-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionFile = path.join(tmp, "session.jsonl");
     const sessionKey = "main";
@@ -1373,7 +1373,7 @@ describe("runReplyAgent Active Memory inline debug", () => {
   });
 
   it("does not reload the session store when verbose is disabled", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-active-memory-inline-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-active-memory-inline-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     const sessionEntry: SessionEntry = {

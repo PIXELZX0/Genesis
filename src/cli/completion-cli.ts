@@ -75,7 +75,7 @@ export function registerCompletionCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/completion", "docs.openclaw.ai/cli/completion")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/completion", "docs.genesis.ai/cli/completion")}\n`,
     )
     .addOption(
       new Option("-s, --shell <shell>", "Shell to generate completion for (default: zsh)").choices(
@@ -85,7 +85,7 @@ export function registerCompletionCli(program: Command) {
     .option("-i, --install", "Install completion script to shell profile")
     .option(
       "--write-state",
-      "Write completion scripts to $OPENCLAW_STATE_DIR/completions (no stdout)",
+      "Write completion scripts to $GENESIS_STATE_DIR/completions (no stdout)",
     )
     .option("-y, --yes", "Skip confirmation (non-interactive)", false)
     .action(async (options) => {

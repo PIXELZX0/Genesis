@@ -512,7 +512,7 @@ describe("feishu_doc image fetch hardening", () => {
     await executeFeishuDocTool(feishuDocTool, {
       action: "upload_file",
       doc_token: "doc_1",
-      file_path: "/tmp/openclaw-1000/test-local.txt",
+      file_path: "/tmp/genesis-1000/test-local.txt",
       filename: "test-local.txt",
     });
 
@@ -542,7 +542,7 @@ describe("feishu_doc image fetch hardening", () => {
     await executeFeishuDocTool(feishuDocTool, {
       action: "upload_file",
       doc_token: "doc_1",
-      file_path: "/tmp/openclaw-1000/test-local.txt",
+      file_path: "/tmp/genesis-1000/test-local.txt",
       filename: "test-local.txt",
     });
 
@@ -667,7 +667,7 @@ describe("feishu_doc image fetch hardening", () => {
 
     loadWebMediaMock.mockRejectedValueOnce(
       new Error(
-        "Local media path is not under an allowed directory: /home/admin/.openclaw/openclaw.json",
+        "Local media path is not under an allowed directory: /home/admin/.genesis/genesis.json",
       ),
     );
 
@@ -676,7 +676,7 @@ describe("feishu_doc image fetch hardening", () => {
     const result = await executeFeishuDocTool(feishuDocTool, {
       action: "upload_image",
       doc_token: "doc_1",
-      file_path: "/home/admin/.openclaw/openclaw.json",
+      file_path: "/home/admin/.genesis/genesis.json",
     });
 
     expect(result.details.error).toContain("not under an allowed directory");

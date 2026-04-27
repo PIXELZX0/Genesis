@@ -103,8 +103,8 @@ describe("resolveDiscordRestFetch", () => {
   });
 
   it("uses debug proxy env when no discord proxy URL is configured", async () => {
-    vi.stubEnv("OPENCLAW_DEBUG_PROXY_ENABLED", "1");
-    vi.stubEnv("OPENCLAW_DEBUG_PROXY_URL", "http://127.0.0.1:7777");
+    vi.stubEnv("GENESIS_DEBUG_PROXY_ENABLED", "1");
+    vi.stubEnv("GENESIS_DEBUG_PROXY_URL", "http://127.0.0.1:7777");
     const runtime = {
       log: vi.fn(),
       error: vi.fn(),

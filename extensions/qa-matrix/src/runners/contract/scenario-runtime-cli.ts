@@ -1,9 +1,9 @@
-import { spawn as startOpenClawCliProcess } from "node:child_process";
+import { spawn as startGenesisCliProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { redactSensitiveText } from "openclaw/plugin-sdk/logging-core";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { redactSensitiveText } from "genesis/plugin-sdk/logging-core";
 
 export type MatrixQaCliRunResult = {
   args: string[];
@@ -46,10 +46,10 @@ export function redactMatrixQaCliOutput(text: string): string {
 }
 
 export function formatMatrixQaCliCommand(args: string[]) {
-  return `openclaw ${redactMatrixQaCliArgs(args).join(" ")}`;
+  return `genesis ${redactMatrixQaCliArgs(args).join(" ")}`;
 }
 
-export function resolveMatrixQaOpenClawCliEntryPath(cwd: string): string {
+export function resolveMatrixQaGenesisCliEntryPath(cwd: string): string {
   const mjsEntryPath = path.join(cwd, "dist", "index.mjs");
   if (existsSync(mjsEntryPath)) {
     return mjsEntryPath;
@@ -80,14 +80,14 @@ function formatMatrixQaCliExitError(result: MatrixQaCliRunResult) {
     .join("\n");
 }
 
-export function startMatrixQaOpenClawCli(params: {
+export function startMatrixQaGenesisCli(params: {
   args: string[];
   cwd?: string;
   env: NodeJS.ProcessEnv;
   timeoutMs: number;
 }): MatrixQaCliSession {
   const cwd = params.cwd ?? process.cwd();
-  const distEntryPath = resolveMatrixQaOpenClawCliEntryPath(cwd);
+  const distEntryPath = resolveMatrixQaGenesisCliEntryPath(cwd);
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];
   let closed = false;
@@ -99,7 +99,7 @@ export function startMatrixQaOpenClawCli(params: {
       }
     | undefined;
 
-  const child = startOpenClawCliProcess(process.execPath, [distEntryPath, ...params.args], {
+  const child = startGenesisCliProcess(process.execPath, [distEntryPath, ...params.args], {
     cwd,
     env: params.env,
     stdio: ["pipe", "pipe", "pipe"],
@@ -214,11 +214,11 @@ export function startMatrixQaOpenClawCli(params: {
   };
 }
 
-export async function runMatrixQaOpenClawCli(params: {
+export async function runMatrixQaGenesisCli(params: {
   args: string[];
   cwd?: string;
   env: NodeJS.ProcessEnv;
   timeoutMs: number;
 }): Promise<MatrixQaCliRunResult> {
-  return await startMatrixQaOpenClawCli(params).wait();
+  return await startMatrixQaGenesisCli(params).wait();
 }

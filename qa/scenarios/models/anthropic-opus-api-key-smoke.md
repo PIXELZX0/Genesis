@@ -24,7 +24,7 @@ codeRefs:
   - extensions/qa-lab/src/suite.ts
 execution:
   kind: flow
-  summary: Run with `pnpm openclaw qa suite --provider-mode live-frontier --model anthropic/claude-opus-4-6 --alt-model anthropic/claude-opus-4-6 --scenario anthropic-opus-api-key-smoke`.
+  summary: Run with `pnpm genesis qa suite --provider-mode live-frontier --model anthropic/claude-opus-4-6 --alt-model anthropic/claude-opus-4-6 --scenario anthropic-opus-api-key-smoke`.
   config:
     requiredProvider: anthropic
     requiredModel: claude-opus-4-6

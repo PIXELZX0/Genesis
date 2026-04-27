@@ -8,12 +8,12 @@ import {
   type OpenAiCompatibleVideoPayload,
   type VideoDescriptionRequest,
   type VideoDescriptionResult,
-} from "openclaw/plugin-sdk/media-understanding";
+} from "genesis/plugin-sdk/media-understanding";
 import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import { MOONSHOT_DEFAULT_MODEL_ID } from "./provider-catalog.js";
 
 export const DEFAULT_MOONSHOT_VIDEO_BASE_URL = "https://api.moonshot.ai/v1";

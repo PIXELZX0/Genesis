@@ -10,7 +10,7 @@ type ResolveStorePathFn = SessionRuntimeModule["resolveStorePath"];
 
 const { recordInboundSessionMock, resolveStorePathMock } = vi.hoisted(() => ({
   recordInboundSessionMock: vi.fn<RecordInboundSessionFn>(async () => undefined),
-  resolveStorePathMock: vi.fn<ResolveStorePathFn>(() => "/tmp/openclaw-session-store.json"),
+  resolveStorePathMock: vi.fn<ResolveStorePathFn>(() => "/tmp/genesis-session-store.json"),
 }));
 
 vi.mock("./bot-message-context.session.runtime.js", async () => {
@@ -43,7 +43,7 @@ vi.mock("./bot-message-context.body.js", () => ({
 const { buildTelegramMessageContextForTest } =
   await import("./bot-message-context.test-harness.js");
 const { clearRuntimeConfigSnapshot, setRuntimeConfigSnapshot } =
-  await import("openclaw/plugin-sdk/config-runtime");
+  await import("genesis/plugin-sdk/config-runtime");
 
 beforeEach(() => {
   clearRuntimeConfigSnapshot();
@@ -55,7 +55,7 @@ afterEach(() => {
   resetTopicNameCacheForTest();
   recordInboundSessionMock.mockClear();
   resolveStorePathMock.mockReset();
-  resolveStorePathMock.mockReturnValue("/tmp/openclaw-session-store.json");
+  resolveStorePathMock.mockReturnValue("/tmp/genesis-session-store.json");
 });
 
 describe("buildTelegramMessageContext dm thread sessions", () => {
@@ -203,7 +203,7 @@ describe("buildTelegramMessageContext group sessions without forum", () => {
   });
 
   it("reloads topic name from disk after cache reset", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-telegram-topic-name-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-telegram-topic-name-"));
     const sessionStorePath = path.join(tempDir, "sessions.json");
     const buildPersistedContext = async (message: Record<string, unknown>) =>
       await buildTelegramMessageContextForTest({
@@ -249,7 +249,7 @@ describe("buildTelegramMessageContext group sessions without forum", () => {
   });
 
   it("persists topic names through the default session runtime path", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-telegram-topic-name-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-telegram-topic-name-"));
     const sessionStorePath = path.join(tempDir, "sessions.json");
     resolveStorePathMock.mockReturnValue(sessionStorePath);
 
@@ -300,7 +300,7 @@ describe("buildTelegramMessageContext group sessions without forum", () => {
 describe("buildTelegramMessageContext direct peer routing", () => {
   it("isolates dm sessions by sender id when chat id differs", async () => {
     const runtimeCfg = {
-      agents: { defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/openclaw" } },
+      agents: { defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/genesis" } },
       channels: { telegram: {} },
       messages: { groupChat: { mentionPatterns: [] } },
       session: { dmScope: "per-channel-peer" as const },

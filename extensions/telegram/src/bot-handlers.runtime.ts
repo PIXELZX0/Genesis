@@ -1,35 +1,35 @@
 import type { Message, ReactionTypeEmoji } from "@grammyjs/types";
-import { resolveChannelConfigWrites } from "openclaw/plugin-sdk/channel-config-helpers";
-import { shouldDebounceTextInbound } from "openclaw/plugin-sdk/channel-inbound";
+import { resolveChannelConfigWrites } from "genesis/plugin-sdk/channel-config-helpers";
+import { shouldDebounceTextInbound } from "genesis/plugin-sdk/channel-inbound";
 import {
   createInboundDebouncer,
   resolveInboundDebounceMs,
-} from "openclaw/plugin-sdk/channel-inbound-debounce";
-import { resolveStoredModelOverride } from "openclaw/plugin-sdk/command-auth";
+} from "genesis/plugin-sdk/channel-inbound-debounce";
+import { resolveStoredModelOverride } from "genesis/plugin-sdk/command-auth";
 import {
   resolveCommandAuthorization,
   resolveCommandAuthorizedFromAuthorizers,
-} from "openclaw/plugin-sdk/command-auth-native";
-import { buildCommandsMessagePaginated } from "openclaw/plugin-sdk/command-status";
-import { writeConfigFile } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/command-auth-native";
+import { buildCommandsMessagePaginated } from "genesis/plugin-sdk/command-status";
+import { writeConfigFile } from "genesis/plugin-sdk/config-runtime";
 import {
   loadSessionStore,
   resolveSessionStoreEntry,
   updateSessionStore,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { DmPolicy, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { TelegramGroupConfig, TelegramTopicConfig } from "openclaw/plugin-sdk/config-runtime";
-import { applyModelOverrideToSessionEntry } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/config-runtime";
+import type { DmPolicy, GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { TelegramGroupConfig, TelegramTopicConfig } from "genesis/plugin-sdk/config-runtime";
+import { applyModelOverrideToSessionEntry } from "genesis/plugin-sdk/config-runtime";
 import {
   buildPluginBindingResolvedText,
   parsePluginBindingApprovalCustomId,
   resolvePluginConversationBindingApproval,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { parseExecApprovalCommandText } from "openclaw/plugin-sdk/infra-runtime";
-import { formatModelsAvailableHeader } from "openclaw/plugin-sdk/models-provider-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { resolveThreadSessionKeys } from "openclaw/plugin-sdk/routing";
-import { danger, logVerbose, warn } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { parseExecApprovalCommandText } from "genesis/plugin-sdk/infra-runtime";
+import { formatModelsAvailableHeader } from "genesis/plugin-sdk/models-provider-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { resolveThreadSessionKeys } from "genesis/plugin-sdk/routing";
+import { danger, logVerbose, warn } from "genesis/plugin-sdk/runtime-env";
 import { resolveTelegramMediaRuntimeOptions } from "./accounts.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import {
@@ -796,7 +796,7 @@ export const registerTelegramHandlers = ({
     senderId: string;
     senderUsername: string;
     context: TelegramEventAuthorizationContext;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
   }): boolean => {
     const { chatId, isGroup, senderId, senderUsername, context, cfg } = params;
     const useAccessGroups = cfg.commands?.useAccessGroups !== false;

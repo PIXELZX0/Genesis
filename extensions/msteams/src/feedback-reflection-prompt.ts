@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 
 /** Max chars of the thumbed-down response to include in the reflection prompt. */
 const MAX_RESPONSE_CHARS = 500;

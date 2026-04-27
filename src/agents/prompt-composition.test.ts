@@ -79,7 +79,7 @@ describe("prompt composition invariants", () => {
 
     expect(first.systemPrompt).toContain("You are in a Slack direct conversation.");
     expect(first.systemPrompt).toContain('reply with exactly "NO_REPLY"');
-    expect(first.systemPrompt).toContain("so OpenClaw can send a short fallback reply");
+    expect(first.systemPrompt).toContain("so Genesis can send a short fallback reply");
   });
 
   it("keeps maintenance prompts out of the normal stable-turn invariant set", () => {

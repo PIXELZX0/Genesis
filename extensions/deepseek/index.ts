@@ -1,6 +1,6 @@
-import { readConfiguredProviderCatalogEntries } from "openclaw/plugin-sdk/provider-catalog-shared";
-import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
-import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-model-shared";
+import { readConfiguredProviderCatalogEntries } from "genesis/plugin-sdk/provider-catalog-shared";
+import { defineSingleProviderPluginEntry } from "genesis/plugin-sdk/provider-entry";
+import { buildProviderReplayFamilyHooks } from "genesis/plugin-sdk/provider-model-shared";
 import { applyDeepSeekConfig, DEEPSEEK_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildDeepSeekProvider } from "./provider-catalog.js";
 import { createDeepSeekV4ThinkingWrapper } from "./stream.js";

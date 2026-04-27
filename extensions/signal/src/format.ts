@@ -1,11 +1,11 @@
-import type { MarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
+import type { MarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
 import {
   markdownToIR,
   normalizeLowercaseStringOrEmpty,
   type MarkdownIR,
   type MarkdownStyle,
   renderMarkdownIRChunksWithinLimit,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 type SignalTextStyle = "BOLD" | "ITALIC" | "STRIKETHROUGH" | "MONOSPACE" | "SPOILER";
 

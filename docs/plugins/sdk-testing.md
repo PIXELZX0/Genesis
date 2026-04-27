@@ -1,5 +1,5 @@
 ---
-summary: "Testing utilities and patterns for OpenClaw plugins"
+summary: "Testing utilities and patterns for Genesis plugins"
 title: "Plugin testing"
 sidebarTitle: "Testing"
 read_when:
@@ -8,7 +8,7 @@ read_when:
   - You want to understand contract tests for bundled plugins
 ---
 
-Reference for test utilities, patterns, and lint enforcement for OpenClaw
+Reference for test utilities, patterns, and lint enforcement for Genesis
 plugins.
 
 <Tip>
@@ -19,7 +19,7 @@ plugins.
 
 ## Test utilities
 
-**Import:** `openclaw/plugin-sdk/testing`
+**Import:** `genesis/plugin-sdk/testing`
 
 The testing subpath exports a narrow set of helpers for plugin authors:
 
@@ -28,7 +28,7 @@ import {
   installCommonResolveTargetErrorCases,
   shouldAckReaction,
   removeAckReactionAfterReply,
-} from "openclaw/plugin-sdk/testing";
+} from "genesis/plugin-sdk/testing";
 ```
 
 ### Available exports
@@ -47,11 +47,11 @@ The testing subpath also re-exports types useful in test files:
 import type {
   ChannelAccountSnapshot,
   ChannelGatewayContext,
-  OpenClawConfig,
+  GenesisConfig,
   PluginRuntime,
   RuntimeEnv,
   MockFn,
-} from "openclaw/plugin-sdk/testing";
+} from "genesis/plugin-sdk/testing";
 ```
 
 ## Testing target resolution
@@ -61,7 +61,7 @@ channel target resolution:
 
 ```typescript
 import { describe } from "vitest";
-import { installCommonResolveTargetErrorCases } from "openclaw/plugin-sdk/testing";
+import { installCommonResolveTargetErrorCases } from "genesis/plugin-sdk/testing";
 
 describe("my-channel target resolution", () => {
   installCommonResolveTargetErrorCases({
@@ -150,8 +150,8 @@ describe("my-provider plugin", () => {
 For code that uses `createPluginRuntimeStore`, mock the runtime in tests:
 
 ```typescript
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
-import type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+import { createPluginRuntimeStore } from "genesis/plugin-sdk/runtime-store";
+import type { PluginRuntime } from "genesis/plugin-sdk/runtime-store";
 
 const store = createPluginRuntimeStore<PluginRuntime>({
   pluginId: "test-plugin",
@@ -225,7 +225,7 @@ pnpm test -- src/plugins/contracts/runtime.contract.test.ts
 
 Three rules are enforced by `pnpm check` for in-repo plugins:
 
-1. **No monolithic root imports** -- `openclaw/plugin-sdk` root barrel is rejected
+1. **No monolithic root imports** -- `genesis/plugin-sdk` root barrel is rejected
 2. **No direct `src/` imports** -- plugins cannot import `../../src/` directly
 3. **No self-imports** -- plugins cannot import their own `plugin-sdk/<name>` subpath
 
@@ -234,7 +234,7 @@ patterns is recommended.
 
 ## Test configuration
 
-OpenClaw uses Vitest with V8 coverage thresholds. For plugin tests:
+Genesis uses Vitest with V8 coverage thresholds. For plugin tests:
 
 ```bash
 # Run all tests
@@ -253,7 +253,7 @@ pnpm test:coverage
 If local runs cause memory pressure:
 
 ```bash
-OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test
+GENESIS_VITEST_MAX_WORKERS=1 pnpm test
 ```
 
 ## Related

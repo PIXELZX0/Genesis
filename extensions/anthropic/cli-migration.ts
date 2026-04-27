@@ -1,19 +1,19 @@
 import {
   CLAUDE_CLI_PROFILE_ID,
-  type OpenClawConfig,
+  type GenesisConfig,
   type ProviderAuthResult,
-} from "openclaw/plugin-sdk/provider-auth";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-auth";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import {
   readClaudeCliCredentialsForSetup,
   readClaudeCliCredentialsForSetupNonInteractive,
 } from "./cli-auth-seam.js";
 import { CLAUDE_CLI_BACKEND_ID, CLAUDE_CLI_DEFAULT_ALLOWLIST_REFS } from "./cli-shared.js";
 
-type AgentDefaultsModel = NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>["model"];
-type AgentDefaultsModels = NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>["models"];
+type AgentDefaultsModel = NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]>["model"];
+type AgentDefaultsModels = NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]>["models"];
 type AgentDefaultsEmbeddedHarness = NonNullable<
-  NonNullable<OpenClawConfig["agents"]>["defaults"]
+  NonNullable<GenesisConfig["agents"]>["defaults"]
 >["embeddedHarness"];
 type ClaudeCliCredential = NonNullable<ReturnType<typeof readClaudeCliCredentialsForSetup>>;
 
@@ -180,7 +180,7 @@ function buildClaudeCliAuthProfiles(
 }
 
 export function buildAnthropicCliMigrationResult(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   credential?: ClaudeCliCredential | null,
 ): ProviderAuthResult {
   const defaults = config.agents?.defaults;

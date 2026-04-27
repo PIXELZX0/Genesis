@@ -1,14 +1,14 @@
 import {
   fetchWithRuntimeDispatcherOrMockedGlobal,
   isMockedFetch,
-} from "openclaw/plugin-sdk/runtime-fetch";
+} from "genesis/plugin-sdk/runtime-fetch";
 import {
   closeDispatcher,
   createPinnedDispatcher,
   resolvePinnedHostnameWithPolicy,
   type PinnedDispatcherPolicy,
   type SsrFPolicy,
-} from "openclaw/plugin-sdk/ssrf-dispatcher";
+} from "genesis/plugin-sdk/ssrf-dispatcher";
 export { buildTimeoutAbortSignal } from "./timeout-abort-signal.js";
 
 export {

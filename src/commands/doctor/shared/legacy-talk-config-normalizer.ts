@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
 import { normalizeTalkSection } from "../../../config/talk.js";
-import type { OpenClawConfig } from "../../../config/types.js";
+import type { GenesisConfig } from "../../../config/types.js";
 
 function buildLegacyTalkProviderCompat(
   talk: Record<string, unknown>,
@@ -18,13 +18,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-export function normalizeLegacyTalkConfig(cfg: OpenClawConfig, changes: string[]): OpenClawConfig {
+export function normalizeLegacyTalkConfig(cfg: GenesisConfig, changes: string[]): GenesisConfig {
   const rawTalk = cfg.talk;
   if (!isRecord(rawTalk)) {
     return cfg;
   }
 
-  const normalizedTalk = normalizeTalkSection(rawTalk as OpenClawConfig["talk"]) ?? {};
+  const normalizedTalk = normalizeTalkSection(rawTalk as GenesisConfig["talk"]) ?? {};
   const legacyProviderCompat = buildLegacyTalkProviderCompat(rawTalk);
   if (legacyProviderCompat) {
     normalizedTalk.providers = {

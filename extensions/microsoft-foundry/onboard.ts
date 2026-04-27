@@ -1,10 +1,10 @@
-import type { ProviderAuthContext } from "openclaw/plugin-sdk/core";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import type { ProviderAuthContext } from "genesis/plugin-sdk/core";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import {
   normalizeOptionalString,
   normalizeStringifiedOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   azLoginDeviceCode,
   azLoginDeviceCodeWithOptions,

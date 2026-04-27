@@ -2,7 +2,7 @@ import {
   hashText,
   normalizeExtraMemoryPaths,
   type MemorySource,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
 
 export type MemoryIndexMeta = {
   model: string;

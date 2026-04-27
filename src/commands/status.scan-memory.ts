@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { getAgentLocalStatuses as getAgentLocalStatusesFn } from "./status.agent-local.js";
 import {
   resolveSharedMemoryStatusSnapshot,
@@ -24,7 +24,7 @@ export function resolveDefaultMemoryStorePath(agentId: string): string {
 }
 
 export async function resolveStatusMemoryStatusSnapshot(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentStatus: Awaited<ReturnType<typeof getAgentLocalStatusesFn>>;
   memoryPlugin: MemoryPluginStatus;
   requireDefaultStore?: (agentId: string) => string;

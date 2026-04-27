@@ -1,7 +1,7 @@
 import { rmSync } from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { SpeechProviderPlugin, SpeechSynthesisRequest } from "openclaw/plugin-sdk/speech-core";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { SpeechProviderPlugin, SpeechSynthesisRequest } from "genesis/plugin-sdk/speech-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 type MockSpeechSynthesisResult = Awaited<ReturnType<SpeechProviderPlugin["synthesize"]>>;
@@ -20,7 +20,7 @@ const synthesizeMock = vi.hoisted(() =>
 const listSpeechProvidersMock = vi.hoisted(() => vi.fn());
 const getSpeechProviderMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/channel-targets", () => ({
+vi.mock("genesis/plugin-sdk/channel-targets", () => ({
   normalizeChannelId: (channel: string | undefined) => channel?.trim().toLowerCase() ?? null,
 }));
 
@@ -53,7 +53,7 @@ const { _test, maybeApplyTtsToPayload } = await import("./tts.js");
 
 const nativeVoiceNoteChannels = ["discord", "feishu", "matrix", "telegram", "whatsapp"] as const;
 
-function createTtsConfig(prefsName: string): OpenClawConfig {
+function createTtsConfig(prefsName: string): GenesisConfig {
   return {
     messages: {
       tts: {
@@ -111,7 +111,7 @@ describe("speech-core native voice-note routing", () => {
   it("marks Discord auto TTS replies as native voice messages", async () => {
     await expectTtsPayloadResult({
       channel: "discord",
-      prefsName: "openclaw-speech-core-tts-test",
+      prefsName: "genesis-speech-core-tts-test",
       text: "This Discord reply should be delivered as a native voice note.",
       target: "voice-note",
       audioAsVoice: true,
@@ -121,7 +121,7 @@ describe("speech-core native voice-note routing", () => {
   it("keeps non-native voice-note channels as regular audio files", async () => {
     await expectTtsPayloadResult({
       channel: "slack",
-      prefsName: "openclaw-speech-core-tts-slack-test",
+      prefsName: "genesis-speech-core-tts-slack-test",
       text: "Slack replies should be delivered as regular audio attachments.",
       target: "audio-file",
       audioAsVoice: undefined,

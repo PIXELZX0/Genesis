@@ -1,7 +1,7 @@
 import {
   expectChannelInboundContextContract,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/testing";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/testing";
 import { describe, it } from "vitest";
 import { buildTelegramMessageContextForTest } from "./bot-message-context.test-harness.js";
 
@@ -20,7 +20,7 @@ describe("Telegram inbound context contract", () => {
             groups: { "*": { requireMention: false } },
           },
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       message: {
         chat: { id: 42, type: "group", title: "Ops" },
         text: "hello",

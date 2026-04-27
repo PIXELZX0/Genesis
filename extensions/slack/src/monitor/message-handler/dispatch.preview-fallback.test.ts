@@ -116,11 +116,11 @@ function createPreparedSlackMessage(params?: {
   } as never;
 }
 
-vi.mock("openclaw/plugin-sdk/agent-runtime", () => ({
+vi.mock("genesis/plugin-sdk/agent-runtime", () => ({
   resolveHumanDelayConfig: () => undefined,
 }));
 
-vi.mock("openclaw/plugin-sdk/channel-feedback", () => ({
+vi.mock("genesis/plugin-sdk/channel-feedback", () => ({
   DEFAULT_TIMING: {
     doneHoldMs: 0,
     errorHoldMs: 0,
@@ -139,7 +139,7 @@ vi.mock("openclaw/plugin-sdk/channel-feedback", () => ({
   removeAckReactionAfterReply: () => {},
 }));
 
-vi.mock("openclaw/plugin-sdk/channel-reply-pipeline", () => ({
+vi.mock("genesis/plugin-sdk/channel-reply-pipeline", () => ({
   createChannelReplyPipeline: () => ({
     typingCallbacks: {
       onIdle: vi.fn(),
@@ -148,21 +148,21 @@ vi.mock("openclaw/plugin-sdk/channel-reply-pipeline", () => ({
   }),
 }));
 
-vi.mock("openclaw/plugin-sdk/channel-streaming", () => ({
+vi.mock("genesis/plugin-sdk/channel-streaming", () => ({
   resolveChannelStreamingBlockEnabled: () => mockedBlockStreamingEnabled,
   resolveChannelStreamingNativeTransport: () => mockedNativeStreaming,
   resolveChannelStreamingPreviewToolProgress: () => true,
 }));
 
-vi.mock("openclaw/plugin-sdk/outbound-runtime", () => ({
+vi.mock("genesis/plugin-sdk/outbound-runtime", () => ({
   resolveAgentOutboundIdentity: () => undefined,
 }));
 
-vi.mock("openclaw/plugin-sdk/reply-history", () => ({
+vi.mock("genesis/plugin-sdk/reply-history", () => ({
   clearHistoryEntriesIfEnabled: () => {},
 }));
 
-vi.mock("openclaw/plugin-sdk/reply-payload", () => ({
+vi.mock("genesis/plugin-sdk/reply-payload", () => ({
   resolveSendableOutboundReplyParts: (
     payload: { text?: string; mediaUrl?: string; mediaUrls?: string[] },
     opts?: { text?: string },
@@ -180,17 +180,17 @@ vi.mock("openclaw/plugin-sdk/reply-payload", () => ({
   },
 }));
 
-vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
+vi.mock("genesis/plugin-sdk/runtime-env", () => ({
   danger: (message: string) => message,
   logVerbose: () => {},
   shouldLogVerbose: () => false,
 }));
 
-vi.mock("openclaw/plugin-sdk/security-runtime", () => ({
+vi.mock("genesis/plugin-sdk/security-runtime", () => ({
   resolvePinnedMainDmOwnerFromAllowlist: () => undefined,
 }));
 
-vi.mock("openclaw/plugin-sdk/text-runtime", () => ({
+vi.mock("genesis/plugin-sdk/text-runtime", () => ({
   normalizeOptionalLowercaseString: (value?: string) => value?.toLowerCase(),
 }));
 
@@ -260,7 +260,7 @@ vi.mock("../allow-list.js", () => ({
 }));
 
 vi.mock("../config.runtime.js", () => ({
-  resolveStorePath: () => "/tmp/openclaw-store.json",
+  resolveStorePath: () => "/tmp/genesis-store.json",
   updateLastRoute: async () => {},
 }));
 

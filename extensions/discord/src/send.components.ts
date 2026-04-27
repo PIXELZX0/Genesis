@@ -8,10 +8,10 @@ import { ChannelType, Routes } from "discord-api-types/v10";
 import {
   requireRuntimeConfig,
   type MarkdownTableMode,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { recordChannelActivity } from "openclaw/plugin-sdk/infra-runtime";
-import type { ChunkMode } from "openclaw/plugin-sdk/reply-chunking";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/config-runtime";
+import { recordChannelActivity } from "genesis/plugin-sdk/infra-runtime";
+import type { ChunkMode } from "genesis/plugin-sdk/reply-chunking";
 import { resolveDiscordAccount } from "./accounts.js";
 import { registerDiscordComponentEntries } from "./components-registry.js";
 import {
@@ -146,7 +146,7 @@ function collapseClassicComponentText(spec: DiscordComponentMessageSpec): string
 }
 
 type DiscordComponentSendOpts = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string;
   token?: string;
   rest?: RequestClient;

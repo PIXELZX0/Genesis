@@ -1,4 +1,4 @@
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 
 const noopAuth = async () => ({ profiles: [] });
 
@@ -35,8 +35,8 @@ export function createGoogleGeminiCliProvider(): ProviderPlugin {
     docsPath: "/providers/models",
     aliases: ["gemini-cli"],
     envVars: [
-      "OPENCLAW_GEMINI_OAUTH_CLIENT_ID",
-      "OPENCLAW_GEMINI_OAUTH_CLIENT_SECRET",
+      "GENESIS_GEMINI_OAUTH_CLIENT_ID",
+      "GENESIS_GEMINI_OAUTH_CLIENT_SECRET",
       "GEMINI_CLI_OAUTH_CLIENT_ID",
       "GEMINI_CLI_OAUTH_CLIENT_SECRET",
     ],

@@ -1,9 +1,9 @@
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
+import type { ChannelSetupWizard } from "genesis/plugin-sdk/setup";
 import {
   DEFAULT_ACCOUNT_ID,
   setSetupChannelEnabled,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/setup";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/setup";
 import { listWhatsAppAccountIds, resolveWhatsAppAuthDir } from "./accounts.js";
 import { formatWhatsAppWebAuthStatusState, readWebAuthState } from "./auth-store.js";
 import { finalizeWhatsAppSetup } from "./setup-finalize.js";
@@ -13,7 +13,7 @@ const channel = "whatsapp" as const;
 type WhatsAppSetupLinkState = "linked" | "not-linked" | "unstable";
 
 async function readWhatsAppSetupLinkState(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): Promise<WhatsAppSetupLinkState> {
   const { authDir } = resolveWhatsAppAuthDir({ cfg, accountId });

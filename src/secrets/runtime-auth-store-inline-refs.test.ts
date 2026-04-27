@@ -14,7 +14,7 @@ describe("secrets runtime snapshot inline auth-store refs", () => {
     const snapshot = await prepareSecretsRuntimeSnapshot({
       config: asConfig({ models: {}, secrets: {} }),
       env: { MY_TOKEN: "resolved-token-value" },
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadablePluginOrigins: EMPTY_LOADABLE_PLUGIN_ORIGINS,
       loadAuthStore: () =>
         loadAuthStoreWithProfiles({
@@ -39,7 +39,7 @@ describe("secrets runtime snapshot inline auth-store refs", () => {
     const snapshot = await prepareSecretsRuntimeSnapshot({
       config: asConfig({ models: {}, secrets: {} }),
       env: { MY_KEY: "resolved-key-value" },
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadablePluginOrigins: EMPTY_LOADABLE_PLUGIN_ORIGINS,
       loadAuthStore: () =>
         loadAuthStoreWithProfiles({
@@ -67,7 +67,7 @@ describe("secrets runtime snapshot inline auth-store refs", () => {
         PRIMARY_KEY: "primary-key-value",
         SHADOW_KEY: "shadow-key-value",
       },
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadablePluginOrigins: EMPTY_LOADABLE_PLUGIN_ORIGINS,
       loadAuthStore: () =>
         loadAuthStoreWithProfiles({

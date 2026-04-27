@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { runCommandWithRuntime } from "../core-api.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
 import { danger, defaultRuntime, shortenHomePath } from "./core-api.js";
@@ -208,7 +208,7 @@ export function registerBrowserDebugCommands(
     .description("Stop trace recording and write a .zip")
     .option(
       "--out <path>",
-      "Output path within openclaw temp dir (e.g. trace.zip or /tmp/openclaw/trace.zip)",
+      "Output path within genesis temp dir (e.g. trace.zip or /tmp/genesis/trace.zip)",
     )
     .option("--target-id <id>", "CDP target id (or unique prefix)")
     .action(async (opts, cmd) => {

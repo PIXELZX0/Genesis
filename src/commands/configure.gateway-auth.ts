@@ -1,6 +1,6 @@
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
 import { resolveDefaultAgentWorkspaceDir } from "../agents/workspace.js";
-import type { OpenClawConfig, GatewayAuthConfig } from "../config/config.js";
+import type { GenesisConfig, GatewayAuthConfig } from "../config/config.js";
 import { isSecretRef, type SecretInput } from "../config/types.secrets.js";
 import { resolveProviderPluginChoice } from "../plugins/provider-wizard.js";
 import { resolvePluginProviders } from "../plugins/providers.runtime.js";
@@ -34,7 +34,7 @@ function sanitizeTokenValue(value: unknown): string | undefined {
 
 function resolveProviderChoiceModelAllowlist(params: {
   authChoice: string;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }):
@@ -95,10 +95,10 @@ export function buildGatewayAuthConfig(params: {
 }
 
 export async function promptAuthConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   runtime: RuntimeEnv,
   prompter: WizardPrompter,
-): Promise<OpenClawConfig> {
+): Promise<GenesisConfig> {
   let next = cfg;
   let authChoice: string = "skip";
   let preferredProvider: string | undefined;

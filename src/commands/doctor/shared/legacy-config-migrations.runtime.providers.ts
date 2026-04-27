@@ -8,7 +8,7 @@ import { migrateLegacyXSearchConfig } from "./legacy-x-search-migrate.js";
 const X_SEARCH_RULE: LegacyConfigRule = {
   path: ["tools", "web", "x_search", "apiKey"],
   message:
-    'tools.web.x_search.apiKey moved to the xAI plugin; use plugins.entries.xai.config.webSearch.apiKey instead. Run "openclaw doctor --fix".',
+    'tools.web.x_search.apiKey moved to the xAI plugin; use plugins.entries.xai.config.webSearch.apiKey instead. Run "genesis doctor --fix".',
 };
 
 export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_PROVIDERS: LegacyConfigMigrationSpec[] = [

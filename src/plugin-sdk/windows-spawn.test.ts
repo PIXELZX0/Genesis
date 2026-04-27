@@ -13,7 +13,7 @@ const { createTempDir } = createPluginSdkTestHarness({
 
 describe("resolveWindowsSpawnProgram", () => {
   it("fails closed by default for unresolved windows wrappers", async () => {
-    const dir = await createTempDir("openclaw-windows-spawn-test-");
+    const dir = await createTempDir("genesis-windows-spawn-test-");
     const shimPath = path.join(dir, "wrapper.cmd");
     await writeFile(shimPath, "@ECHO off\r\necho wrapper\r\n", "utf8");
 
@@ -28,7 +28,7 @@ describe("resolveWindowsSpawnProgram", () => {
   });
 
   it("only returns shell fallback when explicitly opted in", async () => {
-    const dir = await createTempDir("openclaw-windows-spawn-test-");
+    const dir = await createTempDir("genesis-windows-spawn-test-");
     const shimPath = path.join(dir, "wrapper.cmd");
     await writeFile(shimPath, "@ECHO off\r\necho wrapper\r\n", "utf8");
 

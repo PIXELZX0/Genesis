@@ -14,18 +14,18 @@ describe("matrix qa e2ee client storage", () => {
   it("shares persisted crypto by actor and scopes sync replay by scenario", () => {
     const first = __testing.buildMatrixQaE2eeStoragePaths({
       actorId: "driver",
-      outputDir: "/tmp/openclaw/.artifacts/qa-e2e/matrix-run",
+      outputDir: "/tmp/genesis/.artifacts/qa-e2e/matrix-run",
       scenarioId: "matrix-e2ee-basic-reply",
     });
     const second = __testing.buildMatrixQaE2eeStoragePaths({
       actorId: "driver",
-      outputDir: "/tmp/openclaw/.artifacts/qa-e2e/matrix-run",
+      outputDir: "/tmp/genesis/.artifacts/qa-e2e/matrix-run",
       scenarioId: "matrix-e2ee-qr-verification",
     });
 
     expect(first.accountDir).toBe(
       path.join(
-        "/tmp/openclaw/.artifacts/qa-e2e/matrix-run",
+        "/tmp/genesis/.artifacts/qa-e2e/matrix-run",
         "matrix-e2ee",
         "accounts",
         "driver",
@@ -36,7 +36,7 @@ describe("matrix qa e2ee client storage", () => {
     expect(first.recoveryKeyPath).toBe(path.join(first.accountDir, "recovery-key.json"));
     expect(first.storagePath).toBe(
       path.join(
-        "/tmp/openclaw/.artifacts/qa-e2e/matrix-run",
+        "/tmp/genesis/.artifacts/qa-e2e/matrix-run",
         "matrix-e2ee",
         "accounts",
         "driver",
@@ -47,7 +47,7 @@ describe("matrix qa e2ee client storage", () => {
     );
     expect(second.storagePath).toBe(
       path.join(
-        "/tmp/openclaw/.artifacts/qa-e2e/matrix-run",
+        "/tmp/genesis/.artifacts/qa-e2e/matrix-run",
         "matrix-e2ee",
         "accounts",
         "driver",

@@ -29,7 +29,7 @@ import type {
 } from "../commands/channel-setup/types.js";
 import type { ChannelChoice } from "../commands/onboard-types.js";
 import { isChannelConfigured } from "../config/channel-configured.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
@@ -66,7 +66,7 @@ export function createChannelOnboardingPostWriteHookCollector() {
 
 export async function runCollectedChannelOnboardingPostWriteHooks(params: {
   hooks: ChannelOnboardingPostWriteHook[];
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime: RuntimeEnv;
 }): Promise<void> {
   for (const hook of params.hooks) {
@@ -85,7 +85,7 @@ export function createChannelOnboardingPostWriteHook(params: {
   accountId?: string;
   adapter?: Pick<ChannelSetupWizardAdapter, "afterConfigWritten">;
   channel: ChannelChoice;
-  previousCfg: OpenClawConfig;
+  previousCfg: GenesisConfig;
 }): ChannelOnboardingPostWriteHook | undefined {
   if (!params.accountId || !params.adapter?.afterConfigWritten) {
     return undefined;
@@ -106,11 +106,11 @@ export function createChannelOnboardingPostWriteHook(params: {
 // Channel-specific prompts moved into setup flow adapters.
 
 export async function setupChannels(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   runtime: RuntimeEnv,
   prompter: WizardPrompter,
   options?: SetupChannelsOptions,
-): Promise<OpenClawConfig> {
+): Promise<GenesisConfig> {
   let next = cfg;
   const deferStatusUntilSelection = options?.deferStatusUntilSelection === true;
   const includeRegistryBeforeSelection = !deferStatusUntilSelection;
@@ -361,8 +361,8 @@ export async function setupChannels(
       if (adapter) {
         await prompter.note(
           `${channel} plugin not available (continuing with setup). If the channel still doesn't work after setup, run \`${formatCliCommand(
-            "openclaw plugins list",
-          )}\` and \`${formatCliCommand("openclaw plugins enable " + channel)}\`, then restart the gateway.`,
+            "genesis plugins list",
+          )}\` and \`${formatCliCommand("genesis plugins enable " + channel)}\`, then restart the gateway.`,
           "Channel setup",
         );
         await refreshStatus(channel);
@@ -612,7 +612,7 @@ export async function setupChannels(
           {
             value: "__skip__",
             label: "Skip for now",
-            hint: `You can add channels later via \`${formatCliCommand("openclaw channels add")}\``,
+            hint: `You can add channels later via \`${formatCliCommand("genesis channels add")}\``,
           },
         ],
         initialValue: quickstartDefault,

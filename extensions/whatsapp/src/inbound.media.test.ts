@@ -29,9 +29,9 @@ let currentMockSocket:
     }
   | undefined;
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -60,9 +60,9 @@ vi.mock("../../../src/pairing/pairing-store.js", () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/media-store", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/media-store")>(
-    "openclaw/plugin-sdk/media-store",
+vi.mock("genesis/plugin-sdk/media-store", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/media-store")>(
+    "genesis/plugin-sdk/media-store",
   );
   return {
     ...actual,
@@ -73,7 +73,7 @@ vi.mock("openclaw/plugin-sdk/media-store", async () => {
   };
 });
 
-const HOME = path.join(os.tmpdir(), `openclaw-inbound-media-${crypto.randomUUID()}`);
+const HOME = path.join(os.tmpdir(), `genesis-inbound-media-${crypto.randomUUID()}`);
 process.env.HOME = HOME;
 
 vi.mock("@whiskeysockets/baileys", async () => {

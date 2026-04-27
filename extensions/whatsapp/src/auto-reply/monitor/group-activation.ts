@@ -1,5 +1,5 @@
-import { updateSessionStore } from "openclaw/plugin-sdk/config-runtime";
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/routing";
+import { updateSessionStore } from "genesis/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/routing";
 import { resolveWhatsAppLegacyGroupSessionKey } from "../../group-session-key.js";
 import { resolveWhatsAppInboundPolicy } from "../../inbound-policy.js";
 import { loadSessionStore, resolveStorePath } from "../config.runtime.js";

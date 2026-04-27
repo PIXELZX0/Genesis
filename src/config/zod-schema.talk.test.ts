@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { OpenClawSchema } from "./zod-schema.js";
+import { GenesisSchema } from "./zod-schema.js";
 
-describe("OpenClawSchema talk validation", () => {
+describe("GenesisSchema talk validation", () => {
   it("accepts a positive integer talk.silenceTimeoutMs", () => {
     expect(() =>
-      OpenClawSchema.parse({
+      GenesisSchema.parse({
         talk: {
           silenceTimeoutMs: 1500,
         },
@@ -18,7 +18,7 @@ describe("OpenClawSchema talk validation", () => {
     ["float", 1500.5],
   ])("rejects %s talk.silenceTimeoutMs", (_label, value) => {
     expect(() =>
-      OpenClawSchema.parse({
+      GenesisSchema.parse({
         talk: {
           silenceTimeoutMs: value,
         },
@@ -28,7 +28,7 @@ describe("OpenClawSchema talk validation", () => {
 
   it("rejects talk.provider when it does not match talk.providers", () => {
     expect(() =>
-      OpenClawSchema.parse({
+      GenesisSchema.parse({
         talk: {
           provider: "acme",
           providers: {
@@ -43,7 +43,7 @@ describe("OpenClawSchema talk validation", () => {
 
   it("rejects multi-provider talk config without talk.provider", () => {
     expect(() =>
-      OpenClawSchema.parse({
+      GenesisSchema.parse({
         talk: {
           providers: {
             acme: {

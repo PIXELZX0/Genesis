@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import { resolveConversationPath, resolveGraphConversationId } from "./graph-messages.js";
 import {
   deleteGraphRequest,
@@ -14,7 +14,7 @@ import {
 // ---------------------------------------------------------------------------
 
 export type AddParticipantMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   userId: string;
   role?: string;
@@ -67,7 +67,7 @@ export async function addParticipantMSTeams(
 // ---------------------------------------------------------------------------
 
 export type RemoveParticipantMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   userId: string;
 };
@@ -137,7 +137,7 @@ export async function removeParticipantMSTeams(
 // ---------------------------------------------------------------------------
 
 export type RenameGroupMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   name: string;
 };

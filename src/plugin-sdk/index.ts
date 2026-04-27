@@ -44,8 +44,8 @@ export type {
   AnyAgentTool,
   CliBackendPlugin,
   MediaUnderstandingProviderPlugin,
-  OpenClawPluginApi,
-  OpenClawPluginConfigSchema,
+  GenesisPluginApi,
+  GenesisPluginConfigSchema,
   PluginLogger,
   ProviderAuthContext,
   ProviderAuthResult,
@@ -77,9 +77,9 @@ export type {
   TaskRunDetail,
   TaskRunView,
 } from "../plugins/runtime/task-domain-types.js";
-export type { OpenClawConfig } from "../config/config.js";
-/** @deprecated Use OpenClawConfig instead */
-export type { OpenClawConfig as ClawdbotConfig } from "../config/config.js";
+export type { GenesisConfig } from "../config/config.js";
+/** @deprecated Use GenesisConfig instead */
+export type { GenesisConfig as ClawdbotConfig } from "../config/config.js";
 export type {
   MemoryPluginCapability,
   MemoryPluginPublicArtifact,

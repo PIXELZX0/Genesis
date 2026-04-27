@@ -502,7 +502,7 @@ export type AgentLlmConfig = {
    * Idle timeout for LLM streaming responses in seconds.
    * If no token is received within this time, the request is aborted.
    * Set to 0 to disable (never timeout).
-   * If unset, OpenClaw uses the default LLM idle timeout.
+   * If unset, Genesis uses the default LLM idle timeout.
    */
   idleTimeoutSeconds?: number;
 };

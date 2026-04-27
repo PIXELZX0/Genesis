@@ -1,16 +1,13 @@
 import {
   type ChannelOutboundAdapter,
   createAttachedChannelResultAdapter,
-} from "openclaw/plugin-sdk/channel-send-result";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import {
-  resolveOutboundSendDep,
-  type OutboundIdentity,
-} from "openclaw/plugin-sdk/outbound-runtime";
+} from "genesis/plugin-sdk/channel-send-result";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveOutboundSendDep, type OutboundIdentity } from "genesis/plugin-sdk/outbound-runtime";
 import {
   normalizeOptionalString,
   normalizeOptionalStringifiedId,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { chunkDiscordTextWithMode } from "./chunk.js";
 import { withDiscordDeliveryRetry } from "./delivery-retry.js";
 import { isLikelyDiscordVideoMedia } from "./media-detection.js";
@@ -50,7 +47,7 @@ function resolveDiscordWebhookIdentity(params: {
 }
 
 async function maybeSendDiscordWebhookText(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   text: string;
   threadId?: string | number | null;
   accountId?: string | null;

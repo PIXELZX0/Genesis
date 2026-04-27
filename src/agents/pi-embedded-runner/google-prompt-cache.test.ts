@@ -173,7 +173,7 @@ describe("google prompt cache", () => {
       cachedContent: "cachedContents/system-cache-1",
     });
     expect(entries).toHaveLength(1);
-    expect(entries[0]?.customType).toBe("openclaw.google-prompt-cache");
+    expect(entries[0]?.customType).toBe("genesis.google-prompt-cache");
     expect((entries[0]?.data as { status?: string; cachedContent?: string })?.status).toBe("ready");
   });
 
@@ -229,7 +229,7 @@ describe("google prompt cache", () => {
         parentId: null,
         timestamp: new Date(now - 5_000).toISOString(),
         type: "custom",
-        customType: "openclaw.google-prompt-cache",
+        customType: "genesis.google-prompt-cache",
         data: {
           status: "ready",
           timestamp: now - 5_000,

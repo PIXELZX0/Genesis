@@ -1,7 +1,7 @@
 import {
   isMissingEmbeddingApiKeyError,
   type MemoryEmbeddingProviderAdapter,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+} from "genesis/plugin-sdk/memory-core-host-engine-embeddings";
 import {
   createBedrockEmbeddingProvider,
   DEFAULT_BEDROCK_EMBEDDING_MODEL,

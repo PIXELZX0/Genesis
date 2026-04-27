@@ -114,7 +114,7 @@ describe("dreaming artifact repair", () => {
     expect(repair.archivedSessionIngestion).toBe(true);
     expect(repair.archivedDreamsDiary).toBe(false);
     expect(repair.archiveDir).toBe(
-      path.join(workspaceDir, ".openclaw-repair", "dreaming", "2026-04-11T21-30-00-000Z"),
+      path.join(workspaceDir, ".genesis-repair", "dreaming", "2026-04-11T21-30-00-000Z"),
     );
     await expect(fs.access(sessionCorpusDir)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(

@@ -20,7 +20,7 @@ vi.mock("node:http", () => {
   return { default: { request: httpRequest, get: httpGet }, request: httpRequest, get: httpGet };
 });
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   formatErrorMessage: (err: unknown) => (err instanceof Error ? err.message : String(err)),
   resolvePinnedHostnameWithPolicy: ssrfMocks.resolvePinnedHostnameWithPolicy,
 }));

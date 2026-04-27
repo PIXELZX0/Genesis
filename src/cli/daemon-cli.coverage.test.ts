@@ -35,8 +35,8 @@ const buildGatewayInstallPlan = vi.fn(
     programArguments: ["/bin/node", "cli", "gateway", "--port", String(params.port)],
     workingDirectory: process.cwd(),
     environment: {
-      OPENCLAW_GATEWAY_PORT: String(params.port),
-      ...(params.token ? { OPENCLAW_GATEWAY_TOKEN: params.token } : {}),
+      GENESIS_GATEWAY_PORT: String(params.port),
+      ...(params.token ? { GENESIS_GATEWAY_TOKEN: params.token } : {}),
     },
   }),
 );
@@ -143,15 +143,15 @@ describe("daemon-cli coverage", () => {
   beforeEach(() => {
     daemonProgram = createDaemonProgram();
     envSnapshot = captureEnv([
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_GATEWAY_PORT",
-      "OPENCLAW_PROFILE",
+      "GENESIS_STATE_DIR",
+      "GENESIS_CONFIG_PATH",
+      "GENESIS_GATEWAY_PORT",
+      "GENESIS_PROFILE",
     ]);
-    process.env.OPENCLAW_STATE_DIR = "/tmp/openclaw-cli-state";
-    process.env.OPENCLAW_CONFIG_PATH = "/tmp/openclaw-cli-state/openclaw.json";
-    delete process.env.OPENCLAW_GATEWAY_PORT;
-    delete process.env.OPENCLAW_PROFILE;
+    process.env.GENESIS_STATE_DIR = "/tmp/genesis-cli-state";
+    process.env.GENESIS_CONFIG_PATH = "/tmp/genesis-cli-state/genesis.json";
+    delete process.env.GENESIS_GATEWAY_PORT;
+    delete process.env.GENESIS_PROFILE;
     serviceReadCommand.mockResolvedValue(null);
     resolveGatewayProbeAuthSafeWithSecretInputs.mockClear();
     findExtraGatewayServices.mockClear();
@@ -184,12 +184,12 @@ describe("daemon-cli coverage", () => {
     serviceReadCommand.mockResolvedValueOnce({
       programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
       environment: {
-        OPENCLAW_PROFILE: "dev",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon-state",
-        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon-state/openclaw.json",
-        OPENCLAW_GATEWAY_PORT: "19001",
+        GENESIS_PROFILE: "dev",
+        GENESIS_STATE_DIR: "/tmp/genesis-daemon-state",
+        GENESIS_CONFIG_PATH: "/tmp/genesis-daemon-state/genesis.json",
+        GENESIS_GATEWAY_PORT: "19001",
       },
-      sourcePath: "/tmp/ai.openclaw.gateway.plist",
+      sourcePath: "/tmp/ai.genesis.gateway.plist",
     });
 
     await runDaemonCommand(["daemon", "status", "--json"]);
@@ -261,7 +261,7 @@ describe("daemon-cli coverage", () => {
         GOPATH: "/Users/test/.local/gopath",
         GOBIN: "/Users/test/.local/gopath/bin",
       },
-      sourcePath: "/tmp/ai.openclaw.gateway.plist",
+      sourcePath: "/tmp/ai.genesis.gateway.plist",
     });
 
     await runDaemonCommand(["daemon", "install", "--force", "--json"]);

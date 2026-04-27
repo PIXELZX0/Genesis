@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveAgentContextLimits, resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../../agents/memory-search.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { isFileMissingError, statRegularFile } from "./fs-utils.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
 import {
@@ -84,7 +84,7 @@ export async function readMemoryFile(params: {
 }
 
 export async function readAgentMemoryFile(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   relPath: string;
   from?: number;

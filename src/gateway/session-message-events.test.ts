@@ -26,8 +26,8 @@ let subscribedOperatorWs:
 let previousMinimalGateway: string | undefined;
 
 beforeAll(async () => {
-  previousMinimalGateway = process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
-  delete process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
+  previousMinimalGateway = process.env.GENESIS_TEST_MINIMAL_GATEWAY;
+  delete process.env.GENESIS_TEST_MINIMAL_GATEWAY;
   harness = await createGatewaySuiteHarness();
   subscribedOperatorWs = await harness.openWs();
   await connectOk(subscribedOperatorWs, { scopes: ["operator.read"] });
@@ -38,9 +38,9 @@ afterAll(async () => {
   subscribedOperatorWs?.close();
   await harness.close();
   if (previousMinimalGateway === undefined) {
-    delete process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
+    delete process.env.GENESIS_TEST_MINIMAL_GATEWAY;
   } else {
-    process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = previousMinimalGateway;
+    process.env.GENESIS_TEST_MINIMAL_GATEWAY = previousMinimalGateway;
   }
 });
 
@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 async function createSessionStoreFile(): Promise<string> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-session-message-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-session-message-"));
   cleanupDirs.push(dir);
   const storePath = path.join(dir, "sessions.json");
   testState.sessionStorePath = storePath;

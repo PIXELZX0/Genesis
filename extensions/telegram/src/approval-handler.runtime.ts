@@ -1,19 +1,19 @@
 import type {
   ChannelApprovalCapabilityHandlerContext,
   PendingApprovalView,
-} from "openclaw/plugin-sdk/approval-handler-runtime";
-import { createChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-runtime";
-import { buildChannelApprovalNativeTargetKey } from "openclaw/plugin-sdk/approval-native-runtime";
-import { buildPluginApprovalPendingReplyPayload } from "openclaw/plugin-sdk/approval-reply-runtime";
+} from "genesis/plugin-sdk/approval-handler-runtime";
+import { createChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-runtime";
+import { buildChannelApprovalNativeTargetKey } from "genesis/plugin-sdk/approval-native-runtime";
+import { buildPluginApprovalPendingReplyPayload } from "genesis/plugin-sdk/approval-reply-runtime";
 import {
   buildApprovalInteractiveReplyFromActionDescriptors,
   buildExecApprovalPendingReplyPayload,
   type ExecApprovalPendingReplyParams,
   type ExecApprovalRequest,
   type PluginApprovalRequest,
-} from "openclaw/plugin-sdk/infra-runtime";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/infra-runtime";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveTelegramInlineButtons } from "./button-types.js";
 import {
   isTelegramExecApprovalHandlerConfigured,

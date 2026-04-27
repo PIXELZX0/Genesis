@@ -6,11 +6,11 @@ import {
   type MemoryEmbeddingProviderAdapter,
   type MemoryEmbeddingProviderCreateOptions,
   type MemoryEmbeddingProviderRuntime,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+} from "genesis/plugin-sdk/memory-core-host-engine-embeddings";
 import { formatErrorMessage } from "../dreaming-shared.js";
 import { canAutoSelectLocal } from "./provider-adapters.js";
 
-export { DEFAULT_LOCAL_MODEL } from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+export { DEFAULT_LOCAL_MODEL } from "genesis/plugin-sdk/memory-core-host-engine-embeddings";
 
 export type EmbeddingProvider = MemoryEmbeddingProvider;
 export type EmbeddingProviderId = string;

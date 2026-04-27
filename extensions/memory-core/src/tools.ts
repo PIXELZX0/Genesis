@@ -1,20 +1,20 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { MemorySource } from "genesis/plugin-sdk/memory-core-host-engine-storage";
 import {
   asToolParamsRecord,
   jsonResult,
   readNumberParam,
   readStringParam,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/memory-core-host-runtime-core";
-import type { MemorySource } from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/memory-core-host-runtime-core";
 import type {
   MemorySearchResult,
   MemorySearchRuntimeDebug,
-} from "openclaw/plugin-sdk/memory-core-host-runtime-files";
+} from "genesis/plugin-sdk/memory-core-host-runtime-files";
 import {
   resolveMemoryCorePluginConfig,
   resolveMemoryDeepDreamingConfig,
-} from "openclaw/plugin-sdk/memory-core-host-status";
+} from "genesis/plugin-sdk/memory-core-host-status";
 import { filterMemorySearchHitsBySessionVisibility } from "./session-search-visibility.js";
 import { recordShortTermRecalls } from "./short-term-promotion.js";
 import {
@@ -89,7 +89,7 @@ function isActiveMemorySessionKey(sessionKey?: string): boolean {
 }
 
 function resolveActiveMemoryQmdSearchModeOverride(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   sessionKey?: string,
 ): "search" | "vsearch" | "query" | undefined {
   if (!isActiveMemorySessionKey(sessionKey)) {
@@ -181,7 +181,7 @@ async function executeMemoryReadResult<T>(params: {
 }
 
 export function createMemorySearchTool(options: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentSessionKey?: string;
   sandboxed?: boolean;
 }) {
@@ -342,10 +342,7 @@ export function createMemorySearchTool(options: {
   });
 }
 
-export function createMemoryGetTool(options: {
-  config?: OpenClawConfig;
-  agentSessionKey?: string;
-}) {
+export function createMemoryGetTool(options: { config?: GenesisConfig; agentSessionKey?: string }) {
   return createMemoryTool({
     options,
     label: "Memory Get",

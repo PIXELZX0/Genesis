@@ -1,5 +1,5 @@
-import type { BaseProbeResult } from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/testing";
+import type { BaseProbeResult } from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/testing";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { expectDirectoryIds } from "../../../test/helpers/channels/directory-ids.js";
 import {
@@ -24,7 +24,7 @@ describe("Slack directory contract", () => {
           channels: { C111: { users: ["U777"] } },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     await expectDirectoryIds(
       listSlackDirectoryPeersFromConfig,
@@ -50,7 +50,7 @@ describe("Slack directory contract", () => {
           channels: { C111: {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     await expectDirectoryIds(listSlackDirectoryPeersFromConfig, cfg, ["user:u123"]);
     await expectDirectoryIds(listSlackDirectoryGroupsFromConfig, cfg, ["channel:c111"]);
@@ -66,7 +66,7 @@ describe("Slack directory contract", () => {
           dms: { U300: {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     const peers = await listSlackDirectoryPeersFromConfig({
       cfg,

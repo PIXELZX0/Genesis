@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { shouldBypassAcpDispatchForCommand } from "./dispatch-acp-command-bypass.js";
 import { buildTestCtx } from "./test-ctx.js";
 
@@ -12,7 +12,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       BodyForAgent: "write a test",
     });
 
-    expect(shouldBypassAcpDispatchForCommand(ctx, {} as OpenClawConfig)).toBe(false);
+    expect(shouldBypassAcpDispatchForCommand(ctx, {} as GenesisConfig)).toBe(false);
   });
 
   it("returns false for ACP slash commands", () => {
@@ -24,7 +24,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       BodyForAgent: "/acp cancel",
     });
 
-    expect(shouldBypassAcpDispatchForCommand(ctx, {} as OpenClawConfig)).toBe(false);
+    expect(shouldBypassAcpDispatchForCommand(ctx, {} as GenesisConfig)).toBe(false);
   });
 
   it("returns true for ACP reset-tail slash commands", () => {
@@ -37,7 +37,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       BodyForAgent: "/new continue with deployment",
     });
 
-    expect(shouldBypassAcpDispatchForCommand(ctx, {} as OpenClawConfig)).toBe(true);
+    expect(shouldBypassAcpDispatchForCommand(ctx, {} as GenesisConfig)).toBe(true);
   });
 
   it("returns true for bare ACP reset slash commands", () => {
@@ -49,7 +49,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       BodyForAgent: "/reset",
     });
 
-    expect(shouldBypassAcpDispatchForCommand(ctx, {} as OpenClawConfig)).toBe(true);
+    expect(shouldBypassAcpDispatchForCommand(ctx, {} as GenesisConfig)).toBe(true);
   });
 
   it("returns false for slash commands when text commands are disabled", () => {
@@ -65,7 +65,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       commands: {
         text: false,
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(shouldBypassAcpDispatchForCommand(ctx, cfg)).toBe(false);
   });
@@ -80,7 +80,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       CommandAuthorized: false,
     });
 
-    expect(shouldBypassAcpDispatchForCommand(ctx, {} as OpenClawConfig)).toBe(false);
+    expect(shouldBypassAcpDispatchForCommand(ctx, {} as GenesisConfig)).toBe(false);
   });
 
   it("returns false for bang-prefixed commands when text commands are disabled", () => {
@@ -97,7 +97,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       commands: {
         text: false,
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(shouldBypassAcpDispatchForCommand(ctx, cfg)).toBe(false);
   });
@@ -116,7 +116,7 @@ describe("shouldBypassAcpDispatchForCommand", () => {
       commands: {
         bash: true,
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(shouldBypassAcpDispatchForCommand(ctx, cfg)).toBe(true);
   });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import type { OpenClawConfig, PluginRuntime } from "../runtime-api.js";
+import type { GenesisConfig, PluginRuntime } from "../runtime-api.js";
 import { setMSTeamsRuntime } from "./runtime.js";
 import { reactMessageMSTeams, removeReactionMSTeams } from "./send.reactions.js";
 
@@ -22,7 +22,7 @@ function buildMockRuntime(): PluginRuntime {
   } as unknown as PluginRuntime;
 }
 
-const validCfg: OpenClawConfig = {
+const validCfg: GenesisConfig = {
   channels: {
     msteams: {
       enabled: true,
@@ -30,7 +30,7 @@ const validCfg: OpenClawConfig = {
       appPassword: "test-secret",
     },
   },
-} as OpenClawConfig;
+} as GenesisConfig;
 
 describe("reactMessageMSTeams", () => {
   beforeEach(() => {

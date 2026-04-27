@@ -19,7 +19,7 @@ import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-fo
 const BORDER_RADIUS_LABELS: Record<BorderRadiusStop, string> = {
   0: "None",
   25: "Slight",
-  50: "Default",
+  50: "Soft",
   75: "Round",
   100: "Full",
 };
@@ -587,8 +587,8 @@ type ThemeOption = {
   icon: TemplateResult;
 };
 const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
-  { id: "claw", label: "Claw", description: "Chroma family", icon: icons.zap },
-  { id: "knot", label: "Knot", description: "Black & red", icon: icons.link },
+  { id: "claw", label: "Claw", description: "Black & green", icon: icons.zap },
+  { id: "knot", label: "Knot", description: "Deep black & green", icon: icons.link },
   { id: "dash", label: "Dash", description: "Chocolate blueprint", icon: icons.barChart },
 ];
 

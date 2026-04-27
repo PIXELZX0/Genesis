@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ApiContributor, Entry, MapConfig, User } from "./update-clawtributors.types.js";
 
-const REPO = "openclaw/openclaw";
+const REPO = "PIXELZX0/Genesis";
 const PER_LINE = 10;
 const AVATAR_PROBE_SIZE = 40;
 const AVATAR_SIZE = 48;
@@ -453,7 +453,7 @@ function isDefaultGitHubAvatar(login: string): Promise<boolean> {
 async function probeDefaultGitHubAvatar(login: string): Promise<boolean> {
   try {
     const response = await fetch(`https://github.com/${login}.png?size=${AVATAR_PROBE_SIZE}`, {
-      headers: { "user-agent": "openclaw-clawtributors" },
+      headers: { "user-agent": "genesis-clawtributors" },
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

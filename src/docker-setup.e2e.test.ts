@@ -62,14 +62,14 @@ async function createDockerSetupSandbox(): Promise<DockerSetupSandbox> {
   await writeFile(dockerfilePath, "FROM scratch\n");
   await writeFile(
     composePath,
-    "services:\n  openclaw-gateway:\n    image: noop\n  openclaw-cli:\n    image: noop\n",
+    "services:\n  genesis-gateway:\n    image: noop\n  genesis-cli:\n    image: noop\n",
   );
   await writeDockerStub(binDir, logPath);
 
   return { rootDir, scriptPath, logPath, binDir };
 }
 
-const sandboxRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-docker-setup-" });
+const sandboxRootTracker = createSuiteTempRootTracker({ prefix: "genesis-docker-setup-" });
 
 function createEnv(
   sandbox: DockerSetupSandbox,
@@ -82,9 +82,9 @@ function createEnv(
     LC_ALL: process.env.LC_ALL,
     TMPDIR: process.env.TMPDIR,
     DOCKER_STUB_LOG: sandbox.logPath,
-    OPENCLAW_GATEWAY_TOKEN: "test-token",
-    OPENCLAW_CONFIG_DIR: join(sandbox.rootDir, "config"),
-    OPENCLAW_WORKSPACE_DIR: join(sandbox.rootDir, "openclaw"),
+    GENESIS_GATEWAY_TOKEN: "test-token",
+    GENESIS_CONFIG_DIR: join(sandbox.rootDir, "config"),
+    GENESIS_WORKSPACE_DIR: join(sandbox.rootDir, "genesis"),
   };
 
   for (const [key, value] of Object.entries(overrides)) {
@@ -129,7 +129,7 @@ async function readDockerLogLines(sandbox: DockerSetupSandbox) {
 }
 
 function isGatewayStartLine(line: string) {
-  return line.includes("compose") && line.includes(" up -d") && line.includes("openclaw-gateway");
+  return line.includes("compose") && line.includes(" up -d") && line.includes("genesis-gateway");
 }
 
 function findGatewayStartLineIndex(lines: string[]) {
@@ -147,9 +147,9 @@ async function runDockerSetupWithUnsetGatewayToken(
   await prepare?.(configDir);
 
   const result = runDockerSetup(sandbox, {
-    OPENCLAW_GATEWAY_TOKEN: undefined,
-    OPENCLAW_CONFIG_DIR: configDir,
-    OPENCLAW_WORKSPACE_DIR: workspaceDir,
+    GENESIS_GATEWAY_TOKEN: undefined,
+    GENESIS_CONFIG_DIR: configDir,
+    GENESIS_WORKSPACE_DIR: workspaceDir,
   });
   const envFile = await readFile(join(sandbox.rootDir, ".env"), "utf8");
 
@@ -213,34 +213,34 @@ describe("scripts/docker/setup.sh", () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_DOCKER_APT_PACKAGES: "ffmpeg build-essential",
-      OPENCLAW_EXTRA_MOUNTS: undefined,
-      OPENCLAW_HOME_VOLUME: "openclaw-home",
+      GENESIS_DOCKER_APT_PACKAGES: "ffmpeg build-essential",
+      GENESIS_EXTRA_MOUNTS: undefined,
+      GENESIS_HOME_VOLUME: "genesis-home",
     });
     expect(result.status).toBe(0);
     const envFile = await readFile(join(activeSandbox.rootDir, ".env"), "utf8");
-    expect(envFile).toContain("OPENCLAW_DOCKER_APT_PACKAGES=ffmpeg build-essential");
-    expect(envFile).toContain("OPENCLAW_EXTRA_MOUNTS=");
-    expect(envFile).toContain("OPENCLAW_HOME_VOLUME=openclaw-home"); // pragma: allowlist secret
+    expect(envFile).toContain("GENESIS_DOCKER_APT_PACKAGES=ffmpeg build-essential");
+    expect(envFile).toContain("GENESIS_EXTRA_MOUNTS=");
+    expect(envFile).toContain("GENESIS_HOME_VOLUME=genesis-home"); // pragma: allowlist secret
     const extraCompose = await readFile(
       join(activeSandbox.rootDir, "docker-compose.extra.yml"),
       "utf8",
     );
-    expect(extraCompose).toContain("openclaw-home:/home/node");
+    expect(extraCompose).toContain("genesis-home:/home/node");
     expect(extraCompose).toContain("volumes:");
-    expect(extraCompose).toContain("openclaw-home:");
+    expect(extraCompose).toContain("genesis-home:");
     const log = await readDockerLog(activeSandbox);
-    expect(log).toContain("--build-arg OPENCLAW_DOCKER_APT_PACKAGES=ffmpeg build-essential");
+    expect(log).toContain("--build-arg GENESIS_DOCKER_APT_PACKAGES=ffmpeg build-essential");
     expect(log).toContain(
-      "run --rm --no-deps --entrypoint node openclaw-gateway dist/index.js onboard --mode local --no-install-daemon",
+      "run --rm --no-deps --entrypoint node genesis-gateway dist/index.js onboard --mode local --no-install-daemon",
     );
     expect(log).toContain(
-      'run --rm --no-deps --entrypoint node openclaw-gateway dist/index.js config set --batch-json [{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"},{"path":"gateway.controlUi.allowedOrigins","value":["http://localhost:18789","http://127.0.0.1:18789"]}]',
+      'run --rm --no-deps --entrypoint node genesis-gateway dist/index.js config set --batch-json [{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"},{"path":"gateway.controlUi.allowedOrigins","value":["http://localhost:18789","http://127.0.0.1:18789"]}]',
     );
-    expect(log).not.toContain("run --rm openclaw-cli onboard --mode local --no-install-daemon");
+    expect(log).not.toContain("run --rm genesis-cli onboard --mode local --no-install-daemon");
   });
 
-  it("avoids shared-network openclaw-cli before the gateway is started", async () => {
+  it("avoids shared-network genesis-cli before the gateway is started", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     await resetDockerLog(activeSandbox);
@@ -252,7 +252,7 @@ describe("scripts/docker/setup.sh", () => {
     expect(gatewayStartIdx).toBeGreaterThanOrEqual(0);
 
     const prestartLines = lines.slice(0, gatewayStartIdx);
-    expect(prestartLines.some((line) => /\bcompose\b.*\brun\b.*\bopenclaw-cli\b/.test(line))).toBe(
+    expect(prestartLines.some((line) => /\bcompose\b.*\brun\b.*\bgenesis-cli\b/.test(line))).toBe(
       false,
     );
   });
@@ -263,7 +263,7 @@ describe("scripts/docker/setup.sh", () => {
     await resetDockerLog(activeSandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_SANDBOX: "1",
+      GENESIS_SANDBOX: "1",
     });
 
     expect(result.status).toBe(0);
@@ -280,8 +280,8 @@ describe("scripts/docker/setup.sh", () => {
     const workspaceDir = join(activeSandbox.rootDir, "workspace-identity");
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_CONFIG_DIR: configDir,
-      OPENCLAW_WORKSPACE_DIR: workspaceDir,
+      GENESIS_CONFIG_DIR: configDir,
+      GENESIS_WORKSPACE_DIR: workspaceDir,
     });
 
     expect(result.status).toBe(0);
@@ -289,16 +289,16 @@ describe("scripts/docker/setup.sh", () => {
     expect(identityDirStat.isDirectory()).toBe(true);
   });
 
-  it("writes OPENCLAW_TZ into .env when given a real IANA timezone", async () => {
+  it("writes GENESIS_TZ into .env when given a real IANA timezone", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_TZ: "Asia/Shanghai",
+      GENESIS_TZ: "Asia/Shanghai",
     });
 
     expect(result.status).toBe(0);
     const envFile = await readFile(join(activeSandbox.rootDir, ".env"), "utf8");
-    expect(envFile).toContain("OPENCLAW_TZ=Asia/Shanghai");
+    expect(envFile).toContain("GENESIS_TZ=Asia/Shanghai");
   });
 
   it("precreates agent data dirs to avoid EACCES in container", async () => {
@@ -307,8 +307,8 @@ describe("scripts/docker/setup.sh", () => {
     const workspaceDir = join(activeSandbox.rootDir, "workspace-agent-dirs");
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_CONFIG_DIR: configDir,
-      OPENCLAW_WORKSPACE_DIR: workspaceDir,
+      GENESIS_CONFIG_DIR: configDir,
+      GENESIS_WORKSPACE_DIR: workspaceDir,
     });
 
     expect(result.status).toBe(0);
@@ -323,31 +323,31 @@ describe("scripts/docker/setup.sh", () => {
     const onboardIdx = log.indexOf("onboard");
     expect(chownIdx).toBeGreaterThanOrEqual(0);
     expect(onboardIdx).toBeGreaterThan(chownIdx);
-    expect(log).toContain("run --rm --no-deps --user root --entrypoint sh openclaw-gateway -c");
+    expect(log).toContain("run --rm --no-deps --user root --entrypoint sh genesis-gateway -c");
   });
 
-  it("reuses existing config token when OPENCLAW_GATEWAY_TOKEN is unset", async () => {
+  it("reuses existing config token when GENESIS_GATEWAY_TOKEN is unset", async () => {
     const activeSandbox = requireSandbox(sandbox);
     const { result, envFile } = await runDockerSetupWithUnsetGatewayToken(
       activeSandbox,
       "token-reuse",
       async (configDir) => {
         await writeFile(
-          join(configDir, "openclaw.json"),
+          join(configDir, "genesis.json"),
           JSON.stringify({ gateway: { auth: { mode: "token", token: "config-token-123" } } }),
         );
       },
     );
 
     expect(result.status).toBe(0);
-    expect(envFile).toContain("OPENCLAW_GATEWAY_TOKEN=config-token-123"); // pragma: allowlist secret
+    expect(envFile).toContain("GENESIS_GATEWAY_TOKEN=config-token-123"); // pragma: allowlist secret
   });
 
-  it("reuses existing .env token when OPENCLAW_GATEWAY_TOKEN and config token are unset", async () => {
+  it("reuses existing .env token when GENESIS_GATEWAY_TOKEN and config token are unset", async () => {
     const activeSandbox = requireSandbox(sandbox);
     await writeFile(
       join(activeSandbox.rootDir, ".env"),
-      "OPENCLAW_GATEWAY_TOKEN=dotenv-token-123\nOPENCLAW_GATEWAY_PORT=18789\n", // pragma: allowlist secret
+      "GENESIS_GATEWAY_TOKEN=dotenv-token-123\nGENESIS_GATEWAY_PORT=18789\n", // pragma: allowlist secret
     );
     const { result, envFile } = await runDockerSetupWithUnsetGatewayToken(
       activeSandbox,
@@ -355,7 +355,7 @@ describe("scripts/docker/setup.sh", () => {
     );
 
     expect(result.status).toBe(0);
-    expect(envFile).toContain("OPENCLAW_GATEWAY_TOKEN=dotenv-token-123"); // pragma: allowlist secret
+    expect(envFile).toContain("GENESIS_GATEWAY_TOKEN=dotenv-token-123"); // pragma: allowlist secret
     expect(result.stderr).toBe("");
   });
 
@@ -364,9 +364,9 @@ describe("scripts/docker/setup.sh", () => {
     await writeFile(
       join(activeSandbox.rootDir, ".env"),
       [
-        "OPENCLAW_GATEWAY_TOKEN=",
-        "OPENCLAW_GATEWAY_TOKEN=first-token",
-        "OPENCLAW_GATEWAY_TOKEN=last=token=value\r", // pragma: allowlist secret
+        "GENESIS_GATEWAY_TOKEN=",
+        "GENESIS_GATEWAY_TOKEN=first-token",
+        "GENESIS_GATEWAY_TOKEN=last=token=value\r", // pragma: allowlist secret
       ].join("\n"),
     );
     const { result, envFile } = await runDockerSetupWithUnsetGatewayToken(
@@ -375,26 +375,26 @@ describe("scripts/docker/setup.sh", () => {
     );
 
     expect(result.status).toBe(0);
-    expect(envFile).toContain("OPENCLAW_GATEWAY_TOKEN=last=token=value"); // pragma: allowlist secret
-    expect(envFile).not.toContain("OPENCLAW_GATEWAY_TOKEN=first-token");
+    expect(envFile).toContain("GENESIS_GATEWAY_TOKEN=last=token=value"); // pragma: allowlist secret
+    expect(envFile).not.toContain("GENESIS_GATEWAY_TOKEN=first-token");
     expect(envFile).not.toContain("\r");
   });
 
-  it("treats OPENCLAW_SANDBOX=0 as disabled", async () => {
+  it("treats GENESIS_SANDBOX=0 as disabled", async () => {
     const activeSandbox = requireSandbox(sandbox);
     await resetDockerLog(activeSandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_SANDBOX: "0",
+      GENESIS_SANDBOX: "0",
     });
 
     expect(result.status).toBe(0);
     const envFile = await readFile(join(activeSandbox.rootDir, ".env"), "utf8");
-    expect(envFile).toContain("OPENCLAW_SANDBOX=");
+    expect(envFile).toContain("GENESIS_SANDBOX=");
 
     const log = await readDockerLog(activeSandbox);
-    expect(log).toContain("--build-arg OPENCLAW_INSTALL_DOCKER_CLI=");
-    expect(log).not.toContain("--build-arg OPENCLAW_INSTALL_DOCKER_CLI=1");
+    expect(log).toContain("--build-arg GENESIS_INSTALL_DOCKER_CLI=");
+    expect(log).not.toContain("--build-arg GENESIS_INSTALL_DOCKER_CLI=1");
     expect(log).toContain("config set agents.defaults.sandbox.mode off");
   });
 
@@ -403,12 +403,12 @@ describe("scripts/docker/setup.sh", () => {
     await resetDockerLog(activeSandbox);
     await writeFile(
       join(activeSandbox.rootDir, "docker-compose.sandbox.yml"),
-      "services:\n  openclaw-gateway:\n    volumes:\n      - /var/run/docker.sock:/var/run/docker.sock\n",
+      "services:\n  genesis-gateway:\n    volumes:\n      - /var/run/docker.sock:/var/run/docker.sock\n",
     );
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_SANDBOX: "1",
-      DOCKER_STUB_FAIL_MATCH: "--entrypoint docker openclaw-gateway --version",
+      GENESIS_SANDBOX: "1",
+      DOCKER_STUB_FAIL_MATCH: "--entrypoint docker genesis-gateway --version",
     });
 
     expect(result.status).toBe(0);
@@ -425,8 +425,8 @@ describe("scripts/docker/setup.sh", () => {
 
     await withUnixSocket(socketPath, async () => {
       const result = runDockerSetup(activeSandbox, {
-        OPENCLAW_SANDBOX: "1",
-        OPENCLAW_DOCKER_SOCKET: socketPath,
+        GENESIS_SANDBOX: "1",
+        GENESIS_DOCKER_SOCKET: socketPath,
         DOCKER_STUB_FAIL_MATCH: "config set agents.defaults.sandbox.scope",
       });
 
@@ -440,12 +440,12 @@ describe("scripts/docker/setup.sh", () => {
       );
       expect(gatewayStarts).toHaveLength(2);
       expect(log).toContain(
-        "run --rm --no-deps openclaw-cli config set agents.defaults.sandbox.mode non-main",
+        "run --rm --no-deps genesis-cli config set agents.defaults.sandbox.mode non-main",
       );
       expect(log).toContain("config set agents.defaults.sandbox.mode off");
       const forceRecreateLine = log
         .split("\n")
-        .find((line) => line.includes("up -d --force-recreate openclaw-gateway"));
+        .find((line) => line.includes("up -d --force-recreate genesis-gateway"));
       expect(forceRecreateLine).toBeDefined();
       expect(forceRecreateLine).not.toContain("docker-compose.sandbox.yml");
       await expect(
@@ -454,48 +454,48 @@ describe("scripts/docker/setup.sh", () => {
     });
   });
 
-  it("rejects injected multiline OPENCLAW_EXTRA_MOUNTS values", async () => {
+  it("rejects injected multiline GENESIS_EXTRA_MOUNTS values", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_EXTRA_MOUNTS: "/tmp:/tmp\n  evil-service:\n    image: alpine",
+      GENESIS_EXTRA_MOUNTS: "/tmp:/tmp\n  evil-service:\n    image: alpine",
     });
 
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("OPENCLAW_EXTRA_MOUNTS cannot contain control characters");
+    expect(result.stderr).toContain("GENESIS_EXTRA_MOUNTS cannot contain control characters");
   });
 
-  it("rejects invalid OPENCLAW_EXTRA_MOUNTS mount format", async () => {
+  it("rejects invalid GENESIS_EXTRA_MOUNTS mount format", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_EXTRA_MOUNTS: "bad mount spec",
+      GENESIS_EXTRA_MOUNTS: "bad mount spec",
     });
 
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain("Invalid mount format");
   });
 
-  it("rejects invalid OPENCLAW_HOME_VOLUME names", async () => {
+  it("rejects invalid GENESIS_HOME_VOLUME names", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_HOME_VOLUME: "bad name",
+      GENESIS_HOME_VOLUME: "bad name",
     });
 
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("OPENCLAW_HOME_VOLUME must match");
+    expect(result.stderr).toContain("GENESIS_HOME_VOLUME must match");
   });
 
-  it("rejects OPENCLAW_TZ values that are not present in zoneinfo", async () => {
+  it("rejects GENESIS_TZ values that are not present in zoneinfo", async () => {
     const activeSandbox = requireSandbox(sandbox);
 
     const result = runDockerSetup(activeSandbox, {
-      OPENCLAW_TZ: "Nope/Bad",
+      GENESIS_TZ: "Nope/Bad",
     });
 
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("OPENCLAW_TZ must match a timezone in /usr/share/zoneinfo");
+    expect(result.stderr).toContain("GENESIS_TZ must match a timezone in /usr/share/zoneinfo");
   });
 
   it("avoids associative arrays so the script remains Bash 3.2-compatible", async () => {
@@ -536,19 +536,17 @@ describe("scripts/docker/setup.sh", () => {
 
   it("keeps docker-compose CLI network namespace settings in sync", async () => {
     const compose = await readFile(join(repoRoot, "docker-compose.yml"), "utf8");
-    expect(compose).toContain('network_mode: "service:openclaw-gateway"');
-    expect(compose).toContain("depends_on:\n      - openclaw-gateway");
+    expect(compose).toContain('network_mode: "service:genesis-gateway"');
+    expect(compose).toContain("depends_on:\n      - genesis-gateway");
   });
 
   it("keeps docker-compose gateway token env defaults aligned across services", async () => {
     const compose = await readFile(join(repoRoot, "docker-compose.yml"), "utf8");
-    expect(compose.match(/OPENCLAW_GATEWAY_TOKEN: \$\{OPENCLAW_GATEWAY_TOKEN:-\}/g)).toHaveLength(
-      2,
-    );
+    expect(compose.match(/GENESIS_GATEWAY_TOKEN: \$\{GENESIS_GATEWAY_TOKEN:-\}/g)).toHaveLength(2);
   });
 
   it("keeps docker-compose timezone env defaults aligned across services", async () => {
     const compose = await readFile(join(repoRoot, "docker-compose.yml"), "utf8");
-    expect(compose.match(/TZ: \$\{OPENCLAW_TZ:-UTC\}/g)).toHaveLength(2);
+    expect(compose.match(/TZ: \$\{GENESIS_TZ:-UTC\}/g)).toHaveLength(2);
   });
 });

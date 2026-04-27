@@ -1,8 +1,8 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
+} from "genesis/plugin-sdk/channel-config-helpers";
 import {
   listMatrixAccountIds,
   resolveDefaultMatrixAccountId,

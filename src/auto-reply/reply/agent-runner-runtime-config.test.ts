@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   clearRuntimeConfigSnapshot,
   setRuntimeConfigSnapshot,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../../config/config.js";
 import {
   buildEmbeddedRunBaseParams,
@@ -10,7 +10,7 @@ import {
 } from "./agent-runner-utils.js";
 import type { FollowupRun } from "./queue.js";
 
-function makeRun(config: OpenClawConfig): FollowupRun["run"] {
+function makeRun(config: GenesisConfig): FollowupRun["run"] {
   return {
     sessionId: "session-1",
     agentId: "agent-1",
@@ -40,7 +40,7 @@ afterEach(() => {
 
 describe("buildEmbeddedRunBaseParams runtime config", () => {
   it("keeps an already-resolved run config instead of reverting to a stale runtime snapshot", () => {
-    const staleSnapshot: OpenClawConfig = {
+    const staleSnapshot: GenesisConfig = {
       models: {
         providers: {
           openai: {
@@ -55,7 +55,7 @@ describe("buildEmbeddedRunBaseParams runtime config", () => {
         },
       },
     };
-    const resolvedRunConfig: OpenClawConfig = {
+    const resolvedRunConfig: GenesisConfig = {
       models: {
         providers: {
           openai: {

@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 
 const fixtureTempDirs: string[] = [];
-const fixtureRoot = makeTrackedTempDir("openclaw-plugin-graceful", fixtureTempDirs);
+const fixtureRoot = makeTrackedTempDir("genesis-plugin-graceful", fixtureTempDirs);
 let tempDirIndex = 0;
 
 afterAll(() => {
@@ -28,7 +28,7 @@ function writePlugin(params: { id: string; body: string; dir?: string }): {
   const file = path.join(dir, filename);
   fs.writeFileSync(file, params.body, "utf-8");
   fs.writeFileSync(
-    path.join(dir, "openclaw.plugin.json"),
+    path.join(dir, "genesis.plugin.json"),
     JSON.stringify({
       id: params.id,
       name: params.id,
@@ -42,16 +42,16 @@ function writePlugin(params: { id: string; body: string; dir?: string }): {
 }
 
 function readPluginId(pluginPath: string): string {
-  const manifestPath = path.join(path.dirname(pluginPath), "openclaw.plugin.json");
+  const manifestPath = path.join(path.dirname(pluginPath), "genesis.plugin.json");
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8")) as { id: string };
   return manifest.id;
 }
 
 async function loadPlugins(pluginPaths: string[], warnings?: string[]) {
-  const { loadOpenClawPlugins, clearPluginLoaderCache } = await import("./loader.js");
+  const { loadGenesisPlugins, clearPluginLoaderCache } = await import("./loader.js");
   clearPluginLoaderCache();
   const allow = pluginPaths.map((pluginPath) => readPluginId(pluginPath));
-  return loadOpenClawPlugins({
+  return loadGenesisPlugins({
     cache: false,
     config: {
       plugins: {
@@ -145,6 +145,6 @@ describe("graceful plugin initialization failure", () => {
     expect(summary).toBeDefined();
     expect(summary).toContain("register: warn-register");
     expect(summary).toContain("validation: warn-validation");
-    expect(summary).toContain("openclaw plugins list");
+    expect(summary).toContain("genesis plugins list");
   });
 });

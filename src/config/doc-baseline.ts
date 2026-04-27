@@ -3,7 +3,7 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveOpenClawPackageRootSync } from "../infra/openclaw-root.js";
+import { resolveGenesisPackageRootSync } from "../infra/genesis-root.js";
 import { FIELD_HELP } from "./schema.help.js";
 import type { ConfigSchemaResponse } from "./schema.js";
 import { schemaHasChildren } from "./schema.shared.js";
@@ -101,13 +101,13 @@ const uiHintIndexCache = new WeakMap<
 const schemaHasChildrenCache = new WeakMap<JsonSchemaObject, boolean>();
 
 function logConfigDocBaselineDebug(message: string): void {
-  if (process.env.OPENCLAW_CONFIG_DOC_BASELINE_DEBUG === "1") {
+  if (process.env.GENESIS_CONFIG_DOC_BASELINE_DEBUG === "1") {
     console.error(`[config-doc-baseline] ${message}`);
   }
 }
 
 function resolveRepoRoot(): string {
-  const fromPackage = resolveOpenClawPackageRootSync({
+  const fromPackage = resolveGenesisPackageRootSync({
     cwd: path.dirname(fileURLToPath(import.meta.url)),
     moduleUrl: import.meta.url,
   });
@@ -360,8 +360,8 @@ async function loadBundledConfigSchemaResponse(): Promise<ConfigSchemaResponse> 
   const env = {
     ...process.env,
     HOME: os.tmpdir(),
-    OPENCLAW_STATE_DIR: path.join(os.tmpdir(), "openclaw-config-doc-baseline-state"),
-    OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(repoRoot, "extensions"),
+    GENESIS_STATE_DIR: path.join(os.tmpdir(), "genesis-config-doc-baseline-state"),
+    GENESIS_BUNDLED_PLUGINS_DIR: path.join(repoRoot, "extensions"),
   };
 
   const manifestRegistry = runtime.loadPluginManifestRegistry({

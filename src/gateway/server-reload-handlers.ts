@@ -4,7 +4,7 @@ import { getTotalPendingReplies } from "../auto-reply/reply/dispatcher-registry.
 import type { CliDeps } from "../cli/deps.types.js";
 import { resolveAgentMaxConcurrent, resolveSubagentMaxConcurrent } from "../config/agent-limits.js";
 import { isRestartEnabled } from "../config/commands.flags.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { startGmailWatcherWithLogs } from "../hooks/gmail-watcher-lifecycle.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { isTruthyEnvValue } from "../infra/env.js";
@@ -72,7 +72,7 @@ type GatewayReloadHandlerParams = {
   logChannels: { info: (msg: string) => void; error: (msg: string) => void };
   logCron: { error: (msg: string) => void };
   logReload: GatewayReloadLog;
-  createHealthMonitor: (config: OpenClawConfig) => ChannelHealthMonitor | null;
+  createHealthMonitor: (config: GenesisConfig) => ChannelHealthMonitor | null;
 };
 
 type ManagedGatewayConfigReloaderParams = Omit<
@@ -80,8 +80,8 @@ type ManagedGatewayConfigReloaderParams = Omit<
   "createHealthMonitor" | "logReload"
 > & {
   minimalTestGateway: boolean;
-  initialConfig: OpenClawConfig;
-  initialCompareConfig?: OpenClawConfig;
+  initialConfig: GenesisConfig;
+  initialCompareConfig?: GenesisConfig;
   initialInternalWriteHash: string | null;
   watchPath: string;
   readSnapshot: typeof import("../config/config.js").readConfigFileSnapshot;
@@ -93,13 +93,13 @@ type ManagedGatewayConfigReloaderParams = Omit<
   };
   channelManager: GatewayChannelManager;
   activateRuntimeSecrets: ActivateRuntimeSecrets;
-  resolveSharedGatewaySessionGenerationForConfig: (config: OpenClawConfig) => string | undefined;
+  resolveSharedGatewaySessionGenerationForConfig: (config: GenesisConfig) => string | undefined;
   sharedGatewaySessionGenerationState: SharedGatewaySessionGenerationState;
   clients: Iterable<SharedGatewayAuthClient>;
 };
 
 export function createGatewayReloadHandlers(params: GatewayReloadHandlerParams) {
-  const applyHotReload = async (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => {
+  const applyHotReload = async (plan: GatewayReloadPlan, nextConfig: GenesisConfig) => {
     setGatewaySigusr1RestartPolicy({ allowExternal: isRestartEnabled(nextConfig) });
     const state = params.getState();
     const nextState = { ...state };
@@ -159,17 +159,17 @@ export function createGatewayReloadHandlers(params: GatewayReloadHandlerParams) 
         cfg: nextConfig,
         log: params.logHooks,
         onSkipped: () =>
-          params.logHooks.info("skipping gmail watcher restart (OPENCLAW_SKIP_GMAIL_WATCHER=1)"),
+          params.logHooks.info("skipping gmail watcher restart (GENESIS_SKIP_GMAIL_WATCHER=1)"),
       });
     }
 
     if (plan.restartChannels.size > 0) {
       if (
-        isTruthyEnvValue(process.env.OPENCLAW_SKIP_CHANNELS) ||
-        isTruthyEnvValue(process.env.OPENCLAW_SKIP_PROVIDERS)
+        isTruthyEnvValue(process.env.GENESIS_SKIP_CHANNELS) ||
+        isTruthyEnvValue(process.env.GENESIS_SKIP_PROVIDERS)
       ) {
         params.logChannels.info(
-          "skipping channel reload (OPENCLAW_SKIP_CHANNELS=1 or OPENCLAW_SKIP_PROVIDERS=1)",
+          "skipping channel reload (GENESIS_SKIP_CHANNELS=1 or GENESIS_SKIP_PROVIDERS=1)",
         );
       } else {
         const restartChannel = async (name: ChannelKind) => {
@@ -198,7 +198,7 @@ export function createGatewayReloadHandlers(params: GatewayReloadHandlerParams) 
 
   let restartPending = false;
 
-  const requestGatewayRestart = (plan: GatewayReloadPlan, nextConfig: OpenClawConfig): boolean => {
+  const requestGatewayRestart = (plan: GatewayReloadPlan, nextConfig: GenesisConfig): boolean => {
     setGatewaySigusr1RestartPolicy({ allowExternal: isRestartEnabled(nextConfig) });
     const reasons = plan.restartReasons.length
       ? plan.restartReasons.join(", ")

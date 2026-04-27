@@ -21,7 +21,7 @@ const STALE_SIGKILL_WAIT_MS = 400;
 /**
  * After SIGKILL, the kernel may not release the TCP port immediately.
  * Poll until the port is confirmed free (or until the budget expires) before
- * returning control to the caller (typically `triggerOpenClawRestart` →
+ * returning control to the caller (typically `triggerGenesisRestart` →
  * `systemctl restart`). Without this wait the new process races the dying
  * process for the port and systemd enters an EADDRINUSE restart loop.
  *
@@ -165,7 +165,7 @@ function getSelfAndAncestorPidsSync(): Set<number> {
 }
 
 /**
- * Parse openclaw gateway PIDs from lsof -Fpc stdout, excluding the current
+ * Parse genesis gateway PIDs from lsof -Fpc stdout, excluding the current
  * process and its ancestors (see `getSelfAndAncestorPidsSync` for the full
  * rationale). On Linux the ancestor lookup reads up to
  * `MAX_ANCESTOR_WALK_DEPTH` entries from `/proc/<pid>/status`; each read is
@@ -182,7 +182,7 @@ function parsePidsFromLsofOutput(stdout: string): number[] {
       if (
         currentPid != null &&
         currentCmd &&
-        normalizeLowercaseStringOrEmpty(currentCmd).includes("openclaw")
+        normalizeLowercaseStringOrEmpty(currentCmd).includes("genesis")
       ) {
         pids.push(currentPid);
       }
@@ -196,7 +196,7 @@ function parsePidsFromLsofOutput(stdout: string): number[] {
   if (
     currentPid != null &&
     currentCmd &&
-    normalizeLowercaseStringOrEmpty(currentCmd).includes("openclaw")
+    normalizeLowercaseStringOrEmpty(currentCmd).includes("genesis")
   ) {
     pids.push(currentPid);
   }
@@ -209,7 +209,7 @@ function parsePidsFromLsofOutput(stdout: string): number[] {
 }
 
 /**
- * Windows: find listening PIDs on the port, then verify each is an openclaw
+ * Windows: find listening PIDs on the port, then verify each is an genesis
  * gateway process via command-line inspection. Excludes the current process
  * and its ancestors (same invariant as the lsof path — see
  * `getSelfAndAncestorPidsSync`).
@@ -261,7 +261,7 @@ function findVerifiedWindowsGatewayPidsOnPortResultSync(port: number): WindowsLi
 
 /**
  * Find PIDs of gateway processes listening on the given port using synchronous lsof.
- * Returns only PIDs that belong to openclaw gateway processes (not the current process).
+ * Returns only PIDs that belong to genesis gateway processes (not the current process).
  */
 export function findGatewayPidsOnPortSync(
   port: number,
@@ -269,7 +269,7 @@ export function findGatewayPidsOnPortSync(
 ): number[] {
   if (process.platform === "win32") {
     // Use the shared Windows port inspection (PowerShell / netstat) with
-    // command-line verification to find only openclaw gateway processes.
+    // command-line verification to find only genesis gateway processes.
     return findVerifiedWindowsGatewayPidsOnPortSync(port);
   }
   const lsof = resolveLsofCommandSync();

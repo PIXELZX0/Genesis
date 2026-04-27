@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { VIDEO_GENERATION_TASK_KIND } from "../video-generation-task-status.js";
 import {
   createMediaGenerationTaskLifecycle,
@@ -36,7 +36,7 @@ export const failVideoGenerationTaskRun = (
 ) => videoGenerationTaskLifecycle.failTaskRun(...params);
 
 export async function wakeVideoGenerationTaskCompletion(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   handle: VideoGenerationTaskHandle | null;
   status: "ok" | "error";
   statusLabel: string;

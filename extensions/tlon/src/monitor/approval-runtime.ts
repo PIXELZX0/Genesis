@@ -1,4 +1,4 @@
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
 import type { PendingApproval, TlonSettingsStore } from "../settings.js";
 import { normalizeShip } from "../targets.js";
 import { sendDm } from "../urbit/send.js";

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const resolvePinnedHostnameWithPolicyMock = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   resolvePinnedHostnameWithPolicy: (...args: unknown[]) =>
     resolvePinnedHostnameWithPolicyMock(...args),
 }));

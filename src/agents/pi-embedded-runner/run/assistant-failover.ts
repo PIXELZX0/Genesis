@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { sanitizeForLog } from "../../../terminal/ansi.js";
 import type { AuthProfileFailureReason } from "../../auth-profiles.js";
 import { FailoverError, resolveFailoverStatus } from "../../failover-error.js";
@@ -49,7 +49,7 @@ export async function handleAssistantFailover(params: {
   provider: string;
   activeErrorContext: { provider: string; model: string };
   lastAssistant: AssistantMessage | undefined;
-  config: OpenClawConfig | undefined;
+  config: GenesisConfig | undefined;
   sessionKey?: string;
   authFailure: boolean;
   rateLimitFailure: boolean;
@@ -218,7 +218,7 @@ export async function handleAssistantFailover(params: {
     //      synthesis and break timeout-compaction retry coverage.
     // Every other surface_error is a concrete provider failure that
     // continue_normal would silently drop before the payload builder
-    // sees it (openclaw#70124: billing errors reached the gateway
+    // sees it (genesis#70124: billing errors reached the gateway
     // but never the webchat because stopReason was not "error" and
     // no other synthesis path caught them). Throw a FailoverError so
     // the client surface can render it the same way it already
@@ -251,7 +251,7 @@ export async function handleAssistantFailover(params: {
 
 function resolveAssistantFailoverErrorMessage(params: {
   lastAssistant: AssistantMessage | undefined;
-  config: OpenClawConfig | undefined;
+  config: GenesisConfig | undefined;
   sessionKey?: string;
   activeErrorContext: { provider: string; model: string };
   timedOut: boolean;

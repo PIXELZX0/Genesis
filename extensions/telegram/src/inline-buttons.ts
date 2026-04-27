@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { TelegramInlineButtonsScope } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { TelegramInlineButtonsScope } from "genesis/plugin-sdk/config-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { listTelegramAccountIds, resolveTelegramAccount } from "./accounts.js";
 
 const DEFAULT_INLINE_BUTTONS_SCOPE: TelegramInlineButtonsScope = "allowlist";
@@ -57,7 +57,7 @@ export function resolveTelegramInlineButtonsScopeFromCapabilities(
 }
 
 export function resolveTelegramInlineButtonsScope(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): TelegramInlineButtonsScope {
   const account = resolveTelegramAccount({ cfg: params.cfg, accountId: params.accountId });
@@ -65,7 +65,7 @@ export function resolveTelegramInlineButtonsScope(params: {
 }
 
 export function isTelegramInlineButtonsEnabled(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): boolean {
   if (params.accountId) {

@@ -1,10 +1,10 @@
 import type {
   ChannelMessageActionAdapter,
   ChannelMessageToolDiscovery,
-} from "openclaw/plugin-sdk/channel-contract";
-import { normalizeMessagePresentation } from "openclaw/plugin-sdk/interactive-runtime";
-import { createLazyRuntimeNamedExport } from "openclaw/plugin-sdk/lazy-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/channel-contract";
+import { normalizeMessagePresentation } from "genesis/plugin-sdk/interactive-runtime";
+import { createLazyRuntimeNamedExport } from "genesis/plugin-sdk/lazy-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { Type } from "typebox";
 import type { ChannelMessageActionName, ChannelPlugin } from "./channel-api.js";
 import { buildMSTeamsPresentationCard } from "./presentation.js";

@@ -2,8 +2,8 @@ import { MEDIA_AUDIO_FIELD_HELP } from "./media-audio-field-metadata.js";
 import { describeTalkSilenceTimeoutDefaults } from "./talk-defaults.js";
 
 export const FIELD_HELP: Record<string, string> = {
-  meta: "Metadata fields automatically maintained by OpenClaw to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
-  "meta.lastTouchedVersion": "Auto-set when OpenClaw writes the config.",
+  meta: "Metadata fields automatically maintained by Genesis to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
+  "meta.lastTouchedVersion": "Auto-set when Genesis writes the config.",
   "meta.lastTouchedAt": "ISO timestamp of the last config write (auto-set).",
   env: "Environment import and override settings used to supply runtime variables to the gateway process. Use this section to control shell-env loading and explicit variable injection behavior.",
   "env.shellEnv":
@@ -13,13 +13,13 @@ export const FIELD_HELP: Record<string, string> = {
   "env.shellEnv.timeoutMs":
     "Maximum time in milliseconds allowed for shell environment resolution before fallback behavior applies. Use tighter timeouts for faster startup, or increase when shell initialization is heavy.",
   "env.vars":
-    "Explicit key/value environment variable overrides merged into runtime process environment for OpenClaw. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
+    "Explicit key/value environment variable overrides merged into runtime process environment for Genesis. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
   wizard:
     "Setup wizard state tracking fields that record the most recent guided setup run details. Keep these fields for observability and troubleshooting of setup flows across upgrades.",
   "wizard.lastRunAt":
     "ISO timestamp for when the setup wizard most recently completed on this host. Use this to confirm setup recency during support and operational audits.",
   "wizard.lastRunVersion":
-    "OpenClaw version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
+    "Genesis version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
   "wizard.lastRunCommit":
     "Source commit identifier recorded for the last wizard execution in development builds. Use this to correlate setup behavior with exact source state during debugging.",
   "wizard.lastRunCommand":
@@ -52,7 +52,7 @@ export const FIELD_HELP: Record<string, string> = {
   "cli.banner.taglineMode":
     'Controls tagline style in the CLI startup banner: "random" (default) picks from the rotating tagline pool, "default" always shows the neutral default tagline, and "off" hides tagline text while keeping the banner version line.',
   update:
-    "Update-channel and startup-check behavior for keeping OpenClaw runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
+    "Update-channel and startup-check behavior for keeping Genesis runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
   "update.channel": 'Update channel for git + npm installs ("stable", "beta", or "dev").',
   "update.checkOnStart": "Check for npm updates when the gateway starts (default: true).",
   "update.auto.enabled": "Enable background auto-update for package installs (default: false).",
@@ -229,13 +229,13 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.list[].fastModeDefault":
     "Optional per-agent default for fast mode. Applies when no per-message or session fast-mode override is set.",
   "agents.list[].runtime":
-    "Optional runtime descriptor for this agent. Use embedded for default OpenClaw execution or acp for external ACP harness defaults.",
+    "Optional runtime descriptor for this agent. Use embedded for default Genesis execution or acp for external ACP harness defaults.",
   "agents.list[].runtime.type":
-    'Runtime type for this agent: "embedded" (default OpenClaw runtime) or "acp" (ACP harness defaults).',
+    'Runtime type for this agent: "embedded" (default Genesis runtime) or "acp" (ACP harness defaults).',
   "agents.list[].runtime.acp":
     "ACP runtime defaults for this agent when runtime.type=acp. Binding-level ACP overrides still take precedence per conversation.",
   "agents.list[].runtime.acp.agent":
-    "Optional ACP harness agent id to use for this OpenClaw agent (for example codex, claude, cursor, gemini, openclaw).",
+    "Optional ACP harness agent id to use for this Genesis agent (for example codex, claude, cursor, gemini, genesis).",
   "agents.list[].runtime.acp.backend":
     "Optional ACP backend override for this agent's ACP sessions (falls back to global acp.backend).",
   "agents.list[].runtime.acp.mode":
@@ -274,6 +274,22 @@ export const FIELD_HELP: Record<string, string> = {
     "Starting local CDP port used for auto-allocated browser profile ports. Increase this when host-level port defaults conflict with other local services.",
   "browser.defaultProfile":
     "Default browser profile name selected when callers do not explicitly choose a profile. Use a stable low-privilege profile as the default to reduce accidental cross-context state use.",
+  "browser.tor":
+    "Default Tor routing settings inherited by locally launched managed browser profiles. Tor routing is enabled by default for managed local browser profiles; set enabled=false to opt out.",
+  "browser.tor.enabled":
+    "Enables Tor SOCKS routing for locally launched managed browser profiles that inherit the default Tor settings. Default is true for local managed profiles.",
+  "browser.tor.mode":
+    'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
+  "browser.tor.executablePath":
+    'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+  "browser.tor.socksHost":
+    "Tor SOCKS host used by Chromium proxy routing. Keep this on loopback unless you explicitly operate a trusted remote Tor endpoint.",
+  "browser.tor.socksPort":
+    "Tor SOCKS port used by Chromium proxy routing. Managed per-profile defaults derive from the profile CDP port.",
+  "browser.tor.dataDir":
+    "Tor data directory for managed mode. Leave unset to store Tor state under the browser profile directory.",
+  "browser.tor.extraArgs":
+    "Additional Tor process arguments for managed mode. Use sparingly and keep values host-local.",
   "browser.profiles":
     "Named browser profile connection map used for explicit routing to CDP ports or URLs with optional metadata. Keep profile names consistent and avoid overlapping endpoint definitions.",
   "browser.profiles.*.cdpPort":
@@ -283,11 +299,23 @@ export const FIELD_HELP: Record<string, string> = {
   "browser.profiles.*.userDataDir":
     "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory on the selected host or browser node.",
   "browser.profiles.*.driver":
-    'Per-profile browser driver mode. Use "openclaw" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
+    'Per-profile browser driver mode. Use "genesis" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
   "browser.profiles.*.headless":
     "Per-profile headless override for locally launched browser instances. Use this when one profile should stay headless without forcing browser.headless for every other profile.",
   "browser.profiles.*.attachOnly":
     "Per-profile attach-only override that skips local browser launch and only attaches to an existing CDP endpoint. Useful when one profile is externally managed but others are locally launched.",
+  "browser.profiles.*.tor":
+    "Per-profile Tor routing settings for a locally launched managed browser. Use enabled=false to opt a profile out of the default Tor routing.",
+  "browser.profiles.*.tor.enabled":
+    "Enables Tor SOCKS routing for this locally launched managed browser profile. Defaults to the global browser.tor setting, which is enabled by default.",
+  "browser.profiles.*.tor.mode":
+    'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+  "browser.profiles.*.tor.executablePath":
+    'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+  "browser.profiles.*.tor.socksHost": "Per-profile Tor SOCKS host used by Chromium proxy routing.",
+  "browser.profiles.*.tor.socksPort": "Per-profile Tor SOCKS port used by Chromium proxy routing.",
+  "browser.profiles.*.tor.dataDir": "Per-profile Tor data directory for managed mode.",
+  "browser.profiles.*.tor.extraArgs": "Per-profile extra Tor process arguments for managed mode.",
   "browser.profiles.*.color":
     "Per-profile accent color for visual differentiation in dashboards and browser-related UI hints. Use distinct colors for high-signal operator recognition of active profiles.",
   "browser.evaluateEnabled":
@@ -327,7 +355,7 @@ export const FIELD_HELP: Record<string, string> = {
   "discovery.wideArea.enabled":
     "Enables wide-area discovery signaling when your environment needs non-local gateway discovery. Keep disabled unless cross-network discovery is operationally required.",
   "discovery.wideArea.domain":
-    "Optional unicast DNS-SD domain for wide-area discovery, such as openclaw.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
+    "Optional unicast DNS-SD domain for wide-area discovery, such as genesis.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
   "discovery.mdns":
     "mDNS discovery configuration group for local network advertisement and discovery behavior tuning. Keep minimal mode for routine LAN discovery unless extra metadata is required.",
   tools:
@@ -404,7 +432,7 @@ export const FIELD_HELP: Record<string, string> = {
     "Required by default for gateway access (unless using Tailscale Serve identity); required for non-loopback binds.",
   "gateway.auth.password": "Required for Tailscale funnel.",
   "agents.defaults.sandbox.browser.network":
-    "Docker network for sandbox browser containers (default: openclaw-sandbox-browser). Avoid bridge if you need stricter isolation.",
+    "Docker network for sandbox browser containers (default: genesis-sandbox-browser). Avoid bridge if you need stricter isolation.",
   "agents.list[].sandbox.browser.network": "Per-agent override for sandbox browser Docker network.",
   "agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin":
     "DANGEROUS break-glass override that allows sandbox Docker network mode container:<id>. This joins another container namespace and weakens sandbox isolation.",
@@ -415,13 +443,13 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.list[].sandbox.browser.cdpSourceRange":
     "Per-agent override for CDP source CIDR allowlist.",
   "gateway.controlUi.basePath":
-    "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
+    "Optional URL prefix where the Control UI is served (e.g. /genesis).",
   "gateway.controlUi.root":
     "Optional filesystem root for Control UI assets (defaults to dist/control-ui).",
   "gateway.controlUi.embedSandbox":
     'Iframe sandbox policy for hosted Control UI embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
   "gateway.controlUi.allowExternalEmbedUrls":
-    "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__openclaw__/canvas and /__openclaw__/a2ui documents do not need it.",
+    "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__genesis__/canvas and /__genesis__/a2ui documents do not need it.",
   "gateway.controlUi.allowedOrigins":
     'Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":
@@ -475,7 +503,7 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.nodes.pairing.autoApproveCidrs":
     "Opt-in CIDR/IP allowlist for auto-approving first-time node-role device pairing with no requested scopes. Disabled when unset. Operator, browser, Control UI, and any role, scope, metadata, or public-key upgrade pairing still require manual approval.",
   "gateway.nodes.allowCommands":
-    "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+    "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `genesis security audit`.",
   "gateway.nodes.denyCommands":
     "Node command names to block even if present in node claims or default allowlist (exact command-name matching only, e.g. `system.run`; does not inspect shell text inside that command).",
   "gateway.webchat.chatHistoryMaxChars":
@@ -487,7 +515,7 @@ export const FIELD_HELP: Record<string, string> = {
   "nodeHost.browserProxy.enabled":
     "Expose the local browser control server through node proxy routing so remote clients can use this host's browser capabilities. Keep disabled unless remote automation explicitly depends on it.",
   "nodeHost.browserProxy.allowProfiles":
-    "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, OpenClaw enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
+    "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, Genesis enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
   media:
     "Top-level media behavior shared across providers and tools that handle inbound files. Keep defaults unless you need stable filenames for external processing pipelines or longer-lived inbound media retention.",
   "media.preserveFilenames":
@@ -583,7 +611,7 @@ export const FIELD_HELP: Record<string, string> = {
   "diagnostics.cacheTrace.enabled":
     "Log cache trace snapshots for embedded agent runs (default: false).",
   "diagnostics.cacheTrace.filePath":
-    "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+    "JSONL output path for cache trace logs (default: $GENESIS_STATE_DIR/logs/cache-trace.jsonl).",
   "diagnostics.cacheTrace.includeMessages":
     "Include full message payloads in trace output (default: true).",
   "diagnostics.cacheTrace.includePrompt": "Include prompt text in trace output (default: true).",
@@ -635,6 +663,41 @@ export const FIELD_HELP: Record<string, string> = {
     "Per-agent additive allowlist for tools on top of global and profile policy. Keep narrow to avoid accidental privilege expansion on specialized agents.",
   "agents.list[].tools.byProvider":
     "Per-agent provider-specific tool policy overrides for channel-scoped capability control. Use this when a single agent needs tighter restrictions on one provider than others.",
+  wallet:
+    "Local wallet controls for public address display, encrypted local key storage, chain RPC endpoints, and guarded send behavior. Keep spending disabled until the operator has reviewed exec approval policy and wallet limits.",
+  "wallet.enabled":
+    "Enables wallet summary and CLI wallet commands. Disabling hides wallet state from the Control UI and blocks wallet operations without deleting the encrypted keystore.",
+  "wallet.primaryAccount":
+    "Public account id used as the default when wallet commands omit --account.",
+  "wallet.networks":
+    "Per-chain RPC and network settings. Store API keys and protected RPC credentials through SecretRef or environment-backed secrets.",
+  "wallet.networks.btc":
+    "Bitcoin wallet settings for native SegWit address derivation, Esplora balance lookup, and PSBT broadcast.",
+  "wallet.networks.btc.esploraUrl":
+    "Base URL for an Esplora-compatible Bitcoin API used for UTXO lookup and transaction broadcast.",
+  "wallet.networks.evm":
+    "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+  "wallet.networks.evm.rpcUrl":
+    "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
+  "wallet.networks.sol": "Solana wallet settings for RPC balance lookup and native SOL transfers.",
+  "wallet.networks.sol.rpcUrl":
+    "Solana JSON-RPC endpoint. Defaults to the configured cluster public endpoint when omitted.",
+  "wallet.networks.trx":
+    "TRON wallet settings for TronWeb balance lookup and native TRX transfers.",
+  "wallet.networks.trx.fullHost":
+    "TRON full host endpoint used by TronWeb. Use apiKey for providers such as TronGrid when required.",
+  "wallet.networks.xmr":
+    "Monero wallet RPC settings. Genesis does not derive or store Monero private keys; it calls monero-wallet-rpc for address, balance, and transfer.",
+  "wallet.networks.xmr.walletRpcUrl":
+    "monero-wallet-rpc JSON-RPC URL. Keep it on loopback or behind strong transport and auth controls.",
+  "wallet.spending":
+    "Guardrails for CLI send commands. These controls are independent of exec approvals and are checked before any broadcast.",
+  "wallet.spending.enabled":
+    "Allows wallet send commands to broadcast transactions when all other guards pass. Keep false for address-only setups.",
+  "wallet.spending.requireAllowEnv":
+    "Requires GENESIS_WALLET_ALLOW_SPEND=1 for send commands. Keep enabled when AI agents can run shell commands.",
+  "wallet.spending.maxNativeAmount":
+    "Maximum native currency amount allowed per send command. The unit is the selected chain native asset.",
   "tools.exec.approvalRunningNoticeMs":
     "Delay in milliseconds before showing an in-progress notice after an exec approval is granted. Increase to reduce flicker for fast commands, or lower for quicker operator feedback.",
   "tools.links.enabled":
@@ -805,7 +868,7 @@ export const FIELD_HELP: Record<string, string> = {
   "models.providers.*.api":
     "Provider API adapter selection controlling request/response compatibility handling for model calls. Use the adapter that matches your upstream provider protocol to avoid feature mismatch.",
   "models.providers.*.injectNumCtxForOpenAICompat":
-    "Controls whether OpenClaw injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
+    "Controls whether Genesis injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
   "models.providers.*.headers":
     "Static HTTP headers merged into provider requests for tenant routing, proxy auth, or custom gateway requirements. Use this sparingly and keep sensitive header values in secrets.",
   "models.providers.*.authHeader":
@@ -907,7 +970,7 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.defaults.experimental":
     "Experimental agent-default flags. Keep these off unless you are intentionally testing a preview surface.",
   "agents.defaults.experimental.localModelLean":
-    "Experimental local-model prompt trim. When enabled, OpenClaw drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
+    "Experimental local-model prompt trim. When enabled, Genesis drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
   "agents.defaults.bootstrapPromptTruncationWarning":
     'Inject agent-visible warning text when bootstrap files are truncated: "off", "once" (default), or "always".',
   "agents.defaults.startupContext":
@@ -995,7 +1058,7 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.defaults.memorySearch.fallback":
     'Backup provider used when primary embeddings fail: "openai", "gemini", "voyage", "mistral", "bedrock", "lmstudio", "ollama", "local", or "none". Set a real fallback for production reliability; use "none" only if you prefer explicit failures.',
   "agents.defaults.memorySearch.store.path":
-    "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+    "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.genesis/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
   "agents.defaults.memorySearch.store.vector.enabled":
     "Enables the sqlite-vec extension used for vector similarity queries in memory search (default: true). Keep this enabled for normal semantic recall; disable only for debugging or fallback-only operation.",
   "agents.defaults.memorySearch.store.vector.extensionPath":
@@ -1028,7 +1091,7 @@ export const FIELD_HELP: Record<string, string> = {
     "Caches computed chunk embeddings in SQLite so reindexing and incremental updates run faster (default: true). Keep this enabled unless investigating cache correctness or minimizing disk usage.",
   memory: "Memory backend configuration (global).",
   "memory.backend":
-    'Selects the global memory engine: "builtin" uses OpenClaw memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
+    'Selects the global memory engine: "builtin" uses Genesis memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
   "memory.citations":
     'Controls citation visibility in replies: "auto" shows citations when useful, "on" always shows them, and "off" hides them. Keep "auto" for a balanced signal-to-noise default.',
   "memory.qmd.command":
@@ -1153,7 +1216,7 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.entries.*.config":
     "Plugin-defined configuration payload interpreted by that plugin's own schema and validation rules. Use only documented fields from the plugin to prevent ignored or invalid settings.",
   "plugins.installs":
-    "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
+    "CLI-managed install metadata (used by `genesis plugins update` to locate install sources).",
   "plugins.installs.*.source": 'Install source ("npm", "archive", or "path").',
   "plugins.installs.*.spec": "Original npm spec used for install (if source is npm).",
   "plugins.installs.*.sourcePath": "Original archive/path used for install (if any).",
@@ -1183,15 +1246,15 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.defaults.model.fallbacks":
     "Ordered fallback models (provider/model). Used when the primary model fails.",
   "agents.defaults.embeddedHarness":
-    "Default embedded agent harness policy. Omitted runtime uses built-in OpenClaw Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
+    "Default embedded agent harness policy. Omitted runtime uses built-in Genesis Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
   "agents.defaults.embeddedHarness.runtime":
-    "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in OpenClaw Pi.",
+    "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in Genesis Pi.",
   "agents.defaults.embeddedHarness.fallback":
     "Embedded harness fallback when no plugin harness matches. Auto mode defaults to pi; explicit plugin runtimes default to none and do not inherit broader fallback settings. Selected plugin harness failures surface directly.",
   "agents.list.*.embeddedHarness":
     "Per-agent embedded harness policy override. Use runtime=codex to force Codex for one agent while defaults stay in auto mode.",
   "agents.list.*.embeddedHarness.runtime":
-    "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default OpenClaw Pi behavior.",
+    "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default Genesis Pi behavior.",
   "agents.list.*.embeddedHarness.fallback":
     "Per-agent embedded harness fallback. Auto mode defaults to pi; explicit plugin runtimes default to none and do not inherit broader fallback settings.",
   "agents.defaults.imageModel.primary":
@@ -1272,7 +1335,7 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.defaults.compaction.memoryFlush.systemPrompt":
     "System-prompt override for the pre-compaction memory flush turn to control extraction style and safety constraints. Use carefully so custom instructions do not reduce memory quality or leak sensitive context.",
   "agents.defaults.embeddedPi":
-    "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in OpenClaw sessions.",
+    "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in Genesis sessions.",
   "agents.defaults.embeddedPi.projectSettingsPolicy":
     'How embedded Pi handles workspace-local `.pi/config/settings.json`: "sanitize" (default) strips shellPath/shellCommandPrefix, "ignore" disables project settings entirely, and "trusted" applies project settings as-is.',
   "agents.defaults.embeddedPi.executionContract":
@@ -1298,7 +1361,7 @@ export const FIELD_HELP: Record<string, string> = {
     "How long bash waits before backgrounding (default: 2000; 0 backgrounds immediately).",
   "commands.config": "Allow /config chat command to read/write config on disk (default: false).",
   "commands.mcp":
-    "Allow /mcp chat command to manage OpenClaw MCP server config under mcp.servers (default: false).",
+    "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
   "commands.plugins":
     "Allow /plugins chat command to list discovered plugins and toggle plugin enablement in config (default: false).",
   "commands.debug": "Allow /debug chat command for runtime-only overrides (default: false).",
@@ -1312,9 +1375,9 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional secret used to HMAC hash owner IDs when ownerDisplay=hash. Prefer env substitution.",
   "commands.allowFrom":
     "Defines elevated command allow rules by channel and sender for owner-level command surfaces. Use narrow provider-specific identities so privileged commands are not exposed to broad chat audiences.",
-  mcp: "Global MCP server definitions managed by OpenClaw. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
+  mcp: "Global MCP server definitions managed by Genesis. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
   "mcp.servers":
-    "Named MCP server definitions. OpenClaw stores them in its own config and runtime adapters decide which transports are supported at execution time.",
+    "Named MCP server definitions. Genesis stores them in its own config and runtime adapters decide which transports are supported at execution time.",
   "mcp.sessionIdleTtlMs":
     "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
   session:
@@ -1356,7 +1419,7 @@ export const FIELD_HELP: Record<string, string> = {
   "session.typingMode":
     'Controls typing behavior timing: "never", "instant", "thinking", or "message" based emission points. Keep conservative modes in high-volume channels to avoid unnecessary typing noise.',
   "session.parentForkMaxTokens":
-    "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, OpenClaw starts a fresh thread session instead of forking; set 0 to disable this protection.",
+    "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, Genesis starts a fresh thread session instead of forking; set 0 to disable this protection.",
   "session.mainKey":
     'Overrides the canonical main session key used for continuity when dmScope or routing logic points to "main". Use a stable value only if you intentionally need custom session anchoring.',
   "session.sendPolicy":
@@ -1435,7 +1498,7 @@ export const FIELD_HELP: Record<string, string> = {
   "cron.runLog.keepLines":
     "How many trailing run-log lines to retain when a file exceeds maxBytes (default `2000`). Increase for longer forensic history or lower for smaller disks.",
   hooks:
-    "Inbound webhook automation surface for mapping external events into wake or agent actions in OpenClaw. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
+    "Inbound webhook automation surface for mapping external events into wake or agent actions in Genesis. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
   "hooks.enabled":
     "Enables the hooks endpoint and mapping execution pipeline for inbound webhook requests. Keep disabled unless you are actively routing external events into the gateway.",
   "hooks.path":

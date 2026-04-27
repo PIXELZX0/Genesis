@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { ensureAuthProfileStore } from "./auth-profiles/store.js";
 import {
   normalizeProviderSpecificConfig,
@@ -14,7 +14,7 @@ import {
 } from "./models-config.providers.secret-helpers.js";
 import { enforceSourceManagedProviderSecrets } from "./models-config.providers.source-managed.js";
 
-type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
+type ModelsConfig = NonNullable<GenesisConfig["models"]>;
 
 export function normalizeProviders(params: {
   providers: ModelsConfig["providers"];

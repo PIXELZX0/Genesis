@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `openclaw skills` (search/install/update/list/info/check)"
+summary: "CLI reference for `genesis skills` (search/install/update/list/info/check)"
 read_when:
   - You want to see which skills are available and ready to run
   - You want to search, install, or update skills from ClawHub
@@ -7,7 +7,7 @@ read_when:
 title: "Skills"
 ---
 
-# `openclaw skills`
+# `genesis skills`
 
 Inspect local skills and install/update skills from ClawHub.
 
@@ -20,21 +20,21 @@ Related:
 ## Commands
 
 ```bash
-openclaw skills search "calendar"
-openclaw skills search --limit 20 --json
-openclaw skills install <slug>
-openclaw skills install <slug> --version <version>
-openclaw skills install <slug> --force
-openclaw skills update <slug>
-openclaw skills update --all
-openclaw skills list
-openclaw skills list --eligible
-openclaw skills list --json
-openclaw skills list --verbose
-openclaw skills info <name>
-openclaw skills info <name> --json
-openclaw skills check
-openclaw skills check --json
+genesis skills search "calendar"
+genesis skills search --limit 20 --json
+genesis skills install <slug>
+genesis skills install <slug> --version <version>
+genesis skills install <slug> --force
+genesis skills update <slug>
+genesis skills update --all
+genesis skills list
+genesis skills list --eligible
+genesis skills list --json
+genesis skills list --verbose
+genesis skills info <name>
+genesis skills info <name> --json
+genesis skills check
+genesis skills check --json
 ```
 
 `search`/`install`/`update` use ClawHub directly and install into the active

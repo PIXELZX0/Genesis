@@ -8,7 +8,7 @@ title: "Bonjour discovery"
 
 # Bonjour / mDNS discovery
 
-OpenClaw uses Bonjour (mDNS / DNS‑SD) to discover an active Gateway (WebSocket endpoint).
+Genesis uses Bonjour (mDNS / DNS‑SD) to discover an active Gateway (WebSocket endpoint).
 Multicast `local.` browsing is a **LAN-only convenience**. The bundled `bonjour`
 plugin owns LAN advertising and is enabled by default. For cross-network discovery,
 the same beacon can also be published through a configured wide-area DNS-SD domain.
@@ -23,12 +23,12 @@ boundary. You can keep the same discovery UX by switching to **unicast DNS‑SD*
 High‑level steps:
 
 1. Run a DNS server on the gateway host (reachable over Tailnet).
-2. Publish DNS‑SD records for `_openclaw-gw._tcp` under a dedicated zone
-   (example: `openclaw.internal.`).
+2. Publish DNS‑SD records for `_genesis-gw._tcp` under a dedicated zone
+   (example: `genesis.internal.`).
 3. Configure Tailscale **split DNS** so your chosen domain resolves via that
    DNS server for clients (including iOS).
 
-OpenClaw supports any discovery domain; `openclaw.internal.` is just an example.
+Genesis supports any discovery domain; `genesis.internal.` is just an example.
 iOS/Android nodes browse both `local.` and your configured wide‑area domain.
 
 ### Gateway config (recommended)
@@ -43,19 +43,19 @@ iOS/Android nodes browse both `local.` and your configured wide‑area domain.
 ### One-time DNS server setup (gateway host)
 
 ```bash
-openclaw dns setup --apply
+genesis dns setup --apply
 ```
 
 This installs CoreDNS and configures it to:
 
 - listen on port 53 only on the gateway’s Tailscale interfaces
-- serve your chosen domain (example: `openclaw.internal.`) from `~/.openclaw/dns/<domain>.db`
+- serve your chosen domain (example: `genesis.internal.`) from `~/.genesis/dns/<domain>.db`
 
 Validate from a tailnet‑connected machine:
 
 ```bash
-dns-sd -B _openclaw-gw._tcp openclaw.internal.
-dig @<TAILNET_IPV4> -p 53 _openclaw-gw._tcp.openclaw.internal PTR +short
+dns-sd -B _genesis-gw._tcp genesis.internal.
+dig @<TAILNET_IPV4> -p 53 _genesis-gw._tcp.genesis.internal PTR +short
 ```
 
 ### Tailscale DNS settings
@@ -66,7 +66,7 @@ In the Tailscale admin console:
 - Add split DNS so your discovery domain uses that nameserver.
 
 Once clients accept tailnet DNS, iOS nodes and CLI discovery can browse
-`_openclaw-gw._tcp` in your discovery domain without multicast.
+`_genesis-gw._tcp` in your discovery domain without multicast.
 
 ### Gateway listener security (recommended)
 
@@ -75,18 +75,18 @@ access, bind explicitly and keep auth enabled.
 
 For tailnet‑only setups:
 
-- Set `gateway.bind: "tailnet"` in `~/.openclaw/openclaw.json`.
+- Set `gateway.bind: "tailnet"` in `~/.genesis/genesis.json`.
 - Restart the Gateway (or restart the macOS menubar app).
 
 ## What advertises
 
-Only the Gateway advertises `_openclaw-gw._tcp`. LAN multicast advertising is
+Only the Gateway advertises `_genesis-gw._tcp`. LAN multicast advertising is
 provided by the bundled `bonjour` plugin; wide-area DNS-SD publishing remains
 Gateway-owned.
 
 ## Service types
 
-- `_openclaw-gw._tcp` — gateway transport beacon (used by macOS/iOS/Android nodes).
+- `_genesis-gw._tcp` — gateway transport beacon (used by macOS/iOS/Android nodes).
 
 ## TXT keys (non-secret hints)
 
@@ -119,13 +119,13 @@ Useful built‑in tools:
 - Browse instances:
 
   ```bash
-  dns-sd -B _openclaw-gw._tcp local.
+  dns-sd -B _genesis-gw._tcp local.
   ```
 
 - Resolve one instance (replace `<instance>`):
 
   ```bash
-  dns-sd -L "<instance>" _openclaw-gw._tcp local.
+  dns-sd -L "<instance>" _genesis-gw._tcp local.
   ```
 
 If browsing works but resolving fails, you’re usually hitting a LAN policy or
@@ -142,7 +142,7 @@ The Gateway writes a rolling log file (printed on startup as
 
 ## Debugging on iOS node
 
-The iOS node uses `NWBrowser` to discover `_openclaw-gw._tcp`.
+The iOS node uses `NWBrowser` to discover `_genesis-gw._tcp`.
 
 To capture logs:
 
@@ -170,13 +170,13 @@ sequences (e.g. spaces become `\032`).
 
 ## Disabling / configuration
 
-- `openclaw plugins disable bonjour` disables LAN multicast advertising by disabling the bundled plugin.
-- `openclaw plugins enable bonjour` restores the default LAN discovery plugin.
-- `OPENCLAW_DISABLE_BONJOUR=1` disables LAN multicast advertising without changing plugin config; accepted truthy values are `1`, `true`, `yes`, and `on` (legacy: `OPENCLAW_DISABLE_BONJOUR`).
-- `gateway.bind` in `~/.openclaw/openclaw.json` controls the Gateway bind mode.
-- `OPENCLAW_SSH_PORT` overrides the SSH port when `sshPort` is advertised (legacy: `OPENCLAW_SSH_PORT`).
-- `OPENCLAW_TAILNET_DNS` publishes a MagicDNS hint in TXT when mDNS full mode is enabled (legacy: `OPENCLAW_TAILNET_DNS`).
-- `OPENCLAW_CLI_PATH` overrides the advertised CLI path (legacy: `OPENCLAW_CLI_PATH`).
+- `genesis plugins disable bonjour` disables LAN multicast advertising by disabling the bundled plugin.
+- `genesis plugins enable bonjour` restores the default LAN discovery plugin.
+- `GENESIS_DISABLE_BONJOUR=1` disables LAN multicast advertising without changing plugin config; accepted truthy values are `1`, `true`, `yes`, and `on` (legacy: `GENESIS_DISABLE_BONJOUR`).
+- `gateway.bind` in `~/.genesis/genesis.json` controls the Gateway bind mode.
+- `GENESIS_SSH_PORT` overrides the SSH port when `sshPort` is advertised (legacy: `GENESIS_SSH_PORT`).
+- `GENESIS_TAILNET_DNS` publishes a MagicDNS hint in TXT when mDNS full mode is enabled (legacy: `GENESIS_TAILNET_DNS`).
+- `GENESIS_CLI_PATH` overrides the advertised CLI path (legacy: `GENESIS_CLI_PATH`).
 
 ## Related docs
 

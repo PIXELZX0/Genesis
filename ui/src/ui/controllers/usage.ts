@@ -29,7 +29,7 @@ export type UsageState = {
   settings?: { gatewayUrl?: string };
 };
 
-const LEGACY_USAGE_DATE_PARAMS_STORAGE_KEY = "openclaw.control.usage.date-params.v1";
+const LEGACY_USAGE_DATE_PARAMS_STORAGE_KEY = "genesis.control.usage.date-params.v1";
 const LEGACY_USAGE_DATE_PARAMS_MODE_RE = /unexpected property ['"]mode['"]/i;
 const LEGACY_USAGE_DATE_PARAMS_OFFSET_RE = /unexpected property ['"]utcoffset['"]/i;
 const LEGACY_USAGE_DATE_PARAMS_INVALID_RE = /invalid sessions\.usage params/i;

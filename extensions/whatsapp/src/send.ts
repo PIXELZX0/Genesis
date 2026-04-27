@@ -1,13 +1,13 @@
-import { formatCliCommand } from "openclaw/plugin-sdk/cli-runtime";
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { generateSecureUuid } from "openclaw/plugin-sdk/core";
-import { redactIdentifier } from "openclaw/plugin-sdk/logging-core";
+import { formatCliCommand } from "genesis/plugin-sdk/cli-runtime";
+import { requireRuntimeConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { generateSecureUuid } from "genesis/plugin-sdk/core";
+import { redactIdentifier } from "genesis/plugin-sdk/logging-core";
 import {
   convertMarkdownTables,
   resolveMarkdownTableMode,
-} from "openclaw/plugin-sdk/markdown-table-runtime";
-import { normalizePollInput, type PollInput } from "openclaw/plugin-sdk/poll-runtime";
-import { createSubsystemLogger, getChildLogger } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/markdown-table-runtime";
+import { normalizePollInput, type PollInput } from "genesis/plugin-sdk/poll-runtime";
+import { createSubsystemLogger, getChildLogger } from "genesis/plugin-sdk/runtime-env";
 import {
   resolveDefaultWhatsAppAccountId,
   resolveWhatsAppAccount,
@@ -26,7 +26,7 @@ import { markdownToWhatsApp, toWhatsappJid } from "./text-runtime.js";
 const outboundLog = createSubsystemLogger("gateway/channels/whatsapp").child("outbound");
 
 function resolveOutboundWhatsAppAccountId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string;
 }): string | undefined {
   const explicitAccountId = params.accountId?.trim();
@@ -36,7 +36,7 @@ function resolveOutboundWhatsAppAccountId(params: {
   return resolveDefaultWhatsAppAccountId(params.cfg);
 }
 
-function requireOutboundActiveWebListener(params: { cfg: OpenClawConfig; accountId?: string }): {
+function requireOutboundActiveWebListener(params: { cfg: GenesisConfig; accountId?: string }): {
   accountId: string;
   listener: ActiveWebListener;
 } {
@@ -46,7 +46,7 @@ function requireOutboundActiveWebListener(params: { cfg: OpenClawConfig; account
     getRegisteredWhatsAppConnectionController(resolvedAccountId)?.getActiveListener() ?? null;
   if (!listener) {
     throw new Error(
-      `No active WhatsApp Web listener (account: ${resolvedAccountId}). Start the gateway, then link WhatsApp with: ${formatCliCommand(`openclaw channels login --channel whatsapp --account ${resolvedAccountId}`)}.`,
+      `No active WhatsApp Web listener (account: ${resolvedAccountId}). Start the gateway, then link WhatsApp with: ${formatCliCommand(`genesis channels login --channel whatsapp --account ${resolvedAccountId}`)}.`,
     );
   }
   return { accountId: resolvedAccountId, listener };
@@ -57,7 +57,7 @@ export async function sendMessageWhatsApp(
   body: string,
   options: {
     verbose: boolean;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     mediaUrl?: string;
     mediaUrls?: readonly string[];
     mediaAccess?: {
@@ -171,7 +171,7 @@ export async function sendMessageWhatsApp(
 export async function sendTypingWhatsApp(
   to: string,
   options: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     accountId?: string;
   },
 ): Promise<void> {
@@ -192,7 +192,7 @@ export async function sendReactionWhatsApp(
     fromMe?: boolean;
     participant?: string;
     accountId?: string;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
   },
 ): Promise<void> {
   const correlationId = generateSecureUuid();
@@ -234,7 +234,7 @@ export async function sendReactionWhatsApp(
 export async function sendPollWhatsApp(
   to: string,
   poll: PollInput,
-  options: { verbose: boolean; accountId?: string; cfg: OpenClawConfig },
+  options: { verbose: boolean; accountId?: string; cfg: GenesisConfig },
 ): Promise<{ messageId: string; toJid: string }> {
   const correlationId = generateSecureUuid();
   const startedAt = Date.now();

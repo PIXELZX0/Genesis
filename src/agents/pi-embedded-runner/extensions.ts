@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { ExtensionFactory, SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { listAgentToolResultMiddlewares } from "../../plugins/agent-tool-result-middleware.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import { resolveContextWindowInfo } from "../context-window-guard.js";
@@ -74,7 +74,7 @@ function buildAgentToolResultMiddlewareFactory(): ExtensionFactory {
 }
 
 function resolveContextWindowTokens(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: GenesisConfig | undefined;
   provider: string;
   modelId: string;
   model: ProviderRuntimeModel | undefined;
@@ -90,7 +90,7 @@ function resolveContextWindowTokens(params: {
 }
 
 function buildContextPruningFactory(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: GenesisConfig | undefined;
   sessionManager: SessionManager;
   provider: string;
   modelId: string;
@@ -128,7 +128,7 @@ function buildContextPruningFactory(params: {
   return contextPruningExtension;
 }
 
-function resolveCompactionMode(cfg?: OpenClawConfig): "default" | "safeguard" {
+function resolveCompactionMode(cfg?: GenesisConfig): "default" | "safeguard" {
   const compaction = cfg?.agents?.defaults?.compaction;
   // A registered compaction provider requires the safeguard extension path
   if (compaction?.provider) {
@@ -138,7 +138,7 @@ function resolveCompactionMode(cfg?: OpenClawConfig): "default" | "safeguard" {
 }
 
 export function buildEmbeddedExtensionFactories(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: GenesisConfig | undefined;
   sessionManager: SessionManager;
   provider: string;
   modelId: string;

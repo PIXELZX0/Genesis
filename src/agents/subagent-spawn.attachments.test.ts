@@ -87,7 +87,7 @@ describe("decodeStrictBase64", () => {
 describe("spawnSubagentDirect filename validation", () => {
   beforeEach(async () => {
     workspaceDirOverride = fs.mkdtempSync(
-      path.join(os.tmpdir(), `openclaw-subagent-attachments-${process.pid}-${Date.now()}-`),
+      path.join(os.tmpdir(), `genesis-subagent-attachments-${process.pid}-${Date.now()}-`),
     );
     configOverride = createSubagentSpawnTestConfig(workspaceDirOverride);
     subagentSpawnModule.resetSubagentRegistryForTests();
@@ -195,7 +195,7 @@ describe("spawnSubagentDirect filename validation", () => {
       status: "error",
       error: "lineage patch failed",
     });
-    const attachmentsRoot = path.join(workspaceDirOverride, ".openclaw", "attachments");
+    const attachmentsRoot = path.join(workspaceDirOverride, ".genesis", "attachments");
     const retainedDirs = fs.existsSync(attachmentsRoot)
       ? fs.readdirSync(attachmentsRoot).filter((entry) => !entry.startsWith("."))
       : [];

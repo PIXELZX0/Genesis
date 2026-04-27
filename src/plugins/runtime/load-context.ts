@@ -1,7 +1,7 @@
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
 import { applyPluginAutoEnable } from "../../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createSubsystemLogger } from "../../logging.js";
 import { resolvePluginActivationSourceConfig } from "../activation-source-config.js";
 import type { PluginLoadOptions } from "../loader.js";
@@ -10,9 +10,9 @@ import type { PluginLogger } from "../types.js";
 const log = createSubsystemLogger("plugins");
 
 export type PluginRuntimeLoadContext = {
-  rawConfig: OpenClawConfig;
-  config: OpenClawConfig;
-  activationSourceConfig: OpenClawConfig;
+  rawConfig: GenesisConfig;
+  config: GenesisConfig;
+  activationSourceConfig: GenesisConfig;
   autoEnabledReasons: Readonly<Record<string, string[]>>;
   workspaceDir: string | undefined;
   env: NodeJS.ProcessEnv;
@@ -25,8 +25,8 @@ export type PluginRuntimeResolvedLoadValues = Pick<
 >;
 
 export type PluginRuntimeLoadContextOptions = {
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config?: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
   logger?: PluginLogger;

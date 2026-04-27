@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { resolveUserTimezone } from "../../agents/date-time.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { openBoundaryFile } from "../../infra/boundary-file-read.js";
 
 const STARTUP_MEMORY_FILE_MAX_BYTES = 16_384;
@@ -15,7 +15,7 @@ const STARTUP_MEMORY_DAILY_DAYS_CAP = 14;
 const STARTUP_MEMORY_MAX_SLUGGED_FILES_PER_DAY = 4;
 
 export function shouldApplyStartupContext(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   action: "new" | "reset";
 }): boolean {
   const startupContext = params.cfg?.agents?.defaults?.startupContext;
@@ -29,7 +29,7 @@ export function shouldApplyStartupContext(params: {
   return applyOn.includes(params.action);
 }
 
-function resolveStartupContextLimits(cfg?: OpenClawConfig) {
+function resolveStartupContextLimits(cfg?: GenesisConfig) {
   const startupContext = cfg?.agents?.defaults?.startupContext;
   const clampInt = (value: number | undefined, fallback: number, min: number, max: number) => {
     const numeric = Number.isFinite(value) ? Math.trunc(value as number) : fallback;
@@ -308,7 +308,7 @@ async function listStartupMemoryPathsByDate(params: {
 
 export async function buildSessionStartupContextPrelude(params: {
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   nowMs?: number;
 }): Promise<string | null> {
   const nowMs = params.nowMs ?? Date.now();

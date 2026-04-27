@@ -86,7 +86,7 @@ function formatRss(valueKb) {
 function runBenchCommand(params) {
   const env = { ...process.env };
   if (typeof params.maxWorkers === "number") {
-    env.OPENCLAW_VITEST_MAX_WORKERS = String(params.maxWorkers);
+    env.GENESIS_VITEST_MAX_WORKERS = String(params.maxWorkers);
   }
   const startedAt = process.hrtime.bigint();
   const commandArgs = params.rss ? ["-l", ...params.command] : params.command;

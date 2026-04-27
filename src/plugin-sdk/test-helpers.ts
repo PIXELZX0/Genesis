@@ -9,7 +9,7 @@ export function createPluginSdkTestHarness(options?: { cleanup?: RmOptions }) {
   let caseId = 0;
 
   beforeAll(async () => {
-    fixtureRoot = await mkdtemp(path.join(tmpdir(), "openclaw-plugin-sdk-fixtures-"));
+    fixtureRoot = await mkdtemp(path.join(tmpdir(), "genesis-plugin-sdk-fixtures-"));
   });
 
   afterAll(async () => {

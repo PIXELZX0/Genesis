@@ -1,12 +1,12 @@
-export { definePluginEntry } from "openclaw/plugin-sdk/core";
+export { definePluginEntry } from "genesis/plugin-sdk/core";
 export type {
   AnyAgentTool,
-  OpenClawPluginApi,
-  OpenClawPluginToolContext,
-  OpenClawPluginToolFactory,
-} from "openclaw/plugin-sdk/core";
+  GenesisPluginApi,
+  GenesisPluginToolContext,
+  GenesisPluginToolFactory,
+} from "genesis/plugin-sdk/core";
 export {
   applyWindowsSpawnProgramPolicy,
   materializeWindowsSpawnProgram,
   resolveWindowsSpawnProgramCandidate,
-} from "openclaw/plugin-sdk/windows-spawn";
+} from "genesis/plugin-sdk/windows-spawn";

@@ -57,7 +57,7 @@ describe("media understanding attachment URL fallback", () => {
 
   it("getPath falls back to URL fetch when local path is blocked", async () => {
     await withBlockedLocalAttachmentFallback(
-      "openclaw-media-cache-getpath-url-fallback-",
+      "genesis-media-cache-getpath-url-fallback-",
       async ({ cache, fallbackUrl }) => {
         const result = await cache.getPath({
           attachmentIndex: 0,
@@ -81,7 +81,7 @@ describe("media understanding attachment URL fallback", () => {
 
   it("falls back to URL fetch when local attachment canonicalization fails", async () => {
     await withBlockedLocalAttachmentFallback(
-      "openclaw-media-cache-url-fallback-",
+      "genesis-media-cache-url-fallback-",
       async ({ cache, fallbackUrl }) => {
         const result = await cache.getBuffer({
           attachmentIndex: 0,

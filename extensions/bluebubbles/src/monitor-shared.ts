@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import type { ResolvedBlueBubblesAccount } from "./accounts.js";
 import { getBlueBubblesRuntime } from "./runtime.js";
 export {
@@ -14,7 +14,7 @@ export type BlueBubblesRuntimeEnv = {
 
 export type BlueBubblesMonitorOptions = {
   account: ResolvedBlueBubblesAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   runtime: BlueBubblesRuntimeEnv;
   abortSignal: AbortSignal;
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
@@ -25,7 +25,7 @@ export type BlueBubblesCoreRuntime = ReturnType<typeof getBlueBubblesRuntime>;
 
 export type WebhookTarget = {
   account: ResolvedBlueBubblesAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   runtime: BlueBubblesRuntimeEnv;
   core: BlueBubblesCoreRuntime;
   path: string;

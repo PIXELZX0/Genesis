@@ -1,4 +1,4 @@
-import { resolveLivePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
+import { resolveLivePluginConfigObject } from "genesis/plugin-sdk/config-runtime";
 import { definePluginEntry, resolveDefaultAgentId } from "./api.js";
 import { resolveConfig } from "./src/config.js";
 import { buildWorkshopGuidance } from "./src/prompt.js";

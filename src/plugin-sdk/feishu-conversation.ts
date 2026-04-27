@@ -1,5 +1,5 @@
 // Manual facade. Keep loader boundary explicit.
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { BindingTargetKind } from "../infra/outbound/session-binding-service.js";
 import {
   createLazyFacadeArrayValue,
@@ -50,7 +50,7 @@ type FacadeModule = {
   }) => string;
   createFeishuThreadBindingManager: (params: {
     accountId?: string;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
   }) => FeishuThreadBindingManager;
   feishuSessionBindingAdapterChannels: readonly ["feishu"];
   feishuThreadBindingTesting: {

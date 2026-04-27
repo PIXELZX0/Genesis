@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { logVerbose } from "../globals.js";
 import type {
   PluginWebSearchProviderEntry,
@@ -37,7 +37,7 @@ export type {
   RuntimeWebSearchToolDefinition,
 } from "./runtime-types.js";
 
-function resolveSearchConfig(cfg?: OpenClawConfig): WebSearchConfig {
+function resolveSearchConfig(cfg?: GenesisConfig): WebSearchConfig {
   return resolveWebProviderConfig(cfg, "search") as NonNullable<WebSearchConfig> | undefined;
 }
 
@@ -64,7 +64,7 @@ function hasEntryCredential(
     | "getCredentialValue"
     | "requiresCredential"
   >,
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
   search: WebSearchConfig | undefined,
 ): boolean {
   return hasWebProviderEntryCredential({
@@ -89,13 +89,13 @@ export function isWebSearchProviderConfigured(params: {
     | "getCredentialValue"
     | "requiresCredential"
   >;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): boolean {
   return hasEntryCredential(params.provider, params.config, resolveSearchConfig(params.config));
 }
 
 export function listWebSearchProviders(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): PluginWebSearchProviderEntry[] {
   return resolveRuntimeWebSearchProviders({
     config: params?.config,
@@ -104,7 +104,7 @@ export function listWebSearchProviders(params?: {
 }
 
 export function listConfiguredWebSearchProviders(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): PluginWebSearchProviderEntry[] {
   return resolvePluginWebSearchProviders({
     config: params?.config,
@@ -114,7 +114,7 @@ export function listConfiguredWebSearchProviders(params?: {
 
 export function resolveWebSearchProviderId(params: {
   search?: WebSearchConfig;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   providers?: PluginWebSearchProviderEntry[];
 }): string {
   const providers = sortWebSearchProvidersForAutoDetect(

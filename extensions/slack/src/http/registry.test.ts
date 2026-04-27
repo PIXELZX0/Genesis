@@ -108,7 +108,7 @@ describe("registerSlackHttpHandler", () => {
 
   it("recreates the shared registry if the global slot is corrupted", async () => {
     const globalStore = globalThis as Record<PropertyKey, unknown>;
-    globalStore[Symbol.for("openclaw.slack.httpRoutes.v1")] = {};
+    globalStore[Symbol.for("genesis.slack.httpRoutes.v1")] = {};
     const handler = vi.fn();
     unregisters.push(
       registerSlackHttpHandler({

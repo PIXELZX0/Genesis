@@ -1,6 +1,6 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { ProviderWrapStreamFnContext } from "openclaw/plugin-sdk/plugin-entry";
-import { OPENROUTER_THINKING_STREAM_HOOKS } from "openclaw/plugin-sdk/provider-stream-family";
+import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
+import { OPENROUTER_THINKING_STREAM_HOOKS } from "genesis/plugin-sdk/provider-stream-family";
 
 function injectOpenRouterRouting(
   baseStreamFn: StreamFn | undefined,

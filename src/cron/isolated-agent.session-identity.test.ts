@@ -39,7 +39,7 @@ describe("runCronIsolatedAgentTurn session identity", () => {
       const call = runEmbeddedPiAgentMock.mock.calls.at(-1)?.[0] as {
         agentDir?: string;
       };
-      expect(call?.agentDir).toBe(path.join(home, ".openclaw", "agents", "main", "agent"));
+      expect(call?.agentDir).toBe(path.join(home, ".genesis", "agents", "main", "agent"));
     });
   });
 
@@ -67,7 +67,7 @@ describe("runCronIsolatedAgentTurn session identity", () => {
 
       const cfg = makeCfg(
         home,
-        path.join(home, ".openclaw", "agents", "{agentId}", "sessions", "sessions.json"),
+        path.join(home, ".genesis", "agents", "{agentId}", "sessions", "sessions.json"),
         {
           agents: {
             defaults: { workspace: path.join(home, "default-workspace") },
@@ -118,7 +118,7 @@ describe("runCronIsolatedAgentTurn session identity", () => {
       };
 
       expect(call?.sessionFile).toContain(
-        path.join(home, ".openclaw", "agents", "main", "sessions"),
+        path.join(home, ".genesis", "agents", "main", "sessions"),
       );
       expect(call?.sessionFile?.endsWith(".jsonl")).toBe(true);
     });

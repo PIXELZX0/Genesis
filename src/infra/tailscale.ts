@@ -156,7 +156,7 @@ let cachedTailscaleBinary: string | null = null;
 export function getTestTailscaleBinaryOverride(
   env: NodeJS.ProcessEnv = process.env,
 ): string | null {
-  const forcedBinary = env.OPENCLAW_TEST_TAILSCALE_BINARY?.trim();
+  const forcedBinary = env.GENESIS_TEST_TAILSCALE_BINARY?.trim();
   if (!forcedBinary) {
     return null;
   }
@@ -389,7 +389,7 @@ export async function ensureFunnel(
     runtime.error("Failed to enable Tailscale Funnel. Is it allowed on your tailnet?");
     runtime.error(
       info(
-        `Tip: Funnel is optional for OpenClaw. You can keep running the web gateway without it: \`${formatCliCommand("openclaw gateway")}\``,
+        `Tip: Funnel is optional for Genesis. You can keep running the web gateway without it: \`${formatCliCommand("genesis gateway")}\``,
       ),
     );
     if (shouldLogVerbose()) {

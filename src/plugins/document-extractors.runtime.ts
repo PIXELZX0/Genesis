@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveBundledPluginCompatibleLoadValues } from "./activation-context.js";
 import {
   createPluginActivationSource,
@@ -23,7 +23,7 @@ function compareExtractors(
 }
 
 function resolveBundledDocumentExtractorCompatPluginIds(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -46,7 +46,7 @@ function resolveBundledDocumentExtractorCompatPluginIds(params: {
 }
 
 function resolveEnabledBundledDocumentExtractorPlugins(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -98,7 +98,7 @@ function resolveEnabledBundledDocumentExtractorPlugins(params: {
 }
 
 function resolveExplicitAllowedDocumentExtractorPluginIds(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   onlyPluginIds?: readonly string[];
 }): string[] | null {
   const allow = params.config?.plugins?.allow;
@@ -122,7 +122,7 @@ function resolveExplicitAllowedDocumentExtractorPluginIds(params: {
 }
 
 export function resolvePluginDocumentExtractors(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];

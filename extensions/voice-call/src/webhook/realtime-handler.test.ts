@@ -2,7 +2,7 @@ import http from "node:http";
 import type {
   RealtimeVoiceBridge,
   RealtimeVoiceProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "genesis/plugin-sdk/realtime-voice";
 import { describe, expect, it, vi } from "vitest";
 import { WebSocket } from "ws";
 import type { VoiceCallRealtimeConfig } from "../config.js";

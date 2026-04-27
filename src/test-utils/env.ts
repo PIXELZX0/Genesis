@@ -34,10 +34,10 @@ const PATH_RESOLUTION_ENV_KEYS = [
   "USERPROFILE",
   "HOMEDRIVE",
   "HOMEPATH",
-  "OPENCLAW_HOME",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_BUNDLED_PLUGINS_DIR",
-  "OPENCLAW_DISABLE_BUNDLED_PLUGINS",
+  "GENESIS_HOME",
+  "GENESIS_STATE_DIR",
+  "GENESIS_BUNDLED_PLUGINS_DIR",
+  "GENESIS_DISABLE_BUNDLED_PLUGINS",
 ] as const;
 
 function resolveWindowsHomeParts(homeDir: string): { homeDrive?: string; homePath?: string } {
@@ -63,10 +63,10 @@ export function createPathResolutionEnv(
     ...process.env,
     HOME: resolvedHome,
     USERPROFILE: resolvedHome,
-    OPENCLAW_HOME: undefined,
-    OPENCLAW_STATE_DIR: undefined,
-    OPENCLAW_BUNDLED_PLUGINS_DIR: undefined,
-    OPENCLAW_DISABLE_BUNDLED_PLUGINS: undefined,
+    GENESIS_HOME: undefined,
+    GENESIS_STATE_DIR: undefined,
+    GENESIS_BUNDLED_PLUGINS_DIR: undefined,
+    GENESIS_DISABLE_BUNDLED_PLUGINS: undefined,
   };
 
   const windowsHome = resolveWindowsHomeParts(resolvedHome);

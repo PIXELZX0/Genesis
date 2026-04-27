@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import { fetchGraphJson, postGraphJson, resolveGraphToken } from "./graph.js";
 import { normalizeMSTeamsConversationId } from "./inbound.js";
 import { getMSTeamsRuntime } from "./runtime.js";
@@ -37,7 +37,7 @@ function isGraphCompatibleConversationId(conversationId: string): boolean {
 
 export type ReactMessageMSTeamsParams = {
   /** Full config (for credentials) */
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   /** Conversation ID or user ID to address */
   to: string;
   /** Activity/message ID to react to */
@@ -104,7 +104,7 @@ export async function reactMessageMSTeams(
 
 export type RemoveReactionMSTeamsParams = {
   /** Full config (for credentials) */
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   /** Conversation ID or user ID to address */
   to: string;
   /** Activity/message ID to remove reaction from */
@@ -169,7 +169,7 @@ type GraphMessageWithReactions = {
 
 export type ListReactionsMSTeamsParams = {
   /** Full config (for credentials) */
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   /** Conversation ID (19:xxx@thread.*) or teamId/channelId */
   to: string;
   /** Message ID to list reactions for */

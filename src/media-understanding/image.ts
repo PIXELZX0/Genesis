@@ -7,7 +7,7 @@ import {
   resolveApiKeyForProvider,
 } from "../agents/model-auth.js";
 import { normalizeModelRef } from "../agents/model-selection.js";
-import { ensureOpenClawModelsJson } from "../agents/models-config.js";
+import { ensureGenesisModelsJson } from "../agents/models-config.js";
 import { resolveProviderRequestCapabilities } from "../agents/provider-attribution.js";
 import { registerProviderStreamForModel } from "../agents/provider-stream.js";
 import {
@@ -136,7 +136,7 @@ async function resolveImageRuntime(params: {
   preferredProfile?: string;
   authStore?: ImageDescriptionRequest["authStore"];
 }): Promise<{ apiKey: string; model: Model<Api> }> {
-  await ensureOpenClawModelsJson(params.cfg, params.agentDir);
+  await ensureGenesisModelsJson(params.cfg, params.agentDir);
   const { discoverAuthStorage, discoverModels } = await loadPiModelDiscoveryRuntime();
   const authStorage = discoverAuthStorage(params.agentDir);
   const modelRegistry = discoverModels(authStorage, params.agentDir);

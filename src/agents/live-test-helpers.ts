@@ -6,13 +6,11 @@ export function isLiveTestEnabled(
   extraEnvVars: readonly string[] = [],
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  return [...extraEnvVars, "LIVE", "OPENCLAW_LIVE_TEST"].some((name) =>
-    isTruthyEnvValue(env[name]),
-  );
+  return [...extraEnvVars, "LIVE", "GENESIS_LIVE_TEST"].some((name) => isTruthyEnvValue(env[name]));
 }
 
 export function isLiveProfileKeyModeEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return isTruthyEnvValue(env.OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS);
+  return isTruthyEnvValue(env.GENESIS_LIVE_REQUIRE_PROFILE_KEYS);
 }
 
 export function createSingleUserPromptMessage(content = LIVE_OK_PROMPT) {

@@ -117,7 +117,7 @@ const writeWatchLock = (lockPath, payload) => {
 };
 
 const logWatcher = (message, deps) => {
-  deps.process.stderr?.write?.(`[openclaw] ${message}\n`);
+  deps.process.stderr?.write?.(`[genesis] ${message}\n`);
 };
 
 const waitForWatcherRelease = async (lockPath, pid, deps) => {
@@ -229,13 +229,13 @@ export async function runWatchMain(params = {}) {
 
   const childEnv = { ...deps.env };
   const watchSession = `${deps.now()}-${deps.process.pid}`;
-  childEnv.OPENCLAW_WATCH_MODE = "1";
-  childEnv.OPENCLAW_WATCH_SESSION = watchSession;
+  childEnv.GENESIS_WATCH_MODE = "1";
+  childEnv.GENESIS_WATCH_SESSION = watchSession;
   // The watcher owns process restarts; keep SIGUSR1/config reloads in-process
   // so inherited launchd/systemd markers do not make the child exit and stall.
-  childEnv.OPENCLAW_NO_RESPAWN = "1";
+  childEnv.GENESIS_NO_RESPAWN = "1";
   if (deps.args.length > 0) {
-    childEnv.OPENCLAW_WATCH_COMMAND = deps.args.join(" ");
+    childEnv.GENESIS_WATCH_COMMAND = deps.args.join(" ");
   }
 
   return await new Promise((resolve) => {

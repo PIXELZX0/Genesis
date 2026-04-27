@@ -143,7 +143,7 @@
   flex: 1;
   padding: 6px 12px;
   border: none;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: max(0px, calc(var(--radius-md) - 3px));
   background: transparent;
   color: var(--muted);
   font-size: 11px;
@@ -1308,7 +1308,7 @@
 .cfg-segmented__btn {
   padding: 6px 14px;
   border: none;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: max(0px, calc(var(--radius-md) - 3px));
   background: transparent;
   color: var(--muted);
   font-size: 12px;
@@ -1475,7 +1475,7 @@
   cursor: pointer;
   list-style: none;
   transition: background var(--duration-fast) ease;
-  border-radius: calc(var(--radius-md) - 1px);
+  border-radius: max(0px, calc(var(--radius-md) - 1px));
 }
 
 .cfg-object__header:hover {

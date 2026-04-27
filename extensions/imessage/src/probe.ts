@@ -1,9 +1,9 @@
-import type { BaseProbeResult } from "openclaw/plugin-sdk/channel-contract";
-import { loadConfig } from "openclaw/plugin-sdk/config-runtime";
-import { runCommandWithTimeout } from "openclaw/plugin-sdk/process-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { detectBinary } from "openclaw/plugin-sdk/setup";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { BaseProbeResult } from "genesis/plugin-sdk/channel-contract";
+import { loadConfig } from "genesis/plugin-sdk/config-runtime";
+import { runCommandWithTimeout } from "genesis/plugin-sdk/process-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { detectBinary } from "genesis/plugin-sdk/setup";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { createIMessageRpcClient } from "./client.js";
 import { DEFAULT_IMESSAGE_PROBE_TIMEOUT_MS } from "./constants.js";
 

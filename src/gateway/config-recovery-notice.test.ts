@@ -19,10 +19,10 @@ describe("config recovery notice", () => {
       formatConfigRecoveryNotice({
         phase: "startup",
         reason: "startup-invalid-config",
-        configPath: "/home/test/.openclaw/openclaw.json",
+        configPath: "/home/test/.genesis/genesis.json",
       }),
     ).toBe(
-      "Config recovery warning: OpenClaw restored openclaw.json from the last-known-good backup during startup (startup-invalid-config). The rejected config was invalid and was preserved as a timestamped .clobbered.* file. Do not write openclaw.json again unless you validate the full config first.",
+      "Config recovery warning: Genesis restored genesis.json from the last-known-good backup during startup (startup-invalid-config). The rejected config was invalid and was preserved as a timestamped .clobbered.* file. Do not write genesis.json again unless you validate the full config first.",
     );
   });
 
@@ -32,13 +32,13 @@ describe("config recovery notice", () => {
         cfg: {},
         phase: "reload",
         reason: "reload-invalid-config",
-        configPath: "/home/test/.openclaw/openclaw.json",
+        configPath: "/home/test/.genesis/genesis.json",
       }),
     ).toBe(true);
 
     expect(peekSystemEvents("agent:main:main")).toHaveLength(1);
     expect(drainSystemEvents("agent:main:main")[0]).toContain(
-      "Do not write openclaw.json again unless you validate the full config first.",
+      "Do not write genesis.json again unless you validate the full config first.",
     );
   });
 });

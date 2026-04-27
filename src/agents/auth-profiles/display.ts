@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveAuthProfileMetadata } from "./identity.js";
 import type { AuthProfileStore } from "./types.js";
 
 export function resolveAuthProfileDisplayLabel(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   store: AuthProfileStore;
   profileId: string;
 }): string {

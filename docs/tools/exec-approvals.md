@@ -17,15 +17,15 @@ gating (unless elevated is set to `full`, which skips approvals).
 Effective policy is the **stricter** of `tools.exec.*` and approvals defaults;
 if an approvals field is omitted, the `tools.exec` value is used. Host exec
 also uses local approvals state on that machine — a host-local `ask: "always"`
-in `~/.openclaw/exec-approvals.json` keeps prompting even if session or config
+in `~/.genesis/exec-approvals.json` keeps prompting even if session or config
 defaults request `ask: "on-miss"`.
 </Note>
 
 ## Inspecting the effective policy
 
-- `openclaw approvals get`, `... --gateway`, `... --node <id|name|ip>` — show requested policy, host policy sources, and the effective result.
-- `openclaw exec-policy show` — local-machine merged view.
-- `openclaw exec-policy set|preset` — synchronize the local requested policy with the local host approvals file in one step.
+- `genesis approvals get`, `... --gateway`, `... --node <id|name|ip>` — show requested policy, host policy sources, and the effective result.
+- `genesis exec-policy show` — local-machine merged view.
+- `genesis exec-policy set|preset` — synchronize the local requested policy with the local host approvals file in one step.
 
 When a local scope requests `host=node`, `exec-policy show` reports that scope
 as node-managed at runtime instead of pretending the local approvals file is
@@ -45,7 +45,7 @@ commands in the message as a fallback.
 
 Exec approvals are enforced locally on the execution host:
 
-- **gateway host** → `openclaw` process on the gateway machine
+- **gateway host** → `genesis` process on the gateway machine
 - **node host** → node runner (macOS companion app or headless node host)
 
 Trust model note:
@@ -55,7 +55,7 @@ Trust model note:
 - Exec approvals reduce accidental execution risk, but are not a per-user auth boundary.
 - Approved node-host runs bind canonical execution context: canonical cwd, exact argv, env
   binding when present, and pinned executable path when applicable.
-- For shell scripts and direct interpreter/runtime file invocations, OpenClaw also tries to bind
+- For shell scripts and direct interpreter/runtime file invocations, Genesis also tries to bind
   one concrete local file operand. If that bound file changes after approval but before execution,
   the run is denied instead of executing drifted content.
 - This file binding is intentionally best-effort, not a complete semantic model of every
@@ -71,7 +71,7 @@ macOS split:
 
 Approvals live in a local JSON file on the execution host:
 
-`~/.openclaw/exec-approvals.json`
+`~/.genesis/exec-approvals.json`
 
 Example schema:
 
@@ -79,7 +79,7 @@ Example schema:
 {
   "version": 1,
   "socket": {
-    "path": "~/.openclaw/exec-approvals.sock",
+    "path": "~/.genesis/exec-approvals.sock",
     "token": "base64url-token"
   },
   "defaults": {
@@ -112,8 +112,8 @@ Example schema:
 
 If you want host exec to run without approval prompts, you must open **both** policy layers:
 
-- requested exec policy in OpenClaw config (`tools.exec.*`)
-- host-local approvals policy in `~/.openclaw/exec-approvals.json`
+- requested exec policy in Genesis config (`tools.exec.*`)
+- host-local approvals policy in `~/.genesis/exec-approvals.json`
 
 This is now the default host behavior unless you tighten it explicitly:
 
@@ -126,11 +126,11 @@ Important distinction:
 - `tools.exec.host=auto` chooses where exec runs: sandbox when available, otherwise gateway.
 - YOLO chooses how host exec is approved: `security=full` plus `ask=off`.
 - CLI-backed providers that expose their own noninteractive permission mode can follow this policy.
-  Claude CLI adds `--permission-mode bypassPermissions` when OpenClaw's requested exec policy is
+  Claude CLI adds `--permission-mode bypassPermissions` when Genesis's requested exec policy is
   YOLO. Override that backend behavior with explicit Claude args under
   `agents.defaults.cliBackends.claude-cli.args` / `resumeArgs`, for example
   `--permission-mode default`, `acceptEdits`, or `bypassPermissions`.
-- In YOLO mode, OpenClaw does not add a separate heuristic command-obfuscation approval gate or script-preflight rejection layer on top of the configured host exec policy.
+- In YOLO mode, Genesis does not add a separate heuristic command-obfuscation approval gate or script-preflight rejection layer on top of the configured host exec policy.
 - `auto` does not make gateway routing a free override from a sandboxed session. A per-call `host=node` request is allowed from `auto`, and `host=gateway` is only allowed from `auto` when no sandbox runtime is active. If you want a stable non-auto default, set `tools.exec.host` or use `/exec host=...` explicitly.
 
 If you want a more conservative setup, tighten either layer back to `allowlist` / `on-miss`
@@ -139,16 +139,16 @@ or `deny`.
 Persistent gateway-host "never prompt" setup:
 
 ```bash
-openclaw config set tools.exec.host gateway
-openclaw config set tools.exec.security full
-openclaw config set tools.exec.ask off
-openclaw gateway restart
+genesis config set tools.exec.host gateway
+genesis config set tools.exec.security full
+genesis config set tools.exec.ask off
+genesis gateway restart
 ```
 
 Then set the host approvals file to match:
 
 ```bash
-openclaw approvals set --stdin <<'EOF'
+genesis approvals set --stdin <<'EOF'
 {
   version: 1,
   defaults: {
@@ -163,22 +163,22 @@ EOF
 Local shortcut for the same gateway-host policy on the current machine:
 
 ```bash
-openclaw exec-policy preset yolo
+genesis exec-policy preset yolo
 ```
 
 That local shortcut updates both:
 
 - local `tools.exec.host/security/ask`
-- local `~/.openclaw/exec-approvals.json` defaults
+- local `~/.genesis/exec-approvals.json` defaults
 
 It is intentionally local-only. If you need to change gateway-host or node-host approvals
-remotely, continue using `openclaw approvals set --gateway` or
-`openclaw approvals set --node <id|name|ip>`.
+remotely, continue using `genesis approvals set --gateway` or
+`genesis approvals set --node <id|name|ip>`.
 
 For a node host, apply the same approvals file on that node instead:
 
 ```bash
-openclaw approvals set --node <id|name|ip> --stdin <<'EOF'
+genesis approvals set --node <id|name|ip> --stdin <<'EOF'
 {
   version: 1,
   defaults: {
@@ -192,9 +192,9 @@ EOF
 
 Important local-only limitation:
 
-- `openclaw exec-policy` does not synchronize node approvals
-- `openclaw exec-policy set --host node` is rejected
-- node exec approvals are fetched from the node at runtime, so node-targeted updates must use `openclaw approvals --node ...`
+- `genesis exec-policy` does not synchronize node approvals
+- `genesis exec-policy set --host node` is rejected
+- node exec approvals are fetched from the node at runtime, so node-targeted updates must use `genesis approvals --node ...`
 
 Session-only shortcut:
 
@@ -228,7 +228,7 @@ If a prompt is required but no UI is reachable, fallback decides:
 
 ### Inline interpreter eval hardening (`tools.exec.strictInlineEval`)
 
-When `tools.exec.strictInlineEval=true`, OpenClaw treats inline code-eval forms as approval-only even if the interpreter binary itself is allowlisted.
+When `tools.exec.strictInlineEval=true`, Genesis treats inline code-eval forms as approval-only even if the interpreter binary itself is allowlisted.
 
 Examples:
 
@@ -300,9 +300,9 @@ per pattern so you can keep the list tidy.
 The target selector chooses **Gateway** (local approvals) or a **Node**. Nodes
 must advertise `system.execApprovals.get/set` (macOS app or headless node host).
 If a node does not advertise exec approvals yet, edit its local
-`~/.openclaw/exec-approvals.json` directly.
+`~/.genesis/exec-approvals.json` directly.
 
-CLI: `openclaw approvals` supports gateway or node editing (see [Approvals CLI](/cli/approvals)).
+CLI: `genesis approvals` supports gateway or node editing (see [Approvals CLI](/cli/approvals)).
 
 ## Approval flow
 
@@ -338,7 +338,7 @@ Approval-gated execs reuse the approval id as the `runId` in these messages for 
 
 ## Denied approval behavior
 
-When an async exec approval is denied, OpenClaw prevents the agent from reusing
+When an async exec approval is denied, Genesis prevents the agent from reusing
 output from any earlier run of the same command in the session. The denial reason
 is passed with explicit guidance that no command output is available, which stops
 the agent from claiming there is new output or repeating the denied command with

@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/alibaba-provider",
+  "name": "@genesis/alibaba-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Alibaba Model Studio video provider plugin",
+  "description": "Genesis Alibaba Model Studio video provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

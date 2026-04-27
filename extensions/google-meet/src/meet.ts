@@ -1,4 +1,4 @@
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 
 const GOOGLE_MEET_API_ORIGIN = "https://meet.googleapis.com";
 const GOOGLE_MEET_API_BASE_URL = `${GOOGLE_MEET_API_ORIGIN}/v2`;

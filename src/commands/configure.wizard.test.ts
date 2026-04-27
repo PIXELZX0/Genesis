@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 
 const mocks = vi.hoisted(() => {
   const writeConfigFile = vi.fn();
@@ -25,10 +25,10 @@ const mocks = vi.hoisted(() => {
     waitForGatewayReachable: vi.fn(),
     resolveControlUiLinks: vi.fn(),
     summarizeExistingConfig: vi.fn(),
-    isCodexNativeWebSearchRelevant: vi.fn(({ config }: { config: OpenClawConfig }) =>
+    isCodexNativeWebSearchRelevant: vi.fn(({ config }: { config: GenesisConfig }) =>
       Boolean(config.auth?.profiles?.["openai-codex:default"]),
     ),
-    setupChannels: vi.fn(async (cfg: OpenClawConfig) => cfg),
+    setupChannels: vi.fn(async (cfg: GenesisConfig) => cfg),
   };
 });
 
@@ -41,7 +41,7 @@ vi.mock("@clack/prompts", () => ({
 }));
 
 vi.mock("../config/config.js", () => ({
-  CONFIG_PATH: "~/.openclaw/openclaw.json",
+  CONFIG_PATH: "~/.genesis/genesis.json",
   readConfigFileSnapshot: mocks.readConfigFileSnapshot,
   writeConfigFile: mocks.writeConfigFile,
   replaceConfigFile: mocks.replaceConfigFile,
@@ -61,8 +61,8 @@ vi.mock("../terminal/note.js", () => ({
 }));
 
 vi.mock("./onboard-helpers.js", () => ({
-  DEFAULT_WORKSPACE: "~/.openclaw/workspace",
-  applyWizardMetadata: (cfg: OpenClawConfig) => cfg,
+  DEFAULT_WORKSPACE: "~/.genesis/workspace",
+  applyWizardMetadata: (cfg: GenesisConfig) => cfg,
   ensureWorkspaceAndSessions: vi.fn(),
   guardCancel: <T>(value: T) => value,
   printWizardHeader: mocks.printWizardHeader,
@@ -149,7 +149,7 @@ function createSearchProviderOption(overrides: Record<string, unknown>) {
 }
 
 function createEnabledWebSearchConfig(provider: string, pluginEntry: Record<string, unknown>) {
-  return (cfg: OpenClawConfig) => ({
+  return (cfg: GenesisConfig) => ({
     ...cfg,
     tools: {
       ...cfg.tools,
@@ -171,7 +171,7 @@ function createEnabledWebSearchConfig(provider: string, pluginEntry: Record<stri
   });
 }
 
-function setupBaseWizardState(config: OpenClawConfig = {}) {
+function setupBaseWizardState(config: GenesisConfig = {}) {
   mocks.readConfigFileSnapshot.mockResolvedValue({
     ...EMPTY_CONFIG_SNAPSHOT,
     config,
@@ -223,7 +223,7 @@ describe("runConfigureWizard", () => {
       },
     ]);
     mocks.setupSearch.mockReset();
-    mocks.setupSearch.mockImplementation(async (cfg: OpenClawConfig) => cfg);
+    mocks.setupSearch.mockImplementation(async (cfg: GenesisConfig) => cfg);
   });
 
   it("persists gateway.mode=local when only the run mode is selected", async () => {
@@ -286,7 +286,7 @@ describe("runConfigureWizard", () => {
 
   it("persists provider-owned web search config changes returned by setupSearch", async () => {
     setupBaseWizardState();
-    mocks.setupSearch.mockImplementation(async (cfg: OpenClawConfig) =>
+    mocks.setupSearch.mockImplementation(async (cfg: GenesisConfig) =>
       createEnabledWebSearchConfig("firecrawl", {
         enabled: true,
         config: { webSearch: { apiKey: "fc-entered-key" } },
@@ -393,11 +393,11 @@ describe("runConfigureWizard", () => {
         envVars: [],
         placeholder: "(no key needed)",
         signupUrl: "https://duckduckgo.com/",
-        docsUrl: "https://docs.openclaw.ai/tools/web",
+        docsUrl: "https://docs.genesis.ai/tools/web",
         credentialPath: "",
       }),
     ]);
-    mocks.setupSearch.mockImplementation(async (cfg: OpenClawConfig) =>
+    mocks.setupSearch.mockImplementation(async (cfg: GenesisConfig) =>
       createEnabledWebSearchConfig("duckduckgo", {
         enabled: true,
       })(cfg),
@@ -497,7 +497,7 @@ describe("runConfigureWizard", () => {
   });
 
   it("retries without dropping nested plugin config written during wizard flow (issue #64188)", async () => {
-    const baseConfig: OpenClawConfig = {
+    const baseConfig: GenesisConfig = {
       plugins: {
         entries: {
           "github-copilot": {
@@ -598,7 +598,7 @@ describe("runConfigureWizard", () => {
     expect(retryCall.nextConfig).toMatchObject({
       agents: {
         defaults: {
-          workspace: expect.stringContaining("/.openclaw/workspace"),
+          workspace: expect.stringContaining("/.genesis/workspace"),
         },
       },
       plugins: {

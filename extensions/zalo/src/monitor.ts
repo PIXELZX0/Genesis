@@ -1,24 +1,24 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
-import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+import { logTypingFailure } from "genesis/plugin-sdk/channel-feedback";
+import { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
 import {
   resolveDirectDmAuthorizationOutcome,
   resolveSenderCommandAuthorizationWithRuntime,
-} from "openclaw/plugin-sdk/command-auth";
-import type { MarkdownTableMode, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveInboundRouteEnvelopeBuilderWithRuntime } from "openclaw/plugin-sdk/inbound-envelope";
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/command-auth";
+import type { MarkdownTableMode, GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveInboundRouteEnvelopeBuilderWithRuntime } from "genesis/plugin-sdk/inbound-envelope";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
 import {
   deliverTextOrMediaReply,
   type OutboundReplyPayload,
-} from "openclaw/plugin-sdk/reply-payload";
-import { waitForAbortSignal } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/reply-payload";
+import { waitForAbortSignal } from "genesis/plugin-sdk/runtime-env";
 import {
   resolveDefaultGroupPolicy,
   warnMissingProviderGroupPolicyFallbackOnce,
-} from "openclaw/plugin-sdk/runtime-group-policy";
-import { registerPluginHttpRoute, resolveWebhookPath } from "openclaw/plugin-sdk/webhook-ingress";
+} from "genesis/plugin-sdk/runtime-group-policy";
+import { registerPluginHttpRoute, resolveWebhookPath } from "genesis/plugin-sdk/webhook-ingress";
 import type { ResolvedZaloAccount } from "./accounts.js";
 import {
   ZaloApiError,
@@ -51,7 +51,7 @@ import {
 export type ZaloMonitorOptions = {
   token: string;
   account: ResolvedZaloAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   runtime: ZaloRuntimeEnv;
   abortSignal: AbortSignal;
   useWebhook?: boolean;
@@ -73,7 +73,7 @@ type ZaloWebhookModule = typeof import("./monitor.webhook.js");
 type ZaloProcessingContext = {
   token: string;
   account: ResolvedZaloAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   runtime: ZaloRuntimeEnv;
   core: ZaloCoreRuntime;
   mediaMaxMb: number;
@@ -690,7 +690,7 @@ async function deliverZaloReply(params: {
   chatId: string;
   runtime: ZaloRuntimeEnv;
   core: ZaloCoreRuntime;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   webhookUrl?: string;
   webhookPath?: string;
   proxyUrl?: string;

@@ -7,7 +7,7 @@ import { AsyncTempCaseFactory } from "./test-temp-cases.js";
 const isWindows = process.platform === "win32";
 
 describe("security audit config symlink findings", () => {
-  const tempCases = new AsyncTempCaseFactory("openclaw-security-audit-config-");
+  const tempCases = new AsyncTempCaseFactory("genesis-security-audit-config-");
 
   beforeAll(async () => {
     await tempCases.setup();
@@ -26,11 +26,11 @@ describe("security audit config symlink findings", () => {
     const stateDir = path.join(tmp, "state");
     await fs.mkdir(stateDir, { recursive: true, mode: 0o700 });
 
-    const targetConfigPath = path.join(tmp, "managed-openclaw.json");
+    const targetConfigPath = path.join(tmp, "managed-genesis.json");
     await fs.writeFile(targetConfigPath, "{}\n", "utf-8");
     await fs.chmod(targetConfigPath, 0o444);
 
-    const configPath = path.join(stateDir, "openclaw.json");
+    const configPath = path.join(stateDir, "genesis.json");
     await fs.symlink(targetConfigPath, configPath);
 
     const findings = await collectFilesystemFindings({

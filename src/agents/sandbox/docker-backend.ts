@@ -14,7 +14,7 @@ import {
 } from "./docker.js";
 
 function resolveConfiguredDockerRuntimeImage(params: {
-  config: CreateSandboxBackendParams["cfg"] | import("../../config/config.js").OpenClawConfig;
+  config: CreateSandboxBackendParams["cfg"] | import("../../config/config.js").GenesisConfig;
   agentId?: string;
   configLabelKind?: string;
 }): string {
@@ -100,7 +100,7 @@ export function runDockerSandboxShellCommand(
     "sh",
     "-c",
     params.script,
-    "openclaw-sandbox-fs",
+    "genesis-sandbox-fs",
   ];
   if (params.args?.length) {
     dockerArgs.push(...params.args);

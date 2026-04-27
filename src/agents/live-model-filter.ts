@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveProviderModernModelRef } from "../plugins/provider-runtime.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { liveProvidersShareOwningPlugin } from "./live-provider-owner.js";
@@ -146,7 +146,7 @@ export function shouldExcludeProviderFromDefaultHighSignalLiveSweep(params: {
   provider?: string | null;
   useExplicitModels: boolean;
   providerFilter?: ReadonlySet<string> | null;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): boolean {

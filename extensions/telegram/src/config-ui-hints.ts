@@ -1,4 +1,4 @@
-import type { ChannelConfigUiHint } from "openclaw/plugin-sdk/channel-core";
+import type { ChannelConfigUiHint } from "genesis/plugin-sdk/channel-core";
 
 export const telegramChannelConfigUiHints = {
   "": {
@@ -127,7 +127,7 @@ export const telegramChannelConfigUiHints = {
   },
   execApprovals: {
     label: "Telegram Exec Approvals",
-    help: "Telegram-native exec approval routing and approver authorization. When unset, OpenClaw auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.",
+    help: "Telegram-native exec approval routing and approver authorization. When unset, Genesis auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.",
   },
   "execApprovals.enabled": {
     label: "Telegram Exec Approvals Enabled",
@@ -135,7 +135,7 @@ export const telegramChannelConfigUiHints = {
   },
   "execApprovals.approvers": {
     label: "Telegram Exec Approval Approvers",
-    help: "Telegram user IDs allowed to approve exec requests for this bot account. Use numeric Telegram user IDs. If you leave this unset, OpenClaw falls back to numeric owner IDs inferred from channels.telegram.allowFrom and direct-message defaultTo when possible.",
+    help: "Telegram user IDs allowed to approve exec requests for this bot account. Use numeric Telegram user IDs. If you leave this unset, Genesis falls back to numeric owner IDs inferred from channels.telegram.allowFrom and direct-message defaultTo when possible.",
   },
   "execApprovals.agentFilter": {
     label: "Telegram Exec Approval Agent Filter",

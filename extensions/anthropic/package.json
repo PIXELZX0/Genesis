@@ -1,16 +1,16 @@
 {
-  "name": "@openclaw/anthropic-provider",
+  "name": "@genesis/anthropic-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Anthropic provider plugin",
+  "description": "Genesis Anthropic provider plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

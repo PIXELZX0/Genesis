@@ -2,7 +2,7 @@
 summary: "Together AI setup (auth + model selection)"
 title: "Together AI"
 read_when:
-  - You want to use Together AI with OpenClaw
+  - You want to use Together AI with Genesis
   - You need the API key env var or CLI auth choice
 ---
 
@@ -25,7 +25,7 @@ models including Llama, DeepSeek, Kimi, and more through a unified API.
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice together-api-key
+    genesis onboard --auth-choice together-api-key
     ```
   </Step>
   <Step title="Set a default model">
@@ -44,7 +44,7 @@ models including Llama, DeepSeek, Kimi, and more through a unified API.
 ### Non-interactive example
 
 ```bash
-openclaw onboard --non-interactive \
+genesis onboard --non-interactive \
   --mode local \
   --auth-choice together-api-key \
   --together-api-key "$TOGETHER_API_KEY"
@@ -57,7 +57,7 @@ model.
 
 ## Built-in catalog
 
-OpenClaw ships this bundled Together catalog:
+Genesis ships this bundled Together catalog:
 
 | Model ref                                                    | Name                                   | Input       | Context    | Notes                            |
 | ------------------------------------------------------------ | -------------------------------------- | ----------- | ---------- | -------------------------------- |
@@ -104,18 +104,18 @@ provider selection, and failover behavior.
   <Accordion title="Environment note">
     If the Gateway runs as a daemon (launchd/systemd), make sure
     `TOGETHER_API_KEY` is available to that process (for example, in
-    `~/.openclaw/.env` or via `env.shellEnv`).
+    `~/.genesis/.env` or via `env.shellEnv`).
 
     <Warning>
     Keys set only in your interactive shell are not visible to daemon-managed
-    gateway processes. Use `~/.openclaw/.env` or `env.shellEnv` config for
+    gateway processes. Use `~/.genesis/.env` or `env.shellEnv` config for
     persistent availability.
     </Warning>
 
   </Accordion>
 
   <Accordion title="Troubleshooting">
-    - Verify your key works: `openclaw models list --provider together`
+    - Verify your key works: `genesis models list --provider together`
     - If models are not appearing, confirm the API key is set in the correct
       environment for your Gateway process.
     - Model refs use the form `together/<model-id>`.

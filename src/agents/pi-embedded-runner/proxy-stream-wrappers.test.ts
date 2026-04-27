@@ -54,8 +54,8 @@ describe("proxy stream wrappers", () => {
     expect(calls).toEqual([
       {
         headers: {
-          "HTTP-Referer": "https://openclaw.ai",
-          "X-OpenRouter-Title": "OpenClaw",
+          "HTTP-Referer": "https://genesis.ai",
+          "X-OpenRouter-Title": "Genesis",
           "X-OpenRouter-Categories": "cli-agent",
           "X-Custom": "1",
         },

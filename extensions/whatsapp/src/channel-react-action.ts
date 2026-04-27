@@ -5,7 +5,7 @@ import {
   normalizeWhatsAppTarget,
   readStringOrNumberParam,
   readStringParam,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "./channel-react-action.runtime.js";
 
 const WHATSAPP_CHANNEL = "whatsapp" as const;
@@ -13,7 +13,7 @@ const WHATSAPP_CHANNEL = "whatsapp" as const;
 export async function handleWhatsAppReactAction(params: {
   action: string;
   params: Record<string, unknown>;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   requesterSenderId?: string | null;
   toolContext?: {

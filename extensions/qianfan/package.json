@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/qianfan-provider",
+  "name": "@genesis/qianfan-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Qianfan provider plugin",
+  "description": "Genesis Qianfan provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

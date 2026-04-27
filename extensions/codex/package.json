@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/codex",
+  "name": "@genesis/codex",
   "version": "2026.4.20",
-  "description": "OpenClaw Codex harness and model provider plugin",
+  "description": "Genesis Codex harness and model provider plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-coding-agent": "0.70.2",
@@ -10,9 +10,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

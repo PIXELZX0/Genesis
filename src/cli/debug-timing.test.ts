@@ -14,7 +14,7 @@ function parseJsonTimingLine(line: string) {
 }
 
 describe("cli debug timing", () => {
-  it("does not emit timing lines unless OPENCLAW_DEBUG_TIMING enables a mode", () => {
+  it("does not emit timing lines unless GENESIS_DEBUG_TIMING enables a mode", () => {
     const writer = vi.fn();
     const timing = createCliDebugTiming({
       command: "models list",
@@ -29,11 +29,11 @@ describe("cli debug timing", () => {
     expect(writer).not.toHaveBeenCalled();
   });
 
-  it("emits readable timing lines with OPENCLAW_DEBUG_TIMING=1", () => {
+  it("emits readable timing lines with GENESIS_DEBUG_TIMING=1", () => {
     const writer = vi.fn();
     const timing = createCliDebugTiming({
       command: "models list",
-      env: { OPENCLAW_DEBUG_TIMING: "1" },
+      env: { GENESIS_DEBUG_TIMING: "1" },
       writer,
     });
 
@@ -41,17 +41,17 @@ describe("cli debug timing", () => {
     expect(timing.time("sync", () => 1)).toBe(1);
 
     expect(writer.mock.calls.map(([line]) => String(line))).toEqual([
-      'OpenClaw CLI debug timing: "models list"',
+      'Genesis CLI debug timing: "models list"',
       expect.stringMatching(/\s+\d+ms\s+\+\d+ms "start" detail="ready"/),
       expect.stringMatching(/\s+\d+ms\s+\+\d+ms "sync" duration=\d+ms/),
     ]);
   });
 
-  it("emits parseable timing JSON lines with OPENCLAW_DEBUG_TIMING=json", async () => {
+  it("emits parseable timing JSON lines with GENESIS_DEBUG_TIMING=json", async () => {
     const writer = vi.fn();
     const timing = createCliDebugTiming({
       command: "models list",
-      env: { OPENCLAW_DEBUG_TIMING: "json" },
+      env: { GENESIS_DEBUG_TIMING: "json" },
       writer,
     });
 

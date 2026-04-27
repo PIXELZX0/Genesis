@@ -1,7 +1,7 @@
 import type {
   pollProviderOperationJson,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import { afterEach, vi } from "vitest";
 
 type ResolveProviderHttpRequestConfigParams = Parameters<
@@ -49,11 +49,11 @@ providerHttpMocks.pollProviderOperationJsonMock.mockImplementation(
   },
 );
 
-vi.mock("openclaw/plugin-sdk/provider-auth-runtime", () => ({
+vi.mock("genesis/plugin-sdk/provider-auth-runtime", () => ({
   resolveApiKeyForProvider: providerHttpMocks.resolveApiKeyForProviderMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-http", () => ({
+vi.mock("genesis/plugin-sdk/provider-http", () => ({
   assertOkOrThrowHttpError: providerHttpMocks.assertOkOrThrowHttpErrorMock,
   createProviderOperationDeadline: ({
     label,

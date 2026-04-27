@@ -33,7 +33,7 @@ export function parseArgs(argv, env = process.env) {
     duplicates: [],
     labels: DEFAULT_LABELS,
     landedPr: undefined,
-    repo: env.GITHUB_REPOSITORY || "openclaw/openclaw",
+    repo: env.GITHUB_REPOSITORY || "PIXELZX0/Genesis",
   };
 
   for (let index = 0; index < argv.length; index += 1) {

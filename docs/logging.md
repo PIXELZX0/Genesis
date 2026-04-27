@@ -9,7 +9,7 @@ title: "Logging overview"
 
 # Logging
 
-OpenClaw has two main log surfaces:
+Genesis has two main log surfaces:
 
 - **File logs** (JSON lines) written by the Gateway.
 - **Console output** shown in terminals and the Gateway Debug UI.
@@ -21,16 +21,16 @@ logs live, how to read them, and how to configure log levels and formats.
 
 By default, the Gateway writes a rolling log file under:
 
-`/tmp/openclaw/openclaw-YYYY-MM-DD.log`
+`/tmp/genesis/genesis-YYYY-MM-DD.log`
 
 The date uses the gateway host's local timezone.
 
-You can override this in `~/.openclaw/openclaw.json`:
+You can override this in `~/.genesis/genesis.json`:
 
 ```json
 {
   "logging": {
-    "file": "/path/to/openclaw.log"
+    "file": "/path/to/genesis.log"
   }
 }
 ```
@@ -42,7 +42,7 @@ You can override this in `~/.openclaw/openclaw.json`:
 Use the CLI to tail the gateway log file via RPC:
 
 ```bash
-openclaw logs --follow
+genesis logs --follow
 ```
 
 Useful current options:
@@ -70,14 +70,14 @@ In JSON mode, the CLI emits `type`-tagged objects:
 - `notice`: truncation / rotation hints
 - `raw`: unparsed log line
 
-If the local loopback Gateway asks for pairing, `openclaw logs` falls back to
+If the local loopback Gateway asks for pairing, `genesis logs` falls back to
 the configured local log file automatically. Explicit `--url` targets do not
 use this fallback.
 
 If the Gateway is unreachable, the CLI prints a short hint to run:
 
 ```bash
-openclaw doctor
+genesis doctor
 ```
 
 ### Control UI (web)
@@ -90,7 +90,7 @@ See [/web/control-ui](/web/control-ui) for how to open it.
 To filter channel activity (WhatsApp/Telegram/etc), use:
 
 ```bash
-openclaw channels logs --channel whatsapp
+genesis channels logs --channel whatsapp
 ```
 
 ## Log formats
@@ -112,7 +112,7 @@ Console formatting is controlled by `logging.consoleStyle`.
 
 ### Gateway WebSocket logs
 
-`openclaw gateway` also has WebSocket protocol logging for RPC traffic:
+`genesis gateway` also has WebSocket protocol logging for RPC traffic:
 
 - normal mode: only interesting results (errors, parse errors, slow calls)
 - `--verbose`: all request/response traffic
@@ -122,20 +122,20 @@ Console formatting is controlled by `logging.consoleStyle`.
 Examples:
 
 ```bash
-openclaw gateway
-openclaw gateway --verbose --ws-log compact
-openclaw gateway --verbose --ws-log full
+genesis gateway
+genesis gateway --verbose --ws-log compact
+genesis gateway --verbose --ws-log full
 ```
 
 ## Configuring logging
 
-All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
+All logging configuration lives under `logging` in `~/.genesis/genesis.json`.
 
 ```json
 {
   "logging": {
     "level": "info",
-    "file": "/tmp/openclaw/openclaw-YYYY-MM-DD.log",
+    "file": "/tmp/genesis/genesis-YYYY-MM-DD.log",
     "consoleLevel": "info",
     "consoleStyle": "pretty",
     "redactSensitive": "tools",
@@ -149,7 +149,7 @@ All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
 - `logging.level`: **file logs** (JSONL) level.
 - `logging.consoleLevel`: **console** verbosity level.
 
-You can override both via the **`OPENCLAW_LOG_LEVEL`** environment variable (e.g. `OPENCLAW_LOG_LEVEL=debug`). The env var takes precedence over the config file, so you can raise verbosity for a single run without editing `openclaw.json`. You can also pass the global CLI option **`--log-level <level>`** (for example, `openclaw --log-level debug gateway run`), which overrides the environment variable for that command.
+You can override both via the **`GENESIS_LOG_LEVEL`** environment variable (e.g. `GENESIS_LOG_LEVEL=debug`). The env var takes precedence over the config file, so you can raise verbosity for a single run without editing `genesis.json`. You can also pass the global CLI option **`--log-level <level>`** (for example, `genesis --log-level debug gateway run`), which overrides the environment variable for that command.
 
 `--verbose` only affects console output and WS log verbosity; it does not change
 file log levels.
@@ -184,7 +184,7 @@ diagnostics + the exporter plugin are enabled.
 
 - **OpenTelemetry (OTel)**: the data model + SDKs for traces, metrics, and logs.
 - **OTLP**: the wire protocol used to export OTel data to a collector/backend.
-- OpenClaw exports via **OTLP/HTTP (protobuf)** today.
+- Genesis exports via **OTLP/HTTP (protobuf)** today.
 
 ### Signals exported
 
@@ -250,7 +250,7 @@ Flags are case-insensitive and support wildcards (e.g. `telegram.*` or `*`).
 Env override (one-off):
 
 ```
-OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload
+GENESIS_DIAGNOSTICS=telegram.http,telegram.payload
 ```
 
 Notes:
@@ -280,7 +280,7 @@ works with any OpenTelemetry collector/backend that accepts OTLP/HTTP.
       "enabled": true,
       "endpoint": "http://otel-collector:4318",
       "protocol": "http/protobuf",
-      "serviceName": "openclaw-gateway",
+      "serviceName": "genesis-gateway",
       "traces": true,
       "metrics": true,
       "logs": true,
@@ -301,7 +301,7 @@ works with any OpenTelemetry collector/backend that accepts OTLP/HTTP.
 
 Notes:
 
-- You can also enable the plugin with `openclaw plugins enable diagnostics-otel`.
+- You can also enable the plugin with `genesis plugins enable diagnostics-otel`.
 - `protocol` currently supports `http/protobuf` only. `grpc` is ignored.
 - Metrics include token usage, cost, context size, run duration, and message-flow
   counters/histograms (webhooks, queueing, session state, queue depth/wait).
@@ -313,88 +313,88 @@ Notes:
 - Set `headers` when your collector requires auth.
 - Environment variables supported: `OTEL_EXPORTER_OTLP_ENDPOINT`,
   `OTEL_SERVICE_NAME`, `OTEL_EXPORTER_OTLP_PROTOCOL`.
-- Set `OPENCLAW_OTEL_PRELOADED=1` when another preload or host process already
+- Set `GENESIS_OTEL_PRELOADED=1` when another preload or host process already
   registered the global OpenTelemetry SDK. In that mode the plugin does not start
-  or shut down its own SDK, but it still wires OpenClaw diagnostic listeners and
+  or shut down its own SDK, but it still wires Genesis diagnostic listeners and
   honors `diagnostics.otel.traces`, `metrics`, and `logs`.
 
 ### Exported metrics (names + types)
 
 Model usage:
 
-- `openclaw.tokens` (counter, attrs: `openclaw.token`, `openclaw.channel`,
-  `openclaw.provider`, `openclaw.model`)
-- `openclaw.cost.usd` (counter, attrs: `openclaw.channel`, `openclaw.provider`,
-  `openclaw.model`)
-- `openclaw.run.duration_ms` (histogram, attrs: `openclaw.channel`,
-  `openclaw.provider`, `openclaw.model`)
-- `openclaw.context.tokens` (histogram, attrs: `openclaw.context`,
-  `openclaw.channel`, `openclaw.provider`, `openclaw.model`)
+- `genesis.tokens` (counter, attrs: `genesis.token`, `genesis.channel`,
+  `genesis.provider`, `genesis.model`)
+- `genesis.cost.usd` (counter, attrs: `genesis.channel`, `genesis.provider`,
+  `genesis.model`)
+- `genesis.run.duration_ms` (histogram, attrs: `genesis.channel`,
+  `genesis.provider`, `genesis.model`)
+- `genesis.context.tokens` (histogram, attrs: `genesis.context`,
+  `genesis.channel`, `genesis.provider`, `genesis.model`)
 
 Message flow:
 
-- `openclaw.webhook.received` (counter, attrs: `openclaw.channel`,
-  `openclaw.webhook`)
-- `openclaw.webhook.error` (counter, attrs: `openclaw.channel`,
-  `openclaw.webhook`)
-- `openclaw.webhook.duration_ms` (histogram, attrs: `openclaw.channel`,
-  `openclaw.webhook`)
-- `openclaw.message.queued` (counter, attrs: `openclaw.channel`,
-  `openclaw.source`)
-- `openclaw.message.processed` (counter, attrs: `openclaw.channel`,
-  `openclaw.outcome`)
-- `openclaw.message.duration_ms` (histogram, attrs: `openclaw.channel`,
-  `openclaw.outcome`)
+- `genesis.webhook.received` (counter, attrs: `genesis.channel`,
+  `genesis.webhook`)
+- `genesis.webhook.error` (counter, attrs: `genesis.channel`,
+  `genesis.webhook`)
+- `genesis.webhook.duration_ms` (histogram, attrs: `genesis.channel`,
+  `genesis.webhook`)
+- `genesis.message.queued` (counter, attrs: `genesis.channel`,
+  `genesis.source`)
+- `genesis.message.processed` (counter, attrs: `genesis.channel`,
+  `genesis.outcome`)
+- `genesis.message.duration_ms` (histogram, attrs: `genesis.channel`,
+  `genesis.outcome`)
 
 Queues + sessions:
 
-- `openclaw.queue.lane.enqueue` (counter, attrs: `openclaw.lane`)
-- `openclaw.queue.lane.dequeue` (counter, attrs: `openclaw.lane`)
-- `openclaw.queue.depth` (histogram, attrs: `openclaw.lane` or
-  `openclaw.channel=heartbeat`)
-- `openclaw.queue.wait_ms` (histogram, attrs: `openclaw.lane`)
-- `openclaw.session.state` (counter, attrs: `openclaw.state`, `openclaw.reason`)
-- `openclaw.session.stuck` (counter, attrs: `openclaw.state`)
-- `openclaw.session.stuck_age_ms` (histogram, attrs: `openclaw.state`)
-- `openclaw.run.attempt` (counter, attrs: `openclaw.attempt`)
+- `genesis.queue.lane.enqueue` (counter, attrs: `genesis.lane`)
+- `genesis.queue.lane.dequeue` (counter, attrs: `genesis.lane`)
+- `genesis.queue.depth` (histogram, attrs: `genesis.lane` or
+  `genesis.channel=heartbeat`)
+- `genesis.queue.wait_ms` (histogram, attrs: `genesis.lane`)
+- `genesis.session.state` (counter, attrs: `genesis.state`, `genesis.reason`)
+- `genesis.session.stuck` (counter, attrs: `genesis.state`)
+- `genesis.session.stuck_age_ms` (histogram, attrs: `genesis.state`)
+- `genesis.run.attempt` (counter, attrs: `genesis.attempt`)
 
 Exec:
 
-- `openclaw.exec.duration_ms` (histogram, attrs: `openclaw.exec.target`,
-  `openclaw.exec.mode`, `openclaw.outcome`, `openclaw.failureKind`)
+- `genesis.exec.duration_ms` (histogram, attrs: `genesis.exec.target`,
+  `genesis.exec.mode`, `genesis.outcome`, `genesis.failureKind`)
 
 ### Exported spans (names + key attributes)
 
-- `openclaw.model.usage`
-  - `openclaw.channel`, `openclaw.provider`, `openclaw.model`
-  - `openclaw.tokens.*` (input/output/cache_read/cache_write/total)
-- `openclaw.run`
-  - `openclaw.outcome`, `openclaw.channel`, `openclaw.provider`,
-    `openclaw.model`, `openclaw.errorCategory`
-- `openclaw.model.call`
+- `genesis.model.usage`
+  - `genesis.channel`, `genesis.provider`, `genesis.model`
+  - `genesis.tokens.*` (input/output/cache_read/cache_write/total)
+- `genesis.run`
+  - `genesis.outcome`, `genesis.channel`, `genesis.provider`,
+    `genesis.model`, `genesis.errorCategory`
+- `genesis.model.call`
   - `gen_ai.system`, `gen_ai.request.model`, `gen_ai.operation.name`,
-    `openclaw.provider`, `openclaw.model`, `openclaw.api`,
-    `openclaw.transport`
-- `openclaw.tool.execution`
-  - `gen_ai.tool.name`, `openclaw.toolName`, `openclaw.errorCategory`,
-    `openclaw.tool.params.*`
-- `openclaw.exec`
-  - `openclaw.exec.target`, `openclaw.exec.mode`, `openclaw.outcome`,
-    `openclaw.failureKind`, `openclaw.exec.command_length`,
-    `openclaw.exec.exit_code`, `openclaw.exec.timed_out`
-- `openclaw.webhook.processed`
-  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`
-- `openclaw.webhook.error`
-  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`,
-    `openclaw.error`
-- `openclaw.message.processed`
-  - `openclaw.channel`, `openclaw.outcome`, `openclaw.chatId`,
-    `openclaw.messageId`, `openclaw.reason`
-- `openclaw.session.stuck`
-  - `openclaw.state`, `openclaw.ageMs`, `openclaw.queueDepth`
+    `genesis.provider`, `genesis.model`, `genesis.api`,
+    `genesis.transport`
+- `genesis.tool.execution`
+  - `gen_ai.tool.name`, `genesis.toolName`, `genesis.errorCategory`,
+    `genesis.tool.params.*`
+- `genesis.exec`
+  - `genesis.exec.target`, `genesis.exec.mode`, `genesis.outcome`,
+    `genesis.failureKind`, `genesis.exec.command_length`,
+    `genesis.exec.exit_code`, `genesis.exec.timed_out`
+- `genesis.webhook.processed`
+  - `genesis.channel`, `genesis.webhook`, `genesis.chatId`
+- `genesis.webhook.error`
+  - `genesis.channel`, `genesis.webhook`, `genesis.chatId`,
+    `genesis.error`
+- `genesis.message.processed`
+  - `genesis.channel`, `genesis.outcome`, `genesis.chatId`,
+    `genesis.messageId`, `genesis.reason`
+- `genesis.session.stuck`
+  - `genesis.state`, `genesis.ageMs`, `genesis.queueDepth`
 
 When content capture is explicitly enabled, model/tool spans can also include
-bounded, redacted `openclaw.content.*` attributes for the specific content
+bounded, redacted `genesis.content.*` attributes for the specific content
 classes you opted into.
 
 ### Sampling + flushing
@@ -408,7 +408,7 @@ classes you opted into.
   `OTEL_EXPORTER_OTLP_ENDPOINT`.
 - If the endpoint already contains `/v1/traces` or `/v1/metrics`, it is used as-is.
 - If the endpoint already contains `/v1/logs`, it is used as-is for logs.
-- `OPENCLAW_OTEL_PRELOADED=1` reuses an externally registered OpenTelemetry SDK
+- `GENESIS_OTEL_PRELOADED=1` reuses an externally registered OpenTelemetry SDK
   for traces/metrics instead of starting a plugin-owned NodeSDK.
 - `diagnostics.otel.logs` enables OTLP log export for the main logger output.
 
@@ -421,7 +421,7 @@ classes you opted into.
 
 ## Troubleshooting tips
 
-- **Gateway not reachable?** Run `openclaw doctor` first.
+- **Gateway not reachable?** Run `genesis doctor` first.
 - **Logs empty?** Check that the Gateway is running and writing to the file path
   in `logging.file`.
 - **Need more detail?** Set `logging.level` to `debug` or `trace` and retry.

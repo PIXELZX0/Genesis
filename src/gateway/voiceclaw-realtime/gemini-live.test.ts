@@ -6,7 +6,7 @@ describe("VoiceClawGeminiLiveAdapter watchdog", () => {
     vi.useRealTimers();
   });
 
-  it("stays paused while async OpenClaw tool work is still running", () => {
+  it("stays paused while async Genesis tool work is still running", () => {
     vi.useFakeTimers();
     const adapter = new VoiceClawGeminiLiveAdapter();
     const internals = adapter as unknown as {
@@ -66,7 +66,7 @@ describe("VoiceClawGeminiLiveAdapter tool cancellation", () => {
     expect(sendUpstream).toHaveBeenCalledOnce();
   });
 
-  it("cancels async OpenClaw tool work when Gemini closes after the working ack", () => {
+  it("cancels async Genesis tool work when Gemini closes after the working ack", () => {
     const adapter = new VoiceClawGeminiLiveAdapter();
     const events: unknown[] = [];
     const internals = adapter as unknown as {
@@ -88,7 +88,7 @@ describe("VoiceClawGeminiLiveAdapter tool cancellation", () => {
     expect(internals.asyncToolCallIds.size).toBe(0);
   });
 
-  it("defers goAway rotation until async OpenClaw tool work finishes", () => {
+  it("defers goAway rotation until async Genesis tool work finishes", () => {
     const adapter = new VoiceClawGeminiLiveAdapter();
     const reconnect = vi.fn();
     const internals = adapter as unknown as {

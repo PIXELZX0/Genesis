@@ -4,7 +4,7 @@ import {
 } from "./cdp-reachability-policy.js";
 import { usesFastLoopbackCdpProbeClass } from "./cdp-timeouts.js";
 import { listChromeMcpTabs } from "./chrome-mcp.js";
-import { isChromeReachable, resolveOpenClawUserDataDir } from "./chrome.js";
+import { isChromeReachable, resolveGenesisUserDataDir } from "./chrome.js";
 import type { ResolvedBrowserProfile } from "./config.js";
 import { resolveProfile } from "./config.js";
 import { BrowserProfileNotFoundError, toBrowserErrorResponse } from "./errors.js";
@@ -108,7 +108,7 @@ function createProfileContext(
     getProfileState,
     stopRunningBrowser,
     isHttpReachable,
-    resolveOpenClawUserDataDir,
+    resolveGenesisUserDataDir,
   });
 
   return {
@@ -233,6 +233,15 @@ export function createBrowserRouteContext(opts: ContextOptions): BrowserRouteCon
         tabCount,
         isDefault: name === current.resolved.defaultProfile,
         isRemote: !profile.cdpIsLoopback,
+        tor: profile.tor?.enabled
+          ? {
+              enabled: true,
+              mode: profile.tor.mode,
+              socksHost: profile.tor.socksHost,
+              socksPort: profile.tor.socksPort,
+              running: profileState?.running?.tor ? true : null,
+            }
+          : null,
         missingFromConfig: !(name in current.resolved.profiles) || undefined,
         reconcileReason: profileState?.reconcile?.reason ?? null,
       });

@@ -8,7 +8,7 @@ import {
   loadIncludePatternsFromEnv,
 } from "./vitest/vitest.unit.config.ts";
 
-const patternFiles = createPatternFileHelper("openclaw-vitest-unit-config-");
+const patternFiles = createPatternFileHelper("genesis-vitest-unit-config-");
 
 afterEach(() => {
   patternFiles.cleanup();
@@ -29,7 +29,7 @@ describe("loadIncludePatternsFromEnv", () => {
 
     expect(
       loadIncludePatternsFromEnv({
-        OPENCLAW_VITEST_INCLUDE_FILE: filePath,
+        GENESIS_VITEST_INCLUDE_FILE: filePath,
       }),
     ).toEqual(["src/infra/update-runner.test.ts", "ui/src/ui/views/chat.test.ts"]);
   });
@@ -50,7 +50,7 @@ describe("loadExtraExcludePatternsFromEnv", () => {
 
     expect(
       loadExtraExcludePatternsFromEnv({
-        OPENCLAW_VITEST_EXTRA_EXCLUDE_FILE: filePath,
+        GENESIS_VITEST_EXTRA_EXCLUDE_FILE: filePath,
       }),
     ).toEqual(["src/infra/update-runner.test.ts", "ui/src/ui/views/chat.test.ts"]);
   });
@@ -62,7 +62,7 @@ describe("loadExtraExcludePatternsFromEnv", () => {
 
     expect(() =>
       loadExtraExcludePatternsFromEnv({
-        OPENCLAW_VITEST_EXTRA_EXCLUDE_FILE: filePath,
+        GENESIS_VITEST_EXTRA_EXCLUDE_FILE: filePath,
       }),
     ).toThrow(/JSON array/u);
   });
@@ -91,11 +91,11 @@ describe("unit vitest config", () => {
     expect(unitConfig.test?.passWithNoTests).toBe(true);
   });
 
-  it("adds the OpenClaw runtime setup hooks on top of the base setup", () => {
+  it("adds the Genesis runtime setup hooks on top of the base setup", () => {
     const unitConfig = createUnitVitestConfig({});
     expect(normalizeConfigPaths(unitConfig.test?.setupFiles)).toEqual([
       "test/setup.ts",
-      "test/setup-openclaw-runtime.ts",
+      "test/setup-genesis-runtime.ts",
     ]);
   });
 

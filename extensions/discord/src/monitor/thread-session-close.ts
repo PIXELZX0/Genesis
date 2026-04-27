@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveStorePath, updateSessionStore } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveStorePath, updateSessionStore } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 
 /**
  * Marks every session entry in the store whose key contains {@link threadId}
@@ -12,7 +12,7 @@ import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runti
  * any on-disk transcript history.
  */
 export async function closeDiscordThreadSessions(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   threadId: string;
 }): Promise<number> {

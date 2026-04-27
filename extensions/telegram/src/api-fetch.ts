@@ -1,4 +1,4 @@
-import type { TelegramNetworkConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { TelegramNetworkConfig } from "genesis/plugin-sdk/config-runtime";
 import { resolveTelegramApiBase, resolveTelegramFetch } from "./fetch.js";
 import { makeProxyFetch } from "./proxy.js";
 

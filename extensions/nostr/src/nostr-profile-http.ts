@@ -8,7 +8,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { z } from "openclaw/plugin-sdk/zod";
+import { z } from "genesis/plugin-sdk/zod";
 import { publishNostrProfile, getNostrProfileState } from "./channel.js";
 import { NostrProfileSchema, type NostrProfile } from "./config-schema.js";
 import {

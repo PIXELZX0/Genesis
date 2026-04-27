@@ -26,7 +26,7 @@ function pr(params: {
     number: params.number,
     state: params.state ?? "OPEN",
     title: params.title ?? `PR ${params.number}`,
-    url: `https://github.com/openclaw/openclaw/pull/${params.number}`,
+    url: `https://github.com/PIXELZX0/Genesis/pull/${params.number}`,
   };
 }
 
@@ -74,7 +74,7 @@ diff --git a/b.ts b/b.ts
       candidates: [candidate],
       diffs,
       landed,
-      repo: "openclaw/openclaw",
+      repo: "PIXELZX0/Genesis",
     });
 
     expect(plan).toMatchObject([
@@ -116,7 +116,7 @@ diff --git a/b.ts b/b.ts
       candidates: [candidate],
       diffs,
       landed,
-      repo: "openclaw/openclaw",
+      repo: "PIXELZX0/Genesis",
     });
 
     expect(plan[0]).toMatchObject({
@@ -147,7 +147,7 @@ diff --git a/b.ts b/b.ts
         candidates: [candidate],
         diffs,
         landed,
-        repo: "openclaw/openclaw",
+        repo: "PIXELZX0/Genesis",
       }),
     ).toThrow("Refusing to close #1");
   });
@@ -156,7 +156,7 @@ diff --git a/b.ts b/b.ts
     const calls: string[][] = [];
     const responses = new Map<string, string>([
       [
-        "pr view 70532 --repo openclaw/openclaw --json number,title,body,state,mergedAt,mergeCommit,closingIssuesReferences,files,url",
+        "pr view 70532 --repo PIXELZX0/Genesis --json number,title,body,state,mergedAt,mergeCommit,closingIssuesReferences,files,url",
         JSON.stringify(
           pr({
             body: "Fixes #70491",
@@ -168,15 +168,15 @@ diff --git a/b.ts b/b.ts
         ),
       ],
       [
-        "pr view 70592 --repo openclaw/openclaw --json number,title,body,state,mergedAt,mergeCommit,closingIssuesReferences,files,url",
+        "pr view 70592 --repo PIXELZX0/Genesis --json number,title,body,state,mergedAt,mergeCommit,closingIssuesReferences,files,url",
         JSON.stringify(pr({ body: "Closes #70491", number: 70592 })),
       ],
       [
-        "pr diff 70532 --repo openclaw/openclaw --color=never",
+        "pr diff 70532 --repo PIXELZX0/Genesis --color=never",
         "diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts\n@@ -402,8 +402,11 @@",
       ],
       [
-        "pr diff 70592 --repo openclaw/openclaw --color=never",
+        "pr diff 70592 --repo PIXELZX0/Genesis --color=never",
         "diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts\n@@ -286,8 +286,11 @@",
       ],
     ]);
@@ -191,7 +191,7 @@ diff --git a/b.ts b/b.ts
     };
 
     const args = parseArgs(["--landed-pr", "70532", "--duplicates", "70592"], {
-      GITHUB_REPOSITORY: "openclaw/openclaw",
+      GITHUB_REPOSITORY: "PIXELZX0/Genesis",
     });
     const plan = runDuplicateCloseWorkflow(args, runGh);
 
@@ -216,7 +216,7 @@ diff --git a/b.ts b/b.ts
           evidence: { overlappingHunks: false, sharedFiles: [], sharedIssues: [70491] },
         },
       ],
-      repo: "openclaw/openclaw",
+      repo: "PIXELZX0/Genesis",
       runGh: (args: string[]) => {
         calls.push(args);
         return "";
@@ -229,14 +229,14 @@ diff --git a/b.ts b/b.ts
         "edit",
         "70592",
         "--repo",
-        "openclaw/openclaw",
+        "PIXELZX0/Genesis",
         "--add-label",
         "duplicate",
         "--add-label",
         "close:duplicate",
       ],
-      ["pr", "comment", "70592", "--repo", "openclaw/openclaw", "--body", "closing"],
-      ["pr", "close", "70592", "--repo", "openclaw/openclaw"],
+      ["pr", "comment", "70592", "--repo", "PIXELZX0/Genesis", "--body", "closing"],
+      ["pr", "close", "70592", "--repo", "PIXELZX0/Genesis"],
     ]);
   });
 });

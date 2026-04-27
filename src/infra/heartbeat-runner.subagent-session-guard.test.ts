@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
 import { runHeartbeatOnce } from "./heartbeat-runner.js";
 import { installHeartbeatRunnerTestRuntime } from "./heartbeat-runner.test-harness.js";
@@ -11,7 +11,7 @@ installHeartbeatRunnerTestRuntime();
 describe("runHeartbeatOnce", () => {
   it("falls back to the main session when a subagent session key is forced", async () => {
     await withTempHeartbeatSandbox(async ({ tmpDir, storePath, replySpy }) => {
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         agents: {
           defaults: {
             workspace: tmpDir,

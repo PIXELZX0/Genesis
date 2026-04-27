@@ -24,7 +24,7 @@ describe("live vitest config", () => {
       BUNDLED_PLUGIN_LIVE_TEST_GLOB,
     ]);
     expect(normalizeConfigPaths(liveConfig.test?.setupFiles)).toContain(
-      "test/setup-openclaw-runtime.ts",
+      "test/setup-genesis-runtime.ts",
     );
   });
 });

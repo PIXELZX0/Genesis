@@ -32,27 +32,27 @@ function isBatchSafe(value: string): boolean {
 }
 
 function resolveSystemdUnit(env: NodeJS.ProcessEnv): string {
-  const override = normalizeOptionalString(env.OPENCLAW_SYSTEMD_UNIT);
+  const override = normalizeOptionalString(env.GENESIS_SYSTEMD_UNIT);
   if (override) {
     return override.endsWith(".service") ? override : `${override}.service`;
   }
-  return `${resolveGatewaySystemdServiceName(env.OPENCLAW_PROFILE)}.service`;
+  return `${resolveGatewaySystemdServiceName(env.GENESIS_PROFILE)}.service`;
 }
 
 function resolveLaunchdLabel(env: NodeJS.ProcessEnv): string {
-  const override = normalizeOptionalString(env.OPENCLAW_LAUNCHD_LABEL);
+  const override = normalizeOptionalString(env.GENESIS_LAUNCHD_LABEL);
   if (override) {
     return override;
   }
-  return resolveGatewayLaunchAgentLabel(env.OPENCLAW_PROFILE);
+  return resolveGatewayLaunchAgentLabel(env.GENESIS_PROFILE);
 }
 
 function resolveWindowsTaskName(env: NodeJS.ProcessEnv): string {
-  const override = env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
+  const override = env.GENESIS_WINDOWS_TASK_NAME?.trim();
   if (override) {
     return override;
   }
-  return resolveGatewayWindowsTaskName(env.OPENCLAW_PROFILE);
+  return resolveGatewayWindowsTaskName(env.GENESIS_PROFILE);
 }
 
 /**
@@ -77,19 +77,19 @@ export async function prepareRestartScript(
       const unitName = resolveSystemdUnit(env);
       const escaped = shellEscape(unitName);
       const logSetup = renderPosixRestartLogSetup({ ...process.env, ...env });
-      filename = `openclaw-restart-${timestamp}.sh`;
+      filename = `genesis-restart-${timestamp}.sh`;
       scriptContent = `#!/bin/sh
 # Standalone restart script — survives parent process termination.
 # Wait briefly to ensure file locks are released after update.
 sleep 1
 ${logSetup}
-printf '[%s] openclaw restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${escaped}' >&2
+printf '[%s] genesis restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${escaped}' >&2
 if systemctl --user restart '${escaped}'; then
   status=0
-  printf '[%s] openclaw restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
+  printf '[%s] genesis restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
 else
   status=$?
-  printf '[%s] openclaw restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
+  printf '[%s] genesis restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
 fi
 # Self-cleanup
 rm -f "$0"
@@ -106,7 +106,7 @@ exit "$status"
       const plistPath = path.join(home, "Library", "LaunchAgents", `${label}.plist`);
       const escapedPlistPath = shellEscape(plistPath);
       const logSetup = renderPosixRestartLogSetup({ ...process.env, ...env });
-      filename = `openclaw-restart-${timestamp}.sh`;
+      filename = `genesis-restart-${timestamp}.sh`;
       scriptContent = `#!/bin/sh
 # Standalone restart script — survives parent process termination.
 # Wait briefly to ensure file locks are released after update.
@@ -115,7 +115,7 @@ sleep 1
 # audit trail. Log setup is best-effort: restart must still run if the log path
 # is temporarily unavailable.
 ${logSetup}
-printf '[%s] openclaw restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${shellEscapeRestartLogValue(label)}' >&2
+printf '[%s] genesis restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${shellEscapeRestartLogValue(label)}' >&2
 # Try kickstart first (works when the service is still registered).
 # If it fails (e.g. after bootout), clear any persisted disabled state,
 # then re-register via bootstrap and kickstart. The final status is captured
@@ -128,11 +128,11 @@ if ! launchctl kickstart -k 'gui/${uid}/${escaped}'; then
   status=$?
 fi
 if [ "$status" -eq 0 ]; then
-  printf '[%s] openclaw restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
+  printf '[%s] genesis restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
 else
-  printf '[%s] openclaw restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
+  printf '[%s] genesis restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
 fi
-# Self-cleanup (log is retained under the OpenClaw state logs directory).
+# Self-cleanup (log is retained under the Genesis state logs directory).
 rm -f "$0"
 exit "$status"
 `;
@@ -144,13 +144,13 @@ exit "$status"
       const port =
         Number.isFinite(gatewayPort) && gatewayPort > 0 ? gatewayPort : DEFAULT_GATEWAY_PORT;
       const restartLog = renderCmdRestartLogSetup({ ...process.env, ...env });
-      filename = `openclaw-restart-${timestamp}.bat`;
+      filename = `genesis-restart-${timestamp}.bat`;
       scriptContent = `@echo off
 REM Standalone restart script — survives parent process termination.
 REM Wait briefly to ensure file locks are released after update.
 timeout /t 2 /nobreak >nul
 ${restartLog.lines.join("\r\n")}
->> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart attempt source=update target=${taskName}
+>> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] genesis restart attempt source=update target=${taskName}
 schtasks /End /TN "${taskName}" >> ${restartLog.quotedLogPath} 2>&1
 REM Poll for gateway port release before rerun; force-kill listener if stuck.
 set /a attempts=0
@@ -170,9 +170,9 @@ for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":${port} .*LISTENING"'
 schtasks /Run /TN "${taskName}" >> ${restartLog.quotedLogPath} 2>&1
 set "status=%ERRORLEVEL%"
 if not "%status%"=="0" (
-  >> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart failed source=update status=%status%
+  >> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] genesis restart failed source=update status=%status%
 ) else (
-  >> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart done source=update
+  >> ${restartLog.quotedLogPath} 2>&1 echo [%DATE% %TIME%] genesis restart done source=update
 )
 REM Self-cleanup
 del "%~f0"

@@ -1,10 +1,10 @@
 // Manual facade. Keep loader boundary explicit.
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { SecurityAuditFinding } from "../security/audit.types.js";
 import { loadBundledPluginPublicSurfaceModuleSync } from "./facade-loader.js";
 
 type SecuritySurface = {
-  collectFeishuSecurityAuditFindings: (params: { cfg: OpenClawConfig }) => SecurityAuditFinding[];
+  collectFeishuSecurityAuditFindings: (params: { cfg: GenesisConfig }) => SecurityAuditFinding[];
 };
 
 function loadSecuritySurface(): SecuritySurface {

@@ -8,11 +8,11 @@ import {
   initializeGlobalHookRunner,
   resetGlobalHookRunner,
 } from "../plugins/hook-runner-global.js";
-import { loadOpenClawPlugins } from "../plugins/loader.js";
+import { loadGenesisPlugins } from "../plugins/loader.js";
 import { guardSessionManager } from "./session-tool-result-guard-wrapper.js";
 
 const EMPTY_PLUGIN_SCHEMA = { type: "object", additionalProperties: false, properties: {} };
-const originalBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+const originalBundledPluginsDir = process.env.GENESIS_BUNDLED_PLUGINS_DIR;
 
 function writeTempPlugin(params: { dir: string; id: string; body: string }): string {
   const pluginDir = path.join(params.dir, params.id);
@@ -20,7 +20,7 @@ function writeTempPlugin(params: { dir: string; id: string; body: string }): str
   const file = path.join(pluginDir, `${params.id}.mjs`);
   fs.writeFileSync(file, params.body, "utf-8");
   fs.writeFileSync(
-    path.join(pluginDir, "openclaw.plugin.json"),
+    path.join(pluginDir, "genesis.plugin.json"),
     JSON.stringify(
       {
         id: params.id,
@@ -61,13 +61,13 @@ function getPersistedToolResult(sm: ReturnType<typeof SessionManager.inMemory>) 
 
 function initializeTempPlugin(params: { tmpPrefix: string; id: string; body: string }) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), params.tmpPrefix));
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+  process.env.GENESIS_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
   const plugin = writeTempPlugin({
     dir: tmp,
     id: params.id,
     body: params.body,
   });
-  const registry = loadOpenClawPlugins({
+  const registry = loadGenesisPlugins({
     cache: false,
     workspaceDir: tmp,
     config: {
@@ -91,9 +91,9 @@ function expectPersistedToolResultTextCapped(sm: ReturnType<typeof SessionManage
 afterEach(() => {
   resetGlobalHookRunner();
   if (originalBundledPluginsDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = originalBundledPluginsDir;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = originalBundledPluginsDir;
   }
 });
 
@@ -110,8 +110,8 @@ describe("tool_result_persist hook", () => {
   });
 
   it("loads tool_result_persist hooks without breaking persistence", () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-toolpersist-"));
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-toolpersist-"));
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
 
     const pluginA = writeTempPlugin({
       dir: tmp,
@@ -137,7 +137,7 @@ describe("tool_result_persist hook", () => {
 } };`,
     });
 
-    const registry = loadOpenClawPlugins({
+    const registry = loadGenesisPlugins({
       cache: false,
       workspaceDir: tmp,
       config: {
@@ -166,7 +166,7 @@ describe("tool_result_persist hook", () => {
 
   it("reapplies the cap after tool_result_persist expands a tool result", () => {
     initializeTempPlugin({
-      tmpPrefix: "openclaw-toolpersist-expand-",
+      tmpPrefix: "genesis-toolpersist-expand-",
       id: "persist-expand",
       body: `export default { id: "persist-expand", register(api) {
   api.on("tool_result_persist", (event) => {
@@ -194,7 +194,7 @@ describe("tool_result_persist hook", () => {
 describe("before_message_write hook", () => {
   it("continues persistence when a before_message_write hook throws", () => {
     initializeTempPlugin({
-      tmpPrefix: "openclaw-before-write-",
+      tmpPrefix: "genesis-before-write-",
       id: "before-write-throws",
       body: `export default { id: "before-write-throws", register(api) {
   api.on("before_message_write", () => {
@@ -225,7 +225,7 @@ describe("before_message_write hook", () => {
 
   it("reapplies the cap after before_message_write expands a tool result", () => {
     initializeTempPlugin({
-      tmpPrefix: "openclaw-before-write-expand-",
+      tmpPrefix: "genesis-before-write-expand-",
       id: "before-write-expand",
       body: `export default { id: "before-write-expand", register(api) {
   api.on("before_message_write", (event) => {

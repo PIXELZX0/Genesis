@@ -17,6 +17,20 @@ function handleBrowserRouteError(res: BrowserResponse, err: unknown) {
   jsonError(res, 500, String(err));
 }
 
+function buildTorStatus(profileCtx: ProfileContext, running: boolean | null) {
+  const tor = profileCtx.profile.tor;
+  if (!tor?.enabled) {
+    return null;
+  }
+  return {
+    enabled: true as const,
+    mode: tor.mode,
+    socksHost: tor.socksHost,
+    socksPort: tor.socksPort,
+    running,
+  };
+}
+
 async function withBasicProfileRoute(params: {
   req: BrowserRequest;
   res: BrowserResponse;
@@ -107,6 +121,7 @@ async function buildBrowserStatus(req: BrowserRequest, ctx: BrowserRouteContext)
     noSandbox: current.resolved.noSandbox,
     executablePath: profileCtx.profile.executablePath ?? null,
     attachOnly: profileCtx.profile.attachOnly,
+    tor: buildTorStatus(profileCtx, profileState?.running?.tor ? true : null),
   };
 }
 
@@ -218,15 +233,16 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
       const cdpUrl = toStringOrEmpty((req.body as { cdpUrl?: unknown })?.cdpUrl);
       const userDataDir = toStringOrEmpty((req.body as { userDataDir?: unknown })?.userDataDir);
       const driver = toStringOrEmpty((req.body as { driver?: unknown })?.driver);
+      const tor = (req.body as { tor?: unknown })?.tor === true;
 
       if (!name) {
         return jsonError(res, 400, "name is required");
       }
-      if (driver && driver !== "openclaw" && driver !== "clawd" && driver !== "existing-session") {
+      if (driver && driver !== "genesis" && driver !== "clawd" && driver !== "existing-session") {
         return jsonError(
           res,
           400,
-          `unsupported profile driver "${driver}"; use "openclaw", "clawd", or "existing-session"`,
+          `unsupported profile driver "${driver}"; use "genesis", "clawd", or "existing-session"`,
         );
       }
 
@@ -239,11 +255,12 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
             color: color || undefined,
             cdpUrl: cdpUrl || undefined,
             userDataDir: userDataDir || undefined,
+            tor,
             driver:
               driver === "existing-session"
                 ? "existing-session"
-                : driver === "openclaw" || driver === "clawd"
-                  ? "openclaw"
+                : driver === "genesis" || driver === "clawd"
+                  ? "genesis"
                   : undefined,
           }),
       });

@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const codexRepo = process.env.OPENCLAW_CODEX_REPO
-  ? path.resolve(process.env.OPENCLAW_CODEX_REPO)
+const codexRepo = process.env.GENESIS_CODEX_REPO
+  ? path.resolve(process.env.GENESIS_CODEX_REPO)
   : path.resolve(process.cwd(), "../codex");
 const schemaRoot = path.join(codexRepo, "codex-rs/app-server-protocol/schema/typescript");
 const sourceSchemaRoot = path.join(codexRepo, "codex-rs/app-server-protocol/schema");
@@ -109,7 +109,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Codex app-server generated protocol matches OpenClaw bridge assumptions: ${schemaRoot}`,
+  `Codex app-server generated protocol matches Genesis bridge assumptions: ${schemaRoot}`,
 );
 
 async function compareGeneratedProtocolMirror(): Promise<void> {

@@ -10,7 +10,7 @@ import {
   type CompactionProvider,
 } from "./compaction-provider.js";
 
-const REGISTRY_KEY = Symbol.for("openclaw.compactionProviderRegistryState");
+const REGISTRY_KEY = Symbol.for("genesis.compactionProviderRegistryState");
 
 /** Reset the process-global registry between tests. */
 afterEach(() => {

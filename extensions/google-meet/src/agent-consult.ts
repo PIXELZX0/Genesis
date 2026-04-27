@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { PluginRuntime, RuntimeLogger } from "openclaw/plugin-sdk/plugin-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { PluginRuntime, RuntimeLogger } from "genesis/plugin-sdk/plugin-runtime";
 import {
   consultRealtimeVoiceAgent,
   REALTIME_VOICE_AGENT_CONSULT_TOOL,
@@ -7,7 +7,7 @@ import {
   resolveRealtimeVoiceAgentConsultTools,
   resolveRealtimeVoiceAgentConsultToolsAllow,
   type RealtimeVoiceTool,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "genesis/plugin-sdk/realtime-voice";
 import type { GoogleMeetConfig, GoogleMeetToolPolicy } from "./config.js";
 
 export const GOOGLE_MEET_AGENT_CONSULT_TOOL_NAME = REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME;
@@ -17,9 +17,9 @@ export function resolveGoogleMeetRealtimeTools(policy: GoogleMeetToolPolicy): Re
   return resolveRealtimeVoiceAgentConsultTools(policy);
 }
 
-export async function consultOpenClawAgentForGoogleMeet(params: {
+export async function consultGenesisAgentForGoogleMeet(params: {
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: GenesisConfig;
   runtime: PluginRuntime;
   logger: RuntimeLogger;
   meetingSessionId: string;

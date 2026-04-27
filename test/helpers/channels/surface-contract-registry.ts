@@ -1,6 +1,6 @@
 import type { ChannelId } from "../../../src/channels/plugins/channel-id.types.js";
 import type { ChannelPlugin } from "../../../src/channels/plugins/types.js";
-import type { OpenClawConfig } from "../../../src/config/config.js";
+import type { GenesisConfig } from "../../../src/config/config.js";
 import {
   getBundledChannelPlugin,
   listBundledChannelPluginIds,
@@ -38,7 +38,7 @@ type DirectoryContractEntry = {
   id: string;
   plugin: Pick<ChannelPlugin, "id" | "directory">;
   coverage: "lookups" | "presence";
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   accountId?: string;
 };
 

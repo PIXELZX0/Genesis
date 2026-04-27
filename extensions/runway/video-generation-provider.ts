@@ -1,5 +1,5 @@
-import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+import { isProviderApiKeyConfigured } from "genesis/plugin-sdk/provider-auth";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   createProviderOperationDeadline,
@@ -8,18 +8,18 @@ import {
   resolveProviderOperationTimeoutMs,
   resolveProviderHttpRequestConfig,
   waitProviderOperationPollInterval,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type {
   GeneratedVideoAsset,
   VideoGenerationProvider,
   VideoGenerationRequest,
   VideoGenerationResult,
   VideoGenerationSourceAsset,
-} from "openclaw/plugin-sdk/video-generation";
+} from "genesis/plugin-sdk/video-generation";
 
 const DEFAULT_RUNWAY_BASE_URL = "https://api.dev.runwayml.com";
 const DEFAULT_RUNWAY_MODEL = "gen4.5";

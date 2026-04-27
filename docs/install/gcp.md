@@ -1,19 +1,19 @@
 ---
-summary: "Run OpenClaw Gateway 24/7 on a GCP Compute Engine VM (Docker) with durable state"
+summary: "Run Genesis Gateway 24/7 on a GCP Compute Engine VM (Docker) with durable state"
 read_when:
-  - You want OpenClaw running 24/7 on GCP
+  - You want Genesis running 24/7 on GCP
   - You want a production-grade, always-on Gateway on your own VM
   - You want full control over persistence, binaries, and restart behavior
 title: "GCP"
 ---
 
-# OpenClaw on GCP Compute Engine (Docker, Production VPS Guide)
+# Genesis on GCP Compute Engine (Docker, Production VPS Guide)
 
 ## Goal
 
-Run a persistent OpenClaw Gateway on a GCP Compute Engine VM using Docker, with durable state, baked-in binaries, and safe restart behavior.
+Run a persistent Genesis Gateway on a GCP Compute Engine VM using Docker, with durable state, baked-in binaries, and safe restart behavior.
 
-If you want "OpenClaw 24/7 for ~$5-12/mo", this is a reliable setup on Google Cloud.
+If you want "Genesis 24/7 for ~$5-12/mo", this is a reliable setup on Google Cloud.
 Pricing varies by machine type and region; pick the smallest VM that fits your workload and scale up if you hit OOMs.
 
 ## What are we doing (simple terms)?
@@ -21,11 +21,11 @@ Pricing varies by machine type and region; pick the smallest VM that fits your w
 - Create a GCP project and enable billing
 - Create a Compute Engine VM
 - Install Docker (isolated app runtime)
-- Start the OpenClaw Gateway in Docker
-- Persist `~/.openclaw` + `~/.openclaw/workspace` on the host (survives restarts/rebuilds)
+- Start the Genesis Gateway in Docker
+- Persist `~/.genesis` + `~/.genesis/workspace` on the host (survives restarts/rebuilds)
 - Access the Control UI from your laptop via an SSH tunnel
 
-That mounted `~/.openclaw` state includes `openclaw.json`, per-agent
+That mounted `~/.genesis` state includes `genesis.json`, per-agent
 `agents/<agentId>/agent/auth-profiles.json`, and `.env`.
 
 The Gateway can be accessed via:
@@ -45,7 +45,7 @@ For the generic Docker flow, see [Docker](/install/docker).
 2. Create Compute Engine VM (e2-small, Debian 12, 20GB)
 3. SSH into the VM
 4. Install Docker
-5. Clone OpenClaw repository
+5. Clone Genesis repository
 6. Create persistent host directories
 7. Configure `.env` and `docker-compose.yml`
 8. Bake required binaries, build, and launch
@@ -91,8 +91,8 @@ For the generic Docker flow, see [Docker](/install/docker).
     **CLI:**
 
     ```bash
-    gcloud projects create my-openclaw-project --name="OpenClaw Gateway"
-    gcloud config set project my-openclaw-project
+    gcloud projects create my-genesis-project --name="Genesis Gateway"
+    gcloud config set project my-genesis-project
     ```
 
     Enable billing at [https://console.cloud.google.com/billing](https://console.cloud.google.com/billing) (required for Compute Engine).
@@ -124,7 +124,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     **CLI:**
 
     ```bash
-    gcloud compute instances create openclaw-gateway \
+    gcloud compute instances create genesis-gateway \
       --zone=us-central1-a \
       --machine-type=e2-small \
       --boot-disk-size=20GB \
@@ -135,7 +135,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     **Console:**
 
     1. Go to Compute Engine > VM instances > Create instance
-    2. Name: `openclaw-gateway`
+    2. Name: `genesis-gateway`
     3. Region: `us-central1`, Zone: `us-central1-a`
     4. Machine type: `e2-small`
     5. Boot disk: Debian 12, 20GB
@@ -147,7 +147,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     **CLI:**
 
     ```bash
-    gcloud compute ssh openclaw-gateway --zone=us-central1-a
+    gcloud compute ssh genesis-gateway --zone=us-central1-a
     ```
 
     **Console:**
@@ -175,7 +175,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     Then SSH back in:
 
     ```bash
-    gcloud compute ssh openclaw-gateway --zone=us-central1-a
+    gcloud compute ssh genesis-gateway --zone=us-central1-a
     ```
 
     Verify:
@@ -187,10 +187,10 @@ For the generic Docker flow, see [Docker](/install/docker).
 
   </Step>
 
-  <Step title="Clone the OpenClaw repository">
+  <Step title="Clone the Genesis repository">
     ```bash
-    git clone https://github.com/openclaw/openclaw.git
-    cd openclaw
+    git clone https://github.com/PIXELZX0/Genesis.git
+    cd genesis
     ```
 
     This guide assumes you will build a custom image to guarantee binary persistence.
@@ -202,8 +202,8 @@ For the generic Docker flow, see [Docker](/install/docker).
     All long-lived state must live on the host.
 
     ```bash
-    mkdir -p ~/.openclaw
-    mkdir -p ~/.openclaw/workspace
+    mkdir -p ~/.genesis
+    mkdir -p ~/.genesis/workspace
     ```
 
   </Step>
@@ -212,20 +212,20 @@ For the generic Docker flow, see [Docker](/install/docker).
     Create `.env` in the repository root.
 
     ```bash
-    OPENCLAW_IMAGE=openclaw:latest
-    OPENCLAW_GATEWAY_TOKEN=
-    OPENCLAW_GATEWAY_BIND=lan
-    OPENCLAW_GATEWAY_PORT=18789
+    GENESIS_IMAGE=genesis:latest
+    GENESIS_GATEWAY_TOKEN=
+    GENESIS_GATEWAY_BIND=lan
+    GENESIS_GATEWAY_PORT=18789
 
-    OPENCLAW_CONFIG_DIR=/home/$USER/.openclaw
-    OPENCLAW_WORKSPACE_DIR=/home/$USER/.openclaw/workspace
+    GENESIS_CONFIG_DIR=/home/$USER/.genesis
+    GENESIS_WORKSPACE_DIR=/home/$USER/.genesis/workspace
 
     GOG_KEYRING_PASSWORD=
-    XDG_CONFIG_HOME=/home/node/.openclaw
+    XDG_CONFIG_HOME=/home/node/.genesis
     ```
 
-    Leave `OPENCLAW_GATEWAY_TOKEN` blank unless you explicitly want to
-    manage it through `.env`; OpenClaw writes a random gateway token to
+    Leave `GENESIS_GATEWAY_TOKEN` blank unless you explicitly want to
+    manage it through `.env`; Genesis writes a random gateway token to
     config on first start. Generate a keyring password and paste it into
     `GOG_KEYRING_PASSWORD`:
 
@@ -235,9 +235,9 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     **Do not commit this file.**
 
-    This `.env` file is for container/runtime env such as `OPENCLAW_GATEWAY_TOKEN`.
+    This `.env` file is for container/runtime env such as `GENESIS_GATEWAY_TOKEN`.
     Stored provider OAuth/API-key auth lives in the mounted
-    `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+    `~/.genesis/agents/<agentId>/agent/auth-profiles.json`.
 
   </Step>
 
@@ -246,8 +246,8 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     ```yaml
     services:
-      openclaw-gateway:
-        image: ${OPENCLAW_IMAGE}
+      genesis-gateway:
+        image: ${GENESIS_IMAGE}
         build: .
         restart: unless-stopped
         env_file:
@@ -256,28 +256,28 @@ For the generic Docker flow, see [Docker](/install/docker).
           - HOME=/home/node
           - NODE_ENV=production
           - TERM=xterm-256color
-          - OPENCLAW_GATEWAY_BIND=${OPENCLAW_GATEWAY_BIND}
-          - OPENCLAW_GATEWAY_PORT=${OPENCLAW_GATEWAY_PORT}
-          - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+          - GENESIS_GATEWAY_BIND=${GENESIS_GATEWAY_BIND}
+          - GENESIS_GATEWAY_PORT=${GENESIS_GATEWAY_PORT}
+          - GENESIS_GATEWAY_TOKEN=${GENESIS_GATEWAY_TOKEN}
           - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
           - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
           - PATH=/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         volumes:
-          - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-          - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+          - ${GENESIS_CONFIG_DIR}:/home/node/.genesis
+          - ${GENESIS_WORKSPACE_DIR}:/home/node/.genesis/workspace
         ports:
           # Recommended: keep the Gateway loopback-only on the VM; access via SSH tunnel.
           # To expose it publicly, remove the `127.0.0.1:` prefix and firewall accordingly.
-          - "127.0.0.1:${OPENCLAW_GATEWAY_PORT}:18789"
+          - "127.0.0.1:${GENESIS_GATEWAY_PORT}:18789"
         command:
           [
             "node",
             "dist/index.js",
             "gateway",
             "--bind",
-            "${OPENCLAW_GATEWAY_BIND}",
+            "${GENESIS_GATEWAY_BIND}",
             "--port",
-            "${OPENCLAW_GATEWAY_PORT}",
+            "${GENESIS_GATEWAY_PORT}",
             "--allow-unconfigured",
           ]
     ```
@@ -299,10 +299,10 @@ For the generic Docker flow, see [Docker](/install/docker).
   <Step title="GCP-specific launch notes">
     On GCP, if build fails with `Killed` or `exit code 137` during `pnpm install --frozen-lockfile`, the VM is out of memory. Use `e2-small` minimum, or `e2-medium` for more reliable first builds.
 
-    When binding to LAN (`OPENCLAW_GATEWAY_BIND=lan`), configure a trusted browser origin before continuing:
+    When binding to LAN (`GENESIS_GATEWAY_BIND=lan`), configure a trusted browser origin before continuing:
 
     ```bash
-    docker compose run --rm openclaw-cli config set gateway.controlUi.allowedOrigins '["http://127.0.0.1:18789"]' --strict-json
+    docker compose run --rm genesis-cli config set gateway.controlUi.allowedOrigins '["http://127.0.0.1:18789"]' --strict-json
     ```
 
     If you changed the gateway port, replace `18789` with your configured port.
@@ -313,7 +313,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     Create an SSH tunnel to forward the Gateway port:
 
     ```bash
-    gcloud compute ssh openclaw-gateway --zone=us-central1-a -- -L 18789:127.0.0.1:18789
+    gcloud compute ssh genesis-gateway --zone=us-central1-a -- -L 18789:127.0.0.1:18789
     ```
 
     Open in your browser:
@@ -323,7 +323,7 @@ For the generic Docker flow, see [Docker](/install/docker).
     Reprint a clean dashboard link:
 
     ```bash
-    docker compose run --rm openclaw-cli dashboard --no-open
+    docker compose run --rm genesis-cli dashboard --no-open
     ```
 
     If the UI prompts for shared-secret auth, paste the configured token or
@@ -334,8 +334,8 @@ For the generic Docker flow, see [Docker](/install/docker).
     If Control UI shows `unauthorized` or `disconnected (1008): pairing required`, approve the browser device:
 
     ```bash
-    docker compose run --rm openclaw-cli devices list
-    docker compose run --rm openclaw-cli devices approve <requestId>
+    docker compose run --rm genesis-cli devices list
+    docker compose run --rm genesis-cli devices approve <requestId>
     ```
 
     Need the shared persistence and update reference again?
@@ -368,15 +368,15 @@ If Docker build fails with `Killed` and `exit code 137`, the VM was OOM-killed. 
 
 ```bash
 # Stop the VM first
-gcloud compute instances stop openclaw-gateway --zone=us-central1-a
+gcloud compute instances stop genesis-gateway --zone=us-central1-a
 
 # Change machine type
-gcloud compute instances set-machine-type openclaw-gateway \
+gcloud compute instances set-machine-type genesis-gateway \
   --zone=us-central1-a \
   --machine-type=e2-small
 
 # Start the VM
-gcloud compute instances start openclaw-gateway --zone=us-central1-a
+gcloud compute instances start genesis-gateway --zone=us-central1-a
 ```
 
 ---
@@ -390,15 +390,15 @@ For automation or CI/CD pipelines, create a dedicated service account with minim
 1. Create a service account:
 
    ```bash
-   gcloud iam service-accounts create openclaw-deploy \
-     --display-name="OpenClaw Deployment"
+   gcloud iam service-accounts create genesis-deploy \
+     --display-name="Genesis Deployment"
    ```
 
 2. Grant Compute Instance Admin role (or narrower custom role):
 
    ```bash
-   gcloud projects add-iam-policy-binding my-openclaw-project \
-     --member="serviceAccount:openclaw-deploy@my-openclaw-project.iam.gserviceaccount.com" \
+   gcloud projects add-iam-policy-binding my-genesis-project \
+     --member="serviceAccount:genesis-deploy@my-genesis-project.iam.gserviceaccount.com" \
      --role="roles/compute.instanceAdmin.v1"
    ```
 

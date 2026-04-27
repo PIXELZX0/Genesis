@@ -67,7 +67,7 @@ async function createAdapterHarness(params?: {
 }
 
 describe("createChildAdapter", () => {
-  const originalServiceMarker = process.env.OPENCLAW_SERVICE_MARKER;
+  const originalServiceMarker = process.env.GENESIS_SERVICE_MARKER;
   const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
 
   const setPlatform = (platform: NodeJS.Platform) => {
@@ -84,15 +84,15 @@ describe("createChildAdapter", () => {
   beforeEach(() => {
     spawnWithFallbackMock.mockClear();
     killProcessTreeMock.mockClear();
-    delete process.env.OPENCLAW_SERVICE_MARKER;
+    delete process.env.GENESIS_SERVICE_MARKER;
     vi.useRealTimers();
   });
 
   afterAll(() => {
     if (originalServiceMarker === undefined) {
-      delete process.env.OPENCLAW_SERVICE_MARKER;
+      delete process.env.GENESIS_SERVICE_MARKER;
     } else {
-      process.env.OPENCLAW_SERVICE_MARKER = originalServiceMarker;
+      process.env.GENESIS_SERVICE_MARKER = originalServiceMarker;
     }
   });
 
@@ -183,7 +183,7 @@ describe("createChildAdapter", () => {
         usedFallback: false,
       });
       const adapter = await createChildAdapter({
-        argv: ["openclaw", "version"],
+        argv: ["genesis", "version"],
         stdinMode: "pipe-closed",
       });
       return { ...stub, adapter };
@@ -203,7 +203,7 @@ describe("createChildAdapter", () => {
   });
 
   it("disables detached mode in service-managed runtime", async () => {
-    process.env.OPENCLAW_SERVICE_MARKER = "openclaw";
+    process.env.GENESIS_SERVICE_MARKER = "genesis";
 
     await createAdapterHarness({ pid: 7777 });
 

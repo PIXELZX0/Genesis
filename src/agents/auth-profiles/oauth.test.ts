@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type { AuthProfileStore } from "./types.js";
 
 vi.mock("../cli-credentials.js", () => ({
@@ -27,7 +27,7 @@ function cfgFor(profileId: string, provider: string, mode: "api_key" | "token" |
         [profileId]: { provider, mode },
       },
     },
-  } satisfies OpenClawConfig;
+  } satisfies GenesisConfig;
 }
 
 function tokenStore(params: {

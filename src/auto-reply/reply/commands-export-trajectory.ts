@@ -57,10 +57,10 @@ function resolveTrajectoryExportBaseDir(workspaceDir: string): {
 } {
   const workspacePath = path.resolve(workspaceDir);
   const realWorkspace = fs.realpathSync(workspacePath);
-  const stateDir = path.join(workspacePath, ".openclaw");
+  const stateDir = path.join(workspacePath, ".genesis");
   mkdirIfMissingThenValidate({
     dir: stateDir,
-    label: "OpenClaw state directory",
+    label: "Genesis state directory",
     realWorkspace,
   });
   const baseDir = path.join(stateDir, "trajectory-exports");

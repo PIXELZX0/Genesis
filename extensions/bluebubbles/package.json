@@ -1,21 +1,21 @@
 {
-  "name": "@openclaw/bluebubbles",
+  "name": "@genesis/bluebubbles",
   "version": "2026.4.20",
-  "description": "OpenClaw BlueBubbles channel plugin",
+  "description": "Genesis BlueBubbles channel plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -44,7 +44,7 @@
       ]
     },
     "install": {
-      "npmSpec": "@openclaw/bluebubbles",
+      "npmSpec": "@genesis/bluebubbles",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     },
@@ -52,7 +52,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "release": {
       "publishToClawHub": true,

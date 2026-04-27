@@ -45,6 +45,7 @@ function makeState(): BrowserServerState {
       remoteCdpTimeoutMs: 1500,
       remoteCdpHandshakeTimeoutMs: 3000,
       actionTimeoutMs: 60_000,
+      torDefaultEnabled: true,
       color: "#FF4500",
       headless: false,
       noSandbox: false,
@@ -230,7 +231,7 @@ describe("browser server-context existing-session profile", () => {
 
     const pending = live.ensureBrowserAvailable();
     const assertion = expect(pending).rejects.toThrow(
-      /could not connect to Chrome.*managed "openclaw" profile.*DevToolsActivePort/s,
+      /could not connect to Chrome.*managed "genesis" profile.*DevToolsActivePort/s,
     );
     await vi.advanceTimersByTimeAsync(8_000);
     await assertion;

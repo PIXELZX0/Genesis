@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type {
   PluginWebFetchProviderEntry,
   PluginWebSearchProviderEntry,
@@ -102,8 +102,8 @@ vi.mock("./runtime-web-tools-manifest.runtime.js", () => ({
     resolveManifestContractPluginIdsByCompatibilityRuntimePathMock,
 }));
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
 function providerPluginId(provider: ProviderUnderTest): string {
@@ -132,7 +132,7 @@ function ensureRecord(target: Record<string, unknown>, key: string): Record<stri
 }
 
 function setConfiguredProviderKey(
-  configTarget: OpenClawConfig,
+  configTarget: GenesisConfig,
   pluginId: string,
   value: unknown,
 ): void {
@@ -144,7 +144,7 @@ function setConfiguredProviderKey(
   webSearch.apiKey = value;
 }
 
-function setConfiguredFetchProviderKey(configTarget: OpenClawConfig, value: unknown): void {
+function setConfiguredFetchProviderKey(configTarget: GenesisConfig, value: unknown): void {
   const plugins = ensureRecord(configTarget as Record<string, unknown>, "plugins");
   const entries = ensureRecord(plugins, "entries");
   const pluginEntry = ensureRecord(entries, "firecrawl");
@@ -237,7 +237,7 @@ function buildTestWebFetchProviders(): PluginWebFetchProviderEntry[] {
   ];
 }
 
-async function runRuntimeWebTools(params: { config: OpenClawConfig; env?: NodeJS.ProcessEnv }) {
+async function runRuntimeWebTools(params: { config: GenesisConfig; env?: NodeJS.ProcessEnv }) {
   const sourceConfig = structuredClone(params.config);
   const resolvedConfig = structuredClone(params.config);
   const context = createResolverContext({
@@ -255,7 +255,7 @@ async function runRuntimeWebTools(params: { config: OpenClawConfig; env?: NodeJS
 function createProviderSecretRefConfig(
   provider: ProviderUnderTest,
   envRefId: string,
-): OpenClawConfig {
+): GenesisConfig {
   return asConfig({
     tools: {
       web: {
@@ -280,7 +280,7 @@ function createProviderSecretRefConfig(
   });
 }
 
-function readProviderKey(config: OpenClawConfig, provider: ProviderUnderTest): unknown {
+function readProviderKey(config: GenesisConfig, provider: ProviderUnderTest): unknown {
   const pluginConfig = config.plugins?.entries?.[providerPluginId(provider)]?.config as
     | { webSearch?: { apiKey?: unknown } }
     | undefined;

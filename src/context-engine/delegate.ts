@@ -18,7 +18,7 @@ function loadCompactRuntime(): Promise<CompactRuntimeModule> {
 }
 
 /**
- * Delegate a context-engine compaction request to OpenClaw's built-in runtime compaction path.
+ * Delegate a context-engine compaction request to Genesis's built-in runtime compaction path.
  *
  * This is the same bridge used by the legacy context engine. Third-party
  * engines can call it from their own `compact()` implementations when they do

@@ -1,5 +1,5 @@
 import { normalizeProviderId } from "../agents/provider-id.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { loadPluginManifestRegistry, type PluginManifestRecord } from "./manifest-registry.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
@@ -50,7 +50,7 @@ export type PluginActivationPlan = {
 
 type ResolveManifestActivationPlanParams = {
   trigger: PluginActivationPlannerTrigger;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   cache?: boolean;

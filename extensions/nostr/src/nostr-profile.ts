@@ -5,8 +5,8 @@
  * This module handles profile event creation and publishing.
  */
 
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { finalizeEvent, SimplePool, type Event } from "nostr-tools";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { NostrProfile } from "./config-schema.js";
 import { profileToContent } from "./nostr-profile-core.js";
 export {

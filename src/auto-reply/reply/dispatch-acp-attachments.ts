@@ -1,5 +1,5 @@
 import type { AcpTurnAttachment } from "../../acp/control-plane/manager.types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { logVerbose } from "../../globals.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import type { FinalizedMsgContext } from "../templating.js";
@@ -26,7 +26,7 @@ const ACP_ATTACHMENT_TIMEOUT_MS = 1_000;
 
 export async function resolveAcpAttachments(params: {
   ctx: FinalizedMsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime?: DispatchAcpAttachmentRuntime;
 }): Promise<AcpTurnAttachment[]> {
   const runtime = params.runtime ?? (await loadDispatchAcpMediaRuntime());

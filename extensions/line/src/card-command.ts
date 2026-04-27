@@ -1,6 +1,6 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/core";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import {
   createActionCard,
   createImageCard,
@@ -157,7 +157,7 @@ function parseCardArgs(argsStr: string): {
   return result;
 }
 
-export function registerLineCardCommand(api: OpenClawPluginApi): void {
+export function registerLineCardCommand(api: GenesisPluginApi): void {
   api.registerCommand({
     name: "card",
     description: "Send a rich card message (LINE).",

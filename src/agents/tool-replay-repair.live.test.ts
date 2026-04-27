@@ -4,10 +4,10 @@ import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../config/config.js";
-import { resolveOpenClawAgentDir } from "./agent-paths.js";
+import { resolveGenesisAgentDir } from "./agent-paths.js";
 import { isLiveProfileKeyModeEnabled, isLiveTestEnabled } from "./live-test-helpers.js";
 import { getApiKeyForModel, requireApiKey } from "./model-auth.js";
-import { ensureOpenClawModelsJson } from "./models-config.js";
+import { ensureGenesisModelsJson } from "./models-config.js";
 import { sanitizeSessionHistory } from "./pi-embedded-runner/replay-history.js";
 import { discoverAuthStorage, discoverModels } from "./pi-model-discovery.js";
 import { transformTransportMessages } from "./transport-message-transform.js";
@@ -17,7 +17,7 @@ const REQUIRE_PROFILE_KEYS = isLiveProfileKeyModeEnabled();
 const LIVE_CREDENTIAL_PRECEDENCE = REQUIRE_PROFILE_KEYS ? "profile-first" : "env-first";
 const DEFAULT_TARGET_MODEL_REFS = "openai-codex/gpt-5.5,google/gemini-3-flash-preview";
 const TARGET_MODEL_REFS = parseTargetModelRefs(
-  process.env.OPENCLAW_LIVE_TOOL_REPLAY_REPAIR_MODELS ?? DEFAULT_TARGET_MODEL_REFS,
+  process.env.GENESIS_LIVE_TOOL_REPLAY_REPAIR_MODELS ?? DEFAULT_TARGET_MODEL_REFS,
 );
 const describeLive = LIVE ? describe : describe.skip;
 
@@ -37,7 +37,7 @@ function parseTargetModelRefs(raw: string | undefined): TargetModelRef[] {
       const modelId = rest.join("/").trim();
       if (!provider?.trim() || !modelId) {
         throw new Error(
-          `Invalid OPENCLAW_LIVE_TOOL_REPLAY_REPAIR_MODELS entry: ${JSON.stringify(ref)}`,
+          `Invalid GENESIS_LIVE_TOOL_REPLAY_REPAIR_MODELS entry: ${JSON.stringify(ref)}`,
         );
       }
       return { ref, provider: provider.trim(), modelId };
@@ -187,9 +187,9 @@ describeLive("tool replay repair live", () => {
       `accepts repaired displaced and missing tool results with ${target.ref}`,
       async () => {
         const cfg = loadConfig();
-        await ensureOpenClawModelsJson(cfg);
+        await ensureGenesisModelsJson(cfg);
 
-        const agentDir = resolveOpenClawAgentDir();
+        const agentDir = resolveGenesisAgentDir();
         const authStorage = discoverAuthStorage(agentDir);
         const modelRegistry = discoverModels(authStorage, agentDir);
         const model = modelRegistry.find(target.provider, target.modelId) as Model<Api> | null;
@@ -302,9 +302,9 @@ describeLive("tool replay repair live", () => {
       `accepts transport replay after dropping aborted assistant tool calls with ${target.ref}`,
       async () => {
         const cfg = loadConfig();
-        await ensureOpenClawModelsJson(cfg);
+        await ensureGenesisModelsJson(cfg);
 
-        const agentDir = resolveOpenClawAgentDir();
+        const agentDir = resolveGenesisAgentDir();
         const authStorage = discoverAuthStorage(agentDir);
         const modelRegistry = discoverModels(authStorage, agentDir);
         const model = modelRegistry.find(target.provider, target.modelId) as Model<Api> | null;

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-vi.mock("openclaw/plugin-sdk/memory-host-events", () => ({
+vi.mock("genesis/plugin-sdk/memory-host-events", () => ({
   appendMemoryHostEvent: vi.fn(async () => {}),
 }));
 
@@ -926,7 +926,7 @@ describe("short-term promotion", () => {
       expect(secondApply.reconciledExisting).toBe(1);
 
       const memoryText = await fs.readFile(path.join(workspaceDir, "MEMORY.md"), "utf-8");
-      expect(memoryText.match(/openclaw-memory-promotion:/g)?.length).toBe(1);
+      expect(memoryText.match(/genesis-memory-promotion:/g)?.length).toBe(1);
       expect(
         memoryText.match(/The gateway should stay loopback-only on port 18789\./g)?.length,
       ).toBe(1);

@@ -1,5 +1,5 @@
 import { loadConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { callGateway } from "../gateway/call.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
@@ -30,7 +30,7 @@ import {
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
 
 const log = createSubsystemLogger("agents/subagent-registry");
-const RECOVERABLE_WAIT_RETRY_DELAY_MS = process.env.OPENCLAW_TEST_FAST === "1" ? 25 : 5_000;
+const RECOVERABLE_WAIT_RETRY_DELAY_MS = process.env.GENESIS_TEST_FAST === "1" ? 25 : 5_000;
 
 function shouldDeleteAttachments(entry: SubagentRunRecord) {
   return entry.cleanup === "delete" || !entry.retainAttachmentsOnKeep;
@@ -66,7 +66,7 @@ export function createSubagentRunManager(params: {
   ensureRuntimePluginsLoaded:
     | typeof ensureRuntimePluginsLoadedFn
     | ((args: {
-        config: OpenClawConfig;
+        config: GenesisConfig;
         workspaceDir?: string;
         allowGatewaySubagentBinding?: boolean;
       }) => void | Promise<void>);
@@ -75,7 +75,7 @@ export function createSubagentRunManager(params: {
   stopSweeper(): void;
   resumeSubagentRun(runId: string): void;
   clearPendingLifecycleError(runId: string): void;
-  resolveSubagentWaitTimeoutMs(cfg: OpenClawConfig, runTimeoutSeconds?: number): number;
+  resolveSubagentWaitTimeoutMs(cfg: GenesisConfig, runTimeoutSeconds?: number): number;
   scheduleOrphanRecovery(args?: { delayMs?: number; maxRetries?: number }): void;
   notifyContextEngineSubagentEnded(args: {
     childSessionKey: string;

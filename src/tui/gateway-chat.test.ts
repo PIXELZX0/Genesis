@@ -64,7 +64,7 @@ async function withModeExecProviderFixture(
   label: string,
   run: (fixture: ModeExecProviderFixture) => Promise<void>,
 ) {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `openclaw-tui-mode-${label}-`));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `genesis-tui-mode-${label}-`));
   const tokenMarker = path.join(tempDir, "token-provider-ran");
   const passwordMarker = path.join(tempDir, "password-provider-ran");
   const tokenExecProgram = [
@@ -107,10 +107,10 @@ describe("resolveGatewayConnection", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_GATEWAY_URL",
-      "OPENCLAW_GATEWAY_TOKEN",
-      "OPENCLAW_GATEWAY_PASSWORD",
-      "OPENCLAW_TUI_SETUP_AUTH_SOURCE",
+      "GENESIS_GATEWAY_URL",
+      "GENESIS_GATEWAY_TOKEN",
+      "GENESIS_GATEWAY_PASSWORD",
+      "GENESIS_TUI_SETUP_AUTH_SOURCE",
     ]);
     loadConfig.mockReset();
     resolveGatewayPort.mockReset();
@@ -118,16 +118,16 @@ describe("resolveGatewayConnection", () => {
     resolveConfigPath.mockReset();
     resolveGatewayPort.mockReturnValue(18789);
     resolveStateDir.mockImplementation(
-      (env: NodeJS.ProcessEnv) => env.OPENCLAW_STATE_DIR ?? "/tmp/openclaw",
+      (env: NodeJS.ProcessEnv) => env.GENESIS_STATE_DIR ?? "/tmp/genesis",
     );
     resolveConfigPath.mockImplementation(
       (env: NodeJS.ProcessEnv, stateDir: string) =>
-        env.OPENCLAW_CONFIG_PATH ?? `${stateDir}/openclaw.json`,
+        env.GENESIS_CONFIG_PATH ?? `${stateDir}/genesis.json`,
     );
-    delete process.env.OPENCLAW_GATEWAY_URL;
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
-    delete process.env.OPENCLAW_TUI_SETUP_AUTH_SOURCE;
+    delete process.env.GENESIS_GATEWAY_URL;
+    delete process.env.GENESIS_GATEWAY_TOKEN;
+    delete process.env.GENESIS_GATEWAY_PASSWORD;
+    delete process.env.GENESIS_TUI_SETUP_AUTH_SOURCE;
   });
 
   afterEach(() => {
@@ -171,16 +171,16 @@ describe("resolveGatewayConnection", () => {
   it("uses config auth token for local mode when both config and env tokens are set", async () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local", auth: { token: "config-token" } } });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+    await withEnvAsync({ GENESIS_GATEWAY_TOKEN: "env-token" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.token).toBe("config-token");
     });
   });
 
-  it("falls back to OPENCLAW_GATEWAY_TOKEN when config token is missing", async () => {
+  it("falls back to GENESIS_GATEWAY_TOKEN when config token is missing", async () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local" } });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+    await withEnvAsync({ GENESIS_GATEWAY_TOKEN: "env-token" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.token).toBe("env-token");
     });
@@ -212,7 +212,7 @@ describe("resolveGatewayConnection", () => {
       },
     });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_PASSWORD: "env-password" }, async () => {
+    await withEnvAsync({ GENESIS_GATEWAY_PASSWORD: "env-password" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.password).toBe("env-password");
     });
@@ -231,8 +231,8 @@ describe("resolveGatewayConnection", () => {
 
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_PASSWORD: "stale-env-password", // pragma: allowlist secret
-        OPENCLAW_TUI_SETUP_AUTH_SOURCE: "config",
+        GENESIS_GATEWAY_PASSWORD: "stale-env-password", // pragma: allowlist secret
+        GENESIS_TUI_SETUP_AUTH_SOURCE: "config",
       },
       async () => {
         const result = await resolveGatewayConnection({});
@@ -252,15 +252,15 @@ describe("resolveGatewayConnection", () => {
         mode: "local",
         auth: {
           mode: "password",
-          password: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_PASSWORD" },
+          password: { source: "env", provider: "default", id: "GENESIS_GATEWAY_PASSWORD" },
         },
       },
     });
 
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_PASSWORD: "resolved-ref-password", // pragma: allowlist secret
-        OPENCLAW_TUI_SETUP_AUTH_SOURCE: "config",
+        GENESIS_GATEWAY_PASSWORD: "resolved-ref-password", // pragma: allowlist secret
+        GENESIS_TUI_SETUP_AUTH_SOURCE: "config",
       },
       async () => {
         const result = await resolveGatewayConnection({});
@@ -317,7 +317,7 @@ describe("resolveGatewayConnection", () => {
     );
   });
 
-  it("prefers OPENCLAW_GATEWAY_PASSWORD over remote password fallback", async () => {
+  it("prefers GENESIS_GATEWAY_PASSWORD over remote password fallback", async () => {
     loadConfig.mockReturnValue({
       gateway: {
         mode: "remote",
@@ -325,7 +325,7 @@ describe("resolveGatewayConnection", () => {
       },
     });
 
-    const gatewayPasswordEnv = "OPENCLAW_GATEWAY_PASSWORD"; // pragma: allowlist secret
+    const gatewayPasswordEnv = "GENESIS_GATEWAY_PASSWORD"; // pragma: allowlist secret
     const gatewayPassword = "env-pass"; // pragma: allowlist secret
     await withEnvAsync({ [gatewayPasswordEnv]: gatewayPassword }, async () => {
       const result = await resolveGatewayConnection({});
@@ -336,7 +336,7 @@ describe("resolveGatewayConnection", () => {
   it.runIf(process.platform !== "win32")(
     "resolves file-backed SecretRef token for local mode",
     async () => {
-      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-tui-file-secret-"));
+      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-tui-file-secret-"));
       const secretFile = path.join(tempDir, "secrets.json");
       await fs.writeFile(secretFile, JSON.stringify({ gatewayToken: "file-secret-token" }), "utf8");
       await fs.chmod(secretFile, 0o600);
@@ -509,7 +509,7 @@ describe("GatewayChatClient", () => {
     expect(
       (client as unknown as { client: { opts: { clientName?: string; mode?: string } } }).client
         .opts.clientName,
-    ).toBe("openclaw-tui");
+    ).toBe("genesis-tui");
     expect(
       (client as unknown as { client: { opts: { clientName?: string; mode?: string } } }).client
         .opts.mode,

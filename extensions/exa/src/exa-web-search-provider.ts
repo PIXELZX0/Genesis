@@ -1,4 +1,4 @@
-import type { WebSearchProviderPlugin } from "openclaw/plugin-sdk/provider-web-search-contract";
+import type { WebSearchProviderPlugin } from "genesis/plugin-sdk/provider-web-search-contract";
 import { createExaWebSearchProviderBase } from "./exa-web-search-provider.shared.js";
 
 const EXA_SEARCH_TYPES = ["auto", "neural", "fast", "deep", "deep-reasoning", "instant"] as const;

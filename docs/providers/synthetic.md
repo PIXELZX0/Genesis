@@ -1,5 +1,5 @@
 ---
-summary: "Use Synthetic's Anthropic-compatible API in OpenClaw"
+summary: "Use Synthetic's Anthropic-compatible API in Genesis"
 read_when:
   - You want to use Synthetic as a model provider
   - You need a Synthetic API key or base URL setup
@@ -7,7 +7,7 @@ title: "Synthetic"
 ---
 
 [Synthetic](https://synthetic.new) exposes Anthropic-compatible endpoints.
-OpenClaw registers it as the `synthetic` provider and uses the Anthropic
+Genesis registers it as the `synthetic` provider and uses the Anthropic
 Messages API.
 
 | Property | Value                                 |
@@ -26,7 +26,7 @@ Messages API.
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice synthetic-api-key
+    genesis onboard --auth-choice synthetic-api-key
     ```
   </Step>
   <Step title="Verify the default model">
@@ -38,7 +38,7 @@ Messages API.
 </Steps>
 
 <Warning>
-OpenClaw's Anthropic client appends `/v1` to the base URL automatically, so use
+Genesis's Anthropic client appends `/v1` to the base URL automatically, so use
 `https://api.synthetic.new/anthropic` (not `/anthropic/v1`). If Synthetic
 changes its base URL, override `models.providers.synthetic.baseUrl`.
 </Warning>
@@ -108,7 +108,7 @@ All Synthetic models use cost `0` (input/output/cache).
 
 <Tip>
 Model refs use the form `synthetic/<modelId>`. Use
-`openclaw models list --provider synthetic` to see all models available on your
+`genesis models list --provider synthetic` to see all models available on your
 account.
 </Tip>
 
@@ -134,7 +134,7 @@ account.
     }
     ```
 
-    Remember that OpenClaw appends `/v1` automatically.
+    Remember that Genesis appends `/v1` automatically.
 
   </Accordion>
 </AccordionGroup>

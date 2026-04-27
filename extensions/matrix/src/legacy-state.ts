@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveStateDir } from "genesis/plugin-sdk/state-paths";
 import { resolveLegacyMatrixFlatStoreTarget } from "./migration-config.js";
 import { resolveMatrixLegacyFlatStoragePaths } from "./storage-paths.js";
 
@@ -32,7 +32,7 @@ function resolveLegacyMatrixPaths(env: NodeJS.ProcessEnv): {
 }
 
 function resolveMatrixMigrationPlan(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
 }): MatrixLegacyStatePlan | { warning: string } | null {
   const legacy = resolveLegacyMatrixPaths(params.env);
@@ -62,7 +62,7 @@ function resolveMatrixMigrationPlan(params: {
 }
 
 export function detectLegacyMatrixState(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
 }): MatrixLegacyStatePlan | { warning: string } | null {
   return resolveMatrixMigrationPlan({
@@ -101,7 +101,7 @@ function moveLegacyPath(params: {
 }
 
 export async function autoMigrateLegacyMatrixState(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   log?: { info?: (message: string) => void; warn?: (message: string) => void };
 }): Promise<MatrixLegacyStateMigrationResult> {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpawnSubagentResult } from "../../agents/subagent-spawn.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
 import { createEmptyInlineDirectives } from "./commands-subagents.test-helpers.js";
 import { handleSubagentsSpawnAction } from "./commands-subagents/action-spawn.js";
@@ -31,10 +31,10 @@ function forbiddenResult(error: string): SpawnSubagentResult {
 
 const baseCfg = {
   session: { mainKey: "main", scope: "per-sender" },
-} satisfies OpenClawConfig;
+} satisfies GenesisConfig;
 
 function buildContext(params?: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   requesterKey?: string;
   restTokens?: string[];
   commandTo?: string | undefined;
@@ -65,7 +65,7 @@ function buildContext(params?: {
       directives: createEmptyInlineDirectives(),
       elevated: { enabled: false, allowed: false, failures: [] },
       sessionKey: "agent:main:main",
-      workspaceDir: "/tmp/openclaw-subagents-spawn",
+      workspaceDir: "/tmp/genesis-subagents-spawn",
       defaultGroupActivation: () => "mention",
       resolvedVerboseLevel: "off",
       resolvedReasoningLevel: "off",

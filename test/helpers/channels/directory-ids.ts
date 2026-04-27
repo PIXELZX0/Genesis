@@ -1,9 +1,9 @@
-import type { ChannelDirectoryEntry } from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/testing";
+import type { ChannelDirectoryEntry } from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/testing";
 import { expect } from "vitest";
 
 export type DirectoryListFn = (params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string;
   query?: string | null;
   limit?: number | null;
@@ -11,7 +11,7 @@ export type DirectoryListFn = (params: {
 
 export async function expectDirectoryIds(
   listFn: DirectoryListFn,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   expected: string[],
   options?: { sorted?: boolean },
 ) {

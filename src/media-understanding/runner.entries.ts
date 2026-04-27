@@ -12,14 +12,14 @@ import {
 } from "../agents/provider-request-config.js";
 import type { MsgContext } from "../auto-reply/templating.js";
 import { applyTemplate } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type {
   MediaUnderstandingConfig,
   MediaUnderstandingModelConfig,
 } from "../config/types.tools.js";
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { resolveProxyFetchFromEnv } from "../infra/net/proxy-fetch.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { runFfmpeg } from "../media/ffmpeg-exec.js";
 import { runExec } from "../process/exec.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
@@ -354,7 +354,7 @@ export function buildModelDecision(params: {
 function resolveEntryRunOptions(params: {
   capability: MediaUnderstandingCapability;
   entry: MediaUnderstandingModelConfig;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   config?: MediaUnderstandingConfig;
 }): { maxBytes: number; maxChars?: number; timeoutMs: number; prompt: string } {
   const { capability, entry, cfg } = params;
@@ -390,7 +390,7 @@ function resolveAudioRequestOverrides(config: MediaUnderstandingConfig | undefin
 
 async function resolveProviderExecutionAuth(params: {
   providerId: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   entry: MediaUnderstandingModelConfig;
   agentDir?: string;
 }) {
@@ -412,7 +412,7 @@ async function resolveProviderExecutionAuth(params: {
 
 async function resolveProviderExecutionContext(params: {
   providerId: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   entry: MediaUnderstandingModelConfig;
   config?: MediaUnderstandingConfig;
   agentDir?: string;
@@ -504,7 +504,7 @@ function assertMinAudioSize(params: { size: number; attachmentIndex: number }): 
 export async function runProviderEntry(params: {
   capability: MediaUnderstandingCapability;
   entry: MediaUnderstandingModelConfig;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: MsgContext;
   attachmentIndex: number;
   cache: MediaAttachmentCache;
@@ -691,7 +691,7 @@ export async function runProviderEntry(params: {
 export async function runCliEntry(params: {
   capability: MediaUnderstandingCapability;
   entry: MediaUnderstandingModelConfig;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: MsgContext;
   attachmentIndex: number;
   cache: MediaAttachmentCache;
@@ -720,7 +720,7 @@ export async function runCliEntry(params: {
     assertMinAudioSize({ size: stat.size, attachmentIndex: params.attachmentIndex });
   }
   const outputDir = await fs.mkdtemp(
-    path.join(resolvePreferredOpenClawTmpDir(), "openclaw-media-cli-"),
+    path.join(resolvePreferredGenesisTmpDir(), "genesis-media-cli-"),
   );
   const mediaPath = await resolveCliMediaPath({
     capability,

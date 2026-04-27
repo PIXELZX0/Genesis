@@ -1,11 +1,11 @@
-import { describeAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { formatNormalizedAllowFromEntries } from "openclaw/plugin-sdk/allow-from";
+import { describeAccountSnapshot } from "genesis/plugin-sdk/account-helpers";
+import { formatNormalizedAllowFromEntries } from "genesis/plugin-sdk/allow-from";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/channel-config-helpers";
+import type { ChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import {
   listGoogleChatAccountIds,
   resolveDefaultGoogleChatAccountId,

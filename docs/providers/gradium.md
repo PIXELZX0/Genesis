@@ -1,16 +1,16 @@
 ---
-summary: "Use Gradium text-to-speech in OpenClaw"
+summary: "Use Gradium text-to-speech in Genesis"
 read_when:
   - You want Gradium for text-to-speech
   - You need Gradium API key or voice configuration
 title: "Gradium"
 ---
 
-Gradium is a bundled text-to-speech provider for OpenClaw. It can generate normal audio replies, voice-note-compatible Opus output, and 8 kHz u-law audio for telephony surfaces.
+Gradium is a bundled text-to-speech provider for Genesis. It can generate normal audio replies, voice-note-compatible Opus output, and 8 kHz u-law audio for telephony surfaces.
 
 ## Setup
 
-Create a Gradium API key, then expose it to OpenClaw:
+Create a Gradium API key, then expose it to Genesis:
 
 ```bash
 export GRADIUM_API_KEY="gsk_..."

@@ -6,7 +6,7 @@ read_when:
   - You want AI-powered recall and user modeling
 ---
 
-[Honcho](https://honcho.dev) adds AI-native memory to OpenClaw. It persists
+[Honcho](https://honcho.dev) adds AI-native memory to Genesis. It persists
 conversations to a dedicated service and builds user and agent models over time,
 giving your agent cross-session context that goes beyond workspace Markdown
 files.
@@ -47,9 +47,9 @@ Honcho registers tools that the agent can use during conversation:
 Install the plugin and run setup:
 
 ```bash
-openclaw plugins install @honcho-ai/openclaw-honcho
-openclaw honcho setup
-openclaw gateway --force
+genesis plugins install @honcho-ai/genesis-honcho
+genesis honcho setup
+genesis gateway --force
 ```
 
 The setup command prompts for your API credentials, writes the config, and
@@ -63,16 +63,16 @@ option.
 
 ## Configuration
 
-Settings live under `plugins.entries["openclaw-honcho"].config`:
+Settings live under `plugins.entries["genesis-honcho"].config`:
 
 ```json5
 {
   plugins: {
     entries: {
-      "openclaw-honcho": {
+      "genesis-honcho": {
         config: {
           apiKey: "your-api-key", // omit for self-hosted
-          workspaceId: "openclaw", // memory isolation
+          workspaceId: "genesis", // memory isolation
           baseUrl: "https://api.honcho.dev",
         },
       },
@@ -87,7 +87,7 @@ For self-hosted instances, point `baseUrl` to your local server (for example
 ## Migrating existing memory
 
 If you have existing workspace memory files (`USER.md`, `MEMORY.md`,
-`IDENTITY.md`, `memory/`, `canvas/`), `openclaw honcho setup` detects and
+`IDENTITY.md`, `memory/`, `canvas/`), `genesis honcho setup` detects and
 offers to migrate them.
 
 <Info>
@@ -123,18 +123,18 @@ Honcho's cross-session memory.
 ## CLI commands
 
 ```bash
-openclaw honcho setup                        # Configure API key and migrate files
-openclaw honcho status                       # Check connection status
-openclaw honcho ask <question>               # Query Honcho about the user
-openclaw honcho search <query> [-k N] [-d D] # Semantic search over memory
+genesis honcho setup                        # Configure API key and migrate files
+genesis honcho status                       # Check connection status
+genesis honcho ask <question>               # Query Honcho about the user
+genesis honcho search <query> [-k N] [-d D] # Semantic search over memory
 ```
 
 ## Further reading
 
-- [Plugin source code](https://github.com/plastic-labs/openclaw-honcho)
+- [Plugin source code](https://github.com/plastic-labs/genesis-honcho)
 - [Honcho documentation](https://docs.honcho.dev)
-- [Honcho OpenClaw integration guide](https://docs.honcho.dev/v3/guides/integrations/openclaw)
-- [Memory](/concepts/memory) -- OpenClaw memory overview
+- [Honcho Genesis integration guide](https://docs.honcho.dev/v3/guides/integrations/genesis)
+- [Memory](/concepts/memory) -- Genesis memory overview
 - [Context Engines](/concepts/context-engine) -- how plugin context engines work
 
 ## Related

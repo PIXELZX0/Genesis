@@ -1,6 +1,6 @@
-# @openclaw/memory-wiki
+# @genesis/memory-wiki
 
-Persistent wiki compiler and Obsidian-friendly knowledge vault for **OpenClaw**.
+Persistent wiki compiler and Obsidian-friendly knowledge vault for **Genesis**.
 
 This plugin is separate from the active memory plugin. The active memory plugin still handles recall, promotion, and dreaming. `memory-wiki` compiles durable knowledge into a navigable markdown vault with deterministic indexes, provenance, structured claim/evidence metadata, and optional Obsidian CLI workflows.
 
@@ -23,14 +23,14 @@ Put config under `plugins.entries.memory-wiki.config`:
   vaultMode: "isolated",
 
   vault: {
-    path: "~/.openclaw/wiki/main",
+    path: "~/.genesis/wiki/main",
     renderMode: "obsidian", // or "native"
   },
 
   obsidian: {
     enabled: true,
     useOfficialCli: true,
-    vaultName: "OpenClaw Wiki",
+    vaultName: "Genesis Wiki",
     openAfterWrites: false,
   },
 
@@ -88,12 +88,12 @@ The plugin initializes a vault like this:
   reports/
   _attachments/
   _views/
-  .openclaw-wiki/
+  .genesis-wiki/
 ```
 
 Generated content stays inside managed blocks. Human note blocks are preserved.
 
-Key beliefs can live in structured `claims` frontmatter with per-claim evidence, confidence, and status. Compile also emits machine-readable digests under `.openclaw-wiki/cache/` so agent/runtime consumers do not have to scrape markdown pages.
+Key beliefs can live in structured `claims` frontmatter with per-claim evidence, confidence, and status. Compile also emits machine-readable digests under `.genesis-wiki/cache/` so agent/runtime consumers do not have to scrape markdown pages.
 
 When `render.createBacklinks` is enabled, compile adds deterministic `## Related` blocks to pages. Those blocks list source pages, pages that reference the current page, and nearby pages that share the same source ids.
 
@@ -102,32 +102,32 @@ When `render.createDashboards` is enabled, compile also maintains report dashboa
 ## CLI
 
 ```bash
-openclaw wiki status
-openclaw wiki doctor
-openclaw wiki init
-openclaw wiki ingest ./notes/alpha.md
-openclaw wiki compile
-openclaw wiki lint
-openclaw wiki search "alpha"
-openclaw wiki get entity.alpha --from 1 --lines 80
+genesis wiki status
+genesis wiki doctor
+genesis wiki init
+genesis wiki ingest ./notes/alpha.md
+genesis wiki compile
+genesis wiki lint
+genesis wiki search "alpha"
+genesis wiki get entity.alpha --from 1 --lines 80
 
-openclaw wiki apply synthesis "Alpha Summary" \
+genesis wiki apply synthesis "Alpha Summary" \
   --body "Short synthesis body" \
   --source-id source.alpha
 
-openclaw wiki apply metadata entity.alpha \
+genesis wiki apply metadata entity.alpha \
   --source-id source.alpha \
   --status review \
   --question "Still active?"
 
-openclaw wiki bridge import
-openclaw wiki unsafe-local import
+genesis wiki bridge import
+genesis wiki unsafe-local import
 
-openclaw wiki obsidian status
-openclaw wiki obsidian search "alpha"
-openclaw wiki obsidian open syntheses/alpha-summary.md
-openclaw wiki obsidian command workspace:quick-switcher
-openclaw wiki obsidian daily
+genesis wiki obsidian status
+genesis wiki obsidian search "alpha"
+genesis wiki obsidian open syntheses/alpha-summary.md
+genesis wiki obsidian command workspace:quick-switcher
+genesis wiki obsidian daily
 ```
 
 ## Agent tools
@@ -142,7 +142,7 @@ The plugin also registers a non-exclusive memory corpus supplement, so shared `m
 
 `wiki_apply` accepts structured `claims` payloads for synthesis and metadata updates, so the wiki can store claim-level evidence instead of only page-level prose.
 
-When `context.includeCompiledDigestPrompt` is enabled, the memory prompt supplement also appends a compact snapshot from `.openclaw-wiki/cache/agent-digest.json`. Legacy prompt assembly sees that automatically, and non-legacy context engines can pick it up when they explicitly consume memory prompt supplements via `buildActiveMemoryPromptSection(...)`.
+When `context.includeCompiledDigestPrompt` is enabled, the memory prompt supplement also appends a compact snapshot from `.genesis-wiki/cache/agent-digest.json`. Legacy prompt assembly sees that automatically, and non-legacy context engines can pick it up when they explicitly consume memory prompt supplements via `buildActiveMemoryPromptSection(...)`.
 
 ## Gateway RPC
 
@@ -173,5 +173,5 @@ Write methods:
 - `unsafe-local` is intentionally experimental and non-portable.
 - Bridge mode reads the active memory plugin through public seams only.
 - Wiki pages are compiled artifacts, not the ultimate source of truth. Keep provenance attached to raw sources, memory artifacts, and daily notes.
-- The compiled agent digests in `.openclaw-wiki/cache/agent-digest.json` and `.openclaw-wiki/cache/claims.jsonl` are the stable machine-facing view of the wiki.
+- The compiled agent digests in `.genesis-wiki/cache/agent-digest.json` and `.genesis-wiki/cache/claims.jsonl` are the stable machine-facing view of the wiki.
 - Obsidian CLI support requires the official `obsidian` CLI to be installed and available on `PATH`.

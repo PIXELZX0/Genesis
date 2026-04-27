@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import {
   coercePdfAssistantText,
   coercePdfModelConfig,
@@ -106,7 +106,7 @@ describe("pdf-tool.helpers", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(coercePdfModelConfig(cfg)).toEqual({
       primary: ANTHROPIC_PDF_MODEL,
       fallbacks: ["google/gemini-2.5-pro"],

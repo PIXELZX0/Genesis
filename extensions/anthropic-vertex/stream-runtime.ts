@@ -8,7 +8,7 @@ import {
 import {
   applyAnthropicPayloadPolicyToParams,
   resolveAnthropicPayloadPolicy,
-} from "openclaw/plugin-sdk/provider-stream-shared";
+} from "genesis/plugin-sdk/provider-stream-shared";
 import { resolveAnthropicVertexClientRegion, resolveAnthropicVertexProjectId } from "./region.js";
 
 type AnthropicVertexEffort = NonNullable<AnthropicOptions["effort"]>;

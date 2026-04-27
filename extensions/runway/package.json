@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/runway-provider",
+  "name": "@genesis/runway-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Runway video provider plugin",
+  "description": "Genesis Runway video provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

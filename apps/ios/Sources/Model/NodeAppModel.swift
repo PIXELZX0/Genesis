@@ -1,6 +1,6 @@
-import OpenClawChatUI
-import OpenClawKit
-import OpenClawProtocol
+import GenesisChatUI
+import GenesisKit
+import GenesisProtocol
 import Observation
 import os
 import Security
@@ -88,14 +88,14 @@ final class NodeAppModel {
         var pendingApprovalIDs: [String]?
     }
 
-    private let deepLinkLogger = Logger(subsystem: "ai.openclaw.ios", category: "DeepLink")
-    private let pushWakeLogger = Logger(subsystem: "ai.openclaw.ios", category: "PushWake")
-    private let pendingActionLogger = Logger(subsystem: "ai.openclaw.ios", category: "PendingAction")
-    private let locationWakeLogger = Logger(subsystem: "ai.openclaw.ios", category: "LocationWake")
-    private let watchReplyLogger = Logger(subsystem: "ai.openclaw.ios", category: "WatchReply")
-    private let watchExecApprovalLogger = Logger(subsystem: "ai.openclaw.ios", category: "WatchExecApproval")
+    private let deepLinkLogger = Logger(subsystem: "ai.genesis.ios", category: "DeepLink")
+    private let pushWakeLogger = Logger(subsystem: "ai.genesis.ios", category: "PushWake")
+    private let pendingActionLogger = Logger(subsystem: "ai.genesis.ios", category: "PendingAction")
+    private let locationWakeLogger = Logger(subsystem: "ai.genesis.ios", category: "LocationWake")
+    private let watchReplyLogger = Logger(subsystem: "ai.genesis.ios", category: "WatchReply")
+    private let watchExecApprovalLogger = Logger(subsystem: "ai.genesis.ios", category: "WatchExecApproval")
     private let execApprovalNotificationLogger = Logger(
-        subsystem: "ai.openclaw.ios",
+        subsystem: "ai.genesis.ios",
         category: "ExecApprovalNotification")
     enum CameraHUDKind {
         case photo
@@ -314,7 +314,7 @@ final class NodeAppModel {
         }()
         guard !userAction.isEmpty else { return }
 
-        guard let name = OpenClawCanvasA2UIAction.extractActionName(userAction) else { return }
+        guard let name = GenesisCanvasA2UIAction.extractActionName(userAction) else { return }
         let actionId: String = {
             let id = (userAction["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return id.isEmpty ? UUID().uuidString : id
@@ -336,15 +336,15 @@ final class NodeAppModel {
             deviceName: UIDevice.current.name,
             interfaceIdiom: UIDevice.current.userInterfaceIdiom)
         let instanceId = (UserDefaults.standard.string(forKey: "node.instanceId") ?? "ios-node").lowercased()
-        let contextJSON = OpenClawCanvasA2UIAction.compactJSON(userAction["context"])
+        let contextJSON = GenesisCanvasA2UIAction.compactJSON(userAction["context"])
         let sessionKey = self.mainSessionKey
 
-        let messageContext = OpenClawCanvasA2UIAction.AgentMessageContext(
+        let messageContext = GenesisCanvasA2UIAction.AgentMessageContext(
             actionName: name,
             session: .init(key: sessionKey, surfaceId: surfaceId),
             component: .init(id: sourceComponentId, host: host, instanceId: instanceId),
             contextJSON: contextJSON)
-        let message = OpenClawCanvasA2UIAction.formatAgentMessage(messageContext)
+        let message = GenesisCanvasA2UIAction.formatAgentMessage(messageContext)
 
         let ok: Bool
         var errorText: String?
@@ -369,7 +369,7 @@ final class NodeAppModel {
             }
         }
 
-        let js = OpenClawCanvasA2UIAction.jsDispatchA2UIActionStatus(actionId: actionId, ok: ok, error: errorText)
+        let js = GenesisCanvasA2UIAction.jsDispatchA2UIActionStatus(actionId: actionId, ok: ok, error: errorText)
         do {
             _ = try await self.screen.eval(javaScript: js)
         } catch {
@@ -588,7 +588,7 @@ final class NodeAppModel {
         }
     }
 
-    func requestLocationPermissions(mode: OpenClawLocationMode) async -> Bool {
+    func requestLocationPermissions(mode: GenesisLocationMode) async -> Bool {
         guard mode != .off else { return true }
         let status = await self.locationService.ensureAuthorization(mode: mode)
         switch status {
@@ -771,7 +771,7 @@ final class NodeAppModel {
                         paramsJSON: nil,
                         timeoutSeconds: 6
                     )
-                    guard let decoded = try? JSONDecoder().decode(OpenClawGatewayHealthOK.self, from: data) else {
+                    guard let decoded = try? JSONDecoder().decode(GenesisGatewayHealthOK.self, from: data) else {
                         return false
                     }
                     return decoded.ok ?? false
@@ -810,7 +810,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .backgroundUnavailable,
                     message: "NODE_BACKGROUND_UNAVAILABLE: canvas/camera/screen commands require foreground"))
         }
@@ -819,7 +819,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .unavailable,
                     message: "CAMERA_DISABLED: enable Camera in iOS Settings → Camera → Allow Camera"))
         }
@@ -832,12 +832,12 @@ final class NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                    error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
             case .handlerUnavailable:
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(code: .unavailable, message: "node handler unavailable"))
+                    error: GenesisNodeError(code: .unavailable, message: "node handler unavailable"))
             }
         } catch {
             if command.hasPrefix("camera.") {
@@ -847,7 +847,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .unavailable, message: error.localizedDescription))
+                error: GenesisNodeError(code: .unavailable, message: error.localizedDescription))
         }
     }
 
@@ -862,7 +862,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .unavailable,
                     message: "LOCATION_DISABLED: enable Location in Settings"))
         }
@@ -870,12 +870,12 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .backgroundUnavailable,
                     message: "LOCATION_BACKGROUND_UNAVAILABLE: background location requires Always"))
         }
-        let params = (try? Self.decodeParams(OpenClawLocationGetParams.self, from: req.paramsJSON)) ??
-            OpenClawLocationGetParams()
+        let params = (try? Self.decodeParams(GenesisLocationGetParams.self, from: req.paramsJSON)) ??
+            GenesisLocationGetParams()
         let desired = params.desiredAccuracy ??
             (self.isLocationPreciseEnabled() ? .precise : .balanced)
         let status = self.locationService.authorizationStatus()
@@ -883,7 +883,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .unavailable,
                     message: "LOCATION_PERMISSION_REQUIRED: grant Location permission"))
         }
@@ -891,7 +891,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(
+                error: GenesisNodeError(
                     code: .unavailable,
                     message: "LOCATION_PERMISSION_REQUIRED: enable Always for background access"))
         }
@@ -901,7 +901,7 @@ final class NodeAppModel {
             maxAgeMs: params.maxAgeMs,
             timeoutMs: params.timeoutMs)
         let isPrecise = self.locationService.accuracyAuthorization() == .fullAccuracy
-        let payload = OpenClawLocationPayload(
+        let payload = GenesisLocationPayload(
             lat: location.coordinate.latitude,
             lon: location.coordinate.longitude,
             accuracyMeters: location.horizontalAccuracy,
@@ -917,10 +917,10 @@ final class NodeAppModel {
 
     private func handleCanvasInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawCanvasCommand.present.rawValue:
+        case GenesisCanvasCommand.present.rawValue:
             // iOS ignores placement hints; canvas always fills the screen.
-            let params = (try? Self.decodeParams(OpenClawCanvasPresentParams.self, from: req.paramsJSON)) ??
-                OpenClawCanvasPresentParams()
+            let params = (try? Self.decodeParams(GenesisCanvasPresentParams.self, from: req.paramsJSON)) ??
+                GenesisCanvasPresentParams()
             let url = params.url?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             if url.isEmpty {
                 self.screen.showDefaultCanvas()
@@ -931,24 +931,24 @@ final class NodeAppModel {
                     trustA2UIActions: trustedA2UIURL == Self.normalizeURLForTrustComparison(url))
             }
             return BridgeInvokeResponse(id: req.id, ok: true)
-        case OpenClawCanvasCommand.hide.rawValue:
+        case GenesisCanvasCommand.hide.rawValue:
             self.screen.showDefaultCanvas()
             return BridgeInvokeResponse(id: req.id, ok: true)
-        case OpenClawCanvasCommand.navigate.rawValue:
-            let params = try Self.decodeParams(OpenClawCanvasNavigateParams.self, from: req.paramsJSON)
+        case GenesisCanvasCommand.navigate.rawValue:
+            let params = try Self.decodeParams(GenesisCanvasNavigateParams.self, from: req.paramsJSON)
             let trimmedURL = params.url.trimmingCharacters(in: .whitespacesAndNewlines)
             let trustedA2UIURL = await self.resolveA2UIHostURL()
             self.screen.navigate(
                 to: trimmedURL,
                 trustA2UIActions: trustedA2UIURL == Self.normalizeURLForTrustComparison(trimmedURL))
             return BridgeInvokeResponse(id: req.id, ok: true)
-        case OpenClawCanvasCommand.evalJS.rawValue:
-            let params = try Self.decodeParams(OpenClawCanvasEvalParams.self, from: req.paramsJSON)
+        case GenesisCanvasCommand.evalJS.rawValue:
+            let params = try Self.decodeParams(GenesisCanvasEvalParams.self, from: req.paramsJSON)
             let result = try await self.screen.eval(javaScript: params.javaScript)
             let payload = try Self.encodePayload(["result": result])
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
-        case OpenClawCanvasCommand.snapshot.rawValue:
-            let params = try? Self.decodeParams(OpenClawCanvasSnapshotParams.self, from: req.paramsJSON)
+        case GenesisCanvasCommand.snapshot.rawValue:
+            let params = try? Self.decodeParams(GenesisCanvasSnapshotParams.self, from: req.paramsJSON)
             let format = params?.format ?? .jpeg
             let maxWidth: CGFloat? = {
                 if let raw = params?.maxWidth, raw > 0 { return CGFloat(raw) }
@@ -972,14 +972,14 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleCanvasA2UIInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         let command = req.command
         switch command {
-        case OpenClawCanvasA2UICommand.reset.rawValue:
+        case GenesisCanvasA2UICommand.reset.rawValue:
             switch await self.ensureA2UIReadyWithCapabilityRefresh(timeoutMs: 5000) {
             case .ready:
                 break
@@ -987,39 +987,39 @@ final class NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .unavailable,
                         message: "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host"))
             case .hostUnavailable:
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .unavailable,
                         message: "A2UI_HOST_UNAVAILABLE: A2UI host not reachable"))
             }
             let json = try await self.screen.eval(javaScript: """
             (() => {
-              const host = globalThis.openclawA2UI;
-              if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
+              const host = globalThis.genesisA2UI;
+              if (!host) return JSON.stringify({ ok: false, error: "missing genesisA2UI" });
               return JSON.stringify(host.reset());
             })()
             """)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
 
-        case OpenClawCanvasA2UICommand.push.rawValue, OpenClawCanvasA2UICommand.pushJSONL.rawValue:
-            let messages: [OpenClawKit.AnyCodable]
-            if command == OpenClawCanvasA2UICommand.pushJSONL.rawValue {
-                let params = try Self.decodeParams(OpenClawCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-                messages = try OpenClawCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
+        case GenesisCanvasA2UICommand.push.rawValue, GenesisCanvasA2UICommand.pushJSONL.rawValue:
+            let messages: [GenesisKit.AnyCodable]
+            if command == GenesisCanvasA2UICommand.pushJSONL.rawValue {
+                let params = try Self.decodeParams(GenesisCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
+                messages = try GenesisCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
             } else {
                 do {
-                    let params = try Self.decodeParams(OpenClawCanvasA2UIPushParams.self, from: req.paramsJSON)
+                    let params = try Self.decodeParams(GenesisCanvasA2UIPushParams.self, from: req.paramsJSON)
                     messages = params.messages
                 } catch {
                     // Be forgiving: some clients still send JSONL payloads to `canvas.a2ui.push`.
-                    let params = try Self.decodeParams(OpenClawCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-                    messages = try OpenClawCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
+                    let params = try Self.decodeParams(GenesisCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
+                    messages = try GenesisCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
                 }
             }
 
@@ -1030,24 +1030,24 @@ final class NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .unavailable,
                         message: "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host"))
             case .hostUnavailable:
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .unavailable,
                         message: "A2UI_HOST_UNAVAILABLE: A2UI host not reachable"))
             }
 
-            let messagesJSON = try OpenClawCanvasA2UIJSONL.encodeMessagesJSONArray(messages)
+            let messagesJSON = try GenesisCanvasA2UIJSONL.encodeMessagesJSONArray(messages)
             let js = """
             (() => {
               try {
-                const host = globalThis.openclawA2UI;
-                if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
+                const host = globalThis.genesisA2UI;
+                if (!host) return JSON.stringify({ ok: false, error: "missing genesisA2UI" });
                 const messages = \(messagesJSON);
                 return JSON.stringify(host.applyMessages(messages));
               } catch (e) {
@@ -1061,24 +1061,24 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleCameraInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawCameraCommand.list.rawValue:
+        case GenesisCameraCommand.list.rawValue:
             let devices = await self.camera.listDevices()
             struct Payload: Codable {
                 var devices: [CameraController.CameraDeviceInfo]
             }
             let payload = try Self.encodePayload(Payload(devices: devices))
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
-        case OpenClawCameraCommand.snap.rawValue:
+        case GenesisCameraCommand.snap.rawValue:
             self.showCameraHUD(text: "Taking photo…", kind: .photo)
             self.triggerCameraFlash()
-            let params = (try? Self.decodeParams(OpenClawCameraSnapParams.self, from: req.paramsJSON)) ??
-                OpenClawCameraSnapParams()
+            let params = (try? Self.decodeParams(GenesisCameraSnapParams.self, from: req.paramsJSON)) ??
+                GenesisCameraSnapParams()
             let res = try await self.camera.snap(params: params)
 
             struct Payload: Codable {
@@ -1094,9 +1094,9 @@ final class NodeAppModel {
                 height: res.height))
             self.showCameraHUD(text: "Photo captured", kind: .success, autoHideSeconds: 1.6)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
-        case OpenClawCameraCommand.clip.rawValue:
-            let params = (try? Self.decodeParams(OpenClawCameraClipParams.self, from: req.paramsJSON)) ??
-                OpenClawCameraClipParams()
+        case GenesisCameraCommand.clip.rawValue:
+            let params = (try? Self.decodeParams(GenesisCameraClipParams.self, from: req.paramsJSON)) ??
+                GenesisCameraClipParams()
 
             let suspended = (params.includeAudio ?? true) ? self.voiceWake.suspendForExternalAudioCapture() : false
             defer { self.voiceWake.resumeAfterExternalAudioCapture(wasSuspended: suspended) }
@@ -1121,13 +1121,13 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleScreenRecordInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        let params = (try? Self.decodeParams(OpenClawScreenRecordParams.self, from: req.paramsJSON)) ??
-            OpenClawScreenRecordParams()
+        let params = (try? Self.decodeParams(GenesisScreenRecordParams.self, from: req.paramsJSON)) ??
+            GenesisScreenRecordParams()
         if let format = params.format, format.lowercased() != "mp4" {
             throw NSError(domain: "Screen", code: 30, userInfo: [
                 NSLocalizedDescriptionKey: "INVALID_REQUEST: screen format must be mp4",
@@ -1163,14 +1163,14 @@ final class NodeAppModel {
     }
 
     private func handleSystemNotify(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        let params = try Self.decodeParams(OpenClawSystemNotifyParams.self, from: req.paramsJSON)
+        let params = try Self.decodeParams(GenesisSystemNotifyParams.self, from: req.paramsJSON)
         let title = params.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let body = params.body.trimmingCharacters(in: .whitespacesAndNewlines)
         if title.isEmpty, body.isEmpty {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: empty notification"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: empty notification"))
         }
 
         let finalStatus = await self.requestNotificationAuthorizationIfNeeded()
@@ -1178,7 +1178,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .unavailable, message: "NOT_AUTHORIZED: notifications"))
+                error: GenesisNodeError(code: .unavailable, message: "NOT_AUTHORIZED: notifications"))
         }
 
         let addResult = await self.runNotificationCall(timeoutSeconds: 2.0) { [notificationCenter] in
@@ -1211,19 +1211,19 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .unavailable, message: "NOTIFICATION_FAILED: \(error.message)"))
+                error: GenesisNodeError(code: .unavailable, message: "NOTIFICATION_FAILED: \(error.message)"))
         }
         return BridgeInvokeResponse(id: req.id, ok: true)
     }
 
     private func handleChatPushInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        let params = try Self.decodeParams(OpenClawChatPushParams.self, from: req.paramsJSON)
+        let params = try Self.decodeParams(GenesisChatPushParams.self, from: req.paramsJSON)
         let text = params.text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: empty chat.push text"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: empty chat.push text"))
         }
 
         let finalStatus = await self.requestNotificationAuthorizationIfNeeded()
@@ -1231,7 +1231,7 @@ final class NodeAppModel {
         if finalStatus == .authorized || finalStatus == .provisional || finalStatus == .ephemeral {
             let addResult = await self.runNotificationCall(timeoutSeconds: 2.0) { [notificationCenter] in
                 let content = UNMutableNotificationContent()
-                content.title = "OpenClaw"
+                content.title = "Genesis"
                 content.body = text
                 content.sound = .default
                 content.userInfo = ["messageId": messageId]
@@ -1245,7 +1245,7 @@ final class NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(code: .unavailable, message: "NOTIFICATION_FAILED: \(error.message)"))
+                    error: GenesisNodeError(code: .unavailable, message: "NOTIFICATION_FAILED: \(error.message)"))
             }
         }
 
@@ -1256,7 +1256,7 @@ final class NodeAppModel {
             }
         }
 
-        let payload = OpenClawChatPushPayload(messageId: messageId)
+        let payload = GenesisChatPushPayload(messageId: messageId)
         let json = try Self.encodePayload(payload)
         return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
     }
@@ -1337,11 +1337,11 @@ final class NodeAppModel {
 
     private func handleDeviceInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawDeviceCommand.status.rawValue:
+        case GenesisDeviceCommand.status.rawValue:
             let payload = try await self.deviceStatusService.status()
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawDeviceCommand.info.rawValue:
+        case GenesisDeviceCommand.info.rawValue:
             let payload = self.deviceStatusService.info()
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1349,13 +1349,13 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handlePhotosInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        let params = (try? Self.decodeParams(OpenClawPhotosLatestParams.self, from: req.paramsJSON)) ??
-            OpenClawPhotosLatestParams()
+        let params = (try? Self.decodeParams(GenesisPhotosLatestParams.self, from: req.paramsJSON)) ??
+            GenesisPhotosLatestParams()
         let payload = try await self.photosService.latest(params: params)
         let json = try Self.encodePayload(payload)
         return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1363,14 +1363,14 @@ final class NodeAppModel {
 
     private func handleContactsInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawContactsCommand.search.rawValue:
-            let params = (try? Self.decodeParams(OpenClawContactsSearchParams.self, from: req.paramsJSON)) ??
-                OpenClawContactsSearchParams()
+        case GenesisContactsCommand.search.rawValue:
+            let params = (try? Self.decodeParams(GenesisContactsSearchParams.self, from: req.paramsJSON)) ??
+                GenesisContactsSearchParams()
             let payload = try await self.contactsService.search(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawContactsCommand.add.rawValue:
-            let params = try Self.decodeParams(OpenClawContactsAddParams.self, from: req.paramsJSON)
+        case GenesisContactsCommand.add.rawValue:
+            let params = try Self.decodeParams(GenesisContactsAddParams.self, from: req.paramsJSON)
             let payload = try await self.contactsService.add(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1378,20 +1378,20 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleCalendarInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawCalendarCommand.events.rawValue:
-            let params = (try? Self.decodeParams(OpenClawCalendarEventsParams.self, from: req.paramsJSON)) ??
-                OpenClawCalendarEventsParams()
+        case GenesisCalendarCommand.events.rawValue:
+            let params = (try? Self.decodeParams(GenesisCalendarEventsParams.self, from: req.paramsJSON)) ??
+                GenesisCalendarEventsParams()
             let payload = try await self.calendarService.events(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawCalendarCommand.add.rawValue:
-            let params = try Self.decodeParams(OpenClawCalendarAddParams.self, from: req.paramsJSON)
+        case GenesisCalendarCommand.add.rawValue:
+            let params = try Self.decodeParams(GenesisCalendarAddParams.self, from: req.paramsJSON)
             let payload = try await self.calendarService.add(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1399,20 +1399,20 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleRemindersInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawRemindersCommand.list.rawValue:
-            let params = (try? Self.decodeParams(OpenClawRemindersListParams.self, from: req.paramsJSON)) ??
-                OpenClawRemindersListParams()
+        case GenesisRemindersCommand.list.rawValue:
+            let params = (try? Self.decodeParams(GenesisRemindersListParams.self, from: req.paramsJSON)) ??
+                GenesisRemindersListParams()
             let payload = try await self.remindersService.list(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawRemindersCommand.add.rawValue:
-            let params = try Self.decodeParams(OpenClawRemindersAddParams.self, from: req.paramsJSON)
+        case GenesisRemindersCommand.add.rawValue:
+            let params = try Self.decodeParams(GenesisRemindersAddParams.self, from: req.paramsJSON)
             let payload = try await self.remindersService.add(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1420,21 +1420,21 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleMotionInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawMotionCommand.activity.rawValue:
-            let params = (try? Self.decodeParams(OpenClawMotionActivityParams.self, from: req.paramsJSON)) ??
-                OpenClawMotionActivityParams()
+        case GenesisMotionCommand.activity.rawValue:
+            let params = (try? Self.decodeParams(GenesisMotionActivityParams.self, from: req.paramsJSON)) ??
+                GenesisMotionActivityParams()
             let payload = try await self.motionService.activities(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawMotionCommand.pedometer.rawValue:
-            let params = (try? Self.decodeParams(OpenClawPedometerParams.self, from: req.paramsJSON)) ??
-                OpenClawPedometerParams()
+        case GenesisMotionCommand.pedometer.rawValue:
+            let params = (try? Self.decodeParams(GenesisPedometerParams.self, from: req.paramsJSON)) ??
+                GenesisPedometerParams()
             let payload = try await self.motionService.pedometer(params: params)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
@@ -1442,30 +1442,30 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
     private func handleTalkInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawTalkCommand.pttStart.rawValue:
+        case GenesisTalkCommand.pttStart.rawValue:
             self.pttVoiceWakeSuspended = self.voiceWake.suspendForExternalAudioCapture()
             let payload = try await self.talkMode.beginPushToTalk()
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawTalkCommand.pttStop.rawValue:
+        case GenesisTalkCommand.pttStop.rawValue:
             let payload = await self.talkMode.endPushToTalk()
             self.voiceWake.resumeAfterExternalAudioCapture(wasSuspended: self.pttVoiceWakeSuspended)
             self.pttVoiceWakeSuspended = false
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawTalkCommand.pttCancel.rawValue:
+        case GenesisTalkCommand.pttCancel.rawValue:
             let payload = await self.talkMode.cancelPushToTalk()
             self.voiceWake.resumeAfterExternalAudioCapture(wasSuspended: self.pttVoiceWakeSuspended)
             self.pttVoiceWakeSuspended = false
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawTalkCommand.pttOnce.rawValue:
+        case GenesisTalkCommand.pttOnce.rawValue:
             self.pttVoiceWakeSuspended = self.voiceWake.suspendForExternalAudioCapture()
             defer {
                 self.voiceWake.resumeAfterExternalAudioCapture(wasSuspended: self.pttVoiceWakeSuspended)
@@ -1478,7 +1478,7 @@ final class NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
@@ -1495,113 +1495,113 @@ private extension NodeAppModel {
             }
         }
 
-        register([OpenClawLocationCommand.get.rawValue]) { [weak self] req in
+        register([GenesisLocationCommand.get.rawValue]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleLocationInvoke(req)
         }
 
         register([
-            OpenClawCanvasCommand.present.rawValue,
-            OpenClawCanvasCommand.hide.rawValue,
-            OpenClawCanvasCommand.navigate.rawValue,
-            OpenClawCanvasCommand.evalJS.rawValue,
-            OpenClawCanvasCommand.snapshot.rawValue,
+            GenesisCanvasCommand.present.rawValue,
+            GenesisCanvasCommand.hide.rawValue,
+            GenesisCanvasCommand.navigate.rawValue,
+            GenesisCanvasCommand.evalJS.rawValue,
+            GenesisCanvasCommand.snapshot.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleCanvasInvoke(req)
         }
 
         register([
-            OpenClawCanvasA2UICommand.reset.rawValue,
-            OpenClawCanvasA2UICommand.push.rawValue,
-            OpenClawCanvasA2UICommand.pushJSONL.rawValue,
+            GenesisCanvasA2UICommand.reset.rawValue,
+            GenesisCanvasA2UICommand.push.rawValue,
+            GenesisCanvasA2UICommand.pushJSONL.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleCanvasA2UIInvoke(req)
         }
 
         register([
-            OpenClawCameraCommand.list.rawValue,
-            OpenClawCameraCommand.snap.rawValue,
-            OpenClawCameraCommand.clip.rawValue,
+            GenesisCameraCommand.list.rawValue,
+            GenesisCameraCommand.snap.rawValue,
+            GenesisCameraCommand.clip.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleCameraInvoke(req)
         }
 
-        register([OpenClawScreenCommand.record.rawValue]) { [weak self] req in
+        register([GenesisScreenCommand.record.rawValue]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleScreenRecordInvoke(req)
         }
 
-        register([OpenClawSystemCommand.notify.rawValue]) { [weak self] req in
+        register([GenesisSystemCommand.notify.rawValue]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleSystemNotify(req)
         }
 
-        register([OpenClawChatCommand.push.rawValue]) { [weak self] req in
+        register([GenesisChatCommand.push.rawValue]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleChatPushInvoke(req)
         }
 
         register([
-            OpenClawDeviceCommand.status.rawValue,
-            OpenClawDeviceCommand.info.rawValue,
+            GenesisDeviceCommand.status.rawValue,
+            GenesisDeviceCommand.info.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleDeviceInvoke(req)
         }
 
         register([
-            OpenClawWatchCommand.status.rawValue,
-            OpenClawWatchCommand.notify.rawValue,
+            GenesisWatchCommand.status.rawValue,
+            GenesisWatchCommand.notify.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleWatchInvoke(req)
         }
 
-        register([OpenClawPhotosCommand.latest.rawValue]) { [weak self] req in
+        register([GenesisPhotosCommand.latest.rawValue]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handlePhotosInvoke(req)
         }
 
         register([
-            OpenClawContactsCommand.search.rawValue,
-            OpenClawContactsCommand.add.rawValue,
+            GenesisContactsCommand.search.rawValue,
+            GenesisContactsCommand.add.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleContactsInvoke(req)
         }
 
         register([
-            OpenClawCalendarCommand.events.rawValue,
-            OpenClawCalendarCommand.add.rawValue,
+            GenesisCalendarCommand.events.rawValue,
+            GenesisCalendarCommand.add.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleCalendarInvoke(req)
         }
 
         register([
-            OpenClawRemindersCommand.list.rawValue,
-            OpenClawRemindersCommand.add.rawValue,
+            GenesisRemindersCommand.list.rawValue,
+            GenesisRemindersCommand.add.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleRemindersInvoke(req)
         }
 
         register([
-            OpenClawMotionCommand.activity.rawValue,
-            OpenClawMotionCommand.pedometer.rawValue,
+            GenesisMotionCommand.activity.rawValue,
+            GenesisMotionCommand.pedometer.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleMotionInvoke(req)
         }
 
         register([
-            OpenClawTalkCommand.pttStart.rawValue,
-            OpenClawTalkCommand.pttStop.rawValue,
-            OpenClawTalkCommand.pttCancel.rawValue,
-            OpenClawTalkCommand.pttOnce.rawValue,
+            GenesisTalkCommand.pttStart.rawValue,
+            GenesisTalkCommand.pttStop.rawValue,
+            GenesisTalkCommand.pttCancel.rawValue,
+            GenesisTalkCommand.pttOnce.rawValue,
         ]) { [weak self] req in
             guard let self else { throw NodeCapabilityRouter.RouterError.handlerUnavailable }
             return try await self.handleTalkInvoke(req)
@@ -1612,9 +1612,9 @@ private extension NodeAppModel {
 
     func handleWatchInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         switch req.command {
-        case OpenClawWatchCommand.status.rawValue:
+        case GenesisWatchCommand.status.rawValue:
             let status = await self.watchMessagingService.status()
-            let payload = OpenClawWatchStatusPayload(
+            let payload = GenesisWatchStatusPayload(
                 supported: status.supported,
                 paired: status.paired,
                 appInstalled: status.appInstalled,
@@ -1622,8 +1622,8 @@ private extension NodeAppModel {
                 activationState: status.activationState)
             let json = try Self.encodePayload(payload)
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-        case OpenClawWatchCommand.notify.rawValue:
-            let params = try Self.decodeParams(OpenClawWatchNotifyParams.self, from: req.paramsJSON)
+        case GenesisWatchCommand.notify.rawValue:
+            let params = try Self.decodeParams(GenesisWatchNotifyParams.self, from: req.paramsJSON)
             let normalizedParams = Self.normalizeWatchNotifyParams(params)
             let title = normalizedParams.title
             let body = normalizedParams.body
@@ -1631,7 +1631,7 @@ private extension NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .invalidRequest,
                         message: "INVALID_REQUEST: empty watch notification"))
             }
@@ -1648,7 +1648,7 @@ private extension NodeAppModel {
                             sendResult: result)
                     }
                 }
-                let payload = OpenClawWatchNotifyPayload(
+                let payload = GenesisWatchNotifyPayload(
                     deliveredImmediately: result.deliveredImmediately,
                     queuedForDelivery: result.queuedForDelivery,
                     transport: result.transport)
@@ -1658,7 +1658,7 @@ private extension NodeAppModel {
                 return BridgeInvokeResponse(
                     id: req.id,
                     ok: false,
-                    error: OpenClawNodeError(
+                    error: GenesisNodeError(
                         code: .unavailable,
                         message: error.localizedDescription))
             }
@@ -1666,13 +1666,13 @@ private extension NodeAppModel {
             return BridgeInvokeResponse(
                 id: req.id,
                 ok: false,
-                error: OpenClawNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
+                error: GenesisNodeError(code: .invalidRequest, message: "INVALID_REQUEST: unknown command"))
         }
     }
 
-    func locationMode() -> OpenClawLocationMode {
+    func locationMode() -> GenesisLocationMode {
         let raw = UserDefaults.standard.string(forKey: "location.enabledMode") ?? "off"
-        return OpenClawLocationMode(rawValue: raw) ?? .off
+        return GenesisLocationMode(rawValue: raw) ?? .off
     }
 
     func isLocationPreciseEnabled() -> Bool {
@@ -2122,7 +2122,7 @@ private extension NodeAppModel {
                             BridgeInvokeResponse(
                                 id: req.id,
                                 ok: false,
-                                error: OpenClawNodeError(
+                                error: GenesisNodeError(
                                     code: .invalidRequest,
                                     message: "INVALID_REQUEST: operator session cannot invoke node commands"))
                         })
@@ -2282,7 +2282,7 @@ private extension NodeAppModel {
                                 return BridgeInvokeResponse(
                                     id: req.id,
                                     ok: false,
-                                    error: OpenClawNodeError(
+                                    error: GenesisNodeError(
                                         code: .unavailable,
                                         message: "UNAVAILABLE: node not ready"))
                             }
@@ -2420,7 +2420,7 @@ private extension NodeAppModel {
 
     func legacyClientIdFallback(currentClientId: String, error: Error) -> String? {
         let normalizedClientId = currentClientId.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard normalizedClientId == "openclaw-ios" else { return nil }
+        guard normalizedClientId == "genesis-ios" else { return nil }
         let message = error.localizedDescription.lowercased()
         guard message.contains("invalid connect params"), message.contains("/client/id") else {
             return nil
@@ -2512,8 +2512,8 @@ extension NodeAppModel {
         self.recordShareEvent("Share self-test running…")
 
         let payload = SharedContentPayload(
-            title: "OpenClaw Share Self-Test",
-            url: URL(string: "https://openclaw.ai/share-self-test"),
+            title: "Genesis Share Self-Test",
+            url: URL(string: "https://genesis.ai/share-self-test"),
             text: "Validate iOS share->deep-link->gateway forwarding.")
         guard let deepLink = ShareToAgentDeepLink.buildURL(
             from: payload,
@@ -2791,13 +2791,13 @@ extension NodeAppModel {
         self.persistWatchExecApprovalBridgeState()
     }
 
-    private static func makeWatchExecApprovalItem(from prompt: ExecApprovalPrompt) -> OpenClawWatchExecApprovalItem {
+    private static func makeWatchExecApprovalItem(from prompt: ExecApprovalPrompt) -> GenesisWatchExecApprovalItem {
         let decisions = prompt.allowedDecisions.compactMap { decision in
             let normalizedDecision = decision.trimmingCharacters(in: .whitespacesAndNewlines)
-            return OpenClawWatchExecApprovalDecision(rawValue: normalizedDecision)
+            return GenesisWatchExecApprovalDecision(rawValue: normalizedDecision)
         }
         let preview = Self.trimmedOrNil(prompt.commandPreview) ?? Self.trimmedOrNil(prompt.commandText)
-        return OpenClawWatchExecApprovalItem(
+        return GenesisWatchExecApprovalItem(
             id: prompt.id,
             commandText: prompt.commandText,
             commandPreview: preview,
@@ -2818,7 +2818,7 @@ extension NodeAppModel {
     }
 
     private func publishWatchExecApprovalPrompt(_ prompt: ExecApprovalPrompt, reason: String) async {
-        let message = OpenClawWatchExecApprovalPromptMessage(
+        let message = GenesisWatchExecApprovalPromptMessage(
             approval: Self.makeWatchExecApprovalItem(from: prompt),
             sentAtMs: Int(Date().timeIntervalSince1970 * 1000),
             deliveryId: UUID().uuidString,
@@ -2836,13 +2836,13 @@ extension NodeAppModel {
 
     private func publishWatchExecApprovalResolved(
         approvalId: String,
-        decision: OpenClawWatchExecApprovalDecision?,
+        decision: GenesisWatchExecApprovalDecision?,
         source: String) async
     {
         let normalizedApprovalID = approvalId.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedApprovalID.isEmpty else { return }
         self.removeWatchExecApprovalPrompt(normalizedApprovalID)
-        let message = OpenClawWatchExecApprovalResolvedMessage(
+        let message = GenesisWatchExecApprovalResolvedMessage(
             approvalId: normalizedApprovalID,
             decision: decision,
             resolvedAtMs: Int(Date().timeIntervalSince1970 * 1000),
@@ -2858,12 +2858,12 @@ extension NodeAppModel {
 
     private func publishWatchExecApprovalExpired(
         approvalId: String,
-        reason: OpenClawWatchExecApprovalCloseReason) async
+        reason: GenesisWatchExecApprovalCloseReason) async
     {
         let normalizedApprovalID = approvalId.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedApprovalID.isEmpty else { return }
         self.removeWatchExecApprovalPrompt(normalizedApprovalID)
-        let message = OpenClawWatchExecApprovalExpiredMessage(
+        let message = GenesisWatchExecApprovalExpiredMessage(
             approvalId: normalizedApprovalID,
             reason: reason,
             expiredAtMs: Int(Date().timeIntervalSince1970 * 1000))
@@ -2892,7 +2892,7 @@ extension NodeAppModel {
                 return lhs.id < rhs.id
             }
             .map(Self.makeWatchExecApprovalItem)
-        let message = OpenClawWatchExecApprovalSnapshotMessage(
+        let message = GenesisWatchExecApprovalSnapshotMessage(
             approvals: approvals,
             sentAtMs: Int(Date().timeIntervalSince1970 * 1000),
             snapshotId: UUID().uuidString)
@@ -3081,7 +3081,7 @@ extension NodeAppModel {
             self.pushWakeLogger.info("Ignored APNs payload wakeId=\(wakeId, privacy: .public): not silent push")
             return false
         }
-        let pushKind = Self.openclawPushKind(userInfo)
+        let pushKind = Self.genesisPushKind(userInfo)
         let receivedMessage =
             "Silent push received wakeId=\(wakeId) "
             + "kind=\(pushKind) "
@@ -3270,14 +3270,14 @@ extension NodeAppModel {
         return String(raw.prefix(8))
     }
 
-    private static func openclawPushKind(_ userInfo: [AnyHashable: Any]) -> String {
-        if let payload = userInfo["openclaw"] as? [String: Any],
+    private static func genesisPushKind(_ userInfo: [AnyHashable: Any]) -> String {
+        if let payload = userInfo["genesis"] as? [String: Any],
            let kind = payload["kind"] as? String
         {
             let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { return trimmed }
         }
-        if let payload = userInfo["openclaw"] as? [AnyHashable: Any],
+        if let payload = userInfo["genesis"] as? [AnyHashable: Any],
            let kind = payload["kind"] as? String
         {
             let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -3523,7 +3523,7 @@ extension NodeAppModel {
         guard connected else {
             self.execApprovalNotificationLogger.error(
                 "Exec approval action failed id=\(normalizedApprovalID, privacy: .public): operator not connected")
-            return .failed(message: "OpenClaw couldn't connect to the gateway operator session.")
+            return .failed(message: "Genesis couldn't connect to the gateway operator session.")
         }
 
         do {
@@ -3539,7 +3539,7 @@ extension NodeAppModel {
             self.clearPendingExecApprovalPromptIfMatches(normalizedApprovalID)
             await self.publishWatchExecApprovalResolved(
                 approvalId: normalizedApprovalID,
-                decision: OpenClawWatchExecApprovalDecision(rawValue: normalizedDecision),
+                decision: GenesisWatchExecApprovalDecision(rawValue: normalizedDecision),
                 source: "iphone")
             return .resolved
         } catch {
@@ -3563,7 +3563,7 @@ extension NodeAppModel {
                 "Exec approval action failed id=\(normalizedApprovalID) error=\(error.localizedDescription)"
             self.execApprovalNotificationLogger.error("\(logMessage, privacy: .public)")
             return .failed(
-                message: "OpenClaw couldn't resolve this approval right now. Try again.")
+                message: "Genesis couldn't resolve this approval right now. Try again.")
         }
     }
 
@@ -4308,7 +4308,7 @@ extension NodeAppModel {
                 caps: [],
                 commands: [],
                 permissions: [:],
-                clientId: "openclaw-ios",
+                clientId: "genesis-ios",
                 clientMode: "node",
                 clientDisplayName: nil),
             sessionBox: nil)

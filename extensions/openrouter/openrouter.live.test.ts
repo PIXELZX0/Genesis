@@ -9,13 +9,13 @@ import plugin from "./index.js";
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY ?? "";
 const LIVE_MODEL_ID =
-  process.env.OPENCLAW_LIVE_OPENROUTER_PLUGIN_MODEL?.trim() || "openai/gpt-5.4-nano";
+  process.env.GENESIS_LIVE_OPENROUTER_PLUGIN_MODEL?.trim() || "openai/gpt-5.4-nano";
 const LIVE_CACHE_MODEL_ID =
-  process.env.OPENCLAW_LIVE_OPENROUTER_CACHE_MODEL?.trim() || "deepseek/deepseek-v3.2";
-const liveEnabled = OPENROUTER_API_KEY.trim().length > 0 && process.env.OPENCLAW_LIVE_TEST === "1";
+  process.env.GENESIS_LIVE_OPENROUTER_CACHE_MODEL?.trim() || "deepseek/deepseek-v3.2";
+const liveEnabled = OPENROUTER_API_KEY.trim().length > 0 && process.env.GENESIS_LIVE_TEST === "1";
 const describeLive = liveEnabled ? describe : describe.skip;
 const describeCacheLive =
-  liveEnabled && process.env.OPENCLAW_LIVE_CACHE_TEST === "1" ? describe : describe.skip;
+  liveEnabled && process.env.GENESIS_LIVE_CACHE_TEST === "1" ? describe : describe.skip;
 const ModelRegistryCtor = ModelRegistry as unknown as {
   new (authStorage: AuthStorage, modelsJsonPath?: string): ModelRegistry;
 };

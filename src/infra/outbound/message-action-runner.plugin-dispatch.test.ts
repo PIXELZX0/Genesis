@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResult } from "../../agents/tools/common.js";
 import { dispatchChannelMessageAction } from "../../channels/plugins/message-action-dispatch.js";
 import type { ChannelMessageActionContext, ChannelPlugin } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { getActivePluginRegistry, setActivePluginRegistry } from "../../plugins/runtime.js";
 import { createTestRegistry } from "../../test-utils/channel-plugins.js";
 import { runMessageAction } from "./message-action-runner.js";
@@ -215,7 +215,7 @@ describe("runMessageAction plugin dispatch", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "pin",
         params: {
           channel: "actionhub",
@@ -231,7 +231,7 @@ describe("runMessageAction plugin dispatch", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "list-pins",
         params: {
           channel: "actionhub",
@@ -261,9 +261,9 @@ describe("runMessageAction plugin dispatch", () => {
     });
 
     it("routes execution context ids into plugin handleAction", async () => {
-      const stateDir = path.join("/tmp", "openclaw-plugin-dispatch-media-roots");
+      const stateDir = path.join("/tmp", "genesis-plugin-dispatch-media-roots");
       const expectedWorkspaceRoot = path.resolve(stateDir, "workspace-alpha");
-      vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+      vi.stubEnv("GENESIS_STATE_DIR", stateDir);
 
       await runMessageAction({
         cfg: {
@@ -272,7 +272,7 @@ describe("runMessageAction plugin dispatch", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "pin",
         params: {
           channel: "actionhub",
@@ -357,7 +357,7 @@ describe("runMessageAction plugin dispatch", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "react",
         params: {
           channel: "gatewaychat",
@@ -471,7 +471,7 @@ describe("runMessageAction plugin dispatch", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "send",
         params: {
           channel: "policydest",
@@ -548,7 +548,7 @@ describe("runMessageAction plugin dispatch", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "send",
         params: {
           channel: "policydest",
@@ -640,7 +640,7 @@ describe("runMessageAction plugin dispatch", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "send",
         params: {
           channel: "policydest",
@@ -722,7 +722,7 @@ describe("runMessageAction plugin dispatch", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "send",
         params: {
           channel: "policychat",
@@ -795,7 +795,7 @@ describe("runMessageAction plugin dispatch", () => {
             enabled: true,
           },
         },
-      } as OpenClawConfig;
+      } as GenesisConfig;
 
       const presentation = {
         blocks: [{ type: "text", text: "Presentation-only payload" }],
@@ -870,7 +870,7 @@ describe("runMessageAction plugin dispatch", () => {
               botToken: "tok",
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "poll",
         params: {
           channel: "pollchat",
@@ -961,7 +961,7 @@ describe("runMessageAction plugin dispatch", () => {
               token: "tok",
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         action: "poll",
         params: {
           channel: "guildchat",
@@ -1041,7 +1041,7 @@ describe("runMessageAction plugin dispatch", () => {
         blocks: [{ type: "buttons", buttons: [{ label: "A", value: "a" }] }],
       };
       const result = await runMessageAction({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         action: "send",
         params: {
           channel: "componentchat",
@@ -1060,7 +1060,7 @@ describe("runMessageAction plugin dispatch", () => {
     it("throws on invalid presentation JSON strings", async () => {
       await expect(
         runMessageAction({
-          cfg: {} as OpenClawConfig,
+          cfg: {} as GenesisConfig,
           action: "send",
           params: {
             channel: "componentchat",
@@ -1120,7 +1120,7 @@ describe("runMessageAction plugin dispatch", () => {
       {
         name: "uses defaultAccountId override",
         args: {
-          cfg: {} as OpenClawConfig,
+          cfg: {} as GenesisConfig,
           defaultAccountId: "ops",
         },
         expectedAccountId: "ops",
@@ -1132,7 +1132,7 @@ describe("runMessageAction plugin dispatch", () => {
             bindings: [
               { agentId: "agent-b", match: { channel: "accountchat", accountId: "account-b" } },
             ],
-          } as OpenClawConfig,
+          } as GenesisConfig,
           agentId: "agent-b",
         },
         expectedAccountId: "account-b",

@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import GenesisKit
 
 enum WatchMessagingPayloadCodec {
     static func nowMs() -> Int {
@@ -13,14 +13,14 @@ enum WatchMessagingPayloadCodec {
 
     static func encodeNotificationPayload(
         id: String,
-        params: OpenClawWatchNotifyParams) -> [String: Any]
+        params: GenesisWatchNotifyParams) -> [String: Any]
     {
         var payload: [String: Any] = [
-            "type": OpenClawWatchPayloadType.notify.rawValue,
+            "type": GenesisWatchPayloadType.notify.rawValue,
             "id": id,
             "title": params.title,
             "body": params.body,
-            "priority": params.priority?.rawValue ?? OpenClawNotificationPriority.active.rawValue,
+            "priority": params.priority?.rawValue ?? GenesisNotificationPriority.active.rawValue,
             "sentAtMs": nowMs(),
         ]
         if let promptId = nonEmpty(params.promptId) {
@@ -56,7 +56,7 @@ enum WatchMessagingPayloadCodec {
         return payload
     }
 
-    static func encodeExecApprovalItem(_ item: OpenClawWatchExecApprovalItem) -> [String: Any] {
+    static func encodeExecApprovalItem(_ item: GenesisWatchExecApprovalItem) -> [String: Any] {
         var payload: [String: Any] = [
             "id": item.id,
             "commandText": item.commandText,
@@ -84,10 +84,10 @@ enum WatchMessagingPayloadCodec {
     }
 
     static func encodeExecApprovalPromptPayload(
-        _ message: OpenClawWatchExecApprovalPromptMessage) -> [String: Any]
+        _ message: GenesisWatchExecApprovalPromptMessage) -> [String: Any]
     {
         var payload: [String: Any] = [
-            "type": OpenClawWatchPayloadType.execApprovalPrompt.rawValue,
+            "type": GenesisWatchPayloadType.execApprovalPrompt.rawValue,
             "approval": encodeExecApprovalItem(message.approval),
         ]
         if let sentAtMs = message.sentAtMs {
@@ -103,10 +103,10 @@ enum WatchMessagingPayloadCodec {
     }
 
     static func encodeExecApprovalResolvedPayload(
-        _ message: OpenClawWatchExecApprovalResolvedMessage) -> [String: Any]
+        _ message: GenesisWatchExecApprovalResolvedMessage) -> [String: Any]
     {
         var payload: [String: Any] = [
-            "type": OpenClawWatchPayloadType.execApprovalResolved.rawValue,
+            "type": GenesisWatchPayloadType.execApprovalResolved.rawValue,
             "approvalId": message.approvalId,
         ]
         if let decision = message.decision {
@@ -122,10 +122,10 @@ enum WatchMessagingPayloadCodec {
     }
 
     static func encodeExecApprovalExpiredPayload(
-        _ message: OpenClawWatchExecApprovalExpiredMessage) -> [String: Any]
+        _ message: GenesisWatchExecApprovalExpiredMessage) -> [String: Any]
     {
         var payload: [String: Any] = [
-            "type": OpenClawWatchPayloadType.execApprovalExpired.rawValue,
+            "type": GenesisWatchPayloadType.execApprovalExpired.rawValue,
             "approvalId": message.approvalId,
             "reason": message.reason.rawValue,
         ]
@@ -136,10 +136,10 @@ enum WatchMessagingPayloadCodec {
     }
 
     static func encodeExecApprovalSnapshotPayload(
-        _ message: OpenClawWatchExecApprovalSnapshotMessage) -> [String: Any]
+        _ message: GenesisWatchExecApprovalSnapshotMessage) -> [String: Any]
     {
         var payload: [String: Any] = [
-            "type": OpenClawWatchPayloadType.execApprovalSnapshot.rawValue,
+            "type": GenesisWatchPayloadType.execApprovalSnapshot.rawValue,
             "approvals": message.approvals.map(encodeExecApprovalItem),
         ]
         if let sentAtMs = message.sentAtMs {
@@ -155,7 +155,7 @@ enum WatchMessagingPayloadCodec {
         _ payload: [String: Any],
         transport: String) -> WatchQuickReplyEvent?
     {
-        guard (payload["type"] as? String) == OpenClawWatchPayloadType.reply.rawValue else {
+        guard (payload["type"] as? String) == GenesisWatchPayloadType.reply.rawValue else {
             return nil
         }
         guard let actionId = nonEmpty(payload["actionId"] as? String) else {
@@ -183,12 +183,12 @@ enum WatchMessagingPayloadCodec {
         _ payload: [String: Any],
         transport: String) -> WatchExecApprovalResolveEvent?
     {
-        guard (payload["type"] as? String) == OpenClawWatchPayloadType.execApprovalResolve.rawValue else {
+        guard (payload["type"] as? String) == GenesisWatchPayloadType.execApprovalResolve.rawValue else {
             return nil
         }
         guard let approvalId = nonEmpty(payload["approvalId"] as? String),
               let rawDecision = nonEmpty(payload["decision"] as? String),
-              let decision = OpenClawWatchExecApprovalDecision(rawValue: rawDecision)
+              let decision = GenesisWatchExecApprovalDecision(rawValue: rawDecision)
         else {
             return nil
         }
@@ -206,7 +206,7 @@ enum WatchMessagingPayloadCodec {
         _ payload: [String: Any],
         transport: String) -> WatchExecApprovalSnapshotRequestEvent?
     {
-        guard (payload["type"] as? String) == OpenClawWatchPayloadType.execApprovalSnapshotRequest.rawValue else {
+        guard (payload["type"] as? String) == GenesisWatchPayloadType.execApprovalSnapshotRequest.rawValue else {
             return nil
         }
         let requestId = nonEmpty(payload["requestId"] as? String) ?? UUID().uuidString

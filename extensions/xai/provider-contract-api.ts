@@ -1,4 +1,4 @@
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 
 export function createXaiProvider(): ProviderPlugin {
   return {

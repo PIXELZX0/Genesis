@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/openrouter-provider",
+  "name": "@genesis/openrouter-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw OpenRouter provider plugin",
+  "description": "Genesis OpenRouter provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

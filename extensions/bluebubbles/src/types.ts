@@ -1,9 +1,9 @@
-import { fetchWithRuntimeDispatcherOrMockedGlobal } from "openclaw/plugin-sdk/runtime-fetch";
-import type { DmPolicy, GroupPolicy } from "openclaw/plugin-sdk/setup";
-import { fetchWithSsrFGuard, type SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithRuntimeDispatcherOrMockedGlobal } from "genesis/plugin-sdk/runtime-fetch";
+import type { DmPolicy, GroupPolicy } from "genesis/plugin-sdk/setup";
+import { fetchWithSsrFGuard, type SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
 
-export type { SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
-export type { DmPolicy, GroupPolicy } from "openclaw/plugin-sdk/setup";
+export type { SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
+export type { DmPolicy, GroupPolicy } from "genesis/plugin-sdk/setup";
 
 export type BlueBubblesGroupConfig = {
   /** If true, only respond in this group when mentioned. */

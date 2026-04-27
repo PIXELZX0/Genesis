@@ -86,18 +86,18 @@ if (isMain) {
   installUnhandledRejectionHandler();
 
   process.on("uncaughtException", (error) => {
-    console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
+    console.error("[genesis] Uncaught exception:", formatUncaughtError(error));
     for (const message of runFatalErrorHooks({ reason: "uncaught_exception", error })) {
-      console.error("[openclaw]", message);
+      console.error("[genesis]", message);
     }
     restoreTerminalState("uncaught exception", { resumeStdinIfPaused: false });
     process.exit(1);
   });
 
   void runLegacyCliEntry(process.argv).catch((err) => {
-    console.error("[openclaw] CLI failed:", formatUncaughtError(err));
+    console.error("[genesis] CLI failed:", formatUncaughtError(err));
     for (const message of runFatalErrorHooks({ reason: "legacy_cli_failure", error: err })) {
-      console.error("[openclaw]", message);
+      console.error("[genesis]", message);
     }
     restoreTerminalState("legacy cli failure", { resumeStdinIfPaused: false });
     process.exit(1);

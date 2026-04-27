@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { listSupportedVideoGenerationModes } from "../../video-generation/capabilities.js";
 import { listRuntimeVideoGenerationProviders } from "../../video-generation/runtime.js";
 import {
@@ -78,7 +78,7 @@ function summarizeVideoGenerationCapabilities(
 }
 
 export function createVideoGenerateListActionResult(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): VideoGenerateActionResult {
   const providers = listRuntimeVideoGenerationProviders({ config });
   return createMediaGenerateProviderListActionResult({

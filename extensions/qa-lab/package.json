@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/qa-lab",
+  "name": "@genesis/qa-lab",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw QA lab plugin with private debugger UI and scenario runner",
+  "description": "Genesis QA lab plugin with private debugger UI and scenario runner",
   "type": "module",
   "dependencies": {
     "@copilotkit/aimock": "1.14.3",
@@ -12,23 +12,23 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
     "install": {
-      "npmSpec": "@openclaw/qa-lab",
+      "npmSpec": "@genesis/qa-lab",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     },

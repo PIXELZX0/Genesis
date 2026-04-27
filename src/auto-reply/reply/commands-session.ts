@@ -19,7 +19,7 @@ import {
   type RestartSentinelPayload,
   writeRestartSentinel,
 } from "../../infra/restart-sentinel.js";
-import { scheduleGatewaySigusr1Restart, triggerOpenClawRestart } from "../../infra/restart.js";
+import { scheduleGatewaySigusr1Restart, triggerGenesisRestart } from "../../infra/restart.js";
 import { loadCostUsageSummary, loadSessionCostSummary } from "../../infra/session-cost-usage.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -695,7 +695,7 @@ export const handleRestartCommand: CommandHandler = async (params, allowTextComm
     return {
       shouldContinue: false,
       reply: {
-        text: "⚙️ Restarting OpenClaw in-process (SIGUSR1); back in a few seconds.",
+        text: "⚙️ Restarting Genesis in-process (SIGUSR1); back in a few seconds.",
       },
     };
   }
@@ -713,7 +713,7 @@ export const handleRestartCommand: CommandHandler = async (params, allowTextComm
       },
     };
   }
-  const restartMethod = triggerOpenClawRestart();
+  const restartMethod = triggerGenesisRestart();
   if (!restartMethod.ok) {
     await removeRestartSentinelFile(sentinelPath);
     const detail = restartMethod.detail ? ` Details: ${restartMethod.detail}` : "";
@@ -727,7 +727,7 @@ export const handleRestartCommand: CommandHandler = async (params, allowTextComm
   return {
     shouldContinue: false,
     reply: {
-      text: `⚙️ Restarting OpenClaw via ${restartMethod.method}; give me a few seconds to come back online.`,
+      text: `⚙️ Restarting Genesis via ${restartMethod.method}; give me a few seconds to come back online.`,
     },
   };
 };

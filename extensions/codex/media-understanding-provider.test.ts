@@ -34,7 +34,7 @@ function threadStartResult() {
       updatedAt: 1,
       status: { type: "idle" },
       path: null,
-      cwd: "/tmp/openclaw-agent",
+      cwd: "/tmp/genesis-agent",
       cliVersion: "0.118.0",
       source: "unknown",
       agentNickname: null,
@@ -46,7 +46,7 @@ function threadStartResult() {
     model: "gpt-5.4",
     modelProvider: "openai",
     serviceTier: null,
-    cwd: "/tmp/openclaw-agent",
+    cwd: "/tmp/genesis-agent",
     instructionSources: [],
     approvalPolicy: "never",
     approvalsReviewer: "user",
@@ -171,7 +171,7 @@ describe("codex media understanding provider", () => {
       prompt: "Describe briefly.",
       timeoutMs: 30_000,
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
     });
 
     expect(result).toEqual({ text: "A red square.", model: "gpt-5.4" });
@@ -213,7 +213,7 @@ describe("codex media understanding provider", () => {
       prompt: "Describe briefly.",
       timeoutMs: 30_000,
       cfg: {},
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/genesis-agent",
     });
 
     expect(result).toEqual({ text: "A blue circle.", model: "gpt-5.4" });
@@ -234,7 +234,7 @@ describe("codex media understanding provider", () => {
         model: "gpt-5.4",
         timeoutMs: 30_000,
         cfg: {},
-        agentDir: "/tmp/openclaw-agent",
+        agentDir: "/tmp/genesis-agent",
       }),
     ).rejects.toThrow("Codex app-server model does not support images: gpt-5.4");
     expect(requests.map((entry) => entry.method)).toEqual(["model/list"]);
@@ -255,7 +255,7 @@ describe("codex media understanding provider", () => {
         model: "gpt-5.4",
         timeoutMs: 30_000,
         cfg: {},
-        agentDir: "/tmp/openclaw-agent",
+        agentDir: "/tmp/genesis-agent",
       }),
     ).rejects.toThrow("vision unavailable");
   });

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { hasConfiguredChannelsForReadOnlyScope } from "../plugins/channel-plugin-ids.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { executeStatusScanFromOverview } from "./status.scan-execute.ts";
@@ -13,7 +13,7 @@ type StatusJsonScanPolicy = {
   commandName: string;
   allowMissingConfigFastPath?: boolean;
   includeChannelSummary?: boolean;
-  resolveHasConfiguredChannels: (cfg: OpenClawConfig, sourceConfig: OpenClawConfig) => boolean;
+  resolveHasConfiguredChannels: (cfg: GenesisConfig, sourceConfig: GenesisConfig) => boolean;
   resolveMemory: Parameters<typeof executeStatusScanFromOverview>[0]["resolveMemory"];
 };
 

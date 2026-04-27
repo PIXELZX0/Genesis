@@ -2,27 +2,27 @@ import {
   isNativeCommandsExplicitlyDisabled,
   resolveNativeCommandsEnabled,
   resolveNativeSkillsEnabled,
-} from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/config-runtime";
 import {
   resolveChannelGroupPolicy,
   resolveChannelGroupRequireMention,
-} from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/config-runtime";
 import {
   resolveThreadBindingIdleTimeoutMsForChannel,
   resolveThreadBindingMaxAgeMsForChannel,
   resolveThreadBindingSpawnPolicy,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { formatErrorMessage, formatUncaughtError } from "openclaw/plugin-sdk/error-runtime";
-import { resolveTextChunkLimit } from "openclaw/plugin-sdk/reply-chunking";
-import { DEFAULT_GROUP_HISTORY_LIMIT, type HistoryEntry } from "openclaw/plugin-sdk/reply-history";
-import { danger, logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { createNonExitingRuntime, type RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { formatErrorMessage, formatUncaughtError } from "genesis/plugin-sdk/error-runtime";
+import { resolveTextChunkLimit } from "genesis/plugin-sdk/reply-chunking";
+import { DEFAULT_GROUP_HISTORY_LIMIT, type HistoryEntry } from "genesis/plugin-sdk/reply-history";
+import { danger, logVerbose, shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
+import { getChildLogger } from "genesis/plugin-sdk/runtime-env";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { createNonExitingRuntime, type RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { resolveTelegramAccount } from "./accounts.js";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import { registerTelegramHandlers } from "./bot-handlers.runtime.js";

@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 
 const {
   getLoadConfigMock,
@@ -99,7 +99,7 @@ describe("createTelegramBot command menu", () => {
           ],
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     loadConfig.mockReturnValue(config);
     const commandsSynced = waitForNextSetMyCommands();
 
@@ -140,7 +140,7 @@ describe("createTelegramBot command menu", () => {
           ],
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     loadConfig.mockReturnValue(config);
     const commandsSynced = waitForNextSetMyCommands();
 
@@ -192,7 +192,7 @@ describe("createTelegramBot command menu", () => {
           ],
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     loadConfig.mockReturnValue(config);
     const commandsSynced = waitForNextSetMyCommands();
 

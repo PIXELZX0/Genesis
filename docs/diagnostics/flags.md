@@ -41,13 +41,13 @@ Restart the gateway after changing flags.
 ## Env override (one-off)
 
 ```bash
-OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload
+GENESIS_DIAGNOSTICS=telegram.http,telegram.payload
 ```
 
 Disable all flags:
 
 ```bash
-OPENCLAW_DIAGNOSTICS=0
+GENESIS_DIAGNOSTICS=0
 ```
 
 ## Where logs go
@@ -55,7 +55,7 @@ OPENCLAW_DIAGNOSTICS=0
 Flags emit logs into the standard diagnostics log file. By default:
 
 ```
-/tmp/openclaw/openclaw-YYYY-MM-DD.log
+/tmp/genesis/genesis-YYYY-MM-DD.log
 ```
 
 If you set `logging.file`, use that path instead. Logs are JSONL (one JSON object per line). Redaction still applies based on `logging.redactSensitive`.
@@ -65,22 +65,22 @@ If you set `logging.file`, use that path instead. Logs are JSONL (one JSON objec
 Pick the latest log file:
 
 ```bash
-ls -t /tmp/openclaw/openclaw-*.log | head -n 1
+ls -t /tmp/genesis/genesis-*.log | head -n 1
 ```
 
 Filter for Telegram HTTP diagnostics:
 
 ```bash
-rg "telegram http error" /tmp/openclaw/openclaw-*.log
+rg "telegram http error" /tmp/genesis/genesis-*.log
 ```
 
 Or tail while reproducing:
 
 ```bash
-tail -f /tmp/openclaw/openclaw-$(date +%F).log | rg "telegram http error"
+tail -f /tmp/genesis/genesis-$(date +%F).log | rg "telegram http error"
 ```
 
-For remote gateways, you can also use `openclaw logs --follow` (see [/cli/logs](/cli/logs)).
+For remote gateways, you can also use `genesis logs --follow` (see [/cli/logs](/cli/logs)).
 
 ## Notes
 

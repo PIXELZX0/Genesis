@@ -10,7 +10,7 @@ const RUNTIME_ENTRY_HELPER_RE = /(^|\/)plugin-entry\.runtime\.[cm]?[jt]s$/;
 const SOURCE_MODULE_EXTENSIONS = [".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"] as const;
 const FORBIDDEN_CONTRACT_MODULE_SPECIFIER_PATTERNS = [
   /^vitest$/u,
-  /^openclaw\/plugin-sdk\/testing$/u,
+  /^genesis\/plugin-sdk\/testing$/u,
   /(^|\/)test-api(?:\.[cm]?[jt]s)?$/u,
   /(^|\/)__tests__(\/|$)/u,
   /(^|\/)test-support(\/|$)/u,
@@ -125,7 +125,7 @@ function analyzeSourceModule(params: { filePath: string; source: string }): {
     }
     specifiers.add(specifier);
 
-    if (specifier === "openclaw/plugin-sdk/core" && importsDefinePluginEntry(importClause)) {
+    if (specifier === "genesis/plugin-sdk/core" && importsDefinePluginEntry(importClause)) {
       importsDefinePluginEntryFromCore = true;
     }
   }
@@ -265,9 +265,9 @@ describe("plugin entry guardrails", () => {
       const packageJsonPath = resolve(plugin.rootDir, "package.json");
       try {
         const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
-          openclaw?: { extensions?: unknown };
+          genesis?: { extensions?: unknown };
         };
-        const extensions = Array.isArray(pkg.openclaw?.extensions) ? pkg.openclaw.extensions : [];
+        const extensions = Array.isArray(pkg.genesis?.extensions) ? pkg.genesis.extensions : [];
         if (
           extensions.some(
             (candidate) => typeof candidate === "string" && RUNTIME_ENTRY_HELPER_RE.test(candidate),
@@ -304,7 +304,7 @@ describe("plugin entry guardrails", () => {
         import "./setup.js";
         export { x };
         export * from "./barrel.js";
-        import { y } from "openclaw/plugin-sdk/testing";
+        import { y } from "genesis/plugin-sdk/testing";
       `,
       }).relativeSpecifiers.toSorted(),
     ).toEqual(["./barrel.js", "./safe.js", "./setup.js"]);
@@ -334,8 +334,8 @@ describe("plugin entry guardrails", () => {
       analyzeSourceModule({
         filePath: "aliased-plugin-entry.ts",
         source: `
-          import { definePluginEntry as dpe } from "openclaw/plugin-sdk/core";
-          import { somethingElse } from "openclaw/plugin-sdk/core";
+          import { definePluginEntry as dpe } from "genesis/plugin-sdk/core";
+          import { somethingElse } from "genesis/plugin-sdk/core";
         `,
       }).importsDefinePluginEntryFromCore,
     ).toBe(true);

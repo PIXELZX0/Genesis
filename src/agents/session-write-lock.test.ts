@@ -49,7 +49,7 @@ async function expectCurrentPidOwnsLock(params: {
 async function withTempSessionLockFile(
   run: (params: { root: string; sessionFile: string; lockPath: string }) => Promise<void>,
 ) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
   try {
     const sessionFile = path.join(root, "sessions.json");
     await run({ root, sessionFile, lockPath: `${sessionFile}.lock` });
@@ -82,7 +82,7 @@ async function withSymlinkedSessionPaths(
     return;
   }
 
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
   try {
     const realDir = path.join(root, "real");
     const linkDir = path.join(root, "link");
@@ -227,7 +227,7 @@ describe("acquireSessionWriteLock", () => {
   });
 
   it("reclaims stale lock files", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
     try {
       const sessionFile = path.join(root, "sessions.json");
       const lockPath = `${sessionFile}.lock`;
@@ -244,7 +244,7 @@ describe("acquireSessionWriteLock", () => {
   });
 
   it("does not reclaim fresh malformed lock files during contention", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
     try {
       const sessionFile = path.join(root, "sessions.json");
       const lockPath = `${sessionFile}.lock`;
@@ -272,7 +272,7 @@ describe("acquireSessionWriteLock", () => {
   });
 
   it("watchdog releases stale in-process locks", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
     const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     try {
       const sessionFile = path.join(root, "session.jsonl");
@@ -327,7 +327,7 @@ describe("acquireSessionWriteLock", () => {
   });
 
   it("cleans stale .jsonl lock files in sessions directories", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
     const sessionsDir = path.join(root, "sessions");
     await fs.mkdir(sessionsDir, { recursive: true });
 
@@ -390,7 +390,7 @@ describe("acquireSessionWriteLock", () => {
     process.kill = ((_pid: number, _signal?: NodeJS.Signals) => true) as typeof process.kill;
     try {
       for (const signal of signals) {
-        const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-cleanup-"));
+        const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-cleanup-"));
         try {
           const sessionFile = path.join(root, "sessions.json");
           const lockPath = `${sessionFile}.lock`;
@@ -452,7 +452,7 @@ describe("acquireSessionWriteLock", () => {
     expect(__testing.cleanupSignals).toContain("SIGABRT");
   });
   it("cleans up locks on SIGINT without removing other handlers", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-lock-"));
     const originalKill = process.kill.bind(process);
     const killCalls: Array<NodeJS.Signals | undefined> = [];
     let otherHandlerCalled = false;

@@ -3,7 +3,7 @@ import { sanitizeInboundSystemTags } from "../../auto-reply/reply/inbound-text.j
 import type { CliDeps } from "../../cli/deps.types.js";
 import { loadConfig } from "../../config/config.js";
 import { resolveMainSessionKeyFromConfig } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { runCronIsolatedAgentTurn } from "../../cron/isolated-agent.js";
 import type { CronJob } from "../../cron/types.js";
 import { requestHeartbeatNow } from "../../infra/heartbeat-wake.js";
@@ -15,7 +15,7 @@ import { createHooksRequestHandler, type HookClientIpConfig } from "../server-ht
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
-export function resolveHookClientIpConfig(cfg: OpenClawConfig): HookClientIpConfig {
+export function resolveHookClientIpConfig(cfg: GenesisConfig): HookClientIpConfig {
   return {
     trustedProxies: cfg.gateway?.trustedProxies,
     allowRealIpFallback: cfg.gateway?.allowRealIpFallback === true,

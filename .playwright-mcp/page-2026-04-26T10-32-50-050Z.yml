@@ -1,0 +1,49 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - img "Genesis" [ref=e6]
+    - generic [ref=e7]: Genesis
+    - generic [ref=e8]: Gateway 대시보드
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]: WebSocket URL
+      - textbox "WebSocket URL" [ref=e12]:
+        - /placeholder: ws://127.0.0.1:18789
+        - text: ws://127.0.0.1:18789
+    - generic [ref=e13]:
+      - generic [ref=e14]: Gateway 토큰
+      - generic [ref=e15]:
+        - textbox "Gateway 토큰 토큰 표시 여부 전환" [ref=e16]:
+          - /placeholder: GENESIS_GATEWAY_TOKEN (선택 사항)
+        - button "토큰 표시 여부 전환" [ref=e17] [cursor=pointer]:
+          - img [ref=e18]
+    - generic [ref=e23]:
+      - generic [ref=e24]: 비밀번호(저장되지 않음)
+      - generic [ref=e25]:
+        - textbox "비밀번호(저장되지 않음) 비밀번호 표시 여부 전환" [ref=e26]:
+          - /placeholder: 선택 사항
+        - button "비밀번호 표시 여부 전환" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+    - button "연결" [ref=e33] [cursor=pointer]
+  - generic [ref=e35]: "disconnected (1006): no reason"
+  - generic [ref=e36]:
+    - generic [ref=e37]: 연결 방법
+    - list [ref=e38]:
+      - listitem [ref=e39]:
+        - text: "호스트 머신에서 gateway를 시작하세요:"
+        - 'button "Copy command: genesis gateway run" [ref=e40]':
+          - code [ref=e41]: genesis gateway run
+          - button "Copy command" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]:
+              - img [ref=e45]
+              - img [ref=e49]
+      - listitem [ref=e51]:
+        - text: "토큰이 포함된 대시보드 URL을 가져오세요:"
+        - 'button "Copy command: genesis dashboard" [ref=e52]':
+          - code [ref=e53]: genesis dashboard
+          - button "Copy command" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]:
+              - img [ref=e57]
+              - img [ref=e61]
+      - listitem [ref=e63]: 위에 WebSocket URL과 토큰을 붙여넣거나, 토큰이 포함된 URL을 직접 여세요.
+    - link "문서 읽기 →" [ref=e65] [cursor=pointer]:
+      - /url: https://docs.genesis.ai/web/dashboard

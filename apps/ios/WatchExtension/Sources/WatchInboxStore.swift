@@ -139,7 +139,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
     }
 
     private static let persistedStateKey = "watch.inbox.state.v2"
-    private static let defaultTitle = "OpenClaw"
+    private static let defaultTitle = "Genesis"
     private static let defaultBody = "Waiting for messages from your iPhone."
     private let defaults: UserDefaults
 
@@ -249,7 +249,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
             sentAtMs: message.sentAtMs)
         guard deliveryKey != self.lastDeliveryKey else { return }
 
-        let normalizedTitle = message.title.isEmpty ? "OpenClaw" : message.title
+        let normalizedTitle = message.title.isEmpty ? "Genesis" : message.title
         self.title = normalizedTitle
         self.body = message.body
         self.transport = transport
@@ -602,7 +602,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
         content.title = title
         content.body = body
         content.sound = .default
-        content.threadIdentifier = "openclaw-watch"
+        content.threadIdentifier = "genesis-watch"
 
         let request = UNNotificationRequest(
             identifier: identifier,

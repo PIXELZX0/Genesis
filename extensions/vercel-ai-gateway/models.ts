@@ -1,6 +1,6 @@
-import type { ModelDefinitionConfig } from "openclaw/plugin-sdk/provider-model-shared";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import type { ModelDefinitionConfig } from "genesis/plugin-sdk/provider-model-shared";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 
 export const VERCEL_AI_GATEWAY_PROVIDER_ID = "vercel-ai-gateway";
 export const VERCEL_AI_GATEWAY_BASE_URL = "https://ai-gateway.vercel.sh";

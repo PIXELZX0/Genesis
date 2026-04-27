@@ -1,15 +1,15 @@
 {
-  "name": "@openclaw/acpx",
+  "name": "@genesis/acpx",
   "version": "2026.4.20",
-  "description": "OpenClaw ACP runtime backend",
+  "description": "Genesis ACP runtime backend",
   "type": "module",
   "dependencies": {
     "acpx": "0.5.3"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

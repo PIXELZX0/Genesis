@@ -1,25 +1,25 @@
 {
-  "name": "@openclaw/line",
+  "name": "@genesis/line",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw LINE channel plugin",
+  "description": "Genesis LINE channel plugin",
   "type": "module",
   "dependencies": {
     "@line/bot-sdk": "^11.0.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -37,7 +37,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/line",
+      "npmSpec": "@genesis/line",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     }

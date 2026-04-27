@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 
 type CacheEntry<T> = {
   value: T;
@@ -21,7 +21,7 @@ export function buildDirectoryCacheKey(key: DirectoryCacheKey): string {
 
 export class DirectoryCache<T> {
   private readonly cache = new Map<string, CacheEntry<T>>();
-  private lastConfigRef: OpenClawConfig | null = null;
+  private lastConfigRef: GenesisConfig | null = null;
   private readonly maxSize: number;
 
   constructor(
@@ -31,7 +31,7 @@ export class DirectoryCache<T> {
     this.maxSize = Math.max(1, Math.floor(maxSize));
   }
 
-  get(key: string, cfg: OpenClawConfig): T | undefined {
+  get(key: string, cfg: GenesisConfig): T | undefined {
     this.resetIfConfigChanged(cfg);
     this.pruneExpired(Date.now());
     const entry = this.cache.get(key);
@@ -41,7 +41,7 @@ export class DirectoryCache<T> {
     return entry.value;
   }
 
-  set(key: string, value: T, cfg: OpenClawConfig): void {
+  set(key: string, value: T, cfg: GenesisConfig): void {
     this.resetIfConfigChanged(cfg);
     const now = Date.now();
     this.pruneExpired(now);
@@ -61,14 +61,14 @@ export class DirectoryCache<T> {
     }
   }
 
-  clear(cfg?: OpenClawConfig): void {
+  clear(cfg?: GenesisConfig): void {
     this.cache.clear();
     if (cfg) {
       this.lastConfigRef = cfg;
     }
   }
 
-  private resetIfConfigChanged(cfg: OpenClawConfig): void {
+  private resetIfConfigChanged(cfg: GenesisConfig): void {
     if (this.lastConfigRef && this.lastConfigRef !== cfg) {
       this.cache.clear();
     }

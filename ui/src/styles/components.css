@@ -253,6 +253,48 @@
   line-height: 1.5;
 }
 
+.mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.mini-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mini-row:last-child {
+  border-bottom: 0;
+}
+
+.mini-row__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--button-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* ===========================================
    Stats - Bold values, subtle labels
    =========================================== */
@@ -3293,7 +3335,7 @@ td.data-table-key-col {
 .agent-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--secondary);
   display: grid;
   place-items: center;
@@ -3590,7 +3632,7 @@ td.data-table-key-col {
   max-height: min(88vh, 960px);
   padding: 0;
   border: none;
-  border-radius: calc(var(--radius-xl) + 4px);
+  border-radius: var(--radius-xl);
   background: transparent;
   color: inherit;
   overflow: hidden;
@@ -3607,7 +3649,7 @@ td.data-table-key-col {
   min-height: min(70vh, 720px);
   max-height: min(88vh, 960px);
   border: 1px solid var(--border-strong);
-  border-radius: calc(var(--radius-xl) + 4px);
+  border-radius: var(--radius-xl);
   background: color-mix(in srgb, var(--panel) 92%, black 8%);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
   overflow: hidden;

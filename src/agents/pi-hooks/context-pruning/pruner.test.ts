@@ -155,7 +155,7 @@ describe("pruneContextMessages", () => {
   it("does not crash on toolResult with malformed text block (missing text string)", () => {
     // Regression: a plugin returning undefined produces {type: "text"} with no text property,
     // which crashed estimateTextAndImageChars / collectTextSegments / collectPrunableToolResultSegments.
-    // See https://github.com/openclaw/openclaw/issues/34979
+    // See https://github.com/PIXELZX0/Genesis/issues/34979
     const malformedToolResult = {
       role: "toolResult",
       toolName: "sentinel_control",

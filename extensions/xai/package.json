@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/xai-plugin",
+  "name": "@genesis/xai-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw xAI plugin",
+  "description": "Genesis xAI plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2",
@@ -10,9 +10,9 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

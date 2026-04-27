@@ -1,12 +1,12 @@
-import { resolveApprovalOverGateway } from "openclaw/plugin-sdk/approval-gateway-runtime";
-import type { ExecApprovalReplyDecision } from "openclaw/plugin-sdk/approval-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { isApprovalNotFoundError } from "openclaw/plugin-sdk/error-runtime";
+import { resolveApprovalOverGateway } from "genesis/plugin-sdk/approval-gateway-runtime";
+import type { ExecApprovalReplyDecision } from "genesis/plugin-sdk/approval-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { isApprovalNotFoundError } from "genesis/plugin-sdk/error-runtime";
 
 export { isApprovalNotFoundError };
 
 export async function resolveMatrixApproval(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   approvalId: string;
   decision: ExecApprovalReplyDecision;
   senderId?: string | null;

@@ -1,8 +1,8 @@
 export type { Command } from "commander";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-export { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-export { callGatewayFromCli } from "openclaw/plugin-sdk/browser-node-runtime";
-export type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+export type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+export { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+export { callGatewayFromCli } from "genesis/plugin-sdk/browser-node-runtime";
+export type { PluginRuntime } from "genesis/plugin-sdk/runtime-store";
 export { defaultQaRuntimeModelForMode } from "./model-selection.runtime.js";
 export {
   buildQaTarget,
@@ -20,7 +20,7 @@ export {
   searchQaBusMessages,
   sendQaBusMessage,
   setQaChannelRuntime,
-} from "openclaw/plugin-sdk/qa-channel";
+} from "genesis/plugin-sdk/qa-channel";
 export type {
   QaBusAttachment,
   QaBusConversation,
@@ -39,4 +39,4 @@ export type {
   QaBusStateSnapshot,
   QaBusThread,
   QaBusWaitForInput,
-} from "openclaw/plugin-sdk/qa-channel";
+} from "genesis/plugin-sdk/qa-channel";

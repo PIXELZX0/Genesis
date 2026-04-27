@@ -18,7 +18,7 @@ afterEach(async () => {
 
 describe("session-compaction-checkpoints", () => {
   test("capture stores the copied pre-compaction transcript path and cleanup removes only the copy", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-checkpoint-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-checkpoint-"));
     tempDirs.push(dir);
 
     const session = SessionManager.create(dir, dir);

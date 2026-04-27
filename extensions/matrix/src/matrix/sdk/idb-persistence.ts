@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { indexedDB as fakeIndexedDB } from "fake-indexeddb";
-import { withFileLock } from "openclaw/plugin-sdk/file-lock";
+import { withFileLock } from "genesis/plugin-sdk/file-lock";
 import { MATRIX_IDB_SNAPSHOT_LOCK_OPTIONS } from "./idb-persistence-lock.js";
 import { LogService } from "./logger.js";
 
 // Advisory lock options for IDB snapshot file access. Without locking, the
 // gateway's periodic 60-second persist cycle and CLI crypto commands (e.g.
-// `openclaw matrix verify bootstrap`) can corrupt each other's state.
+// `genesis matrix verify bootstrap`) can corrupt each other's state.
 // Use a longer stale window than the generic 30s default because snapshot
 // restore and large crypto-store dumps can legitimately hold the lock for
 // longer, and reclaiming a live lock would reintroduce concurrent corruption.
@@ -210,7 +210,7 @@ async function restoreIndexedDatabases(snapshot: IdbDatabaseSnapshot[]): Promise
 
 function resolveDefaultIdbSnapshotPath(): string {
   const stateDir =
-    process.env.OPENCLAW_STATE_DIR || path.join(process.env.HOME || "/tmp", ".openclaw");
+    process.env.GENESIS_STATE_DIR || path.join(process.env.HOME || "/tmp", ".genesis");
   return path.join(stateDir, "matrix", "crypto-idb-snapshot.json");
 }
 

@@ -1,6 +1,6 @@
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { resolveStorePath, updateSessionStore } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveStoredSessionOwnerAgentId } from "../gateway/session-store-key.js";
 import { getLogger } from "../logging/logger.js";
 import { normalizeAgentId } from "../routing/session-key.js";
@@ -18,13 +18,13 @@ export async function requireValidConfigFileSnapshot(runtime: RuntimeEnv) {
   return await requireValidConfigFileSnapshotBase(runtime);
 }
 
-export async function requireValidConfig(runtime: RuntimeEnv): Promise<OpenClawConfig | null> {
+export async function requireValidConfig(runtime: RuntimeEnv): Promise<GenesisConfig | null> {
   return await requireValidConfigSnapshot(runtime);
 }
 
 /** Purge session store entries for a deleted agent (#65524). Best-effort. */
 export async function purgeAgentSessionStoreEntries(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
 ): Promise<void> {
   try {

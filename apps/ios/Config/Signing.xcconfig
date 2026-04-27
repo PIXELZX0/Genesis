@@ -1,25 +1,25 @@
 // Shared iOS signing defaults for local development + CI.
 #include "Version.xcconfig"
 
-OPENCLAW_IOS_DEFAULT_TEAM = Y5PE65HELJ
-OPENCLAW_IOS_SELECTED_TEAM = $(OPENCLAW_IOS_DEFAULT_TEAM)
-OPENCLAW_DEVELOPMENT_TEAM = $(OPENCLAW_IOS_SELECTED_TEAM)
-OPENCLAW_CODE_SIGN_STYLE = Automatic
-OPENCLAW_APP_BUNDLE_ID = ai.openclaw.client
-OPENCLAW_WATCH_APP_BUNDLE_ID = ai.openclaw.client.watchkitapp
-OPENCLAW_WATCH_EXTENSION_BUNDLE_ID = ai.openclaw.client.watchkitapp.extension
-OPENCLAW_ACTIVITY_WIDGET_BUNDLE_ID = ai.openclaw.client.activitywidget
-OPENCLAW_WATCH_APP_PROFILE =
-OPENCLAW_WATCH_EXTENSION_PROFILE =
+GENESIS_IOS_DEFAULT_TEAM = Y5PE65HELJ
+GENESIS_IOS_SELECTED_TEAM = $(GENESIS_IOS_DEFAULT_TEAM)
+GENESIS_DEVELOPMENT_TEAM = $(GENESIS_IOS_SELECTED_TEAM)
+GENESIS_CODE_SIGN_STYLE = Automatic
+GENESIS_APP_BUNDLE_ID = ai.genesis.client
+GENESIS_WATCH_APP_BUNDLE_ID = ai.genesis.client.watchkitapp
+GENESIS_WATCH_EXTENSION_BUNDLE_ID = ai.genesis.client.watchkitapp.extension
+GENESIS_ACTIVITY_WIDGET_BUNDLE_ID = ai.genesis.client.activitywidget
+GENESIS_WATCH_APP_PROFILE =
+GENESIS_WATCH_EXTENSION_PROFILE =
 
 // Local contributors can override this by running scripts/ios-configure-signing.sh.
 // Keep include after defaults: xcconfig is evaluated top-to-bottom.
 #include? "../.local-signing.xcconfig"
 #include? "../LocalSigning.xcconfig"
 
-CODE_SIGN_STYLE = $(OPENCLAW_CODE_SIGN_STYLE)
+CODE_SIGN_STYLE = $(GENESIS_CODE_SIGN_STYLE)
 CODE_SIGN_IDENTITY = Apple Development
-DEVELOPMENT_TEAM = $(OPENCLAW_DEVELOPMENT_TEAM)
+DEVELOPMENT_TEAM = $(GENESIS_DEVELOPMENT_TEAM)
 
 // Let Xcode manage provisioning for the selected local team unless a local override pins one.
 PROVISIONING_PROFILE_SPECIFIER =

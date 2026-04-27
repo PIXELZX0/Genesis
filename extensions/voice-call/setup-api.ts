@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/plugin-entry";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { isRecord } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { isRecord } from "genesis/plugin-sdk/text-runtime";
 import { migrateVoiceCallLegacyConfigInput } from "./config-api.js";
 
-function migrateVoiceCallPluginConfig(config: OpenClawConfig): {
-  config: OpenClawConfig;
+function migrateVoiceCallPluginConfig(config: GenesisConfig): {
+  config: GenesisConfig;
   changes: string[];
 } | null {
   const rawVoiceCallConfig = config.plugins?.entries?.["voice-call"]?.config;

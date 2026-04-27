@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { importFreshModule } from "../../test/helpers/import-fresh.ts";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
-import type { OpenClawPluginApi, PluginRegistrationMode } from "../plugins/types.js";
+import type { GenesisPluginApi, PluginRegistrationMode } from "../plugins/types.js";
 import { defineBundledChannelEntry, loadBundledEntryExportSync } from "./channel-entry-contract.js";
 
 const tempDirs: string[] = [];
@@ -19,12 +19,12 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-function createApi(registrationMode: PluginRegistrationMode): OpenClawPluginApi {
+function createApi(registrationMode: PluginRegistrationMode): GenesisPluginApi {
   return {
     registrationMode,
     runtime: { registrationMode } as unknown as PluginRuntime,
     registerChannel: vi.fn(),
-  } as unknown as OpenClawPluginApi;
+  } as unknown as GenesisPluginApi;
 }
 
 function writeBundledChannelFixture(params: {
@@ -74,8 +74,8 @@ function writeBundledChannelFixture(params: {
 function createBundledChannelEntry(params: {
   importerPath: string;
   pluginId: string;
-  registerCliMetadata?: (api: OpenClawPluginApi) => void;
-  registerFull?: (api: OpenClawPluginApi) => void;
+  registerCliMetadata?: (api: GenesisPluginApi) => void;
+  registerFull?: (api: GenesisPluginApi) => void;
 }) {
   return defineBundledChannelEntry({
     id: params.pluginId,
@@ -91,7 +91,7 @@ function createBundledChannelEntry(params: {
 
 describe("defineBundledChannelEntry", () => {
   it("keeps runtime sidecars out of discovery registration", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-entry-runtime-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-bundled-entry-runtime-"));
     tempDirs.push(tempRoot);
     const runtimeMarker = path.join(tempRoot, "runtime-loaded");
     const pluginId = "bundled-discovery";
@@ -100,8 +100,8 @@ describe("defineBundledChannelEntry", () => {
       pluginId,
       runtimeMarker,
     });
-    const registerCliMetadata = vi.fn<(api: OpenClawPluginApi) => void>();
-    const registerFull = vi.fn<(api: OpenClawPluginApi) => void>();
+    const registerCliMetadata = vi.fn<(api: GenesisPluginApi) => void>();
+    const registerFull = vi.fn<(api: GenesisPluginApi) => void>();
     const entry = createBundledChannelEntry({
       importerPath,
       pluginId,
@@ -119,7 +119,7 @@ describe("defineBundledChannelEntry", () => {
   });
 
   it("keeps setup-runtime and full registration wired to runtime sidecars", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-entry-runtime-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-bundled-entry-runtime-"));
     tempDirs.push(tempRoot);
     const runtimeMarker = path.join(tempRoot, "runtime-loaded");
     const pluginId = "bundled-runtime";
@@ -128,8 +128,8 @@ describe("defineBundledChannelEntry", () => {
       pluginId,
       runtimeMarker,
     });
-    const registerCliMetadata = vi.fn<(api: OpenClawPluginApi) => void>();
-    const registerFull = vi.fn<(api: OpenClawPluginApi) => void>();
+    const registerCliMetadata = vi.fn<(api: GenesisPluginApi) => void>();
+    const registerFull = vi.fn<(api: GenesisPluginApi) => void>();
     const entry = createBundledChannelEntry({
       importerPath,
       pluginId,
@@ -155,7 +155,7 @@ async function expectBuiltArtifactNodeRequireFastPath(
   scope: string,
   artifactRoot = "dist",
 ): Promise<void> {
-  vi.stubEnv("OPENCLAW_PLUGIN_LOAD_PROFILE", "1");
+  vi.stubEnv("GENESIS_PLUGIN_LOAD_PROFILE", "1");
   const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
   try {
@@ -163,7 +163,7 @@ async function expectBuiltArtifactNodeRequireFastPath(
       typeof import("./channel-entry-contract.js")
     >(import.meta.url, `./channel-entry-contract.js?scope=${scope}`);
 
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-contract-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
     tempDirs.push(tempRoot);
 
     const pluginRoot = path.join(tempRoot, artifactRoot, "extensions", "telegram");
@@ -197,7 +197,7 @@ async function expectBuiltArtifactNodeRequireFastPath(
 
 describe("loadBundledEntryExportSync", () => {
   it("includes importer and resolved path context when a bundled sidecar is missing", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-contract-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
     tempDirs.push(tempRoot);
 
     const pluginRoot = path.join(tempRoot, "dist", "extensions", "telegram");
@@ -236,7 +236,7 @@ describe("loadBundledEntryExportSync", () => {
       const channelEntryContract = await importFreshModule<
         typeof import("./channel-entry-contract.js")
       >(import.meta.url, "./channel-entry-contract.js?scope=windows-dist-jiti");
-      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-contract-"));
+      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
       tempDirs.push(tempRoot);
 
       const pluginRoot = path.join(tempRoot, "dist", "extensions", "telegram");
@@ -265,7 +265,7 @@ describe("loadBundledEntryExportSync", () => {
   });
 
   it("loads packaged telegram setup sidecars from dist-facing api modules", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-contract-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
     tempDirs.push(tempRoot);
 
     const pluginRoot = path.join(tempRoot, "dist", "extensions", "telegram");
@@ -324,10 +324,10 @@ describe("loadBundledEntryExportSync", () => {
   });
 
   it("can disable source-tree fallback for dist bundled entry checks", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-contract-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
     tempDirs.push(tempRoot);
 
-    fs.writeFileSync(path.join(tempRoot, "package.json"), '{"name":"openclaw"}\n', "utf8");
+    fs.writeFileSync(path.join(tempRoot, "package.json"), '{"name":"genesis"}\n', "utf8");
     const pluginRoot = path.join(tempRoot, "dist", "extensions", "telegram");
     const sourceRoot = path.join(tempRoot, "extensions", "telegram", "src");
     fs.mkdirSync(pluginRoot, { recursive: true });
@@ -348,7 +348,7 @@ describe("loadBundledEntryExportSync", () => {
       }),
     ).toBe(42);
 
-    vi.stubEnv("OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK", "1");
+    vi.stubEnv("GENESIS_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK", "1");
 
     expect(() =>
       loadBundledEntryExportSync<number>(pathToFileURL(importerPath).href, {

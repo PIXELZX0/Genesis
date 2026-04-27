@@ -2,7 +2,7 @@ import type { BuildTelegramMessageContextParams, TelegramMediaRef } from "./bot-
 import { finalizeTelegramInboundContextForTest } from "./bot-message-context.session-runtime-test-support.js";
 
 export const baseTelegramMessageContextConfig = {
-  agents: { defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/openclaw" } },
+  agents: { defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/genesis" } },
   channels: { telegram: {} },
   messages: { groupChat: { mentionPatterns: [] } },
 } as never;
@@ -32,7 +32,7 @@ const telegramMessageContextSessionRuntimeForTest = {
   resolveInboundLastRouteSessionKey: ({ route, sessionKey }) =>
     route.lastRoutePolicy === "main" ? route.mainSessionKey : sessionKey,
   resolvePinnedMainDmOwnerFromAllowlist: () => null,
-  resolveStorePath: () => "/tmp/openclaw/session-store.json",
+  resolveStorePath: () => "/tmp/genesis/session-store.json",
 } satisfies NonNullable<BuildTelegramMessageContextParams["sessionRuntime"]>;
 
 export async function buildTelegramMessageContextForTest(

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import { createLazyRuntimeNamedExport } from "../shared/lazy-runtime.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
@@ -51,8 +51,8 @@ export type RuntimeWebProviderSelectionParams<
   configuredProvider?: string;
   metadata: TMetadata;
   diagnostics: RuntimeWebDiagnostic[];
-  sourceConfig: OpenClawConfig;
-  resolvedConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  resolvedConfig: GenesisConfig;
   context: ResolverContext;
   defaults: SecretDefaults | undefined;
   deferKeylessFallback: boolean;
@@ -61,7 +61,7 @@ export type RuntimeWebProviderSelectionParams<
   autoDetectSelectedCode: RuntimeWebWarningCode;
   readConfiguredCredential: (params: {
     provider: TProvider;
-    config: OpenClawConfig;
+    config: GenesisConfig;
     toolConfig: TToolConfig;
   }) => unknown;
   resolveSecretInput: (params: {
@@ -70,7 +70,7 @@ export type RuntimeWebProviderSelectionParams<
     envVars: string[];
   }) => Promise<SecretResolutionResult<TSource>>;
   setResolvedCredential: (params: {
-    resolvedConfig: OpenClawConfig;
+    resolvedConfig: GenesisConfig;
     provider: TProvider;
     value: string;
   }) => void;
@@ -176,14 +176,14 @@ export type ResolveRuntimeWebProviderSurfaceParams<
   diagnostics: RuntimeWebDiagnostic[];
   metadataDiagnostics: RuntimeWebDiagnostic[];
   invalidAutoDetectCode: RuntimeWebWarningCode;
-  sourceConfig: OpenClawConfig;
+  sourceConfig: GenesisConfig;
   context: ResolverContext;
   configuredBundledPluginIdHint?: string;
   resolveProviders: (params: { configuredBundledPluginId?: string }) => Promise<TProvider[]>;
   sortProviders: (providers: TProvider[]) => TProvider[];
   readConfiguredCredential: (params: {
     provider: TProvider;
-    config: OpenClawConfig;
+    config: GenesisConfig;
     toolConfig: TToolConfig;
   }) => unknown;
   ignoreKeylessProvidersForConfiguredSurface?: boolean;

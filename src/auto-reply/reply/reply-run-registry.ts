@@ -87,7 +87,7 @@ type ReplyRunState = {
   waitersByKey: Map<string, Set<ReplyRunWaiter>>;
 };
 
-const REPLY_RUN_STATE_KEY = Symbol.for("openclaw.replyRunRegistry");
+const REPLY_RUN_STATE_KEY = Symbol.for("genesis.replyRunRegistry");
 
 const replyRunState = resolveGlobalSingleton<ReplyRunState>(REPLY_RUN_STATE_KEY, () => ({
   activeRunsByKey: new Map<string, ReplyOperation>(),

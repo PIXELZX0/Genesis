@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
-import { resolveOpenClawAgentDir } from "../../agents/agent-paths.js";
+import { resolveGenesisAgentDir } from "../../agents/agent-paths.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
   type AuthProfileCredential,
@@ -24,7 +24,7 @@ import {
   resolveSessionTranscriptPath,
   resolveSessionTranscriptsDirForAgent,
 } from "../../config/sessions/paths.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { coerceSecretRef, normalizeSecretInputString } from "../../config/types.secrets.js";
 import { type SecretRefResolveCache, resolveSecretRefString } from "../../secrets/resolve.js";
 import { redactSecrets } from "../status-all/format.js";
@@ -198,7 +198,7 @@ function formatMissingCredentialProbeError(reasonCode: AuthProbeReasonCode): str
   return `${legacyLine}\n↳ Auth reason [ineligible_profile]: profile is incompatible with provider config.`;
 }
 
-function resolveProbeSecretRef(profile: AuthProfileCredential, cfg: OpenClawConfig) {
+function resolveProbeSecretRef(profile: AuthProfileCredential, cfg: GenesisConfig) {
   const defaults = cfg.secrets?.defaults;
   if (profile.type === "api_key") {
     if (normalizeSecretInputString(profile.key) !== undefined) {
@@ -221,7 +221,7 @@ function formatUnresolvedRefProbeError(refLabel: string): string {
 }
 
 async function maybeResolveUnresolvedRefIssue(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   profile?: AuthProfileCredential;
   cache: SecretRefResolveCache;
 }): Promise<{ reasonCode: "unresolved_ref"; error: string } | null> {
@@ -248,7 +248,7 @@ async function maybeResolveUnresolvedRefIssue(params: {
 }
 
 export async function buildProbeTargets(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providers: string[];
   modelCandidates: string[];
   options: AuthProbeOptions;
@@ -417,7 +417,7 @@ export async function buildProbeTargets(params: {
 }
 
 async function probeTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   agentDir: string;
   workspaceDir: string;
@@ -493,7 +493,7 @@ async function probeTarget(params: {
 }
 
 async function runTargetsWithConcurrency(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   targets: AuthProbeTarget[];
   timeoutMs: number;
   maxTokens: number;
@@ -504,7 +504,7 @@ async function runTargetsWithConcurrency(params: {
   const concurrency = Math.max(1, Math.min(targets.length || 1, params.concurrency));
 
   const agentId = resolveDefaultAgentId(cfg);
-  const agentDir = resolveOpenClawAgentDir();
+  const agentDir = resolveGenesisAgentDir();
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId) ?? resolveDefaultAgentWorkspaceDir();
   const sessionDir = resolveSessionTranscriptsDirForAgent(agentId);
 
@@ -549,7 +549,7 @@ async function runTargetsWithConcurrency(params: {
 }
 
 export async function runAuthProbes(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providers: string[];
   modelCandidates: string[];
   options: AuthProbeOptions;

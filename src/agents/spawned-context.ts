@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeAgentId, parseAgentSessionKey } from "../routing/session-key.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { resolveAgentWorkspaceDir } from "./agent-scope.js";
@@ -51,7 +51,7 @@ export function mapToolContextToSpawnedRunMetadata(
 }
 
 export function resolveSpawnedWorkspaceInheritance(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   targetAgentId?: string;
   requesterSessionKey?: string;
   explicitWorkspaceDir?: string | null;

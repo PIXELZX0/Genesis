@@ -6,7 +6,7 @@ import {
 
 describeChannelCatalogEntryContract({
   channelId: "msteams",
-  npmSpec: "@openclaw/msteams",
+  npmSpec: "@genesis/msteams",
   alias: "teams",
 });
 
@@ -21,17 +21,17 @@ const whatsappMeta = {
 
 describeBundledMetadataOnlyChannelCatalogContract({
   pluginId: "whatsapp",
-  packageName: "@openclaw/whatsapp",
-  npmSpec: "@openclaw/whatsapp",
+  packageName: "@genesis/whatsapp",
+  npmSpec: "@genesis/whatsapp",
   meta: whatsappMeta,
   defaultChoice: "npm",
 });
 
 describeOfficialFallbackChannelCatalogContract({
   channelId: "whatsapp",
-  npmSpec: "@openclaw/whatsapp",
+  npmSpec: "@genesis/whatsapp",
   meta: whatsappMeta,
-  packageName: "@openclaw/whatsapp",
+  packageName: "@genesis/whatsapp",
   pluginId: "whatsapp",
   externalNpmSpec: "@vendor/whatsapp-fork",
   externalLabel: "WhatsApp Fork",
@@ -39,6 +39,6 @@ describeOfficialFallbackChannelCatalogContract({
 
 describeChannelCatalogEntryContract({
   channelId: "wecom",
-  npmSpec: "@wecom/wecom-openclaw-plugin@2026.4.23",
+  npmSpec: "@wecom/wecom-genesis-plugin@2026.4.23",
   alias: "wework",
 });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import * as mediaStore from "../../media/store.js";
 import * as webMedia from "../../media/web-media.js";
 import * as videoGenerationRuntime from "../../video-generation/runtime.js";
@@ -20,8 +20,8 @@ const taskExecutorMocks = vi.hoisted(() => ({
 vi.mock("../../tasks/runtime-internal.js", () => taskRuntimeInternalMocks);
 vi.mock("../../tasks/detached-task-runtime.js", () => taskExecutorMocks);
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
 function mockVideoPluginProvider(capabilities: Record<string, unknown> = {}) {

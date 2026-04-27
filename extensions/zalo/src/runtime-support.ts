@@ -1,19 +1,19 @@
-export type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-export type { OpenClawConfig, GroupPolicy } from "openclaw/plugin-sdk/config-runtime";
-export type { MarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-export type { BaseTokenResolution } from "openclaw/plugin-sdk/channel-contract";
+export type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+export type { GenesisConfig, GroupPolicy } from "genesis/plugin-sdk/config-runtime";
+export type { MarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
+export type { BaseTokenResolution } from "genesis/plugin-sdk/channel-contract";
 export type {
   BaseProbeResult,
   ChannelAccountSnapshot,
   ChannelMessageActionAdapter,
   ChannelMessageActionName,
   ChannelStatusIssue,
-} from "openclaw/plugin-sdk/channel-contract";
-export type { SecretInput } from "openclaw/plugin-sdk/secret-input";
-export type { SenderGroupAccessDecision } from "openclaw/plugin-sdk/group-access";
-export type { ChannelPlugin, PluginRuntime, WizardPrompter } from "openclaw/plugin-sdk/core";
-export type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-export type { OutboundReplyPayload } from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/channel-contract";
+export type { SecretInput } from "genesis/plugin-sdk/secret-input";
+export type { SenderGroupAccessDecision } from "genesis/plugin-sdk/group-access";
+export type { ChannelPlugin, PluginRuntime, WizardPrompter } from "genesis/plugin-sdk/core";
+export type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
+export type { OutboundReplyPayload } from "genesis/plugin-sdk/reply-payload";
 export {
   DEFAULT_ACCOUNT_ID,
   buildChannelConfigSchema,
@@ -23,7 +23,7 @@ export {
   normalizeAccountId,
   readStringParam,
   resolveClientIp,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";
 export {
   applyAccountNameToChannelSection,
   applySetupAccountConfigPatch,
@@ -33,44 +33,41 @@ export {
   promptSingleChannelSecretInput,
   runSingleChannelSecretStep,
   setTopLevelChannelDmPolicyWithAllowFrom,
-} from "openclaw/plugin-sdk/setup";
+} from "genesis/plugin-sdk/setup";
 export {
   buildSecretInputSchema,
   hasConfiguredSecretInput,
   normalizeResolvedSecretInputString,
   normalizeSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/secret-input";
 export {
   buildTokenChannelStatusSummary,
   PAIRING_APPROVED_MESSAGE,
-} from "openclaw/plugin-sdk/channel-status";
-export { buildBaseAccountStatusSnapshot } from "openclaw/plugin-sdk/status-helpers";
-export { chunkTextForOutbound } from "openclaw/plugin-sdk/text-chunking";
-export {
-  formatAllowFromLowercase,
-  isNormalizedSenderAllowed,
-} from "openclaw/plugin-sdk/allow-from";
-export { addWildcardAllowFrom } from "openclaw/plugin-sdk/setup";
-export { evaluateSenderGroupAccess } from "openclaw/plugin-sdk/group-access";
-export { resolveOpenProviderRuntimeGroupPolicy } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-status";
+export { buildBaseAccountStatusSnapshot } from "genesis/plugin-sdk/status-helpers";
+export { chunkTextForOutbound } from "genesis/plugin-sdk/text-chunking";
+export { formatAllowFromLowercase, isNormalizedSenderAllowed } from "genesis/plugin-sdk/allow-from";
+export { addWildcardAllowFrom } from "genesis/plugin-sdk/setup";
+export { evaluateSenderGroupAccess } from "genesis/plugin-sdk/group-access";
+export { resolveOpenProviderRuntimeGroupPolicy } from "genesis/plugin-sdk/config-runtime";
 export {
   warnMissingProviderGroupPolicyFallbackOnce,
   resolveDefaultGroupPolicy,
-} from "openclaw/plugin-sdk/config-runtime";
-export { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
-export { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-export { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
+} from "genesis/plugin-sdk/config-runtime";
+export { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";
+export { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
+export { logTypingFailure } from "genesis/plugin-sdk/channel-feedback";
 export {
   deliverTextOrMediaReply,
   isNumericTargetId,
   sendPayloadWithChunkedTextAndMedia,
-} from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/reply-payload";
 export {
   resolveDirectDmAuthorizationOutcome,
   resolveSenderCommandAuthorizationWithRuntime,
-} from "openclaw/plugin-sdk/command-auth";
-export { resolveInboundRouteEnvelopeBuilderWithRuntime } from "openclaw/plugin-sdk/inbound-envelope";
-export { waitForAbortSignal } from "openclaw/plugin-sdk/runtime";
+} from "genesis/plugin-sdk/command-auth";
+export { resolveInboundRouteEnvelopeBuilderWithRuntime } from "genesis/plugin-sdk/inbound-envelope";
+export { waitForAbortSignal } from "genesis/plugin-sdk/runtime";
 export {
   applyBasicWebhookRequestGuards,
   createFixedWindowRateLimiter,
@@ -84,8 +81,8 @@ export {
   WEBHOOK_ANOMALY_COUNTER_DEFAULTS,
   WEBHOOK_RATE_LIMIT_DEFAULTS,
   withResolvedWebhookRequestPipeline,
-} from "openclaw/plugin-sdk/webhook-ingress";
+} from "genesis/plugin-sdk/webhook-ingress";
 export type {
   RegisterWebhookPluginRouteOptions,
   RegisterWebhookTargetOptions,
-} from "openclaw/plugin-sdk/webhook-ingress";
+} from "genesis/plugin-sdk/webhook-ingress";

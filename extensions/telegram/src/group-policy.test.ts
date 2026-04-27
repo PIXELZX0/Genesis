@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import {
   resolveTelegramGroupRequireMention,
@@ -24,7 +24,7 @@ describe("resolveTelegramGroupRequireMention", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(
       resolveTelegramGroupRequireMention({
@@ -48,7 +48,7 @@ describe("resolveTelegramGroupToolPolicy", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(
       resolveTelegramGroupToolPolicy({

@@ -1,4 +1,4 @@
-import { parseGeminiAuth } from "openclaw/plugin-sdk/image-generation-core";
+import { parseGeminiAuth } from "genesis/plugin-sdk/image-generation-core";
 import {
   buildRemoteBaseUrlPolicy,
   debugEmbeddingsLog,
@@ -7,17 +7,17 @@ import {
   type EmbeddingInput,
   type MemoryEmbeddingProvider,
   type MemoryEmbeddingProviderCreateOptions,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
-import { resolveMemorySecretInputString } from "openclaw/plugin-sdk/memory-core-host-secret";
+} from "genesis/plugin-sdk/memory-core-host-engine-embeddings";
+import { resolveMemorySecretInputString } from "genesis/plugin-sdk/memory-core-host-secret";
 import {
   collectProviderApiKeysForExecution,
   executeWithApiKeyRotation,
   requireApiKey,
   resolveApiKeyForProvider,
-} from "openclaw/plugin-sdk/provider-auth-runtime";
-import { createProviderHttpError } from "openclaw/plugin-sdk/provider-http";
-import type { SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-auth-runtime";
+import { createProviderHttpError } from "genesis/plugin-sdk/provider-http";
+import type { SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 
 export type GeminiEmbeddingClient = {
   baseUrl: string;

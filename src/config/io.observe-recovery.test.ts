@@ -33,7 +33,7 @@ describe("config observe recovery", () => {
   }
 
   beforeAll(async () => {
-    fixtureRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "openclaw-config-observe-recovery-"));
+    fixtureRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "genesis-config-observe-recovery-"));
   });
 
   afterAll(async () => {
@@ -144,7 +144,7 @@ describe("config observe recovery", () => {
     auditPath: string;
     warn: ReturnType<typeof vi.fn>;
   } {
-    const configPath = path.join(home, ".openclaw", "openclaw.json");
+    const configPath = path.join(home, ".genesis", "genesis.json");
     return {
       deps: {
         fs,
@@ -154,7 +154,7 @@ describe("config observe recovery", () => {
         logger: { warn },
       },
       configPath,
-      auditPath: path.join(home, ".openclaw", "logs", "config-audit.jsonl"),
+      auditPath: path.join(home, ".genesis", "logs", "config-audit.jsonl"),
       warn,
     };
   }
@@ -449,7 +449,7 @@ describe("config observe recovery", () => {
             {
               path: "plugins.entries.feishu",
               message:
-                "plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load",
+                "plugin feishu: plugin requires Genesis >=2026.4.23, but this host is 2026.4.22; skipping load",
             },
           ],
         },

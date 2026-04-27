@@ -286,7 +286,7 @@ export class TelnyxProvider implements VoiceCallProvider {
    */
   async answerCall(input: AnswerCallInput): Promise<void> {
     await this.apiRequest(`/calls/${input.providerCallId}/actions/answer`, {
-      command_id: `openclaw-answer-${input.callId}`,
+      command_id: `genesis-answer-${input.callId}`,
     });
   }
 

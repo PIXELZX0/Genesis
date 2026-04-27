@@ -1,4 +1,4 @@
-import { resolveOpenClawAgentDir } from "openclaw/plugin-sdk/provider-auth";
+import { resolveGenesisAgentDir } from "genesis/plugin-sdk/provider-auth";
 import { applyCodexAppServerAuthProfile, bridgeCodexAppServerStartOptions } from "./auth-bridge.js";
 import { CodexAppServerClient } from "./client.js";
 import {
@@ -14,7 +14,7 @@ type SharedCodexAppServerClientState = {
   key?: string;
 };
 
-const SHARED_CODEX_APP_SERVER_CLIENT_STATE = Symbol.for("openclaw.codexAppServerClientState");
+const SHARED_CODEX_APP_SERVER_CLIENT_STATE = Symbol.for("genesis.codexAppServerClientState");
 
 function getSharedCodexAppServerClientState(): SharedCodexAppServerClientState {
   const globalState = globalThis as typeof globalThis & {
@@ -32,7 +32,7 @@ export async function getSharedCodexAppServerClient(options?: {
   const state = getSharedCodexAppServerClientState();
   const startOptions = await bridgeCodexAppServerStartOptions({
     startOptions: options?.startOptions ?? resolveCodexAppServerRuntimeOptions().start,
-    agentDir: resolveOpenClawAgentDir(),
+    agentDir: resolveGenesisAgentDir(),
     authProfileId: options?.authProfileId,
   });
   const key = codexAppServerStartOptionsKey(startOptions, {
@@ -52,7 +52,7 @@ export async function getSharedCodexAppServerClient(options?: {
         await client.initialize();
         await applyCodexAppServerAuthProfile({
           client,
-          agentDir: resolveOpenClawAgentDir(),
+          agentDir: resolveGenesisAgentDir(),
           authProfileId: options?.authProfileId,
         });
         return client;
@@ -84,7 +84,7 @@ export async function createIsolatedCodexAppServerClient(options?: {
 }): Promise<CodexAppServerClient> {
   const startOptions = await bridgeCodexAppServerStartOptions({
     startOptions: options?.startOptions ?? resolveCodexAppServerRuntimeOptions().start,
-    agentDir: resolveOpenClawAgentDir(),
+    agentDir: resolveGenesisAgentDir(),
     authProfileId: options?.authProfileId,
   });
   const client = CodexAppServerClient.start(startOptions);
@@ -93,7 +93,7 @@ export async function createIsolatedCodexAppServerClient(options?: {
     await withTimeout(initialize, options?.timeoutMs ?? 0, "codex app-server initialize timed out");
     await applyCodexAppServerAuthProfile({
       client,
-      agentDir: resolveOpenClawAgentDir(),
+      agentDir: resolveGenesisAgentDir(),
       authProfileId: options?.authProfileId,
     });
     return client;

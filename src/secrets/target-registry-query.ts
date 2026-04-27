@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadBundledChannelSecretContractApi } from "./channel-contract-api.js";
 import { getPath } from "./path-utils.js";
 import { getCoreSecretTargetRegistry, getSecretTargetRegistry } from "./target-registry-data.js";
@@ -20,19 +20,19 @@ let compiledSecretTargetRegistryState: {
   authProfilesTargetsById: Map<string, CompiledTargetRegistryEntry[]>;
   compiledSecretTargetRegistry: CompiledTargetRegistryEntry[];
   knownTargetIds: Set<string>;
-  openClawCompiledSecretTargets: CompiledTargetRegistryEntry[];
-  openClawTargetsById: Map<string, CompiledTargetRegistryEntry[]>;
+  genesisCompiledSecretTargets: CompiledTargetRegistryEntry[];
+  genesisTargetsById: Map<string, CompiledTargetRegistryEntry[]>;
   targetsByType: Map<string, CompiledTargetRegistryEntry[]>;
 } | null = null;
 
-let compiledCoreOpenClawTargetState: {
+let compiledCoreGenesisTargetState: {
   knownTargetIds: Set<string>;
-  openClawCompiledSecretTargets: CompiledTargetRegistryEntry[];
-  openClawTargetsById: Map<string, CompiledTargetRegistryEntry[]>;
+  genesisCompiledSecretTargets: CompiledTargetRegistryEntry[];
+  genesisTargetsById: Map<string, CompiledTargetRegistryEntry[]>;
   targetsByType: Map<string, CompiledTargetRegistryEntry[]>;
 } | null = null;
 
-const compiledBundledChannelOpenClawTargets = new Map<
+const compiledBundledChannelGenesisTargets = new Map<
   string,
   CompiledTargetRegistryEntry[] | null
 >();
@@ -78,8 +78,8 @@ function getCompiledSecretTargetRegistryState() {
     return compiledSecretTargetRegistryState;
   }
   const compiledSecretTargetRegistry = getSecretTargetRegistry().map(compileTargetRegistryEntry);
-  const openClawCompiledSecretTargets = compiledSecretTargetRegistry.filter(
-    (entry) => entry.configFile === "openclaw.json",
+  const genesisCompiledSecretTargets = compiledSecretTargetRegistry.filter(
+    (entry) => entry.configFile === "genesis.json",
   );
   const authProfilesCompiledSecretTargets = compiledSecretTargetRegistry.filter(
     (entry) => entry.configFile === "auth-profiles.json",
@@ -89,44 +89,44 @@ function getCompiledSecretTargetRegistryState() {
     authProfilesTargetsById: buildConfigTargetIdIndex(authProfilesCompiledSecretTargets),
     compiledSecretTargetRegistry,
     knownTargetIds: new Set(compiledSecretTargetRegistry.map((entry) => entry.id)),
-    openClawCompiledSecretTargets,
-    openClawTargetsById: buildConfigTargetIdIndex(openClawCompiledSecretTargets),
+    genesisCompiledSecretTargets,
+    genesisTargetsById: buildConfigTargetIdIndex(genesisCompiledSecretTargets),
     targetsByType: buildTargetTypeIndex(compiledSecretTargetRegistry),
   };
   return compiledSecretTargetRegistryState;
 }
 
-function getCompiledCoreOpenClawTargetState() {
-  if (compiledCoreOpenClawTargetState) {
-    return compiledCoreOpenClawTargetState;
+function getCompiledCoreGenesisTargetState() {
+  if (compiledCoreGenesisTargetState) {
+    return compiledCoreGenesisTargetState;
   }
-  const openClawCompiledSecretTargets = getCoreSecretTargetRegistry()
-    .filter((entry) => entry.configFile === "openclaw.json")
+  const genesisCompiledSecretTargets = getCoreSecretTargetRegistry()
+    .filter((entry) => entry.configFile === "genesis.json")
     .map(compileTargetRegistryEntry);
-  compiledCoreOpenClawTargetState = {
-    knownTargetIds: new Set(openClawCompiledSecretTargets.map((entry) => entry.id)),
-    openClawCompiledSecretTargets,
-    openClawTargetsById: buildConfigTargetIdIndex(openClawCompiledSecretTargets),
-    targetsByType: buildTargetTypeIndex(openClawCompiledSecretTargets),
+  compiledCoreGenesisTargetState = {
+    knownTargetIds: new Set(genesisCompiledSecretTargets.map((entry) => entry.id)),
+    genesisCompiledSecretTargets,
+    genesisTargetsById: buildConfigTargetIdIndex(genesisCompiledSecretTargets),
+    targetsByType: buildTargetTypeIndex(genesisCompiledSecretTargets),
   };
-  return compiledCoreOpenClawTargetState;
+  return compiledCoreGenesisTargetState;
 }
 
-function getCompiledBundledChannelOpenClawTargets(
+function getCompiledBundledChannelGenesisTargets(
   channelId: string,
 ): CompiledTargetRegistryEntry[] | null {
   const normalizedChannelId = channelId.trim();
   if (!normalizedChannelId) {
     return null;
   }
-  if (compiledBundledChannelOpenClawTargets.has(normalizedChannelId)) {
-    return compiledBundledChannelOpenClawTargets.get(normalizedChannelId) ?? null;
+  if (compiledBundledChannelGenesisTargets.has(normalizedChannelId)) {
+    return compiledBundledChannelGenesisTargets.get(normalizedChannelId) ?? null;
   }
   const compiledEntries =
     loadBundledChannelSecretContractApi(normalizedChannelId)
-      ?.secretTargetRegistryEntries?.filter((entry) => entry.configFile === "openclaw.json")
+      ?.secretTargetRegistryEntries?.filter((entry) => entry.configFile === "genesis.json")
       .map(compileTargetRegistryEntry) ?? null;
-  compiledBundledChannelOpenClawTargets.set(normalizedChannelId, compiledEntries);
+  compiledBundledChannelGenesisTargets.set(normalizedChannelId, compiledEntries);
   return compiledEntries;
 }
 
@@ -269,7 +269,7 @@ export function resolvePlanTargetAgainstRegistry(candidate: {
   providerId?: string;
   accountId?: string;
 }): ResolvedPlanTarget | null {
-  const coreEntries = getCompiledCoreOpenClawTargetState().targetsByType.get(candidate.type);
+  const coreEntries = getCompiledCoreGenesisTargetState().targetsByType.get(candidate.type);
   if (coreEntries) {
     return resolvePlanTargetAgainstEntries(candidate, coreEntries);
   }
@@ -318,7 +318,7 @@ function resolvePlanTargetAgainstEntries(
 }
 
 export function resolveConfigSecretTargetByPath(pathSegments: string[]): ResolvedPlanTarget | null {
-  for (const entry of getCompiledCoreOpenClawTargetState().openClawCompiledSecretTargets) {
+  for (const entry of getCompiledCoreGenesisTargetState().genesisCompiledSecretTargets) {
     if (!entry.includeInPlan) {
       continue;
     }
@@ -336,7 +336,7 @@ export function resolveConfigSecretTargetByPath(pathSegments: string[]): Resolve
   const explicitBundledChannelId =
     pathSegments[0] === "channels" ? (pathSegments[1]?.trim() ?? "") : "";
   const explicitBundledChannelEntries = explicitBundledChannelId
-    ? getCompiledBundledChannelOpenClawTargets(explicitBundledChannelId)
+    ? getCompiledBundledChannelGenesisTargets(explicitBundledChannelId)
     : null;
   for (const entry of explicitBundledChannelEntries ?? []) {
     if (!entry.includeInPlan) {
@@ -353,7 +353,7 @@ export function resolveConfigSecretTargetByPath(pathSegments: string[]): Resolve
     return resolved;
   }
 
-  for (const entry of getCompiledSecretTargetRegistryState().openClawCompiledSecretTargets) {
+  for (const entry of getCompiledSecretTargetRegistryState().genesisCompiledSecretTargets) {
     if (!entry.includeInPlan) {
       continue;
     }
@@ -370,28 +370,26 @@ export function resolveConfigSecretTargetByPath(pathSegments: string[]): Resolve
   return null;
 }
 
-export function discoverConfigSecretTargets(
-  config: OpenClawConfig,
-): DiscoveredConfigSecretTarget[] {
+export function discoverConfigSecretTargets(config: GenesisConfig): DiscoveredConfigSecretTarget[] {
   return discoverConfigSecretTargetsByIds(config);
 }
 
 export function discoverConfigSecretTargetsByIds(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   targetIds?: Iterable<string>,
 ): DiscoveredConfigSecretTarget[] {
   const allowedTargetIds = normalizeAllowedTargetIds(targetIds);
   const registryState =
     allowedTargetIds !== null &&
     Array.from(allowedTargetIds).every((targetId) =>
-      getCompiledCoreOpenClawTargetState().knownTargetIds.has(targetId),
+      getCompiledCoreGenesisTargetState().knownTargetIds.has(targetId),
     )
-      ? getCompiledCoreOpenClawTargetState()
+      ? getCompiledCoreGenesisTargetState()
       : getCompiledSecretTargetRegistryState();
   const discoveryEntries = resolveDiscoveryEntries({
     allowedTargetIds,
-    defaultEntries: registryState.openClawCompiledSecretTargets,
-    entriesById: registryState.openClawTargetsById,
+    defaultEntries: registryState.genesisCompiledSecretTargets,
+    entriesById: registryState.genesisTargetsById,
   });
   return discoverSecretTargetsFromEntries(config, discoveryEntries);
 }

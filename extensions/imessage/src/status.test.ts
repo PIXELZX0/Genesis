@@ -1,5 +1,5 @@
-import * as processRuntime from "openclaw/plugin-sdk/process-runtime";
-import * as setupRuntime from "openclaw/plugin-sdk/setup";
+import * as processRuntime from "genesis/plugin-sdk/process-runtime";
+import * as setupRuntime from "genesis/plugin-sdk/setup";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPluginSetupWizardStatus } from "../../../test/helpers/plugins/setup-wizard.js";
 import { resolveIMessageAccount } from "./accounts.js";

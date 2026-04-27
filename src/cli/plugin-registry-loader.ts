@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loggingState } from "../logging/state.js";
 import type { PluginRegistryScope } from "./plugin-registry.js";
 
@@ -18,8 +18,8 @@ export function resolvePluginRegistryScopeForCommandPath(
 export async function ensureCliPluginRegistryLoaded(params: {
   scope: PluginRegistryScope;
   routeLogsToStderr?: boolean;
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config?: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
 }) {
   const { ensurePluginRegistryLoaded } = await loadPluginRegistryModule();
   const previousForceStderr = loggingState.forceConsoleToStderr;

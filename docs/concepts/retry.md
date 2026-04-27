@@ -25,13 +25,13 @@ title: "Retry policy"
 
 ### Model providers
 
-- OpenClaw lets provider SDKs handle normal short retries.
+- Genesis lets provider SDKs handle normal short retries.
 - For Stainless-based SDKs such as Anthropic and OpenAI, retryable responses
   (`408`, `409`, `429`, and `5xx`) can include `retry-after-ms` or
-  `retry-after`. When that wait is longer than 60 seconds, OpenClaw injects
+  `retry-after`. When that wait is longer than 60 seconds, Genesis injects
   `x-should-retry: false` so the SDK surfaces the error immediately and model
   failover can rotate to another auth profile or fallback model.
-- Override the cap with `OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS=<seconds>`.
+- Override the cap with `GENESIS_SDK_RETRY_MAX_WAIT_SECONDS=<seconds>`.
   Set it to `0`, `false`, `off`, `none`, or `disabled` to let SDKs honor long
   `Retry-After` sleeps internally.
 
@@ -48,7 +48,7 @@ title: "Retry policy"
 
 ## Configuration
 
-Set retry policy per provider in `~/.openclaw/openclaw.json`:
+Set retry policy per provider in `~/.genesis/genesis.json`:
 
 ```json5
 {

@@ -2,25 +2,25 @@ import {
   buildLegacyDmAccountAllowlistAdapter,
   createAccountScopedAllowlistNameResolver,
   createFlatAllowlistOverrideResolver,
-} from "openclaw/plugin-sdk/allowlist-config-edit";
-import { adaptScopedAccountAccessor } from "openclaw/plugin-sdk/channel-config-helpers";
+} from "genesis/plugin-sdk/allowlist-config-edit";
+import { adaptScopedAccountAccessor } from "genesis/plugin-sdk/channel-config-helpers";
 import {
   buildThreadAwareOutboundSessionRoute,
   createChatChannelPlugin,
-} from "openclaw/plugin-sdk/channel-core";
-import { createPairingPrefixStripper } from "openclaw/plugin-sdk/channel-pairing";
+} from "genesis/plugin-sdk/channel-core";
+import { createPairingPrefixStripper } from "genesis/plugin-sdk/channel-pairing";
 import {
   createChannelDirectoryAdapter,
   createRuntimeDirectoryLiveAdapter,
-} from "openclaw/plugin-sdk/directory-runtime";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
-import { resolveOutboundSendDep } from "openclaw/plugin-sdk/outbound-runtime";
-import { buildOutboundBaseSessionKey, type RoutePeer } from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/directory-runtime";
+import { createLazyRuntimeModule } from "genesis/plugin-sdk/lazy-runtime";
+import { resolveOutboundSendDep } from "genesis/plugin-sdk/outbound-runtime";
+import { buildOutboundBaseSessionKey, type RoutePeer } from "genesis/plugin-sdk/routing";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/status-helpers";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   resolveDefaultSlackAccountId,
   resolveSlackAccount,
@@ -39,7 +39,7 @@ import {
   projectCredentialSnapshotFields,
   resolveConfiguredFromRequiredCredentialStatuses,
   type ChannelPlugin,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "./channel-api.js";
 import { resolveSlackChannelType } from "./channel-type.js";
 import { shouldSuppressLocalSlackExecApprovalPrompt } from "./exec-approvals.js";
@@ -68,7 +68,7 @@ import { buildSlackThreadingToolContext } from "./threading-tool-context.js";
 // module id and typed by a hand-written structural alias so TypeScript does
 // not have to crawl the SDK module's type graph just to type the loader.
 //
-// `openclaw/plugin-sdk/channel-policy` is intentionally NOT lazy here —
+// `genesis/plugin-sdk/channel-policy` is intentionally NOT lazy here —
 // `./group-policy.js` already imports it eagerly, so deferring it from
 // `channel.ts` would not change the load graph.
 
@@ -113,8 +113,8 @@ type TargetResolverRuntimeSurface = {
   >;
 };
 
-const EXTENSION_SHARED_MODULE_ID = "openclaw/plugin-sdk/extension-shared";
-const TARGET_RESOLVER_RUNTIME_MODULE_ID = "openclaw/plugin-sdk/target-resolver-runtime";
+const EXTENSION_SHARED_MODULE_ID = "genesis/plugin-sdk/extension-shared";
+const TARGET_RESOLVER_RUNTIME_MODULE_ID = "genesis/plugin-sdk/target-resolver-runtime";
 
 const loadExtensionSharedSdk = createLazyRuntimeModule(
   () => import(EXTENSION_SHARED_MODULE_ID) as Promise<ExtensionSharedSurface>,
@@ -235,7 +235,7 @@ function parseSlackExplicitTarget(raw: string) {
 }
 
 function buildSlackBaseSessionKey(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   accountId?: string | null;
   peer: RoutePeer;
@@ -244,7 +244,7 @@ function buildSlackBaseSessionKey(params: {
 }
 
 function shouldRecoverSlackThreadFromCurrentSession(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   peerKind: RoutePeer["kind"];
 }): boolean {
   // Shared DM sessions (dmScope="main") do not encode the DM peer in the base key,
@@ -256,7 +256,7 @@ function shouldRecoverSlackThreadFromCurrentSession(params: {
 }
 
 async function resolveSlackOutboundSessionRoute(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   accountId?: string | null;
   target: string;
@@ -484,7 +484,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount, SlackProbe> = crea
       invoke: async (action, cfg, toolContext) =>
         await (
           await resolveSlackHandleAction()
-        )(action, cfg as OpenClawConfig, toolContext as SlackActionContext | undefined),
+        )(action, cfg as GenesisConfig, toolContext as SlackActionContext | undefined),
     }),
     status: createComputedAccountStatusAdapter<ResolvedSlackAccount, SlackProbe>({
       defaultRuntime: createDefaultChannelRuntimeState(DEFAULT_ACCOUNT_ID),

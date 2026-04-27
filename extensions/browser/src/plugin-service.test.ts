@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "./config/config.js";
+import type { GenesisConfig } from "./config/config.js";
 import { isDefaultBrowserPluginEnabled } from "./plugin-enabled.js";
 import { createBrowserPluginService } from "./plugin-service.js";
 
 const SERVICE_CONTEXT = {
   config: {},
-  stateDir: "/tmp/openclaw-state",
+  stateDir: "/tmp/genesis-state",
   logger: console,
 };
 
@@ -20,7 +20,7 @@ const runtimeMocks = vi.hoisted(() => ({
   startLazyPluginServiceModule: vi.fn(async (_params: StartLazyPluginServiceModuleParams) => null),
 }));
 
-vi.mock("openclaw/plugin-sdk/browser-node-runtime", () => ({
+vi.mock("genesis/plugin-sdk/browser-node-runtime", () => ({
   startLazyPluginServiceModule: runtimeMocks.startLazyPluginServiceModule,
 }));
 
@@ -66,7 +66,7 @@ describe("createBrowserPluginService", () => {
 
 describe("isDefaultBrowserPluginEnabled", () => {
   it("defaults to enabled", () => {
-    expect(isDefaultBrowserPluginEnabled({} as OpenClawConfig)).toBe(true);
+    expect(isDefaultBrowserPluginEnabled({} as GenesisConfig)).toBe(true);
   });
 
   it("respects explicit plugin disablement", () => {
@@ -79,7 +79,7 @@ describe("isDefaultBrowserPluginEnabled", () => {
             },
           },
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toBe(false);
   });
 });

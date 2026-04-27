@@ -1,11 +1,11 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   applySetupAccountConfigPatch,
   createStandardChannelSetupStatus,
   formatDocsLink,
   type ChannelSetupWizard,
-} from "openclaw/plugin-sdk/setup";
+} from "genesis/plugin-sdk/setup";
 import { isMattermostConfigured, resolveMattermostAccountWithSecrets } from "./setup-core.js";
 import { normalizeMattermostBaseUrl } from "./setup.client.runtime.js";
 import { hasConfiguredSecretInput } from "./setup.secret-input.runtime.js";
@@ -108,7 +108,7 @@ export const mattermostSetupWizard: ChannelSetupWizard = {
       normalizeValue: ({ value }) => normalizeMattermostBaseUrl(value) ?? value.trim(),
     },
   ],
-  disable: (cfg: OpenClawConfig) => ({
+  disable: (cfg: GenesisConfig) => ({
     ...cfg,
     channels: {
       ...cfg.channels,

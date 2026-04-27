@@ -36,13 +36,13 @@ describe("buildGuardedModelFetch", () => {
     resolveProviderRequestPolicyConfigMock
       .mockClear()
       .mockReturnValue({ allowPrivateNetwork: false });
-    delete process.env.OPENCLAW_DEBUG_PROXY_ENABLED;
-    delete process.env.OPENCLAW_DEBUG_PROXY_URL;
-    delete process.env.OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS;
+    delete process.env.GENESIS_DEBUG_PROXY_ENABLED;
+    delete process.env.GENESIS_DEBUG_PROXY_URL;
+    delete process.env.GENESIS_SDK_RETRY_MAX_WAIT_SECONDS;
   });
 
   afterEach(() => {
-    delete process.env.OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS;
+    delete process.env.GENESIS_SDK_RETRY_MAX_WAIT_SECONDS;
   });
 
   it("pushes provider capture metadata into the shared guarded fetch seam", async () => {
@@ -95,8 +95,8 @@ describe("buildGuardedModelFetch", () => {
   });
 
   it("does not force explicit debug proxy overrides onto plain HTTP model transports", async () => {
-    process.env.OPENCLAW_DEBUG_PROXY_ENABLED = "1";
-    process.env.OPENCLAW_DEBUG_PROXY_URL = "http://127.0.0.1:7799";
+    process.env.GENESIS_DEBUG_PROXY_ENABLED = "1";
+    process.env.GENESIS_DEBUG_PROXY_URL = "http://127.0.0.1:7799";
 
     const { buildGuardedModelFetch } = await import("./provider-transport-fetch.js");
     const model = {
@@ -193,8 +193,8 @@ describe("buildGuardedModelFetch", () => {
       expect(response.headers.get("x-should-retry")).toBe("false");
     });
 
-    it("respects OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS", async () => {
-      process.env.OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS = "10";
+    it("respects GENESIS_SDK_RETRY_MAX_WAIT_SECONDS", async () => {
+      process.env.GENESIS_SDK_RETRY_MAX_WAIT_SECONDS = "10";
       fetchWithSsrFGuardMock.mockResolvedValue({
         response: new Response(null, {
           status: 429,
@@ -253,8 +253,8 @@ describe("buildGuardedModelFetch", () => {
       expect(response.headers.get("x-should-retry")).toBeNull();
     });
 
-    it("can be disabled with OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS=0", async () => {
-      process.env.OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS = "0";
+    it("can be disabled with GENESIS_SDK_RETRY_MAX_WAIT_SECONDS=0", async () => {
+      process.env.GENESIS_SDK_RETRY_MAX_WAIT_SECONDS = "0";
       fetchWithSsrFGuardMock.mockResolvedValue({
         response: new Response(null, {
           status: 429,

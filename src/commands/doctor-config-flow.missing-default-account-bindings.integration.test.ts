@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   collectMissingDefaultAccountBindingWarnings,
   collectMissingExplicitDefaultAccountWarnings,
@@ -17,7 +17,7 @@ describe("doctor missing default account binding warning", () => {
         },
       },
       bindings: [{ agentId: "ops", match: { channel: "telegram" } }],
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     expect(warnings).toEqual([
       expect.stringContaining("channels.telegram: accounts.default is missing"),
@@ -34,7 +34,7 @@ describe("doctor missing default account binding warning", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     expect(warnings).toEqual([
       expect.stringContaining(
@@ -54,7 +54,7 @@ describe("doctor missing default account binding warning", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     expect(warnings).toEqual([
       expect.stringContaining(

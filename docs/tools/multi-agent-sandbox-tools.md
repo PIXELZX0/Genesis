@@ -12,11 +12,11 @@ policy. This page covers per-agent configuration, precedence rules, and
 examples.
 
 - **Sandbox backends and modes**: see [Sandboxing](/gateway/sandboxing).
-- **Debugging blocked tools**: see [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) and `openclaw sandbox explain`.
+- **Debugging blocked tools**: see [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) and `genesis sandbox explain`.
 - **Elevated exec**: see [Elevated Mode](/tools/elevated).
 
 Auth is per-agent: each agent reads from its own `agentDir` auth store at
-`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+`~/.genesis/agents/<agentId>/agent/auth-profiles.json`.
 Credentials are **not** shared between agents. Never reuse `agentDir` across agents.
 If you want to share creds, copy `auth-profiles.json` into the other agent's `agentDir`.
 
@@ -34,13 +34,13 @@ If you want to share creds, copy `auth-profiles.json` into the other agent's `ag
         "id": "main",
         "default": true,
         "name": "Personal Assistant",
-        "workspace": "~/.openclaw/workspace",
+        "workspace": "~/.genesis/workspace",
         "sandbox": { "mode": "off" }
       },
       {
         "id": "family",
         "name": "Family Bot",
-        "workspace": "~/.openclaw/workspace-family",
+        "workspace": "~/.genesis/workspace-family",
         "sandbox": {
           "mode": "all",
           "scope": "agent"
@@ -83,12 +83,12 @@ If you want to share creds, copy `auth-profiles.json` into the other agent's `ag
     "list": [
       {
         "id": "personal",
-        "workspace": "~/.openclaw/workspace-personal",
+        "workspace": "~/.genesis/workspace-personal",
         "sandbox": { "mode": "off" }
       },
       {
         "id": "work",
-        "workspace": "~/.openclaw/workspace-work",
+        "workspace": "~/.genesis/workspace-work",
         "sandbox": {
           "mode": "all",
           "scope": "shared",
@@ -143,14 +143,14 @@ If you want to share creds, copy `auth-profiles.json` into the other agent's `ag
     "list": [
       {
         "id": "main",
-        "workspace": "~/.openclaw/workspace",
+        "workspace": "~/.genesis/workspace",
         "sandbox": {
           "mode": "off" // Override: main never sandboxed
         }
       },
       {
         "id": "public",
-        "workspace": "~/.openclaw/workspace-public",
+        "workspace": "~/.genesis/workspace-public",
         "sandbox": {
           "mode": "all", // Override: public always sandboxed
           "scope": "agent"
@@ -208,7 +208,7 @@ If `agents.list[].tools.profile` is set, it overrides `tools.profile` for that a
 Provider tool keys accept either `provider` (e.g. `google-antigravity`) or `provider/model` (e.g. `openai/gpt-5.4`).
 
 If any explicit allowlist in that chain leaves the run with no callable tools,
-OpenClaw stops before submitting the prompt to the model. This is intentional:
+Genesis stops before submitting the prompt to the model. This is intentional:
 an agent configured with a missing tool such as
 `agents.list[].tools.allow: ["query_db"]` should fail loudly until the plugin
 that registers `query_db` is enabled, not continue as a text-only agent.
@@ -227,7 +227,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
 {
   "agents": {
     "defaults": {
-      "workspace": "~/.openclaw/workspace",
+      "workspace": "~/.genesis/workspace",
       "sandbox": {
         "mode": "non-main"
       }
@@ -253,7 +253,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
       {
         "id": "main",
         "default": true,
-        "workspace": "~/.openclaw/workspace",
+        "workspace": "~/.genesis/workspace",
         "sandbox": { "mode": "off" }
       }
     ]
@@ -261,7 +261,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
 }
 ```
 
-Legacy `agent.*` configs are migrated by `openclaw doctor`; prefer `agents.defaults` + `agents.list` going forward.
+Legacy `agent.*` configs are migrated by `genesis doctor`; prefer `agents.defaults` + `agents.list` going forward.
 
 ---
 
@@ -328,13 +328,13 @@ After configuring multi-agent sandbox and tools:
 1. **Check agent resolution:**
 
    ```exec
-   openclaw agents list --bindings
+   genesis agents list --bindings
    ```
 
 2. **Verify sandbox containers:**
 
    ```exec
-   docker ps --filter "name=openclaw-sbx-"
+   docker ps --filter "name=genesis-sbx-"
    ```
 
 3. **Test tool restrictions:**
@@ -344,7 +344,7 @@ After configuring multi-agent sandbox and tools:
 4. **Monitor logs:**
 
    ```exec
-   tail -f "${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/logs/gateway.log" | grep -E "routing|sandbox|tools"
+   tail -f "${GENESIS_STATE_DIR:-$HOME/.genesis}/logs/gateway.log" | grep -E "routing|sandbox|tools"
    ```
 
 ---

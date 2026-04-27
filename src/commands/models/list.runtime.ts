@@ -1,5 +1,5 @@
 export { loadAuthProfileStoreWithoutExternalProfiles as ensureAuthProfileStore } from "../../agents/auth-profiles/store.js";
-export { resolveOpenClawAgentDir } from "../../agents/agent-paths.js";
+export { resolveGenesisAgentDir } from "../../agents/agent-paths.js";
 export { listProfilesForProvider } from "../../agents/auth-profiles.js";
 export {
   hasUsableCustomProviderApiKey,

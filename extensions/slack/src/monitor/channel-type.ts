@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import type { SlackMessageEvent } from "../types.js";
 
 export type SlackChatType = "direct" | "group" | "channel";

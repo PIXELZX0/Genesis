@@ -35,11 +35,11 @@ Pending requests expire automatically after **5 minutes**.
 ## CLI workflow (headless friendly)
 
 ```bash
-openclaw nodes pending
-openclaw nodes approve <requestId>
-openclaw nodes reject <requestId>
-openclaw nodes status
-openclaw nodes rename --node <id|name|ip> --name "Living Room iPad"
+genesis nodes pending
+genesis nodes approve <requestId>
+genesis nodes reject <requestId>
+genesis nodes status
+genesis nodes rename --node <id|name|ip> --name "Living Room iPad"
 ```
 
 `nodes status` shows paired/connected nodes and their capabilities.
@@ -146,7 +146,7 @@ Security boundary:
 ## Metadata-upgrade auto-approval
 
 When an already paired device reconnects with only non-sensitive metadata
-changes (for example, display name or client platform hints), OpenClaw treats
+changes (for example, display name or client platform hints), Genesis treats
 that as a `metadata-upgrade`. Silent auto-approval is narrow: it applies only
 to trusted local CLI/helper reconnects that already proved possession of the
 shared token or password over loopback. Browser/Control UI clients and remote
@@ -175,12 +175,12 @@ operator auth.
 
 ## Storage (local, private)
 
-Pairing state is stored under the Gateway state directory (default `~/.openclaw`):
+Pairing state is stored under the Gateway state directory (default `~/.genesis`):
 
-- `~/.openclaw/nodes/paired.json`
-- `~/.openclaw/nodes/pending.json`
+- `~/.genesis/nodes/paired.json`
+- `~/.genesis/nodes/pending.json`
 
-If you override `OPENCLAW_STATE_DIR`, the `nodes/` folder moves with it.
+If you override `GENESIS_STATE_DIR`, the `nodes/` folder moves with it.
 
 Security notes:
 

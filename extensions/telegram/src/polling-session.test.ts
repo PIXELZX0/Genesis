@@ -1,4 +1,4 @@
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runMock = vi.hoisted(() => vi.fn());
@@ -23,7 +23,7 @@ vi.mock("./api-logging.js", () => ({
   withTelegramApiErrorLogging: async ({ fn }: { fn: () => Promise<unknown> }) => await fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
+vi.mock("genesis/plugin-sdk/runtime-env", () => ({
   computeBackoff: computeBackoffMock,
   formatDurationPrecise: vi.fn((ms: number) => `${ms}ms`),
   sleepWithAbort: sleepWithAbortMock,

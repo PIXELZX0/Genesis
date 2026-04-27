@@ -7,7 +7,7 @@ read_when:
 title: "Streaming and chunking"
 ---
 
-OpenClaw has two separate streaming layers:
+Genesis has two separate streaming layers:
 
 - **Block streaming (channels):** emit completed **blocks** as the assistant writes. These are normal channel messages (not token deltas).
 - **Preview streaming (Telegram/Discord/Slack):** update a temporary **preview message** while generating.
@@ -55,12 +55,12 @@ Legend:
 ### Media delivery with block streaming
 
 `MEDIA:` directives are normal delivery metadata. When block streaming sends a
-media block early, OpenClaw remembers that delivery for the turn. If the final
+media block early, Genesis remembers that delivery for the turn. If the final
 assistant payload repeats the same media URL, the final delivery strips the
 duplicate media instead of sending the attachment again.
 
 Exact duplicate final payloads are suppressed. If the final payload adds
-distinct text around media that was already streamed, OpenClaw still sends the
+distinct text around media that was already streamed, Genesis still sends the
 new text while keeping the media single-delivery. This prevents duplicate voice
 notes or files on channels such as Telegram when an agent emits `MEDIA:` during
 streaming and the provider also includes it in the completed reply.
@@ -78,7 +78,7 @@ Block chunking is implemented by `EmbeddedBlockChunker`:
 
 ## Coalescing (merge streamed blocks)
 
-When block streaming is enabled, OpenClaw can **merge consecutive block chunks**
+When block streaming is enabled, Genesis can **merge consecutive block chunks**
 before sending them out. This reduces “single-line spam” while still providing
 progressive output.
 

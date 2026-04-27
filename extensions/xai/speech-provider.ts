@@ -1,4 +1,4 @@
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
 import {
   asFiniteNumber,
   trimToUndefined,
@@ -6,8 +6,8 @@ import {
   type SpeechProviderConfig,
   type SpeechProviderOverrides,
   type SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/speech";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import {
   isValidXaiTtsVoice,
   normalizeXaiLanguageCode,

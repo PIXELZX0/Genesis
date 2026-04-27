@@ -1,5 +1,5 @@
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { AgentModelListConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 export function resolvePrimaryModel(model?: AgentModelListConfig | string): string | undefined {
   if (typeof model === "string") {
@@ -12,10 +12,10 @@ export function resolvePrimaryModel(model?: AgentModelListConfig | string): stri
 }
 
 export function applyAgentDefaultPrimaryModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   model: string;
   legacyModels?: Set<string>;
-}): { next: OpenClawConfig; changed: boolean } {
+}): { next: GenesisConfig; changed: boolean } {
   const current = resolvePrimaryModel(params.cfg.agents?.defaults?.model)?.trim();
   const normalizedCurrent = current && params.legacyModels?.has(current) ? params.model : current;
   if (normalizedCurrent === params.model) {
@@ -44,7 +44,7 @@ export function applyAgentDefaultPrimaryModel(params: {
   };
 }
 
-export function applyPrimaryModel(cfg: OpenClawConfig, model: string): OpenClawConfig {
+export function applyPrimaryModel(cfg: GenesisConfig, model: string): GenesisConfig {
   const defaults = cfg.agents?.defaults;
   const existingModel = defaults?.model;
   const existingModels = defaults?.models;

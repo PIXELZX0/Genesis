@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 export {
   applyOpencodeZenModelDefault,
   OPENCODE_ZEN_DEFAULT_MODEL,
@@ -17,14 +17,14 @@ export const GOOGLE_GEMINI_DEFAULT_MODEL = "google/gemini-3.1-pro-preview";
 export const OLLAMA_DEFAULT_BASE_URL = "http://127.0.0.1:11434";
 export const OPENCODE_GO_DEFAULT_MODEL_REF = "opencode-go/kimi-k2.6";
 
-export function applyGoogleGeminiModelDefault(cfg: OpenClawConfig): {
-  next: OpenClawConfig;
+export function applyGoogleGeminiModelDefault(cfg: GenesisConfig): {
+  next: GenesisConfig;
   changed: boolean;
 } {
   return applyAgentDefaultPrimaryModel({ cfg, model: GOOGLE_GEMINI_DEFAULT_MODEL });
 }
 
-export function applyOpenAIProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyOpenAIProviderConfig(cfg: GenesisConfig): GenesisConfig {
   const next = ensureModelAllowlistEntry({
     cfg,
     modelRef: OPENAI_DEFAULT_MODEL,
@@ -47,7 +47,7 @@ export function applyOpenAIProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-export function applyOpenAIConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyOpenAIConfig(cfg: GenesisConfig): GenesisConfig {
   const next = applyOpenAIProviderConfig(cfg);
   return {
     ...next,
@@ -67,8 +67,8 @@ export function applyOpenAIConfig(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-export function applyOpencodeGoModelDefault(cfg: OpenClawConfig): {
-  next: OpenClawConfig;
+export function applyOpencodeGoModelDefault(cfg: GenesisConfig): {
+  next: GenesisConfig;
   changed: boolean;
 } {
   return applyAgentDefaultPrimaryModel({ cfg, model: OPENCODE_GO_DEFAULT_MODEL_REF });

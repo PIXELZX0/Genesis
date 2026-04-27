@@ -5,16 +5,34 @@ export type BrowserProfileConfig = {
   cdpUrl?: string;
   /** Explicit user data directory for existing-session Chrome MCP attachment. */
   userDataDir?: string;
-  /** Profile driver (default: openclaw). */
-  driver?: "openclaw" | "clawd" | "existing-session";
+  /** Profile driver (default: genesis). */
+  driver?: "genesis" | "clawd" | "existing-session";
   /** If true, launch this profile in headless mode. Falls back to browser.headless. */
   headless?: boolean;
   /** Browser executable path for this profile. Falls back to browser.executablePath. */
   executablePath?: string;
   /** If true, never launch a browser for this profile; only attach. Falls back to browser.attachOnly. */
   attachOnly?: boolean;
+  /** Tor routing override for locally launched managed profiles. */
+  tor?: BrowserTorConfig;
   /** Profile color (hex). Auto-assigned at creation. */
   color: string;
+};
+export type BrowserTorConfig = {
+  /** Enable Tor routing for locally launched managed browser profiles. Default: true; set false to opt out. */
+  enabled?: boolean;
+  /** Use a Genesis-managed Tor sidecar or an externally managed Tor SOCKS endpoint. Default: "managed". */
+  mode?: "managed" | "external";
+  /** Tor executable path for managed mode. Defaults to "tor" on PATH. */
+  executablePath?: string;
+  /** SOCKS listen/connect host. Default: 127.0.0.1 */
+  socksHost?: string;
+  /** SOCKS listen/connect port. Managed profiles default to their CDP port + 100. External defaults to 9050. */
+  socksPort?: number;
+  /** Tor data directory for managed mode. Defaults under the browser profile directory. */
+  dataDir?: string;
+  /** Additional tor process arguments for managed mode. */
+  extraArgs?: string[];
 };
 export type BrowserSnapshotDefaults = {
   /** Default snapshot mode (applies when mode is not provided). */
@@ -56,7 +74,7 @@ export type BrowserConfig = {
   remoteCdpHandshakeTimeoutMs?: number;
   /** Default browser act timeout (ms). Default: 60000. */
   actionTimeoutMs?: number;
-  /** Accent color for the openclaw browser profile (hex). Default: #FF4500 */
+  /** Accent color for the genesis browser profile (hex). Default: #FF4500 */
   color?: string;
   /** Override the browser executable path (all platforms). */
   executablePath?: string;
@@ -72,6 +90,8 @@ export type BrowserConfig = {
   defaultProfile?: string;
   /** Named browser profiles with explicit CDP ports or URLs. */
   profiles?: Record<string, BrowserProfileConfig>;
+  /** Default Tor routing settings inherited by locally launched managed profiles; enabled by default. */
+  tor?: BrowserTorConfig;
   /** Default snapshot options (applied by the browser tool/CLI when unset). */
   snapshotDefaults?: BrowserSnapshotDefaults;
   /** Best-effort cleanup policy for tabs opened by primary-agent browser sessions. */

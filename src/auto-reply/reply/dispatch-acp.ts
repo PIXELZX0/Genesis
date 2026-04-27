@@ -6,7 +6,7 @@ import {
   isSessionIdentityPending,
   resolveSessionIdentityFromMeta,
 } from "../../acp/runtime/session-identity.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { TtsAutoMode } from "../../config/types.tts.js";
 import { logVerbose } from "../../globals.js";
 import { emitAgentEvent } from "../../infra/agent-events.js";
@@ -105,7 +105,7 @@ function resolveAcpRequestId(ctx: FinalizedMsgContext): string {
 }
 
 async function hasBoundConversationForSession(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey: string;
   channelRaw: string | undefined;
   accountIdRaw: string | undefined;
@@ -176,7 +176,7 @@ async function maybeUnbindStaleBoundConversations(params: {
 }
 
 async function finalizeAcpTurnOutput(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey: string;
   delivery: AcpDispatchDeliveryCoordinator;
   inboundAudio: boolean;
@@ -266,7 +266,7 @@ async function finalizeAcpTurnOutput(params: {
 
 export async function tryDispatchAcpReply(params: {
   ctx: FinalizedMsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   dispatcher: ReplyDispatcher;
   runId?: string;
   sessionKey?: string;

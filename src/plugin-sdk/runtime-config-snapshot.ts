@@ -3,4 +3,4 @@ export {
   getRuntimeConfigSnapshot,
   setRuntimeConfigSnapshot,
 } from "../config/runtime-snapshot.js";
-export type { OpenClawConfig } from "../config/types.js";
+export type { GenesisConfig } from "../config/types.js";

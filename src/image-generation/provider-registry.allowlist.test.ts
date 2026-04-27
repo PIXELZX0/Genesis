@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   getProviderRegistryAllowlistMocks,
   installProviderRegistryAllowlistMockDefaults,
@@ -22,8 +22,8 @@ describe("image-generation provider registry allowlist fallback", () => {
       contractKey: "imageGenerationProviders",
     });
 
-    expect(listImageGenerationProviders(cfg as OpenClawConfig)).toEqual([]);
-    expect(getImageGenerationProvider("openai", cfg as OpenClawConfig)).toBeUndefined();
+    expect(listImageGenerationProviders(cfg as GenesisConfig)).toEqual([]);
+    expect(getImageGenerationProvider("openai", cfg as GenesisConfig)).toBeUndefined();
     expect(mocks.resolveRuntimePluginRegistry).toHaveBeenCalledWith({
       config: compatConfig,
       activate: false,

@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { lowercasePreservingWhitespace } from "openclaw/plugin-sdk/text-runtime";
+import { lowercasePreservingWhitespace } from "genesis/plugin-sdk/text-runtime";
 
 export async function pathExists(filePath: string): Promise<boolean> {
   try {

@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw message` (send + channel actions)"
+summary: "CLI reference for `genesis message` (send + channel actions)"
 read_when:
   - Adding or modifying message CLI actions
   - Changing outbound channel behavior
 title: "Message"
 ---
 
-# `openclaw message`
+# `genesis message`
 
 Single outbound command for sending messages and channel actions
 (Discord/Google Chat/iMessage/Matrix/Mattermost (plugin)/Microsoft Teams/Signal/Slack/Telegram/WhatsApp).
@@ -14,7 +14,7 @@ Single outbound command for sending messages and channel actions
 ## Usage
 
 ```
-openclaw message <subcommand> [flags]
+genesis message <subcommand> [flags]
 ```
 
 Channel selection:
@@ -39,7 +39,7 @@ Target formats (`--target`):
 Name lookup:
 
 - For supported providers (Discord/Slack/etc), channel names like `Help` or `#help` are resolved via the directory cache.
-- On cache miss, OpenClaw will attempt a live directory lookup when the provider supports it.
+- On cache miss, Genesis will attempt a live directory lookup when the provider supports it.
 
 ## Common flags
 
@@ -53,11 +53,11 @@ Name lookup:
 
 ## SecretRef behavior
 
-- `openclaw message` resolves supported channel SecretRefs before running the selected action.
+- `genesis message` resolves supported channel SecretRefs before running the selected action.
 - Resolution is scoped to the active action target when possible:
   - channel-scoped when `--channel` is set (or inferred from prefixed targets like `discord:...`)
   - account-scoped when `--account` is set (channel globals + selected account surfaces)
-  - when `--account` is omitted, OpenClaw does not force a `default` account SecretRef scope
+  - when `--account` is omitted, Genesis does not force a `default` account SecretRef scope
 - Unresolved SecretRefs on unrelated channels do not block a targeted message action.
 - If the selected channel/account SecretRef is unresolved, the command fails closed for that action.
 
@@ -202,14 +202,14 @@ Name lookup:
 Send a Discord reply:
 
 ```
-openclaw message send --channel discord \
+genesis message send --channel discord \
   --target channel:123 --message "hi" --reply-to 456
 ```
 
 Send a message with semantic buttons:
 
 ```
-openclaw message send --channel discord \
+genesis message send --channel discord \
   --target channel:123 --message "Choose:" \
   --presentation '{"blocks":[{"type":"buttons","buttons":[{"label":"Approve","value":"approve","style":"success"},{"label":"Decline","value":"decline","style":"danger"}]}]}'
 ```
@@ -219,7 +219,7 @@ Core renders the same `presentation` payload into Discord components, Slack bloc
 Send a richer presentation payload:
 
 ```bash
-openclaw message send --channel googlechat --target spaces/AAA... \
+genesis message send --channel googlechat --target spaces/AAA... \
   --message "Choose:" \
   --presentation '{"title":"Deploy approval","tone":"warning","blocks":[{"type":"text","text":"Choose a path"},{"type":"buttons","buttons":[{"label":"Approve","value":"approve"},{"label":"Decline","value":"decline"}]}]}'
 ```
@@ -227,7 +227,7 @@ openclaw message send --channel googlechat --target spaces/AAA... \
 Create a Discord poll:
 
 ```
-openclaw message poll --channel discord \
+genesis message poll --channel discord \
   --target channel:123 \
   --poll-question "Snack?" \
   --poll-option Pizza --poll-option Sushi \
@@ -237,7 +237,7 @@ openclaw message poll --channel discord \
 Create a Telegram poll (auto-close in 2 minutes):
 
 ```
-openclaw message poll --channel telegram \
+genesis message poll --channel telegram \
   --target @mychat \
   --poll-question "Lunch?" \
   --poll-option Pizza --poll-option Sushi \
@@ -247,14 +247,14 @@ openclaw message poll --channel telegram \
 Send a Teams proactive message:
 
 ```
-openclaw message send --channel msteams \
+genesis message send --channel msteams \
   --target conversation:19:abc@thread.tacv2 --message "hi"
 ```
 
 Create a Teams poll:
 
 ```
-openclaw message poll --channel msteams \
+genesis message poll --channel msteams \
   --target conversation:19:abc@thread.tacv2 \
   --poll-question "Lunch?" \
   --poll-option Pizza --poll-option Sushi
@@ -263,14 +263,14 @@ openclaw message poll --channel msteams \
 React in Slack:
 
 ```
-openclaw message react --channel slack \
+genesis message react --channel slack \
   --target C123 --message-id 456 --emoji "✅"
 ```
 
 React in a Signal group:
 
 ```
-openclaw message react --channel signal \
+genesis message react --channel signal \
   --target signal:group:abc123 --message-id 1737630212345 \
   --emoji "✅" --target-author-uuid 123e4567-e89b-12d3-a456-426614174000
 ```
@@ -278,14 +278,14 @@ openclaw message react --channel signal \
 Send Telegram inline buttons through generic presentation:
 
 ```
-openclaw message send --channel telegram --target @mychat --message "Choose:" \
+genesis message send --channel telegram --target @mychat --message "Choose:" \
   --presentation '{"blocks":[{"type":"buttons","buttons":[{"label":"Yes","value":"cmd:yes"},{"label":"No","value":"cmd:no"}]}]}'
 ```
 
 Send a Teams card through generic presentation:
 
 ```bash
-openclaw message send --channel msteams \
+genesis message send --channel msteams \
   --target conversation:19:abc@thread.tacv2 \
   --presentation '{"title":"Status update","blocks":[{"type":"text","text":"Build completed"}]}'
 ```
@@ -293,7 +293,7 @@ openclaw message send --channel msteams \
 Send a Telegram image as a document to avoid compression:
 
 ```bash
-openclaw message send --channel telegram --target @mychat \
+genesis message send --channel telegram --target @mychat \
   --media ./diagram.png --force-document
 ```
 

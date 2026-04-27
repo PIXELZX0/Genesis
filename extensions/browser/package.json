@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/browser-plugin",
+  "name": "@genesis/browser-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw browser tool plugin",
+  "description": "Genesis browser tool plugin",
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
@@ -14,9 +14,9 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

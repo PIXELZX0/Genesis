@@ -2,7 +2,7 @@ import { isDeepStrictEqual } from "node:util";
 import chokidar from "chokidar";
 import { bumpSkillsSnapshotVersion } from "../agents/skills/refresh-state.js";
 import type {
-  OpenClawConfig,
+  GenesisConfig,
   ConfigFileSnapshot,
   ConfigWriteNotification,
   GatewayReloadMode,
@@ -103,7 +103,7 @@ export function diffConfigPaths(prev: unknown, next: unknown, prefix = ""): stri
   return [prefix || "<root>"];
 }
 
-export function resolveGatewayReloadSettings(cfg: OpenClawConfig): GatewayReloadSettings {
+export function resolveGatewayReloadSettings(cfg: GenesisConfig): GatewayReloadSettings {
   const rawMode = cfg.gateway?.reload?.mode;
   const mode =
     rawMode === "off" || rawMode === "restart" || rawMode === "hot" || rawMode === "hybrid"
@@ -122,12 +122,12 @@ export type GatewayConfigReloader = {
 };
 
 export function startGatewayConfigReloader(opts: {
-  initialConfig: OpenClawConfig;
-  initialCompareConfig?: OpenClawConfig;
+  initialConfig: GenesisConfig;
+  initialCompareConfig?: GenesisConfig;
   initialInternalWriteHash?: string | null;
   readSnapshot: () => Promise<ConfigFileSnapshot>;
-  onHotReload: (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => Promise<void>;
-  onRestart: (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => void | Promise<void>;
+  onHotReload: (plan: GatewayReloadPlan, nextConfig: GenesisConfig) => Promise<void>;
+  onRestart: (plan: GatewayReloadPlan, nextConfig: GenesisConfig) => void | Promise<void>;
   recoverSnapshot?: (snapshot: ConfigFileSnapshot, reason: string) => Promise<boolean>;
   promoteSnapshot?: (snapshot: ConfigFileSnapshot, reason: string) => Promise<boolean>;
   onRecovered?: (params: {
@@ -153,8 +153,8 @@ export function startGatewayConfigReloader(opts: {
   let restartQueued = false;
   let missingConfigRetries = 0;
   let pendingInProcessConfig: {
-    config: OpenClawConfig;
-    compareConfig: OpenClawConfig;
+    config: GenesisConfig;
+    compareConfig: GenesisConfig;
     persistedHash: string;
   } | null = null;
   let lastAppliedWriteHash = opts.initialInternalWriteHash ?? null;
@@ -173,7 +173,7 @@ export function startGatewayConfigReloader(opts: {
   const schedule = () => {
     scheduleAfter(settings.debounceMs);
   };
-  const queueRestart = (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => {
+  const queueRestart = (plan: GatewayReloadPlan, nextConfig: GenesisConfig) => {
     if (restartQueued) {
       return;
     }
@@ -248,7 +248,7 @@ export function startGatewayConfigReloader(opts: {
     return nextSnapshot;
   };
 
-  const applySnapshot = async (nextConfig: OpenClawConfig, nextCompareConfig: OpenClawConfig) => {
+  const applySnapshot = async (nextConfig: GenesisConfig, nextCompareConfig: GenesisConfig) => {
     const changedPaths = diffConfigPaths(currentCompareConfig, nextCompareConfig);
     const pluginInstallTimestampNoopPaths = listPluginInstallTimestampMetadataPaths(
       currentCompareConfig,

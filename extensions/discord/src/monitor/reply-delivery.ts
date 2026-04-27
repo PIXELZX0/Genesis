@@ -1,22 +1,22 @@
 import type { RequestClient } from "@buape/carbon";
-import { resolveAgentAvatar } from "openclaw/plugin-sdk/agent-runtime";
+import { resolveAgentAvatar } from "genesis/plugin-sdk/agent-runtime";
 import type {
   MarkdownTableMode,
-  OpenClawConfig,
+  GenesisConfig,
   ReplyToMode,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { OutboundMediaAccess } from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/config-runtime";
+import type { OutboundMediaAccess } from "genesis/plugin-sdk/media-runtime";
 import {
   buildOutboundSessionContext,
   deliverOutboundPayloads,
   type OutboundDeliveryFormattingOptions,
   type OutboundIdentity,
   type OutboundSendDeps,
-} from "openclaw/plugin-sdk/outbound-runtime";
-import type { ChunkMode } from "openclaw/plugin-sdk/reply-chunking";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-dispatch-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/outbound-runtime";
+import type { ChunkMode } from "genesis/plugin-sdk/reply-chunking";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-dispatch-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { sendMessageDiscord, sendVoiceMessageDiscord } from "../send.js";
 
 export type DiscordThreadBindingLookupRecord = {
@@ -61,7 +61,7 @@ function resolveBoundThreadBinding(params: {
 }
 
 function resolveBindingIdentity(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   binding: DiscordThreadBindingLookupRecord | undefined,
 ): OutboundIdentity | undefined {
   if (!binding) {
@@ -83,7 +83,7 @@ function resolveBindingIdentity(
 }
 
 function createDiscordDeliveryDeps(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   token: string;
   rest?: RequestClient;
 }): OutboundSendDeps {
@@ -120,7 +120,7 @@ type DiscordDeliveryOptions = {
 };
 
 function resolveDiscordDeliveryOptions(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   target: string;
   sessionKey?: string;
   threadBindings?: DiscordThreadBindingLookup;
@@ -155,7 +155,7 @@ function resolveDiscordDeliveryOptions(params: {
 }
 
 export async function deliverDiscordReply(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   replies: ReplyPayload[];
   target: string;
   token: string;

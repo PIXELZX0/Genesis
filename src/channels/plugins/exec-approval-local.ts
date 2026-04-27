@@ -1,10 +1,10 @@
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getChannelPlugin, normalizeChannelId } from "./registry.js";
 
 export function shouldSuppressLocalExecApprovalPrompt(params: {
   channel?: string | null;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   payload: ReplyPayload;
 }): boolean {

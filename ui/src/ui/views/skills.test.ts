@@ -140,7 +140,7 @@ describe("renderSkills", () => {
               score: 0.95,
               slug: "github",
               displayName: "GitHub",
-              summary: "GitHub integration for OpenClaw",
+              summary: "GitHub integration for Genesis",
               version: "1.2.3",
             },
           ],
@@ -154,7 +154,7 @@ describe("renderSkills", () => {
 
     let text = normalizeText(container);
     expect(text).toContain("GitHub");
-    expect(text).toContain("GitHub integration for OpenClaw");
+    expect(text).toContain("GitHub integration for Genesis");
     expect(text).toContain("v1.2.3");
 
     container.querySelector<HTMLElement>(".list-item")?.click();
@@ -180,7 +180,7 @@ describe("renderSkills", () => {
             skill: {
               slug: "github",
               displayName: "GitHub",
-              summary: "GitHub integration for OpenClaw",
+              summary: "GitHub integration for Genesis",
               createdAt: 1_700_000_000,
               updatedAt: 1_700_000_100,
             },
@@ -193,8 +193,8 @@ describe("renderSkills", () => {
               os: ["macos", "linux"],
             },
             owner: {
-              displayName: "OpenClaw",
-              handle: "openclaw",
+              displayName: "Genesis",
+              handle: "genesis",
             },
           },
           onClawHubInstall,
@@ -208,7 +208,7 @@ describe("renderSkills", () => {
     text = normalizeText(container);
     expect(text).toContain("rate limited");
     expect(text).toContain("Installed github");
-    expect(text).toContain("By OpenClaw (@openclaw)");
+    expect(text).toContain("By Genesis (@genesis)");
     expect(text).toContain("Latest: v1.2.3");
     expect(text).toContain("Platforms: macos, linux");
     expect(text).toContain("Added search support");

@@ -16,8 +16,8 @@ title: "Gateway architecture"
   declare `role: node` with explicit caps/commands.
 - One Gateway per host; it is the only place that opens a WhatsApp session.
 - The **canvas host** is served by the Gateway HTTP server under:
-  - `/__openclaw__/canvas/` (agent-editable HTML/CSS/JS)
-  - `/__openclaw__/a2ui/` (A2UI host)
+  - `/__genesis__/canvas/` (agent-editable HTML/CSS/JS)
+  - `/__genesis__/a2ui/` (A2UI host)
     It uses the same port as the Gateway (default `18789`).
 
 ## Components and flows
@@ -101,7 +101,7 @@ sequenceDiagram
   for subsequent connects.
 - Direct local loopback connects can be auto-approved to keep same-host UX
   smooth.
-- OpenClaw also has a narrow backend/container-local self-connect path for
+- Genesis also has a narrow backend/container-local self-connect path for
   trusted shared-secret helper flows.
 - Tailnet and LAN connects, including same-host tailnet binds, still require
   explicit pairing approval.
@@ -136,7 +136,7 @@ Details: [Gateway protocol](/gateway/protocol), [Pairing](/channels/pairing),
 
 ## Operations snapshot
 
-- Start: `openclaw gateway` (foreground, logs to stdout).
+- Start: `genesis gateway` (foreground, logs to stdout).
 - Health: `health` over WS (also included in `hello-ok`).
 - Supervision: launchd/systemd for auto‑restart.
 

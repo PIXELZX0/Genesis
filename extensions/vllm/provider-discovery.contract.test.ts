@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const buildVllmProviderMock = vi.hoisted(() => vi.fn());
@@ -33,7 +33,7 @@ vi.mock("./api.js", () => ({
   buildVllmProvider: (...args: unknown[]) => buildVllmProviderMock(...args),
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-setup", () => ({
+vi.mock("genesis/plugin-sdk/provider-setup", () => ({
   discoverOpenAICompatibleSelfHostedProvider: (
     params: DiscoverOpenAICompatibleSelfHostedProviderParams,
   ) => discoverOpenAICompatibleSelfHostedProviderMock(params),
@@ -75,7 +75,7 @@ describe("vllm provider discovery contract", () => {
       registerProvider: (registeredProvider) => {
         provider = registeredProvider as RegisteredVllmProvider;
       },
-    } as OpenClawPluginApi);
+    } as GenesisPluginApi);
     expect(provider?.id).toBe("vllm");
     expect(provider?.discovery?.order).toBe("late");
     const discovery = provider?.discovery;

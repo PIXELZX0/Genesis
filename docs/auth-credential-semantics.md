@@ -58,7 +58,7 @@ Token credentials (`type: "token"`) support inline `token` and/or `tokenRef`.
 
 - Probe targets can come from auth profiles, environment credentials, or
   `models.json`.
-- If a provider has credentials but OpenClaw cannot resolve a probeable model
+- If a provider has credentials but Genesis cannot resolve a probeable model
   candidate for it, `models status --probe` reports `status: no_model` with
   `reasonCode: no_model`.
 

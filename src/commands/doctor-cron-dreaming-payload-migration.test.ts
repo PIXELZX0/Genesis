@@ -4,7 +4,7 @@ import {
   migrateLegacyDreamingPayloadShape,
 } from "./doctor-cron-dreaming-payload-migration.js";
 
-const DREAMING_TOKEN = "__openclaw_memory_core_short_term_promotion_dream__";
+const DREAMING_TOKEN = "__genesis_memory_core_short_term_promotion_dream__";
 const DREAMING_TAG = "[managed-by=memory-core.short-term-promotion]";
 
 function staleDreamingJob() {

@@ -47,9 +47,9 @@ const connectNodeClient = async (params: {
   displayName?: string;
   onEvent?: (evt: { event?: string; payload?: unknown }) => void;
 }) => {
-  const token = process.env.OPENCLAW_GATEWAY_TOKEN;
+  const token = process.env.GENESIS_GATEWAY_TOKEN;
   if (!token) {
-    throw new Error("OPENCLAW_GATEWAY_TOKEN is required for node test clients");
+    throw new Error("GENESIS_GATEWAY_TOKEN is required for node test clients");
   }
   return await connectGatewayClient({
     url: `ws://127.0.0.1:${params.port}`,
@@ -80,9 +80,9 @@ const approveAllPendingPairings = async () => {
 };
 
 function getGatewayTestConfigPath(): string {
-  const configPath = process.env.OPENCLAW_CONFIG_PATH;
+  const configPath = process.env.GENESIS_CONFIG_PATH;
   if (!configPath) {
-    throw new Error("OPENCLAW_CONFIG_PATH is required in the gateway test environment");
+    throw new Error("GENESIS_CONFIG_PATH is required in the gateway test environment");
   }
   return configPath;
 }
@@ -301,13 +301,13 @@ describe("gateway node command allowlist", () => {
 
     try {
       const systemDeviceIdentity = loadOrCreateDeviceIdentity(
-        path.join(os.tmpdir(), `openclaw-node-system-run-${Date.now()}-${Math.random()}.json`),
+        path.join(os.tmpdir(), `genesis-node-system-run-${Date.now()}-${Math.random()}.json`),
       );
       const emptyDeviceIdentity = loadOrCreateDeviceIdentity(
-        path.join(os.tmpdir(), `openclaw-node-empty-${Date.now()}-${Math.random()}.json`),
+        path.join(os.tmpdir(), `genesis-node-empty-${Date.now()}-${Math.random()}.json`),
       );
       const allowedDeviceIdentity = loadOrCreateDeviceIdentity(
-        path.join(os.tmpdir(), `openclaw-node-allowed-${Date.now()}-${Math.random()}.json`),
+        path.join(os.tmpdir(), `genesis-node-allowed-${Date.now()}-${Math.random()}.json`),
       );
 
       systemClient = await connectNodeClientWithPairing({
@@ -443,7 +443,7 @@ describe("gateway node command allowlist", () => {
   test("records only allowlisted commands in pending node pairing requests", async () => {
     const deviceIdentityPath = path.join(
       os.tmpdir(),
-      `openclaw-allowlisted-pending-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
+      `genesis-allowlisted-pending-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
     );
     const deviceIdentity = loadOrCreateDeviceIdentity(deviceIdentityPath);
     const displayName = "node-pending-allowlisted-only";
@@ -482,7 +482,7 @@ describe("gateway node command allowlist", () => {
   test("rejects reconnect metadata spoof for paired node devices", async () => {
     const deviceIdentityPath = path.join(
       os.tmpdir(),
-      `openclaw-spoof-test-device-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
+      `genesis-spoof-test-device-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
     );
     const deviceIdentity = loadOrCreateDeviceIdentity(deviceIdentityPath);
 
@@ -528,7 +528,7 @@ describe("gateway node command allowlist", () => {
   test("filters system.run for confusable iOS metadata at connect time", async () => {
     const deviceIdentityPath = path.join(
       os.tmpdir(),
-      `openclaw-confusable-node-greek-omicron-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
+      `genesis-confusable-node-greek-omicron-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
     );
     const deviceIdentity = loadOrCreateDeviceIdentity(deviceIdentityPath);
     const displayName = "node-greek-omicron-family";

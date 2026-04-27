@@ -1,9 +1,9 @@
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import { resolveGlobalSingleton } from "../shared/global-singleton.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
-import type { OpenClawPluginCommandDefinition } from "./types.js";
+import type { GenesisPluginCommandDefinition } from "./types.js";
 
-export type RegisteredPluginCommand = OpenClawPluginCommandDefinition & {
+export type RegisteredPluginCommand = GenesisPluginCommandDefinition & {
   pluginId: string;
   pluginName?: string;
   pluginRoot?: string;
@@ -14,7 +14,7 @@ type PluginCommandState = {
   registryLocked: boolean;
 };
 
-const PLUGIN_COMMAND_STATE_KEY = Symbol.for("openclaw.pluginCommandsState");
+const PLUGIN_COMMAND_STATE_KEY = Symbol.for("genesis.pluginCommandsState");
 
 const getState = () =>
   resolveGlobalSingleton<PluginCommandState>(PLUGIN_COMMAND_STATE_KEY, () => ({
@@ -67,7 +67,7 @@ export function restorePluginCommands(commands: readonly RegisteredPluginCommand
 }
 
 function resolvePluginNativeName(
-  command: OpenClawPluginCommandDefinition,
+  command: GenesisPluginCommandDefinition,
   provider?: string,
 ): string {
   const providerName = normalizeOptionalLowercaseString(provider);

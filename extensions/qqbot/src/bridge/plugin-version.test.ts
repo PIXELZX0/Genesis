@@ -54,7 +54,7 @@ describe("resolveQQBotPluginVersion", () => {
     const pluginDir = path.join(root, "extensions", "qqbot");
     const bridgeDir = path.join(pluginDir, "src", "bridge");
     writeJson(path.join(pluginDir, "package.json"), {
-      name: "@openclaw/qqbot",
+      name: "@genesis/qqbot",
       version: "2026.4.16",
     });
     fs.mkdirSync(bridgeDir, { recursive: true });
@@ -68,13 +68,13 @@ describe("resolveQQBotPluginVersion", () => {
     const root = newTree();
     // Parent package.json belongs to the framework, not the plugin.
     writeJson(path.join(root, "package.json"), {
-      name: "openclaw",
+      name: "genesis",
       version: "9.9.9",
     });
     const pluginDir = path.join(root, "extensions", "qqbot");
     const bridgeDir = path.join(pluginDir, "src", "bridge");
     writeJson(path.join(pluginDir, "package.json"), {
-      name: "@openclaw/qqbot",
+      name: "@genesis/qqbot",
       version: "2026.4.16",
     });
     fs.mkdirSync(bridgeDir, { recursive: true });
@@ -115,7 +115,7 @@ describe("resolveQQBotPluginVersion", () => {
     const pluginDir = path.join(root, "extensions", "qqbot");
     const bridgeDir = path.join(pluginDir, "src", "bridge");
     writeJson(path.join(pluginDir, "package.json"), {
-      name: "@openclaw/qqbot",
+      name: "@genesis/qqbot",
       // version intentionally missing
     });
     fs.mkdirSync(bridgeDir, { recursive: true });
@@ -134,7 +134,7 @@ describe("resolveQQBotPluginVersion", () => {
     fs.writeFileSync(path.join(pluginDir, "package.json"), "{ not valid json", "utf8");
     // Valid matching manifest higher up (unusual layout but still resolvable).
     writeJson(path.join(root, "package.json"), {
-      name: "@openclaw/qqbot",
+      name: "@genesis/qqbot",
       version: "2026.9.9",
     });
     fs.mkdirSync(bridgeDir, { recursive: true });

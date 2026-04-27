@@ -1,5 +1,5 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth-api-key";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { createProviderApiKeyAuthMethod } from "genesis/plugin-sdk/provider-auth-api-key";
 import { buildComfyImageGenerationProvider } from "./image-generation-provider.js";
 import { buildComfyMusicGenerationProvider } from "./music-generation-provider.js";
 import { buildComfyVideoGenerationProvider } from "./video-generation-provider.js";

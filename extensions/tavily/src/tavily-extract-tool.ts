@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-runtime";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-runtime";
 import {
   jsonResult,
   readNumberParam,
   readStringParam,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "genesis/plugin-sdk/provider-web-search";
 import { Type } from "typebox";
 import { runTavilyExtract } from "./tavily-client.js";
 import { optionalStringEnum } from "./tavily-tool-schema.js";
@@ -39,7 +39,7 @@ const TavilyExtractToolSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export function createTavilyExtractTool(api: OpenClawPluginApi) {
+export function createTavilyExtractTool(api: GenesisPluginApi) {
   return {
     name: "tavily_extract",
     label: "Tavily Extract",

@@ -18,7 +18,7 @@ function makeEnv(homeDir: string): NodeJS.ProcessEnv {
 }
 
 function makeHomeDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-allow-from-read-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-allow-from-read-"));
   tempDirs.push(dir);
   return dir;
 }

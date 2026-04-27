@@ -39,7 +39,7 @@ async function prepareRoutedCommand(params: {
 }
 
 export async function tryRouteCli(argv: string[]): Promise<boolean> {
-  if (isTruthyEnvValue(process.env.OPENCLAW_DISABLE_ROUTE_FIRST)) {
+  if (isTruthyEnvValue(process.env.GENESIS_DISABLE_ROUTE_FIRST)) {
     return false;
   }
   const invocation = resolveCliArgvInvocation(argv);

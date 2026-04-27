@@ -1,15 +1,15 @@
 import type { DatabaseSync } from "node:sqlite";
 import { type FSWatcher } from "chokidar";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   createSubsystemLogger,
   resolveAgentDir,
   resolveAgentWorkspaceDir,
   resolveMemorySearchConfig,
-  type OpenClawConfig,
+  type GenesisConfig,
   type ResolvedMemorySearchConfig,
-} from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
-import { extractKeywords } from "openclaw/plugin-sdk/memory-core-host-engine-qmd";
+} from "genesis/plugin-sdk/memory-core-host-engine-foundation";
+import { extractKeywords } from "genesis/plugin-sdk/memory-core-host-engine-qmd";
 import {
   readMemoryFile,
   type MemoryEmbeddingProbeResult,
@@ -19,7 +19,7 @@ import {
   type MemorySearchResult,
   type MemorySource,
   type MemorySyncProgressUpdate,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
 import {
   createEmbeddingProvider,
   type EmbeddingProvider,
@@ -60,7 +60,7 @@ const SNIPPET_MAX_CHARS = 700;
 const VECTOR_TABLE = "chunks_vec";
 const FTS_TABLE = "chunks_fts";
 const EMBEDDING_CACHE_TABLE = "embedding_cache";
-const MEMORY_INDEX_MANAGER_CACHE_KEY = Symbol.for("openclaw.memoryIndexManagerCache");
+const MEMORY_INDEX_MANAGER_CACHE_KEY = Symbol.for("genesis.memoryIndexManagerCache");
 const log = createSubsystemLogger("memory");
 
 const { cache: INDEX_CACHE, pending: INDEX_CACHE_PENDING } =
@@ -77,7 +77,7 @@ export async function closeAllMemoryIndexManagers(): Promise<void> {
 
 export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements MemorySearchManager {
   private readonly cacheKey: string;
-  protected readonly cfg: OpenClawConfig;
+  protected readonly cfg: GenesisConfig;
   protected readonly agentId: string;
   protected readonly workspaceDir: string;
   protected readonly settings: ResolvedMemorySearchConfig;
@@ -141,7 +141,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   private readonlyRecoveryLastError?: string;
 
   private static async loadProviderResult(params: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     agentId: string;
     settings: ResolvedMemorySearchConfig;
   }): Promise<EmbeddingProviderResult> {
@@ -153,7 +153,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   }
 
   static async get(params: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     agentId: string;
     purpose?: "default" | "status";
   }): Promise<MemoryIndexManager | null> {
@@ -185,7 +185,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
 
   private constructor(params: {
     cacheKey: string;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     agentId: string;
     workspaceDir: string;
     settings: ResolvedMemorySearchConfig;
@@ -338,7 +338,11 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       opts?.sources && opts.sources.length > 0
         ? [...new Set(opts.sources)].filter((s) => this.sources.has(s))
         : undefined;
-    if (opts?.sources && opts.sources.length > 0 && (!searchSources || searchSources.length === 0)) {
+    if (
+      opts?.sources &&
+      opts.sources.length > 0 &&
+      (!searchSources || searchSources.length === 0)
+    ) {
       return [];
     }
     const sourceFilterList = searchSources ?? [...this.sources];
@@ -375,9 +379,12 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
                 });
                 const searchTerms = keywords.length > 0 ? keywords : [cleaned];
                 return searchTerms.map((term) =>
-                  this.searchKeyword(term, candidates, { boostFallbackRanking: true }, sourceFilterList).catch(
-                    () => [],
-                  ),
+                  this.searchKeyword(
+                    term,
+                    candidates,
+                    { boostFallbackRanking: true },
+                    sourceFilterList,
+                  ).catch(() => []),
                 );
               })(),
             );

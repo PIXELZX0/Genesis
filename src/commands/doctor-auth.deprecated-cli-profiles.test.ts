@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { ProviderPlugin } from "../plugins/types.js";
 import { maybeRepairLegacyOAuthProfileIds } from "./doctor-auth-legacy-oauth.js";
 import type { DoctorPrompter } from "./doctor-prompter.js";
@@ -64,7 +64,7 @@ beforeEach(() => {
 
 describe("maybeRepairLegacyOAuthProfileIds", () => {
   it("skips provider loading when config has no legacy OAuth profiles", async () => {
-    const cfg = { channels: { telegram: { enabled: true } } } as OpenClawConfig;
+    const cfg = { channels: { telegram: { enabled: true } } } as GenesisConfig;
 
     const next = await maybeRepairLegacyOAuthProfileIds(cfg, makePrompter(true));
 
@@ -128,7 +128,7 @@ describe("maybeRepairLegacyOAuthProfileIds", () => {
             anthropic: ["anthropic:default"],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       makePrompter(true),
     );
 
@@ -192,7 +192,7 @@ describe("maybeRepairLegacyOAuthProfileIds", () => {
             "anthropic:default": { provider: "anthropic", mode: "oauth" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompter,
     );
 

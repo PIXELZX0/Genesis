@@ -7,8 +7,8 @@ import type {
   ChannelSetupWizardAdapter,
 } from "../commands/channel-setup/types.js";
 import type { ChannelChoice } from "../commands/onboard-types.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { DmPolicy } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 import { formatDocsLink } from "../terminal/links.js";
 import type { WizardPrompter, WizardSelectOption } from "../wizard/prompts.js";
@@ -60,7 +60,7 @@ export async function promptConfiguredAction(params: {
 }
 
 export async function promptRemovalAccountId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: WizardPrompter;
   label: string;
   channel: ChannelChoice;
@@ -88,12 +88,12 @@ export async function promptRemovalAccountId(params: {
 }
 
 export async function maybeConfigureDmPolicies(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   selection: ChannelChoice[];
   prompter: WizardPrompter;
   accountIdsByChannel?: Map<ChannelChoice, string>;
   resolveAdapter?: (channel: ChannelChoice) => ChannelSetupWizardAdapter | undefined;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   const { selection, prompter, accountIdsByChannel } = params;
   const resolve = params.resolveAdapter ?? (() => undefined);
   const dmPolicies = selection
@@ -121,11 +121,11 @@ export async function maybeConfigureDmPolicies(params: {
     await prompter.note(
       [
         "Default: pairing (unknown DMs get a pairing code).",
-        `Approve: ${formatCliCommand(`openclaw pairing approve ${policy.channel} <code>`)}`,
+        `Approve: ${formatCliCommand(`genesis pairing approve ${policy.channel} <code>`)}`,
         `Allowlist DMs: ${policyKey}="allowlist" + ${allowFromKey} entries.`,
         `Public DMs: ${policyKey}="open" + ${allowFromKey} includes "*".`,
         "Multi-user DMs: run: " +
-          formatCliCommand('openclaw config set session.dmScope "per-channel-peer"') +
+          formatCliCommand('genesis config set session.dmScope "per-channel-peer"') +
           ' (or "per-account-channel-peer" for multi-account channels) to isolate sessions.',
         `Docs: ${formatDocsLink("/channels/pairing", "channels/pairing")}`,
       ].join("\n"),

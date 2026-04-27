@@ -1,26 +1,26 @@
 {
-  "name": "@openclaw/qa-matrix",
+  "name": "@genesis/qa-matrix",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Matrix QA runner plugin",
+  "description": "Genesis Matrix QA runner plugin",
   "type": "module",
   "dependencies": {
     "undici": "8.1.0"
   },
   "devDependencies": {
-    "@openclaw/matrix": "workspace:*",
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/matrix": "workspace:*",
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],

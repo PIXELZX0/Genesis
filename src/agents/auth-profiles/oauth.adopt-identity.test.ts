@@ -46,7 +46,7 @@ describe("OAuth credential adoption is identity-gated", () => {
   let mainAgentDir = "";
 
   beforeAll(async () => {
-    tempRoot = await createOAuthTestTempRoot("openclaw-oauth-adopt-identity-");
+    tempRoot = await createOAuthTestTempRoot("genesis-oauth-adopt-identity-");
   });
 
   beforeEach(async () => {

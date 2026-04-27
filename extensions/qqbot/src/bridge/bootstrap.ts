@@ -27,8 +27,8 @@ import {
   hasConfiguredSecretInput,
   normalizeResolvedSecretInputString,
   normalizeSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+} from "genesis/plugin-sdk/secret-input";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import {
   registerPlatformAdapter,
   registerPlatformAdapterFactory,
@@ -52,7 +52,7 @@ function createBuiltinAdapter(): PlatformAdapter {
     },
 
     async downloadFile(url: string, destDir: string, filename?: string): Promise<string> {
-      const { fetchRemoteMedia } = await import("openclaw/plugin-sdk/media-runtime");
+      const { fetchRemoteMedia } = await import("genesis/plugin-sdk/media-runtime");
       const result = await fetchRemoteMedia({ url, filePathHint: filename });
       const fs = await import("node:fs");
       const path = await import("node:path");
@@ -65,7 +65,7 @@ function createBuiltinAdapter(): PlatformAdapter {
     },
 
     async fetchMedia(options: FetchMediaOptions): Promise<FetchMediaResult> {
-      const { fetchRemoteMedia } = await import("openclaw/plugin-sdk/media-runtime");
+      const { fetchRemoteMedia } = await import("genesis/plugin-sdk/media-runtime");
       const result = await fetchRemoteMedia({
         url: options.url,
         filePathHint: options.filePathHint,
@@ -78,7 +78,7 @@ function createBuiltinAdapter(): PlatformAdapter {
     },
 
     getTempDir(): string {
-      return resolvePreferredOpenClawTmpDir();
+      return resolvePreferredGenesisTmpDir();
     },
 
     hasConfiguredSecret(value: unknown): boolean {
@@ -95,9 +95,9 @@ function createBuiltinAdapter(): PlatformAdapter {
 
     async resolveApproval(approvalId: string, decision: string): Promise<boolean> {
       try {
-        const { loadConfig } = await import("openclaw/plugin-sdk/config-runtime");
+        const { loadConfig } = await import("genesis/plugin-sdk/config-runtime");
         const { resolveApprovalOverGateway } =
-          await import("openclaw/plugin-sdk/approval-gateway-runtime");
+          await import("genesis/plugin-sdk/approval-gateway-runtime");
         const cfg = loadConfig();
         await resolveApprovalOverGateway({
           cfg,

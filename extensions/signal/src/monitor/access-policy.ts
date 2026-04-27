@@ -1,9 +1,9 @@
-import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import { upsertChannelPairingRequest } from "openclaw/plugin-sdk/conversation-runtime";
+import { createChannelPairingChallengeIssuer } from "genesis/plugin-sdk/channel-pairing";
+import { upsertChannelPairingRequest } from "genesis/plugin-sdk/conversation-runtime";
 import {
   readStoreAllowFromForDmPolicy,
   resolveDmGroupAccessWithLists,
-} from "openclaw/plugin-sdk/security-runtime";
+} from "genesis/plugin-sdk/security-runtime";
 import { isSignalSenderAllowed, type SignalSender } from "../identity.js";
 
 type SignalDmPolicy = "open" | "pairing" | "allowlist" | "disabled";

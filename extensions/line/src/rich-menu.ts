@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { messagingApi } from "@line/bot-sdk";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveLineAccount } from "./accounts.js";
 import { datetimePickerAction, messageAction, postbackAction, uriAction } from "./actions.js";
 import { resolveLineChannelAccessToken } from "./channel-access-token.js";
@@ -37,7 +37,7 @@ export interface CreateRichMenuParams {
 }
 
 interface RichMenuOpts {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelAccessToken?: string;
   accountId?: string;
   verbose?: boolean;

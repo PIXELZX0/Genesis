@@ -19,7 +19,7 @@
 // loadCostUsageSummary dependency is stubbed.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 
 const mocks = vi.hoisted(() => ({
   loadCostUsageSummary: vi.fn(),
@@ -65,7 +65,7 @@ describe("costUsageCache bounded growth", () => {
   });
 
   it("does not grow without bound when (startMs, endMs) varies across day rollover and range switches", async () => {
-    const config = {} as OpenClawConfig;
+    const config = {} as GenesisConfig;
 
     // 600 distinct (startMs, endMs) pairs — larger than the 256 caps used by
     // the smallest sibling caches (RUN_LOOKUP_CACHE_LIMIT,
@@ -98,7 +98,7 @@ describe("costUsageCache bounded growth", () => {
   });
 
   it("evicts settled entries before in-flight entries when possible", async () => {
-    const config = {} as OpenClawConfig;
+    const config = {} as GenesisConfig;
     const pending = new Promise<ReturnType<typeof createSummary>>(() => {});
     mocks.loadCostUsageSummary.mockReturnValueOnce(pending);
 

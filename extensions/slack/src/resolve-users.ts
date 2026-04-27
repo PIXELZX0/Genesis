@@ -2,7 +2,7 @@ import type { WebClient } from "@slack/web-api";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { createSlackWebClient } from "./client.js";
 import {
   collectSlackCursorItems,

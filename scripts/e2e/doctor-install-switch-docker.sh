@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-doctor-install-switch-e2e" OPENCLAW_DOCTOR_INSTALL_SWITCH_E2E_IMAGE)"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-doctor-install-switch-e2e" GENESIS_DOCTOR_INSTALL_SWITCH_E2E_IMAGE)"
 
 docker_e2e_build_or_reuse "$IMAGE_NAME" doctor-switch
 
@@ -15,13 +15,13 @@ docker run --rm -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 "$IMAGE_NAME" bash -lc '
   export npm_config_loglevel=error
   export npm_config_fund=false
   export npm_config_audit=false
-  export OPENCLAW_DISABLE_BUNDLED_PLUGINS=1
+  export GENESIS_DISABLE_BUNDLED_PLUGINS=1
 
   # Stub systemd/loginctl so doctor + daemon flows work in Docker.
-  export PATH="/tmp/openclaw-bin:$PATH"
-  mkdir -p /tmp/openclaw-bin
+  export PATH="/tmp/genesis-bin:$PATH"
+  mkdir -p /tmp/genesis-bin
 
-  cat > /tmp/openclaw-bin/systemctl <<"SYSTEMCTL"
+  cat > /tmp/genesis-bin/systemctl <<"SYSTEMCTL"
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -57,9 +57,9 @@ case "$cmd" in
     ;;
 esac
 SYSTEMCTL
-  chmod +x /tmp/openclaw-bin/systemctl
+  chmod +x /tmp/genesis-bin/systemctl
 
-  cat > /tmp/openclaw-bin/loginctl <<"LOGINCTL"
+  cat > /tmp/genesis-bin/loginctl <<"LOGINCTL"
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -72,7 +72,7 @@ if [[ "$*" == *"enable-linger"* ]]; then
 fi
 exit 0
 LOGINCTL
-  chmod +x /tmp/openclaw-bin/loginctl
+  chmod +x /tmp/genesis-bin/loginctl
 
   # Install the npm-global variant from the local /app source.
   # `npm pack` can emit script output; keep only the tarball name.
@@ -81,14 +81,14 @@ LOGINCTL
     echo "npm pack failed (expected /app/$pkg_tgz)"
     exit 1
   fi
-  npm_log="/tmp/openclaw-doctor-switch-npm-install.log"
+  npm_log="/tmp/genesis-doctor-switch-npm-install.log"
   if ! npm install -g --prefix /tmp/npm-prefix "/app/$pkg_tgz" >"$npm_log" 2>&1; then
     cat "$npm_log"
     exit 1
   fi
 
-	  npm_bin="/tmp/npm-prefix/bin/openclaw"
-	  npm_root="/tmp/npm-prefix/lib/node_modules/openclaw"
+	  npm_bin="/tmp/npm-prefix/bin/genesis"
+	  npm_root="/tmp/npm-prefix/lib/node_modules/genesis"
 	  if [ -f "$npm_root/dist/index.mjs" ]; then
 	    npm_entry="$npm_root/dist/index.mjs"
 	  else
@@ -100,7 +100,7 @@ LOGINCTL
 	  else
 	    git_entry="/app/dist/index.js"
 	  fi
-	  git_cli="/app/openclaw.mjs"
+	  git_cli="/app/genesis.mjs"
 
   assert_entrypoint() {
     local unit_path="$1"
@@ -129,12 +129,12 @@ LOGINCTL
     local install_expected="$3"
     local doctor_cmd="$4"
     local doctor_expected="$5"
-    local install_log="/tmp/openclaw-doctor-switch-${name}-install.log"
-    local doctor_log="/tmp/openclaw-doctor-switch-${name}-doctor.log"
-    local command_timeout="${OPENCLAW_DOCKER_DOCTOR_SWITCH_COMMAND_TIMEOUT:-300s}"
+    local install_log="/tmp/genesis-doctor-switch-${name}-install.log"
+    local doctor_log="/tmp/genesis-doctor-switch-${name}-doctor.log"
+    local command_timeout="${GENESIS_DOCKER_DOCTOR_SWITCH_COMMAND_TIMEOUT:-300s}"
 
     echo "== Flow: $name =="
-    home_dir=$(mktemp -d "/tmp/openclaw-switch-${name}.XXXXXX")
+    home_dir=$(mktemp -d "/tmp/genesis-switch-${name}.XXXXXX")
     export HOME="$home_dir"
     export USER="testuser"
 
@@ -145,7 +145,7 @@ LOGINCTL
     rm -f "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile"
     rm -rf "$HOME/.config/fish" "$HOME/.config/powershell"
 
-    unit_path="$HOME/.config/systemd/user/openclaw-gateway.service"
+    unit_path="$HOME/.config/systemd/user/genesis-gateway.service"
     if [ ! -f "$unit_path" ]; then
       echo "Missing unit file: $unit_path"
       exit 1

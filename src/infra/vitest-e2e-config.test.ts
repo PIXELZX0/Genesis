@@ -24,7 +24,7 @@ describe("e2e vitest config", () => {
     expect(e2eConfig.test?.isolate).toBe(false);
     expect(normalizeConfigPath(e2eConfig.test?.runner)).toBe("test/non-isolated-runner.ts");
     expect(normalizeConfigPaths(e2eConfig.test?.setupFiles)).toContain(
-      "test/setup-openclaw-runtime.ts",
+      "test/setup-genesis-runtime.ts",
     );
   });
 });

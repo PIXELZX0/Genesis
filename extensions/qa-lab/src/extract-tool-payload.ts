@@ -1,1 +1,1 @@
-export { extractToolPayload as extractQaToolPayload } from "openclaw/plugin-sdk/tool-payload";
+export { extractToolPayload as extractQaToolPayload } from "genesis/plugin-sdk/tool-payload";

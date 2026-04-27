@@ -11,7 +11,7 @@ import type {
   jsonSchemaValidator,
 } from "@modelcontextprotocol/sdk/validation/types.js";
 import type { ErrorObject, ValidateFunction } from "ajv";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { logWarn } from "../logger.js";
 import { resolveGlobalSingleton } from "../shared/global-singleton.js";
 import { redactSensitiveUrlLikeString } from "../shared/net/redact-sensitive-url.js";
@@ -43,7 +43,7 @@ type CreateSessionMcpRuntime = (
 ) => SessionMcpRuntime;
 
 const require = createRequire(import.meta.url);
-const SESSION_MCP_RUNTIME_MANAGER_KEY = Symbol.for("openclaw.sessionMcpRuntimeManager");
+const SESSION_MCP_RUNTIME_MANAGER_KEY = Symbol.for("genesis.sessionMcpRuntimeManager");
 const DRAFT_2020_12_SCHEMA = "https://json-schema.org/draft/2020-12/schema";
 const DEFAULT_SESSION_MCP_RUNTIME_IDLE_TTL_MS = 10 * 60 * 1000;
 const SESSION_MCP_RUNTIME_SWEEP_INTERVAL_MS = 60 * 1000;
@@ -145,7 +145,7 @@ function createCatalogFingerprint(servers: Record<string, unknown>): string {
 
 function loadSessionMcpConfig(params: {
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   logDiagnostics?: boolean;
 }): {
   loaded: LoadedMcpConfig;
@@ -170,7 +170,7 @@ function createDisposedError(sessionId: string): Error {
   return new Error(`bundle-mcp runtime disposed for session ${sessionId}`);
 }
 
-function resolveSessionMcpRuntimeIdleTtlMs(cfg?: OpenClawConfig): number {
+function resolveSessionMcpRuntimeIdleTtlMs(cfg?: GenesisConfig): number {
   const raw = cfg?.mcp?.sessionIdleTtlMs;
   if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
     return Math.floor(raw);
@@ -182,7 +182,7 @@ export function createSessionMcpRuntime(params: {
   sessionId: string;
   sessionKey?: string;
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): SessionMcpRuntime {
   const { loaded, fingerprint: configFingerprint } = loadSessionMcpConfig({
     workspaceDir: params.workspaceDir,
@@ -240,7 +240,7 @@ export function createSessionMcpRuntime(params: {
 
           const client = new Client(
             {
-              name: "openclaw-bundle-mcp",
+              name: "genesis-bundle-mcp",
               version: "0.0.0",
             },
             {
@@ -585,7 +585,7 @@ export async function getOrCreateSessionMcpRuntime(params: {
   sessionId: string;
   sessionKey?: string;
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): Promise<SessionMcpRuntime> {
   return await getSessionMcpRuntimeManager().getOrCreate(params);
 }

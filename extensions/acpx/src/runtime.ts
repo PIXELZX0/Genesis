@@ -58,8 +58,8 @@ function createResetAwareSessionStore(baseStore: AcpSessionStore): ResetAwareSes
   };
 }
 
-const OPENCLAW_BRIDGE_EXECUTABLE = "openclaw";
-const OPENCLAW_BRIDGE_SUBCOMMAND = "acp";
+const GENESIS_BRIDGE_EXECUTABLE = "genesis";
+const GENESIS_BRIDGE_SUBCOMMAND = "acp";
 
 function normalizeAgentName(value: string | undefined): string | undefined {
   const normalized = value?.trim().toLowerCase();
@@ -160,19 +160,19 @@ function unwrapEnvCommand(parts: string[]): string[] {
   return parts.slice(index);
 }
 
-function isOpenClawBridgeCommand(command: string | undefined): boolean {
+function isGenesisBridgeCommand(command: string | undefined): boolean {
   if (!command) {
     return false;
   }
   const parts = unwrapEnvCommand(splitCommandParts(command.trim()));
-  if (basename(parts[0] ?? "") === OPENCLAW_BRIDGE_EXECUTABLE) {
-    return parts[1] === OPENCLAW_BRIDGE_SUBCOMMAND;
+  if (basename(parts[0] ?? "") === GENESIS_BRIDGE_EXECUTABLE) {
+    return parts[1] === GENESIS_BRIDGE_SUBCOMMAND;
   }
   if (basename(parts[0] ?? "") !== "node") {
     return false;
   }
   const scriptName = basename(parts[1] ?? "");
-  return /^openclaw(?:\.[cm]?js)?$/i.test(scriptName) && parts[2] === OPENCLAW_BRIDGE_SUBCOMMAND;
+  return /^genesis(?:\.[cm]?js)?$/i.test(scriptName) && parts[2] === GENESIS_BRIDGE_SUBCOMMAND;
 }
 
 function resolveAgentCommand(params: {
@@ -200,7 +200,7 @@ function resolveAgentCommandForName(params: {
 }
 
 function shouldUseBridgeSafeDelegateForCommand(command: string | undefined): boolean {
-  return isOpenClawBridgeCommand(command);
+  return isGenesisBridgeCommand(command);
 }
 
 function shouldUseDistinctBridgeDelegate(options: AcpRuntimeOptions): boolean {

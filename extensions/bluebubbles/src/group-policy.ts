@@ -2,11 +2,11 @@ import {
   resolveChannelGroupRequireMention,
   resolveChannelGroupToolsPolicy,
   type GroupToolPolicyConfig,
-} from "openclaw/plugin-sdk/channel-policy";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-policy";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
 type BlueBubblesGroupContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   groupId?: string | null;
   senderId?: string | null;

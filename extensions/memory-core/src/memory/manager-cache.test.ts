@@ -12,7 +12,7 @@ type TestEntry = {
 };
 
 function createTestCache(): ManagedCache<TestEntry> {
-  return resolveSingletonManagedCache<TestEntry>(Symbol("openclaw.manager-cache.test"));
+  return resolveSingletonManagedCache<TestEntry>(Symbol("genesis.manager-cache.test"));
 }
 
 function createEntry(id: string): TestEntry {
@@ -47,7 +47,7 @@ describe("manager cache", () => {
   });
 
   it("repairs an invalid singleton cache shape", async () => {
-    const cacheKey = Symbol("openclaw.manager-cache.corrupt-test");
+    const cacheKey = Symbol("genesis.manager-cache.corrupt-test");
     (globalThis as Record<PropertyKey, unknown>)[cacheKey] = {};
 
     const cache = resolveSingletonManagedCache<TestEntry>(cacheKey);

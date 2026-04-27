@@ -18,8 +18,8 @@ docker_e2e_resolve_image() {
     fi
   done
 
-  if [ -n "${OPENCLAW_DOCKER_E2E_IMAGE:-}" ]; then
-    printf '%s\n' "$OPENCLAW_DOCKER_E2E_IMAGE"
+  if [ -n "${GENESIS_DOCKER_E2E_IMAGE:-}" ]; then
+    printf '%s\n' "$GENESIS_DOCKER_E2E_IMAGE"
     return 0
   fi
 
@@ -34,13 +34,13 @@ docker_e2e_build_or_reuse() {
   local target="${5:-}"
   local skip_build="${6:-0}"
 
-  if [ "${OPENCLAW_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$skip_build" = "1" ]; then
+  if [ "${GENESIS_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$skip_build" = "1" ]; then
     echo "Reusing Docker image: $image_name"
     if ! docker image inspect "$image_name" >/dev/null 2>&1; then
       echo "Docker image not found locally; pulling: $image_name"
       if ! docker pull "$image_name"; then
         echo "Docker image not found: $image_name" >&2
-        echo "Build it first or unset OPENCLAW_SKIP_DOCKER_BUILD." >&2
+        echo "Build it first or unset GENESIS_SKIP_DOCKER_BUILD." >&2
         return 1
       fi
     fi

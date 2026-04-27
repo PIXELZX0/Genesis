@@ -1,6 +1,6 @@
-import { createScopedDmSecurityResolver } from "openclaw/plugin-sdk/channel-config-helpers";
-import { createOpenProviderConfiguredRouteWarningCollector } from "openclaw/plugin-sdk/channel-policy";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
+import { createScopedDmSecurityResolver } from "genesis/plugin-sdk/channel-config-helpers";
+import { createOpenProviderConfiguredRouteWarningCollector } from "genesis/plugin-sdk/channel-policy";
+import { createLazyRuntimeModule } from "genesis/plugin-sdk/lazy-runtime";
 import type { ResolvedSlackAccount } from "./accounts.js";
 import type { ChannelPlugin } from "./channel-api.js";
 

@@ -4,7 +4,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 
 ## Start
 
-- Repo: `https://github.com/openclaw/openclaw`
+- Repo: `https://github.com/PIXELZX0/Genesis`
 - Replies: repo-root refs only: `extensions/telegram/src/index.ts:80`. No absolute paths, no `~/`.
 - Run docs list first: `pnpm docs:list` if available; read relevant docs only.
 - High-confidence answers only when fixing/triaging: verify source, tests, shipped/current behavior, and dependency contracts before deciding.
@@ -18,13 +18,13 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 ## Map
 
 - Core TS: `src/`, `ui/`, `packages/`; plugins: `extensions/`; SDK: `src/plugin-sdk/*`; channels: `src/channels/*`; loader: `src/plugins/*`; protocol: `src/gateway/protocol/*`; docs/apps: `docs/`, `apps/`, `Swabble/`.
-- Installers: sibling `../openclaw.ai`.
+- Installers: sibling `../genesis.ai`.
 - Scoped guides exist in: `extensions/`, `src/{plugin-sdk,channels,plugins,gateway,gateway/protocol,agents}/`, `test/helpers*/`, `docs/`, `ui/`, `scripts/`.
 
 ## Architecture
 
 - Core stays extension-agnostic. No bundled ids in core when manifest/registry/capability contracts work.
-- Extensions cross into core only via `openclaw/plugin-sdk/*`, manifest metadata, injected runtime helpers, documented barrels (`api.ts`, `runtime-api.ts`).
+- Extensions cross into core only via `genesis/plugin-sdk/*`, manifest metadata, injected runtime helpers, documented barrels (`api.ts`, `runtime-api.ts`).
 - Extension prod code: no core `src/**`, `src/plugin-sdk-internal/**`, other extension `src/**`, or relative outside package.
 - Core/tests: no deep plugin internals (`extensions/*/src/**`, `onboard.js`). Use `api.ts`, SDK facade, generic contracts.
 - Extension-owned behavior stays extension-owned: repair, detection, onboarding, auth/provider defaults, provider tools/settings.
@@ -42,20 +42,20 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 
 - Runtime: Node 22+. Keep Node + Bun paths working.
 - Install: `pnpm install` (keep Bun lock/patches aligned if touched).
-- CLI: `pnpm openclaw ...` or `pnpm dev`; build: `pnpm build`.
+- CLI: `pnpm genesis ...` or `pnpm dev`; build: `pnpm build`.
 - Smart gate: `pnpm check:changed`; explain `pnpm changed:lanes --json`; staged preview `pnpm check:changed --staged`.
 - Prod sweep: `pnpm check`; tests: `pnpm test`, `pnpm test:changed`, `pnpm test:serial`, `pnpm test:coverage`.
 - Extension tests: `pnpm test:extensions`, `pnpm test extensions`, `pnpm test extensions/<id>`.
 - Targeted tests: `pnpm test <path-or-filter> [vitest args...]`; never raw `vitest`.
 - Typecheck: `tsgo` lanes only (`pnpm tsgo*`, `pnpm check:test-types`); do not add `tsc --noEmit`, `typecheck`, `check:types`.
 - Format/lint: `pnpm format:check`/`pnpm format`; `pnpm lint*` lanes.
-- Heavy checks: `OPENCLAW_LOCAL_CHECK=1`, mode `OPENCLAW_LOCAL_CHECK_MODE=throttled|full`; CI/shared use `OPENCLAW_LOCAL_CHECK=0`.
+- Heavy checks: `GENESIS_LOCAL_CHECK=1`, mode `GENESIS_LOCAL_CHECK_MODE=throttled|full`; CI/shared use `GENESIS_LOCAL_CHECK=0`.
 - Local first. Use repo `pnpm` lanes before Blacksmith/Testbox. Remote only for parity-only failures, secrets/services, or explicit ask.
 
 ## GitHub / CI
 
 - Triage: list first, hydrate few. Use bounded `gh --json --jq`; avoid repeated full comment scans.
-- Search/dedupe: prefer `gh search issues 'repo:openclaw/openclaw is:open <terms>' --json number,title,state,updatedAt --limit 20`.
+- Search/dedupe: prefer `gh search issues 'repo:PIXELZX0/Genesis is:open <terms>' --json number,title,state,updatedAt --limit 20`.
 - PR shortlist: `gh pr list ...`; then `gh pr view <n> --json number,title,body,closingIssuesReferences,files,statusCheckRollup,reviewDecision`.
 - After landing PR: search duplicate open issues/PRs. Before closing: comment why + canonical link.
 - GH comments with markdown backticks, `$`, or shell snippets: avoid inline double-quoted `--body`; use single quotes or `--body-file`.
@@ -65,7 +65,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Wait matrix:
   - never: `Auto response`, `Labeler`, `Docs Sync Publish Repo`, `Docs Agent`, `Test Performance Agent`, `Stale`.
   - conditional: `CI` exact SHA only; `Docs` only docs task/no local docs proof; `Workflow Sanity` only workflow/composite/CI-policy edits; `Plugin NPM Release` only plugin package/release metadata.
-  - release/manual only: `Docker Release`, `OpenClaw NPM Release`, `macOS Release`, `OpenClaw Release Checks`, `Cross-OS Release Checks`, `NPM Telegram Beta E2E`.
+  - release/manual only: `Docker Release`, `Genesis NPM Release`, `macOS Release`, `Genesis Release Checks`, `Cross-OS Release Checks`, `NPM Telegram Beta E2E`.
   - explicit/surface only: `QA-Lab - All Lanes`, `Scheduled Live And E2E`, `Install Smoke`, `CodeQL`, `Sandbox Common Smoke`, `Parity gate`, `Blacksmith Testbox`, `Control UI Locale Refresh`.
 - `/landpr`: do not idle on `auto-response` or `check-docs`. Treat docs as local proof unless `check-docs` already failed with actionable relevant error.
 - Poll 30-60s. Fetch jobs/logs/artifacts only after failure/completion or concrete need.
@@ -98,7 +98,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Classes: no prototype mixins/mutations. Prefer inheritance/composition. Tests prefer per-instance stubs.
 - Comments: brief, only non-obvious logic.
 - Split files around ~700 LOC when clarity/testability improves.
-- Naming: **OpenClaw** product/docs; `openclaw` CLI/package/path/config.
+- Naming: **Genesis** product/docs; `genesis` CLI/package/path/config.
 - English: American spelling.
 
 ## Tests
@@ -108,11 +108,11 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Hot tests: avoid per-test `vi.resetModules()` + heavy imports. Measure with `pnpm test:perf:imports <file>` / `pnpm test:perf:hotspots --limit N`.
 - Seam depth: pure helper/contract unit tests; one integration smoke per boundary.
 - Mock expensive seams directly: scanners, manifests, registries, fs crawls, provider SDKs, network/process launch.
-- Prefer injection; if module mocking, mock narrow local `*.runtime.ts`, not broad barrels or `openclaw/plugin-sdk/*`.
+- Prefer injection; if module mocking, mock narrow local `*.runtime.ts`, not broad barrels or `genesis/plugin-sdk/*`.
 - Share fixtures/builders; delete duplicate assertions; assert behavior that can regress here.
 - Do not edit baseline/inventory/ignore/snapshot/expected-failure files to silence checks without explicit approval.
-- Test workers max 16. Memory pressure: `OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test`.
-- Live: `OPENCLAW_LIVE_TEST=1 pnpm test:live`; verbose `OPENCLAW_LIVE_TEST_QUIET=0`.
+- Test workers max 16. Memory pressure: `GENESIS_VITEST_MAX_WORKERS=1 pnpm test`.
+- Live: `GENESIS_LIVE_TEST=1 pnpm test:live`; verbose `GENESIS_LIVE_TEST_QUIET=0`.
 - Guide: `docs/help/testing.md`.
 
 ## Docs / Changelog
@@ -130,17 +130,17 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - User says `commit`: your changes only. `commit all`: all changes in grouped chunks. `push`: may `git pull --rebase` first.
 - Do not delete/rename unexpected files; ask if blocking, else ignore.
 - Bulk PR close/reopen >5: ask with count/scope.
-- PR/issue workflows: `$openclaw-pr-maintainer`. `/landpr`: `~/.codex/prompts/landpr.md`.
+- PR/issue workflows: `$genesis-pr-maintainer`. `/landpr`: `~/.codex/prompts/landpr.md`.
 
 ## Security / Release
 
 - Never commit real phone numbers, videos, credentials, live config.
-- Secrets: channel/provider creds in `~/.openclaw/credentials/`; model auth profiles in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+- Secrets: channel/provider creds in `~/.genesis/credentials/`; model auth profiles in `~/.genesis/agents/<agentId>/agent/auth-profiles.json`.
 - Env keys: check `~/.profile`.
 - Dependency patches/overrides/vendor changes need explicit approval. `pnpm.patchedDependencies` exact versions only.
 - Carbon pins owner-only: do not change `@buape/carbon` unless Shadow (`@thewilloftheshadow`, verified by `gh`) asks.
-- Releases/publish/version bumps need explicit approval. Release docs: `docs/reference/RELEASING.md`; use `$openclaw-release-maintainer`.
-- GHSA/advisories: `$openclaw-ghsa-maintainer`.
+- Releases/publish/version bumps need explicit approval. Release docs: `docs/reference/RELEASING.md`; use `$genesis-release-maintainer`.
+- GHSA/advisories: `$genesis-ghsa-maintainer`.
 - Beta tag/version match: `vYYYY.M.D-beta.N` -> npm `YYYY.M.D-beta.N --tag beta`.
 
 ## Apps / Platform
@@ -148,15 +148,15 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Before simulator/emulator testing, check real iOS/Android devices.
 - "restart iOS/Android apps" = rebuild/reinstall/relaunch, not kill/launch.
 - SwiftUI: Observation (`@Observable`, `@Bindable`) over new `ObservableObject`.
-- Mac gateway: use app or `openclaw gateway restart/status --deep`; no ad-hoc tmux gateway. Logs: `./scripts/clawlog.sh`.
+- Mac gateway: use app or `genesis gateway restart/status --deep`; no ad-hoc tmux gateway. Logs: `./scripts/clawlog.sh`.
 - Version bump touches: `package.json`, `apps/android/app/build.gradle.kts`, `apps/ios/version.json` + `pnpm ios:version:sync`, macOS `Info.plist`, `docs/install/updating.md`. Appcast only for Sparkle release.
-- Mobile LAN pairing: plaintext `ws://` loopback-only. Private-network `ws://` needs `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1`; Tailscale/public use `wss://` or tunnel.
+- Mobile LAN pairing: plaintext `ws://` loopback-only. Private-network `ws://` needs `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1`; Tailscale/public use `wss://` or tunnel.
 - A2UI hash `src/canvas-host/a2ui/.bundle.hash`: generated; ignore unless running `pnpm canvas:a2ui:bundle`; commit separately.
 
 ## Ops / Footguns
 
-- Remote install docs: `docs/install/{exe-dev,fly,hetzner}.md`. Parallels smoke: `$openclaw-parallels-smoke`; Discord roundtrip: `parallels-discord-roundtrip`.
-- Rebrand/migration/config warnings: run `openclaw doctor`.
+- Remote install docs: `docs/install/{exe-dev,fly,hetzner}.md`. Parallels smoke: `$genesis-parallels-smoke`; Discord roundtrip: `parallels-discord-roundtrip`.
+- Rebrand/migration/config warnings: run `genesis doctor`.
 - Never edit `node_modules`.
 - Local-only `.agents` ignores: `.git/info/exclude`, not repo `.gitignore`.
 - CLI progress: `src/cli/progress.ts`; status tables: `src/terminal/table.ts`.

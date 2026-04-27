@@ -1,4 +1,4 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 import { createTokenjuiceAgentToolResultMiddleware } from "./tool-result-middleware.js";
 
 export default definePluginEntry({

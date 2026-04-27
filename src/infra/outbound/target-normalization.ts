@@ -1,6 +1,6 @@
 import { getLoadedChannelPluginForRead } from "../../channels/plugins/registry-loaded-read.js";
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getActivePluginChannelRegistryVersion } from "../../plugins/runtime.js";
 import {
   normalizeOptionalLowercaseString,
@@ -106,7 +106,7 @@ export function looksLikeTargetId(params: {
 }
 
 export async function maybeResolvePluginMessagingTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: ChannelId;
   input: string;
   accountId?: string | null;

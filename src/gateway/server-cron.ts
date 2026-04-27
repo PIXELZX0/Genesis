@@ -9,7 +9,7 @@ import {
   resolveAgentMainSessionKey,
 } from "../config/sessions.js";
 import { resolveStorePath } from "../config/sessions/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   resolveCronDeliveryPlan,
   resolveFailureDestination,
@@ -145,15 +145,15 @@ async function postCronWebhook(params: {
 }
 
 export function buildGatewayCronService(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   deps: CliDeps;
   broadcast: (event: string, payload: unknown, opts?: { dropIfSlow?: boolean }) => void;
 }): GatewayCronState {
   const cronLogger = getChildLogger({ module: "cron" });
   const storePath = resolveCronStorePath(params.cfg.cron?.store);
-  const cronEnabled = process.env.OPENCLAW_SKIP_CRON !== "1" && params.cfg.cron?.enabled !== false;
+  const cronEnabled = process.env.GENESIS_SKIP_CRON !== "1" && params.cfg.cron?.enabled !== false;
 
-  const findAgentEntry = (cfg: OpenClawConfig, agentId: string) =>
+  const findAgentEntry = (cfg: GenesisConfig, agentId: string) =>
     Array.isArray(cfg.agents?.list)
       ? cfg.agents.list.find(
           (entry) =>
@@ -161,10 +161,10 @@ export function buildGatewayCronService(params: {
         )
       : undefined;
 
-  const hasConfiguredAgent = (cfg: OpenClawConfig, agentId: string) =>
+  const hasConfiguredAgent = (cfg: GenesisConfig, agentId: string) =>
     Boolean(findAgentEntry(cfg, agentId));
 
-  const mergeRuntimeAgentConfig = (runtimeConfig: OpenClawConfig, requestedAgentId: string) => {
+  const mergeRuntimeAgentConfig = (runtimeConfig: GenesisConfig, requestedAgentId: string) => {
     if (hasConfiguredAgent(runtimeConfig, requestedAgentId)) {
       return runtimeConfig;
     }
@@ -202,7 +202,7 @@ export function buildGatewayCronService(params: {
   };
 
   const resolveCronSessionKey = (params: {
-    runtimeConfig: OpenClawConfig;
+    runtimeConfig: GenesisConfig;
     agentId: string;
     requestedSessionKey?: string | null;
   }) => {

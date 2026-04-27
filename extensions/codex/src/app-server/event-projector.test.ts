@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness";
+import type { EmbeddedRunAttemptParams } from "genesis/plugin-sdk/agent-harness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetAgentEventsForTest } from "../../../../src/infra/agent-events.js";
 import {
@@ -43,7 +43,7 @@ function assistantMessage(text: string, timestamp: number) {
 }
 
 async function createParams(): Promise<EmbeddedRunAttemptParams> {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-projector-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-projector-"));
   tempDirs.add(tempDir);
   const sessionFile = path.join(tempDir, "session.jsonl");
   SessionManager.open(sessionFile).appendMessage(assistantMessage("history", Date.now()));

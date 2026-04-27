@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import type { Mock } from "vitest";
 import { expect, vi } from "vitest";
 
@@ -23,7 +23,7 @@ type ProviderMonitorTestMocks = {
   createDiscordAutoPresenceControllerMock: Mock<() => unknown>;
   createDiscordExecApprovalButtonContextMock: Mock<
     (params?: {
-      cfg?: OpenClawConfig;
+      cfg?: GenesisConfig;
       accountId?: string;
       config?: unknown;
       gatewayUrl?: string;
@@ -38,7 +38,7 @@ type ProviderMonitorTestMocks = {
   createdBindingManagers: Array<{ stop: ReturnType<typeof vi.fn> }>;
   getAcpSessionStatusMock: Mock<
     (params: {
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       sessionKey: string;
       signal?: AbortSignal;
     }) => Promise<{ state: string }>
@@ -124,7 +124,7 @@ const providerMonitorTestMocks: ProviderMonitorTestMocks = vi.hoisted(() => {
     })),
     createdBindingManagers,
     getAcpSessionStatusMock: vi.fn(
-      async (_params: { cfg: OpenClawConfig; sessionKey: string; signal?: AbortSignal }) => ({
+      async (_params: { cfg: GenesisConfig; sessionKey: string; signal?: AbortSignal }) => ({
         state: "idle",
       }),
     ),
@@ -283,7 +283,7 @@ export const baseRuntime = (): RuntimeEnv => ({
   exit: vi.fn(),
 });
 
-export const baseConfig = (): OpenClawConfig =>
+export const baseConfig = (): GenesisConfig =>
   ({
     channels: {
       discord: {
@@ -294,7 +294,7 @@ export const baseConfig = (): OpenClawConfig =>
         },
       },
     },
-  }) as OpenClawConfig;
+  }) as GenesisConfig;
 
 vi.mock("@buape/carbon", async () => {
   const actual = await vi.importActual<typeof import("@buape/carbon")>("@buape/carbon");
@@ -345,9 +345,9 @@ vi.mock("@buape/carbon/voice", () => ({
   VoicePlugin: function VoicePlugin() {},
 }));
 
-vi.mock("openclaw/plugin-sdk/acp-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/acp-runtime")>(
-    "openclaw/plugin-sdk/acp-runtime",
+vi.mock("genesis/plugin-sdk/acp-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/acp-runtime")>(
+    "genesis/plugin-sdk/acp-runtime",
   );
   return {
     ...actual,
@@ -359,9 +359,9 @@ vi.mock("openclaw/plugin-sdk/acp-runtime", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/command-auth", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/command-auth")>(
-    "openclaw/plugin-sdk/command-auth",
+vi.mock("genesis/plugin-sdk/command-auth", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/command-auth")>(
+    "genesis/plugin-sdk/command-auth",
   );
   return {
     ...actual,
@@ -369,9 +369,9 @@ vi.mock("openclaw/plugin-sdk/command-auth", async () => {
     listSkillCommandsForAgents: listSkillCommandsForAgentsMock,
   };
 });
-vi.mock("openclaw/plugin-sdk/reply-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/reply-runtime")>(
-    "openclaw/plugin-sdk/reply-runtime",
+vi.mock("genesis/plugin-sdk/reply-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/reply-runtime")>(
+    "genesis/plugin-sdk/reply-runtime",
   );
   return {
     ...actual,
@@ -379,9 +379,9 @@ vi.mock("openclaw/plugin-sdk/reply-runtime", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -392,9 +392,9 @@ vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/runtime-env")>(
-    "openclaw/plugin-sdk/runtime-env",
+vi.mock("genesis/plugin-sdk/runtime-env", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/runtime-env")>(
+    "genesis/plugin-sdk/runtime-env",
   );
   return {
     ...actual,
@@ -417,9 +417,9 @@ vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/infra-runtime")>(
-    "openclaw/plugin-sdk/infra-runtime",
+vi.mock("genesis/plugin-sdk/infra-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/infra-runtime")>(
+    "genesis/plugin-sdk/infra-runtime",
   );
   return {
     ...actual,

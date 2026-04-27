@@ -5,7 +5,7 @@ import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js
 import { createDefaultDeps } from "../cli/deps.js";
 import { isRestartEnabled } from "../config/commands.flags.js";
 import {
-  type OpenClawConfig,
+  type GenesisConfig,
   applyConfigOverrides,
   getRuntimeConfig,
   isNixMode,
@@ -24,7 +24,7 @@ import {
   setDiagnosticsEnabledForProcess,
 } from "../infra/diagnostic-events.js";
 import { isTruthyEnvValue, isVitestRuntimeEnv, logAcceptedEnvOption } from "../infra/env.js";
-import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { ensureGenesisCliOnPath } from "../infra/path-env.js";
 import { setGatewaySigusr1RestartPolicy, setPreRestartDeferralCheck } from "../infra/restart.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
@@ -97,7 +97,7 @@ import { maybeSeedControlUiAllowedOriginsAtStartup } from "./startup-control-ui-
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
-ensureOpenClawCliOnPath();
+ensureGenesisCliOnPath();
 
 const MAX_MEDIA_TTL_HOURS = 24 * 7;
 
@@ -134,7 +134,7 @@ const gatewayRuntime = runtimeForLogger(log);
 const canvasRuntime = runtimeForLogger(logCanvas);
 
 function createGatewayStartupTrace() {
-  const enabled = isTruthyEnvValue(process.env.OPENCLAW_GATEWAY_STARTUP_TRACE);
+  const enabled = isTruthyEnvValue(process.env.GENESIS_GATEWAY_STARTUP_TRACE);
   const started = performance.now();
   let last = started;
   const emit = (name: string, durationMs: number, totalMs: number) => {
@@ -245,16 +245,16 @@ export async function startGatewayServer(
   opts: GatewayServerOptions = {},
 ): Promise<GatewayServer> {
   const minimalTestGateway =
-    isVitestRuntimeEnv() && process.env.OPENCLAW_TEST_MINIMAL_GATEWAY === "1";
+    isVitestRuntimeEnv() && process.env.GENESIS_TEST_MINIMAL_GATEWAY === "1";
 
   // Ensure all default port derivations (browser/canvas) see the actual runtime port.
-  process.env.OPENCLAW_GATEWAY_PORT = String(port);
+  process.env.GENESIS_GATEWAY_PORT = String(port);
   logAcceptedEnvOption({
-    key: "OPENCLAW_RAW_STREAM",
+    key: "GENESIS_RAW_STREAM",
     description: "raw stream logging enabled",
   });
   logAcceptedEnvOption({
-    key: "OPENCLAW_RAW_STREAM_PATH",
+    key: "GENESIS_RAW_STREAM_PATH",
     description: "raw stream log path override",
   });
   const startupTrace = createGatewayStartupTrace();
@@ -270,7 +270,7 @@ export async function startGatewayServer(
   const emitSecretsStateEvent = (
     code: "SECRETS_RELOADER_DEGRADED" | "SECRETS_RELOADER_RECOVERED",
     message: string,
-    cfg: OpenClawConfig,
+    cfg: GenesisConfig,
   ) => {
     enqueueSystemEvent(`[${code}] ${message}`, {
       sessionKey: resolveMainSessionKey(cfg),
@@ -282,7 +282,7 @@ export async function startGatewayServer(
     emitStateEvent: emitSecretsStateEvent,
   });
 
-  let cfgAtStart: OpenClawConfig;
+  let cfgAtStart: GenesisConfig;
   let startupInternalWriteHash: string | null = null;
   let startupLastGoodSnapshot = configSnapshot;
   const startupRuntimeConfig = applyConfigOverrides(configSnapshot.config);
@@ -302,7 +302,7 @@ export async function startGatewayServer(
       );
     } else {
       log.warn(
-        "Gateway auth token was missing. Generated a runtime token for this startup without changing config; restart will generate a different token. Persist one with `openclaw config set gateway.auth.mode token` and `openclaw config set gateway.auth.token <token>`.",
+        "Gateway auth token was missing. Generated a runtime token for this startup without changing config; restart will generate a different token. Persist one with `genesis config set gateway.auth.mode token` and `genesis config set gateway.auth.token <token>`.",
       );
     }
   }
@@ -409,7 +409,7 @@ export async function startGatewayServer(
       env: process.env,
       tailscaleMode,
     });
-  const resolveSharedGatewaySessionGenerationForConfig = (config: OpenClawConfig) =>
+  const resolveSharedGatewaySessionGenerationForConfig = (config: GenesisConfig) =>
     resolveSharedGatewaySessionGeneration(
       resolveGatewayAuth({
         authConfig: config.gateway?.auth,
@@ -728,7 +728,7 @@ export async function startGatewayServer(
       nodeUnsubscribeAll,
       hasConnectedMobileNode: hasMobileNodeConnected,
       clients,
-      enforceSharedGatewayAuthGenerationForConfigWrite: (nextConfig: OpenClawConfig) => {
+      enforceSharedGatewayAuthGenerationForConfigWrite: (nextConfig: GenesisConfig) => {
         enforceSharedGatewaySessionGenerationForConfigWrite({
           state: sharedGatewaySessionGenerationState,
           nextConfig,

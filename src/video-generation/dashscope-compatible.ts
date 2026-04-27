@@ -5,7 +5,7 @@ import {
   postJsonRequest,
   resolveProviderOperationTimeoutMs,
   waitProviderOperationPollInterval,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import type {
   GeneratedVideoAsset,

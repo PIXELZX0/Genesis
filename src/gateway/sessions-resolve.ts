@@ -1,5 +1,5 @@
 import { loadSessionStore, updateSessionStore } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { parseSessionLabel } from "../sessions/session-label.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import {
@@ -35,10 +35,7 @@ function noSessionFoundResult(key: string): SessionsResolveResult {
 }
 
 /** Rejects sessions whose owning agent no longer exists in config (#65524). */
-function validateSessionAgentExists(
-  cfg: OpenClawConfig,
-  key: string,
-): SessionsResolveResult | null {
+function validateSessionAgentExists(cfg: GenesisConfig, key: string): SessionsResolveResult | null {
   const deletedAgentId = resolveDeletedAgentIdFromSessionKey(cfg, key);
   if (deletedAgentId === null) {
     return null;
@@ -53,7 +50,7 @@ function validateSessionAgentExists(
 }
 
 function isResolvedSessionKeyVisible(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   p: SessionsResolveParams;
   storePath: string;
   store: ReturnType<typeof loadSessionStore>;
@@ -71,7 +68,7 @@ function isResolvedSessionKeyVisible(params: {
 }
 
 export async function resolveSessionKeyFromResolveParams(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   p: SessionsResolveParams;
 }): Promise<SessionsResolveResult> {
   const { cfg, p } = params;

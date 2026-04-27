@@ -4,7 +4,7 @@ import { isRestartEnabled } from "../../config/commands.flags.js";
 import { parseConfigJson5, resolveConfigSnapshotHash } from "../../config/io.js";
 import { applyMergePatch } from "../../config/merge-patch.js";
 import { extractDeliveryInfo } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   buildRestartSuccessContinuation,
   formatDoctorNonInteractiveHint,
@@ -19,7 +19,7 @@ import { normalizeOptionalString, readStringValue } from "../../shared/string-co
 import { stringEnum } from "../schema/typebox.js";
 import { type AnyAgentTool, jsonResult, readStringParam } from "./common.js";
 import { callGatewayTool, readGatewayCallOptions } from "./gateway.js";
-import { isOpenClawOwnerOnlyCoreToolName } from "./owner-only-tools.js";
+import { isGenesisOwnerOnlyCoreToolName } from "./owner-only-tools.js";
 
 const log = createSubsystemLogger("gateway-tool");
 
@@ -295,11 +295,11 @@ function assertGatewayConfigMutationAllowed(params: {
   }
 
   // Block writes that newly enable any dangerous config flag.
-  // Uses the same flag enumeration as `openclaw security audit`.
+  // Uses the same flag enumeration as `genesis security audit`.
   const currentFlags = new Set(
-    collectEnabledInsecureOrDangerousFlags(params.currentConfig as OpenClawConfig),
+    collectEnabledInsecureOrDangerousFlags(params.currentConfig as GenesisConfig),
   );
-  const nextFlags = collectEnabledInsecureOrDangerousFlags(nextConfig as OpenClawConfig);
+  const nextFlags = collectEnabledInsecureOrDangerousFlags(nextConfig as GenesisConfig);
   const newlyEnabled = nextFlags.filter((f) => !currentFlags.has(f));
   if (newlyEnabled.length > 0) {
     throw new Error(
@@ -347,12 +347,12 @@ const GatewayToolSchema = Type.Object({
 
 export function createGatewayTool(opts?: {
   agentSessionKey?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): AnyAgentTool {
   return {
     label: "Gateway",
     name: "gateway",
-    ownerOnly: isOpenClawOwnerOnlyCoreToolName("gateway"),
+    ownerOnly: isGenesisOwnerOnlyCoreToolName("gateway"),
     description:
       "Restart, inspect a specific config schema path, apply config, or update the gateway in-place (SIGUSR1). Use config.schema.lookup with a targeted dot path before config edits. Use config.patch for safe partial config updates (merges with existing). Use config.apply only when replacing entire config. Config writes hot-reload when possible and restart when required. Always pass a human-readable completion message via the `note` parameter so the system can deliver it to the user after restart. If restarting during a user task and you still owe the user a reply, pass a specific one-shot `continuationMessage` for what to verify or report after boot; do not write restart sentinel files directly.",
     parameters: GatewayToolSchema,

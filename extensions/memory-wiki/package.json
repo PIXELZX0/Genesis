@@ -1,26 +1,26 @@
 {
-  "name": "@openclaw/memory-wiki",
+  "name": "@genesis/memory-wiki",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw persistent wiki plugin",
+  "description": "Genesis persistent wiki plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.31",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

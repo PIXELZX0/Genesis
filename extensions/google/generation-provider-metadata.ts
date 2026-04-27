@@ -1,9 +1,9 @@
-import type { MusicGenerationProvider } from "openclaw/plugin-sdk/music-generation";
-import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
+import type { MusicGenerationProvider } from "genesis/plugin-sdk/music-generation";
+import { isProviderApiKeyConfigured } from "genesis/plugin-sdk/provider-auth";
 import type {
   VideoGenerationProvider,
   VideoGenerationProviderConfiguredContext,
-} from "openclaw/plugin-sdk/video-generation";
+} from "genesis/plugin-sdk/video-generation";
 
 export const DEFAULT_GOOGLE_MUSIC_MODEL = "lyria-3-clip-preview";
 export const GOOGLE_PRO_MUSIC_MODEL = "lyria-3-pro-preview";

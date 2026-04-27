@@ -1,18 +1,18 @@
 // swift-tools-version: 6.2
-// Package manifest for the OpenClaw macOS companion (menu bar app + IPC library).
+// Package manifest for the Genesis macOS companion (menu bar app + IPC library).
 
 import PackageDescription
 
 let package = Package(
-    name: "OpenClaw",
+    name: "Genesis",
     platforms: [
         .macOS(.v15),
     ],
     products: [
-        .library(name: "OpenClawIPC", targets: ["OpenClawIPC"]),
-        .library(name: "OpenClawDiscovery", targets: ["OpenClawDiscovery"]),
-        .executable(name: "OpenClaw", targets: ["OpenClaw"]),
-        .executable(name: "openclaw-mac", targets: ["OpenClawMacCLI"]),
+        .library(name: "GenesisIPC", targets: ["GenesisIPC"]),
+        .library(name: "GenesisDiscovery", targets: ["GenesisDiscovery"]),
+        .executable(name: "Genesis", targets: ["Genesis"]),
+        .executable(name: "genesis-mac", targets: ["GenesisMacCLI"]),
     ],
     dependencies: [
         .package(url: "https://github.com/orchetect/MenuBarExtraAccess", exact: "1.3.0"),
@@ -20,33 +20,33 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.0"),
         .package(url: "https://github.com/steipete/Peekaboo.git", branch: "main"),
-        .package(path: "../shared/OpenClawKit"),
+        .package(path: "../shared/GenesisKit"),
         .package(path: "../../Swabble"),
     ],
     targets: [
         .target(
-            name: "OpenClawIPC",
+            name: "GenesisIPC",
             dependencies: [],
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
             ]),
         .target(
-            name: "OpenClawDiscovery",
+            name: "GenesisDiscovery",
             dependencies: [
-                .product(name: "OpenClawKit", package: "OpenClawKit"),
+                .product(name: "GenesisKit", package: "GenesisKit"),
             ],
-            path: "Sources/OpenClawDiscovery",
+            path: "Sources/GenesisDiscovery",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
             ]),
         .executableTarget(
-            name: "OpenClaw",
+            name: "Genesis",
             dependencies: [
-                "OpenClawIPC",
-                "OpenClawDiscovery",
-                .product(name: "OpenClawKit", package: "OpenClawKit"),
-                .product(name: "OpenClawChatUI", package: "OpenClawKit"),
-                .product(name: "OpenClawProtocol", package: "OpenClawKit"),
+                "GenesisIPC",
+                "GenesisDiscovery",
+                .product(name: "GenesisKit", package: "GenesisKit"),
+                .product(name: "GenesisChatUI", package: "GenesisKit"),
+                .product(name: "GenesisProtocol", package: "GenesisKit"),
                 .product(name: "SwabbleKit", package: "swabble"),
                 .product(name: "MenuBarExtraAccess", package: "MenuBarExtraAccess"),
                 .product(name: "Subprocess", package: "swift-subprocess"),
@@ -59,30 +59,30 @@ let package = Package(
                 "Resources/Info.plist",
             ],
             resources: [
-                .copy("Resources/OpenClaw.icns"),
+                .copy("Resources/Genesis.icns"),
                 .copy("Resources/DeviceModels"),
             ],
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
             ]),
         .executableTarget(
-            name: "OpenClawMacCLI",
+            name: "GenesisMacCLI",
             dependencies: [
-                "OpenClawDiscovery",
-                .product(name: "OpenClawKit", package: "OpenClawKit"),
-                .product(name: "OpenClawProtocol", package: "OpenClawKit"),
+                "GenesisDiscovery",
+                .product(name: "GenesisKit", package: "GenesisKit"),
+                .product(name: "GenesisProtocol", package: "GenesisKit"),
             ],
-            path: "Sources/OpenClawMacCLI",
+            path: "Sources/GenesisMacCLI",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
             ]),
         .testTarget(
-            name: "OpenClawIPCTests",
+            name: "GenesisIPCTests",
             dependencies: [
-                "OpenClawIPC",
-                "OpenClaw",
-                "OpenClawDiscovery",
-                .product(name: "OpenClawProtocol", package: "OpenClawKit"),
+                "GenesisIPC",
+                "Genesis",
+                "GenesisDiscovery",
+                .product(name: "GenesisProtocol", package: "GenesisKit"),
                 .product(name: "SwabbleKit", package: "swabble"),
             ],
             swiftSettings: [

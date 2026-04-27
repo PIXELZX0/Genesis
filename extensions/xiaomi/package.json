@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/xiaomi-provider",
+  "name": "@genesis/xiaomi-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Xiaomi provider plugin",
+  "description": "Genesis Xiaomi provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

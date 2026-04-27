@@ -1,10 +1,10 @@
 // Private runtime barrel for the bundled Tlon extension.
 // Keep this barrel thin and aligned with the local extension surface.
 
-export type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-export type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-export { createDedupeCache } from "openclaw/plugin-sdk/core";
+export type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+export type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+export type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
+export { createDedupeCache } from "genesis/plugin-sdk/core";
 export { createLoggerBackedRuntime } from "./src/logger-runtime.js";
 export {
   fetchWithSsrFGuard,
@@ -13,5 +13,5 @@ export {
   ssrfPolicyFromDangerouslyAllowPrivateNetwork,
   type LookupFn,
   type SsrFPolicy,
-} from "openclaw/plugin-sdk/ssrf-runtime";
-export { SsrFBlockedError } from "openclaw/plugin-sdk/browser-security-runtime";
+} from "genesis/plugin-sdk/ssrf-runtime";
+export { SsrFBlockedError } from "genesis/plugin-sdk/browser-security-runtime";

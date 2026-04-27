@@ -1,7 +1,7 @@
 ---
 summary: "Plugin internals: capability model, ownership, contracts, load pipeline, and runtime helpers"
 read_when:
-  - Building or debugging native OpenClaw plugins
+  - Building or debugging native Genesis plugins
   - Understanding the plugin capability model or ownership boundaries
   - Working on the plugin load pipeline or registry
   - Implementing provider runtime hooks or channel plugins
@@ -9,7 +9,7 @@ title: "Plugin internals"
 sidebarTitle: "Internals"
 ---
 
-This is the **deep architecture reference** for the OpenClaw plugin system. For
+This is the **deep architecture reference** for the Genesis plugin system. For
 practical guides, start with one of the focused pages below.
 
 <CardGroup cols={2}>
@@ -32,8 +32,8 @@ practical guides, start with one of the focused pages below.
 
 ## Public capability model
 
-Capabilities are the public **native plugin** model inside OpenClaw. Every
-native OpenClaw plugin registers against one or more capability types:
+Capabilities are the public **native plugin** model inside Genesis. Every
+native Genesis plugin registers against one or more capability types:
 
 | Capability             | Registration method                              | Example plugins                      |
 | ---------------------- | ------------------------------------------------ | ------------------------------------ |
@@ -74,7 +74,7 @@ incidental helper exports.
 
 ### Plugin shapes
 
-OpenClaw classifies every loaded plugin into a shape based on its actual
+Genesis classifies every loaded plugin into a shape based on its actual
 registration behavior (not just static metadata):
 
 - **plain-capability**: registers exactly one capability type (for example a
@@ -87,7 +87,7 @@ registration behavior (not just static metadata):
 - **non-capability**: registers tools, commands, services, or routes but no
   capabilities.
 
-Use `openclaw plugins inspect <id>` to see a plugin's shape and capability
+Use `genesis plugins inspect <id>` to see a plugin's shape and capability
 breakdown. See [CLI reference](/cli/plugins#inspect) for details.
 
 ### Legacy hooks
@@ -105,7 +105,7 @@ Direction:
 
 ### Compatibility signals
 
-When you run `openclaw doctor` or `openclaw plugins inspect <id>`, you may see
+When you run `genesis doctor` or `genesis plugins inspect <id>`, you may see
 one of these labels:
 
 | Signal                     | Meaning                                                      |
@@ -117,25 +117,25 @@ one of these labels:
 
 Neither `hook-only` nor `before_agent_start` will break your plugin today:
 `hook-only` is advisory, and `before_agent_start` only triggers a warning. These
-signals also appear in `openclaw status --all` and `openclaw plugins doctor`.
+signals also appear in `genesis status --all` and `genesis plugins doctor`.
 
 ## Architecture overview
 
-OpenClaw's plugin system has four layers:
+Genesis's plugin system has four layers:
 
 1. **Manifest + discovery**
-   OpenClaw finds candidate plugins from configured paths, workspace roots,
+   Genesis finds candidate plugins from configured paths, workspace roots,
    global plugin roots, and bundled plugins. Discovery reads native
-   `openclaw.plugin.json` manifests plus supported bundle manifests first.
+   `genesis.plugin.json` manifests plus supported bundle manifests first.
 2. **Enablement + validation**
    Core decides whether a discovered plugin is enabled, disabled, blocked, or
    selected for an exclusive slot such as memory.
 3. **Runtime loading**
-   Native OpenClaw plugins are loaded in-process via jiti and register
+   Native Genesis plugins are loaded in-process via jiti and register
    capabilities into a central registry. Compatible bundles are normalized into
    registry records without importing runtime code.
 4. **Surface consumption**
-   The rest of OpenClaw reads the registry to expose tools, channels, provider
+   The rest of Genesis reads the registry to expose tools, channels, provider
    setup, hooks, HTTP routes, CLI commands, and services.
 
 For plugin CLI specifically, root command discovery is split in two phases:
@@ -143,7 +143,7 @@ For plugin CLI specifically, root command discovery is split in two phases:
 - parse-time metadata comes from `registerCli(..., { descriptors: [...] })`
 - the real plugin CLI module can stay lazy and register on first invocation
 
-That keeps plugin-owned CLI code inside the plugin while still letting OpenClaw
+That keeps plugin-owned CLI code inside the plugin while still letting Genesis
 reserve root command names before parsing.
 
 The important design boundary:
@@ -155,7 +155,7 @@ The important design boundary:
 - native runtime behavior comes from the plugin module's `register(api)` path
   with `api.registrationMode === "full"`
 
-That split lets OpenClaw validate config, explain missing/disabled plugins, and
+That split lets Genesis validate config, explain missing/disabled plugins, and
 build UI/schema hints before the full runtime is active.
 
 ### Activation planning
@@ -181,7 +181,7 @@ planner hints.
 ### Channel plugins and the shared message tool
 
 Channel plugins do not need to register a separate send/edit/react tool for
-normal chat actions. OpenClaw keeps one shared `message` tool in core, and
+normal chat actions. Genesis keeps one shared `message` tool in core, and
 channel plugins own the channel-specific discovery and execution behind it.
 
 The current boundary is:
@@ -257,12 +257,12 @@ See [Plugin architecture internals](/plugins/architecture-internals) for the ful
 
 ## Capability ownership model
 
-OpenClaw treats a native plugin as the ownership boundary for a **company** or a
+Genesis treats a native plugin as the ownership boundary for a **company** or a
 **feature**, not as a grab bag of unrelated integrations.
 
 That means:
 
-- a company plugin should usually own all of that company's OpenClaw-facing
+- a company plugin should usually own all of that company's Genesis-facing
   surfaces
 - a feature plugin should usually own the full feature surface it introduces
 - channels should consume shared core capabilities instead of re-implementing
@@ -295,7 +295,7 @@ This is the key distinction:
 - **plugin** = ownership boundary
 - **capability** = core contract that multiple plugins can implement or consume
 
-So if OpenClaw adds a new domain such as video, the first question is not
+So if Genesis adds a new domain such as video, the first question is not
 "which provider should hardcode video handling?" The first question is "what is
 the core video capability contract?" Once that contract exists, vendor plugins
 can register against it and channel/feature plugins can consume it.
@@ -331,19 +331,19 @@ That same pattern should be preferred for future capabilities.
 
 ### Multi-capability company plugin example
 
-A company plugin should feel cohesive from the outside. If OpenClaw has shared
+A company plugin should feel cohesive from the outside. If Genesis has shared
 contracts for models, speech, realtime transcription, realtime voice, media
 understanding, image generation, video generation, web fetch, and web search,
 a vendor can own all of its surfaces in one place:
 
 ```ts
-import type { OpenClawPluginDefinition } from "openclaw/plugin-sdk/plugin-entry";
+import type { GenesisPluginDefinition } from "genesis/plugin-sdk/plugin-entry";
 import {
   describeImageWithModel,
   transcribeOpenAiCompatibleAudio,
-} from "openclaw/plugin-sdk/media-understanding";
+} from "genesis/plugin-sdk/media-understanding";
 
-const plugin: OpenClawPluginDefinition = {
+const plugin: GenesisPluginDefinition = {
   id: "exampleai",
   name: "ExampleAI",
   register(api) {
@@ -398,7 +398,7 @@ What matters is not the exact helper names. The shape matters:
 
 ### Capability example: video understanding
 
-OpenClaw already treats image/audio/video understanding as one shared
+Genesis already treats image/audio/video understanding as one shared
 capability. The same ownership model applies there:
 
 1. core defines the media-understanding contract
@@ -420,7 +420,7 @@ Need a concrete rollout checklist? See
 ## Contracts and enforcement
 
 The plugin API surface is intentionally typed and centralized in
-`OpenClawPluginApi`. That contract defines the supported registration points and
+`GenesisPluginApi`. That contract defines the supported registration points and
 the runtime helpers a plugin may rely on.
 
 Why this matters:
@@ -439,11 +439,11 @@ There are two layers of enforcement:
    registrations produce plugin diagnostics instead of undefined behavior.
 2. **contract tests**
    Bundled plugins are captured in contract registries during test runs so
-   OpenClaw can assert ownership explicitly. Today this is used for model
+   Genesis can assert ownership explicitly. Today this is used for model
    providers, speech providers, web search providers, and bundled registration
    ownership.
 
-The practical effect is that OpenClaw knows, up front, which plugin owns which
+The practical effect is that Genesis knows, up front, which plugin owns which
 surface. That lets core and channels compose seamlessly because ownership is
 declared, typed, and testable rather than implicit.
 
@@ -463,7 +463,7 @@ Bad plugin contracts are:
 - vendor-specific policy hidden in core
 - one-off plugin escape hatches that bypass the registry
 - channel code reaching straight into a vendor implementation
-- ad hoc runtime objects that are not part of `OpenClawPluginApi` or
+- ad hoc runtime objects that are not part of `GenesisPluginApi` or
   `api.runtime`
 
 When in doubt, raise the abstraction level: define the capability first, then
@@ -471,7 +471,7 @@ let plugins plug into it.
 
 ## Execution model
 
-Native OpenClaw plugins run **in-process** with the Gateway. They are not
+Native Genesis plugins run **in-process** with the Gateway. They are not
 sandboxed. A loaded native plugin has the same process-level trust boundary as
 core code.
 
@@ -480,9 +480,9 @@ Implications:
 - a native plugin can register tools, network handlers, hooks, and services
 - a native plugin bug can crash or destabilize the gateway
 - a malicious native plugin is equivalent to arbitrary code execution inside
-  the OpenClaw process
+  the Genesis process
 
-Compatible bundles are safer by default because OpenClaw currently treats them
+Compatible bundles are safer by default because Genesis currently treats them
 as metadata/content packs. In current releases, that mostly means bundled
 skills.
 
@@ -490,7 +490,7 @@ Use allowlists and explicit install/load paths for non-bundled plugins. Treat
 workspace plugins as development-time code, not production defaults.
 
 For bundled workspace package names, keep the plugin id anchored in the npm
-name: `@openclaw/<id>` by default, or an approved typed suffix such as
+name: `@genesis/<id>` by default, or an approved typed suffix such as
 `-provider`, `-plugin`, `-speech`, `-sandbox`, or `-media-understanding` when
 the package intentionally exposes a narrower plugin role.
 
@@ -507,7 +507,7 @@ Important trust note:
 
 ## Export boundary
 
-OpenClaw exports capabilities, not implementation convenience.
+Genesis exports capabilities, not implementation convenience.
 
 Keep capability registration public. Trim non-contract helper exports:
 

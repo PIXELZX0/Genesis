@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -100,7 +100,7 @@ export function normalizeCommandBody(raw: string, options?: CommandNormalizeOpti
   return normalizedRest ? `${tokenSpec.canonical} ${normalizedRest}` : tokenSpec.canonical;
 }
 
-export function getCommandDetection(_cfg?: OpenClawConfig): CommandDetection {
+export function getCommandDetection(_cfg?: GenesisConfig): CommandDetection {
   const commands = getChatCommands();
   if (cachedDetection && cachedDetectionCommands === commands) {
     return cachedDetection;
@@ -133,7 +133,7 @@ export function getCommandDetection(_cfg?: OpenClawConfig): CommandDetection {
   return cachedDetection;
 }
 
-export function maybeResolveTextAlias(raw: string, cfg?: OpenClawConfig) {
+export function maybeResolveTextAlias(raw: string, cfg?: GenesisConfig) {
   const trimmed = normalizeCommandBody(raw).trim();
   if (!trimmed.startsWith("/")) {
     return null;
@@ -156,7 +156,7 @@ export function maybeResolveTextAlias(raw: string, cfg?: OpenClawConfig) {
 
 export function resolveTextCommand(
   raw: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): {
   command: ChatCommandDefinition;
   args?: string;

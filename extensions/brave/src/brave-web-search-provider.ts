@@ -2,8 +2,8 @@ import type {
   SearchConfigRecord,
   WebSearchProviderPlugin,
   WebSearchProviderToolDefinition,
-} from "openclaw/plugin-sdk/provider-web-search";
-import { createWebSearchProviderContractFields } from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search";
+import { createWebSearchProviderContractFields } from "genesis/plugin-sdk/provider-web-search-config-contract";
 
 const BRAVE_CREDENTIAL_PATH = "plugins.entries.brave.config.webSearch.apiKey";
 
@@ -137,7 +137,7 @@ export function createBraveWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["BRAVE_API_KEY"],
     placeholder: "BSA...",
     signupUrl: "https://brave.com/search/api/",
-    docsUrl: "https://docs.openclaw.ai/brave-search",
+    docsUrl: "https://docs.genesis.ai/brave-search",
     autoDetectOrder: 10,
     credentialPath: BRAVE_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

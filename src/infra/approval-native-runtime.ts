@@ -1,5 +1,5 @@
 import type { ChannelApprovalNativeAdapter } from "../channels/plugins/approval-native.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   resolveChannelNativeApprovalDeliveryPlan,
   type ChannelApprovalNativePlannedTarget,
@@ -39,7 +39,7 @@ export async function deliverApprovalRequestViaChannelNativePlan<
   TPendingEntry,
   TRequest extends ApprovalRequest = ApprovalRequest,
 >(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   approvalKind: ChannelApprovalKind;
   request: TRequest;

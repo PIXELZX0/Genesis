@@ -1,6 +1,6 @@
-import { type ChannelOutboundAdapter } from "openclaw/plugin-sdk/channel-send-result";
-import { chunkText } from "openclaw/plugin-sdk/reply-chunking";
-import { shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { type ChannelOutboundAdapter } from "genesis/plugin-sdk/channel-send-result";
+import { chunkText } from "genesis/plugin-sdk/reply-chunking";
+import { shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
 import { createWhatsAppOutboundBase } from "./outbound-base.js";
 import { resolveWhatsAppOutboundTarget } from "./resolve-outbound-target.js";
 

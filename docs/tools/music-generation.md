@@ -11,7 +11,7 @@ The `music_generate` tool lets the agent create music or audio through the
 shared music-generation capability with configured providers such as Google,
 MiniMax, and workflow-configured ComfyUI.
 
-For shared provider-backed agent sessions, OpenClaw starts music generation as a
+For shared provider-backed agent sessions, Genesis starts music generation as a
 background task, tracks it in the task ledger, then wakes the agent again when
 the track is ready so the agent can post the finished audio back into the
 original channel.
@@ -129,21 +129,21 @@ Direct generation example:
 | `format`          | string   | Output format hint (`mp3` or `wav`) when the provider supports it                                 |
 | `filename`        | string   | Output filename hint                                                                              |
 
-Not all providers support all parameters. OpenClaw still validates hard limits
+Not all providers support all parameters. Genesis still validates hard limits
 such as input counts before submission. When a provider supports duration but
-uses a shorter maximum than the requested value, OpenClaw automatically clamps
+uses a shorter maximum than the requested value, Genesis automatically clamps
 to the closest supported duration. Truly unsupported optional hints are ignored
 with a warning when the selected provider or model cannot honor them.
 
-Tool results report the applied settings. When OpenClaw clamps duration during provider fallback, the returned `durationSeconds` reflects the submitted value and `details.normalization.durationSeconds` shows the requested-to-applied mapping.
+Tool results report the applied settings. When Genesis clamps duration during provider fallback, the returned `durationSeconds` reflects the submitted value and `details.normalization.durationSeconds` shows the requested-to-applied mapping.
 
 ## Async behavior for the shared provider-backed path
 
 - Session-backed agent runs: `music_generate` creates a background task, returns a started/task response immediately, and posts the finished track later in a follow-up agent message.
 - Duplicate prevention: while that background task is still `queued` or `running`, later `music_generate` calls in the same session return task status instead of starting another generation.
 - Status lookup: use `action: "status"` to inspect the active session-backed music task without starting a new one.
-- Task tracking: use `openclaw tasks list` or `openclaw tasks show <taskId>` to inspect queued, running, and terminal status for the generation.
-- Completion wake: OpenClaw injects an internal completion event back into the same session so the model can write the user-facing follow-up itself.
+- Task tracking: use `genesis tasks list` or `genesis tasks show <taskId>` to inspect queued, running, and terminal status for the generation.
+- Completion wake: Genesis injects an internal completion event back into the same session so the model can write the user-facing follow-up itself.
 - Prompt hint: later user/manual turns in the same session get a small runtime hint when a music task is already in flight so the model does not blindly call `music_generate` again.
 - No-session fallback: direct/local contexts without a real agent session still run inline and return the final audio result in the same turn.
 
@@ -159,9 +159,9 @@ Each `music_generate` request moves through four states:
 Check status from the CLI:
 
 ```bash
-openclaw tasks list
-openclaw tasks show <taskId>
-openclaw tasks cancel <taskId>
+genesis tasks list
+genesis tasks show <taskId>
+genesis tasks cancel <taskId>
 ```
 
 Duplicate prevention: if a music task is already `queued` or `running` for the current session, `music_generate` returns the existing task status instead of starting a new one. Use `action: "status"` to check explicitly without triggering a new generation.
@@ -185,7 +185,7 @@ Duplicate prevention: if a music task is already `queued` or `running` for the c
 
 ### Provider selection order
 
-When generating music, OpenClaw tries providers in this order:
+When generating music, Genesis tries providers in this order:
 
 1. `model` parameter from the tool call, if the agent specifies one
 2. `musicGenerationModel.primary` from config
@@ -252,7 +252,7 @@ the shared `music_generate` tool can validate mode support deterministically.
 Opt-in live coverage for the shared bundled providers:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 pnpm test:live -- extensions/music-generation-providers.live.test.ts
+GENESIS_LIVE_TEST=1 pnpm test:live -- extensions/music-generation-providers.live.test.ts
 ```
 
 Repo wrapper:
@@ -274,7 +274,7 @@ Today that means:
 Opt-in live coverage for the bundled ComfyUI music path:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 COMFY_LIVE_TEST=1 pnpm test:live -- extensions/comfy/comfy.live.test.ts
+GENESIS_LIVE_TEST=1 COMFY_LIVE_TEST=1 pnpm test:live -- extensions/comfy/comfy.live.test.ts
 ```
 
 The Comfy live file also covers comfy image and video workflows when those

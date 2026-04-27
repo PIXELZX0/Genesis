@@ -2,8 +2,8 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatPluginConfigIssue } from "openclaw/plugin-sdk/extension-shared";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { formatPluginConfigIssue } from "genesis/plugin-sdk/extension-shared";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { AcpxPluginConfigSchema, DEFAULT_ACPX_TIMEOUT_SECONDS } from "./config-schema.js";
 import type {
   AcpxPluginConfig,
@@ -25,13 +25,13 @@ export {
   createAcpxPluginConfigSchema,
 } from "./config-schema.js";
 
-export const ACPX_PLUGIN_TOOLS_MCP_SERVER_NAME = "openclaw-plugin-tools";
-export const ACPX_OPENCLAW_TOOLS_MCP_SERVER_NAME = "openclaw-tools";
+export const ACPX_PLUGIN_TOOLS_MCP_SERVER_NAME = "genesis-plugin-tools";
+export const ACPX_GENESIS_TOOLS_MCP_SERVER_NAME = "genesis-tools";
 const requireFromHere = createRequire(import.meta.url);
 
 function isAcpxPluginRoot(dir: string): boolean {
   return (
-    fs.existsSync(path.join(dir, "openclaw.plugin.json")) &&
+    fs.existsSync(path.join(dir, "genesis.plugin.json")) &&
     fs.existsSync(path.join(dir, "package.json"))
   );
 }
@@ -69,7 +69,7 @@ function resolveRepoAcpxPluginRoot(currentRoot: string): string | null {
   return isAcpxPluginRoot(workspaceRoot) ? workspaceRoot : null;
 }
 
-function resolveAcpxPluginRootFromOpenClawLayout(moduleUrl: string): string | null {
+function resolveAcpxPluginRootFromGenesisLayout(moduleUrl: string): string | null {
   let cursor = path.dirname(fileURLToPath(moduleUrl));
   for (let i = 0; i < 5; i += 1) {
     const candidates = [
@@ -98,8 +98,8 @@ export function resolveAcpxPluginRoot(moduleUrl: string = import.meta.url): stri
     resolveWorkspaceAcpxPluginRoot(resolvedRoot) ??
     resolveRepoAcpxPluginRoot(resolvedRoot) ??
     // Shared dist/dist-runtime chunks can load this module outside the plugin tree.
-    // Scan common OpenClaw layouts before falling back to the nearest path guess.
-    resolveAcpxPluginRootFromOpenClawLayout(moduleUrl) ??
+    // Scan common Genesis layouts before falling back to the nearest path guess.
+    resolveAcpxPluginRootFromGenesisLayout(moduleUrl) ??
     resolvedRoot
   );
 }
@@ -129,7 +129,7 @@ function parseAcpxPluginConfig(value: unknown): ParseResult {
   };
 }
 
-function resolveOpenClawRoot(currentRoot: string): string {
+function resolveGenesisRoot(currentRoot: string): string {
   if (
     path.basename(currentRoot) === "acpx" &&
     path.basename(path.dirname(currentRoot)) === "extensions"
@@ -155,34 +155,34 @@ export function resolvePluginToolsMcpServerConfig(
   moduleUrl: string = import.meta.url,
 ): McpServerConfig {
   const pluginRoot = resolveAcpxPluginRoot(moduleUrl);
-  const openClawRoot = resolveOpenClawRoot(pluginRoot);
-  const distEntry = path.join(openClawRoot, "dist", "mcp", "plugin-tools-serve.js");
+  const genesisRoot = resolveGenesisRoot(pluginRoot);
+  const distEntry = path.join(genesisRoot, "dist", "mcp", "plugin-tools-serve.js");
   if (fs.existsSync(distEntry)) {
     return {
       command: process.execPath,
       args: [distEntry],
     };
   }
-  const sourceEntry = path.join(openClawRoot, "src", "mcp", "plugin-tools-serve.ts");
+  const sourceEntry = path.join(genesisRoot, "src", "mcp", "plugin-tools-serve.ts");
   return {
     command: process.execPath,
     args: ["--import", resolveTsxImportSpecifier(), sourceEntry],
   };
 }
 
-export function resolveOpenClawToolsMcpServerConfig(
+export function resolveGenesisToolsMcpServerConfig(
   moduleUrl: string = import.meta.url,
 ): McpServerConfig {
   const pluginRoot = resolveAcpxPluginRoot(moduleUrl);
-  const openClawRoot = resolveOpenClawRoot(pluginRoot);
-  const distEntry = path.join(openClawRoot, "dist", "mcp", "openclaw-tools-serve.js");
+  const genesisRoot = resolveGenesisRoot(pluginRoot);
+  const distEntry = path.join(genesisRoot, "dist", "mcp", "genesis-tools-serve.js");
   if (fs.existsSync(distEntry)) {
     return {
       command: process.execPath,
       args: [distEntry],
     };
   }
-  const sourceEntry = path.join(openClawRoot, "src", "mcp", "openclaw-tools-serve.ts");
+  const sourceEntry = path.join(genesisRoot, "src", "mcp", "genesis-tools-serve.ts");
   return {
     command: process.execPath,
     args: ["--import", resolveTsxImportSpecifier(), sourceEntry],
@@ -192,7 +192,7 @@ export function resolveOpenClawToolsMcpServerConfig(
 function resolveConfiguredMcpServers(params: {
   mcpServers?: Record<string, McpServerConfig>;
   pluginToolsMcpBridge: boolean;
-  openClawToolsMcpBridge: boolean;
+  genesisToolsMcpBridge: boolean;
   moduleUrl?: string;
 }): Record<string, McpServerConfig> {
   const resolved = { ...params.mcpServers };
@@ -201,9 +201,9 @@ function resolveConfiguredMcpServers(params: {
       `mcpServers.${ACPX_PLUGIN_TOOLS_MCP_SERVER_NAME} is reserved when pluginToolsMcpBridge=true`,
     );
   }
-  if (params.openClawToolsMcpBridge && resolved[ACPX_OPENCLAW_TOOLS_MCP_SERVER_NAME]) {
+  if (params.genesisToolsMcpBridge && resolved[ACPX_GENESIS_TOOLS_MCP_SERVER_NAME]) {
     throw new Error(
-      `mcpServers.${ACPX_OPENCLAW_TOOLS_MCP_SERVER_NAME} is reserved when openClawToolsMcpBridge=true`,
+      `mcpServers.${ACPX_GENESIS_TOOLS_MCP_SERVER_NAME} is reserved when genesisToolsMcpBridge=true`,
     );
   }
   if (params.pluginToolsMcpBridge) {
@@ -211,8 +211,8 @@ function resolveConfiguredMcpServers(params: {
       params.moduleUrl,
     );
   }
-  if (params.openClawToolsMcpBridge) {
-    resolved[ACPX_OPENCLAW_TOOLS_MCP_SERVER_NAME] = resolveOpenClawToolsMcpServerConfig(
+  if (params.genesisToolsMcpBridge) {
+    resolved[ACPX_GENESIS_TOOLS_MCP_SERVER_NAME] = resolveGenesisToolsMcpServerConfig(
       params.moduleUrl,
     );
   }
@@ -246,11 +246,11 @@ export function resolveAcpxPluginConfig(params: {
   const cwd = path.resolve(normalized.cwd?.trim() || fallbackCwd);
   const stateDir = path.resolve(normalized.stateDir?.trim() || path.join(workspaceDir, "state"));
   const pluginToolsMcpBridge = normalized.pluginToolsMcpBridge === true;
-  const openClawToolsMcpBridge = normalized.openClawToolsMcpBridge === true;
+  const genesisToolsMcpBridge = normalized.genesisToolsMcpBridge === true;
   const mcpServers = resolveConfiguredMcpServers({
     mcpServers: normalized.mcpServers,
     pluginToolsMcpBridge,
-    openClawToolsMcpBridge,
+    genesisToolsMcpBridge,
     moduleUrl: params.moduleUrl,
   });
   const agents = Object.fromEntries(
@@ -274,7 +274,7 @@ export function resolveAcpxPluginConfig(params: {
     nonInteractivePermissions:
       normalized.nonInteractivePermissions ?? DEFAULT_NON_INTERACTIVE_POLICY,
     pluginToolsMcpBridge,
-    openClawToolsMcpBridge,
+    genesisToolsMcpBridge,
     strictWindowsCmdWrapper:
       normalized.strictWindowsCmdWrapper ?? DEFAULT_STRICT_WINDOWS_CMD_WRAPPER,
     timeoutSeconds: normalized.timeoutSeconds ?? DEFAULT_ACPX_TIMEOUT_SECONDS,

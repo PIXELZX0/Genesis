@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { SandboxBackendHandle, SandboxBackendId } from "./backend-handle.types.js";
 import type { SandboxRegistryEntry } from "./registry.js";
 import type { SandboxConfig } from "./types.js";
@@ -12,12 +12,12 @@ export type SandboxBackendRuntimeInfo = {
 export type SandboxBackendManager = {
   describeRuntime(params: {
     entry: SandboxRegistryEntry;
-    config: OpenClawConfig;
+    config: GenesisConfig;
     agentId?: string;
   }): Promise<SandboxBackendRuntimeInfo>;
   removeRuntime(params: {
     entry: SandboxRegistryEntry;
-    config: OpenClawConfig;
+    config: GenesisConfig;
     agentId?: string;
   }): Promise<void>;
 };

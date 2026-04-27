@@ -3,8 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { normalizeOptionalString, readStringValue } from "openclaw/plugin-sdk/text-runtime";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { normalizeOptionalString, readStringValue } from "genesis/plugin-sdk/text-runtime";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { asRecord } from "../record-shared.js";
 import type { ChromeMcpSnapshotNode } from "./chrome-mcp.snapshot.js";
@@ -298,7 +298,7 @@ async function createRealSession(
   });
   const client = new Client(
     {
-      name: "openclaw-browser",
+      name: "genesis-browser",
       version: "0.0.0",
     },
     {},
@@ -608,7 +608,7 @@ async function callTool(
 }
 
 async function withTempFile<T>(fn: (filePath: string) => Promise<T>): Promise<T> {
-  const dir = await fs.mkdtemp(path.join(resolvePreferredOpenClawTmpDir(), "openclaw-chrome-mcp-"));
+  const dir = await fs.mkdtemp(path.join(resolvePreferredGenesisTmpDir(), "genesis-chrome-mcp-"));
   const filePath = path.join(dir, randomUUID());
   try {
     return await fn(filePath);

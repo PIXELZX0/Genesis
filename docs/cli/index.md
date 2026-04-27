@@ -1,12 +1,12 @@
 ---
-summary: "OpenClaw CLI index: command list, global flags, and links to per-command pages"
+summary: "Genesis CLI index: command list, global flags, and links to per-command pages"
 read_when:
-  - Finding the right `openclaw` subcommand
+  - Finding the right `genesis` subcommand
   - Looking up global flags or output styling rules
 title: "CLI reference"
 ---
 
-`openclaw` is the main CLI entry point. Each core command has either a
+`genesis` is the main CLI entry point. Each core command has either a
 dedicated reference page or is documented with the command it aliases; this
 index lists the commands, the global flags, and the output styling rules that
 apply across the CLI.
@@ -26,20 +26,20 @@ apply across the CLI.
 | Automation           | [`cron`](/cli/cron) · [`tasks`](/cli/tasks) · [`hooks`](/cli/hooks) · [`webhooks`](/cli/webhooks)                                                                                                                         |
 | Discovery and docs   | [`dns`](/cli/dns) · [`docs`](/cli/docs)                                                                                                                                                                                   |
 | Pairing and channels | [`pairing`](/cli/pairing) · [`qr`](/cli/qr) · [`channels`](/cli/channels)                                                                                                                                                 |
-| Security and plugins | [`security`](/cli/security) · [`secrets`](/cli/secrets) · [`skills`](/cli/skills) · [`plugins`](/cli/plugins) · [`proxy`](/cli/proxy)                                                                                     |
+| Security and plugins | [`security`](/cli/security) · [`secrets`](/cli/secrets) · [`wallet`](/cli/wallet) · [`skills`](/cli/skills) · [`plugins`](/cli/plugins) · [`proxy`](/cli/proxy)                                                           |
 | Legacy aliases       | [`daemon`](/cli/daemon) (gateway service) · [`clawbot`](/cli/clawbot) (namespace)                                                                                                                                         |
 | Plugins (optional)   | [`voicecall`](/cli/voicecall) (if installed)                                                                                                                                                                              |
 
 ## Global flags
 
-| Flag                    | Purpose                                                               |
-| ----------------------- | --------------------------------------------------------------------- |
-| `--dev`                 | Isolate state under `~/.openclaw-dev` and shift default ports         |
-| `--profile <name>`      | Isolate state under `~/.openclaw-<name>`                              |
-| `--container <name>`    | Target a named container for execution                                |
-| `--no-color`            | Disable ANSI colors (`NO_COLOR=1` is also respected)                  |
-| `--update`              | Shorthand for [`openclaw update`](/cli/update) (source installs only) |
-| `-V`, `--version`, `-v` | Print version and exit                                                |
+| Flag                    | Purpose                                                              |
+| ----------------------- | -------------------------------------------------------------------- |
+| `--dev`                 | Isolate state under `~/.genesis-dev` and shift default ports         |
+| `--profile <name>`      | Isolate state under `~/.genesis-<name>`                              |
+| `--container <name>`    | Target a named container for execution                               |
+| `--no-color`            | Disable ANSI colors (`NO_COLOR=1` is also respected)                 |
+| `--update`              | Shorthand for [`genesis update`](/cli/update) (source installs only) |
+| `-V`, `--version`, `-v` | Print version and exit                                               |
 
 ## Output modes
 
@@ -56,7 +56,7 @@ Palette source of truth: `src/terminal/palette.ts`.
 <Accordion title="Full command tree">
 
 ```
-openclaw [--dev] [--profile <name>] <command>
+genesis [--dev] [--profile <name>] <command>
   setup
   onboard
   configure
@@ -80,6 +80,14 @@ openclaw [--dev] [--profile <name>] <command>
     audit
     configure
     apply
+  wallet
+    init
+    import
+    list
+    address
+    balance
+    quote
+    send
   reset
   uninstall
   update
@@ -346,7 +354,7 @@ openclaw [--dev] [--profile <name>] <command>
   terminal (alias: tui --local)
 ```
 
-Plugins can add additional top-level commands (for example `openclaw voicecall`).
+Plugins can add additional top-level commands (for example `genesis voicecall`).
 
 </Accordion>
 
@@ -363,7 +371,7 @@ Highlights:
 
 ## Usage tracking
 
-`openclaw status --usage` and the Control UI surface provider usage/quota when
+`genesis status --usage` and the Control UI surface provider usage/quota when
 OAuth/API credentials are available. Data comes directly from provider usage
 endpoints and is normalized to `X% left`. Providers with current usage
 windows: Anthropic, GitHub Copilot, Gemini CLI, OpenAI Codex, MiniMax,

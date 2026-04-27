@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/stepfun-provider",
+  "name": "@genesis/stepfun-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw StepFun provider plugin",
+  "description": "Genesis StepFun provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

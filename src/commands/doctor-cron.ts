@@ -1,5 +1,5 @@
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveCronStorePath, loadCronStore, saveCronStore } from "../cron/store.js";
 import type { CronJob } from "../cron/types.js";
 import {
@@ -130,7 +130,7 @@ function migrateLegacyNotifyFallback(params: {
 }
 
 export async function maybeRepairLegacyCronStore(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   options: DoctorOptions;
   prompter: Pick<DoctorPrompter, "confirm">;
 }) {
@@ -164,7 +164,7 @@ export async function maybeRepairLegacyCronStore(params: {
     [
       `Legacy cron job storage detected at ${shortenHomePath(storePath)}.`,
       ...previewLines,
-      `Repair with ${formatCliCommand("openclaw doctor --fix")} to normalize the store before the next scheduler run.`,
+      `Repair with ${formatCliCommand("genesis doctor --fix")} to normalize the store before the next scheduler run.`,
     ].join("\n"),
     "Cron",
   );

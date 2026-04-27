@@ -8,7 +8,7 @@ describe("browser doctor readiness", () => {
       {
         browser: {
           profiles: {
-            openclaw: { color: "#FF4500" },
+            genesis: { color: "#FF4500" },
           },
         },
       },
@@ -29,7 +29,7 @@ describe("browser doctor readiness", () => {
       {
         browser: {
           profiles: {
-            openclaw: { color: "#FF4500" },
+            genesis: { color: "#FF4500" },
           },
         },
       },
@@ -56,7 +56,7 @@ describe("browser doctor readiness", () => {
           headless: false,
           noSandbox: false,
           profiles: {
-            openclaw: { color: "#FF4500" },
+            genesis: { color: "#FF4500" },
           },
         },
       },

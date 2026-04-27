@@ -1,4 +1,4 @@
-import { hasOutboundReplyContent } from "openclaw/plugin-sdk/reply-payload";
+import { hasOutboundReplyContent } from "genesis/plugin-sdk/reply-payload";
 import { DEFAULT_HEARTBEAT_ACK_MAX_CHARS } from "../../auto-reply/heartbeat.js";
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";

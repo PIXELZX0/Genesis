@@ -43,9 +43,9 @@ vi.mock("../agents/workspace.js", () => ({
   resolveDefaultAgentWorkspaceDir,
 }));
 
-const resolveOpenClawAgentDir = vi.hoisted(() => vi.fn(() => "/tmp/agent"));
+const resolveGenesisAgentDir = vi.hoisted(() => vi.fn(() => "/tmp/agent"));
 vi.mock("../agents/agent-paths.js", () => ({
-  resolveOpenClawAgentDir,
+  resolveGenesisAgentDir,
 }));
 
 const applyAuthProfileConfig = vi.hoisted(() => vi.fn((config) => config));
@@ -146,7 +146,7 @@ function buildLocalProviderInstallCatalogEntry() {
     label: LOCAL_PROVIDER_LABEL,
     origin: "bundled" as const,
     install: {
-      npmSpec: "@openclaw/local-provider",
+      npmSpec: "@genesis/local-provider",
     },
   };
 }

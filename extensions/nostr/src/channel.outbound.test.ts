@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createStartAccountContext } from "../../../test/helpers/plugins/start-account-context.js";
 import type { PluginRuntime } from "../runtime-api.js";
@@ -79,7 +79,7 @@ describe("nostr outbound cfg threading", () => {
 
     const cfg = createCfg();
     await nostrOutboundAdapter.sendText({
-      cfg: cfg as OpenClawConfig,
+      cfg: cfg as GenesisConfig,
       to: "NPUB123",
       text: "|a|b|",
       accountId: "default",
@@ -111,7 +111,7 @@ describe("nostr outbound cfg threading", () => {
     };
 
     await nostrOutboundAdapter.sendText({
-      cfg: cfg as OpenClawConfig,
+      cfg: cfg as GenesisConfig,
       to: "NPUB123",
       text: "hello",
     });

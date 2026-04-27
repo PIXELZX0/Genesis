@@ -11,7 +11,7 @@ import {
 } from "../../agents/tool-catalog.js";
 import { summarizeToolDescriptionText } from "../../agents/tool-description-summary.js";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getPluginToolMeta, resolvePluginTools } from "../../plugins/tools.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import {
@@ -73,7 +73,7 @@ function buildCoreGroups(): ToolCatalogGroup[] {
 }
 
 function buildPluginGroups(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   existingToolNames: Set<string>;
 }): ToolCatalogGroup[] {
@@ -127,7 +127,7 @@ function buildPluginGroups(params: {
 }
 
 export function buildToolsCatalogResult(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   includePlugins?: boolean;
 }): ToolsCatalogResult {

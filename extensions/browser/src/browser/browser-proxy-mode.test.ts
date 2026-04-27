@@ -34,7 +34,7 @@ describe("browser proxy mode", () => {
     expect(
       resolveBrowserNavigationProxyMode({
         resolved,
-        profile: { driver: "openclaw", cdpIsLoopback: true },
+        profile: { driver: "genesis", cdpIsLoopback: true },
       }),
     ).toBe("explicit-browser-proxy");
     expect(
@@ -46,8 +46,27 @@ describe("browser proxy mode", () => {
     expect(
       resolveBrowserNavigationProxyMode({
         resolved,
-        profile: { driver: "openclaw", cdpIsLoopback: false },
+        profile: { driver: "genesis", cdpIsLoopback: false },
       }),
     ).toBe("direct");
+  });
+
+  it("marks managed local Tor profiles as tor-routed", () => {
+    expect(
+      resolveBrowserNavigationProxyMode({
+        resolved: { extraArgs: [] },
+        profile: {
+          driver: "genesis",
+          cdpIsLoopback: true,
+          tor: {
+            enabled: true,
+            mode: "managed",
+            socksHost: "127.0.0.1",
+            socksPort: 18900,
+            extraArgs: [],
+          },
+        },
+      }),
+    ).toBe("tor");
   });
 });

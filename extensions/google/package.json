@@ -1,17 +1,17 @@
 {
-  "name": "@openclaw/google-plugin",
+  "name": "@genesis/google-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Google plugin",
+  "description": "Genesis Google plugin",
   "type": "module",
   "dependencies": {
     "@google/genai": "^1.50.1",
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

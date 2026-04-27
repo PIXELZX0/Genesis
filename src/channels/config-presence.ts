@@ -5,7 +5,7 @@ import {
   listBundledChannelIdsWithPersistedAuthState,
 } from "../channels/plugins/persisted-auth-state.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { hasNonEmptyString } from "../infra/outbound/channel-target.js";
 import { isRecord } from "../utils.js";
 import { listBundledChannelPluginIds } from "./plugins/bundled-ids.js";
@@ -18,7 +18,7 @@ type ChannelPresenceOptions = {
     listChannelIds: () => readonly string[];
     hasState: (params: {
       channelId: string;
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       env: NodeJS.ProcessEnv;
     }) => boolean;
   };
@@ -67,7 +67,7 @@ function listPersistedAuthStateChannelIds(options: ChannelPresenceOptions): read
 
 function hasPersistedAuthState(params: {
   channelId: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   options: ChannelPresenceOptions;
 }): boolean {
@@ -79,7 +79,7 @@ function hasPersistedAuthState(params: {
 }
 
 export function listPotentialConfiguredChannelIds(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): string[] {
@@ -93,7 +93,7 @@ export function listPotentialConfiguredChannelIds(
 }
 
 export function listPotentialConfiguredChannelPresenceSignals(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): ChannelPresenceSignal[] {
@@ -148,7 +148,7 @@ export function listPotentialConfiguredChannelPresenceSignals(
 }
 
 function hasEnvConfiguredChannel(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv,
   options: ChannelPresenceOptions = {},
 ): boolean {
@@ -171,7 +171,7 @@ function hasEnvConfiguredChannel(
 }
 
 export function hasPotentialConfiguredChannels(
-  cfg: OpenClawConfig | null | undefined,
+  cfg: GenesisConfig | null | undefined,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): boolean {

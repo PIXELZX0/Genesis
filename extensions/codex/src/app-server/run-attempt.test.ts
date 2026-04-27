@@ -6,7 +6,7 @@ import {
   abortAgentHarnessRun,
   queueAgentHarnessMessage,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness";
+} from "genesis/plugin-sdk/agent-harness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { __testing as nativeHookRelayTesting } from "../../../../src/agents/harness/native-hook-relay.js";
 import {
@@ -64,7 +64,7 @@ function threadStartResult(threadId = "thread-1") {
       updatedAt: 1,
       status: { type: "idle" },
       path: null,
-      cwd: tempDir || "/tmp/openclaw-codex-test",
+      cwd: tempDir || "/tmp/genesis-codex-test",
       cliVersion: "0.118.0",
       source: "unknown",
       agentNickname: null,
@@ -76,7 +76,7 @@ function threadStartResult(threadId = "thread-1") {
     model: "gpt-5.4-codex",
     modelProvider: "openai",
     serviceTier: null,
-    cwd: tempDir || "/tmp/openclaw-codex-test",
+    cwd: tempDir || "/tmp/genesis-codex-test",
     instructionSources: [],
     approvalPolicy: "never",
     approvalsReviewer: "user",
@@ -282,7 +282,7 @@ function extractRelayIdFromThreadRequest(params: unknown): string {
 describe("runCodexAppServerAttempt", () => {
   beforeEach(async () => {
     resetAgentEventsForTest();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-run-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-run-"));
   });
 
   afterEach(async () => {
@@ -1112,7 +1112,7 @@ describe("runCodexAppServerAttempt", () => {
   });
 
   it("releases completion when a projector callback throws during turn/completed", async () => {
-    // Regression for openclaw/openclaw#67996: a throw inside the projector's
+    // Regression for PIXELZX0/Genesis#67996: a throw inside the projector's
     // turn/completed handler must not strand resolveCompletion, otherwise the
     // gateway session lane stays locked and every follow-up message queues
     // behind a run that will never resolve.
@@ -1535,7 +1535,7 @@ describe("runCodexAppServerAttempt", () => {
     );
   });
 
-  it("builds resume and turn params from the currently selected OpenClaw model", () => {
+  it("builds resume and turn params from the currently selected Genesis model", () => {
     const params = createParams("/tmp/session.jsonl", "/tmp/workspace");
     const appServer = {
       start: {

@@ -1,18 +1,18 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/memory-core-host-runtime-core";
-import type { MemorySearchResult } from "openclaw/plugin-sdk/memory-core-host-runtime-files";
+import type { GenesisConfig } from "genesis/plugin-sdk/memory-core-host-runtime-core";
+import type { MemorySearchResult } from "genesis/plugin-sdk/memory-core-host-runtime-files";
 import {
   extractTranscriptStemFromSessionsMemoryHit,
   loadCombinedSessionStoreForGateway,
   resolveTranscriptStemToSessionKeys,
-} from "openclaw/plugin-sdk/session-transcript-hit";
+} from "genesis/plugin-sdk/session-transcript-hit";
 import {
   createAgentToAgentPolicy,
   createSessionVisibilityGuard,
   resolveEffectiveSessionToolsVisibility,
-} from "openclaw/plugin-sdk/session-visibility";
+} from "genesis/plugin-sdk/session-visibility";
 
 export async function filterMemorySearchHitsBySessionVisibility(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   requesterSessionKey: string | undefined;
   sandboxed: boolean;
   hits: MemorySearchResult[];

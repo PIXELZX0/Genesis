@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { clearSessionStoreCacheForTest } from "../../../src/config/sessions/store.js";
 import { slackApprovalCapability, slackNativeApprovalAdapter } from "./approval-native.js";
 
 function buildConfig(
-  overrides?: Partial<NonNullable<NonNullable<OpenClawConfig["channels"]>["slack"]>>,
-): OpenClawConfig {
+  overrides?: Partial<NonNullable<NonNullable<GenesisConfig["channels"]>["slack"]>>,
+): GenesisConfig {
   return {
     channels: {
       slack: {
@@ -22,10 +22,10 @@ function buildConfig(
         ...overrides,
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
-const STORE_PATH = path.join(os.tmpdir(), "openclaw-slack-approval-native-test.json");
+const STORE_PATH = path.join(os.tmpdir(), "genesis-slack-approval-native-test.json");
 
 function writeStore(store: Record<string, unknown>) {
   fs.writeFileSync(STORE_PATH, `${JSON.stringify(store, null, 2)}\n`, "utf8");

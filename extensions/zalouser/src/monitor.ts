@@ -1,46 +1,46 @@
-import { mergeAllowlist, summarizeMapping } from "openclaw/plugin-sdk/allow-from";
+import { mergeAllowlist, summarizeMapping } from "genesis/plugin-sdk/allow-from";
 import {
   implicitMentionKindWhen,
   resolveInboundMentionDecision,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
+} from "genesis/plugin-sdk/channel-inbound";
+import { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";
 import {
   DM_GROUP_ACCESS_REASON,
   resolveDmGroupAccessWithLists,
-} from "openclaw/plugin-sdk/channel-policy";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-import { resolveSenderCommandAuthorization } from "openclaw/plugin-sdk/command-auth";
+} from "genesis/plugin-sdk/channel-policy";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
+import { resolveSenderCommandAuthorization } from "genesis/plugin-sdk/command-auth";
 import {
   isDangerousNameMatchingEnabled,
   resolveDefaultGroupPolicy,
   resolveOpenProviderRuntimeGroupPolicy,
   type MarkdownTableMode,
-  type OpenClawConfig,
+  type GenesisConfig,
   warnMissingProviderGroupPolicyFallbackOnce,
-} from "openclaw/plugin-sdk/config-runtime";
-import { KeyedAsyncQueue } from "openclaw/plugin-sdk/core";
-import { createDeferred } from "openclaw/plugin-sdk/extension-shared";
+} from "genesis/plugin-sdk/config-runtime";
+import { KeyedAsyncQueue } from "genesis/plugin-sdk/core";
+import { createDeferred } from "genesis/plugin-sdk/extension-shared";
 import {
   evaluateGroupRouteAccessForPolicy,
   resolveSenderScopedGroupPolicy,
-} from "openclaw/plugin-sdk/group-access";
+} from "genesis/plugin-sdk/group-access";
 import {
   DEFAULT_GROUP_HISTORY_LIMIT,
   type HistoryEntry,
   buildPendingHistoryContextFromMap,
   clearHistoryEntriesIfEnabled,
   recordPendingHistoryEntryIfEnabled,
-} from "openclaw/plugin-sdk/reply-history";
+} from "genesis/plugin-sdk/reply-history";
 import {
   deliverTextOrMediaReply,
   resolveSendableOutboundReplyParts,
   type OutboundReplyPayload,
-} from "openclaw/plugin-sdk/reply-payload";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
+} from "genesis/plugin-sdk/reply-payload";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   buildZalouserGroupCandidates,
   findZalouserGroupEntry,
@@ -64,7 +64,7 @@ import {
 
 export type ZalouserMonitorOptions = {
   account: ResolvedZalouserAccount;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   runtime: RuntimeEnv;
   abortSignal: AbortSignal;
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
@@ -139,14 +139,14 @@ function resolveInboundQueueKey(message: ZaloInboundMessage): string {
   return `direct:${senderId || threadId}`;
 }
 
-function resolveZalouserDmSessionScope(config: OpenClawConfig) {
+function resolveZalouserDmSessionScope(config: GenesisConfig) {
   const configured = config.session?.dmScope;
   return configured === "main" || !configured ? "per-channel-peer" : configured;
 }
 
 function resolveZalouserInboundSessionKey(params: {
   core: ZalouserCoreRuntime;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   route: { agentId: string; accountId: string; sessionKey: string };
   storePath: string;
   isGroup: boolean;
@@ -252,7 +252,7 @@ async function sendZalouserDeliveryAcks(params: {
 async function processMessage(
   message: ZaloInboundMessage,
   account: ResolvedZalouserAccount,
-  config: OpenClawConfig,
+  config: GenesisConfig,
   core: ZalouserCoreRuntime,
   runtime: RuntimeEnv,
   historyState: ZalouserGroupHistoryState,
@@ -710,7 +710,7 @@ async function deliverZalouserReply(params: {
   isGroup: boolean;
   runtime: RuntimeEnv;
   core: ZalouserCoreRuntime;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   accountId?: string;
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
   tableMode?: MarkdownTableMode;
@@ -975,7 +975,7 @@ export const __testing = {
   processMessage: async (params: {
     message: ZaloInboundMessage;
     account: ResolvedZalouserAccount;
-    config: OpenClawConfig;
+    config: GenesisConfig;
     runtime: RuntimeEnv;
     historyState?: {
       historyLimit?: number;

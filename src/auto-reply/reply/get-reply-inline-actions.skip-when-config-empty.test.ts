@@ -8,10 +8,10 @@ import { stripInlineStatus } from "./reply-inline.js";
 import { buildTestCtx } from "./test-ctx.js";
 import type { TypingController } from "./typing.js";
 
-const { buildStatusReplyMock, createOpenClawToolsMock, getChannelPluginMock, handleCommandsMock } =
+const { buildStatusReplyMock, createGenesisToolsMock, getChannelPluginMock, handleCommandsMock } =
   vi.hoisted(() => ({
     buildStatusReplyMock: vi.fn(),
-    createOpenClawToolsMock: vi.fn(),
+    createGenesisToolsMock: vi.fn(),
     getChannelPluginMock: vi.fn(),
     handleCommandsMock: vi.fn(),
   }));
@@ -25,8 +25,8 @@ vi.mock("./commands.runtime.js", () => ({
   buildStatusReply: (...args: unknown[]) => buildStatusReplyMock(...args),
 }));
 
-vi.mock("../../agents/openclaw-tools.runtime.js", () => ({
-  createOpenClawTools: (...args: unknown[]) => createOpenClawToolsMock(...args),
+vi.mock("../../agents/genesis-tools.runtime.js", () => ({
+  createGenesisTools: (...args: unknown[]) => createGenesisToolsMock(...args),
 }));
 
 vi.mock("../../channels/plugins/index.js", () => ({
@@ -148,10 +148,10 @@ describe("handleInlineActions", () => {
     handleCommandsMock.mockReset();
     handleCommandsMock.mockResolvedValue({ shouldContinue: true, reply: undefined });
     getChannelPluginMock.mockReset();
-    createOpenClawToolsMock.mockReset();
+    createGenesisToolsMock.mockReset();
     buildStatusReplyMock.mockReset();
     buildStatusReplyMock.mockResolvedValue({ text: "status" });
-    createOpenClawToolsMock.mockReturnValue([]);
+    createGenesisToolsMock.mockReturnValue([]);
     getChannelPluginMock.mockImplementation((channelId?: string) =>
       channelId === "whatsapp"
         ? { commands: { skipWhenConfigEmpty: true } }
@@ -576,7 +576,7 @@ describe("handleInlineActions", () => {
   it("passes requesterAgentIdOverride into inline tool runtimes", async () => {
     const typing = createTypingController();
     const toolExecute = vi.fn(async () => ({ text: "spawned" }));
-    createOpenClawToolsMock.mockReturnValue([
+    createGenesisToolsMock.mockReturnValue([
       {
         name: "sessions_spawn",
         execute: toolExecute,
@@ -624,7 +624,7 @@ describe("handleInlineActions", () => {
     );
 
     expect(result).toEqual({ kind: "reply", reply: { text: "✅ Done." } });
-    expect(createOpenClawToolsMock).toHaveBeenCalledWith(
+    expect(createGenesisToolsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         requesterAgentIdOverride: "named-worker",
       }),
@@ -635,7 +635,7 @@ describe("handleInlineActions", () => {
   it("passes senderIsOwner into inline tool runtimes before owner-only filtering", async () => {
     const typing = createTypingController();
     const toolExecute = vi.fn(async () => ({ text: "updated" }));
-    createOpenClawToolsMock.mockReturnValue([
+    createGenesisToolsMock.mockReturnValue([
       {
         name: "message",
         execute: toolExecute,
@@ -682,7 +682,7 @@ describe("handleInlineActions", () => {
     );
 
     expect(result).toEqual({ kind: "reply", reply: { text: "✅ Done." } });
-    expect(createOpenClawToolsMock).toHaveBeenCalledWith(
+    expect(createGenesisToolsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         senderIsOwner: true,
       }),

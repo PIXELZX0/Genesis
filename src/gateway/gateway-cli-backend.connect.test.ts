@@ -13,7 +13,7 @@ const GATEWAY_CONNECT_TIMEOUT_MS = 5_000;
 const tempRoots: string[] = [];
 
 async function createTempDeviceIdentity() {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gateway-connect-"));
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-gateway-connect-"));
   tempRoots.push(tempRoot);
   return loadOrCreateDeviceIdentity(path.join(tempRoot, "device.json"));
 }

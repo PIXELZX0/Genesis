@@ -16,18 +16,18 @@ Start at [/help/troubleshooting](/help/troubleshooting) if you want the fast tri
 Run these first, in this order:
 
 ```bash
-openclaw status
-openclaw gateway status
-openclaw logs --follow
-openclaw doctor
-openclaw channels status --probe
+genesis status
+genesis gateway status
+genesis logs --follow
+genesis doctor
+genesis channels status --probe
 ```
 
 Expected healthy signals:
 
-- `openclaw gateway status` shows `Runtime: running`, `Connectivity probe: ok`, and a `Capability: ...` line.
-- `openclaw doctor` reports no blocking config/service issues.
-- `openclaw channels status --probe` shows live per-account transport status and,
+- `genesis gateway status` shows `Runtime: running`, `Connectivity probe: ok`, and a `Capability: ...` line.
+- `genesis doctor` reports no blocking config/service issues.
+- `genesis channels status --probe` shows live per-account transport status and,
   where supported, probe/audit results such as `works` or `audit ok`.
 
 ## Anthropic 429 extra usage required for long context
@@ -36,9 +36,9 @@ Use this when logs/errors include:
 `HTTP 429: rate_limit_error: Extra usage is required for long context requests`.
 
 ```bash
-openclaw logs --follow
-openclaw models status
-openclaw config get agents.defaults.models
+genesis logs --follow
+genesis models status
+genesis config get agents.defaults.models
 ```
 
 Look for:
@@ -65,20 +65,20 @@ Use this when:
 
 - `curl ... /v1/models` works
 - tiny direct `/v1/chat/completions` calls work
-- OpenClaw model runs fail only on normal agent turns
+- Genesis model runs fail only on normal agent turns
 
 ```bash
 curl http://127.0.0.1:1234/v1/models
 curl http://127.0.0.1:1234/v1/chat/completions \
   -H 'content-type: application/json' \
   -d '{"model":"<id>","messages":[{"role":"user","content":"hi"}],"stream":false}'
-openclaw infer model run --model <provider/model> --prompt "hi" --json
-openclaw logs --follow
+genesis infer model run --model <provider/model> --prompt "hi" --json
+genesis logs --follow
 ```
 
 Look for:
 
-- direct tiny calls succeed, but OpenClaw runs fail only on larger prompts
+- direct tiny calls succeed, but Genesis runs fail only on larger prompts
 - backend errors about `messages[].content` expecting a string
 - backend crashes that appear only with larger prompt-token counts or full agent
   runtime prompts
@@ -88,8 +88,8 @@ Common signatures:
 - `messages[...].content: invalid type: sequence, expected a string` → backend
   rejects structured Chat Completions content parts. Fix: set
   `models.providers.<provider>.models[].compat.requiresStringContent: true`.
-- direct tiny requests succeed, but OpenClaw agent runs fail with backend/model
-  crashes (for example Gemma on some `inferrs` builds) → OpenClaw transport is
+- direct tiny requests succeed, but Genesis agent runs fail with backend/model
+  crashes (for example Gemma on some `inferrs` builds) → Genesis transport is
   likely already correct; the backend is failing on the larger agent-runtime
   prompt shape.
 - failures shrink after disabling tools but do not disappear → tool schemas were
@@ -100,11 +100,11 @@ Fix options:
 
 1. Set `compat.requiresStringContent: true` for string-only Chat Completions backends.
 2. Set `compat.supportsTools: false` for models/backends that cannot handle
-   OpenClaw's tool schema surface reliably.
+   Genesis's tool schema surface reliably.
 3. Lower prompt pressure where possible: smaller workspace bootstrap, shorter
    session history, lighter local model, or a backend with stronger long-context
    support.
-4. If tiny direct requests keep passing while OpenClaw agent turns still crash
+4. If tiny direct requests keep passing while Genesis agent turns still crash
    inside the backend, treat it as an upstream server/model limitation and file
    a repro there with the accepted payload shape.
 
@@ -119,11 +119,11 @@ Related:
 If channels are up but nothing answers, check routing and policy before reconnecting anything.
 
 ```bash
-openclaw status
-openclaw channels status --probe
-openclaw pairing list --channel <channel> [--account <id>]
-openclaw config get channels
-openclaw logs --follow
+genesis status
+genesis channels status --probe
+genesis pairing list --channel <channel> [--account <id>]
+genesis config get channels
+genesis logs --follow
 ```
 
 Look for:
@@ -149,11 +149,11 @@ Related:
 When dashboard/control UI will not connect, validate URL, auth mode, and secure context assumptions.
 
 ```bash
-openclaw gateway status
-openclaw status
-openclaw logs --follow
-openclaw doctor
-openclaw gateway status --json
+genesis gateway status
+genesis status
+genesis logs --follow
+genesis doctor
+genesis gateway status --json
 ```
 
 Look for:
@@ -195,17 +195,17 @@ Use `error.details.code` from the failed `connect` response to pick the next act
 
 | Detail code                  | Meaning                                                                                                                                                                                      | Recommended action                                                                                                                                                                                                                                                                       |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AUTH_TOKEN_MISSING`         | Client did not send a required shared token.                                                                                                                                                 | Paste/set token in the client and retry. For dashboard paths: `openclaw config get gateway.auth.token` then paste into Control UI settings.                                                                                                                                              |
+| `AUTH_TOKEN_MISSING`         | Client did not send a required shared token.                                                                                                                                                 | Paste/set token in the client and retry. For dashboard paths: `genesis config get gateway.auth.token` then paste into Control UI settings.                                                                                                                                               |
 | `AUTH_TOKEN_MISMATCH`        | Shared token did not match gateway auth token.                                                                                                                                               | If `canRetryWithDeviceToken=true`, allow one trusted retry. Cached-token retries reuse stored approved scopes; explicit `deviceToken` / `scopes` callers keep requested scopes. If still failing, run the [token drift recovery checklist](/cli/devices#token-drift-recovery-checklist). |
 | `AUTH_DEVICE_TOKEN_MISMATCH` | Cached per-device token is stale or revoked.                                                                                                                                                 | Rotate/re-approve device token using [devices CLI](/cli/devices), then reconnect.                                                                                                                                                                                                        |
-| `PAIRING_REQUIRED`           | Device identity needs approval. Check `error.details.reason` for `not-paired`, `scope-upgrade`, `role-upgrade`, or `metadata-upgrade`, and use `requestId` / `remediationHint` when present. | Approve pending request: `openclaw devices list` then `openclaw devices approve <requestId>`. Scope/role upgrades use the same flow after you review the requested access.                                                                                                               |
+| `PAIRING_REQUIRED`           | Device identity needs approval. Check `error.details.reason` for `not-paired`, `scope-upgrade`, `role-upgrade`, or `metadata-upgrade`, and use `requestId` / `remediationHint` when present. | Approve pending request: `genesis devices list` then `genesis devices approve <requestId>`. Scope/role upgrades use the same flow after you review the requested access.                                                                                                                 |
 
 Device auth v2 migration check:
 
 ```bash
-openclaw --version
-openclaw doctor
-openclaw gateway status
+genesis --version
+genesis doctor
+genesis gateway status
 ```
 
 If logs show nonce/signature errors, update the connecting client and verify it:
@@ -214,11 +214,11 @@ If logs show nonce/signature errors, update the connecting client and verify it:
 2. signs the challenge-bound payload
 3. sends `connect.params.device.nonce` with the same challenge nonce
 
-If `openclaw devices rotate` / `revoke` / `remove` is denied unexpectedly:
+If `genesis devices rotate` / `revoke` / `remove` is denied unexpectedly:
 
 - paired-device token sessions can manage only **their own** device unless the
   caller also has `operator.admin`
-- `openclaw devices rotate --scope ...` can only request operator scopes that
+- `genesis devices rotate --scope ...` can only request operator scopes that
   the caller session already holds
 
 Related:
@@ -234,11 +234,11 @@ Related:
 Use this when service is installed but process does not stay up.
 
 ```bash
-openclaw gateway status
-openclaw status
-openclaw logs --follow
-openclaw doctor
-openclaw gateway status --deep   # also scan system-level services
+genesis gateway status
+genesis status
+genesis logs --follow
+genesis doctor
+genesis gateway status --deep   # also scan system-level services
 ```
 
 Look for:
@@ -251,7 +251,7 @@ Look for:
 
 Common signatures:
 
-- `Gateway start blocked: set gateway.mode=local` or `existing config is missing gateway.mode` → local gateway mode is not enabled, or the config file was clobbered and lost `gateway.mode`. Fix: set `gateway.mode="local"` in your config, or re-run `openclaw onboard --mode local` / `openclaw setup` to restamp the expected local-mode config. If you are running OpenClaw via Podman, the default config path is `~/.openclaw/openclaw.json`.
+- `Gateway start blocked: set gateway.mode=local` or `existing config is missing gateway.mode` → local gateway mode is not enabled, or the config file was clobbered and lost `gateway.mode`. Fix: set `gateway.mode="local"` in your config, or re-run `genesis onboard --mode local` / `genesis setup` to restamp the expected local-mode config. If you are running Genesis via Podman, the default config path is `~/.genesis/genesis.json`.
 - `refusing to bind gateway ... without auth` → non-loopback bind without a valid gateway auth path (token/password, or trusted-proxy where configured).
 - `another gateway instance is already listening` / `EADDRINUSE` → port conflict.
 - `Other gateway-like services detected (best effort)` → stale or parallel launchd/systemd/schtasks units exist. Most setups should keep one gateway per machine; if you do need more than one, isolate ports + config/state/workspace. See [/gateway#multiple-gateways-same-host](/gateway#multiple-gateways-same-host).
@@ -264,13 +264,13 @@ Related:
 
 ## Gateway restored last-known-good config
 
-Use this when the Gateway starts, but logs say it restored `openclaw.json`.
+Use this when the Gateway starts, but logs say it restored `genesis.json`.
 
 ```bash
-openclaw logs --follow
-openclaw config file
-openclaw config validate
-openclaw doctor
+genesis logs --follow
+genesis config file
+genesis config validate
+genesis doctor
 ```
 
 Look for:
@@ -278,33 +278,33 @@ Look for:
 - `Config auto-restored from last-known-good`
 - `gateway: invalid config was restored from last-known-good backup`
 - `config reload restored last-known-good config after invalid-config`
-- A timestamped `openclaw.json.clobbered.*` file beside the active config
+- A timestamped `genesis.json.clobbered.*` file beside the active config
 - A main-agent system event that starts with `Config recovery warning`
 
 What happened:
 
 - The rejected config did not validate during startup or hot reload.
-- OpenClaw preserved the rejected payload as `.clobbered.*`.
+- Genesis preserved the rejected payload as `.clobbered.*`.
 - The active config was restored from the last validated last-known-good copy.
 - The next main-agent turn is warned not to blindly rewrite the rejected config.
-- If all validation issues were under `plugins.entries.<id>...`, OpenClaw would
+- If all validation issues were under `plugins.entries.<id>...`, Genesis would
   not restore the whole file. Plugin-local failures stay loud while unrelated
   user settings remain in the active config.
 
 Inspect and repair:
 
 ```bash
-CONFIG="$(openclaw config file)"
+CONFIG="$(genesis config file)"
 ls -lt "$CONFIG".clobbered.* "$CONFIG".rejected.* 2>/dev/null | head
 diff -u "$CONFIG" "$(ls -t "$CONFIG".clobbered.* 2>/dev/null | head -n 1)"
-openclaw config validate
-openclaw doctor
+genesis config validate
+genesis doctor
 ```
 
 Common signatures:
 
 - `.clobbered.*` exists → an external direct edit or startup read was restored.
-- `.rejected.*` exists → an OpenClaw-owned config write failed schema or clobber checks before commit.
+- `.rejected.*` exists → an Genesis-owned config write failed schema or clobber checks before commit.
 - `Config write rejected:` → the write tried to drop required shape, shrink the file sharply, or persist invalid config.
 - `missing-meta-vs-last-good`, `gateway-mode-missing-vs-last-good`, or `size-drop-vs-last-good:*` → startup treated the current file as clobbered because it lost fields or size compared with the last-known-good backup.
 - `Config last-known-good promotion skipped` → the candidate contained redacted secret placeholders such as `***`.
@@ -312,8 +312,8 @@ Common signatures:
 Fix options:
 
 1. Keep the restored active config if it is correct.
-2. Copy only the intended keys from `.clobbered.*` or `.rejected.*`, then apply them with `openclaw config set` or `config.patch`.
-3. Run `openclaw config validate` before restarting.
+2. Copy only the intended keys from `.clobbered.*` or `.rejected.*`, then apply them with `genesis config set` or `config.patch`.
+3. Run `genesis config validate` before restarting.
 4. If you edit by hand, keep the full JSON5 config, not just the partial object you wanted to change.
 
 Related:
@@ -325,12 +325,12 @@ Related:
 
 ## Gateway probe warnings
 
-Use this when `openclaw gateway probe` reaches something, but still prints a warning block.
+Use this when `genesis gateway probe` reaches something, but still prints a warning block.
 
 ```bash
-openclaw gateway probe
-openclaw gateway probe --json
-openclaw gateway probe --ssh user@gateway-host
+genesis gateway probe
+genesis gateway probe --json
+genesis gateway probe --ssh user@gateway-host
 ```
 
 Look for:
@@ -357,11 +357,11 @@ Related:
 If channel state is connected but message flow is dead, focus on policy, permissions, and channel specific delivery rules.
 
 ```bash
-openclaw channels status --probe
-openclaw pairing list --channel <channel> [--account <id>]
-openclaw status --deep
-openclaw logs --follow
-openclaw config get channels
+genesis channels status --probe
+genesis pairing list --channel <channel> [--account <id>]
+genesis status --deep
+genesis logs --follow
+genesis config get channels
 ```
 
 Look for:
@@ -388,11 +388,11 @@ Related:
 If cron or heartbeat did not run or did not deliver, verify scheduler state first, then delivery target.
 
 ```bash
-openclaw cron status
-openclaw cron list
-openclaw cron runs --id <jobId> --limit 20
-openclaw system heartbeat last
-openclaw logs --follow
+genesis cron status
+genesis cron list
+genesis cron runs --id <jobId> --limit 20
+genesis system heartbeat last
+genesis logs --follow
 ```
 
 Look for:
@@ -406,7 +406,7 @@ Common signatures:
 - `cron: scheduler disabled; jobs will not run automatically` → cron disabled.
 - `cron: timer tick failed` → scheduler tick failed; check file/log/runtime errors.
 - `heartbeat skipped` with `reason=quiet-hours` → outside active hours window.
-- `heartbeat skipped` with `reason=empty-heartbeat-file` → `HEARTBEAT.md` exists but only contains blank lines / markdown headers, so OpenClaw skips the model call.
+- `heartbeat skipped` with `reason=empty-heartbeat-file` → `HEARTBEAT.md` exists but only contains blank lines / markdown headers, so Genesis skips the model call.
 - `heartbeat skipped` with `reason=no-tasks-due` → `HEARTBEAT.md` contains a `tasks:` block, but none of the tasks are due on this tick.
 - `heartbeat: unknown accountId` → invalid account id for heartbeat delivery target.
 - `heartbeat skipped` with `reason=dm-blocked` → heartbeat target resolved to a DM-style destination while `agents.defaults.heartbeat.directPolicy` (or per-agent override) is set to `block`.
@@ -422,11 +422,11 @@ Related:
 If a node is paired but tools fail, isolate foreground, permission, and approval state.
 
 ```bash
-openclaw nodes status
-openclaw nodes describe --node <idOrNameOrIp>
-openclaw approvals get --node <idOrNameOrIp>
-openclaw logs --follow
-openclaw status
+genesis nodes status
+genesis nodes describe --node <idOrNameOrIp>
+genesis approvals get --node <idOrNameOrIp>
+genesis logs --follow
+genesis status
 ```
 
 Look for:
@@ -453,11 +453,11 @@ Related:
 Use this when browser tool actions fail even though the gateway itself is healthy.
 
 ```bash
-openclaw browser status
-openclaw browser start --browser-profile openclaw
-openclaw browser profiles
-openclaw logs --follow
-openclaw doctor
+genesis browser status
+genesis browser start --browser-profile genesis
+genesis browser profiles
+genesis logs --follow
+genesis doctor
 ```
 
 Look for:
@@ -475,11 +475,11 @@ Common signatures:
 - `browser.executablePath not found` → configured path is invalid.
 - `browser.cdpUrl must be http(s) or ws(s)` → the configured CDP URL uses an unsupported scheme such as `file:` or `ftp:`.
 - `browser.cdpUrl has invalid port` → the configured CDP URL has a bad or out-of-range port.
-- `Could not find DevToolsActivePort for chrome` → Chrome MCP existing-session could not attach to the selected browser data dir yet. Open the browser inspect page, enable remote debugging, keep the browser open, approve the first attach prompt, then retry. If signed-in state is not required, prefer the managed `openclaw` profile.
+- `Could not find DevToolsActivePort for chrome` → Chrome MCP existing-session could not attach to the selected browser data dir yet. Open the browser inspect page, enable remote debugging, keep the browser open, approve the first attach prompt, then retry. If signed-in state is not required, prefer the managed `genesis` profile.
 - `No Chrome tabs found for profile="user"` → the Chrome MCP attach profile has no open local Chrome tabs.
 - `Remote CDP for profile "<name>" is not reachable` → the configured remote CDP endpoint is not reachable from the gateway host.
 - `Browser attachOnly is enabled ... not reachable` or `Browser attachOnly is enabled and CDP websocket ... is not reachable` → attach-only profile has no reachable target, or the HTTP endpoint answered but the CDP WebSocket still could not be opened.
-- `Playwright is not available in this gateway build; '<feature>' is unsupported.` → the current gateway install lacks the bundled browser plugin's `playwright-core` runtime dependency; run `openclaw doctor --fix`, then restart the gateway. ARIA snapshots and basic page screenshots can still work, but navigation, AI snapshots, CSS-selector element screenshots, and PDF export stay unavailable.
+- `Playwright is not available in this gateway build; '<feature>' is unsupported.` → the current gateway install lacks the bundled browser plugin's `playwright-core` runtime dependency; run `genesis doctor --fix`, then restart the gateway. ARIA snapshots and basic page screenshots can still work, but navigation, AI snapshots, CSS-selector element screenshots, and PDF export stay unavailable.
 - `fullPage is not supported for element screenshots` → screenshot request mixed `--full-page` with `--ref` or `--element`.
 - `element screenshots are not supported for existing-session profiles; use ref from snapshot.` → Chrome MCP / `existing-session` screenshot calls must use page capture or a snapshot `--ref`, not CSS `--element`.
 - `existing-session file uploads do not support element selectors; use ref/inputRef.` → Chrome MCP upload hooks need snapshot refs, not CSS selectors.
@@ -488,12 +488,12 @@ Common signatures:
 - `existing-session type does not support timeoutMs overrides.` → omit `timeoutMs` for `act:type` on `profile="user"` / Chrome MCP existing-session profiles, or use a managed/CDP browser profile when a custom timeout is required.
 - `existing-session evaluate does not support timeoutMs overrides.` → omit `timeoutMs` for `act:evaluate` on `profile="user"` / Chrome MCP existing-session profiles, or use a managed/CDP browser profile when a custom timeout is required.
 - `response body is not supported for existing-session profiles yet.` → `responsebody` still requires a managed browser or raw CDP profile.
-- stale viewport / dark-mode / locale / offline overrides on attach-only or remote CDP profiles → run `openclaw browser stop --browser-profile <name>` to close the active control session and release Playwright/CDP emulation state without restarting the whole gateway.
+- stale viewport / dark-mode / locale / offline overrides on attach-only or remote CDP profiles → run `genesis browser stop --browser-profile <name>` to close the active control session and release Playwright/CDP emulation state without restarting the whole gateway.
 
 Related:
 
 - [Browser troubleshooting](/tools/browser-linux-troubleshooting)
-- [Browser (OpenClaw-managed)](/tools/browser)
+- [Browser (Genesis-managed)](/tools/browser)
 
 ## If you upgraded and something suddenly broke
 
@@ -502,10 +502,10 @@ Most post-upgrade breakage is config drift or stricter defaults now being enforc
 ### 1) Auth and URL override behavior changed
 
 ```bash
-openclaw gateway status
-openclaw config get gateway.mode
-openclaw config get gateway.remote.url
-openclaw config get gateway.auth.mode
+genesis gateway status
+genesis config get gateway.mode
+genesis config get gateway.remote.url
+genesis config get gateway.auth.mode
 ```
 
 What to check:
@@ -521,11 +521,11 @@ Common signatures:
 ### 2) Bind and auth guardrails are stricter
 
 ```bash
-openclaw config get gateway.bind
-openclaw config get gateway.auth.mode
-openclaw config get gateway.auth.token
-openclaw gateway status
-openclaw logs --follow
+genesis config get gateway.bind
+genesis config get gateway.auth.mode
+genesis config get gateway.auth.token
+genesis gateway status
+genesis logs --follow
 ```
 
 What to check:
@@ -541,10 +541,10 @@ Common signatures:
 ### 3) Pairing and device identity state changed
 
 ```bash
-openclaw devices list
-openclaw pairing list --channel <channel> [--account <id>]
-openclaw logs --follow
-openclaw doctor
+genesis devices list
+genesis pairing list --channel <channel> [--account <id>]
+genesis logs --follow
+genesis doctor
 ```
 
 What to check:
@@ -560,8 +560,8 @@ Common signatures:
 If the service config and runtime still disagree after checks, reinstall service metadata from the same profile/state directory:
 
 ```bash
-openclaw gateway install --force
-openclaw gateway restart
+genesis gateway install --force
+genesis gateway restart
 ```
 
 Related:

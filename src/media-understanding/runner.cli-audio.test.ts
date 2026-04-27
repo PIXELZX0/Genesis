@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { withAudioFixture } from "./runner.test-utils.js";
 
 const runExecMock = vi.hoisted(() => vi.fn());
@@ -24,7 +24,7 @@ describe("media-understanding CLI audio entry", () => {
   });
 
   it("applies per-request prompt and language overrides to CLI transcription templating", async () => {
-    await withAudioFixture("openclaw-cli-audio", async ({ ctx, cache }) => {
+    await withAudioFixture("genesis-cli-audio", async ({ ctx, cache }) => {
       await runCliEntry({
         capability: "audio",
         entry: {
@@ -45,7 +45,7 @@ describe("media-understanding CLI audio entry", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         ctx,
         attachmentIndex: 0,
         cache,

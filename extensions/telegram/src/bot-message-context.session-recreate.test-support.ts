@@ -3,13 +3,13 @@ import path from "node:path";
 import {
   clearRuntimeConfigSnapshot,
   setRuntimeConfigSnapshot,
-} from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/config-runtime";
 import {
   clearSessionStoreCacheForTest,
   loadSessionStore,
   updateSessionStore,
-} from "openclaw/plugin-sdk/config-runtime";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+} from "genesis/plugin-sdk/config-runtime";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { buildTelegramMessageContextForTest } from "./bot-message-context.test-harness.js";
 
@@ -20,7 +20,7 @@ function createSuiteTempRootTracker(params: { prefix: string }) {
   const children: string[] = [];
   return {
     async setup() {
-      root = await fs.mkdtemp(path.join(resolvePreferredOpenClawTmpDir(), params.prefix));
+      root = await fs.mkdtemp(path.join(resolvePreferredGenesisTmpDir(), params.prefix));
     },
     async make(name: string) {
       if (!root) {
@@ -45,7 +45,7 @@ function createSuiteTempRootTracker(params: { prefix: string }) {
 
 describe("Telegram direct session recreation after delete", () => {
   const suiteRootTracker = createSuiteTempRootTracker({
-    prefix: "openclaw-telegram-context-recreate-",
+    prefix: "genesis-telegram-context-recreate-",
   });
 
   beforeAll(async () => {
@@ -68,7 +68,7 @@ describe("Telegram direct session recreation after delete", () => {
       agents: {
         defaults: {
           model: "openai/gpt-5.4",
-          workspace: "/tmp/openclaw",
+          workspace: "/tmp/genesis",
         },
       },
       channels: { telegram: {} },

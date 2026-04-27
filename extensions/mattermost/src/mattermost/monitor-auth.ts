@@ -1,7 +1,7 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { ResolvedMattermostAccount } from "./accounts.js";
 import type { MattermostChannel } from "./client.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import {
   evaluateSenderGroupAccessForPolicy,
   isDangerousNameMatchingEnabled,
@@ -111,7 +111,7 @@ export type MattermostCommandAuthDecision =
 
 export function authorizeMattermostCommandInvocation(params: {
   account: ResolvedMattermostAccount;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   senderId: string;
   senderName: string;
   channelId: string;

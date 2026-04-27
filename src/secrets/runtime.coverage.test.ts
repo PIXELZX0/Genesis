@@ -2,14 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { PluginOrigin } from "../plugins/types.js";
 import { getPath, setPathCreateStrict } from "./path-utils.js";
 import { canonicalizeSecretTargetCoverageId } from "./target-registry-test-helpers.js";
 
 type SecretRegistryEntry = {
   id: string;
-  configFile: "openclaw.json" | "auth-profiles.json";
+  configFile: "genesis.json" | "auth-profiles.json";
   pathPattern: string;
   refPathPattern?: string;
   secretShape: "secret_input" | "sibling_ref";
@@ -20,7 +20,7 @@ type SecretRegistryEntry = {
 type SecretRefCredentialMatrix = {
   entries: Array<{
     id: string;
-    configFile: "openclaw.json" | "auth-profiles.json";
+    configFile: "genesis.json" | "auth-profiles.json";
     path: string;
     refPath?: string;
     secretShape: SecretRegistryEntry["secretShape"];
@@ -49,10 +49,10 @@ function loadCoverageRegistryEntries(): SecretRegistryEntry[] {
 }
 
 const COVERAGE_REGISTRY_ENTRIES = loadCoverageRegistryEntries();
-const DEBUG_COVERAGE_BATCHES = process.env.OPENCLAW_DEBUG_RUNTIME_COVERAGE === "1";
+const DEBUG_COVERAGE_BATCHES = process.env.GENESIS_DEBUG_RUNTIME_COVERAGE === "1";
 const COVERAGE_LOADABLE_PLUGIN_ORIGINS =
   buildCoverageLoadablePluginOrigins(COVERAGE_REGISTRY_ENTRIES);
-const PLUGIN_OWNED_OPENCLAW_COVERAGE_EXCLUSIONS = new Set([
+const PLUGIN_OWNED_GENESIS_COVERAGE_EXCLUSIONS = new Set([
   "channels.googlechat.accounts.*.serviceAccount",
   // Doctor migrates legacy web search config into plugin-owned webSearch config.
   "tools.web.search.apiKey",
@@ -235,8 +235,8 @@ function batchUsesRuntimeWebToolsOnly(batch: readonly SecretRegistryEntry[]): bo
   );
 }
 
-function applyConfigForOpenClawTarget(
-  config: OpenClawConfig,
+function applyConfigForGenesisTarget(
+  config: GenesisConfig,
   entry: SecretRegistryEntry,
   envId: string,
   wildcardToken: string,
@@ -410,7 +410,7 @@ function applyAuthStoreTarget(
 }
 
 async function prepareConfigCoverageSnapshot(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
   loadablePluginOrigins?: ReadonlyMap<string, PluginOrigin>;
   includeRuntimeWebTools?: boolean;
@@ -463,7 +463,7 @@ async function prepareConfigCoverageSnapshot(params: {
 }
 
 async function prepareAuthCoverageSnapshot(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
   agentDirs: string[];
   loadAuthStore: (agentDir?: string) => AuthProfileStore;
@@ -516,23 +516,23 @@ describe("secrets runtime target coverage", () => {
     ({ resolveSecretRefValues } = resolver);
   });
 
-  it("handles every openclaw.json registry target when configured as active", async () => {
+  it("handles every genesis.json registry target when configured as active", async () => {
     const entries = COVERAGE_REGISTRY_ENTRIES.filter(
       (entry) =>
-        entry.configFile === "openclaw.json" &&
-        !PLUGIN_OWNED_OPENCLAW_COVERAGE_EXCLUSIONS.has(entry.id),
+        entry.configFile === "genesis.json" &&
+        !PLUGIN_OWNED_GENESIS_COVERAGE_EXCLUSIONS.has(entry.id),
     );
     for (const batch of buildCoverageBatches(entries)) {
-      logCoverageBatch("openclaw.json", batch);
-      const config = {} as OpenClawConfig;
+      logCoverageBatch("genesis.json", batch);
+      const config = {} as GenesisConfig;
       const env: Record<string, string> = {};
       for (const [index, entry] of batch.entries()) {
-        const envId = `OPENCLAW_SECRET_TARGET_${entry.id}`;
+        const envId = `GENESIS_SECRET_TARGET_${entry.id}`;
         const runtimeEnvId = resolveCoverageEnvId(entry, envId);
         const expectedValue = `resolved-${entry.id}`;
         const wildcardToken = resolveCoverageWildcardToken(index);
         env[runtimeEnvId] = expectedValue;
-        applyConfigForOpenClawTarget(config, entry, envId, wildcardToken);
+        applyConfigForGenesisTarget(config, entry, envId, wildcardToken);
       }
       const snapshot = await prepareConfigCoverageSnapshot({
         config,
@@ -563,14 +563,14 @@ describe("secrets runtime target coverage", () => {
         profiles: {},
       };
       for (const [index, entry] of batch.entries()) {
-        const envId = `OPENCLAW_AUTH_SECRET_TARGET_${entry.id}`;
+        const envId = `GENESIS_AUTH_SECRET_TARGET_${entry.id}`;
         env[envId] = `resolved-${entry.id}`;
         applyAuthStoreTarget(authStore, entry, envId, resolveCoverageWildcardToken(index));
       }
       const snapshot = await prepareAuthCoverageSnapshot({
-        config: {} as OpenClawConfig,
+        config: {} as GenesisConfig,
         env,
-        agentDirs: ["/tmp/openclaw-agent-main"],
+        agentDirs: ["/tmp/genesis-agent-main"],
         loadAuthStore: () => authStore,
       });
       const resolvedStore = snapshot.authStores[0]?.store;

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { DeviceIdentity } from "../infra/device-identity.js";
 import { captureEnv } from "../test-utils/env.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
@@ -138,9 +138,9 @@ function resetGatewayCallMocks() {
   closeCode = 1006;
   closeReason = "";
   helloMethods = ["health", "secrets.resolve"];
-  const loadConfigForTests = loadConfig as unknown as () => OpenClawConfig;
+  const loadConfigForTests = loadConfig as unknown as () => GenesisConfig;
   const resolveGatewayPortForTests = resolveGatewayPort as unknown as (
-    cfg?: OpenClawConfig,
+    cfg?: GenesisConfig,
     env?: NodeJS.ProcessEnv,
   ) => number;
   __testing.setDepsForTests({
@@ -180,22 +180,22 @@ function makeRemotePasswordGatewayConfig(remotePassword: string, localPassword =
 
 describe("callGateway url resolution", () => {
   const envSnapshot = captureEnv([
-    "OPENCLAW_ALLOW_INSECURE_PRIVATE_WS",
-    "OPENCLAW_CONFIG_PATH",
-    "OPENCLAW_GATEWAY_PORT",
-    "OPENCLAW_GATEWAY_URL",
-    "OPENCLAW_GATEWAY_TOKEN",
-    "OPENCLAW_STATE_DIR",
+    "GENESIS_ALLOW_INSECURE_PRIVATE_WS",
+    "GENESIS_CONFIG_PATH",
+    "GENESIS_GATEWAY_PORT",
+    "GENESIS_GATEWAY_URL",
+    "GENESIS_GATEWAY_TOKEN",
+    "GENESIS_STATE_DIR",
   ]);
 
   beforeEach(() => {
     envSnapshot.restore();
-    delete process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS;
-    delete process.env.OPENCLAW_CONFIG_PATH;
-    delete process.env.OPENCLAW_GATEWAY_PORT;
-    delete process.env.OPENCLAW_GATEWAY_URL;
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS;
+    delete process.env.GENESIS_CONFIG_PATH;
+    delete process.env.GENESIS_GATEWAY_PORT;
+    delete process.env.GENESIS_GATEWAY_URL;
+    delete process.env.GENESIS_GATEWAY_TOKEN;
+    delete process.env.GENESIS_STATE_DIR;
     resetGatewayCallMocks();
   });
 
@@ -345,14 +345,14 @@ describe("callGateway url resolution", () => {
     expect(lastClientOptions?.deviceIdentity).toBeNull();
   });
 
-  it("uses OPENCLAW_GATEWAY_URL env override in remote mode when remote URL is missing", async () => {
+  it("uses GENESIS_GATEWAY_URL env override in remote mode when remote URL is missing", async () => {
     loadConfig.mockReturnValue({
       gateway: { mode: "remote", bind: "loopback", remote: {} },
     });
     resolveGatewayPort.mockReturnValue(18789);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
-    process.env.OPENCLAW_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
-    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
+    process.env.GENESIS_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
+    process.env.GENESIS_GATEWAY_TOKEN = "env-token";
 
     await callGateway({
       method: "health",
@@ -377,11 +377,11 @@ describe("callGateway url resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
     resolveGatewayPort.mockReturnValue(18789);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
-    process.env.OPENCLAW_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
-    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
+    process.env.GENESIS_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
+    process.env.GENESIS_GATEWAY_TOKEN = "env-token";
 
     await callGateway({
       method: "health",
@@ -404,8 +404,8 @@ describe("callGateway url resolution", () => {
     });
     setGatewayNetworkDefaults(18789);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
-    process.env.OPENCLAW_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
-    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
+    process.env.GENESIS_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
+    process.env.GENESIS_GATEWAY_TOKEN = "env-token";
 
     await callGateway({
       method: "health",
@@ -517,10 +517,10 @@ describe("callGateway url resolution", () => {
           },
           stop() {},
         }) as never,
-      loadConfig: loadConfig as unknown as () => OpenClawConfig,
+      loadConfig: loadConfig as unknown as () => GenesisConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: GenesisConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -617,32 +617,32 @@ describe("buildGatewayConnectionDetails", () => {
     expect(details.remoteFallbackNote).toBeUndefined();
   });
 
-  it("uses env OPENCLAW_GATEWAY_URL when set", () => {
+  it("uses env GENESIS_GATEWAY_URL when set", () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local", bind: "loopback" } });
     resolveGatewayPort.mockReturnValue(18800);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
-    const prevUrl = process.env.OPENCLAW_GATEWAY_URL;
+    const prevUrl = process.env.GENESIS_GATEWAY_URL;
     try {
-      process.env.OPENCLAW_GATEWAY_URL = "wss://browser-gateway.local:9443/ws";
+      process.env.GENESIS_GATEWAY_URL = "wss://browser-gateway.local:9443/ws";
 
       const details = buildGatewayConnectionDetails();
 
       expect(details.url).toBe("wss://browser-gateway.local:9443/ws");
-      expect(details.urlSource).toBe("env OPENCLAW_GATEWAY_URL");
+      expect(details.urlSource).toBe("env GENESIS_GATEWAY_URL");
       expect(details.bindDetail).toBeUndefined();
     } finally {
       if (prevUrl === undefined) {
-        delete process.env.OPENCLAW_GATEWAY_URL;
+        delete process.env.GENESIS_GATEWAY_URL;
       } else {
-        process.env.OPENCLAW_GATEWAY_URL = prevUrl;
+        process.env.GENESIS_GATEWAY_URL = prevUrl;
       }
     }
   });
 
   it("falls back to the default config loader when test deps drift", () => {
-    const tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-gateway-call-"));
-    process.env.OPENCLAW_STATE_DIR = tempStateDir;
-    process.env.OPENCLAW_CONFIG_PATH = path.join(tempStateDir, "missing-config.json");
+    const tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-gateway-call-"));
+    process.env.GENESIS_STATE_DIR = tempStateDir;
+    process.env.GENESIS_CONFIG_PATH = path.join(tempStateDir, "missing-config.json");
     try {
       loadConfig.mockReturnValue({ gateway: { mode: "local", bind: "loopback" } });
       resolveGatewayPort.mockReturnValue(18800);
@@ -682,11 +682,11 @@ describe("buildGatewayConnectionDetails", () => {
     expect((thrown as Error).message).toContain("plaintext ws://");
     expect((thrown as Error).message).toContain("wss://");
     expect((thrown as Error).message).toContain("Tailscale Serve/Funnel");
-    expect((thrown as Error).message).toContain("openclaw doctor --fix");
+    expect((thrown as Error).message).toContain("genesis doctor --fix");
   });
 
-  it("allows ws:// private remote URLs only when OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
-    process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS = "1";
+  it("allows ws:// private remote URLs only when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
     loadConfig.mockReturnValue({
       gateway: {
         mode: "remote",
@@ -702,20 +702,20 @@ describe("buildGatewayConnectionDetails", () => {
     expect(details.urlSource).toBe("config gateway.remote.url");
   });
 
-  it("allows ws:// hostname remote URLs when OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
-    process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS = "1";
+  it("allows ws:// hostname remote URLs when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
     loadConfig.mockReturnValue({
       gateway: {
         mode: "remote",
         bind: "loopback",
-        remote: { url: "ws://openclaw-gateway.ai:18789" },
+        remote: { url: "ws://genesis-gateway.ai:18789" },
       },
     });
     resolveGatewayPort.mockReturnValue(18789);
 
     const details = buildGatewayConnectionDetails();
 
-    expect(details.url).toBe("ws://openclaw-gateway.ai:18789");
+    expect(details.url).toBe("ws://genesis-gateway.ai:18789");
     expect(details.urlSource).toBe("config gateway.remote.url");
   });
 
@@ -851,10 +851,10 @@ describe("callGateway error details", () => {
             });
           },
         }) as never,
-      loadConfig: loadConfig as unknown as () => OpenClawConfig,
+      loadConfig: loadConfig as unknown as () => GenesisConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: GenesisConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -909,10 +909,10 @@ describe("callGateway error details", () => {
             });
           },
         }) as never,
-      loadConfig: loadConfig as unknown as () => OpenClawConfig,
+      loadConfig: loadConfig as unknown as () => GenesisConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: GenesisConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -959,14 +959,14 @@ describe("callGateway url override auth requirements", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_GATEWAY_TOKEN",
-      "OPENCLAW_GATEWAY_PASSWORD",
-      "OPENCLAW_GATEWAY_URL",
+      "GENESIS_GATEWAY_TOKEN",
+      "GENESIS_GATEWAY_PASSWORD",
+      "GENESIS_GATEWAY_URL",
     ]);
     resetGatewayCallMocks();
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
-    delete process.env.OPENCLAW_GATEWAY_URL;
+    delete process.env.GENESIS_GATEWAY_TOKEN;
+    delete process.env.GENESIS_GATEWAY_PASSWORD;
+    delete process.env.GENESIS_GATEWAY_URL;
     setGatewayNetworkDefaults(18789);
   });
 
@@ -975,8 +975,8 @@ describe("callGateway url override auth requirements", () => {
   });
 
   it("throws when url override is set without explicit credentials", async () => {
-    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
-    process.env.OPENCLAW_GATEWAY_PASSWORD = "env-password";
+    process.env.GENESIS_GATEWAY_TOKEN = "env-token";
+    process.env.GENESIS_GATEWAY_PASSWORD = "env-password";
     loadConfig.mockReturnValue({
       gateway: {
         mode: "local",
@@ -990,7 +990,7 @@ describe("callGateway url override auth requirements", () => {
   });
 
   it("throws when env URL override is set without env credentials", async () => {
-    process.env.OPENCLAW_GATEWAY_URL = "wss://override.example/ws";
+    process.env.GENESIS_GATEWAY_URL = "wss://override.example/ws";
     loadConfig.mockReturnValue({
       gateway: {
         mode: "local",
@@ -1008,7 +1008,7 @@ describe("callGateway password resolution", () => {
     {
       label: "password",
       authKey: "password", // pragma: allowlist secret
-      envKey: "OPENCLAW_GATEWAY_PASSWORD",
+      envKey: "GENESIS_GATEWAY_PASSWORD",
       envValue: "from-env",
       configValue: "from-config",
       explicitValue: "explicit-password",
@@ -1016,7 +1016,7 @@ describe("callGateway password resolution", () => {
     {
       label: "token",
       authKey: "token", // pragma: allowlist secret
-      envKey: "OPENCLAW_GATEWAY_TOKEN",
+      envKey: "GENESIS_GATEWAY_TOKEN",
       envValue: "env-token",
       configValue: "local-token",
       explicitValue: "explicit-token",
@@ -1025,16 +1025,16 @@ describe("callGateway password resolution", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_GATEWAY_PASSWORD",
-      "OPENCLAW_GATEWAY_TOKEN",
+      "GENESIS_GATEWAY_PASSWORD",
+      "GENESIS_GATEWAY_TOKEN",
       "LOCAL_REMOTE_FALLBACK_TOKEN",
       "LOCAL_REF_PASSWORD",
       "REMOTE_REF_TOKEN",
       "REMOTE_REF_PASSWORD",
     ]);
     resetGatewayCallMocks();
-    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    delete process.env.GENESIS_GATEWAY_PASSWORD;
+    delete process.env.GENESIS_GATEWAY_TOKEN;
     delete process.env.LOCAL_REMOTE_FALLBACK_TOKEN;
     delete process.env.LOCAL_REF_PASSWORD;
     delete process.env.REMOTE_REF_TOKEN;
@@ -1085,7 +1085,7 @@ describe("callGateway password resolution", () => {
     },
   ])("$label", async ({ envPassword, config, expectedPassword }) => {
     if (envPassword !== undefined) {
-      process.env.OPENCLAW_GATEWAY_PASSWORD = envPassword;
+      process.env.GENESIS_GATEWAY_PASSWORD = envPassword;
     }
     loadConfig.mockReturnValue(config);
 
@@ -1110,7 +1110,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1118,7 +1118,7 @@ describe("callGateway password resolution", () => {
   });
 
   it("does not resolve local password ref when env password takes precedence", async () => {
-    process.env.OPENCLAW_GATEWAY_PASSWORD = "from-env";
+    process.env.GENESIS_GATEWAY_PASSWORD = "from-env";
     loadConfig.mockReturnValue({
       gateway: {
         mode: "local",
@@ -1133,7 +1133,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1156,7 +1156,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1179,7 +1179,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1206,7 +1206,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await expect(callGateway({ method: "health" })).rejects.toThrow("gateway.auth.token");
   });
@@ -1228,7 +1228,7 @@ describe("callGateway password resolution", () => {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig);
+      } as unknown as GenesisConfig);
 
       await callGateway({ method: "health" });
 
@@ -1256,7 +1256,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1280,7 +1280,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1304,7 +1304,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1328,7 +1328,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1354,7 +1354,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1379,7 +1379,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1404,7 +1404,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as GenesisConfig);
 
     await callGateway({ method: "health" });
 
@@ -1431,7 +1431,7 @@ describe("callGateway password resolution", () => {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig);
+      } as unknown as GenesisConfig);
 
       await callGateway({ method: "health" });
 

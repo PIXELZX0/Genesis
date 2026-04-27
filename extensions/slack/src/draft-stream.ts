@@ -1,6 +1,6 @@
-import { createDraftStreamLoop } from "openclaw/plugin-sdk/channel-lifecycle";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { createDraftStreamLoop } from "genesis/plugin-sdk/channel-lifecycle";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { deleteSlackMessage, editSlackMessage } from "./actions.js";
 import { SLACK_TEXT_LIMIT } from "./limits.js";
 import { sendMessageSlack } from "./send.js";
@@ -21,7 +21,7 @@ export type SlackDraftStream = {
 
 export function createSlackDraftStream(params: {
   target: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   token: string;
   accountId?: string;
   maxChars?: number;

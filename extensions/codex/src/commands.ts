@@ -1,14 +1,14 @@
 import type {
-  OpenClawPluginCommandDefinition,
+  GenesisPluginCommandDefinition,
   PluginCommandContext,
   PluginCommandResult,
-} from "openclaw/plugin-sdk/plugin-entry";
+} from "genesis/plugin-sdk/plugin-entry";
 import type { CodexCommandDeps } from "./command-handlers.js";
 
 export function createCodexCommand(options: {
   pluginConfig?: unknown;
   deps?: Partial<CodexCommandDeps>;
-}): OpenClawPluginCommandDefinition {
+}): GenesisPluginCommandDefinition {
   return {
     name: "codex",
     description: "Inspect and control the Codex app-server harness",

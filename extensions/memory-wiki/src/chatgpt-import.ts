@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   replaceManagedMarkdownBlock,
   withTrailingNewline,
-} from "openclaw/plugin-sdk/memory-host-markdown";
+} from "genesis/plugin-sdk/memory-host-markdown";
 import { compileMemoryWikiVault } from "./compile.js";
 import type { ResolvedMemoryWikiConfig } from "./config.js";
 import { appendMemoryWikiLog } from "./log.js";
@@ -18,8 +18,8 @@ import { initializeMemoryWikiVault } from "./vault.js";
 
 const CHATGPT_PREFERENCE_SIGNAL_RE =
   /\b(prefer|prefers|preference|want|wants|need|needs|avoid|avoids|hate|hates|love|loves|default to|should default to|always use|don't want|does not want|likes|dislikes)\b/i;
-const HUMAN_START_MARKER = "<!-- openclaw:human:start -->";
-const HUMAN_END_MARKER = "<!-- openclaw:human:end -->";
+const HUMAN_START_MARKER = "<!-- genesis:human:start -->";
+const HUMAN_END_MARKER = "<!-- genesis:human:end -->";
 
 const CHATGPT_RISK_RULES: Array<{ label: string; pattern: RegExp }> = [
   {
@@ -650,7 +650,7 @@ function buildRunId(exportPath: string, nowIso: string): string {
 }
 
 function resolveImportRunsDir(vaultRoot: string): string {
-  return path.join(vaultRoot, ".openclaw-wiki", "import-runs");
+  return path.join(vaultRoot, ".genesis-wiki", "import-runs");
 }
 
 function resolveImportRunPath(vaultRoot: string, runId: string): string {

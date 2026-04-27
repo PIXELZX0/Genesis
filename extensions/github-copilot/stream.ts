@@ -1,11 +1,11 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { ProviderWrapStreamFnContext } from "openclaw/plugin-sdk/plugin-entry";
+import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
 import {
   applyAnthropicEphemeralCacheControlMarkers,
   buildCopilotDynamicHeaders,
   hasCopilotVisionInput,
   streamWithPayloadPatch,
-} from "openclaw/plugin-sdk/provider-stream-shared";
+} from "genesis/plugin-sdk/provider-stream-shared";
 import { rewriteCopilotResponsePayloadConnectionBoundIds } from "./connection-bound-ids.js";
 
 type _StreamContext = Parameters<StreamFn>[1];

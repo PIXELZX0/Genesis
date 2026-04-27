@@ -9,7 +9,7 @@ import {
   resolveAgentModelPrimaryValue,
 } from "../config/model-input.js";
 import type { AgentModelConfig } from "../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { getProviderEnvVars } from "../secrets/provider-env-vars.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
@@ -63,7 +63,7 @@ const IMAGE_RESOLUTION_ORDER = ["1K", "2K", "4K"] as const;
 type CapabilityProviderCandidate = {
   id: string;
   defaultModel?: string | null;
-  isConfigured?: (ctx: { cfg?: OpenClawConfig; agentDir?: string }) => boolean;
+  isConfigured?: (ctx: { cfg?: GenesisConfig; agentDir?: string }) => boolean;
 };
 
 type ParsedAspectRatio = {
@@ -79,7 +79,7 @@ type ParsedSize = {
   area: number;
 };
 
-function resolveCurrentDefaultProviderId(cfg?: OpenClawConfig): string {
+function resolveCurrentDefaultProviderId(cfg?: GenesisConfig): string {
   const configured = resolveAgentModelPrimaryValue(cfg?.agents?.defaults?.model);
   const trimmed = normalizeOptionalString(configured);
   if (!trimmed) {
@@ -95,7 +95,7 @@ function resolveCurrentDefaultProviderId(cfg?: OpenClawConfig): string {
 
 function isCapabilityProviderConfigured(params: {
   provider: CapabilityProviderCandidate;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir?: string;
 }): boolean {
   if (params.provider.isConfigured) {
@@ -118,9 +118,9 @@ function isCapabilityProviderConfigured(params: {
 }
 
 function resolveAutoCapabilityFallbackRefs(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
-  listProviders: (cfg?: OpenClawConfig) => CapabilityProviderCandidate[];
+  listProviders: (cfg?: GenesisConfig) => CapabilityProviderCandidate[];
 }): string[] {
   const providerDefaults = new Map<string, string>();
   for (const provider of params.listProviders(params.cfg)) {
@@ -155,12 +155,12 @@ function resolveAutoCapabilityFallbackRefs(params: {
 }
 
 export function resolveCapabilityModelCandidates(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   modelConfig: AgentModelConfig | undefined;
   modelOverride?: string;
   parseModelRef: (raw: string | undefined) => ParsedProviderModelRef | null;
   agentDir?: string;
-  listProviders?: (cfg?: OpenClawConfig) => CapabilityProviderCandidate[];
+  listProviders?: (cfg?: GenesisConfig) => CapabilityProviderCandidate[];
   autoProviderFallback?: boolean;
 }): ParsedProviderModelRef[] {
   const candidates: ParsedProviderModelRef[] = [];

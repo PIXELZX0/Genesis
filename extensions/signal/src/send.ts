@@ -1,15 +1,15 @@
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { kindFromMime } from "openclaw/plugin-sdk/media-runtime";
-import { resolveOutboundAttachmentFromUrl } from "openclaw/plugin-sdk/media-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { requireRuntimeConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveMarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
+import { kindFromMime } from "genesis/plugin-sdk/media-runtime";
+import { resolveOutboundAttachmentFromUrl } from "genesis/plugin-sdk/media-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveSignalAccount } from "./accounts.js";
 import { signalRpcRequest } from "./client.js";
 import { markdownToSignalText, type SignalTextStyleRange } from "./format.js";
 import { resolveSignalRpcContext } from "./rpc-context.js";
 
 export type SignalSendOpts = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   baseUrl?: string;
   account?: string;
   accountId?: string;

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import {
   hasOutboundReplyContent,
   resolveSendableOutboundReplyParts,
-} from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/reply-payload";
 import { resolveRunModelFallbacksOverride } from "../../agents/agent-scope.js";
 import { resolveBootstrapWarningSignaturesSeen } from "../../agents/bootstrap-budget.js";
 import { resolveContextTokensForModel } from "../../agents/context.js";
@@ -192,7 +192,7 @@ export function createFollowupRunner(params: {
     ) {
       await opts.onBlockReply({
         text:
-          "Follow-up completed, but OpenClaw could not deliver it to the originating " +
+          "Follow-up completed, but Genesis could not deliver it to the originating " +
           "channel. The reply content was not forwarded to this channel to avoid " +
           "cross-channel misdelivery.",
         isError: true,

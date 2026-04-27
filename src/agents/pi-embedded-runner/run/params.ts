@@ -2,7 +2,7 @@ import type { ImageContent } from "@mariozechner/pi-ai";
 import type { ReplyPayload } from "../../../auto-reply/reply-payload.js";
 import type { ReplyOperation } from "../../../auto-reply/reply/reply-run-registry.js";
 import type { ReasoningLevel, ThinkLevel, VerboseLevel } from "../../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import type { PromptImageOrderEntry } from "../../../media/prompt-image-order.js";
 import type { CommandQueueEnqueueFn } from "../../../process/command-queue.types.js";
 import type { InputProvenance } from "../../../sessions/input-provenance.js";
@@ -75,7 +75,7 @@ export type RunEmbeddedPiAgentParams = {
   sessionFile: string;
   workspaceDir: string;
   agentDir?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   skillsSnapshot?: SkillSnapshot;
   prompt: string;
   /** User-visible prompt body to persist instead of runtime-enriched prompt text. */

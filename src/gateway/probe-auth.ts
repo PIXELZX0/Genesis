@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { resolveGatewayCredentialsWithSecretInputs } from "./credentials-secret-inputs.js";
 import {
@@ -10,7 +10,7 @@ export { resolveGatewayProbeTarget } from "./probe-target.js";
 export type { GatewayProbeTargetResolution } from "./probe-target.js";
 
 function buildGatewayProbeCredentialPolicy(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: "local" | "remote";
   env?: NodeJS.ProcessEnv;
   explicitAuth?: ExplicitGatewayAuth;
@@ -51,7 +51,7 @@ function resolveGatewayProbeWarning(error: unknown): string | undefined {
 }
 
 export function resolveGatewayProbeAuth(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: "local" | "remote";
   env?: NodeJS.ProcessEnv;
 }): { token?: string; password?: string } {
@@ -60,7 +60,7 @@ export function resolveGatewayProbeAuth(params: {
 }
 
 export async function resolveGatewayProbeAuthWithSecretInputs(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: "local" | "remote";
   env?: NodeJS.ProcessEnv;
   explicitAuth?: ExplicitGatewayAuth;
@@ -76,7 +76,7 @@ export async function resolveGatewayProbeAuthWithSecretInputs(params: {
 }
 
 export async function resolveGatewayProbeAuthSafeWithSecretInputs(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: "local" | "remote";
   env?: NodeJS.ProcessEnv;
   explicitAuth?: ExplicitGatewayAuth;
@@ -103,7 +103,7 @@ export async function resolveGatewayProbeAuthSafeWithSecretInputs(params: {
 }
 
 export function resolveGatewayProbeAuthSafe(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mode: "local" | "remote";
   env?: NodeJS.ProcessEnv;
   explicitAuth?: ExplicitGatewayAuth;

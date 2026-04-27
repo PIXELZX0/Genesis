@@ -7,7 +7,7 @@ import { getQueuedFileWriter, resolveQueuedFileAppendFlags } from "./queued-file
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-queued-writer-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-queued-writer-"));
   tempDirs.push(dir);
   return dir;
 }

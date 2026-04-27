@@ -1,11 +1,11 @@
 import type {
   ChannelAccountSnapshot,
   ChannelStatusIssue,
-} from "openclaw/plugin-sdk/channel-contract";
+} from "genesis/plugin-sdk/channel-contract";
 import {
   coerceStatusIssueAccountId,
   readStatusIssueFields,
-} from "openclaw/plugin-sdk/extension-shared";
+} from "genesis/plugin-sdk/extension-shared";
 
 const ZALOUSER_STATUS_FIELDS = [
   "accountId",
@@ -38,7 +38,7 @@ export function collectZalouserStatusIssues(
         accountId,
         kind: "auth",
         message: "Not authenticated (no saved Zalo session).",
-        fix: "Run: openclaw channels login --channel zalouser",
+        fix: "Run: genesis channels login --channel zalouser",
       });
       continue;
     }

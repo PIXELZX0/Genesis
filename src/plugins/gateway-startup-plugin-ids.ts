@@ -1,6 +1,6 @@
 import { collectConfiguredAgentHarnessRuntimes } from "../agents/harness-runtimes.js";
 import { listPotentialConfiguredChannelIds } from "../channels/config-presence.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   DEFAULT_MEMORY_DREAMING_PLUGIN_ID,
   resolveMemoryDreamingConfig,
@@ -19,7 +19,7 @@ import {
 import { loadPluginManifestRegistry, type PluginManifestRecord } from "./manifest-registry.js";
 import { hasKind } from "./slots.js";
 
-function listDisabledChannelIds(config: OpenClawConfig): Set<string> {
+function listDisabledChannelIds(config: GenesisConfig): Set<string> {
   const channels = config.channels;
   if (!channels || typeof channels !== "object" || Array.isArray(channels)) {
     return new Set();
@@ -39,7 +39,7 @@ function listDisabledChannelIds(config: OpenClawConfig): Set<string> {
   );
 }
 
-function listPotentialEnabledChannelIds(config: OpenClawConfig, env: NodeJS.ProcessEnv): string[] {
+function listPotentialEnabledChannelIds(config: GenesisConfig, env: NodeJS.ProcessEnv): string[] {
   const disabled = listDisabledChannelIds(config);
   return listPotentialConfiguredChannelIds(config, env)
     .map((id) => normalizeOptionalLowercaseString(id) ?? "")
@@ -72,7 +72,7 @@ function isGatewayStartupSidecar(plugin: PluginManifestRecord): boolean {
   return plugin.channels.length === 0 && !hasRuntimeContractSurface(plugin);
 }
 
-function resolveGatewayStartupDreamingPluginIds(config: OpenClawConfig): Set<string> {
+function resolveGatewayStartupDreamingPluginIds(config: GenesisConfig): Set<string> {
   const dreamingConfig = resolveMemoryDreamingConfig({
     pluginConfig: resolveMemoryDreamingPluginConfig(config),
     cfg: config,
@@ -83,7 +83,7 @@ function resolveGatewayStartupDreamingPluginIds(config: OpenClawConfig): Set<str
   return new Set([DEFAULT_MEMORY_DREAMING_PLUGIN_ID, resolveMemoryDreamingPluginId(config)]);
 }
 
-function resolveExplicitMemorySlotStartupPluginId(config: OpenClawConfig): string | undefined {
+function resolveExplicitMemorySlotStartupPluginId(config: GenesisConfig): string | undefined {
   const configuredSlot = config.plugins?.slots?.memory?.trim();
   if (!configuredSlot || configuredSlot.toLowerCase() === "none") {
     return undefined;
@@ -117,7 +117,7 @@ function hasConfiguredStartupChannel(params: {
 
 function canStartConfiguredChannelPlugin(params: {
   plugin: PluginManifestRecord;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   pluginsConfig: ReturnType<typeof normalizePluginsConfig>;
   activationSource: ReturnType<typeof createPluginActivationSource>;
 }): boolean {
@@ -160,7 +160,7 @@ function canStartConfiguredChannelPlugin(params: {
 }
 
 export function resolveChannelPluginIds(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {
@@ -174,7 +174,7 @@ export function resolveChannelPluginIds(params: {
 }
 
 export function resolveConfiguredDeferredChannelPluginIds(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {
@@ -206,8 +206,8 @@ export function resolveConfiguredDeferredChannelPluginIds(params: {
 }
 
 export function resolveGatewayStartupPluginIds(params: {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {

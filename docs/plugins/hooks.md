@@ -7,7 +7,7 @@ read_when:
   - You are deciding between internal hooks and plugin hooks
 ---
 
-Plugin hooks are in-process extension points for OpenClaw plugins. Use them
+Plugin hooks are in-process extension points for Genesis plugins. Use them
 when a plugin needs to inspect or change agent runs, tool calls, message flow,
 session lifecycle, subagent routing, installs, or Gateway startup.
 
@@ -20,7 +20,7 @@ operator-installed `HOOK.md` script for command and Gateway events such as
 Register typed plugin hooks with `api.on(...)` from your plugin entry:
 
 ```typescript
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 
 export default definePluginEntry({
   id: "tool-preflight",
@@ -159,7 +159,7 @@ Use the phase-specific hooks for new plugins:
 `before_agent_start` remains for compatibility. Prefer the explicit hooks above
 so your plugin does not depend on a legacy combined phase.
 
-`before_agent_start` and `agent_end` include `event.runId` when OpenClaw can
+`before_agent_start` and `agent_end` include `event.runId` when Genesis can
 identify the active run. The same value is also available on `ctx.runId`.
 
 Non-bundled plugins that need `llm_input`, `llm_output`, or `agent_end` must set:

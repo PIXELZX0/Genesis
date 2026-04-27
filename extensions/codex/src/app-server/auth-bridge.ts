@@ -6,7 +6,7 @@ import {
   saveAuthProfileStore,
   type AuthProfileCredential,
   type OAuthCredential,
-} from "openclaw/plugin-sdk/agent-runtime";
+} from "genesis/plugin-sdk/agent-runtime";
 import type { CodexAppServerClient } from "./client.js";
 import type { CodexAppServerStartOptions } from "./config.js";
 import type { ChatgptAuthTokensRefreshResponse } from "./protocol-generated/typescript/v2/ChatgptAuthTokensRefreshResponse.js";

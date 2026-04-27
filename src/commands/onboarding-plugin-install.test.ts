@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { PluginEnableResult } from "../plugins/enable.js";
 import { withTempDir } from "../test-helpers/temp-dir.js";
 
@@ -23,7 +23,7 @@ vi.mock("../plugins/install.js", () => ({
 }));
 
 const enablePluginInConfig = vi.hoisted(() =>
-  vi.fn<(cfg: OpenClawConfig, pluginId: string) => PluginEnableResult>((cfg) => ({
+  vi.fn<(cfg: GenesisConfig, pluginId: string) => PluginEnableResult>((cfg) => ({
     config: cfg,
     enabled: true,
   })),
@@ -54,9 +54,9 @@ describe("ensureOnboardingPluginInstalled", () => {
 
   it("passes npm specs and optional expected integrity to npm installs with progress", async () => {
     const npmResolution = {
-      name: "@wecom/wecom-openclaw-plugin",
+      name: "@wecom/wecom-genesis-plugin",
       version: "1.2.3",
-      resolvedSpec: "@wecom/wecom-openclaw-plugin@1.2.3",
+      resolvedSpec: "@wecom/wecom-genesis-plugin@1.2.3",
       integrity: "sha512-wecom",
       shasum: "deadbeef",
       resolvedAt: "2026-04-24T00:00:00.000Z",
@@ -89,7 +89,7 @@ describe("ensureOnboardingPluginInstalled", () => {
         pluginId: "demo-plugin",
         label: "WeCom",
         install: {
-          npmSpec: "@wecom/wecom-openclaw-plugin@1.2.3",
+          npmSpec: "@wecom/wecom-genesis-plugin@1.2.3",
           expectedIntegrity: "sha512-wecom",
         },
       },
@@ -102,7 +102,7 @@ describe("ensureOnboardingPluginInstalled", () => {
 
     expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "@wecom/wecom-openclaw-plugin@1.2.3",
+        spec: "@wecom/wecom-genesis-plugin@1.2.3",
         expectedIntegrity: "sha512-wecom",
         timeoutMs: 300_000,
       }),
@@ -115,7 +115,7 @@ describe("ensureOnboardingPluginInstalled", () => {
       expect.objectContaining({
         pluginId: "demo-plugin",
         source: "npm",
-        spec: "@wecom/wecom-openclaw-plugin@1.2.3",
+        spec: "@wecom/wecom-genesis-plugin@1.2.3",
         installPath: "/tmp/demo-plugin",
         version: "1.2.3",
         ...installFields,
@@ -198,7 +198,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("does not offer local installs when the workspace only has a spoofed .git marker", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-spoofed-git-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-spoofed-git-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const cwdDir = path.join(temp, "cwd");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
@@ -252,7 +252,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("allows local installs for real gitdir checkouts and sanitizes prompt text", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-gitdir-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-gitdir-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       await fs.mkdir(pluginDir, { recursive: true });
@@ -305,7 +305,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("does not add local plugin paths when enablement is blocked by policy", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-blocked-enable-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-blocked-enable-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       await fs.mkdir(pluginDir, { recursive: true });
@@ -352,7 +352,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("allows local installs for linked git worktrees", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-worktree-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-worktree-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       const commonGitDir = path.join(temp, "repo.git");
@@ -402,7 +402,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("records local install source metadata when a local path is selected", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-local-record-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-local-record-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       await fs.mkdir(path.join(workspaceDir, ".git"), { recursive: true });
@@ -448,7 +448,7 @@ describe("ensureOnboardingPluginInstalled", () => {
 
   it("records local install source metadata when npm install falls back to local", async () => {
     await withTempDir(
-      { prefix: "openclaw-onboarding-install-npm-fallback-record-" },
+      { prefix: "genesis-onboarding-install-npm-fallback-record-" },
       async (temp) => {
         const workspaceDir = path.join(temp, "workspace");
         const pluginDir = path.join(workspaceDir, "plugins", "demo");
@@ -507,7 +507,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("records absolute local catalog paths as workspace-relative source metadata", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-portable-record-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-portable-record-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       await fs.mkdir(path.join(workspaceDir, ".git"), { recursive: true });
@@ -539,7 +539,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("keeps local installs available when cwd is a git repo but workspaceDir is not", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-cwd-git-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-cwd-git-" }, async (temp) => {
       const repoDir = path.join(temp, "repo");
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(repoDir, "demo-plugin");
@@ -589,7 +589,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("rejects local install paths outside the trusted workspace roots", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-outside-root-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-outside-root-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(temp, "external-plugin");
       await fs.mkdir(path.join(workspaceDir, ".git"), { recursive: true });
@@ -625,7 +625,7 @@ describe("ensureOnboardingPluginInstalled", () => {
   });
 
   it("rejects local install paths when relative resolution looks cross-drive", async () => {
-    await withTempDir({ prefix: "openclaw-onboarding-install-cross-drive-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-onboarding-install-cross-drive-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");
       const pluginDir = path.join(workspaceDir, "plugins", "demo");
       await fs.mkdir(path.join(workspaceDir, ".git"), { recursive: true });

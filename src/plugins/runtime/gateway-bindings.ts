@@ -2,7 +2,7 @@ import { resolveGlobalSingleton } from "../../shared/global-singleton.js";
 import type { PluginRuntime } from "./types.js";
 
 const GATEWAY_SUBAGENT_SYMBOL: unique symbol = Symbol.for(
-  "openclaw.plugin.gatewaySubagentRuntime",
+  "genesis.plugin.gatewaySubagentRuntime",
 ) as unknown as typeof GATEWAY_SUBAGENT_SYMBOL;
 
 type GatewaySubagentState = {

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 const execFileMock = vi.hoisted(() => vi.fn());
@@ -49,7 +49,7 @@ describe("qa multipass runtime", () => {
   });
 
   it("rejects repo-local symlink output directories that escape the repo root", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-multipass-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-multipass-"));
     const repoRoot = path.join(tempRoot, "repo");
     const outsideRoot = path.join(tempRoot, "outside");
     const symlinkPath = path.join(repoRoot, "artifacts-link");
@@ -85,7 +85,7 @@ describe("qa multipass runtime", () => {
     expect(plan.outputDir).toBe(outputDir);
     expect(plan.scenarioIds).toEqual([]);
     expect(plan.qaCommand).not.toContain("--scenario");
-    expect(plan.guestOutputDir).toBe("/workspace/openclaw-host/.artifacts/qa-e2e/multipass-test");
+    expect(plan.guestOutputDir).toBe("/workspace/genesis-host/.artifacts/qa-e2e/multipass-test");
     expect(plan.reportPath).toBe(path.join(outputDir, "qa-suite-report.md"));
     expect(plan.summaryPath).toBe(path.join(outputDir, "qa-suite-summary.json"));
   });
@@ -102,11 +102,11 @@ describe("qa multipass runtime", () => {
     expect(script).toContain("pnpm install --frozen-lockfile");
     expect(script).toContain("pnpm build");
     expect(script).toContain(`corepack prepare '${readRootPackageManager()}' --activate`);
-    expect(script).toContain("'pnpm' 'openclaw' 'qa' 'suite' '--transport' 'qa-channel'");
+    expect(script).toContain("'pnpm' 'genesis' 'qa' 'suite' '--transport' 'qa-channel'");
     expect(script).toContain("'--provider-mode' 'live-frontier'");
     expect(script).toContain("'--scenario' 'channel-chat-baseline'");
     expect(script).toContain("'--scenario' 'thread-follow-up'");
-    expect(script).toContain("/workspace/openclaw-host/.artifacts/qa-e2e/multipass-test");
+    expect(script).toContain("/workspace/genesis-host/.artifacts/qa-e2e/multipass-test");
   });
 
   it("carries live suite flags and forwarded auth env into the guest command", () => {
@@ -136,7 +136,7 @@ describe("qa multipass runtime", () => {
     );
     expect(plan.forwardedEnv.OPENAI_API_KEY).toBe("test-openai-key");
     expect(script).toContain("OPENAI_API_KEY='test-openai-key'");
-    expect(script).toContain("'pnpm' 'openclaw' 'qa' 'suite' '--transport' 'qa-channel'");
+    expect(script).toContain("'pnpm' 'genesis' 'qa' 'suite' '--transport' 'qa-channel'");
     expect(script).toContain("'--provider-mode' 'live-frontier'");
   });
 
@@ -167,7 +167,7 @@ describe("qa multipass runtime", () => {
   });
 
   it("forwards live key list and numbered key env shapes", () => {
-    vi.stubEnv("OPENCLAW_LIVE_ANTHROPIC_KEYS", "anthropic-a anthropic-b");
+    vi.stubEnv("GENESIS_LIVE_ANTHROPIC_KEYS", "anthropic-a anthropic-b");
     vi.stubEnv("OPENAI_API_KEY_1", "openai-one");
     vi.stubEnv("GEMINI_API_KEY_2", "gemini-two");
     const plan = createQaMultipassPlan({
@@ -177,13 +177,13 @@ describe("qa multipass runtime", () => {
       scenarioIds: ["channel-chat-baseline"],
     });
 
-    expect(plan.forwardedEnv.OPENCLAW_LIVE_ANTHROPIC_KEYS).toBe("anthropic-a anthropic-b");
+    expect(plan.forwardedEnv.GENESIS_LIVE_ANTHROPIC_KEYS).toBe("anthropic-a anthropic-b");
     expect(plan.forwardedEnv.OPENAI_API_KEY_1).toBe("openai-one");
     expect(plan.forwardedEnv.GEMINI_API_KEY_2).toBe("gemini-two");
   });
 
   it("skips stale CODEX_HOME values that do not exist on the host", () => {
-    vi.stubEnv("CODEX_HOME", "/tmp/does-not-exist-openclaw-codex-home");
+    vi.stubEnv("CODEX_HOME", "/tmp/does-not-exist-genesis-codex-home");
     const plan = createQaMultipassPlan({
       repoRoot: process.cwd(),
       outputDir: path.join(process.cwd(), ".artifacts", "qa-e2e", "multipass-live-test"),
@@ -196,7 +196,7 @@ describe("qa multipass runtime", () => {
   });
 
   it("falls back to os.homedir() when HOME is unset for CODEX_HOME discovery", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-multipass-home-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-multipass-home-"));
     const fakeHome = path.join(tempRoot, "home");
     const fakeCodexHome = path.join(fakeHome, ".codex");
     fs.mkdirSync(fakeCodexHome, { recursive: true });
@@ -213,7 +213,7 @@ describe("qa multipass runtime", () => {
 
       expect(plan.forwardedEnv.CODEX_HOME).toBe(fakeCodexHome);
       expect(plan.hostCodexHomePath).toBe(fakeCodexHome);
-      expect(plan.guestCodexHomePath).toBe("/workspace/openclaw-codex-home");
+      expect(plan.guestCodexHomePath).toBe("/workspace/genesis-codex-home");
     } finally {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
@@ -236,7 +236,7 @@ describe("qa multipass runtime", () => {
       scenarioIds: ["channel-chat-baseline"],
     }).vmName;
     const expectedTransferDir = path.join(
-      resolvePreferredOpenClawTmpDir(),
+      resolvePreferredGenesisTmpDir(),
       `${expectedVmName}-qa-suite-`,
     );
 
@@ -249,7 +249,7 @@ describe("qa multipass runtime", () => {
     ).rejects.toThrow("Multipass is not installed on this host.");
 
     const tempEntries = fs
-      .readdirSync(resolvePreferredOpenClawTmpDir())
+      .readdirSync(resolvePreferredGenesisTmpDir())
       .filter((entry) => entry.startsWith(path.basename(expectedTransferDir)));
     expect(tempEntries).toEqual([]);
     fs.rmSync(outputDir, { recursive: true, force: true });

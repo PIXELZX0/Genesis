@@ -1,10 +1,9 @@
-import type { Bot, Context } from "grammy";
-import { resolveChannelStreamingBlockEnabled } from "openclaw/plugin-sdk/channel-streaming";
+import { resolveChannelStreamingBlockEnabled } from "genesis/plugin-sdk/channel-streaming";
 import {
   resolveCommandAuthorization,
   resolveCommandAuthorizedFromAuthorizers,
   resolveNativeCommandSessionTargets,
-} from "openclaw/plugin-sdk/command-auth-native";
+} from "genesis/plugin-sdk/command-auth-native";
 import {
   buildCommandTextFromArgs,
   findCommandByNativeName,
@@ -13,23 +12,24 @@ import {
   parseCommandArgs,
   resolveCommandArgMenu,
   type CommandArgs,
-} from "openclaw/plugin-sdk/command-auth-native";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ChannelGroupPolicy } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/command-auth-native";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { ChannelGroupPolicy } from "genesis/plugin-sdk/config-runtime";
 import type {
   ReplyToMode,
   TelegramAccountConfig,
   TelegramDirectConfig,
   TelegramGroupConfig,
   TelegramTopicConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/markdown-table-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { getRuntimeConfigSnapshot } from "openclaw/plugin-sdk/runtime-config-snapshot";
-import { danger, logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/config-runtime";
+import { resolveMarkdownTableMode } from "genesis/plugin-sdk/markdown-table-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { getRuntimeConfigSnapshot } from "genesis/plugin-sdk/runtime-config-snapshot";
+import { danger, logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { getChildLogger } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
+import type { Bot, Context } from "grammy";
 import { resolveTelegramAccount } from "./accounts.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import { isSenderAllowed, normalizeDmAllowFromWithStore } from "./bot-access.js";
@@ -83,9 +83,9 @@ const TELEGRAM_NATIVE_COMMAND_CALLBACK_PREFIX = "tgcmd:";
 
 type TelegramNativeCommandContext = Context & { match?: string };
 type TelegramChunkMode = ReturnType<
-  typeof import("openclaw/plugin-sdk/reply-dispatch-runtime").resolveChunkMode
+  typeof import("genesis/plugin-sdk/reply-dispatch-runtime").resolveChunkMode
 >;
-type TelegramNativeReplyPayload = import("openclaw/plugin-sdk/reply-dispatch-runtime").ReplyPayload;
+type TelegramNativeReplyPayload = import("genesis/plugin-sdk/reply-dispatch-runtime").ReplyPayload;
 type TelegramNativeReplyChannelData = {
   buttons?: TelegramInlineButtons;
   pin?: boolean;
@@ -176,7 +176,7 @@ async function cleanupTelegramProgressPlaceholder(params: {
 }
 
 export type RegisterTelegramHandlerParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   bot: Bot;
   mediaMaxBytes: number;
@@ -228,7 +228,7 @@ export function resolveTelegramNativeCommandDisableBlockStreaming(
 
 export type RegisterTelegramNativeCommandsParams = {
   bot: Bot;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime: RuntimeEnv;
   accountId: string;
   telegramCfg: TelegramAccountConfig;
@@ -253,7 +253,7 @@ export type RegisterTelegramNativeCommandsParams = {
 async function resolveTelegramCommandAuth(params: {
   msg: NonNullable<TelegramNativeCommandContext["message"]>;
   bot: Bot;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   telegramCfg: TelegramAccountConfig;
   readChannelAllowFromStore: TelegramBotDeps["readChannelAllowFromStore"];
@@ -539,8 +539,8 @@ export const registerTelegramNativeCommands = ({
   for (const issue of pluginCatalog.issues) {
     runtime.error?.(danger(issue));
   }
-  const loadFreshRuntimeConfig = (): OpenClawConfig => telegramDeps.loadConfig();
-  const resolveFreshTelegramConfig = (runtimeCfg: OpenClawConfig): TelegramAccountConfig => {
+  const loadFreshRuntimeConfig = (): GenesisConfig => telegramDeps.loadConfig();
+  const resolveFreshTelegramConfig = (runtimeCfg: GenesisConfig): TelegramAccountConfig => {
     try {
       return resolveTelegramAccount({
         cfg: runtimeCfg,
@@ -616,7 +616,7 @@ export const registerTelegramNativeCommands = ({
 
   const resolveCommandRuntimeContext = async (params: {
     msg: NonNullable<TelegramNativeCommandContext["message"]>;
-    runtimeCfg: OpenClawConfig;
+    runtimeCfg: GenesisConfig;
     isGroup: boolean;
     isForum: boolean;
     resolvedThreadId?: number;
@@ -688,7 +688,7 @@ export const registerTelegramNativeCommands = ({
     return { chatId, threadSpec, route, mediaLocalRoots, tableMode, chunkMode };
   };
   const buildCommandDeliveryBaseOptions = (params: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     chatId: string | number;
     accountId: string;
     sessionKeyForInternalHooks?: string;

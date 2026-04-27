@@ -1,6 +1,6 @@
-import OpenClawKit
+import GenesisKit
 import Testing
-@testable import OpenClaw
+@testable import Genesis
 
 @Suite struct GatewayStatusBuilderTests {
     @Test func pausedProblemKeepsErrorStatus() {

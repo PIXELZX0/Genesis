@@ -1,6 +1,6 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   GeneratedVideoAsset,
   VideoGenerationIgnoredOverride,
@@ -11,7 +11,7 @@ import type {
 } from "./types.js";
 
 export type GenerateVideoParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompt: string;
   agentDir?: string;
   authStore?: AuthProfileStore;
@@ -42,7 +42,7 @@ export type GenerateVideoRuntimeResult = {
 };
 
 export type ListRuntimeVideoGenerationProvidersParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 };
 
 export type RuntimeVideoGenerationProvider = VideoGenerationProvider;

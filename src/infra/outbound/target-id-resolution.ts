@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { maybeResolvePluginMessagingTarget } from "./target-normalization.js";
 
 export type ResolvedIdLikeTarget = {
@@ -10,7 +10,7 @@ export type ResolvedIdLikeTarget = {
 };
 
 export async function maybeResolveIdLikeTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: ChannelId;
   input: string;
   accountId?: string | null;

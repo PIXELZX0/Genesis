@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import {
   canRunBufferBackedImageToVideoLiveLane,
   canRunBufferBackedVideoToVideoLiveLane,
@@ -38,7 +38,7 @@ describe("video-generation live-test helpers", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(resolveConfiguredLiveVideoModels(cfg)).toEqual(
       new Map([

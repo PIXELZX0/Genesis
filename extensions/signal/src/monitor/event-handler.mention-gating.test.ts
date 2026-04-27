@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { MsgContext } from "openclaw/plugin-sdk/reply-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { MsgContext } from "genesis/plugin-sdk/reply-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildDispatchInboundCaptureMock } from "../../../../src/channels/plugins/contracts/inbound-testkit.js";
 
@@ -14,9 +14,9 @@ function getCapturedCtx() {
   return capturedCtx as SignalMsgContext;
 }
 
-vi.mock("openclaw/plugin-sdk/reply-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/reply-runtime")>(
-    "openclaw/plugin-sdk/reply-runtime",
+vi.mock("genesis/plugin-sdk/reply-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/reply-runtime")>(
+    "genesis/plugin-sdk/reply-runtime",
   );
   return buildDispatchInboundCaptureMock(actual, (ctx) => {
     capturedCtx = ctx as SignalMsgContext;
@@ -92,7 +92,7 @@ function createSignalConfig(params: { requireMention: boolean; mentionPattern?: 
         groups: { "*": { requireMention: params.requireMention } },
       },
     },
-  } as unknown as OpenClawConfig;
+  } as unknown as GenesisConfig;
 }
 
 async function expectSkippedGroupHistory(opts: GroupEventOpts, expectedBody: string) {

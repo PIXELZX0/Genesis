@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { GatewayServerLiveState } from "./server-live-state.js";
 import type { GatewayRequestContext, GatewayClient } from "./server-methods/types.js";
 import { disconnectAllSharedGatewayAuthClients } from "./server-shared-auth-generation.js";
@@ -29,7 +29,7 @@ export type GatewayRequestContextParams = {
   nodeUnsubscribeAll: GatewayRequestContext["nodeUnsubscribeAll"];
   hasConnectedMobileNode: GatewayRequestContext["hasConnectedMobileNode"];
   clients: Set<GatewayRequestContextClient>;
-  enforceSharedGatewayAuthGenerationForConfigWrite: (nextConfig: OpenClawConfig) => void;
+  enforceSharedGatewayAuthGenerationForConfigWrite: (nextConfig: GenesisConfig) => void;
   nodeRegistry: GatewayRequestContext["nodeRegistry"];
   agentRunSeq: GatewayRequestContext["agentRunSeq"];
   chatAbortControllers: GatewayRequestContext["chatAbortControllers"];

@@ -1,4 +1,4 @@
-import { KeyedAsyncQueue } from "openclaw/plugin-sdk/keyed-async-queue";
+import { KeyedAsyncQueue } from "genesis/plugin-sdk/keyed-async-queue";
 
 export class SessionActorQueue {
   private readonly queue = new KeyedAsyncQueue();

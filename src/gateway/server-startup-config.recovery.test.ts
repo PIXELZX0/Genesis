@@ -1,9 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ConfigFileSnapshot, OpenClawConfig } from "../config/types.js";
+import type { ConfigFileSnapshot, GenesisConfig } from "../config/types.js";
 import { buildTestConfigSnapshot } from "./test-helpers.config-snapshots.js";
 
 vi.mock("../config/config.js", () => ({
-  applyConfigOverrides: vi.fn((config: OpenClawConfig) => config),
+  applyConfigOverrides: vi.fn((config: GenesisConfig) => config),
   isNixMode: false,
   readConfigFileSnapshot: vi.fn(),
   recoverConfigFromLastKnownGood: vi.fn(),
@@ -29,17 +29,17 @@ let loadGatewayStartupConfigSnapshot: typeof import("./server-startup-config.js"
 let configIo: typeof import("../config/config.js");
 let recoveryNotice: typeof import("./config-recovery-notice.js");
 
-const configPath = "/tmp/openclaw-startup-recovery.json";
+const configPath = "/tmp/genesis-startup-recovery.json";
 const validConfig = {
   gateway: {
     mode: "local",
   },
-} as OpenClawConfig;
+} as GenesisConfig;
 
 function buildSnapshot(params: {
   valid: boolean;
   raw: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): ConfigFileSnapshot {
   return buildTestConfigSnapshot({
     path: configPath,
@@ -47,7 +47,7 @@ function buildSnapshot(params: {
     raw: params.raw,
     parsed: params.config ?? null,
     valid: params.valid,
-    config: params.config ?? ({} as OpenClawConfig),
+    config: params.config ?? ({} as GenesisConfig),
     issues: params.valid ? [] : [{ path: "gateway.mode", message: "Expected 'local' or 'remote'" }],
     legacyIssues: [],
   });
@@ -114,7 +114,7 @@ describe("gateway startup config recovery", () => {
         log: { info: vi.fn(), warn: vi.fn() },
       }),
     ).rejects.toThrow(
-      `Invalid config at ${configPath}.\ngateway.mode: Expected 'local' or 'remote'\nRun "openclaw doctor --fix" to repair, then retry.`,
+      `Invalid config at ${configPath}.\ngateway.mode: Expected 'local' or 'remote'\nRun "genesis doctor --fix" to repair, then retry.`,
     );
 
     expect(recoveryNotice.enqueueConfigRecoveryNotice).not.toHaveBeenCalled();
@@ -148,12 +148,12 @@ describe("gateway startup config recovery", () => {
             feishu: { enabled: true },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       issues: [
         {
           path: "plugins.entries.feishu",
           message:
-            "plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load",
+            "plugin feishu: plugin requires Genesis >=2026.4.23, but this host is 2026.4.22; skipping load",
         },
       ],
       legacyIssues: [],

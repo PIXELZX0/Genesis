@@ -1,12 +1,12 @@
 import { loadChannelOutboundAdapter } from "../../channels/plugins/outbound/load.js";
 import type { ChannelId } from "../../channels/plugins/types.public.js";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { OutboundMediaAccess } from "../../media/load-options.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 
 type RuntimeSendOpts = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   mediaUrl?: string;
   mediaAccess?: OutboundMediaAccess;
   mediaLocalRoots?: readonly string[];

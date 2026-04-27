@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 function makeStore() {
-  const root = mkdtempSync(path.join(os.tmpdir(), "openclaw-proxy-capture-"));
+  const root = mkdtempSync(path.join(os.tmpdir(), "genesis-proxy-capture-"));
   cleanupDirs.push(root);
   return new DebugProxyCaptureStore(path.join(root, "capture.sqlite"), path.join(root, "blobs"));
 }
@@ -28,8 +28,8 @@ describe("DebugProxyCaptureStore", () => {
       id: "session-1",
       startedAt: Date.now(),
       mode: "proxy-run",
-      sourceScope: "openclaw",
-      sourceProcess: "openclaw",
+      sourceScope: "genesis",
+      sourceProcess: "genesis",
       dbPath: store.dbPath,
       blobDir: store.blobDir,
     });
@@ -40,8 +40,8 @@ describe("DebugProxyCaptureStore", () => {
     store.recordEvent({
       sessionId: "session-1",
       ts: 1,
-      sourceScope: "openclaw",
-      sourceProcess: "openclaw",
+      sourceScope: "genesis",
+      sourceProcess: "genesis",
       protocol: "https",
       direction: "outbound",
       kind: "request",
@@ -54,8 +54,8 @@ describe("DebugProxyCaptureStore", () => {
     store.recordEvent({
       sessionId: "session-1",
       ts: 2,
-      sourceScope: "openclaw",
-      sourceProcess: "openclaw",
+      sourceScope: "genesis",
+      sourceProcess: "genesis",
       protocol: "https",
       direction: "outbound",
       kind: "request",
@@ -90,16 +90,16 @@ describe("DebugProxyCaptureStore", () => {
         id: sessionId,
         startedAt: Date.now(),
         mode: "proxy-run",
-        sourceScope: "openclaw",
-        sourceProcess: "openclaw",
+        sourceScope: "genesis",
+        sourceProcess: "genesis",
         dbPath: store.dbPath,
         blobDir: store.blobDir,
       });
       store.recordEvent({
         sessionId,
         ts: Date.now(),
-        sourceScope: "openclaw",
-        sourceProcess: "openclaw",
+        sourceScope: "genesis",
+        sourceProcess: "genesis",
         protocol: "https",
         direction: "outbound",
         kind: "request",

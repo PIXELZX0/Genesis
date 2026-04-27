@@ -1,5 +1,5 @@
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveAuthProfileOrder } from "../auth-profiles/order.js";
 import { ensureAuthProfileStore, hasAnyAuthProfileStoreSource } from "../auth-profiles/store.js";
 import { isProfileInCooldown } from "../auth-profiles/usage.js";
@@ -15,7 +15,7 @@ function loadSessionStoreRuntime() {
 }
 
 function isProfileForProvider(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   provider: string;
   profileId: string;
   store: ReturnType<typeof ensureAuthProfileStore>;
@@ -50,7 +50,7 @@ export async function clearSessionAuthProfileOverride(params: {
 }
 
 export async function resolveSessionAuthProfileOverride(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   provider: string;
   agentDir: string;
   sessionEntry?: SessionEntry;

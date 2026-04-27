@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bundledDistPluginFile } from "../../test/helpers/bundled-plugin-paths.js";
-import { clearPluginDiscoveryCache, discoverOpenClawPlugins } from "./discovery.js";
+import { clearPluginDiscoveryCache, discoverGenesisPlugins } from "./discovery.js";
 import {
   cleanupTrackedTempDirs,
   makeTrackedTempDir,
@@ -12,7 +12,7 @@ import {
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-plugins", tempDirs);
+  return makeTrackedTempDir("genesis-plugins", tempDirs);
 }
 
 const mkdirSafe = mkdirSafeDir;
@@ -36,9 +36,9 @@ function hasDiagnosticSourceSuffix(
 
 function buildDiscoveryEnv(stateDir: string): NodeJS.ProcessEnv {
   return {
-    OPENCLAW_STATE_DIR: stateDir,
-    OPENCLAW_HOME: undefined,
-    OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+    GENESIS_STATE_DIR: stateDir,
+    GENESIS_HOME: undefined,
+    GENESIS_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
   };
 }
 
@@ -48,20 +48,20 @@ function buildCachedDiscoveryEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...buildDiscoveryEnv(stateDir),
-    OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "5000",
+    GENESIS_PLUGIN_DISCOVERY_CACHE_MS: "5000",
     ...overrides,
   };
 }
 
 async function discoverWithStateDir(
   stateDir: string,
-  params: Parameters<typeof discoverOpenClawPlugins>[0],
+  params: Parameters<typeof discoverGenesisPlugins>[0],
 ) {
-  return discoverOpenClawPlugins({ ...params, env: buildDiscoveryEnv(stateDir) });
+  return discoverGenesisPlugins({ ...params, env: buildDiscoveryEnv(stateDir) });
 }
 
-function discoverWithCachedEnv(params: Parameters<typeof discoverOpenClawPlugins>[0]) {
-  return discoverOpenClawPlugins(params);
+function discoverWithCachedEnv(params: Parameters<typeof discoverGenesisPlugins>[0]) {
+  return discoverGenesisPlugins(params);
 }
 
 function writePluginPackageManifest(params: {
@@ -76,7 +76,7 @@ function writePluginPackageManifest(params: {
     path.join(params.packageDir, "package.json"),
     JSON.stringify({
       name: params.packageName,
-      openclaw: {
+      genesis: {
         extensions: params.extensions,
         ...(params.runtimeExtensions ? { runtimeExtensions: params.runtimeExtensions } : {}),
         ...(params.setupEntry ? { setupEntry: params.setupEntry } : {}),
@@ -89,7 +89,7 @@ function writePluginPackageManifest(params: {
 
 function writePluginManifest(params: { pluginDir: string; id: string }) {
   fs.writeFileSync(
-    path.join(params.pluginDir, "openclaw.plugin.json"),
+    path.join(params.pluginDir, "genesis.plugin.json"),
     JSON.stringify({
       id: params.id,
       configSchema: { type: "object" },
@@ -182,7 +182,7 @@ function expectEscapesPackageDiagnostic(diagnostics: Array<{ message: string }>)
 }
 
 function expectCandidatePresence(
-  result: Awaited<ReturnType<typeof discoverOpenClawPlugins>>,
+  result: Awaited<ReturnType<typeof discoverGenesisPlugins>>,
   params: { present?: readonly string[]; absent?: readonly string[] },
 ) {
   const ids = result.candidates.map((candidate) => candidate.idHint);
@@ -271,7 +271,7 @@ afterEach(() => {
   cleanupTrackedTempDirs(tempDirs);
 });
 
-describe("discoverOpenClawPlugins", () => {
+describe("discoverGenesisPlugins", () => {
   it("discovers global and workspace extensions", async () => {
     const stateDir = makeTempDir();
     const workspaceDir = path.join(stateDir, "workspace");
@@ -280,7 +280,7 @@ describe("discoverOpenClawPlugins", () => {
     mkdirSafe(globalExt);
     fs.writeFileSync(path.join(globalExt, "alpha.ts"), "export default function () {}", "utf-8");
 
-    const workspaceExt = path.join(workspaceDir, ".openclaw", "extensions");
+    const workspaceExt = path.join(workspaceDir, ".genesis", "extensions");
     mkdirSafe(workspaceExt);
     fs.writeFileSync(path.join(workspaceExt, "beta.ts"), "export default function () {}", "utf-8");
 
@@ -291,22 +291,22 @@ describe("discoverOpenClawPlugins", () => {
   it("does not recurse arbitrary workspace directories for plugin auto-discovery", () => {
     const stateDir = makeTempDir();
     const workspaceDir = path.join(stateDir, "workspace");
-    const workspaceExt = path.join(workspaceDir, ".openclaw", "extensions");
+    const workspaceExt = path.join(workspaceDir, ".genesis", "extensions");
 
     const expectedWorkspacePluginDir = path.join(workspaceExt, "workspace-plugin");
     createPackagePluginWithEntry({
       packageDir: expectedWorkspacePluginDir,
-      packageName: "@openclaw/workspace-plugin",
+      packageName: "@genesis/workspace-plugin",
       pluginId: "workspace-plugin",
     });
 
     const unrelatedWorkspaceDir = path.join(workspaceDir, "lobster-integrations", "bin");
     createPackagePluginWithEntry({
       packageDir: unrelatedWorkspaceDir,
-      packageName: "@openclaw/stray-workspace-plugin",
+      packageName: "@genesis/stray-workspace-plugin",
     });
 
-    const result = discoverOpenClawPlugins({
+    const result = discoverGenesisPlugins({
       workspaceDir,
       env: buildDiscoveryEnv(stateDir),
     });
@@ -322,11 +322,11 @@ describe("discoverOpenClawPlugins", () => {
     const stateDir = makeTempDir();
     const homeDir = makeTempDir();
     const workspaceRoot = path.join(homeDir, "workspace");
-    const workspaceExt = path.join(workspaceRoot, ".openclaw", "extensions");
+    const workspaceExt = path.join(workspaceRoot, ".genesis", "extensions");
     mkdirSafe(workspaceExt);
     fs.writeFileSync(path.join(workspaceExt, "tilde-workspace.ts"), "export default {}", "utf-8");
 
-    const result = discoverOpenClawPlugins({
+    const result = discoverGenesisPlugins({
       workspaceDir: "~/workspace",
       env: {
         ...buildDiscoveryEnv(stateDir),
@@ -380,10 +380,10 @@ describe("discoverOpenClawPlugins", () => {
     );
     writeStandalonePlugin(path.join(bundledDir, "real-plugin.ts"), "export default {}");
 
-    const { candidates, diagnostics } = discoverOpenClawPlugins({
+    const { candidates, diagnostics } = discoverGenesisPlugins({
       env: {
         ...buildDiscoveryEnv(stateDir),
-        OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+        GENESIS_BUNDLED_PLUGINS_DIR: bundledDir,
       },
     });
 
@@ -416,7 +416,7 @@ describe("discoverOpenClawPlugins", () => {
 
     writePluginPackageManifest({
       packageDir: pluginDir,
-      packageName: "@openclaw/runtime-pack",
+      packageName: "@genesis/runtime-pack",
       extensions: ["./src/index.ts"],
       runtimeExtensions: ["./dist/index.js"],
       setupEntry: "./src/setup-entry.ts",
@@ -445,7 +445,7 @@ describe("discoverOpenClawPlugins", () => {
 
     writePluginPackageManifest({
       packageDir: pluginDir,
-      packageName: "@openclaw/built-peer-pack",
+      packageName: "@genesis/built-peer-pack",
       extensions: ["src/index.ts"],
       setupEntry: "src/setup-entry.ts",
     });
@@ -474,7 +474,7 @@ describe("discoverOpenClawPlugins", () => {
 
     writePluginPackageManifest({
       packageDir: pluginDir,
-      packageName: "@openclaw/nested-pack",
+      packageName: "@genesis/nested-pack",
       extensions: ["./plugin/index.ts"],
     });
     writePluginEntry(path.join(pluginDir, "plugin", "index.ts"));
@@ -490,19 +490,19 @@ describe("discoverOpenClawPlugins", () => {
   it("keeps workspace package TypeScript entries unless runtime entries are explicit", () => {
     const stateDir = makeTempDir();
     const workspaceDir = path.join(stateDir, "workspace");
-    const pluginDir = path.join(workspaceDir, ".openclaw", "extensions", "workspace-pack");
+    const pluginDir = path.join(workspaceDir, ".genesis", "extensions", "workspace-pack");
     mkdirSafe(path.join(pluginDir, "src"));
     mkdirSafe(path.join(pluginDir, "dist"));
 
     writePluginPackageManifest({
       packageDir: pluginDir,
-      packageName: "@openclaw/workspace-pack",
+      packageName: "@genesis/workspace-pack",
       extensions: ["./src/index.ts"],
     });
     writePluginEntry(path.join(pluginDir, "src", "index.ts"));
     writePluginEntry(path.join(pluginDir, "dist", "index.js"));
 
-    const { candidates } = discoverOpenClawPlugins({
+    const { candidates } = discoverGenesisPlugins({
       workspaceDir,
       env: buildDiscoveryEnv(stateDir),
     });
@@ -513,11 +513,11 @@ describe("discoverOpenClawPlugins", () => {
 
   it("does not discover nested node_modules copies under installed plugins", async () => {
     const stateDir = makeTempDir();
-    const pluginDir = path.join(stateDir, "extensions", "opik-openclaw");
+    const pluginDir = path.join(stateDir, "extensions", "opik-genesis");
     const nestedDiffsDir = path.join(
       pluginDir,
       "node_modules",
-      "openclaw",
+      "genesis",
       "dist",
       "extensions",
       "diffs",
@@ -527,10 +527,10 @@ describe("discoverOpenClawPlugins", () => {
 
     writePluginPackageManifest({
       packageDir: pluginDir,
-      packageName: "@opik/opik-openclaw",
+      packageName: "@opik/opik-genesis",
       extensions: ["./src/index.ts"],
     });
-    writePluginManifest({ pluginDir, id: "opik-openclaw" });
+    writePluginManifest({ pluginDir, id: "opik-genesis" });
     fs.writeFileSync(
       path.join(pluginDir, "src", "index.ts"),
       "export default function () {}",
@@ -538,8 +538,8 @@ describe("discoverOpenClawPlugins", () => {
     );
 
     writePluginPackageManifest({
-      packageDir: path.join(pluginDir, "node_modules", "openclaw"),
-      packageName: "openclaw",
+      packageDir: path.join(pluginDir, "node_modules", "genesis"),
+      packageName: "genesis",
       extensions: [`./${bundledDistPluginFile("diffs", "index.js")}`],
     });
     writePluginManifest({ pluginDir: nestedDiffsDir, id: "diffs" });
@@ -550,15 +550,15 @@ describe("discoverOpenClawPlugins", () => {
     );
 
     const { candidates } = await discoverWithStateDir(stateDir, {});
-    expectCandidateOrder(candidates, ["opik-openclaw"]);
+    expectCandidateOrder(candidates, ["opik-genesis"]);
   });
 
   it("skips dependency and build directories while scanning workspace roots", () => {
     const stateDir = makeTempDir();
     const workspaceDir = path.join(stateDir, "workspace");
-    const workspaceRoot = path.join(workspaceDir, ".openclaw", "extensions");
+    const workspaceRoot = path.join(workspaceDir, ".genesis", "extensions");
     const workspacePluginDir = path.join(workspaceRoot, "workspace-plugin");
-    const nestedNodeModulesDir = path.join(workspaceRoot, "node_modules", "openclaw");
+    const nestedNodeModulesDir = path.join(workspaceRoot, "node_modules", "genesis");
     const nestedDistDir = path.join(workspaceRoot, "dist", "extensions", "diffs");
     mkdirSafe(path.join(workspacePluginDir, "src"));
     mkdirSafe(path.join(nestedNodeModulesDir, "src"));
@@ -566,13 +566,13 @@ describe("discoverOpenClawPlugins", () => {
 
     createPackagePluginWithEntry({
       packageDir: workspacePluginDir,
-      packageName: "@openclaw/workspace-plugin",
+      packageName: "@genesis/workspace-plugin",
       pluginId: "workspace-plugin",
     });
 
     createPackagePluginWithEntry({
       packageDir: nestedNodeModulesDir,
-      packageName: "openclaw",
+      packageName: "genesis",
       pluginId: "node-modules-copy",
     });
 
@@ -583,7 +583,7 @@ describe("discoverOpenClawPlugins", () => {
       "utf-8",
     );
 
-    const { candidates } = discoverOpenClawPlugins({
+    const { candidates } = discoverGenesisPlugins({
       workspaceDir,
       env: buildDiscoveryEnv(stateDir),
     });
@@ -598,7 +598,7 @@ describe("discoverOpenClawPlugins", () => {
         const packageDir = path.join(stateDir, "extensions", "voice-call-pack");
         createPackagePluginWithEntry({
           packageDir,
-          packageName: "@openclaw/voice-call",
+          packageName: "@genesis/voice-call",
           entryPath: "src/index.ts",
         });
         return {};
@@ -624,8 +624,8 @@ describe("discoverOpenClawPlugins", () => {
       name: "normalizes bundled speech package ids to canonical plugin ids",
       setup: (stateDir: string) => {
         for (const [dirName, packageName, pluginId] of [
-          ["elevenlabs-speech-pack", "@openclaw/elevenlabs-speech", "elevenlabs"],
-          ["microsoft-speech-pack", "@openclaw/microsoft-speech", "microsoft"],
+          ["elevenlabs-speech-pack", "@genesis/elevenlabs-speech", "elevenlabs"],
+          ["microsoft-speech-pack", "@genesis/microsoft-speech", "microsoft"],
         ] as const) {
           const packageDir = path.join(stateDir, "extensions", dirName);
           createPackagePluginWithEntry({
@@ -646,7 +646,7 @@ describe("discoverOpenClawPlugins", () => {
         const packageDir = path.join(stateDir, "packs", "demo-plugin-dir");
         createPackagePluginWithEntry({
           packageDir,
-          packageName: "@openclaw/demo-plugin-dir",
+          packageName: "@genesis/demo-plugin-dir",
           entryPath: "index.js",
         });
         return { extraPaths: [packageDir] };
@@ -746,7 +746,7 @@ describe("discoverOpenClawPlugins", () => {
     const result = await discoverWithStateDir(stateDir, setup(stateDir));
     const legacy = findCandidateById(result.candidates, "legacy-with-bad-bundle");
 
-    expect(legacy?.format).toBe("openclaw");
+    expect(legacy?.format).toBe("genesis");
     expect(hasDiagnosticSourceSuffix(result.diagnostics, bundleMarker)).toBe(true);
   });
 
@@ -760,7 +760,7 @@ describe("discoverOpenClawPlugins", () => {
         mkdirSafe(globalExt);
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/escape-pack",
+          packageName: "@genesis/escape-pack",
           extensions: ["../../outside.js"],
         });
         fs.writeFileSync(outside, "export default function () {}", "utf-8");
@@ -774,7 +774,7 @@ describe("discoverOpenClawPlugins", () => {
         mkdirSafe(path.join(globalExt, "src"));
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/escape-pack",
+          packageName: "@genesis/escape-pack",
           extensions: ["../src/index.ts"],
         });
         fs.writeFileSync(path.join(globalExt, "src", "index.js"), "export default {}", "utf-8");
@@ -788,7 +788,7 @@ describe("discoverOpenClawPlugins", () => {
         mkdirSafe(path.join(globalExt, "dist"));
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/escape-pack",
+          packageName: "@genesis/escape-pack",
           extensions: ["../src/index.ts"],
           runtimeExtensions: ["./dist/index.js"],
         });
@@ -803,7 +803,7 @@ describe("discoverOpenClawPlugins", () => {
         mkdirSafe(globalExt);
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/missing-entry-pack",
+          packageName: "@genesis/missing-entry-pack",
           extensions: ["./missing.ts"],
         });
         return true;
@@ -827,7 +827,7 @@ describe("discoverOpenClawPlugins", () => {
         }
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/pack",
+          packageName: "@genesis/pack",
           extensions: ["./linked/escape.ts"],
         });
         return true;
@@ -858,7 +858,7 @@ describe("discoverOpenClawPlugins", () => {
         }
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/pack",
+          packageName: "@genesis/pack",
           extensions: ["./escape.ts"],
         });
         return true;
@@ -890,7 +890,7 @@ describe("discoverOpenClawPlugins", () => {
         }
         writePluginPackageManifest({
           packageDir: globalExt,
-          packageName: "@openclaw/pack",
+          packageName: "@genesis/pack",
           extensions: ["./escape.ts"],
         });
         return true;
@@ -912,7 +912,7 @@ describe("discoverOpenClawPlugins", () => {
     mkdirSafe(path.join(globalExt, "dist"));
     writePluginPackageManifest({
       packageDir: globalExt,
-      packageName: "@openclaw/escape-pack",
+      packageName: "@genesis/escape-pack",
       extensions: ["./dist/index.js"],
       setupEntry: "../src/setup-entry.ts",
       runtimeSetupEntry: "./dist/setup-entry.js",
@@ -943,8 +943,8 @@ describe("discoverOpenClawPlugins", () => {
     fs.writeFileSync(
       outsideManifest,
       JSON.stringify({
-        name: "@openclaw/pack",
-        openclaw: { extensions: ["./entry.ts"] },
+        name: "@genesis/pack",
+        genesis: { extensions: ["./entry.ts"] },
       }),
       "utf-8",
     );
@@ -988,12 +988,12 @@ describe("discoverOpenClawPlugins", () => {
       fs.writeFileSync(path.join(packDir, "index.ts"), "export default function () {}", "utf-8");
       fs.chmodSync(packDir, 0o777);
 
-      const result = discoverOpenClawPlugins({
+      const result = discoverGenesisPlugins({
         env: {
           ...process.env,
-          OPENCLAW_DISABLE_BUNDLED_PLUGINS: undefined,
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+          GENESIS_DISABLE_BUNDLED_PLUGINS: undefined,
+          GENESIS_STATE_DIR: stateDir,
+          GENESIS_BUNDLED_PLUGINS_DIR: bundledDir,
         },
       });
 
@@ -1060,27 +1060,27 @@ describe("discoverOpenClawPlugins", () => {
 
     createPackagePluginWithEntry({
       packageDir: path.join(bundledDir, "bundled-plugin"),
-      packageName: "@openclaw/bundled-plugin",
+      packageName: "@genesis/bundled-plugin",
       pluginId: "bundled-plugin",
     });
     createPackagePluginWithEntry({
       packageDir: path.join(globalExt, "global-plugin"),
-      packageName: "@openclaw/global-plugin",
+      packageName: "@genesis/global-plugin",
       pluginId: "global-plugin",
     });
     createPackagePluginWithEntry({
-      packageDir: path.join(workspaceA, ".openclaw", "extensions", "workspace-a-plugin"),
-      packageName: "@openclaw/workspace-a-plugin",
+      packageDir: path.join(workspaceA, ".genesis", "extensions", "workspace-a-plugin"),
+      packageName: "@genesis/workspace-a-plugin",
       pluginId: "workspace-a-plugin",
     });
     createPackagePluginWithEntry({
-      packageDir: path.join(workspaceB, ".openclaw", "extensions", "workspace-b-plugin"),
-      packageName: "@openclaw/workspace-b-plugin",
+      packageDir: path.join(workspaceB, ".genesis", "extensions", "workspace-b-plugin"),
+      packageName: "@genesis/workspace-b-plugin",
       pluginId: "workspace-b-plugin",
     });
 
     const env = buildCachedDiscoveryEnv(stateDir, {
-      OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+      GENESIS_BUNDLED_PLUGINS_DIR: bundledDir,
     });
     const readdirSync = vi.spyOn(fs, "readdirSync");
     const countSharedRootReads = () =>

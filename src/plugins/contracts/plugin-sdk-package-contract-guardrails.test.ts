@@ -10,7 +10,7 @@ const PUBLIC_CONTRACT_REFERENCE_FILES = [
   "docs/plugins/architecture.md",
   "src/plugins/contracts/plugin-sdk-subpaths.test.ts",
 ] as const;
-const PLUGIN_SDK_SUBPATH_PATTERN = /openclaw\/plugin-sdk\/([a-z0-9][a-z0-9-]*)\b/g;
+const PLUGIN_SDK_SUBPATH_PATTERN = /genesis\/plugin-sdk\/([a-z0-9][a-z0-9-]*)\b/g;
 
 function collectPluginSdkPackageExports(): string[] {
   const packageJson = JSON.parse(readFileSync(resolve(REPO_ROOT, "package.json"), "utf8")) as {
@@ -152,7 +152,7 @@ describe("plugin-sdk package contract guardrails", () => {
         continue;
       }
       failures.push(
-        `${reference.file} references openclaw/plugin-sdk/${reference.subpath}, but ${reference.subpath} is missing from ${missingFrom.join(" and ")}`,
+        `${reference.file} references genesis/plugin-sdk/${reference.subpath}, but ${reference.subpath} is missing from ${missingFrom.join(" and ")}`,
       );
     }
 
@@ -173,7 +173,7 @@ describe("plugin-sdk package contract guardrails", () => {
       expect(matrixRuntimeDeps.get(dep)).toBeDefined();
       expect(rootRuntimeDeps.has(dep)).toBe(false);
     }
-    expect(rootRuntimeDeps.has("@openclaw/plugin-package-contract")).toBe(false);
+    expect(rootRuntimeDeps.has("@genesis/plugin-package-contract")).toBe(false);
   });
 
   it("keeps extension sources on public sdk or local package seams", () => {

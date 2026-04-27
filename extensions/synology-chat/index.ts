@@ -1,9 +1,9 @@
-import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
+import { defineBundledChannelEntry } from "genesis/plugin-sdk/channel-entry-contract";
 
 export default defineBundledChannelEntry({
   id: "synology-chat",
   name: "Synology Chat",
-  description: "Native Synology Chat channel plugin for OpenClaw",
+  description: "Native Synology Chat channel plugin for Genesis",
   importMetaUrl: import.meta.url,
   plugin: {
     specifier: "./channel-plugin-api.js",

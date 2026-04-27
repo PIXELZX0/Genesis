@@ -166,7 +166,7 @@ export function renderNostrProfileForm(params: {
         <img
           src=${picture}
           alt=${t("channels.nostr.profilePicturePreview")}
-          style="max-width: 80px; max-height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);"
+          style="max-width: 80px; max-height: 80px; border-radius: var(--radius-full); object-fit: cover; border: 2px solid var(--border-color);"
           @error=${(e: Event) => {
             const img = e.target as HTMLImageElement;
             img.style.display = "none";

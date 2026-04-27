@@ -9,7 +9,7 @@ import {
 } from "./message-channel-constants.js";
 import { normalizeMessageChannel as normalizeMessageChannelCore } from "./message-channel-core.js";
 
-type ChannelId = string & { readonly __openclawChannelIdBrand?: never };
+type ChannelId = string & { readonly __genesisChannelIdBrand?: never };
 
 export type DeliverableMessageChannel = ChannelId;
 

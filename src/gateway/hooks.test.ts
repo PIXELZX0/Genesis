@@ -1,6 +1,6 @@
 import type { IncomingMessage } from "node:http";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import { createChannelTestPluginBase, createTestRegistry } from "../test-utils/channel-plugins.js";
 import {
@@ -39,7 +39,7 @@ const createIMessageAliasPlugin = () => ({
 });
 
 describe("gateway hooks helpers", () => {
-  const resolveHooksConfigOrThrow = (cfg: OpenClawConfig) => {
+  const resolveHooksConfigOrThrow = (cfg: GenesisConfig) => {
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -58,7 +58,7 @@ describe("gateway hooks helpers", () => {
       agents: {
         list: [{ id: "main", default: true }, { id: "hooks" }],
       },
-    }) as OpenClawConfig;
+    }) as GenesisConfig;
 
   beforeEach(() => {
     setActivePluginRegistry(emptyRegistry);
@@ -74,7 +74,7 @@ describe("gateway hooks helpers", () => {
         token: "secret",
         path: "hooks///",
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(base);
     expect(resolved?.basePath).toBe("/hooks");
     expect(resolved?.token).toBe("secret");
@@ -84,7 +84,7 @@ describe("gateway hooks helpers", () => {
   test("resolveHooksConfig rejects root path", () => {
     const cfg = {
       hooks: { enabled: true, token: "x", path: "/" },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(() => resolveHooksConfig(cfg)).toThrow("hooks.path may not be '/'");
   });
 
@@ -92,14 +92,14 @@ describe("gateway hooks helpers", () => {
     const req = {
       headers: {
         authorization: "Bearer top",
-        "x-openclaw-token": "header",
+        "x-genesis-token": "header",
       },
     } as unknown as IncomingMessage;
     const result1 = extractHookToken(req);
     expect(result1).toBe("top");
 
     const req2 = {
-      headers: { "x-openclaw-token": "header" },
+      headers: { "x-genesis-token": "header" },
     } as unknown as IncomingMessage;
     const result2 = extractHookToken(req2);
     expect(result2).toBe("header");
@@ -187,7 +187,7 @@ describe("gateway hooks helpers", () => {
       agents: {
         list: [{ id: "main", default: true }, { id: "hooks" }],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -222,7 +222,7 @@ describe("gateway hooks helpers", () => {
   test("resolveHookSessionKey disables request sessionKey by default", () => {
     const cfg = {
       hooks: { enabled: true, token: "secret" },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -239,7 +239,7 @@ describe("gateway hooks helpers", () => {
   test("resolveHookSessionKey allows request sessionKey when explicitly enabled", () => {
     const cfg = {
       hooks: { enabled: true, token: "secret", allowRequestSessionKey: true },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -261,7 +261,7 @@ describe("gateway hooks helpers", () => {
         allowRequestSessionKey: true,
         allowedSessionKeyPrefixes: ["hook:"],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -290,7 +290,7 @@ describe("gateway hooks helpers", () => {
         token: "secret",
         allowedSessionKeyPrefixes: ["hook:", "hook:gmail:"],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -312,7 +312,7 @@ describe("gateway hooks helpers", () => {
         token: "secret",
         allowedSessionKeyPrefixes: ["hook:", "hook:gmail:"],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -334,7 +334,7 @@ describe("gateway hooks helpers", () => {
         token: "secret",
         defaultSessionKey: "hook:ingress",
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const resolved = resolveHooksConfig(cfg);
     expect(resolved).not.toBeNull();
     if (!resolved) {
@@ -375,7 +375,7 @@ describe("gateway hooks helpers", () => {
           defaultSessionKey: "agent:main:main",
           allowedSessionKeyPrefixes: ["hook:"],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toThrow("hooks.defaultSessionKey must match hooks.allowedSessionKeyPrefixes");
 
     expect(() =>
@@ -385,7 +385,7 @@ describe("gateway hooks helpers", () => {
           token: "secret",
           allowedSessionKeyPrefixes: ["agent:"],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toThrow(
       "hooks.allowedSessionKeyPrefixes must include 'hook:' when hooks.defaultSessionKey is unset",
     );
@@ -407,7 +407,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toThrow(
       "hooks.allowedSessionKeyPrefixes is required when a hook mapping sessionKey uses templates, even if hooks.allowRequestSessionKey=true",
     );
@@ -430,7 +430,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).not.toThrow();
   });
 
@@ -454,7 +454,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).not.toThrow();
   });
 
@@ -473,7 +473,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).not.toThrow();
   });
 
@@ -498,7 +498,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).not.toThrow();
   });
 
@@ -523,7 +523,7 @@ describe("gateway hooks helpers", () => {
             },
           ],
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).not.toThrow();
   });
 });

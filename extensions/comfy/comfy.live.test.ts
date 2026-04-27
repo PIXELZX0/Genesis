@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { resolveOpenClawAgentDir } from "../../src/agents/agent-paths.js";
+import { resolveGenesisAgentDir } from "../../src/agents/agent-paths.js";
 import { isLiveTestEnabled } from "../../src/agents/live-test-helpers.js";
 import { loadConfig } from "../../src/config/config.js";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.js";
@@ -41,7 +41,7 @@ describeLive("comfy live", () => {
 
   beforeAll(async () => {
     cfg = withPluginsEnabled(loadConfig());
-    agentDir = resolveOpenClawAgentDir();
+    agentDir = resolveGenesisAgentDir();
     plugin.register(
       createTestPluginApi({
         config: cfg as never,

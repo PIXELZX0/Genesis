@@ -1,6 +1,6 @@
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { formatErrorMessage } from "genesis/plugin-sdk/ssrf-runtime";
 import { type Bot, GrammyError } from "grammy";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
 import { withTelegramApiErrorLogging } from "../api-logging.js";
 import { markdownToTelegramHtml } from "../format.js";
 import { normalizeTelegramReplyToMessageId } from "../outbound-params.js";

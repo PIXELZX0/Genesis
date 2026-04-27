@@ -1,19 +1,19 @@
 import { randomUUID } from "node:crypto";
 import * as carbonGateway from "@buape/carbon/gateway";
 import type { APIGatewayBotInfo } from "discord-api-types/v10";
-import * as httpsProxyAgent from "https-proxy-agent";
-import type { DiscordAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import type { DiscordAccountConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   captureHttpExchange,
   captureWsEvent,
   resolveEffectiveDebugProxyUrl,
   resolveDebugProxySettings,
-} from "openclaw/plugin-sdk/proxy-capture";
-import { danger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/proxy-capture";
+import { danger } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
+import * as httpsProxyAgent from "https-proxy-agent";
 import * as ws from "ws";
 import { validateDiscordProxyUrl } from "../proxy-fetch.js";
 import { DISCORD_GATEWAY_TRANSPORT_ACTIVITY_EVENT } from "./gateway-handle.js";
@@ -73,7 +73,7 @@ function hasCarbonGatewaySocketStarted(plugin: carbonGateway.GatewayPlugin): boo
 }
 
 export function resolveDiscordGatewayIntents(
-  intentsConfig?: import("openclaw/plugin-sdk/config-runtime").DiscordIntentsConfig,
+  intentsConfig?: import("genesis/plugin-sdk/config-runtime").DiscordIntentsConfig,
 ): number {
   let intents =
     carbonGateway.GatewayIntents.Guilds |
@@ -295,7 +295,7 @@ function createGatewayPlugin(params: {
 
     public override connect(resume = false): void {
       // Guard against stale heartbeat timers from the @buape/carbon
-      // firstHeartbeatTimeout race (openclaw/openclaw#65009, #64011, #63387).
+      // firstHeartbeatTimeout race (PIXELZX0/Genesis#65009, #64011, #63387).
       // Parent connect() only calls stopHeartbeat() when isConnecting=false.
       // If isConnecting=true it returns early — leaving a stale setInterval
       // that fires with a closed reconnectCallback and crashes the process.
@@ -313,7 +313,7 @@ function createGatewayPlugin(params: {
     override registerClient(client: Parameters<carbonGateway.GatewayPlugin["registerClient"]>[0]) {
       const registration = this.registerClientInternal(client);
       // Carbon 0.16 invokes async plugin hooks from Client construction without
-      // awaiting them. Mark the promise handled immediately, then let OpenClaw
+      // awaiting them. Mark the promise handled immediately, then let Genesis
       // startup await the original promise explicitly.
       registration.catch(() => {});
       registrationPromises.set(this, registration);

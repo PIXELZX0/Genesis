@@ -99,23 +99,23 @@ import type {
   CliBackendPlugin,
   ImageGenerationProviderPlugin,
   MusicGenerationProviderPlugin,
-  OpenClawPluginApi,
-  OpenClawPluginChannelRegistration,
-  OpenClawPluginCliCommandDescriptor,
-  OpenClawPluginCliRegistrar,
-  OpenClawPluginCommandDefinition,
+  GenesisPluginApi,
+  GenesisPluginChannelRegistration,
+  GenesisPluginCliCommandDescriptor,
+  GenesisPluginCliRegistrar,
+  GenesisPluginCommandDefinition,
   PluginConversationBindingResolvedEvent,
-  OpenClawPluginGatewayRuntimeScopeSurface,
-  OpenClawGatewayDiscoveryService,
-  OpenClawPluginHttpRouteParams,
-  OpenClawPluginHookOptions,
-  OpenClawPluginNodeHostCommand,
-  OpenClawPluginReloadRegistration,
-  OpenClawPluginSecurityAuditCollector,
+  GenesisPluginGatewayRuntimeScopeSurface,
+  GenesisGatewayDiscoveryService,
+  GenesisPluginHttpRouteParams,
+  GenesisPluginHookOptions,
+  GenesisPluginNodeHostCommand,
+  GenesisPluginReloadRegistration,
+  GenesisPluginSecurityAuditCollector,
   MediaUnderstandingProviderPlugin,
-  OpenClawPluginService,
-  OpenClawPluginToolContext,
-  OpenClawPluginToolFactory,
+  GenesisPluginService,
+  GenesisPluginToolContext,
+  GenesisPluginToolFactory,
   PluginHookHandlerMap,
   PluginHookName,
   PluginHookRegistration as TypedPluginHookRegistration,
@@ -131,7 +131,7 @@ import type {
 } from "./types.js";
 
 export type PluginHttpRouteRegistration = RegistryTypesPluginHttpRouteRegistration & {
-  gatewayRuntimeScopeSurface?: OpenClawPluginGatewayRuntimeScopeSurface;
+  gatewayRuntimeScopeSurface?: GenesisPluginGatewayRuntimeScopeSurface;
 };
 type PluginOwnedProviderRegistration<T extends { id: string }> = {
   pluginId: string;
@@ -193,7 +193,7 @@ const constrainLegacyPromptInjectionHook = (
 
 export { createEmptyPluginRegistry } from "./registry-empty.js";
 
-const ACTIVE_PLUGIN_HOOK_REGISTRATIONS_KEY = Symbol.for("openclaw.activePluginHookRegistrations");
+const ACTIVE_PLUGIN_HOOK_REGISTRATIONS_KEY = Symbol.for("genesis.activePluginHookRegistrations");
 const activePluginHookRegistrations = resolveGlobalSingleton<
   Map<string, Array<{ event: string; handler: Parameters<typeof registerInternalHook>[1] }>>
 >(ACTIVE_PLUGIN_HOOK_REGISTRATIONS_KEY, () => new Map());
@@ -233,7 +233,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerCodexAppServerExtensionFactory = (
     record: PluginRecord,
-    factory: Parameters<OpenClawPluginApi["registerCodexAppServerExtensionFactory"]>[0],
+    factory: Parameters<GenesisPluginApi["registerCodexAppServerExtensionFactory"]>[0],
   ) => {
     if (record.origin !== "bundled") {
       pushDiagnostic({
@@ -296,8 +296,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerAgentToolResultMiddleware = (
     record: PluginRecord,
-    handler: Parameters<OpenClawPluginApi["registerAgentToolResultMiddleware"]>[0],
-    options: Parameters<OpenClawPluginApi["registerAgentToolResultMiddleware"]>[1],
+    handler: Parameters<GenesisPluginApi["registerAgentToolResultMiddleware"]>[0],
+    options: Parameters<GenesisPluginApi["registerAgentToolResultMiddleware"]>[1],
   ) => {
     if (record.origin !== "bundled") {
       pushDiagnostic({
@@ -370,13 +370,13 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerTool = (
     record: PluginRecord,
-    tool: AnyAgentTool | OpenClawPluginToolFactory,
+    tool: AnyAgentTool | GenesisPluginToolFactory,
     opts?: { name?: string; names?: string[]; optional?: boolean },
   ) => {
     const names = opts?.names ?? (opts?.name ? [opts.name] : []);
     const optional = opts?.optional === true;
-    const factory: OpenClawPluginToolFactory =
-      typeof tool === "function" ? tool : (_ctx: OpenClawPluginToolContext) => tool;
+    const factory: GenesisPluginToolFactory =
+      typeof tool === "function" ? tool : (_ctx: GenesisPluginToolContext) => tool;
 
     if (typeof tool !== "function") {
       names.push(tool.name);
@@ -401,8 +401,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     record: PluginRecord,
     events: string | string[],
     handler: Parameters<typeof registerInternalHook>[1],
-    opts: OpenClawPluginHookOptions | undefined,
-    config: OpenClawPluginApi["config"],
+    opts: GenesisPluginHookOptions | undefined,
+    config: GenesisPluginApi["config"],
   ) => {
     const eventList = Array.isArray(events) ? events : [events];
     const normalizedEvents = eventList.map((event) => event.trim()).filter(Boolean);
@@ -436,7 +436,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
             ...entry.hook,
             name,
             description,
-            source: "openclaw-plugin",
+            source: "genesis-plugin",
             pluginId: record.id,
           },
           metadata: {
@@ -448,7 +448,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
           hook: {
             name,
             description,
-            source: "openclaw-plugin",
+            source: "genesis-plugin",
             pluginId: record.id,
             filePath: record.source,
             baseDir: path.dirname(record.source),
@@ -541,7 +541,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     return `${plugin} (${source})`;
   };
 
-  const registerHttpRoute = (record: PluginRecord, params: OpenClawPluginHttpRouteParams) => {
+  const registerHttpRoute = (record: PluginRecord, params: GenesisPluginHttpRouteParams) => {
     const normalizedPath = normalizePluginHttpPath(params.path);
     if (!normalizedPath) {
       pushDiagnostic({
@@ -633,13 +633,13 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerChannel = (
     record: PluginRecord,
-    registration: OpenClawPluginChannelRegistration | ChannelPlugin,
+    registration: GenesisPluginChannelRegistration | ChannelPlugin,
     mode: PluginRegistrationMode = "full",
   ) => {
     const registrationCapabilities = resolvePluginRegistrationCapabilities(mode);
     const normalized =
-      typeof (registration as OpenClawPluginChannelRegistration).plugin === "object"
-        ? (registration as OpenClawPluginChannelRegistration)
+      typeof (registration as GenesisPluginChannelRegistration).plugin === "object"
+        ? (registration as GenesisPluginChannelRegistration)
         : { plugin: registration as ChannelPlugin };
     const plugin = normalizeRegisteredChannelPlugin({
       pluginId: record.id,
@@ -1004,8 +1004,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerCli = (
     record: PluginRecord,
-    registrar: OpenClawPluginCliRegistrar,
-    opts?: { commands?: string[]; descriptors?: OpenClawPluginCliCommandDescriptor[] },
+    registrar: GenesisPluginCliRegistrar,
+    opts?: { commands?: string[]; descriptors?: GenesisPluginCliCommandDescriptor[] },
   ) => {
     const normalizeCommandRoot = (raw: string, source: "command" | "descriptor") => {
       const normalized = normalizeCommandDescriptorName(raw);
@@ -1031,9 +1031,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
             }
           : null;
       })
-      .filter(
-        (descriptor): descriptor is OpenClawPluginCliCommandDescriptor => descriptor !== null,
-      );
+      .filter((descriptor): descriptor is GenesisPluginCliCommandDescriptor => descriptor !== null);
     const commands = [
       ...(opts?.commands ?? []),
       ...descriptors.map((descriptor) => descriptor.name),
@@ -1080,10 +1078,10 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     NODE_SYSTEM_NOTIFY_COMMAND,
   ]);
 
-  const registerReload = (record: PluginRecord, registration: OpenClawPluginReloadRegistration) => {
+  const registerReload = (record: PluginRecord, registration: GenesisPluginReloadRegistration) => {
     const normalize = (values?: string[]) =>
       (values ?? []).map((value) => value.trim()).filter(Boolean);
-    const normalized: OpenClawPluginReloadRegistration = {
+    const normalized: GenesisPluginReloadRegistration = {
       restartPrefixes: normalize(registration.restartPrefixes),
       hotPrefixes: normalize(registration.hotPrefixes),
       noopPrefixes: normalize(registration.noopPrefixes),
@@ -1113,7 +1111,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerNodeHostCommand = (
     record: PluginRecord,
-    nodeCommand: OpenClawPluginNodeHostCommand,
+    nodeCommand: GenesisPluginNodeHostCommand,
   ) => {
     const command = nodeCommand.command.trim();
     if (!command) {
@@ -1160,7 +1158,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerSecurityAuditCollector = (
     record: PluginRecord,
-    collector: OpenClawPluginSecurityAuditCollector,
+    collector: GenesisPluginSecurityAuditCollector,
   ) => {
     registry.securityAuditCollectors ??= [];
     registry.securityAuditCollectors.push({
@@ -1172,7 +1170,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
-  const registerService = (record: PluginRecord, service: OpenClawPluginService) => {
+  const registerService = (record: PluginRecord, service: GenesisPluginService) => {
     const id = service.id.trim();
     if (!id) {
       return;
@@ -1204,7 +1202,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerGatewayDiscoveryService = (
     record: PluginRecord,
-    service: OpenClawGatewayDiscoveryService,
+    service: GenesisGatewayDiscoveryService,
   ) => {
     const id = service.id.trim();
     if (!id) {
@@ -1233,7 +1231,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
-  const registerCommand = (record: PluginRecord, command: OpenClawPluginCommandDefinition) => {
+  const registerCommand = (record: PluginRecord, command: GenesisPluginCommandDefinition) => {
     const name = command.name.trim();
     if (!name) {
       pushDiagnostic({
@@ -1414,12 +1412,12 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
   const createApi = (
     record: PluginRecord,
     params: {
-      config: OpenClawPluginApi["config"];
+      config: GenesisPluginApi["config"];
       pluginConfig?: Record<string, unknown>;
       hookPolicy?: PluginTypedHookPolicy;
       registrationMode?: PluginRegistrationMode;
     },
-  ): OpenClawPluginApi => {
+  ): GenesisPluginApi => {
     const registrationMode = params.registrationMode ?? "full";
     const registrationCapabilities = resolvePluginRegistrationCapabilities(registrationMode);
     return buildPluginApi({
@@ -1527,7 +1525,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
                 }
               },
               registerCompactionProvider: (
-                provider: Parameters<OpenClawPluginApi["registerCompactionProvider"]>[0],
+                provider: Parameters<GenesisPluginApi["registerCompactionProvider"]>[0],
               ) => {
                 const existing = getRegisteredCompactionProvider(provider.id);
                 if (existing) {

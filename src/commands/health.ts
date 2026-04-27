@@ -6,7 +6,7 @@ import type { ChannelAccountSnapshot } from "../channels/plugins/types.public.js
 import { inspectReadOnlyChannelAccount } from "../channels/read-only-account-inspect.js";
 import { withProgress } from "../cli/progress.js";
 import { resolveStorePath } from "../config/sessions/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { info } from "../globals.js";
 import { isTruthyEnvValue } from "../infra/env.js";
@@ -46,7 +46,7 @@ function loadConfigModule(): Promise<ConfigModule> {
 }
 
 const debugHealth = (...args: unknown[]) => {
-  if (isTruthyEnvValue(process.env.OPENCLAW_DEBUG_HEALTH)) {
+  if (isTruthyEnvValue(process.env.GENESIS_DEBUG_HEALTH)) {
     console.warn("[health:debug]", ...args);
   }
 };
@@ -80,10 +80,10 @@ const formatDurationParts = (ms: number): string => {
   return parts.join(" ");
 };
 
-const resolveHeartbeatSummary = (cfg: OpenClawConfig, agentId: string) =>
+const resolveHeartbeatSummary = (cfg: GenesisConfig, agentId: string) =>
   resolveHeartbeatSummaryForAgent(cfg, agentId);
 
-const resolveAgentOrder = (cfg: OpenClawConfig) => {
+const resolveAgentOrder = (cfg: GenesisConfig) => {
   const defaultAgentId = resolveDefaultAgentId(cfg);
   const entries = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
   const seen = new Set<string>();
@@ -134,7 +134,7 @@ const buildSessionSummary = async (storePath: string) => {
   } satisfies HealthSummary["sessions"];
 };
 
-async function inspectHealthAccount(plugin: ChannelPlugin, cfg: OpenClawConfig, accountId: string) {
+async function inspectHealthAccount(plugin: ChannelPlugin, cfg: GenesisConfig, accountId: string) {
   return (
     plugin.config.inspectAccount?.(cfg, accountId) ??
     (await inspectReadOnlyChannelAccount({
@@ -155,7 +155,7 @@ function readBooleanField(value: unknown, key: string): boolean | undefined {
 
 async function resolveHealthAccountContext(params: {
   plugin: ChannelPlugin;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
 }): Promise<{
   account: unknown;
@@ -394,7 +394,7 @@ export async function getHealthSnapshot(params?: {
 }
 
 export async function healthCommand(
-  opts: { json?: boolean; timeoutMs?: number; verbose?: boolean; config?: OpenClawConfig },
+  opts: { json?: boolean; timeoutMs?: number; verbose?: boolean; config?: GenesisConfig },
   runtime: RuntimeEnv,
 ) {
   const cfg = opts.config ?? (await readBestEffortHealthConfig());
@@ -419,7 +419,7 @@ export async function healthCommand(
   if (opts.json) {
     writeRuntimeJson(runtime, summary);
   } else {
-    const debugEnabled = isTruthyEnvValue(process.env.OPENCLAW_DEBUG_HEALTH);
+    const debugEnabled = isTruthyEnvValue(process.env.GENESIS_DEBUG_HEALTH);
     const rich = isRich();
     if (opts.verbose) {
       const details = buildGatewayConnectionDetails({ config: cfg });
@@ -646,7 +646,7 @@ export async function healthCommand(
   }
 }
 
-async function readBestEffortHealthConfig(): Promise<OpenClawConfig> {
+async function readBestEffortHealthConfig(): Promise<GenesisConfig> {
   const { readBestEffortConfig } = await loadConfigModule();
   return await readBestEffortConfig();
 }

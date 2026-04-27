@@ -8,7 +8,7 @@ import { cleanupTrackedTempDirs } from "../plugins/test-helpers/fs-fixtures.js";
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-prefer-over-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-plugin-prefer-over-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -19,7 +19,7 @@ function writeBundledChannelPackage(rootDir: string, channelId: string): void {
   fs.writeFileSync(
     path.join(pluginDir, "package.json"),
     JSON.stringify({
-      openclaw: {
+      genesis: {
         channel: {
           id: channelId,
           label: "Cache Drift",
@@ -51,11 +51,11 @@ describe("plugin auto-enable preferOver", () => {
     const channelId = "cache-drift-channel";
     writeBundledChannelPackage(rootDir, channelId);
 
-    vi.stubEnv("OPENCLAW_BUNDLED_PLUGINS_DIR", rootDir);
+    vi.stubEnv("GENESIS_BUNDLED_PLUGINS_DIR", rootDir);
     const { normalizeChatChannelId } = await import("../channels/ids.js");
     expect(normalizeChatChannelId(channelId)).toBe(channelId);
 
-    vi.stubEnv("OPENCLAW_BUNDLED_PLUGINS_DIR", path.join(rootDir, "missing"));
+    vi.stubEnv("GENESIS_BUNDLED_PLUGINS_DIR", path.join(rootDir, "missing"));
     const { materializePluginAutoEnableCandidates } = await import("./plugin-auto-enable.js");
 
     const result = materializePluginAutoEnableCandidates({
@@ -78,8 +78,8 @@ describe("plugin auto-enable preferOver", () => {
         },
       ],
       env: {
-        OPENCLAW_STATE_DIR: path.join(rootDir, "state"),
-        OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(rootDir, "missing"),
+        GENESIS_STATE_DIR: path.join(rootDir, "state"),
+        GENESIS_BUNDLED_PLUGINS_DIR: path.join(rootDir, "missing"),
       },
       manifestRegistry: EMPTY_MANIFEST_REGISTRY,
     });

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { GenesisConfig } from "../../../config/config.js";
 import {
   DEFAULT_LLM_IDLE_TIMEOUT_MS,
   resolveLlmIdleTimeoutMs,
@@ -12,51 +12,51 @@ describe("resolveLlmIdleTimeoutMs", () => {
   });
 
   it("returns default when llm config is missing", () => {
-    const cfg = { agents: {} } as OpenClawConfig;
+    const cfg = { agents: {} } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("returns default when idleTimeoutSeconds is not set", () => {
-    const cfg = { agents: { defaults: { llm: {} } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: {} } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("returns 0 when idleTimeoutSeconds is 0 (disabled)", () => {
-    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 0 } } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 0 } } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(0);
   });
 
   it("returns configured value in milliseconds", () => {
-    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 30 } } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 30 } } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(30_000);
   });
 
   it("caps at max safe timeout", () => {
     const cfg = {
       agents: { defaults: { llm: { idleTimeoutSeconds: 10_000_000 } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(2_147_000_000);
   });
 
   it("ignores negative values", () => {
-    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: -10 } } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: -10 } } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("ignores non-finite values", () => {
     const cfg = {
       agents: { defaults: { llm: { idleTimeoutSeconds: Infinity } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("caps agents.defaults.timeoutSeconds fallback at the default idle watchdog", () => {
-    const cfg = { agents: { defaults: { timeoutSeconds: 300 } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { timeoutSeconds: 300 } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("uses agents.defaults.timeoutSeconds when it is shorter than the default idle watchdog", () => {
-    const cfg = { agents: { defaults: { timeoutSeconds: 30 } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { timeoutSeconds: 30 } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(30_000);
   });
 
@@ -75,38 +75,38 @@ describe("resolveLlmIdleTimeoutMs", () => {
   it("prefers llm.idleTimeoutSeconds over agents.defaults.timeoutSeconds", () => {
     const cfg = {
       agents: { defaults: { timeoutSeconds: 300, llm: { idleTimeoutSeconds: 120 } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(120_000);
   });
 
   it("prefers llm.idleTimeoutSeconds over an explicit run timeout override", () => {
     const cfg = {
       agents: { defaults: { llm: { idleTimeoutSeconds: 120 } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg, runTimeoutMs: 900_000 })).toBe(120_000);
   });
 
   it("keeps idleTimeoutSeconds=0 disabled even when timeoutSeconds is set", () => {
     const cfg = {
       agents: { defaults: { timeoutSeconds: 300, llm: { idleTimeoutSeconds: 0 } } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg })).toBe(0);
   });
 
   it("disables the default idle timeout for cron when no timeout is configured", () => {
     expect(resolveLlmIdleTimeoutMs({ trigger: "cron" })).toBe(0);
 
-    const cfg = { agents: { defaults: { llm: {} } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: {} } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg, trigger: "cron" })).toBe(0);
   });
 
   it("caps agents.defaults.timeoutSeconds for cron before disabling the default idle timeout", () => {
-    const cfg = { agents: { defaults: { timeoutSeconds: 300 } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { timeoutSeconds: 300 } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg, trigger: "cron" })).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("keeps an explicit cron idle timeout when configured", () => {
-    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 45 } } } } as OpenClawConfig;
+    const cfg = { agents: { defaults: { llm: { idleTimeoutSeconds: 45 } } } } as GenesisConfig;
     expect(resolveLlmIdleTimeoutMs({ cfg, trigger: "cron" })).toBe(45_000);
   });
 });

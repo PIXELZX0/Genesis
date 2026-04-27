@@ -3,8 +3,8 @@ import type { ReplyOperation } from "../../auto-reply/reply/reply-run-registry.j
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { CliSessionBinding } from "../../config/sessions.js";
 import type { SessionSystemPromptReport } from "../../config/sessions/types.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { CliBackendConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import type { PromptImageOrderEntry } from "../../media/prompt-image-order.js";
 import type { ResolvedCliBackend } from "../cli-backends.js";
 import type { EmbeddedRunTrigger } from "../pi-embedded-runner/run/params.js";
@@ -17,7 +17,7 @@ export type RunCliAgentParams = {
   trigger?: EmbeddedRunTrigger;
   sessionFile: string;
   workspaceDir: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   prompt: string;
   transcriptPrompt?: string;
   provider: string;

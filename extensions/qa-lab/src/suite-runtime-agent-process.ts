@@ -23,7 +23,7 @@ type QaCronJob = {
 const ANSI_ESCAPE_PATTERN = new RegExp(String.raw`\x1B\[[0-?]*[ -/]*[@-~]`, "g");
 const MANAGED_DREAMING_CRON_MARKER = "[managed-by=memory-core.short-term-promotion]";
 const MANAGED_DREAMING_CRON_NAME = "Memory Dreaming Promotion";
-const MANAGED_DREAMING_PROMPT = "__openclaw_memory_core_short_term_promotion_dream__";
+const MANAGED_DREAMING_PROMPT = "__genesis_memory_core_short_term_promotion_dream__";
 
 function stripAnsiCodes(text: string) {
   return text.replace(ANSI_ESCAPE_PATTERN, "");
@@ -87,7 +87,7 @@ async function runQaCli(
     });
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
-      reject(new Error(`qa cli timed out: openclaw ${args.join(" ")}`));
+      reject(new Error(`qa cli timed out: genesis ${args.join(" ")}`));
     }, opts?.timeoutMs ?? 60_000);
     child.stdout.on("data", (chunk) => stdout.push(Buffer.from(chunk)));
     child.stderr.on("data", (chunk) => stderr.push(Buffer.from(chunk)));

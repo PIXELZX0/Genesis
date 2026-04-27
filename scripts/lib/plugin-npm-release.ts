@@ -3,14 +3,14 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { normalizeOptionalString } from "../../src/shared/string-coerce.ts";
-import { parseReleaseVersion } from "../openclaw-npm-release-check.ts";
+import { parseReleaseVersion } from "../genesis-npm-release-check.ts";
 import { resolveNpmPublishPlan } from "./npm-publish-plan.mjs";
 
 export type PluginPackageJson = {
   name?: string;
   version?: string;
   private?: boolean;
-  openclaw?: {
+  genesis?: {
     extensions?: string[];
     install?: {
       npmSpec?: string;
@@ -210,12 +210,10 @@ export function collectPublishablePluginPackageErrors(
   const errors: string[] = [];
   const packageName = packageJson.name?.trim() ?? "";
   const packageVersion = packageJson.version?.trim() ?? "";
-  const extensions = packageJson.openclaw?.extensions ?? [];
+  const extensions = packageJson.genesis?.extensions ?? [];
 
-  if (!packageName.startsWith("@openclaw/")) {
-    errors.push(
-      `package name must start with "@openclaw/"; found "${packageName || "<missing>"}".`,
-    );
+  if (!packageName.startsWith("@genesis/")) {
+    errors.push(`package name must start with "@genesis/"; found "${packageName || "<missing>"}".`);
   }
   if (packageJson.private === true) {
     errors.push("package.json private must not be true.");
@@ -228,10 +226,10 @@ export function collectPublishablePluginPackageErrors(
     );
   }
   if (!Array.isArray(extensions) || extensions.length === 0) {
-    errors.push("openclaw.extensions must contain at least one entry.");
+    errors.push("genesis.extensions must contain at least one entry.");
   }
   if (extensions.some((entry) => typeof entry !== "string" || !entry.trim())) {
-    errors.push("openclaw.extensions must contain only non-empty strings.");
+    errors.push("genesis.extensions must contain only non-empty strings.");
   }
 
   return errors;
@@ -245,7 +243,7 @@ export function collectPublishablePluginPackages(
 
   for (const candidate of collectExtensionPackageJsonCandidates(rootDir)) {
     const { extensionId, packageDir, packageJson } = candidate;
-    if (packageJson.openclaw?.release?.publishToNpm !== true) {
+    if (packageJson.genesis?.release?.publishToNpm !== true) {
       continue;
     }
 
@@ -272,7 +270,7 @@ export function collectPublishablePluginPackages(
       version,
       channel: parsedVersion.channel,
       publishTag: resolveNpmPublishPlan(version).publishTag,
-      installNpmSpec: normalizeOptionalString(packageJson.openclaw?.install?.npmSpec),
+      installNpmSpec: normalizeOptionalString(packageJson.genesis?.install?.npmSpec),
     });
   }
 
@@ -416,7 +414,7 @@ export function resolveChangedPublishablePluginPackages(params: {
 }
 
 export function isPluginVersionPublished(packageName: string, version: string): boolean {
-  const tempDir = mkdtempSync(join(tmpdir(), "openclaw-plugin-npm-view-"));
+  const tempDir = mkdtempSync(join(tmpdir(), "genesis-plugin-npm-view-"));
   const userconfigPath = join(tempDir, "npmrc");
   writeFileSync(userconfigPath, "");
 

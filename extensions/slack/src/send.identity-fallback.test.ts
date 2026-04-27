@@ -1,8 +1,8 @@
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSlackSendTestClient, installSlackBlockTestMocks } from "./blocks.test-helpers.js";
 
-vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
+vi.mock("genesis/plugin-sdk/runtime-env", () => ({
   logVerbose: vi.fn(),
   danger: (message: string) => message,
   shouldLogVerbose: () => false,

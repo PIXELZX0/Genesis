@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import { createMSTeamsConversationStoreFs } from "./conversation-store-fs.js";
 import {
   type GraphResponse,
@@ -129,7 +129,7 @@ export function resolveConversationPath(to: string): {
 }
 
 export type GetMessageMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   messageId: string;
 };
@@ -161,7 +161,7 @@ export async function getMessageMSTeams(
 }
 
 export type PinMessageMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   messageId: string;
 };
@@ -206,7 +206,7 @@ export async function pinMessageMSTeams(
 }
 
 export type UnpinMessageMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   /** The pinned-message resource ID returned by pin or list-pins (not the message ID). */
   pinnedMessageId: string;
@@ -238,7 +238,7 @@ export async function unpinMessageMSTeams(
 }
 
 export type ListPinsMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
 };
 
@@ -324,14 +324,14 @@ type GraphMessageWithReactions = GraphMessage & {
 };
 
 export type ReactMessageMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   messageId: string;
   reactionType: string;
 };
 
 export type ListReactionsMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   messageId: string;
 };
@@ -467,7 +467,7 @@ export async function listReactionsMSTeams(
 // ---------------------------------------------------------------------------
 
 export type SearchMessagesMSTeamsParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   query: string;
   from?: string;

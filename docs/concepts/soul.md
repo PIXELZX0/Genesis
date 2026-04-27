@@ -1,5 +1,5 @@
 ---
-summary: "Use SOUL.md to give your OpenClaw agent an actual voice instead of generic assistant sludge"
+summary: "Use SOUL.md to give your Genesis agent an actual voice instead of generic assistant sludge"
 read_when:
   - You want your agent to sound less generic
   - You are editing SOUL.md
@@ -9,7 +9,7 @@ title: "SOUL.md personality guide"
 
 `SOUL.md` is where your agent's voice lives.
 
-OpenClaw injects it on normal sessions, so it has real weight. If your agent
+Genesis injects it on normal sessions, so it has real weight. If your agent
 sounds bland, hedgy, or weirdly corporate, this is usually the file to fix.
 
 ## What belongs in SOUL.md
@@ -42,7 +42,7 @@ This lines up with OpenAI's prompt guidance:
 - The same guide recommends treating prompts like something you iterate on,
   pin, and evaluate, not magical prose you write once and forget.
 
-For OpenClaw, `SOUL.md` is that layer.
+For Genesis, `SOUL.md` is that layer.
 
 If you want better personality, write stronger instructions. If you want stable
 personality, keep them concise and versioned.
@@ -56,7 +56,7 @@ OpenAI refs:
 
 Paste this into your agent and let it rewrite `SOUL.md`.
 
-Path fixed for OpenClaw workspaces: use `SOUL.md`, not `http://SOUL.md`.
+Path fixed for Genesis workspaces: use `SOUL.md`, not `http://SOUL.md`.
 
 ```md
 Read your `SOUL.md`. Now rewrite it with these changes:

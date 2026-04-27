@@ -251,7 +251,7 @@ describe("normalizeVoiceCallConfig", () => {
     expect(normalized.streaming.providers).toEqual({});
     expect(normalized.realtime.streamPath).toBe("/voice/stream/realtime");
     expect(normalized.realtime.toolPolicy).toBe("safe-read-only");
-    expect(normalized.realtime.instructions).toContain("openclaw_agent_consult");
+    expect(normalized.realtime.instructions).toContain("genesis_agent_consult");
     expect(normalized.tunnel.provider).toBe("none");
     expect(normalized.webhookSecurity.allowedHosts).toEqual([]);
   });

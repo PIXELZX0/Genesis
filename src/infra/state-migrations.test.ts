@@ -2,7 +2,7 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { resolveChannelAllowFromPath } from "../pairing/pairing-store.js";
 import { createTrackedTempDirs } from "../test-utils/tracked-temp-dirs.js";
 import { detectLegacyStateMigrations, runLegacyStateMigrations } from "./state-migrations.js";
@@ -16,7 +16,7 @@ vi.mock("../channels/plugins/bundled.js", () => {
     }
   }
 
-  function resolveChatAppAccountId(cfg: OpenClawConfig): string {
+  function resolveChatAppAccountId(cfg: GenesisConfig): string {
     const channel = (cfg.channels as Record<string, { defaultAccount?: string }> | undefined)
       ?.chatapp;
     return channel?.defaultAccount ?? "default";
@@ -58,8 +58,8 @@ vi.mock("../channels/plugins/bundled.js", () => {
               ];
         });
       },
-      ({ cfg, env }: { cfg: OpenClawConfig; env: NodeJS.ProcessEnv }) => {
-        const root = env.OPENCLAW_STATE_DIR;
+      ({ cfg, env }: { cfg: GenesisConfig; env: NodeJS.ProcessEnv }) => {
+        const root = env.GENESIS_STATE_DIR;
         if (!root) {
           return [];
         }
@@ -78,9 +78,9 @@ vi.mock("../channels/plugins/bundled.js", () => {
 });
 
 const tempDirs = createTrackedTempDirs();
-const createTempDir = () => tempDirs.make("openclaw-state-migrations-test-");
+const createTempDir = () => tempDirs.make("genesis-state-migrations-test-");
 
-function createConfig(): OpenClawConfig {
+function createConfig(): GenesisConfig {
   return {
     agents: {
       list: [{ id: "worker-1", default: true }],
@@ -97,19 +97,19 @@ function createConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function createEnv(stateDir: string): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    OPENCLAW_STATE_DIR: stateDir,
+    GENESIS_STATE_DIR: stateDir,
   };
 }
 
 async function createLegacyStateFixture(params?: { includePreKey?: boolean }) {
   const root = await createTempDir();
-  const stateDir = path.join(root, ".openclaw");
+  const stateDir = path.join(root, ".genesis");
   const env = createEnv(stateDir);
   const cfg = createConfig();
 

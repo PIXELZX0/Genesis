@@ -1,5 +1,5 @@
 import { normalizeProviderId } from "../agents/model-selection.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -89,10 +89,10 @@ export function mergeConfigPatch<T>(base: T, patch: unknown): T {
 }
 
 export function applyProviderAuthConfigPatch(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   patch: unknown,
   options?: { replaceDefaultModels?: boolean },
-): OpenClawConfig {
+): GenesisConfig {
   const merged = mergeConfigPatch(cfg, patch);
   if (!options?.replaceDefaultModels || !isPlainRecord(patch)) {
     return merged;
@@ -112,7 +112,7 @@ export function applyProviderAuthConfigPatch(
         ...merged.agents?.defaults,
         // Opt-in replacement for migrations that rename/remove model keys.
         models: sanitizeConfigPatchValue(patchModels) as NonNullable<
-          NonNullable<OpenClawConfig["agents"]>["defaults"]
+          NonNullable<GenesisConfig["agents"]>["defaults"]
         >["models"],
       },
     },
@@ -120,10 +120,10 @@ export function applyProviderAuthConfigPatch(
 }
 
 export function applyDefaultModel(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   model: string,
   opts?: { preserveExistingPrimary?: boolean },
-): OpenClawConfig {
+): GenesisConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[model] = models[model] ?? {};
 

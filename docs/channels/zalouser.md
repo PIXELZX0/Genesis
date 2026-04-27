@@ -1,25 +1,25 @@
 ---
 summary: "Zalo personal account support via native zca-js (QR login), capabilities, and configuration"
 read_when:
-  - Setting up Zalo Personal for OpenClaw
+  - Setting up Zalo Personal for Genesis
   - Debugging Zalo Personal login or message flow
 title: "Zalo personal"
 ---
 
-Status: experimental. This integration automates a **personal Zalo account** via native `zca-js` inside OpenClaw.
+Status: experimental. This integration automates a **personal Zalo account** via native `zca-js` inside Genesis.
 
 > **Warning:** This is an unofficial integration and may result in account suspension/ban. Use at your own risk.
 
 ## Bundled plugin
 
-Zalo Personal ships as a bundled plugin in current OpenClaw releases, so normal
+Zalo Personal ships as a bundled plugin in current Genesis releases, so normal
 packaged builds do not need a separate install.
 
 If you are on an older build or a custom install that excludes Zalo Personal,
 install it manually:
 
-- Install via CLI: `openclaw plugins install @openclaw/zalouser`
-- Or from a source checkout: `openclaw plugins install ./path/to/local/zalouser-plugin`
+- Install via CLI: `genesis plugins install @genesis/zalouser`
+- Or from a source checkout: `genesis plugins install ./path/to/local/zalouser-plugin`
 - Details: [Plugins](/tools/plugin)
 
 No external `zca`/`openzca` CLI binary is required.
@@ -27,10 +27,10 @@ No external `zca`/`openzca` CLI binary is required.
 ## Quick setup (beginner)
 
 1. Ensure the Zalo Personal plugin is available.
-   - Current packaged OpenClaw releases already bundle it.
+   - Current packaged Genesis releases already bundle it.
    - Older/custom installs can add it manually with the commands above.
 2. Login (QR, on the Gateway machine):
-   - `openclaw channels login --channel zalouser`
+   - `genesis channels login --channel zalouser`
    - Scan the QR code with the Zalo mobile app.
 3. Enable the channel:
 
@@ -64,9 +64,9 @@ Channel id is `zalouser` to make it explicit this automates a **personal Zalo us
 Use the directory CLI to discover peers/groups and their IDs:
 
 ```bash
-openclaw directory self --channel zalouser
-openclaw directory peers list --channel zalouser --query "name"
-openclaw directory groups list --channel zalouser --query "work"
+genesis directory self --channel zalouser
+genesis directory peers list --channel zalouser --query "name"
+genesis directory groups list --channel zalouser --query "work"
 ```
 
 ## Limits
@@ -82,8 +82,8 @@ openclaw directory groups list --channel zalouser --query "work"
 
 Approve via:
 
-- `openclaw pairing list zalouser`
-- `openclaw pairing approve zalouser <code>`
+- `genesis pairing list zalouser`
+- `genesis pairing approve zalouser <code>`
 
 ## Group access (optional)
 
@@ -94,7 +94,7 @@ Approve via:
   - `channels.zalouser.groupAllowFrom` (controls which senders in allowed groups can trigger the bot)
 - Block all groups: `channels.zalouser.groupPolicy = "disabled"`.
 - The configure wizard can prompt for group allowlists.
-- On startup, OpenClaw resolves group/user names in allowlists to IDs and logs the mapping.
+- On startup, Genesis resolves group/user names in allowlists to IDs and logs the mapping.
 - Group allowlist matching is ID-only by default. Unresolved names are ignored for auth unless `channels.zalouser.dangerouslyAllowNameMatching: true` is enabled.
 - `channels.zalouser.dangerouslyAllowNameMatching: true` is a break-glass compatibility mode that re-enables mutable group-name matching.
 - If `groupAllowFrom` is unset, runtime falls back to `allowFrom` for group sender checks.
@@ -124,7 +124,7 @@ Example:
 - This applies both to allowlisted groups and open group mode.
 - Quoting a bot message counts as an implicit mention for group activation.
 - Authorized control commands (for example `/new`) can bypass mention gating.
-- When a group message is skipped because mention is required, OpenClaw stores it as pending group history and includes it on the next processed group message.
+- When a group message is skipped because mention is required, Genesis stores it as pending group history and includes it on the next processed group message.
 - Group history limit defaults to `messages.groupChat.historyLimit` (fallback `50`). You can override per account with `channels.zalouser.historyLimit`.
 
 Example:
@@ -145,7 +145,7 @@ Example:
 
 ## Multi-account
 
-Accounts map to `zalouser` profiles in OpenClaw state. Example:
+Accounts map to `zalouser` profiles in Genesis state. Example:
 
 ```json5
 {
@@ -163,18 +163,18 @@ Accounts map to `zalouser` profiles in OpenClaw state. Example:
 
 ## Typing, reactions, and delivery acknowledgements
 
-- OpenClaw sends a typing event before dispatching a reply (best-effort).
+- Genesis sends a typing event before dispatching a reply (best-effort).
 - Message reaction action `react` is supported for `zalouser` in channel actions.
   - Use `remove: true` to remove a specific reaction emoji from a message.
   - Reaction semantics: [Reactions](/tools/reactions)
-- For inbound messages that include event metadata, OpenClaw sends delivered + seen acknowledgements (best-effort).
+- For inbound messages that include event metadata, Genesis sends delivered + seen acknowledgements (best-effort).
 
 ## Troubleshooting
 
 **Login doesn't stick:**
 
-- `openclaw channels status --probe`
-- Re-login: `openclaw channels logout --channel zalouser && openclaw channels login --channel zalouser`
+- `genesis channels status --probe`
+- Re-login: `genesis channels logout --channel zalouser && genesis channels login --channel zalouser`
 
 **Allowlist/group name didn't resolve:**
 
@@ -183,7 +183,7 @@ Accounts map to `zalouser` profiles in OpenClaw state. Example:
 **Upgraded from old CLI-based setup:**
 
 - Remove any old external `zca` process assumptions.
-- The channel now runs fully in OpenClaw without external CLI binaries.
+- The channel now runs fully in Genesis without external CLI binaries.
 
 ## Related
 

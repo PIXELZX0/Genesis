@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { withTempHome } from "../../config/home-env.test-harness.js";
 import { createCommandWorkspaceHarness } from "./commands-filesystem.test-support.js";
 import { handleMcpCommand } from "./commands-mcp.js";
@@ -10,7 +10,7 @@ const mcpServers = vi.hoisted(() => new Map<string, Record<string, unknown>>());
 vi.mock("../../config/mcp-config.js", () => ({
   listConfiguredMcpServers: vi.fn(async () => ({
     ok: true,
-    path: "/tmp/openclaw.json",
+    path: "/tmp/genesis.json",
     config: {},
     mcpServers: Object.fromEntries(mcpServers),
   })),
@@ -18,7 +18,7 @@ vi.mock("../../config/mcp-config.js", () => ({
     mcpServers.set(name, { ...(server as Record<string, unknown>) });
     return {
       ok: true,
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       config: {},
       mcpServers: Object.fromEntries(mcpServers),
     };
@@ -27,7 +27,7 @@ vi.mock("../../config/mcp-config.js", () => ({
     const removed = mcpServers.delete(name);
     return {
       ok: true,
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       config: {},
       mcpServers: Object.fromEntries(mcpServers),
       removed,
@@ -35,7 +35,7 @@ vi.mock("../../config/mcp-config.js", () => ({
   }),
 }));
 
-const workspaceHarness = createCommandWorkspaceHarness("openclaw-command-mcp-");
+const workspaceHarness = createCommandWorkspaceHarness("genesis-command-mcp-");
 
 function expectMcpResult<T>(result: T | null): T {
   expect(result).toBeTruthy();
@@ -45,7 +45,7 @@ function expectMcpResult<T>(result: T | null): T {
   return result;
 }
 
-function buildCfg(): OpenClawConfig {
+function buildCfg(): GenesisConfig {
   return {
     commands: {
       text: true,
@@ -61,7 +61,7 @@ describe("handleCommands /mcp", () => {
   });
 
   it("writes MCP config and shows it back", async () => {
-    await withTempHome("openclaw-command-mcp-home-", async () => {
+    await withTempHome("genesis-command-mcp-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const setParams = buildCommandTestParams(
         '/mcp set context7={"command":"uvx","args":["context7-mcp"]}',
@@ -85,7 +85,7 @@ describe("handleCommands /mcp", () => {
   });
 
   it("rejects internal writes without operator.admin", async () => {
-    await withTempHome("openclaw-command-mcp-home-", async () => {
+    await withTempHome("genesis-command-mcp-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildCommandTestParams(
         '/mcp set context7={"command":"uvx","args":["context7-mcp"]}',
@@ -105,7 +105,7 @@ describe("handleCommands /mcp", () => {
   });
 
   it("accepts non-stdio MCP config at the config layer", async () => {
-    await withTempHome("openclaw-command-mcp-home-", async () => {
+    await withTempHome("genesis-command-mcp-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildCommandTestParams(
         '/mcp set remote={"url":"https://example.com/mcp"}',

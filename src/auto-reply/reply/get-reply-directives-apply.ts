@@ -1,5 +1,5 @@
 import type { SessionEntry, SessionScope } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import type { MsgContext } from "../templating.js";
 import type { ElevatedLevel } from "../thinking.js";
@@ -13,8 +13,8 @@ import { clearInlineDirectives } from "./get-reply-directives-utils.js";
 import type { createModelSelectionState } from "./model-selection.js";
 import type { TypingController } from "./typing.js";
 
-type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
-type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
+type AgentDefaults = NonNullable<GenesisConfig["agents"]>["defaults"];
+type AgentEntry = NonNullable<NonNullable<GenesisConfig["agents"]>["list"]>[number];
 
 let commandsStatusPromise: Promise<typeof import("./commands-status.runtime.js")> | null = null;
 let directiveLevelsPromise: Promise<typeof import("./directive-handling.levels.js")> | null = null;
@@ -84,7 +84,7 @@ export type ApplyDirectiveResult =
 
 export async function applyInlineDirectiveOverrides(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   agentDir: string;
   agentCfg: AgentDefaults;

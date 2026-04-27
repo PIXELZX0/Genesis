@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 function createTempDir(): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-module-loader-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-module-loader-"));
   tempDirs.push(tempDir);
   return tempDir;
 }

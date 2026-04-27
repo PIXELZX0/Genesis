@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
 import type { PluginManifestRecord } from "../plugins/manifest-registry.js";
 import {
@@ -9,7 +9,7 @@ import type { PluginOrigin } from "../plugins/plugin-origin.types.js";
 import { normalizeProviderId } from "./provider-id.js";
 
 export type ProviderAuthAliasLookupParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;
@@ -36,7 +36,7 @@ function resolveProviderAuthAliasOriginPriority(origin: PluginOrigin | undefined
 
 function isWorkspacePluginTrustedForAuthAliases(
   plugin: PluginManifestRecord,
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
 ): boolean {
   return isWorkspacePluginAllowedByConfig({
     config,

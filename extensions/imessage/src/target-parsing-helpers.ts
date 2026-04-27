@@ -11,4 +11,4 @@ export {
   type ParsedChatAllowTarget,
   type ParsedChatTarget,
   type ServicePrefix,
-} from "openclaw/plugin-sdk/channel-targets";
+} from "genesis/plugin-sdk/channel-targets";

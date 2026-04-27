@@ -2,7 +2,7 @@ import {
   resolveAckReaction,
   shouldAckReaction as shouldAckReactionGate,
   type AckReactionScope,
-} from "openclaw/plugin-sdk/channel-feedback";
+} from "genesis/plugin-sdk/channel-feedback";
 import {
   buildMentionRegexes,
   formatInboundEnvelope,
@@ -11,24 +11,24 @@ import {
   matchesMentionWithExplicit,
   resolveEnvelopeFormatOptions,
   resolveInboundMentionDecision,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { hasControlCommand } from "openclaw/plugin-sdk/command-detection";
-import { resolveControlCommandGate } from "openclaw/plugin-sdk/command-gating";
-import { shouldHandleTextCommands } from "openclaw/plugin-sdk/command-surface";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { enqueueSystemEvent } from "openclaw/plugin-sdk/infra-runtime";
-import { finalizeInboundContext } from "openclaw/plugin-sdk/reply-dispatch-runtime";
+} from "genesis/plugin-sdk/channel-inbound";
+import { hasControlCommand } from "genesis/plugin-sdk/command-detection";
+import { resolveControlCommandGate } from "genesis/plugin-sdk/command-gating";
+import { shouldHandleTextCommands } from "genesis/plugin-sdk/command-surface";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { enqueueSystemEvent } from "genesis/plugin-sdk/infra-runtime";
+import { finalizeInboundContext } from "genesis/plugin-sdk/reply-dispatch-runtime";
 import {
   buildPendingHistoryContextFromMap,
   recordPendingHistoryEntryIfEnabled,
-} from "openclaw/plugin-sdk/reply-history";
-import type { FinalizedMsgContext } from "openclaw/plugin-sdk/reply-runtime";
-import { logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { resolvePinnedMainDmOwnerFromAllowlist } from "openclaw/plugin-sdk/security-runtime";
+} from "genesis/plugin-sdk/reply-history";
+import type { FinalizedMsgContext } from "genesis/plugin-sdk/reply-runtime";
+import { logVerbose, shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
+import { resolvePinnedMainDmOwnerFromAllowlist } from "genesis/plugin-sdk/security-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type { ResolvedSlackAccount } from "../../accounts.js";
 import { reactSlackMessage } from "../../actions.js";
 import { formatSlackFileReference } from "../../file-reference.js";

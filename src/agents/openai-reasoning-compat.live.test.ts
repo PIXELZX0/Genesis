@@ -4,10 +4,10 @@ import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../config/config.js";
-import { resolveOpenClawAgentDir } from "./agent-paths.js";
+import { resolveGenesisAgentDir } from "./agent-paths.js";
 import { isLiveProfileKeyModeEnabled, isLiveTestEnabled } from "./live-test-helpers.js";
 import { getApiKeyForModel, requireApiKey } from "./model-auth.js";
-import { ensureOpenClawModelsJson } from "./models-config.js";
+import { ensureGenesisModelsJson } from "./models-config.js";
 import { sanitizeSessionHistory } from "./pi-embedded-runner/replay-history.js";
 import { discoverAuthStorage, discoverModels } from "./pi-model-discovery.js";
 
@@ -16,7 +16,7 @@ const REQUIRE_PROFILE_KEYS = isLiveProfileKeyModeEnabled();
 const LIVE_CREDENTIAL_PRECEDENCE = REQUIRE_PROFILE_KEYS ? "profile-first" : "env-first";
 const DEFAULT_TARGET_MODEL_REF = "openai-codex/gpt-5.1-codex-mini";
 const TARGET_MODEL_REF =
-  process.env.OPENCLAW_LIVE_OPENAI_REASONING_COMPAT_MODEL?.trim() || DEFAULT_TARGET_MODEL_REF;
+  process.env.GENESIS_LIVE_OPENAI_REASONING_COMPAT_MODEL?.trim() || DEFAULT_TARGET_MODEL_REF;
 const describeLive = LIVE ? describe : describe.skip;
 
 function logProgress(message: string): void {
@@ -110,7 +110,7 @@ function resolveTargetModelRef(): { provider: string; modelId: string } {
   const modelId = rest.join("/").trim();
   if (!provider?.trim() || !modelId) {
     throw new Error(
-      `Invalid OPENCLAW_LIVE_OPENAI_REASONING_COMPAT_MODEL: ${JSON.stringify(TARGET_MODEL_REF)}`,
+      `Invalid GENESIS_LIVE_OPENAI_REASONING_COMPAT_MODEL: ${JSON.stringify(TARGET_MODEL_REF)}`,
     );
   }
   return {
@@ -125,9 +125,9 @@ describeLive("openai reasoning compat live", () => {
     async () => {
       const { provider, modelId } = resolveTargetModelRef();
       const cfg = loadConfig();
-      await ensureOpenClawModelsJson(cfg);
+      await ensureGenesisModelsJson(cfg);
 
-      const agentDir = resolveOpenClawAgentDir();
+      const agentDir = resolveGenesisAgentDir();
       const authStorage = discoverAuthStorage(agentDir);
       const modelRegistry = discoverModels(authStorage, agentDir);
       const model = modelRegistry.find(provider, modelId) as Model<Api> | null;
@@ -179,9 +179,9 @@ describeLive("openai reasoning compat live", () => {
     async () => {
       const { provider, modelId } = resolveTargetModelRef();
       const cfg = loadConfig();
-      await ensureOpenClawModelsJson(cfg);
+      await ensureGenesisModelsJson(cfg);
 
-      const agentDir = resolveOpenClawAgentDir();
+      const agentDir = resolveGenesisAgentDir();
       const authStorage = discoverAuthStorage(agentDir);
       const modelRegistry = discoverModels(authStorage, agentDir);
       const model = modelRegistry.find(provider, modelId) as Model<Api> | null;

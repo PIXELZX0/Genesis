@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { note } from "../terminal/note.js";
@@ -20,7 +20,7 @@ export async function noteMacLaunchAgentOverrides() {
     return;
   }
   const home = resolveHomeDir();
-  const markerCandidates = [path.join(home, ".openclaw", "disable-launchagent")];
+  const markerCandidates = [path.join(home, ".genesis", "disable-launchagent")];
   const markerPath = markerCandidates.find((candidate) => fs.existsSync(candidate));
   if (!markerPath) {
     return;
@@ -45,7 +45,7 @@ async function launchctlGetenv(name: string): Promise<string | undefined> {
   }
 }
 
-function hasConfigGatewayCreds(cfg: OpenClawConfig): boolean {
+function hasConfigGatewayCreds(cfg: GenesisConfig): boolean {
   const localPassword = cfg.gateway?.auth?.password;
   const remoteToken = cfg.gateway?.remote?.token;
   const remotePassword = cfg.gateway?.remote?.password;
@@ -58,7 +58,7 @@ function hasConfigGatewayCreds(cfg: OpenClawConfig): boolean {
 }
 
 export async function noteMacLaunchctlGatewayEnvOverrides(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   deps?: {
     platform?: NodeJS.Platform;
     getenv?: (name: string) => Promise<string | undefined>;
@@ -74,11 +74,9 @@ export async function noteMacLaunchctlGatewayEnvOverrides(
   }
 
   const getenv = deps?.getenv ?? launchctlGetenv;
-  const tokenEntries = [
-    ["OPENCLAW_GATEWAY_TOKEN", await getenv("OPENCLAW_GATEWAY_TOKEN")],
-  ] as const;
+  const tokenEntries = [["GENESIS_GATEWAY_TOKEN", await getenv("GENESIS_GATEWAY_TOKEN")]] as const;
   const passwordEntries = [
-    ["OPENCLAW_GATEWAY_PASSWORD", await getenv("OPENCLAW_GATEWAY_PASSWORD")],
+    ["GENESIS_GATEWAY_PASSWORD", await getenv("GENESIS_GATEWAY_PASSWORD")],
   ] as const;
   const tokenEntry = tokenEntries.find(([, value]) => normalizeOptionalString(value));
   const passwordEntry = passwordEntries.find(([, value]) => normalizeOptionalString(value));
@@ -96,7 +94,7 @@ export async function noteMacLaunchctlGatewayEnvOverrides(
       ? `- \`${envTokenKey}\` is set; it overrides config tokens.`
       : undefined,
     envPassword
-      ? `- \`${envPasswordKey ?? "OPENCLAW_GATEWAY_PASSWORD"}\` is set; it overrides config passwords.`
+      ? `- \`${envPasswordKey ?? "GENESIS_GATEWAY_PASSWORD"}\` is set; it overrides config passwords.`
       : undefined,
     "- Clear overrides and restart the app/gateway:",
     envTokenKey ? `  launchctl unsetenv ${envTokenKey}` : undefined,
@@ -146,7 +144,7 @@ export function noteStartupOptimizationHints(
   const noteFn = deps?.noteFn ?? note;
   const compileCache = normalizeOptionalString(env.NODE_COMPILE_CACHE) ?? "";
   const disableCompileCache = normalizeOptionalString(env.NODE_DISABLE_COMPILE_CACHE) ?? "";
-  const noRespawn = normalizeOptionalString(env.OPENCLAW_NO_RESPAWN) ?? "";
+  const noRespawn = normalizeOptionalString(env.GENESIS_NO_RESPAWN) ?? "";
   const lines: string[] = [];
 
   if (!compileCache) {
@@ -165,7 +163,7 @@ export function noteStartupOptimizationHints(
 
   if (noRespawn !== "1") {
     lines.push(
-      "- OPENCLAW_NO_RESPAWN is not set to 1; set it to avoid extra startup overhead from self-respawn.",
+      "- GENESIS_NO_RESPAWN is not set to 1; set it to avoid extra startup overhead from self-respawn.",
     );
   }
 
@@ -175,9 +173,9 @@ export function noteStartupOptimizationHints(
 
   const suggestions = [
     "- Suggested env for low-power hosts:",
-    "  export NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache",
-    "  mkdir -p /var/tmp/openclaw-compile-cache",
-    "  export OPENCLAW_NO_RESPAWN=1",
+    "  export NODE_COMPILE_CACHE=/var/tmp/genesis-compile-cache",
+    "  mkdir -p /var/tmp/genesis-compile-cache",
+    "  export GENESIS_NO_RESPAWN=1",
     isTruthyEnvValue(disableCompileCache) ? "  unset NODE_DISABLE_COMPILE_CACHE" : undefined,
   ].filter((line): line is string => Boolean(line));
 

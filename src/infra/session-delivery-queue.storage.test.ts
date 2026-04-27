@@ -12,7 +12,7 @@ import {
 
 describe("session-delivery queue storage", () => {
   it("dedupes entries when an idempotency key is reused", async () => {
-    await withTempDir({ prefix: "openclaw-session-delivery-" }, async (tempDir) => {
+    await withTempDir({ prefix: "genesis-session-delivery-" }, async (tempDir) => {
       const firstId = await enqueueSessionDelivery(
         {
           kind: "agentTurn",
@@ -40,7 +40,7 @@ describe("session-delivery queue storage", () => {
   });
 
   it("persists retry metadata and removes acked entries", async () => {
-    await withTempDir({ prefix: "openclaw-session-delivery-" }, async (tempDir) => {
+    await withTempDir({ prefix: "genesis-session-delivery-" }, async (tempDir) => {
       const id = await enqueueSessionDelivery(
         {
           kind: "systemEvent",
@@ -61,7 +61,7 @@ describe("session-delivery queue storage", () => {
   });
 
   it("cleans up orphaned temporary queue files during load", async () => {
-    await withTempDir({ prefix: "openclaw-session-delivery-" }, async (tempDir) => {
+    await withTempDir({ prefix: "genesis-session-delivery-" }, async (tempDir) => {
       await enqueueSessionDelivery(
         {
           kind: "systemEvent",
@@ -82,7 +82,7 @@ describe("session-delivery queue storage", () => {
   });
 
   it("keeps fresh temporary queue files while a write may still be in flight", async () => {
-    await withTempDir({ prefix: "openclaw-session-delivery-" }, async (tempDir) => {
+    await withTempDir({ prefix: "genesis-session-delivery-" }, async (tempDir) => {
       const tmpPath = path.join(resolveSessionDeliveryQueueDir(tempDir), "active-entry.tmp");
       fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
       fs.writeFileSync(tmpPath, "active tmp");

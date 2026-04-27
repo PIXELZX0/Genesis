@@ -1,4 +1,4 @@
-import { stringEnum } from "openclaw/plugin-sdk/channel-actions";
+import { stringEnum } from "genesis/plugin-sdk/channel-actions";
 import { Type } from "typebox";
 
 const discordComponentEmojiSchema = Type.Object({

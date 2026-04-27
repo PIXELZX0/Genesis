@@ -7,22 +7,22 @@ describe("resolveEmbeddedAgentRuntime", () => {
   });
 
   it("accepts the PI kill switch", () => {
-    expect(resolveEmbeddedAgentRuntime({ OPENCLAW_AGENT_RUNTIME: "pi" })).toBe("pi");
+    expect(resolveEmbeddedAgentRuntime({ GENESIS_AGENT_RUNTIME: "pi" })).toBe("pi");
   });
 
   it("canonicalizes legacy Codex app-server runtime ids", () => {
-    expect(resolveEmbeddedAgentRuntime({ OPENCLAW_AGENT_RUNTIME: "codex" })).toBe("codex");
-    expect(resolveEmbeddedAgentRuntime({ OPENCLAW_AGENT_RUNTIME: "codex-app-server" })).toBe(
+    expect(resolveEmbeddedAgentRuntime({ GENESIS_AGENT_RUNTIME: "codex" })).toBe("codex");
+    expect(resolveEmbeddedAgentRuntime({ GENESIS_AGENT_RUNTIME: "codex-app-server" })).toBe(
       "codex",
     );
   });
 
   it("accepts auto mode", () => {
-    expect(resolveEmbeddedAgentRuntime({ OPENCLAW_AGENT_RUNTIME: "auto" })).toBe("auto");
+    expect(resolveEmbeddedAgentRuntime({ GENESIS_AGENT_RUNTIME: "auto" })).toBe("auto");
   });
 
   it("preserves plugin harness runtime ids", () => {
-    expect(resolveEmbeddedAgentRuntime({ OPENCLAW_AGENT_RUNTIME: "custom-harness" })).toBe(
+    expect(resolveEmbeddedAgentRuntime({ GENESIS_AGENT_RUNTIME: "custom-harness" })).toBe(
       "custom-harness",
     );
   });
@@ -30,17 +30,17 @@ describe("resolveEmbeddedAgentRuntime", () => {
 
 describe("resolveEmbeddedAgentHarnessFallback", () => {
   it("accepts the PI fallback kill switch", () => {
-    expect(resolveEmbeddedAgentHarnessFallback({ OPENCLAW_AGENT_HARNESS_FALLBACK: "none" })).toBe(
+    expect(resolveEmbeddedAgentHarnessFallback({ GENESIS_AGENT_HARNESS_FALLBACK: "none" })).toBe(
       "none",
     );
-    expect(resolveEmbeddedAgentHarnessFallback({ OPENCLAW_AGENT_HARNESS_FALLBACK: "pi" })).toBe(
+    expect(resolveEmbeddedAgentHarnessFallback({ GENESIS_AGENT_HARNESS_FALLBACK: "pi" })).toBe(
       "pi",
     );
   });
 
   it("ignores unknown fallback values", () => {
     expect(
-      resolveEmbeddedAgentHarnessFallback({ OPENCLAW_AGENT_HARNESS_FALLBACK: "custom" }),
+      resolveEmbeddedAgentHarnessFallback({ GENESIS_AGENT_HARNESS_FALLBACK: "custom" }),
     ).toBeUndefined();
   });
 });

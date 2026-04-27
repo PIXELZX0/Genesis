@@ -1,4 +1,4 @@
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 import { OLLAMA_DEFAULT_BASE_URL } from "./defaults.js";
 import { resolveOllamaApiBase } from "./provider-models.js";
 

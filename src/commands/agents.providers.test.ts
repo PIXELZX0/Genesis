@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { buildProviderStatusIndex } from "./agents.providers.js";
 
 const mocks = vi.hoisted(() => ({
@@ -58,7 +58,7 @@ describe("buildProviderStatusIndex", () => {
     mocks.listChannelPlugins.mockReturnValue([plugin]);
     mocks.getChannelPlugin.mockReturnValue(plugin);
 
-    const map = await buildProviderStatusIndex({} as OpenClawConfig);
+    const map = await buildProviderStatusIndex({} as GenesisConfig);
 
     expect(resolveAccount).not.toHaveBeenCalled();
     expect(inspectAccount).toHaveBeenCalledWith({}, "work");
@@ -88,7 +88,7 @@ describe("buildProviderStatusIndex", () => {
     mocks.listChannelPlugins.mockReturnValue([plugin]);
     mocks.getChannelPlugin.mockReturnValue(plugin);
 
-    await expect(buildProviderStatusIndex({} as OpenClawConfig)).resolves.toEqual(
+    await expect(buildProviderStatusIndex({} as GenesisConfig)).resolves.toEqual(
       new Map([
         [
           "quietchat:default",
@@ -119,6 +119,6 @@ describe("buildProviderStatusIndex", () => {
     mocks.listChannelPlugins.mockReturnValue([plugin]);
     mocks.getChannelPlugin.mockReturnValue(plugin);
 
-    await expect(buildProviderStatusIndex({} as OpenClawConfig)).rejects.toThrow("plugin crash");
+    await expect(buildProviderStatusIndex({} as GenesisConfig)).rejects.toThrow("plugin crash");
   });
 });

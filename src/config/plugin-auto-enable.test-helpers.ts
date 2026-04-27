@@ -22,13 +22,13 @@ export function resetPluginAutoEnableTestState(): void {
 }
 
 export function makeTempDir(): string {
-  return makeTrackedTempDir("openclaw-plugin-auto-enable", tempDirs);
+  return makeTrackedTempDir("genesis-plugin-auto-enable", tempDirs);
 }
 
 export function makeIsolatedEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   const rootDir = makeTempDir();
   return {
-    OPENCLAW_STATE_DIR: path.join(rootDir, "state"),
+    GENESIS_STATE_DIR: path.join(rootDir, "state"),
     ...overrides,
   };
 }
@@ -40,7 +40,7 @@ export function writePluginManifestFixture(params: {
 }): void {
   mkdirSafeDir(params.rootDir);
   fs.writeFileSync(
-    path.join(params.rootDir, "openclaw.plugin.json"),
+    path.join(params.rootDir, "genesis.plugin.json"),
     JSON.stringify(
       {
         id: params.id,
@@ -85,7 +85,7 @@ export function makeRegistry(
       origin: "config" as const,
       rootDir: `/fake/${plugin.id}`,
       source: `/fake/${plugin.id}/index.js`,
-      manifestPath: `/fake/${plugin.id}/openclaw.plugin.json`,
+      manifestPath: `/fake/${plugin.id}/genesis.plugin.json`,
     })),
     diagnostics: [],
   };

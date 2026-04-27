@@ -42,6 +42,7 @@ import type {
   SkillStatusReport,
   StatusSummary,
   ToolsCatalogResult,
+  WalletSummaryResult,
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
@@ -380,6 +381,8 @@ export type AppViewState = {
     overviewShowGatewayPassword: boolean;
     overviewLogLines: string[];
     overviewLogCursor: number;
+    walletSummary: WalletSummaryResult | null;
+    walletSummaryError: string | null;
     client: GatewayBrowserClient | null;
     refreshSessionsAfterChat: Set<string>;
     connect: () => void;

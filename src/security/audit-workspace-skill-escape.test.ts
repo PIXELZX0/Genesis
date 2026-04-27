@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { collectWorkspaceSkillSymlinkEscapeFindings } from "./audit-extra.async.js";
 import { AsyncTempCaseFactory } from "./test-temp-cases.js";
 
 const isWindows = process.platform === "win32";
 
 describe("security audit workspace skill path escape findings", () => {
-  const tempCases = new AsyncTempCaseFactory("openclaw-security-audit-workspace-");
+  const tempCases = new AsyncTempCaseFactory("genesis-security-audit-workspace-");
 
   beforeAll(async () => {
     await tempCases.setup();
@@ -34,7 +34,7 @@ describe("security audit workspace skill path escape findings", () => {
               path.join(workspaceDir, "skills", "leak", "SKILL.md"),
             );
             const findings = await collectWorkspaceSkillSymlinkEscapeFindings({
-              cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies OpenClawConfig,
+              cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies GenesisConfig,
             });
             const finding = findings.find(
               (entry) => entry.checkId === "skills.workspace.symlink_escape",
@@ -53,7 +53,7 @@ describe("security audit workspace skill path escape findings", () => {
           "utf-8",
         );
         const findings = await collectWorkspaceSkillSymlinkEscapeFindings({
-          cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies OpenClawConfig,
+          cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies GenesisConfig,
         });
         expect(findings.some((entry) => entry.checkId === "skills.workspace.symlink_escape")).toBe(
           false,
@@ -88,7 +88,7 @@ describe("security audit workspace skill path escape findings", () => {
 
     try {
       const findings = await collectWorkspaceSkillSymlinkEscapeFindings({
-        cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies OpenClawConfig,
+        cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies GenesisConfig,
       });
       const escapeFinding = findings.find((f) => f.checkId === "skills.workspace.symlink_escape");
       expect(escapeFinding).toBeDefined();
@@ -133,7 +133,7 @@ describe("security audit workspace skill path escape findings", () => {
 
     try {
       const findings = await collectWorkspaceSkillSymlinkEscapeFindings({
-        cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies OpenClawConfig,
+        cfg: { agents: { defaults: { workspace: workspaceDir } } } satisfies GenesisConfig,
         skillScanLimits: { maxDirVisits: 2 },
       });
       const truncFinding = findings.find((f) => f.checkId === "skills.workspace.scan_truncated");

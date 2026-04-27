@@ -1,5 +1,5 @@
 ---
-summary: "Use Qianfan's unified API to access many models in OpenClaw"
+summary: "Use Qianfan's unified API to access many models in Genesis"
 read_when:
   - You want a single API key for many LLMs
   - You need Baidu Qianfan setup guidance
@@ -27,12 +27,12 @@ endpoint and API key. It is OpenAI-compatible, so most OpenAI SDKs work by switc
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice qianfan-api-key
+    genesis onboard --auth-choice qianfan-api-key
     ```
   </Step>
   <Step title="Verify the model is available">
     ```bash
-    openclaw models list --provider qianfan
+    genesis models list --provider qianfan
     ```
   </Step>
 </Steps>
@@ -120,7 +120,7 @@ The default bundled model ref is `qianfan/deepseek-v3.2`. You only need to overr
     Choosing providers, model refs, and failover behavior.
   </Card>
   <Card title="Configuration reference" href="/gateway/configuration-reference" icon="gear">
-    Full OpenClaw configuration reference.
+    Full Genesis configuration reference.
   </Card>
   <Card title="Agent setup" href="/concepts/agent" icon="robot">
     Configuring agent defaults and model assignments.

@@ -4,7 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sendBlueBubblesMedia } from "./media-send.js";
-import type { OpenClawConfig, PluginRuntime } from "./runtime-api.js";
+import type { GenesisConfig, PluginRuntime } from "./runtime-api.js";
 import { setBlueBubblesRuntime } from "./runtime.js";
 
 const sendBlueBubblesAttachmentMock = vi.hoisted(() => vi.fn());
@@ -54,18 +54,18 @@ function createMockRuntime(): { runtime: PluginRuntime; mocks: RuntimeMocks } {
   };
 }
 
-function createConfig(overrides?: Record<string, unknown>): OpenClawConfig {
+function createConfig(overrides?: Record<string, unknown>): GenesisConfig {
   return {
     channels: {
       bluebubbles: {
         ...overrides,
       },
     },
-  } as unknown as OpenClawConfig;
+  } as unknown as GenesisConfig;
 }
 
 async function makeTempDir(): Promise<string> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-bb-media-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-bb-media-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -82,7 +82,7 @@ async function makeTempFile(
 }
 
 async function sendLocalMedia(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mediaPath: string;
   accountId?: string;
 }) {
@@ -95,7 +95,7 @@ async function sendLocalMedia(params: {
 }
 
 async function expectRejectedLocalMedia(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mediaPath: string;
   error: RegExp;
   accountId?: string;
@@ -112,7 +112,7 @@ async function expectRejectedLocalMedia(params: {
 }
 
 async function expectAllowedLocalMedia(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   mediaPath: string;
   expectedAttachment: Record<string, unknown>;
   accountId?: string;

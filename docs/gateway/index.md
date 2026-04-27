@@ -28,11 +28,11 @@ Use this page for day-1 startup and day-2 operations of the Gateway service.
   <Step title="Start the Gateway">
 
 ```bash
-openclaw gateway --port 18789
+genesis gateway --port 18789
 # debug/trace mirrored to stdio
-openclaw gateway --port 18789 --verbose
+genesis gateway --port 18789 --verbose
 # force-kill listener on selected port, then start
-openclaw gateway --force
+genesis gateway --force
 ```
 
   </Step>
@@ -40,19 +40,19 @@ openclaw gateway --force
   <Step title="Verify service health">
 
 ```bash
-openclaw gateway status
-openclaw status
-openclaw logs --follow
+genesis gateway status
+genesis status
+genesis logs --follow
 ```
 
-Healthy baseline: `Runtime: running`, `Connectivity probe: ok`, and `Capability: ...` that matches what you expect. Use `openclaw gateway status --require-rpc` when you need read-scope RPC proof, not just reachability.
+Healthy baseline: `Runtime: running`, `Connectivity probe: ok`, and `Capability: ...` that matches what you expect. Use `genesis gateway status --require-rpc` when you need read-scope RPC proof, not just reachability.
 
   </Step>
 
   <Step title="Validate channel readiness">
 
 ```bash
-openclaw channels status --probe
+genesis channels status --probe
 ```
 
 With a reachable gateway this runs live per-account channel probes and optional audits.
@@ -63,7 +63,7 @@ of live probe output.
 </Steps>
 
 <Note>
-Gateway config reload watches the active config file path (resolved from profile/state defaults, or `OPENCLAW_CONFIG_PATH` when set).
+Gateway config reload watches the active config file path (resolved from profile/state defaults, or `GENESIS_CONFIG_PATH` when set).
 Default mode is `gateway.reload.mode="hybrid"`.
 After the first successful load, the running process serves the active in-memory config snapshot; successful reload swaps that snapshot atomically.
 </Note>
@@ -78,12 +78,12 @@ After the first successful load, the running process serves the active in-memory
 - Default bind mode: `loopback`.
 - Auth is required by default. Shared-secret setups use
   `gateway.auth.token` / `gateway.auth.password` (or
-  `OPENCLAW_GATEWAY_TOKEN` / `OPENCLAW_GATEWAY_PASSWORD`), and non-loopback
+  `GENESIS_GATEWAY_TOKEN` / `GENESIS_GATEWAY_PASSWORD`), and non-loopback
   reverse-proxy setups can use `gateway.auth.mode: "trusted-proxy"`.
 
 ## OpenAI-compatible endpoints
 
-OpenClaw’s highest-leverage compatibility surface is now:
+Genesis’s highest-leverage compatibility surface is now:
 
 - `GET /v1/models`
 - `GET /v1/models/{id}`
@@ -99,18 +99,18 @@ Why this set matters:
 
 Planning note:
 
-- `/v1/models` is agent-first: it returns `openclaw`, `openclaw/default`, and `openclaw/<agentId>`.
-- `openclaw/default` is the stable alias that always maps to the configured default agent.
-- Use `x-openclaw-model` when you want a backend provider/model override; otherwise the selected agent's normal model and embedding setup stays in control.
+- `/v1/models` is agent-first: it returns `genesis`, `genesis/default`, and `genesis/<agentId>`.
+- `genesis/default` is the stable alias that always maps to the configured default agent.
+- Use `x-genesis-model` when you want a backend provider/model override; otherwise the selected agent's normal model and embedding setup stays in control.
 
 All of these run on the main Gateway port and use the same trusted operator auth boundary as the rest of the Gateway HTTP API.
 
 ### Port and bind precedence
 
-| Setting      | Resolution order                                              |
-| ------------ | ------------------------------------------------------------- |
-| Gateway port | `--port` → `OPENCLAW_GATEWAY_PORT` → `gateway.port` → `18789` |
-| Bind mode    | CLI/override → `gateway.bind` → `loopback`                    |
+| Setting      | Resolution order                                             |
+| ------------ | ------------------------------------------------------------ |
+| Gateway port | `--port` → `GENESIS_GATEWAY_PORT` → `gateway.port` → `18789` |
+| Bind mode    | CLI/override → `gateway.bind` → `loopback`                   |
 
 ### Hot reload modes
 
@@ -124,15 +124,15 @@ All of these run on the main Gateway port and use the same trusted operator auth
 ## Operator command set
 
 ```bash
-openclaw gateway status
-openclaw gateway status --deep   # adds a system-level service scan
-openclaw gateway status --json
-openclaw gateway install
-openclaw gateway restart
-openclaw gateway stop
-openclaw secrets reload
-openclaw logs --follow
-openclaw doctor
+genesis gateway status
+genesis gateway status --deep   # adds a system-level service scan
+genesis gateway status --json
+genesis gateway install
+genesis gateway restart
+genesis gateway stop
+genesis secrets reload
+genesis logs --follow
+genesis doctor
 ```
 
 `gateway status --deep` is for extra service discovery (LaunchDaemons/systemd system
@@ -148,8 +148,8 @@ You only need multiple gateways when you intentionally want isolation or a rescu
 Useful checks:
 
 ```bash
-openclaw gateway status --deep
-openclaw gateway probe
+genesis gateway status --deep
+genesis gateway probe
 ```
 
 What to expect:
@@ -163,35 +163,35 @@ What to expect:
 Checklist per instance:
 
 - Unique `gateway.port`
-- Unique `OPENCLAW_CONFIG_PATH`
-- Unique `OPENCLAW_STATE_DIR`
+- Unique `GENESIS_CONFIG_PATH`
+- Unique `GENESIS_STATE_DIR`
 - Unique `agents.defaults.workspace`
 
 Example:
 
 ```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json OPENCLAW_STATE_DIR=~/.openclaw-a openclaw gateway --port 19001
-OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b openclaw gateway --port 19002
+GENESIS_CONFIG_PATH=~/.genesis/a.json GENESIS_STATE_DIR=~/.genesis-a genesis gateway --port 19001
+GENESIS_CONFIG_PATH=~/.genesis/b.json GENESIS_STATE_DIR=~/.genesis-b genesis gateway --port 19002
 ```
 
 Detailed setup: [/gateway/multiple-gateways](/gateway/multiple-gateways).
 
 ## VoiceClaw real-time brain endpoint
 
-OpenClaw exposes a VoiceClaw-compatible real-time WebSocket endpoint at
+Genesis exposes a VoiceClaw-compatible real-time WebSocket endpoint at
 `/voiceclaw/realtime`. Use it when a VoiceClaw desktop client should talk
-directly to a real-time OpenClaw brain instead of going through a separate relay
+directly to a real-time Genesis brain instead of going through a separate relay
 process.
 
-The endpoint uses Gemini Live for real-time audio and calls OpenClaw as the
-brain by exposing OpenClaw tools directly to Gemini Live. Tool calls return an
-immediate `working` result to keep the voice turn responsive, then OpenClaw
+The endpoint uses Gemini Live for real-time audio and calls Genesis as the
+brain by exposing Genesis tools directly to Gemini Live. Tool calls return an
+immediate `working` result to keep the voice turn responsive, then Genesis
 executes the actual tool asynchronously and injects the result back into the
 live session. Set `GEMINI_API_KEY` in the gateway process environment. If
 gateway auth is enabled, the desktop client sends the gateway token or password
 in its first `session.config` message.
 
-Real-time brain access runs owner-authorized OpenClaw agent commands. Keep
+Real-time brain access runs owner-authorized Genesis agent commands. Keep
 `gateway.auth.mode: "none"` limited to loopback-only test instances. Non-local
 real-time brain connections require gateway auth.
 
@@ -199,11 +199,11 @@ For an isolated test gateway, run a separate instance with its own port, config,
 and state:
 
 ```bash
-OPENCLAW_CONFIG_PATH=/path/to/openclaw-realtime/openclaw.json \
-OPENCLAW_STATE_DIR=/path/to/openclaw-realtime/state \
-OPENCLAW_SKIP_CHANNELS=1 \
+GENESIS_CONFIG_PATH=/path/to/genesis-realtime/genesis.json \
+GENESIS_STATE_DIR=/path/to/genesis-realtime/state \
+GENESIS_SKIP_CHANNELS=1 \
 GEMINI_API_KEY=... \
-openclaw gateway --port 19789
+genesis gateway --port 19789
 ```
 
 Then configure VoiceClaw to use:
@@ -239,22 +239,22 @@ Use supervised runs for production-like reliability.
   <Tab title="macOS (launchd)">
 
 ```bash
-openclaw gateway install
-openclaw gateway status
-openclaw gateway restart
-openclaw gateway stop
+genesis gateway install
+genesis gateway status
+genesis gateway restart
+genesis gateway stop
 ```
 
-LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>` (named profile). `openclaw doctor` audits and repairs service config drift.
+LaunchAgent labels are `ai.genesis.gateway` (default) or `ai.genesis.<profile>` (named profile). `genesis doctor` audits and repairs service config drift.
 
   </Tab>
 
   <Tab title="Linux (systemd user)">
 
 ```bash
-openclaw gateway install
-systemctl --user enable --now openclaw-gateway[-<profile>].service
-openclaw gateway status
+genesis gateway install
+systemctl --user enable --now genesis-gateway[-<profile>].service
+genesis gateway status
 ```
 
 For persistence after logout, enable lingering:
@@ -267,12 +267,12 @@ Manual user-unit example when you need a custom install path:
 
 ```ini
 [Unit]
-Description=OpenClaw Gateway
+Description=Genesis Gateway
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/openclaw gateway --port 18789
+ExecStart=/usr/local/bin/genesis gateway --port 18789
 Restart=always
 RestartSec=5
 TimeoutStopSec=30
@@ -289,15 +289,15 @@ WantedBy=default.target
   <Tab title="Windows (native)">
 
 ```powershell
-openclaw gateway install
-openclaw gateway status --json
-openclaw gateway restart
-openclaw gateway stop
+genesis gateway install
+genesis gateway status --json
+genesis gateway restart
+genesis gateway stop
 ```
 
-Native Windows managed startup uses a Scheduled Task named `OpenClaw Gateway`
-(or `OpenClaw Gateway (<profile>)` for named profiles). If Scheduled Task
-creation is denied, OpenClaw falls back to a per-user Startup-folder launcher
+Native Windows managed startup uses a Scheduled Task named `Genesis Gateway`
+(or `Genesis Gateway (<profile>)` for named profiles). If Scheduled Task
+creation is denied, Genesis falls back to a per-user Startup-folder launcher
 that points at `gateway.cmd` inside the state directory.
 
   </Tab>
@@ -308,12 +308,12 @@ Use a system unit for multi-user/always-on hosts.
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now openclaw-gateway[-<profile>].service
+sudo systemctl enable --now genesis-gateway[-<profile>].service
 ```
 
 Use the same service body as the user unit, but install it under
-`/etc/systemd/system/openclaw-gateway[-<profile>].service` and adjust
-`ExecStart=` if your `openclaw` binary lives elsewhere.
+`/etc/systemd/system/genesis-gateway[-<profile>].service` and adjust
+`ExecStart=` if your `genesis` binary lives elsewhere.
 
   </Tab>
 </Tabs>
@@ -321,9 +321,9 @@ Use the same service body as the user unit, but install it under
 ## Dev profile quick path
 
 ```bash
-openclaw --dev setup
-openclaw --dev gateway --allow-unconfigured
-openclaw --dev status
+genesis --dev setup
+genesis --dev gateway --allow-unconfigured
+genesis --dev status
 ```
 
 Defaults include isolated state/config and base gateway port `19001`.
@@ -356,9 +356,9 @@ See full protocol docs: [Gateway Protocol](/gateway/protocol).
 ### Readiness
 
 ```bash
-openclaw gateway status
-openclaw channels status --probe
-openclaw health
+genesis gateway status
+genesis channels status --probe
+genesis health
 ```
 
 ### Gap recovery

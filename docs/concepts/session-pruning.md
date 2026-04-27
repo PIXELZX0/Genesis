@@ -35,7 +35,7 @@ cache-write size, directly lowering cost.
 
 ## Legacy image cleanup
 
-OpenClaw also runs a separate idempotent cleanup for older legacy sessions that
+Genesis also runs a separate idempotent cleanup for older legacy sessions that
 persisted raw image blocks in history.
 
 - It preserves the **3 most recent completed turns** byte-for-byte so prompt
@@ -47,14 +47,14 @@ persisted raw image blocks in history.
 
 ## Smart defaults
 
-OpenClaw auto-enables pruning for Anthropic profiles:
+Genesis auto-enables pruning for Anthropic profiles:
 
 | Profile type                                            | Pruning enabled | Heartbeat |
 | ------------------------------------------------------- | --------------- | --------- |
 | Anthropic OAuth/token auth (including Claude CLI reuse) | Yes             | 1 hour    |
 | API key                                                 | Yes             | 30 min    |
 
-If you set explicit values, OpenClaw does not override them.
+If you set explicit values, Genesis does not override them.
 
 ## Enable or disable
 

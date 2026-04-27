@@ -3,7 +3,7 @@ import path from "node:path";
 import {
   replaceManagedMarkdownBlock,
   withTrailingNewline,
-} from "openclaw/plugin-sdk/memory-host-markdown";
+} from "genesis/plugin-sdk/memory-host-markdown";
 import type { ResolvedMemoryWikiConfig } from "./config.js";
 import { appendMemoryWikiLog } from "./log.js";
 
@@ -15,9 +15,9 @@ export const WIKI_VAULT_DIRECTORIES = [
   "reports",
   "_attachments",
   "_views",
-  ".openclaw-wiki",
-  ".openclaw-wiki/locks",
-  ".openclaw-wiki/cache",
+  ".genesis-wiki",
+  ".genesis-wiki/locks",
+  ".genesis-wiki/cache",
 ] as const;
 
 export type InitializeMemoryWikiVaultResult = {
@@ -32,8 +32,8 @@ function buildIndexMarkdown(): string {
     replaceManagedMarkdownBlock({
       original: "# Wiki Index\n",
       heading: "## Generated",
-      startMarker: "<!-- openclaw:wiki:index:start -->",
-      endMarker: "<!-- openclaw:wiki:index:end -->",
+      startMarker: "<!-- genesis:wiki:index:start -->",
+      endMarker: "<!-- genesis:wiki:index:end -->",
       body: "- No compiled pages yet.",
     }),
   );
@@ -47,7 +47,7 @@ function buildAgentsMarkdown(): string {
 - Preserve human notes outside managed markers.
 - Prefer source-backed claims over wiki-to-wiki citation loops.
 - Prefer structured \`claims\` with evidence over burying key beliefs only in prose.
-- Use \`.openclaw-wiki/cache/agent-digest.json\` and \`claims.jsonl\` for machine reads; markdown pages are the human view.
+- Use \`.genesis-wiki/cache/agent-digest.json\` and \`claims.jsonl\` for machine reads; markdown pages are the human view.
 `);
 }
 
@@ -55,7 +55,7 @@ function buildWikiOverviewMarkdown(config: ResolvedMemoryWikiConfig): string {
   return withTrailingNewline(`\
 # Memory Wiki
 
-This vault is maintained by the OpenClaw memory-wiki plugin.
+This vault is maintained by the Genesis memory-wiki plugin.
 
 - Vault mode: \`${config.vaultMode}\`
 - Render mode: \`${config.vault.renderMode}\`
@@ -64,11 +64,11 @@ This vault is maintained by the OpenClaw memory-wiki plugin.
 ## Architecture
 - Raw sources remain the evidence layer.
 - Wiki pages are the human-readable synthesis layer.
-- \`.openclaw-wiki/cache/agent-digest.json\` is the agent-facing compiled digest.
+- \`.genesis-wiki/cache/agent-digest.json\` is the agent-facing compiled digest.
 
 ## Notes
-<!-- openclaw:human:start -->
-<!-- openclaw:human:end -->
+<!-- genesis:human:start -->
+<!-- genesis:human:end -->
 `);
 }
 
@@ -127,7 +127,7 @@ export async function initializeMemoryWikiVault(
     createdFiles,
   );
   await writeFileIfMissing(
-    path.join(rootDir, ".openclaw-wiki", "state.json"),
+    path.join(rootDir, ".genesis-wiki", "state.json"),
     withTrailingNewline(
       JSON.stringify(
         {
@@ -141,7 +141,7 @@ export async function initializeMemoryWikiVault(
     ),
     createdFiles,
   );
-  await writeFileIfMissing(path.join(rootDir, ".openclaw-wiki", "log.jsonl"), "", createdFiles);
+  await writeFileIfMissing(path.join(rootDir, ".genesis-wiki", "log.jsonl"), "", createdFiles);
 
   if (createdDirectories.length > 0 || createdFiles.length > 0) {
     await appendMemoryWikiLog(rootDir, {

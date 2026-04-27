@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   resolveCommandConversationResolution,
   type ResolveCommandConversationResolutionInput,
@@ -16,7 +16,7 @@ export type ResolveConversationBindingContextInput = Omit<
   ResolveCommandConversationResolutionInput,
   "includePlacementHint"
 > & {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 };
 
 export function resolveConversationBindingContext(

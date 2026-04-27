@@ -16,7 +16,7 @@ Broadcast Groups enable multiple agents to process and respond to the same messa
 
 Current scope: **WhatsApp only** (web channel).
 
-Broadcast groups are evaluated after channel allowlists and group activation rules. In WhatsApp groups, this means broadcasts happen when OpenClaw would normally reply (for example: on mention, depending on your group settings).
+Broadcast groups are evaluated after channel allowlists and group activation rules. In WhatsApp groups, this means broadcasts happen when Genesis would normally reply (for example: on mention, depending on your group settings).
 
 ## Use Cases
 
@@ -81,7 +81,7 @@ Add a top-level `broadcast` section (next to `bindings`). Keys are WhatsApp peer
 }
 ```
 
-**Result:** When OpenClaw would reply in this chat, it will run all three agents.
+**Result:** When Genesis would reply in this chat, it will run all three agents.
 
 ### Processing Strategy
 
@@ -190,7 +190,7 @@ In group `120363403215116621@g.us` with agents `["alfred", "baerbel"]`:
 ```
 Session: agent:alfred:whatsapp:group:120363403215116621@g.us
 History: [user message, alfred's previous responses]
-Workspace: /Users/user/openclaw-alfred/
+Workspace: /Users/user/genesis-alfred/
 Tools: read, write, exec
 ```
 
@@ -199,7 +199,7 @@ Tools: read, write, exec
 ```
 Session: agent:baerbel:whatsapp:group:120363403215116621@g.us
 History: [user message, baerbel's previous responses]
-Workspace: /Users/user/openclaw-baerbel/
+Workspace: /Users/user/genesis-baerbel/
 Tools: read only
 ```
 
@@ -315,7 +315,7 @@ Broadcast groups work alongside existing routing:
 **Debug:**
 
 ```bash
-tail -f ~/.openclaw/logs/gateway.log | grep broadcast
+tail -f ~/.genesis/logs/gateway.log | grep broadcast
 ```
 
 ### Only One Agent Responding
@@ -401,7 +401,7 @@ tail -f ~/.openclaw/logs/gateway.log | grep broadcast
 ### Config Schema
 
 ```typescript
-interface OpenClawConfig {
+interface GenesisConfig {
   broadcast?: {
     strategy?: "parallel" | "sequential";
     [peerId: string]: string[];

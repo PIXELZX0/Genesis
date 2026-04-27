@@ -40,7 +40,7 @@ const baseParams = {
       },
     },
   },
-  agentDir: "/tmp/openclaw-provider-catalog-test",
+  agentDir: "/tmp/genesis-provider-catalog-test",
   env: {
     ...process.env,
     CHUTES_API_KEY: "",

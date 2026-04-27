@@ -1,29 +1,29 @@
-import { type Bot, GrammyError, InputFile } from "grammy";
-import type { ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
-import type { MarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { fireAndForgetHook } from "openclaw/plugin-sdk/hook-runtime";
-import { createInternalHookEvent, triggerInternalHook } from "openclaw/plugin-sdk/hook-runtime";
+import type { ReplyToMode } from "genesis/plugin-sdk/config-runtime";
+import type { MarkdownTableMode } from "genesis/plugin-sdk/config-runtime";
+import { fireAndForgetHook } from "genesis/plugin-sdk/hook-runtime";
+import { createInternalHookEvent, triggerInternalHook } from "genesis/plugin-sdk/hook-runtime";
 import {
   buildCanonicalSentMessageHookContext,
   toInternalMessageSentContext,
   toPluginMessageContext,
   toPluginMessageSentEvent,
-} from "openclaw/plugin-sdk/hook-runtime";
-import type { ReplyPayloadDelivery } from "openclaw/plugin-sdk/interactive-runtime";
-import { buildOutboundMediaLoadOptions } from "openclaw/plugin-sdk/media-runtime";
-import { isGifMedia, kindFromMime } from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/hook-runtime";
+import type { ReplyPayloadDelivery } from "genesis/plugin-sdk/interactive-runtime";
+import { buildOutboundMediaLoadOptions } from "genesis/plugin-sdk/media-runtime";
+import { isGifMedia, kindFromMime } from "genesis/plugin-sdk/media-runtime";
 import {
   createOutboundPayloadPlan,
   projectOutboundPayloadPlanForDelivery,
-} from "openclaw/plugin-sdk/outbound-runtime";
-import { getGlobalHookRunner } from "openclaw/plugin-sdk/plugin-runtime";
-import { chunkMarkdownTextWithMode, type ChunkMode } from "openclaw/plugin-sdk/reply-chunking";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { danger, logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
-import { loadWebMedia } from "openclaw/plugin-sdk/web-media";
+} from "genesis/plugin-sdk/outbound-runtime";
+import { getGlobalHookRunner } from "genesis/plugin-sdk/plugin-runtime";
+import { chunkMarkdownTextWithMode, type ChunkMode } from "genesis/plugin-sdk/reply-chunking";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-payload";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { danger, logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { formatErrorMessage } from "genesis/plugin-sdk/ssrf-runtime";
+import { loadWebMedia } from "genesis/plugin-sdk/web-media";
+import { type Bot, GrammyError, InputFile } from "grammy";
 import type { TelegramInlineButtons } from "../button-types.js";
 import { splitTelegramCaption } from "../caption.js";
 import {
@@ -590,7 +590,7 @@ export function emitTelegramMessageSentHooks(params: EmitMessageSentHookParams):
 
 export async function deliverReplies(params: {
   replies: ReplyPayload[];
-  cfg?: import("openclaw/plugin-sdk/config-runtime").OpenClawConfig;
+  cfg?: import("genesis/plugin-sdk/config-runtime").GenesisConfig;
   chatId: string;
   accountId?: string;
   sessionKeyForInternalHooks?: string;

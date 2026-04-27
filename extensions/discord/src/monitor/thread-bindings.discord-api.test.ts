@@ -1,5 +1,5 @@
 import { ChannelType } from "discord-api-types/v10";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as discordClientModule from "../client.js";
 import * as discordSendModule from "../send.js";
@@ -33,7 +33,7 @@ beforeAll(async () => {
 
 function resolveTestChannelIdForBinding(
   params: Omit<Parameters<typeof resolveChannelIdForBinding>[0], "cfg"> & {
-    cfg?: OpenClawConfig;
+    cfg?: GenesisConfig;
   },
 ) {
   return resolveChannelIdForBinding({
@@ -129,7 +129,7 @@ describe("resolveChannelIdForBinding", () => {
   it("forwards cfg when resolving channel id through Discord client", async () => {
     const cfg = {
       channels: { discord: { token: "tok" } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     restGet.mockResolvedValueOnce({
       id: "thread-1",
       type: ChannelType.PublicThread,
@@ -143,9 +143,9 @@ describe("resolveChannelIdForBinding", () => {
     });
 
     const createDiscordRestClientCalls = createDiscordRestClient.mock.calls as unknown[][];
-    expect(
-      (createDiscordRestClientCalls[0]?.[0] as { cfg?: OpenClawConfig } | undefined)?.cfg,
-    ).toBe(cfg);
+    expect((createDiscordRestClientCalls[0]?.[0] as { cfg?: GenesisConfig } | undefined)?.cfg).toBe(
+      cfg,
+    );
   });
 
   it("keeps non-thread channel id even when parent_id exists", async () => {
@@ -195,7 +195,7 @@ describe("maybeSendBindingMessage", () => {
   it("forwards cfg to webhook send path", async () => {
     const cfg = {
       channels: { discord: { token: "tok" } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const record = {
       accountId: "default",
       channelId: "parent-1",

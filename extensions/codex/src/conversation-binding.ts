@@ -1,10 +1,10 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/agent-harness-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/agent-harness-runtime";
 import type {
   PluginConversationBindingResolvedEvent,
   PluginHookInboundClaimContext,
   PluginHookInboundClaimEvent,
-} from "openclaw/plugin-sdk/plugin-entry";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/plugin-entry";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-payload";
 import { CODEX_CONTROL_METHODS } from "./app-server/capabilities.js";
 import {
   codexSandboxPolicyForTurn,
@@ -65,7 +65,7 @@ type CodexConversationGlobalState = {
   queues: Map<string, Promise<void>>;
 };
 
-const CODEX_CONVERSATION_GLOBAL_STATE = Symbol.for("openclaw.codex.conversationBinding");
+const CODEX_CONVERSATION_GLOBAL_STATE = Symbol.for("genesis.codex.conversationBinding");
 
 function getGlobalState(): CodexConversationGlobalState {
   const globalState = globalThis as typeof globalThis & {
@@ -213,7 +213,7 @@ async function createThread(params: {
       sandbox: runtime.sandbox,
       ...(runtime.serviceTier ? { serviceTier: runtime.serviceTier } : {}),
       developerInstructions:
-        "This Codex thread is bound to an OpenClaw conversation. Answer normally; OpenClaw will deliver your final response back to the conversation.",
+        "This Codex thread is bound to an Genesis conversation. Answer normally; Genesis will deliver your final response back to the conversation.",
       experimentalRawEvents: true,
       persistExtendedHistory: true,
     },
@@ -260,7 +260,7 @@ async function runBoundTurn(params: {
           contentItems: [
             {
               type: "inputText",
-              text: "OpenClaw native Codex conversation binding does not expose dynamic OpenClaw tools yet.",
+              text: "Genesis native Codex conversation binding does not expose dynamic Genesis tools yet.",
             },
           ],
           success: false,
@@ -273,7 +273,7 @@ async function runBoundTurn(params: {
         return {
           decision: "decline",
           reason:
-            "OpenClaw native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
+            "Genesis native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
         };
       }
       if (request.method === "item/permissions/requestApproval") {
@@ -283,7 +283,7 @@ async function runBoundTurn(params: {
         return {
           decision: "decline",
           reason:
-            "OpenClaw native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
+            "Genesis native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
         };
       }
       return undefined;

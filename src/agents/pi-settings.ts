@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ContextEngineInfo } from "../context-engine/types.js";
 import { MIN_PROMPT_BUDGET_RATIO, MIN_PROMPT_BUDGET_TOKENS } from "./pi-compaction-constants.js";
 
@@ -40,7 +40,7 @@ export function ensurePiCompactionReserveTokens(params: {
   return { didOverride: true, reserveTokens: minReserveTokens };
 }
 
-export function resolveCompactionReserveTokensFloor(cfg?: OpenClawConfig): number {
+export function resolveCompactionReserveTokensFloor(cfg?: GenesisConfig): number {
   const raw = cfg?.agents?.defaults?.compaction?.reserveTokensFloor;
   if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
     return Math.floor(raw);
@@ -64,7 +64,7 @@ function toPositiveInt(value: unknown): number | undefined {
 
 export function applyPiCompactionSettingsFromConfig(params: {
   settingsManager: PiSettingsManagerLike;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   /** When known, the resolved context window budget for the current model. */
   contextTokenBudget?: number;
 }): {

@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { RuntimeEnv } from "../../runtime.js";
 
 export type ChannelPairingAdapter = {
   idLabel: string;
   normalizeAllowEntry?: (entry: string) => string;
   notifyApproval?: (params: {
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     id: string;
     accountId?: string;
     runtime?: RuntimeEnv;

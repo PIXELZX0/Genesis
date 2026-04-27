@@ -5,11 +5,11 @@
  * resolves agent routes, and handles replies.
  */
 
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-import type { MarkdownTableMode, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
+import type { MarkdownTableMode, GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { checkTwitchAccessControl } from "./access-control.js";
 import { getOrCreateClientManager } from "./client-manager-registry.js";
 import { getTwitchRuntime } from "./runtime.js";
@@ -24,7 +24,7 @@ export type TwitchRuntimeEnv = {
 export type TwitchMonitorOptions = {
   account: TwitchAccountConfig;
   accountId: string;
-  config: unknown; // OpenClawConfig
+  config: unknown; // GenesisConfig
   runtime: TwitchRuntimeEnv;
   abortSignal: AbortSignal;
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
@@ -49,7 +49,7 @@ async function processTwitchMessage(params: {
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
 }): Promise<void> {
   const { message, account, accountId, config, runtime, core, statusSink } = params;
-  const cfg = config as OpenClawConfig;
+  const cfg = config as GenesisConfig;
 
   const route = core.channel.routing.resolveAgentRoute({
     cfg,

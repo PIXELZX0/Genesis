@@ -38,9 +38,9 @@ function writeExternalSetupChannelPlugin(
     path.join(pluginDir, "package.json"),
     JSON.stringify(
       {
-        name: `@example/openclaw-${pluginId}`,
+        name: `@example/genesis-${pluginId}`,
         version: "1.0.0",
-        openclaw: {
+        genesis: {
           extensions: ["./index.cjs"],
           ...(setupEntry ? { setupEntry: "./setup-entry.cjs" } : {}),
         },
@@ -51,7 +51,7 @@ function writeExternalSetupChannelPlugin(
     "utf-8",
   );
   fs.writeFileSync(
-    path.join(pluginDir, "openclaw.plugin.json"),
+    path.join(pluginDir, "genesis.plugin.json"),
     JSON.stringify(
       {
         id: pluginId,
@@ -126,7 +126,7 @@ module.exports = {
             {
               id: ${JSON.stringify(`channels.${channelId}.token`)},
               targetType: "channel",
-              configFile: "openclaw.json",
+              configFile: "genesis.json",
               pathPattern: ${JSON.stringify(`channels.${channelId}.token`)},
               secretShape: "secret_input",
               expectedResolvedValue: "string",
@@ -170,7 +170,7 @@ module.exports = {
             {
               id: ${JSON.stringify(`channels.${setupChannelId}.token`)},
               targetType: "channel",
-              configFile: "openclaw.json",
+              configFile: "genesis.json",
               pathPattern: ${JSON.stringify(`channels.${setupChannelId}.token`)},
           secretShape: "secret_input",
           expectedResolvedValue: "string",
@@ -197,7 +197,7 @@ function writeBundledSetupChannelPlugin(
   } = {},
 ) {
   const bundledRoot = makeTempDir();
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledRoot;
+  process.env.GENESIS_BUNDLED_PLUGINS_DIR = bundledRoot;
   const pluginId = options.pluginId ?? "bundled-chat";
   const channelId = options.channelId ?? pluginId;
   const envVar = options.envVar ?? "BUNDLED_CHAT_TOKEN";
@@ -210,10 +210,10 @@ function writeBundledSetupChannelPlugin(
     path.join(pluginDir, "package.json"),
     JSON.stringify(
       {
-        name: `@openclaw/${pluginId}`,
+        name: `@genesis/${pluginId}`,
         version: "1.0.0",
         type: "commonjs",
-        openclaw: {
+        genesis: {
           extensions: ["./index.cjs"],
           setupEntry: "./setup-entry.cjs",
           channel: {
@@ -231,7 +231,7 @@ function writeBundledSetupChannelPlugin(
     "utf-8",
   );
   fs.writeFileSync(
-    path.join(pluginDir, "openclaw.plugin.json"),
+    path.join(pluginDir, "genesis.plugin.json"),
     JSON.stringify(
       {
         id: pluginId,
@@ -842,7 +842,7 @@ describe("listReadOnlyChannelPluginsForConfig", () => {
 
   it("discovers trusted external channel plugins from the default agent workspace", () => {
     const workspaceDir = makeTempDir();
-    const pluginDir = path.join(workspaceDir, ".openclaw", "extensions", "external-chat-plugin");
+    const pluginDir = path.join(workspaceDir, ".genesis", "extensions", "external-chat-plugin");
     fs.mkdirSync(pluginDir, { recursive: true });
     const { fullMarker, setupMarker } = writeExternalSetupChannelPlugin({
       pluginDir,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 
 vi.mock("../../agents/fast-mode.js", () => ({
   resolveFastModeState: () => ({ enabled: false }),
@@ -33,7 +33,7 @@ vi.mock("./queue.js", () => ({
 
 const { buildStatusReply } = await import("./commands-status.js");
 
-async function buildKiraStatusReply(cfg: OpenClawConfig) {
+async function buildKiraStatusReply(cfg: GenesisConfig) {
   return await buildStatusReply({
     cfg,
     command: {
@@ -71,7 +71,7 @@ describe("buildStatusReply", () => {
       channels: {
         whatsapp: { allowFrom: ["*"] },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const reply = await buildKiraStatusReply(cfg);
 
@@ -101,7 +101,7 @@ describe("buildStatusReply", () => {
       channels: {
         whatsapp: { allowFrom: ["*"] },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const reply = await buildKiraStatusReply(cfg);
 
@@ -131,7 +131,7 @@ describe("buildStatusReply", () => {
       channels: {
         whatsapp: { allowFrom: ["*"] },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const reply = await buildKiraStatusReply(cfg);
 
@@ -161,7 +161,7 @@ describe("buildStatusReply", () => {
       channels: {
         whatsapp: { allowFrom: ["*"] },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const reply = await buildKiraStatusReply(cfg);
 

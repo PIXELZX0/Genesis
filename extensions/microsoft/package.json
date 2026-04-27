@@ -1,16 +1,16 @@
 {
-  "name": "@openclaw/microsoft-speech",
+  "name": "@genesis/microsoft-speech",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Microsoft speech plugin",
+  "description": "Genesis Microsoft speech plugin",
   "type": "module",
   "dependencies": {
     "node-edge-tts": "^1.2.10"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

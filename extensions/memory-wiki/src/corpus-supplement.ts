@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../api.js";
+import type { GenesisConfig } from "../api.js";
 import type { ResolvedMemoryWikiConfig } from "./config.js";
 import { getMemoryWikiPage, searchMemoryWiki } from "./query.js";
 
 export function createWikiCorpusSupplement(params: {
   config: ResolvedMemoryWikiConfig;
-  appConfig?: OpenClawConfig;
+  appConfig?: GenesisConfig;
 }) {
   return {
     search: async (input: { query: string; maxResults?: number; agentSessionKey?: string }) =>

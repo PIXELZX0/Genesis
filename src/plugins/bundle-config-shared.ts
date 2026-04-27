@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { applyMergePatch } from "../config/merge-patch.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isRecord } from "../utils.js";
 import { normalizePluginsConfig, resolveEffectivePluginActivationState } from "./config-state.js";
@@ -93,7 +93,7 @@ export function inspectBundleServerRuntimeSupport<TConfig>(params: {
 
 export function loadEnabledBundleConfig<TConfig, TDiagnostic>(params: {
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   createEmptyConfig: () => TConfig;
   loadBundleConfig: (params: {
     pluginId: string;

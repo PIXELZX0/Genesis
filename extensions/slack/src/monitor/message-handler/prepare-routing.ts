@@ -1,17 +1,17 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   resolveRuntimeConversationBindingRoute,
   type RuntimeConversationBindingRouteResult,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { resolveThreadSessionKeys } from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { resolveThreadSessionKeys } from "genesis/plugin-sdk/routing";
 import { resolveSlackReplyToMode } from "../../account-reply-mode.js";
 import type { ResolvedSlackAccount } from "../../accounts.js";
 import { resolveSlackThreadContext } from "../../threading.js";
 import type { SlackMessageEvent } from "../../types.js";
 
 export type SlackRoutingContextDeps = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   teamId: string;
   threadInheritParent: boolean;
   threadHistoryScope: "thread" | "channel";

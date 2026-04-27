@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveGatewayClientBootstrap } from "./client-bootstrap.js";
 import { GatewayClient, type GatewayClientOptions } from "./client.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "./protocol/client-info.js";
@@ -8,7 +8,7 @@ export async function createOperatorApprovalsGatewayClient(
     GatewayClientOptions,
     "clientDisplayName" | "onClose" | "onConnectError" | "onEvent" | "onHelloOk"
   > & {
-    config: OpenClawConfig;
+    config: GenesisConfig;
     gatewayUrl?: string;
   },
 ): Promise<GatewayClient> {
@@ -35,7 +35,7 @@ export async function createOperatorApprovalsGatewayClient(
 
 export async function withOperatorApprovalsGatewayClient<T>(
   params: {
-    config: OpenClawConfig;
+    config: GenesisConfig;
     gatewayUrl?: string;
     clientDisplayName: string;
   },

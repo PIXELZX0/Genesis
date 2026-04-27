@@ -1,13 +1,13 @@
-export { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
+export { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
 export {
   buildTokenChannelStatusSummary,
   PAIRING_APPROVED_MESSAGE,
   projectCredentialSnapshotFields,
   resolveConfiguredFromCredentialStatuses,
-} from "openclaw/plugin-sdk/channel-status";
-export { createScopedChannelConfigAdapter } from "openclaw/plugin-sdk/channel-config-helpers";
-export type { ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-status";
+export { createScopedChannelConfigAdapter } from "genesis/plugin-sdk/channel-config-helpers";
+export type { ChannelPlugin } from "genesis/plugin-sdk/channel-core";
+export type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
 const DISCORD_CHANNEL_META = {
   id: "discord",

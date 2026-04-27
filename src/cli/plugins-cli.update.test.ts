@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   loadConfig,
   registerPluginsCli,
@@ -17,7 +17,7 @@ function createTrackedPluginConfig(params: {
   pluginId: string;
   spec: string;
   resolvedName?: string;
-}): OpenClawConfig {
+}): GenesisConfig {
   return {
     plugins: {
       installs: {
@@ -29,7 +29,7 @@ function createTrackedPluginConfig(params: {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 describe("plugins cli update", () => {
@@ -64,7 +64,7 @@ describe("plugins cli update", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const nextConfig = {
       hooks: {
         internal: {
@@ -77,7 +77,7 @@ describe("plugins cli update", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     loadConfig.mockReturnValue(cfg);
     updateNpmInstalledPlugins.mockResolvedValue({
@@ -116,7 +116,7 @@ describe("plugins cli update", () => {
       plugins: {
         installs: {},
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     await expect(runPluginsCommand(["plugins", "update"])).rejects.toThrow("__exit__:1");
 
@@ -129,7 +129,7 @@ describe("plugins cli update", () => {
       plugins: {
         installs: {},
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     await runPluginsCommand(["plugins", "update", "--all"]);
 
@@ -140,8 +140,8 @@ describe("plugins cli update", () => {
 
   it("passes dangerous force unsafe install to plugin updates", async () => {
     const config = createTrackedPluginConfig({
-      pluginId: "openclaw-codex-app-server",
-      spec: "openclaw-codex-app-server@beta",
+      pluginId: "genesis-codex-app-server",
+      spec: "genesis-codex-app-server@beta",
     });
     loadConfig.mockReturnValue(config);
     updateNpmInstalledPlugins.mockResolvedValue({
@@ -153,14 +153,14 @@ describe("plugins cli update", () => {
     await runPluginsCommand([
       "plugins",
       "update",
-      "openclaw-codex-app-server",
+      "genesis-codex-app-server",
       "--dangerously-force-unsafe-install",
     ]);
 
     expect(updateNpmInstalledPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
         config,
-        pluginIds: ["openclaw-codex-app-server"],
+        pluginIds: ["genesis-codex-app-server"],
         dangerouslyForceUnsafeInstall: true,
       }),
     );
@@ -172,21 +172,21 @@ describe("plugins cli update", () => {
         installs: {
           alpha: {
             source: "npm",
-            spec: "@openclaw/alpha@1.0.0",
+            spec: "@genesis/alpha@1.0.0",
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const nextConfig = {
       plugins: {
         installs: {
           alpha: {
             source: "npm",
-            spec: "@openclaw/alpha@1.1.0",
+            spec: "@genesis/alpha@1.1.0",
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     loadConfig.mockReturnValue(cfg);
     updateNpmInstalledPlugins.mockResolvedValue({
       outcomes: [{ status: "ok", message: "Updated alpha -> 1.1.0" }],

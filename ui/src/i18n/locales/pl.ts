@@ -179,7 +179,7 @@ export const pl: TranslationMap = {
     skills: "Skills i klucze API.",
     nodes: "Sparowane urządzenia i polecenia.",
     chat: "Czat Gateway do szybkich interwencji.",
-    config: "Edytuj openclaw.json.",
+    config: "Edytuj genesis.json.",
     communications: "Kanały, wiadomości i ustawienia audio.",
     appearance: "Motyw, UI i ustawienia kreatora konfiguracji.",
     automation: "Polecenia, hooki, cron i pluginy.",
@@ -216,6 +216,13 @@ export const pl: TranslationMap = {
       tickInterval: "Interwał tyknięcia",
       lastChannelsRefresh: "Ostatnie odświeżenie kanałów",
       channelsHint: "Użyj Kanałów, aby połączyć WhatsApp, Telegram, Discord, Signal lub iMessage.",
+    },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
     },
     stats: {
       instances: "Instancje",
@@ -254,7 +261,7 @@ export const pl: TranslationMap = {
       metadataUpgradeSummary:
         "To urządzenie jest już sparowane, ale zmiana metadanych oczekuje na zatwierdzenie.",
       mobileHint:
-        "Na urządzeniu mobilnym? Skopiuj pełny URL (w tym #token=...) z openclaw dashboard --no-open na komputerze.",
+        "Na urządzeniu mobilnym? Skopiuj pełny URL (w tym #token=...) z genesis dashboard --no-open na komputerze.",
       docsTitle: "Dokumentacja parowania urządzeń (otwiera się w nowej karcie)",
       docsLink: "Dokumentacja: Parowanie urządzeń",
     },
@@ -291,7 +298,7 @@ export const pl: TranslationMap = {
       modelAuthAttentionExpiredTitle: "Uwierzytelnianie modeli wygasło",
       modelAuthAttentionExpiringTitle: "Uwierzytelnianie modeli wkrótce wygaśnie",
       modelAuthAttentionExpiredDesc:
-        "{providers} — uwierzytelnij ponownie za pomocą openclaw models auth",
+        "{providers} — uwierzytelnij ponownie za pomocą genesis models auth",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

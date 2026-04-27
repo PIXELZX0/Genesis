@@ -21,7 +21,7 @@ describe("scripts/check-file-utils isCodeFile", () => {
 
 describe("scripts/check-file-utils collectFilesSync", () => {
   it("collects matching files while skipping common generated dirs", () => {
-    const rootDir = createTempDir("openclaw-check-file-utils-");
+    const rootDir = createTempDir("genesis-check-file-utils-");
     fs.mkdirSync(path.join(rootDir, "src", "nested"), { recursive: true });
     fs.mkdirSync(path.join(rootDir, "dist"), { recursive: true });
     fs.mkdirSync(path.join(rootDir, "docs", ".generated"), { recursive: true });
@@ -41,7 +41,7 @@ describe("scripts/check-file-utils collectFilesSync", () => {
   });
 
   it("supports custom skipped directories", () => {
-    const rootDir = createTempDir("openclaw-check-file-utils-");
+    const rootDir = createTempDir("genesis-check-file-utils-");
     fs.mkdirSync(path.join(rootDir, "fixtures"), { recursive: true });
     fs.mkdirSync(path.join(rootDir, "src"), { recursive: true });
     fs.writeFileSync(path.join(rootDir, "fixtures", "skip.ts"), "");

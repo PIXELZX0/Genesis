@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { isAllowlistedCaller, normalizePhoneNumber } from "../allowlist.js";
 import type { CallRecord, NormalizedEvent } from "../types.js";
 import type { CallManagerContext } from "./context.js";

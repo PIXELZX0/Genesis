@@ -6,7 +6,7 @@ import {
   resetConfigRuntimeState,
   setRuntimeConfigSnapshot,
 } from "../config/config.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { clearSecretsRuntimeSnapshot } from "../secrets/runtime.js";
 
 function withStableOwnerDisplaySecretForTest(cfg: unknown): unknown {
@@ -25,7 +25,7 @@ function withStableOwnerDisplaySecretForTest(cfg: unknown): unknown {
     ...record,
     commands: {
       ...commands,
-      ownerDisplaySecret: "openclaw-test-owner-display-secret",
+      ownerDisplaySecret: "genesis-test-owner-display-secret",
     },
   };
 }
@@ -35,13 +35,13 @@ export async function withTempConfig(params: {
   run: () => Promise<void>;
   prefix?: string;
 }): Promise<void> {
-  const prevConfigPath = process.env.OPENCLAW_CONFIG_PATH;
+  const prevConfigPath = process.env.GENESIS_CONFIG_PATH;
 
-  const testConfig = withStableOwnerDisplaySecretForTest(params.cfg) as OpenClawConfig;
-  const dir = await mkdtemp(path.join(os.tmpdir(), params.prefix ?? "openclaw-test-config-"));
-  const configPath = path.join(dir, "openclaw.json");
+  const testConfig = withStableOwnerDisplaySecretForTest(params.cfg) as GenesisConfig;
+  const dir = await mkdtemp(path.join(os.tmpdir(), params.prefix ?? "genesis-test-config-"));
+  const configPath = path.join(dir, "genesis.json");
 
-  process.env.OPENCLAW_CONFIG_PATH = configPath;
+  process.env.GENESIS_CONFIG_PATH = configPath;
 
   try {
     await writeFile(configPath, JSON.stringify(testConfig, null, 2), "utf-8");
@@ -52,9 +52,9 @@ export async function withTempConfig(params: {
     await params.run();
   } finally {
     if (prevConfigPath === undefined) {
-      delete process.env.OPENCLAW_CONFIG_PATH;
+      delete process.env.GENESIS_CONFIG_PATH;
     } else {
-      process.env.OPENCLAW_CONFIG_PATH = prevConfigPath;
+      process.env.GENESIS_CONFIG_PATH = prevConfigPath;
     }
     clearConfigCache();
     resetConfigRuntimeState();

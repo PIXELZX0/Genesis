@@ -1,7 +1,7 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   DEFAULT_GOOGLE_MEET_AUDIO_INPUT_COMMAND,
   DEFAULT_GOOGLE_MEET_AUDIO_OUTPUT_COMMAND,
@@ -263,7 +263,7 @@ function startChrome(params: Record<string, unknown>) {
             status: "chrome-opened",
             browserUrl: url,
             notes: [
-              "Browser page control is handled by OpenClaw browser automation when using chrome-node.",
+              "Browser page control is handled by Genesis browser automation when using chrome-node.",
             ],
           }
         : undefined,

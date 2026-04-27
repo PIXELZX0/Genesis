@@ -1,4 +1,4 @@
-# OpenClaw QA Scenario Pack
+# Genesis QA Scenario Pack
 
 Single source of truth for repo-backed QA suite bootstrap data.
 `qa-lab` should treat this directory as a generic markdown scenario pack:
@@ -19,7 +19,7 @@ Coverage tracking:
 - keep IDs behavior-shaped, broad enough to reuse, lowercase, and dotted or dashed
 - prefer reusing an existing feature ID over minting a scenario-shaped ID
 - avoid copying the scenario title into coverage IDs
-- use `pnpm openclaw qa coverage` to render the current inventory
+- use `pnpm genesis qa coverage` to render the current inventory
 - treat the old `coverage: ["id"]` / `coverage: - id` list shape as invalid
 - keep source-path tracking in the report, not in the scenario schema
 
@@ -44,7 +44,7 @@ agent:
   identityMarkdown: |-
     # Dev C-3PO
 
-    You are the OpenClaw QA operator agent.
+    You are the Genesis QA operator agent.
 
     Persona:
     - protocol-minded
@@ -60,7 +60,7 @@ agent:
     - end with a concise protocol report
 kickoffTask: |-
   QA mission:
-  Understand this OpenClaw repo from source + docs before acting.
+  Understand this Genesis repo from source + docs before acting.
   The repo is available in your workspace at `./repo/`.
   Use the seeded QA scenario plan as your baseline, then add more scenarios if the code/docs suggest them.
   Run the scenarios through the real qa-channel surfaces where possible.

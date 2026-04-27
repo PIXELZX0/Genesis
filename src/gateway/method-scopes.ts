@@ -113,6 +113,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "chat.history",
     "config.get",
     "config.schema.lookup",
+    "wallet.summary",
     "talk.config",
     "agents.files.list",
     "agents.files.get",

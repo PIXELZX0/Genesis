@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   NodePairingPairedNode,
   NodePairingPendingRequest,
@@ -52,7 +52,7 @@ function buildNodePairingRequestInput(params: {
 }
 
 export async function reconcileNodePairingOnConnect(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   connectParams: ConnectParams;
   pairedNode: NodePairingPairedNode | null;
   reportedClientIp?: string;

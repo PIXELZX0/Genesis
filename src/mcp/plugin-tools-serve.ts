@@ -1,5 +1,5 @@
 /**
- * Standalone MCP server that exposes OpenClaw plugin-registered tools
+ * Standalone MCP server that exposes Genesis plugin-registered tools
  * (e.g. memory-lancedb's memory_recall, memory_store, memory_forget)
  * so ACP sessions running Claude Code can use them.
  *
@@ -10,12 +10,12 @@ import { pathToFileURL } from "node:url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import { loadConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { resolvePluginTools } from "../plugins/tools.js";
 import { connectToolsMcpServerToStdio, createToolsMcpServer } from "./tools-stdio-server.js";
 
-function resolveTools(config: OpenClawConfig): AnyAgentTool[] {
+function resolveTools(config: GenesisConfig): AnyAgentTool[] {
   return resolvePluginTools({
     context: { config },
     suppressNameConflicts: true,
@@ -24,13 +24,13 @@ function resolveTools(config: OpenClawConfig): AnyAgentTool[] {
 
 export function createPluginToolsMcpServer(
   params: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     tools?: AnyAgentTool[];
   } = {},
 ): Server {
   const cfg = params.config ?? loadConfig();
   const tools = params.tools ?? resolveTools(cfg);
-  return createToolsMcpServer({ name: "openclaw-plugin-tools", tools });
+  return createToolsMcpServer({ name: "genesis-plugin-tools", tools });
 }
 
 export async function servePluginToolsMcp(): Promise<void> {

@@ -132,7 +132,7 @@ function runScript(
 
 describe("scripts/ios-team-id.sh", () => {
   beforeAll(async () => {
-    fixtureRoot = makeTempDir(tempDirs, "openclaw-ios-team-id-");
+    fixtureRoot = makeTempDir(tempDirs, "genesis-ios-team-id-");
     sharedBinDir = path.join(fixtureRoot, "shared-bin");
     await mkdir(sharedBinDir, { recursive: true });
     sharedHomeDir = path.join(fixtureRoot, "home");

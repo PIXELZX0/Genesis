@@ -1,9 +1,9 @@
-import { describeWebhookAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { formatNormalizedAllowFromEntries } from "openclaw/plugin-sdk/allow-from";
+import { describeWebhookAccountSnapshot } from "genesis/plugin-sdk/account-helpers";
+import { formatNormalizedAllowFromEntries } from "genesis/plugin-sdk/allow-from";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
+} from "genesis/plugin-sdk/channel-config-helpers";
 import {
   listBlueBubblesAccountIds,
   type ResolvedBlueBubblesAccount,

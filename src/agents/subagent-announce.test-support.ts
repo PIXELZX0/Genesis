@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { callGateway } from "../gateway/call.js";
 
 type DeliveryRuntimeMockOptions = {
   callGateway: (request: unknown) => Promise<unknown>;
-  loadConfig: () => OpenClawConfig;
+  loadConfig: () => GenesisConfig;
   loadSessionStore: (storePath: string) => unknown;
   resolveAgentIdFromSessionKey: (sessionKey: string) => string;
   resolveMainSessionKey: (cfg: unknown) => string;

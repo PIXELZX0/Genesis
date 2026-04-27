@@ -22,7 +22,7 @@ export class DashboardHeader extends LitElement {
                 new CustomEvent("navigate", { detail: "overview", bubbles: true, composed: true }),
               )}
           >
-            OpenClaw
+            Genesis
           </span>
           <span class="dashboard-header__breadcrumb-sep">›</span>
           <span class="dashboard-header__breadcrumb-current">${label}</span>

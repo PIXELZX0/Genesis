@@ -70,6 +70,13 @@ export type ProfileStatus = {
   tabCount: number;
   isDefault: boolean;
   isRemote: boolean;
+  tor?: {
+    enabled: true;
+    mode: "managed" | "external";
+    socksHost: string;
+    socksPort: number;
+    running: boolean | null;
+  } | null;
   missingFromConfig?: boolean;
   reconcileReason?: string | null;
 };

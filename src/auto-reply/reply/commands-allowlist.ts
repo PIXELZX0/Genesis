@@ -6,7 +6,7 @@ import {
   validateConfigObjectWithPlugins,
   writeConfigFile,
 } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   addChannelAllowFromStoreEntry,
   readChannelAllowFromStore,
@@ -59,7 +59,7 @@ const ACTIONS = new Set(["list", "add", "remove"]);
 const SCOPES = new Set<AllowlistScope>(["dm", "group", "all"]);
 
 function resolveAllowlistAccountId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelId: ChannelId;
   parsedAccount?: string;
   ctxAccountId?: string;
@@ -170,7 +170,7 @@ function parseAllowlistCommand(raw: string): AllowlistCommand | null {
 }
 
 function normalizeAllowFrom(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelId: ChannelId;
   accountId?: string | null;
   values: Array<string | number>;
@@ -234,7 +234,7 @@ function mapResolvedAllowlistNames(entries: ResolvedAllowlistName[]): Map<string
 }
 
 async function resolveAllowlistNames(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelId: ChannelId;
   accountId?: string | null;
   scope: "dm" | "group";
@@ -251,7 +251,7 @@ async function resolveAllowlistNames(params: {
 }
 
 async function readAllowlistConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelId: ChannelId;
   accountId?: string | null;
 }) {

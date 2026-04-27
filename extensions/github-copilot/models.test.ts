@@ -17,23 +17,23 @@ vi.mock("@mariozechner/pi-ai/oauth", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/provider-model-shared", () => ({
+vi.mock("genesis/plugin-sdk/provider-model-shared", () => ({
   normalizeModelCompat: (model: Record<string, unknown>) => model,
 }));
 
 const loadJsonFile = vi.fn();
 const saveJsonFile = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/json-store", () => ({
+vi.mock("genesis/plugin-sdk/json-store", () => ({
   loadJsonFile,
   saveJsonFile,
 }));
 
-vi.mock("openclaw/plugin-sdk/state-paths", () => ({
-  resolveStateDir: () => "/tmp/openclaw-state",
+vi.mock("genesis/plugin-sdk/state-paths", () => ({
+  resolveStateDir: () => "/tmp/genesis-state",
 }));
 
-import type { ProviderResolveDynamicModelContext } from "openclaw/plugin-sdk/core";
+import type { ProviderResolveDynamicModelContext } from "genesis/plugin-sdk/core";
 import { resolveCopilotForwardCompatModel } from "./models.js";
 
 let deriveCopilotApiBaseUrlFromToken: typeof import("./token.js").deriveCopilotApiBaseUrlFromToken;
@@ -244,7 +244,7 @@ describe("fetchCopilotUsage", () => {
 });
 
 describe("github-copilot token", () => {
-  const cachePath = "/tmp/openclaw-state/credentials/github-copilot.token.json";
+  const cachePath = "/tmp/genesis-state/credentials/github-copilot.token.json";
 
   beforeEach(async () => {
     vi.resetModules();

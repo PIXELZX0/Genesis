@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeProviderId } from "../provider-id.js";
 import { logAuthProfileFailureStateChange } from "./state-observation.js";
 import { saveAuthProfileStore, updateAuthProfileStoreWithLock } from "./store.js";
@@ -386,7 +386,7 @@ const DISABLED_FAILURE_BACKOFF_POLICIES = {
 } as const satisfies Record<DisabledFailureReason, DisabledFailureBackoffPolicy>;
 
 function resolveAuthCooldownConfig(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerId: string;
 }): ResolvedAuthCooldownConfig {
   const defaults = {
@@ -635,7 +635,7 @@ export async function markAuthProfileFailure(params: {
   store: AuthProfileStore;
   profileId: string;
   reason: AuthProfileFailureReason;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentDir?: string;
   runId?: string;
   modelId?: string;

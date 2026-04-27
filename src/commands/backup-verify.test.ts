@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildBackupArchiveRoot } from "./backup-shared.js";
 import { backupVerifyCommand } from "./backup-verify.js";
 
-const TEST_ARCHIVE_ROOT = "2026-03-09T00-00-00.000Z-openclaw-backup";
+const TEST_ARCHIVE_ROOT = "2026-03-09T00-00-00.000Z-genesis-backup";
 
 const createBackupVerifyRuntime = () => ({
   log: vi.fn(),
@@ -25,7 +25,7 @@ function createBackupManifest(assetArchivePath: string, archiveRoot = TEST_ARCHI
     assets: [
       {
         kind: "state",
-        sourcePath: "/tmp/.openclaw",
+        sourcePath: "/tmp/.genesis",
         archivePath: assetArchivePath,
       },
     ],
@@ -98,7 +98,7 @@ describe("backupVerifyCommand", () => {
   });
 
   it("verifies a valid backup archive", async () => {
-    const archiveDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-backup-verify-out-"));
+    const archiveDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-backup-verify-out-"));
     try {
       const runtime = createBackupVerifyRuntime();
       const nowMs = Date.UTC(2026, 2, 9, 0, 0, 0);
@@ -106,7 +106,7 @@ describe("backupVerifyCommand", () => {
       const archivePath = path.join(archiveDir, "backup.tar.gz");
       const manifestPath = path.join(archiveDir, "manifest.json");
       const payloadPath = path.join(archiveDir, "state.txt");
-      const payloadArchivePath = `${archiveRoot}/payload/posix/tmp/.openclaw/state.txt`;
+      const payloadArchivePath = `${archiveRoot}/payload/posix/tmp/.genesis/state.txt`;
       await fs.writeFile(
         manifestPath,
         `${JSON.stringify(createBackupManifest(payloadArchivePath, archiveRoot), null, 2)}\n`,
@@ -142,7 +142,7 @@ describe("backupVerifyCommand", () => {
   });
 
   it("fails when the archive does not contain a manifest", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-backup-no-manifest-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-backup-no-manifest-"));
     const archivePath = path.join(tempDir, "broken.tar.gz");
     try {
       const root = path.join(tempDir, "root");
@@ -160,10 +160,10 @@ describe("backupVerifyCommand", () => {
   });
 
   it("fails when the manifest references a missing asset payload", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-backup-missing-asset-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-backup-missing-asset-"));
     const archivePath = path.join(tempDir, "broken.tar.gz");
     try {
-      const rootName = "2026-03-09T00-00-00.000Z-openclaw-backup";
+      const rootName = "2026-03-09T00-00-00.000Z-genesis-backup";
       const root = path.join(tempDir, rootName);
       await fs.mkdir(root, { recursive: true });
       const manifest = {
@@ -176,8 +176,8 @@ describe("backupVerifyCommand", () => {
         assets: [
           {
             kind: "state",
-            sourcePath: "/tmp/.openclaw",
-            archivePath: `${rootName}/payload/posix/tmp/.openclaw`,
+            sourcePath: "/tmp/.genesis",
+            archivePath: `${rootName}/payload/posix/tmp/.genesis`,
           },
         ],
       };
@@ -199,12 +199,12 @@ describe("backupVerifyCommand", () => {
   it("rejects unsafe archive paths", async () => {
     for (const { tempPrefix, archivePath, error } of [
       {
-        tempPrefix: "openclaw-backup-traversal-",
+        tempPrefix: "genesis-backup-traversal-",
         archivePath: `${TEST_ARCHIVE_ROOT}/payload/../escaped.txt`,
         error: /path traversal segments/i,
       },
       {
-        tempPrefix: "openclaw-backup-backslash-",
+        tempPrefix: "genesis-backup-backslash-",
         archivePath: `${TEST_ARCHIVE_ROOT}/payload\\..\\escaped.txt`,
         error: /forward slashes/i,
       },
@@ -226,7 +226,7 @@ describe("backupVerifyCommand", () => {
   });
 
   it("ignores payload manifest.json files when locating the backup manifest", async () => {
-    const archiveDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-backup-verify-out-"));
+    const archiveDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-backup-verify-out-"));
     try {
       const runtime = createBackupVerifyRuntime();
       const nowMs = Date.UTC(2026, 2, 9, 2, 0, 0);
@@ -235,7 +235,7 @@ describe("backupVerifyCommand", () => {
       const manifestPath = path.join(archiveDir, "manifest.json");
       const statePayloadPath = path.join(archiveDir, "state.txt");
       const workspaceManifestPayloadPath = path.join(archiveDir, "workspace-manifest.json");
-      const stateArchivePath = `${archiveRoot}/payload/posix/tmp/.openclaw/state.txt`;
+      const stateArchivePath = `${archiveRoot}/payload/posix/tmp/.genesis/state.txt`;
       const workspaceArchivePath = `${archiveRoot}/payload/posix/tmp/workspace/manifest.json`;
       await fs.writeFile(
         manifestPath,
@@ -245,7 +245,7 @@ describe("backupVerifyCommand", () => {
             assets: [
               {
                 kind: "state",
-                sourcePath: "/tmp/.openclaw",
+                sourcePath: "/tmp/.genesis",
                 archivePath: stateArchivePath,
               },
               {
@@ -298,10 +298,10 @@ describe("backupVerifyCommand", () => {
   });
 
   it("rejects duplicate manifest and payload entries", async () => {
-    const payloadArchivePath = `${TEST_ARCHIVE_ROOT}/payload/posix/tmp/.openclaw/payload.txt`;
+    const payloadArchivePath = `${TEST_ARCHIVE_ROOT}/payload/posix/tmp/.genesis/payload.txt`;
     for (const options of [
       {
-        tempPrefix: "openclaw-backup-duplicate-manifest-",
+        tempPrefix: "genesis-backup-duplicate-manifest-",
         payloads: [{ fileName: "payload.txt", contents: "payload\n" }],
         buildTarEntries: ({
           manifestPath,
@@ -313,7 +313,7 @@ describe("backupVerifyCommand", () => {
         error: /expected exactly one backup manifest entry, found 2/i,
       },
       {
-        tempPrefix: "openclaw-backup-duplicate-payload-",
+        tempPrefix: "genesis-backup-duplicate-payload-",
         payloads: [
           { fileName: "payload-a.txt", contents: "payload-a\n", archivePath: payloadArchivePath },
           { fileName: "payload-b.txt", contents: "payload-b\n", archivePath: payloadArchivePath },

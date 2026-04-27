@@ -1,5 +1,5 @@
 import { afterAll, beforeAll } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { defaultRuntime } from "../../runtime.js";
 import type { FollowupRun } from "./queue.js";
 
@@ -35,7 +35,7 @@ export function createQueueTestRun(params: {
       sessionId: "sess",
       sessionFile: "/tmp/session.json",
       workspaceDir: "/tmp",
-      config: {} as OpenClawConfig,
+      config: {} as GenesisConfig,
       provider: "openai",
       model: "gpt-test",
       timeoutMs: 10_000,

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { resolveOpenClawAgentDir } from "../src/agents/agent-paths.js";
+import { resolveGenesisAgentDir } from "../src/agents/agent-paths.js";
 import { collectProviderApiKeys } from "../src/agents/live-auth-keys.js";
 import { isLiveProfileKeyModeEnabled, isLiveTestEnabled } from "../src/agents/live-test-helpers.js";
 import { resolveApiKeyForProvider } from "../src/agents/model-auth.js";
-import { loadConfig, type OpenClawConfig } from "../src/config/config.js";
+import { loadConfig, type GenesisConfig } from "../src/config/config.js";
 import { isTruthyEnvValue } from "../src/infra/env.js";
 import { getShellEnvAppliedKeys } from "../src/infra/shell-env.js";
 import { encodePngRgba, fillPixel } from "../src/media/png-encode.js";
@@ -25,10 +25,10 @@ import { maybeLoadShellEnvForGenerationProviders } from "./test-support/generati
 
 const LIVE = isLiveTestEnabled();
 const REQUIRE_PROFILE_KEYS =
-  isLiveProfileKeyModeEnabled() || isTruthyEnvValue(process.env.OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS);
+  isLiveProfileKeyModeEnabled() || isTruthyEnvValue(process.env.GENESIS_LIVE_REQUIRE_PROFILE_KEYS);
 const describeLive = LIVE ? describe : describe.skip;
-const providerFilter = parseCsvFilter(process.env.OPENCLAW_LIVE_MUSIC_GENERATION_PROVIDERS);
-const envModelMap = parseProviderModelMap(process.env.OPENCLAW_LIVE_MUSIC_GENERATION_MODELS);
+const providerFilter = parseCsvFilter(process.env.GENESIS_LIVE_MUSIC_GENERATION_PROVIDERS);
+const envModelMap = parseProviderModelMap(process.env.GENESIS_LIVE_MUSIC_GENERATION_MODELS);
 
 type LiveProviderCase = {
   plugin: Parameters<typeof registerProviderPlugin>[0]["plugin"];
@@ -54,7 +54,7 @@ const CASES: LiveProviderCase[] = [
   .filter((entry) => (providerFilter ? providerFilter.has(entry.providerId) : true))
   .toSorted((left, right) => left.providerId.localeCompare(right.providerId));
 
-function withPluginsEnabled(cfg: OpenClawConfig): OpenClawConfig {
+function withPluginsEnabled(cfg: GenesisConfig): GenesisConfig {
   return {
     ...cfg,
     plugins: {
@@ -122,7 +122,7 @@ describeLive("music generation provider live", () => {
     async () => {
       const cfg = withPluginsEnabled(loadConfig());
       const configuredModels = resolveConfiguredLiveMusicModels(cfg);
-      const agentDir = resolveOpenClawAgentDir();
+      const agentDir = resolveGenesisAgentDir();
       const attempted: string[] = [];
       const skipped: string[] = [];
       const failures: string[] = [];

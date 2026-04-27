@@ -1,22 +1,22 @@
 import type { App } from "@slack/bolt";
-import { formatAllowlistMatchMeta } from "openclaw/plugin-sdk/allow-from";
+import { formatAllowlistMatchMeta } from "genesis/plugin-sdk/allow-from";
 import type {
-  OpenClawConfig,
+  GenesisConfig,
   SlackReactionNotificationMode,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { SessionScope } from "openclaw/plugin-sdk/config-runtime";
-import type { DmPolicy, GroupPolicy } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { createDedupeCache } from "openclaw/plugin-sdk/infra-runtime";
-import type { HistoryEntry } from "openclaw/plugin-sdk/reply-history";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/config-runtime";
+import type { SessionScope } from "genesis/plugin-sdk/config-runtime";
+import type { DmPolicy, GroupPolicy } from "genesis/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { createDedupeCache } from "genesis/plugin-sdk/infra-runtime";
+import type { HistoryEntry } from "genesis/plugin-sdk/reply-history";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { getChildLogger } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type { SlackMessageEvent } from "../types.js";
 import { normalizeAllowList, normalizeAllowListLower, normalizeSlackSlug } from "./allow-list.js";
 import type { SlackChannelConfigEntries } from "./channel-config.js";
@@ -32,7 +32,7 @@ export {
 } from "./channel-type.js";
 
 export type SlackMonitorContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   botToken: string;
   app: App;
@@ -65,7 +65,7 @@ export type SlackMonitorContext = {
   threadHistoryScope: "thread" | "channel";
   threadInheritParent: boolean;
   threadRequireExplicitMention: boolean;
-  slashCommand: Required<import("openclaw/plugin-sdk/config-runtime").SlackSlashCommandConfig>;
+  slashCommand: Required<import("genesis/plugin-sdk/config-runtime").SlackSlashCommandConfig>;
   textLimit: number;
   ackReactionScope: string;
   typingReaction: string;
@@ -101,7 +101,7 @@ export type SlackMonitorContext = {
 };
 
 export function createSlackMonitorContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   botToken: string;
   app: App;

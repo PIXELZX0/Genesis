@@ -2,7 +2,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { resolveSessionTranscriptsDirForAgent } from "openclaw/plugin-sdk/memory-core";
+import { resolveSessionTranscriptsDirForAgent } from "genesis/plugin-sdk/memory-core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearMemoryEmbeddingProviders as clearRegistry,
@@ -134,7 +134,7 @@ describe("memory index", () => {
   const managersForCleanup = new Set<MemoryIndexManager>();
 
   beforeAll(async () => {
-    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-mem-fixtures-"));
+    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-mem-fixtures-"));
     workspaceDir = path.join(fixtureRoot, "workspace");
     memoryDir = path.join(workspaceDir, "memory");
     indexMainPath = path.join(workspaceDir, "index-main.sqlite");
@@ -156,7 +156,7 @@ describe("memory index", () => {
   beforeEach(async () => {
     // Perf: most suites don't need atomic swap behavior for full reindexes.
     // Keep atomic reindex tests on the safe path.
-    vi.stubEnv("OPENCLAW_TEST_MEMORY_UNSAFE_REINDEX", "1");
+    vi.stubEnv("GENESIS_TEST_MEMORY_UNSAFE_REINDEX", "1");
     clearRegistry();
     registerBuiltInMemoryEmbeddingProviders({ registerMemoryEmbeddingProvider: registerAdapter });
     embedBatchCalls = 0;
@@ -289,7 +289,7 @@ describe("memory index", () => {
     storeFileName: string;
   }): Promise<MemoryIndexManager | null> {
     forceNoProvider = true;
-    vi.stubEnv("OPENCLAW_STATE_DIR", path.join(workspaceDir, params.stateDirName));
+    vi.stubEnv("GENESIS_STATE_DIR", path.join(workspaceDir, params.stateDirName));
     const cfg = createCfg({
       storePath: path.join(workspaceDir, params.storeFileName),
       sources: ["memory", "sessions"],

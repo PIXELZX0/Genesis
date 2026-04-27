@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 /** Resolve the config path prefix for a channel account, falling back to the root channel section. */
 export function resolveChannelAccountConfigBasePath(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelKey: string;
   accountId: string;
 }): string {

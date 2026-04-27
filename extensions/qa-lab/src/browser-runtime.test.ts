@@ -54,7 +54,7 @@ describe("browser-runtime", () => {
 
     await qaBrowserOpenTab(env, {
       url: "http://127.0.0.1:43124/control-ui/chat?session=test",
-      profile: "openclaw",
+      profile: "genesis",
     });
 
     expect(env.gateway.call).toHaveBeenCalledWith(
@@ -63,7 +63,7 @@ describe("browser-runtime", () => {
         method: "POST",
         path: "/tabs/open",
         query: {
-          profile: "openclaw",
+          profile: "genesis",
         },
         body: {
           url: "http://127.0.0.1:43124/control-ui/chat?session=test",
@@ -107,7 +107,7 @@ describe("browser-runtime", () => {
     const env = createEnv();
 
     await qaBrowserAct(env, {
-      profile: "openclaw",
+      profile: "genesis",
       request: {
         kind: "type",
         ref: "12",
@@ -123,7 +123,7 @@ describe("browser-runtime", () => {
         method: "POST",
         path: "/act",
         query: {
-          profile: "openclaw",
+          profile: "genesis",
         },
         body: {
           kind: "type",

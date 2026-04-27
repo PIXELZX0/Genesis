@@ -3,7 +3,7 @@ import net from "node:net";
 import type {
   RealtimeTranscriptionProviderPlugin,
   RealtimeTranscriptionSession,
-} from "openclaw/plugin-sdk/realtime-transcription";
+} from "genesis/plugin-sdk/realtime-transcription";
 import { describe, expect, it, vi } from "vitest";
 import { WebSocket } from "ws";
 import { MediaStreamHandler, sanitizeLogText } from "./media-stream.js";

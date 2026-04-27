@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import type { Api, Model } from "@mariozechner/pi-ai";
 import { afterEach, describe, expect, it } from "vitest";
-import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
+import { resolveGenesisAgentDir } from "../agents/agent-paths.js";
 import { resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { ensureAuthProfileStore, saveAuthProfileStore } from "../agents/auth-profiles/store.js";
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
@@ -28,11 +28,11 @@ import { isLiveProfileKeyModeEnabled, isLiveTestEnabled } from "../agents/live-t
 import { getApiKeyForModel, resolveEnvApiKey } from "../agents/model-auth.js";
 import { normalizeProviderId } from "../agents/model-selection.js";
 import { shouldSuppressBuiltInModel } from "../agents/model-suppression.js";
-import { ensureOpenClawModelsJson } from "../agents/models-config.js";
+import { ensureGenesisModelsJson } from "../agents/models-config.js";
 import { isRateLimitErrorMessage } from "../agents/pi-embedded-helpers/errors.js";
 import { discoverAuthStorage, discoverModels } from "../agents/pi-model-discovery.js";
 import { clearRuntimeConfigSnapshot, loadConfig } from "../config/io.js";
-import type { ModelsConfig, ModelProviderConfig, OpenClawConfig } from "../config/types.js";
+import type { ModelsConfig, ModelProviderConfig, GenesisConfig } from "../config/types.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { normalizeGoogleModelId } from "../plugin-sdk/google-model-id.js";
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
@@ -49,11 +49,11 @@ import {
 import { startGatewayServer } from "./server.impl.js";
 import { loadSessionEntry, readSessionMessages } from "./session-utils.js";
 
-const ZAI_FALLBACK = isTruthyEnvValue(process.env.OPENCLAW_LIVE_GATEWAY_ZAI_FALLBACK);
+const ZAI_FALLBACK = isTruthyEnvValue(process.env.GENESIS_LIVE_GATEWAY_ZAI_FALLBACK);
 const REQUIRE_PROFILE_KEYS = isLiveProfileKeyModeEnabled();
 const LIVE_CREDENTIAL_PRECEDENCE = REQUIRE_PROFILE_KEYS ? "profile-first" : "env-first";
-const PROVIDERS = parseFilter(process.env.OPENCLAW_LIVE_GATEWAY_PROVIDERS);
-const GATEWAY_LIVE_SMOKE = isTruthyEnvValue(process.env.OPENCLAW_LIVE_GATEWAY_SMOKE);
+const PROVIDERS = parseFilter(process.env.GENESIS_LIVE_GATEWAY_PROVIDERS);
+const GATEWAY_LIVE_SMOKE = isTruthyEnvValue(process.env.GENESIS_LIVE_GATEWAY_SMOKE);
 const THINKING_LEVEL = GATEWAY_LIVE_SMOKE ? "low" : "high";
 const ENABLE_EXTRA_TOOL_PROBES = !GATEWAY_LIVE_SMOKE;
 const ENABLE_EXTRA_IMAGE_PROBES = !GATEWAY_LIVE_SMOKE;
@@ -65,12 +65,12 @@ const GATEWAY_LIVE_UNBOUNDED_TIMEOUT_MS = 60 * 60 * 1000;
 const GATEWAY_LIVE_MAX_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const GATEWAY_LIVE_PROBE_TIMEOUT_MS = Math.max(
   30_000,
-  toInt(process.env.OPENCLAW_LIVE_GATEWAY_STEP_TIMEOUT_MS, 90_000),
+  toInt(process.env.GENESIS_LIVE_GATEWAY_STEP_TIMEOUT_MS, 90_000),
 );
 const GATEWAY_LIVE_MODEL_TIMEOUT_MS = resolveGatewayLiveModelTimeoutMs();
 const GATEWAY_LIVE_HEARTBEAT_MS = Math.max(
   1_000,
-  toInt(process.env.OPENCLAW_LIVE_GATEWAY_HEARTBEAT_MS, 30_000),
+  toInt(process.env.GENESIS_LIVE_GATEWAY_HEARTBEAT_MS, 30_000),
 );
 const GATEWAY_LIVE_STRIP_SCAFFOLDING_MODEL_KEYS = new Set([
   "google/gemini-3-flash-preview",
@@ -86,9 +86,9 @@ const GATEWAY_LIVE_EXEC_READ_NONCE_MISS_SKIP_MODEL_KEYS = new Set([
 const GATEWAY_LIVE_TOOL_NONCE_MISS_SKIP_MODEL_KEYS = new Set(["google/gemini-3-flash-preview"]);
 const GATEWAY_LIVE_MAX_MODELS = resolveGatewayLiveMaxModels();
 const GATEWAY_LIVE_SUITE_TIMEOUT_MS = resolveGatewayLiveSuiteTimeoutMs(GATEWAY_LIVE_MAX_MODELS);
-const QUIET_LIVE_LOGS = process.env.OPENCLAW_LIVE_TEST_QUIET !== "0";
+const QUIET_LIVE_LOGS = process.env.GENESIS_LIVE_TEST_QUIET !== "0";
 
-const describeLive = isLiveTestEnabled(["OPENCLAW_LIVE_GATEWAY"]) ? describe : describe.skip;
+const describeLive = isLiveTestEnabled(["GENESIS_LIVE_GATEWAY"]) ? describe : describe.skip;
 
 function parseFilter(raw?: string): Set<string> | null {
   const trimmed = raw?.trim();
@@ -134,14 +134,14 @@ function toInt(value: string | undefined, fallback: number): number {
 }
 
 function resolveGatewayLiveMaxModels(): number {
-  const gatewayRaw = process.env.OPENCLAW_LIVE_GATEWAY_MAX_MODELS?.trim();
+  const gatewayRaw = process.env.GENESIS_LIVE_GATEWAY_MAX_MODELS?.trim();
   if (gatewayRaw) {
     return Math.max(0, toInt(gatewayRaw, 0));
   }
-  const rawModels = process.env.OPENCLAW_LIVE_GATEWAY_MODELS?.trim();
+  const rawModels = process.env.GENESIS_LIVE_GATEWAY_MODELS?.trim();
   const useExplicitModels = Boolean(rawModels) && rawModels !== "modern" && rawModels !== "all";
   return resolveHighSignalLiveModelLimit({
-    rawMaxModels: process.env.OPENCLAW_LIVE_MAX_MODELS,
+    rawMaxModels: process.env.GENESIS_LIVE_MAX_MODELS,
     useExplicitModels,
     defaultLimit: DEFAULT_HIGH_SIGNAL_LIVE_MODEL_LIMIT,
   });
@@ -160,8 +160,8 @@ function resolveGatewayLiveSuiteTimeoutMs(maxModels: number): number {
 }
 
 function resolveGatewayLiveModelTimeoutMs(
-  gatewayModelTimeoutRaw = process.env.OPENCLAW_LIVE_GATEWAY_MODEL_TIMEOUT_MS,
-  liveModelTimeoutRaw = process.env.OPENCLAW_LIVE_MODEL_TIMEOUT_MS,
+  gatewayModelTimeoutRaw = process.env.GENESIS_LIVE_GATEWAY_MODEL_TIMEOUT_MS,
+  liveModelTimeoutRaw = process.env.GENESIS_LIVE_MODEL_TIMEOUT_MS,
   stepTimeoutMs = GATEWAY_LIVE_PROBE_TIMEOUT_MS,
 ): number {
   const requested = toInt(gatewayModelTimeoutRaw, toInt(liveModelTimeoutRaw, 120_000));
@@ -510,9 +510,9 @@ describe("resolveGatewayLiveModelTimeoutMs", () => {
 });
 
 describe("resolveGatewayLiveMaxModels", () => {
-  const originalGatewayModels = process.env.OPENCLAW_LIVE_GATEWAY_MODELS;
-  const originalGatewayMax = process.env.OPENCLAW_LIVE_GATEWAY_MAX_MODELS;
-  const originalSharedMax = process.env.OPENCLAW_LIVE_MAX_MODELS;
+  const originalGatewayModels = process.env.GENESIS_LIVE_GATEWAY_MODELS;
+  const originalGatewayMax = process.env.GENESIS_LIVE_GATEWAY_MAX_MODELS;
+  const originalSharedMax = process.env.GENESIS_LIVE_MAX_MODELS;
   function restoreEnvValue(name: string, value: string | undefined): void {
     if (value === undefined) {
       delete process.env[name];
@@ -522,27 +522,27 @@ describe("resolveGatewayLiveMaxModels", () => {
   }
 
   afterEach(() => {
-    restoreEnvValue("OPENCLAW_LIVE_GATEWAY_MODELS", originalGatewayModels);
-    restoreEnvValue("OPENCLAW_LIVE_GATEWAY_MAX_MODELS", originalGatewayMax);
-    restoreEnvValue("OPENCLAW_LIVE_MAX_MODELS", originalSharedMax);
+    restoreEnvValue("GENESIS_LIVE_GATEWAY_MODELS", originalGatewayModels);
+    restoreEnvValue("GENESIS_LIVE_GATEWAY_MAX_MODELS", originalGatewayMax);
+    restoreEnvValue("GENESIS_LIVE_MAX_MODELS", originalSharedMax);
   });
 
   it("defaults modern gateway sweeps to the curated high-signal cap", () => {
-    delete process.env.OPENCLAW_LIVE_GATEWAY_MODELS;
-    delete process.env.OPENCLAW_LIVE_GATEWAY_MAX_MODELS;
-    delete process.env.OPENCLAW_LIVE_MAX_MODELS;
+    delete process.env.GENESIS_LIVE_GATEWAY_MODELS;
+    delete process.env.GENESIS_LIVE_GATEWAY_MAX_MODELS;
+    delete process.env.GENESIS_LIVE_MAX_MODELS;
 
     expect(resolveGatewayLiveMaxModels()).toBe(DEFAULT_HIGH_SIGNAL_LIVE_MODEL_LIMIT);
   });
 
   it("keeps explicit gateway model lists uncapped unless a cap is provided", () => {
-    process.env.OPENCLAW_LIVE_GATEWAY_MODELS = "openai/gpt-5.5,anthropic/claude-opus-4-6";
-    delete process.env.OPENCLAW_LIVE_GATEWAY_MAX_MODELS;
-    delete process.env.OPENCLAW_LIVE_MAX_MODELS;
+    process.env.GENESIS_LIVE_GATEWAY_MODELS = "openai/gpt-5.5,anthropic/claude-opus-4-6";
+    delete process.env.GENESIS_LIVE_GATEWAY_MAX_MODELS;
+    delete process.env.GENESIS_LIVE_MAX_MODELS;
 
     expect(resolveGatewayLiveMaxModels()).toBe(0);
 
-    process.env.OPENCLAW_LIVE_GATEWAY_MAX_MODELS = "2";
+    process.env.GENESIS_LIVE_GATEWAY_MAX_MODELS = "2";
     expect(resolveGatewayLiveMaxModels()).toBe(2);
   });
 });
@@ -1228,7 +1228,7 @@ async function requestGatewayAgentText(params: {
 
 type GatewayModelSuiteParams = {
   label: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   candidates: Array<Model<Api>>;
   allowNotFoundSkip: boolean;
   extraToolProbes: boolean;
@@ -1238,10 +1238,10 @@ type GatewayModelSuiteParams = {
 };
 
 function buildLiveGatewayConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   candidates: Array<Model<Api>>;
   providerOverrides?: Record<string, ModelProviderConfig>;
-}): OpenClawConfig {
+}): GenesisConfig {
   const providerOverrides = params.providerOverrides ?? {};
   const lmstudioProvider = params.cfg.models?.providers?.lmstudio;
   const baseProviders = params.cfg.models?.providers ?? {};
@@ -1282,9 +1282,9 @@ function buildLiveGatewayConfig(params: {
 }
 
 async function sanitizeAuthConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir: string;
-}): Promise<OpenClawConfig["auth"] | undefined> {
+}): Promise<GenesisConfig["auth"] | undefined> {
   const auth = params.cfg.auth;
   if (!auth) {
     return auth;
@@ -1293,7 +1293,7 @@ async function sanitizeAuthConfig(params: {
     allowKeychainPrompt: false,
   });
 
-  let profiles: NonNullable<OpenClawConfig["auth"]>["profiles"] | undefined;
+  let profiles: NonNullable<GenesisConfig["auth"]>["profiles"] | undefined;
   if (auth.profiles) {
     profiles = {};
     for (const [profileId, profile] of Object.entries(auth.profiles)) {
@@ -1333,7 +1333,7 @@ async function sanitizeAuthConfig(params: {
 }
 
 function buildMinimaxProviderOverride(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   api: "openai-completions" | "anthropic-messages";
   baseUrl: string;
 }): ModelProviderConfig | null {
@@ -1352,35 +1352,35 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
   clearRuntimeConfigSnapshot();
   const runtimeEnv = enterProductionEnvForLiveRun();
   const previous = {
-    configPath: process.env.OPENCLAW_CONFIG_PATH,
-    token: process.env.OPENCLAW_GATEWAY_TOKEN,
-    skipChannels: process.env.OPENCLAW_SKIP_CHANNELS,
-    skipGmail: process.env.OPENCLAW_SKIP_GMAIL_WATCHER,
-    skipCron: process.env.OPENCLAW_SKIP_CRON,
-    skipCanvas: process.env.OPENCLAW_SKIP_CANVAS_HOST,
-    disableBonjour: process.env.OPENCLAW_DISABLE_BONJOUR,
-    logLevel: process.env.OPENCLAW_LOG_LEVEL,
-    agentDir: process.env.OPENCLAW_AGENT_DIR,
+    configPath: process.env.GENESIS_CONFIG_PATH,
+    token: process.env.GENESIS_GATEWAY_TOKEN,
+    skipChannels: process.env.GENESIS_SKIP_CHANNELS,
+    skipGmail: process.env.GENESIS_SKIP_GMAIL_WATCHER,
+    skipCron: process.env.GENESIS_SKIP_CRON,
+    skipCanvas: process.env.GENESIS_SKIP_CANVAS_HOST,
+    disableBonjour: process.env.GENESIS_DISABLE_BONJOUR,
+    logLevel: process.env.GENESIS_LOG_LEVEL,
+    agentDir: process.env.GENESIS_AGENT_DIR,
     piAgentDir: process.env.PI_CODING_AGENT_DIR,
-    stateDir: process.env.OPENCLAW_STATE_DIR,
+    stateDir: process.env.GENESIS_STATE_DIR,
   };
   let tempAgentDir: string | undefined;
   let tempStateDir: string | undefined;
 
-  process.env.OPENCLAW_SKIP_CHANNELS = "1";
-  process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-  process.env.OPENCLAW_SKIP_CRON = "1";
-  process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
+  process.env.GENESIS_SKIP_CHANNELS = "1";
+  process.env.GENESIS_SKIP_GMAIL_WATCHER = "1";
+  process.env.GENESIS_SKIP_CRON = "1";
+  process.env.GENESIS_SKIP_CANVAS_HOST = "1";
   if (QUIET_LIVE_LOGS) {
-    process.env.OPENCLAW_DISABLE_BONJOUR = "1";
-    process.env.OPENCLAW_LOG_LEVEL = "silent";
+    process.env.GENESIS_DISABLE_BONJOUR = "1";
+    process.env.GENESIS_LOG_LEVEL = "silent";
   }
 
   const token = `test-${randomUUID()}`;
-  process.env.OPENCLAW_GATEWAY_TOKEN = token;
+  process.env.GENESIS_GATEWAY_TOKEN = token;
   const agentId = "dev";
 
-  const hostAgentDir = resolveOpenClawAgentDir();
+  const hostAgentDir = resolveGenesisAgentDir();
   const hostStore = ensureAuthProfileStore(hostAgentDir, {
     allowKeychainPrompt: false,
   });
@@ -1393,22 +1393,22 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
     lastGood: hostStore.lastGood ? { ...hostStore.lastGood } : undefined,
     usageStats: hostStore.usageStats ? { ...hostStore.usageStats } : undefined,
   });
-  tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-live-state-"));
-  process.env.OPENCLAW_STATE_DIR = tempStateDir;
+  tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-live-state-"));
+  process.env.GENESIS_STATE_DIR = tempStateDir;
   tempAgentDir = path.join(tempStateDir, "agents", DEFAULT_AGENT_ID, "agent");
   saveAuthProfileStore(sanitizedStore, tempAgentDir);
   const tempSessionAgentDir = path.join(tempStateDir, "agents", agentId, "agent");
   if (tempSessionAgentDir !== tempAgentDir) {
     saveAuthProfileStore(sanitizedStore, tempSessionAgentDir);
   }
-  process.env.OPENCLAW_AGENT_DIR = tempAgentDir;
+  process.env.GENESIS_AGENT_DIR = tempAgentDir;
   process.env.PI_CODING_AGENT_DIR = tempAgentDir;
 
   const workspaceDir = resolveAgentWorkspaceDir(params.cfg, agentId);
   await fs.mkdir(workspaceDir, { recursive: true });
-  await fs.mkdir(path.join(workspaceDir, ".openclaw"), { recursive: true });
+  await fs.mkdir(path.join(workspaceDir, ".genesis"), { recursive: true });
   await fs.writeFile(
-    path.join(workspaceDir, ".openclaw", "workspace-state.json"),
+    path.join(workspaceDir, ".genesis", "workspace-state.json"),
     `${JSON.stringify(
       {
         version: 1,
@@ -1421,11 +1421,11 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
   await fs.rm(path.join(workspaceDir, "BOOTSTRAP.md"), { force: true });
   const nonceA = randomUUID();
   const nonceB = randomUUID();
-  const toolProbePath = path.join(workspaceDir, `.openclaw-live-tool-probe.${nonceA}.txt`);
+  const toolProbePath = path.join(workspaceDir, `.genesis-live-tool-probe.${nonceA}.txt`);
   await fs.writeFile(toolProbePath, `nonceA=${nonceA}\nnonceB=${nonceB}\n`);
 
-  const agentDir = resolveOpenClawAgentDir();
-  const sanitizedCfg: OpenClawConfig = {
+  const agentDir = resolveGenesisAgentDir();
+  const sanitizedCfg: GenesisConfig = {
     ...params.cfg,
     auth: await sanitizeAuthConfig({ cfg: params.cfg, agentDir }),
   };
@@ -1434,10 +1434,10 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
     candidates: params.candidates,
     providerOverrides: params.providerOverrides,
   });
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-live-"));
-  const tempConfigPath = path.join(tempDir, "openclaw.json");
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-live-"));
+  const tempConfigPath = path.join(tempDir, "genesis.json");
   await fs.writeFile(tempConfigPath, `${JSON.stringify(nextCfg, null, 2)}\n`);
-  process.env.OPENCLAW_CONFIG_PATH = tempConfigPath;
+  process.env.GENESIS_CONFIG_PATH = tempConfigPath;
 
   const liveProviders = nextCfg.models?.providers;
   if (liveProviders && Object.keys(liveProviders).length > 0) {
@@ -1647,10 +1647,10 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
                   idempotencyKey: `idem-${runIdTool}-tool-${toolReadAttempt + 1}`,
                   modelKey,
                   message: strictReply
-                    ? "OpenClaw live tool probe (local, safe): " +
+                    ? "Genesis live tool probe (local, safe): " +
                       `use the tool named \`read\` (or \`Read\`) with JSON arguments {"path":"${toolProbePath}"}. ` +
                       `Then reply with exactly: ${nonceA} ${nonceB}. No extra text.`
-                    : "OpenClaw live tool probe (local, safe): " +
+                    : "Genesis live tool probe (local, safe): " +
                       `use the tool named \`read\` (or \`Read\`) with JSON arguments {"path":"${toolProbePath}"}. ` +
                       "Then reply with the two nonce values you read (include both).",
                   thinkingLevel: params.thinkingLevel,
@@ -1714,12 +1714,12 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
                     idempotencyKey: `idem-${runIdTool}-exec-read-${execReadAttempt + 1}`,
                     modelKey,
                     message: strictReply
-                      ? "OpenClaw live tool probe (local, safe): " +
+                      ? "Genesis live tool probe (local, safe): " +
                         "use the tool named `exec` (or `Exec`) to run this command: " +
                         `mkdir -p "${tempDir}" && printf '%s' '${nonceC}' > "${toolWritePath}". ` +
                         `Then use the tool named \`read\` (or \`Read\`) with JSON arguments {"path":"${toolWritePath}"}. ` +
                         `Then reply with exactly: ${nonceC}. No extra text.`
-                      : "OpenClaw live tool probe (local, safe): " +
+                      : "Genesis live tool probe (local, safe): " +
                         "use the tool named `exec` (or `Exec`) to run this command: " +
                         `mkdir -p "${tempDir}" && printf '%s' '${nonceC}' > "${toolWritePath}". ` +
                         `Then use the tool named \`read\` (or \`Read\`) with JSON arguments {"path":"${toolWritePath}"}. ` +
@@ -2096,17 +2096,17 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
       await fs.rm(tempStateDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
     }
 
-    process.env.OPENCLAW_CONFIG_PATH = previous.configPath;
-    process.env.OPENCLAW_GATEWAY_TOKEN = previous.token;
-    process.env.OPENCLAW_SKIP_CHANNELS = previous.skipChannels;
-    process.env.OPENCLAW_SKIP_GMAIL_WATCHER = previous.skipGmail;
-    process.env.OPENCLAW_SKIP_CRON = previous.skipCron;
-    process.env.OPENCLAW_SKIP_CANVAS_HOST = previous.skipCanvas;
-    process.env.OPENCLAW_DISABLE_BONJOUR = previous.disableBonjour;
-    process.env.OPENCLAW_LOG_LEVEL = previous.logLevel;
-    process.env.OPENCLAW_AGENT_DIR = previous.agentDir;
+    process.env.GENESIS_CONFIG_PATH = previous.configPath;
+    process.env.GENESIS_GATEWAY_TOKEN = previous.token;
+    process.env.GENESIS_SKIP_CHANNELS = previous.skipChannels;
+    process.env.GENESIS_SKIP_GMAIL_WATCHER = previous.skipGmail;
+    process.env.GENESIS_SKIP_CRON = previous.skipCron;
+    process.env.GENESIS_SKIP_CANVAS_HOST = previous.skipCanvas;
+    process.env.GENESIS_DISABLE_BONJOUR = previous.disableBonjour;
+    process.env.GENESIS_LOG_LEVEL = previous.logLevel;
+    process.env.GENESIS_AGENT_DIR = previous.agentDir;
     process.env.PI_CODING_AGENT_DIR = previous.piAgentDir;
-    process.env.OPENCLAW_STATE_DIR = previous.stateDir;
+    process.env.GENESIS_STATE_DIR = previous.stateDir;
   }
 }
 
@@ -2117,14 +2117,14 @@ describeLive("gateway live (dev agent, profile keys)", () => {
       await withSuppressedGatewayLiveWarnings(async () => {
         clearRuntimeConfigSnapshot();
         const cfg = loadConfig();
-        await ensureOpenClawModelsJson(cfg);
+        await ensureGenesisModelsJson(cfg);
 
-        const agentDir = resolveOpenClawAgentDir();
+        const agentDir = resolveGenesisAgentDir();
         const authStorage = discoverAuthStorage(agentDir);
         const modelRegistry = discoverModels(authStorage, agentDir);
         const all = modelRegistry.getAll();
 
-        const rawModels = process.env.OPENCLAW_LIVE_GATEWAY_MODELS?.trim();
+        const rawModels = process.env.GENESIS_LIVE_GATEWAY_MODELS?.trim();
         const useModern = !rawModels || rawModels === "modern" || rawModels === "all";
         const useExplicit = Boolean(rawModels) && !useModern;
         const filter = useExplicit ? parseFilter(rawModels) : null;
@@ -2195,7 +2195,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
         logProgress(`[all-models] selection=${useExplicit ? "explicit" : "high-signal"}`);
         if (selectedCandidates.length < candidates.length) {
           logProgress(
-            `[all-models] capped to ${selectedCandidates.length}/${candidates.length} via OPENCLAW_LIVE_GATEWAY_MAX_MODELS=${maxModels}`,
+            `[all-models] capped to ${selectedCandidates.length}/${candidates.length} via GENESIS_LIVE_GATEWAY_MAX_MODELS=${maxModels}`,
           );
         }
         const imageCandidates = selectedCandidates.filter((m) => m.input?.includes("image"));
@@ -2250,26 +2250,26 @@ describeLive("gateway live (dev agent, profile keys)", () => {
     clearRuntimeConfigSnapshot();
     const runtimeEnv = enterProductionEnvForLiveRun();
     const previous = {
-      configPath: process.env.OPENCLAW_CONFIG_PATH,
-      token: process.env.OPENCLAW_GATEWAY_TOKEN,
-      skipChannels: process.env.OPENCLAW_SKIP_CHANNELS,
-      skipGmail: process.env.OPENCLAW_SKIP_GMAIL_WATCHER,
-      skipCron: process.env.OPENCLAW_SKIP_CRON,
-      skipCanvas: process.env.OPENCLAW_SKIP_CANVAS_HOST,
+      configPath: process.env.GENESIS_CONFIG_PATH,
+      token: process.env.GENESIS_GATEWAY_TOKEN,
+      skipChannels: process.env.GENESIS_SKIP_CHANNELS,
+      skipGmail: process.env.GENESIS_SKIP_GMAIL_WATCHER,
+      skipCron: process.env.GENESIS_SKIP_CRON,
+      skipCanvas: process.env.GENESIS_SKIP_CANVAS_HOST,
     };
 
-    process.env.OPENCLAW_SKIP_CHANNELS = "1";
-    process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-    process.env.OPENCLAW_SKIP_CRON = "1";
-    process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
+    process.env.GENESIS_SKIP_CHANNELS = "1";
+    process.env.GENESIS_SKIP_GMAIL_WATCHER = "1";
+    process.env.GENESIS_SKIP_CRON = "1";
+    process.env.GENESIS_SKIP_CANVAS_HOST = "1";
 
     const token = `test-${randomUUID()}`;
-    process.env.OPENCLAW_GATEWAY_TOKEN = token;
+    process.env.GENESIS_GATEWAY_TOKEN = token;
 
     const cfg = loadConfig();
-    await ensureOpenClawModelsJson(cfg);
+    await ensureGenesisModelsJson(cfg);
 
-    const agentDir = resolveOpenClawAgentDir();
+    const agentDir = resolveGenesisAgentDir();
     const authStorage = discoverAuthStorage(agentDir);
     const modelRegistry = discoverModels(authStorage, agentDir);
     const anthropic = modelRegistry.find("anthropic", "claude-opus-4-6") as Model<Api> | null;
@@ -2298,7 +2298,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
     await fs.mkdir(workspaceDir, { recursive: true });
     const nonceA = randomUUID();
     const nonceB = randomUUID();
-    const toolProbePath = path.join(workspaceDir, `.openclaw-live-zai-fallback.${nonceA}.txt`);
+    const toolProbePath = path.join(workspaceDir, `.genesis-live-zai-fallback.${nonceA}.txt`);
     await fs.writeFile(toolProbePath, `nonceA=${nonceA}\nnonceB=${nonceB}\n`);
 
     let server: Awaited<ReturnType<typeof startGatewayServer>> | undefined;
@@ -2411,12 +2411,12 @@ describeLive("gateway live (dev agent, profile keys)", () => {
       await server.close({ reason: "live test complete" });
       await fs.rm(toolProbePath, { force: true });
 
-      process.env.OPENCLAW_CONFIG_PATH = previous.configPath;
-      process.env.OPENCLAW_GATEWAY_TOKEN = previous.token;
-      process.env.OPENCLAW_SKIP_CHANNELS = previous.skipChannels;
-      process.env.OPENCLAW_SKIP_GMAIL_WATCHER = previous.skipGmail;
-      process.env.OPENCLAW_SKIP_CRON = previous.skipCron;
-      process.env.OPENCLAW_SKIP_CANVAS_HOST = previous.skipCanvas;
+      process.env.GENESIS_CONFIG_PATH = previous.configPath;
+      process.env.GENESIS_GATEWAY_TOKEN = previous.token;
+      process.env.GENESIS_SKIP_CHANNELS = previous.skipChannels;
+      process.env.GENESIS_SKIP_GMAIL_WATCHER = previous.skipGmail;
+      process.env.GENESIS_SKIP_CRON = previous.skipCron;
+      process.env.GENESIS_SKIP_CANVAS_HOST = previous.skipCanvas;
     }
   }, 180_000);
 });

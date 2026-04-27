@@ -178,7 +178,7 @@ export const es: TranslationMap = {
     skills: "Gestionar disponibilidad de habilidades e inyección de claves API.",
     nodes: "Dispositivos emparejados, capacidades y exposición de comandos.",
     chat: "Sesión de chat directa con la puerta de enlace para intervenciones rápidas.",
-    config: "Editar ~/.openclaw/openclaw.json de forma segura.",
+    config: "Editar ~/.genesis/genesis.json de forma segura.",
     communications: "Canales, mensajes y configuración de audio.",
     appearance: "Configuración del tema, la UI y el asistente de configuración.",
     automation: "Comandos, hooks, cron y plugins.",
@@ -215,6 +215,13 @@ export const es: TranslationMap = {
       tickInterval: "Intervalo de tick",
       lastChannelsRefresh: "Última actualización de canales",
       channelsHint: "Usa Canales para vincular WhatsApp, Telegram, Discord, Signal o iMessage.",
+    },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
     },
     stats: {
       instances: "Instancias",
@@ -253,7 +260,7 @@ export const es: TranslationMap = {
       metadataUpgradeSummary:
         "Este dispositivo ya está emparejado, pero el cambio de metadatos está pendiente de aprobación.",
       mobileHint:
-        "¿En el móvil? Copia la URL completa (incluyendo #token=...) desde openclaw dashboard --no-open en tu escritorio.",
+        "¿En el móvil? Copia la URL completa (incluyendo #token=...) desde genesis dashboard --no-open en tu escritorio.",
       docsTitle: "Documentación de emparejamiento de dispositivos (se abre en una pestaña nueva)",
       docsLink: "Documentación: Emparejamiento de dispositivos",
     },
@@ -289,7 +296,7 @@ export const es: TranslationMap = {
       modelAuthExpiresIn: "caduca {when}",
       modelAuthAttentionExpiredTitle: "La autenticación del modelo ha caducado",
       modelAuthAttentionExpiringTitle: "La autenticación del modelo caducará pronto",
-      modelAuthAttentionExpiredDesc: "{providers} — vuelve a autenticarte con openclaw models auth",
+      modelAuthAttentionExpiredDesc: "{providers} — vuelve a autenticarte con genesis models auth",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

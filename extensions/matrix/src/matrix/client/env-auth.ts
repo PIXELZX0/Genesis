@@ -1,4 +1,4 @@
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/account-id";
 import { getMatrixScopedEnvVarNames } from "../../env-vars.js";
 
 export type MatrixEnvConfig = {

@@ -1,20 +1,20 @@
 ---
 name: acp-router
-description: Route plain-language requests for Pi, Claude Code, Cursor, Copilot, OpenClaw ACP, OpenCode, Gemini CLI, Qwen, Kiro, Kimi, iFlow, Factory Droid, Kilocode, or explicit ACP harness work into either OpenClaw ACP runtime sessions or direct acpx-driven sessions ("telephone game" flow). For coding-agent thread requests, read this skill first, then use only `sessions_spawn` for thread creation. Codex chat binding defaults to the native Codex app-server plugin unless ACP is explicit or background spawn needs ACP.
+description: Route plain-language requests for Pi, Claude Code, Cursor, Copilot, Genesis ACP, OpenCode, Gemini CLI, Qwen, Kiro, Kimi, iFlow, Factory Droid, Kilocode, or explicit ACP harness work into either Genesis ACP runtime sessions or direct acpx-driven sessions ("telephone game" flow). For coding-agent thread requests, read this skill first, then use only `sessions_spawn` for thread creation. Codex chat binding defaults to the native Codex app-server plugin unless ACP is explicit or background spawn needs ACP.
 user-invocable: false
 ---
 
 # ACP Harness Router
 
-When user intent is "run this in Pi/Claude Code/Cursor/Copilot/OpenClaw/OpenCode/Gemini/Qwen/Kiro/Kimi/iFlow/Droid/Kilocode (ACP harness)", do not use subagent runtime or PTY scraping. Route through ACP-aware flows.
+When user intent is "run this in Pi/Claude Code/Cursor/Copilot/Genesis/OpenCode/Gemini/Qwen/Kiro/Kimi/iFlow/Droid/Kilocode (ACP harness)", do not use subagent runtime or PTY scraping. Route through ACP-aware flows.
 
 Codex is special: plain chat/conversation binding and control should use the native Codex app-server plugin (`/codex bind`, `/codex threads`, `/codex resume`) instead of the default ACP path. Use ACP for Codex only when the user explicitly names ACP/`/acp`/acpx, or when spawning background child sessions through `sessions_spawn` where a native Codex runtime spawn is not available yet.
 
 ## Intent detection
 
-Trigger this skill when the user asks OpenClaw to:
+Trigger this skill when the user asks Genesis to:
 
-- run something in Pi / Claude Code / Cursor / Copilot / OpenClaw / OpenCode / Gemini / Qwen / Kiro / Kimi / iFlow / Droid / Kilocode
+- run something in Pi / Claude Code / Cursor / Copilot / Genesis / OpenCode / Gemini / Qwen / Kiro / Kimi / iFlow / Droid / Kilocode
 - run Codex explicitly through ACP, `/acp`, or acpx
 - continue existing harness work
 - relay instructions to an external coding harness
@@ -23,20 +23,20 @@ Trigger this skill when the user asks OpenClaw to:
 Mandatory preflight for coding-agent thread requests:
 
 - Before creating any thread for ACP harness work, read this skill first in the same turn.
-- After reading, follow `OpenClaw ACP runtime path` below; do not use `message(action="thread-create")` for ACP harness thread spawn.
+- After reading, follow `Genesis ACP runtime path` below; do not use `message(action="thread-create")` for ACP harness thread spawn.
 
 ## Mode selection
 
 Choose one of these paths:
 
-1. OpenClaw ACP runtime path (default): use `sessions_spawn` / ACP runtime tools.
+1. Genesis ACP runtime path (default): use `sessions_spawn` / ACP runtime tools.
 2. Direct `acpx` path (telephone game): use `acpx` CLI through `exec` to drive the harness session directly.
 
 Use direct `acpx` when one of these is true:
 
 - user explicitly asks for direct `acpx` driving
 - ACP runtime/plugin path is unavailable or unhealthy
-- the task is "just relay prompts to harness" and no OpenClaw ACP lifecycle features are needed
+- the task is "just relay prompts to harness" and no Genesis ACP lifecycle features are needed
 
 Do not use:
 
@@ -49,7 +49,7 @@ Do not use:
 Use these defaults when user names a harness directly:
 
 - "pi" -> `agentId: "pi"`
-- "openclaw" -> `agentId: "openclaw"`
+- "genesis" -> `agentId: "genesis"`
 - "claude" or "claude code" -> `agentId: "claude"`
 - "codex" -> `agentId: "codex"` only for explicit ACP/acpx requests or background ACP runtime spawn
 - "copilot" or "github copilot" -> `agentId: "copilot"`
@@ -67,7 +67,7 @@ These defaults match current acpx built-in aliases.
 
 If policy rejects the chosen id, report the policy error clearly and ask for the allowed ACP agent id.
 
-## OpenClaw ACP runtime path
+## Genesis ACP runtime path
 
 Required behavior:
 
@@ -120,7 +120,7 @@ Do not default to subagent runtime for these requests.
 
 ## ACPX install and version policy (direct acpx path)
 
-For this repo, direct `acpx` calls must follow the same pinned policy as the `@openclaw/acpx` extension package.
+For this repo, direct `acpx` calls must follow the same pinned policy as the `@genesis/acpx` extension package.
 
 1. Prefer plugin-local binary, not global PATH:
    - `${ACPX_PLUGIN_ROOT}/node_modules/.bin/acpx`
@@ -201,7 +201,7 @@ ${ACPX_CMD} codex sessions close oc-codex-<conversationId>
 - `kilocode`
 - `kimi`
 - `kiro`
-- `openclaw`
+- `genesis`
 - `opencode`
 - `pi`
 - `qwen`
@@ -210,7 +210,7 @@ ${ACPX_CMD} codex sessions close oc-codex-<conversationId>
 
 Defaults are:
 
-- `openclaw -> openclaw acp`
+- `genesis -> genesis acp`
 - `claude -> npx -y @zed-industries/claude-agent-acp@0.21.0`
 - `codex -> npx @zed-industries/codex-acp@^0.9.5`
 - `copilot -> copilot --acp --stdio`

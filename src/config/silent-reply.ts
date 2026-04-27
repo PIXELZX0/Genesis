@@ -8,10 +8,10 @@ import {
   type SilentReplyRewriteShape,
 } from "../shared/silent-reply-policy.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { GenesisConfig } from "./types.genesis.js";
 
 type ResolveSilentReplyParams = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   sessionKey?: string;
   surface?: string;
   conversationType?: SilentReplyConversationType;

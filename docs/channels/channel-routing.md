@@ -7,7 +7,7 @@ title: "Channel routing"
 
 # Channels & routing
 
-OpenClaw routes replies **back to the channel where a message came from**. The
+Genesis routes replies **back to the channel where a message came from**. The
 model does not choose a channel; routing is deterministic and controlled by the
 host configuration.
 
@@ -50,13 +50,13 @@ Examples:
 
 When `session.dmScope` is `main`, direct messages may share one main session.
 To prevent the session’s `lastRoute` from being overwritten by non-owner DMs,
-OpenClaw infers a pinned owner from `allowFrom` when all of these are true:
+Genesis infers a pinned owner from `allowFrom` when all of these are true:
 
 - `allowFrom` has exactly one non-wildcard entry.
 - The entry can be normalized to a concrete sender ID for that channel.
 - The inbound DM sender does not match that pinned owner.
 
-In that mismatch case, OpenClaw still records inbound session metadata, but it
+In that mismatch case, Genesis still records inbound session metadata, but it
 skips updating the main session `lastRoute`.
 
 ## Routing rules (how an agent is chosen)
@@ -78,7 +78,7 @@ The matched agent determines which workspace and session store are used.
 
 ## Broadcast groups (run multiple agents)
 
-Broadcast groups let you run **multiple agents** for the same peer **when OpenClaw would normally reply** (for example: in WhatsApp groups, after mention/activation gating).
+Broadcast groups let you run **multiple agents** for the same peer **when Genesis would normally reply** (for example: in WhatsApp groups, after mention/activation gating).
 
 Config:
 
@@ -104,7 +104,7 @@ Example:
 ```json5
 {
   agents: {
-    list: [{ id: "support", name: "Support", workspace: "~/.openclaw/workspace-support" }],
+    list: [{ id: "support", name: "Support", workspace: "~/.genesis/workspace-support" }],
   },
   bindings: [
     { match: { channel: "slack", teamId: "T123" }, agentId: "support" },
@@ -115,9 +115,9 @@ Example:
 
 ## Session storage
 
-Session stores live under the state directory (default `~/.openclaw`):
+Session stores live under the state directory (default `~/.genesis`):
 
-- `~/.openclaw/agents/<agentId>/sessions/sessions.json`
+- `~/.genesis/agents/<agentId>/sessions/sessions.json`
 - JSONL transcripts live alongside the store
 
 You can override the store path via `session.store` and `{agentId}` templating.

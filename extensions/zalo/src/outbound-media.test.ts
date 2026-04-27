@@ -1,11 +1,11 @@
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const loadOutboundMediaFromUrlMock = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/outbound-media", () => ({
+vi.mock("genesis/plugin-sdk/outbound-media", () => ({
   loadOutboundMediaFromUrl: (...args: unknown[]) => loadOutboundMediaFromUrlMock(...args),
 }));
 
@@ -41,7 +41,7 @@ describe("zalo outbound hosted media", () => {
     });
   });
 
-  it("loads outbound media under OpenClaw control and returns a hosted URL", async () => {
+  it("loads outbound media under Genesis control and returns a hosted URL", async () => {
     const hostedUrl = await prepareHostedZaloMediaUrl({
       mediaUrl: "https://example.com/photo.png",
       webhookUrl: "https://gateway.example.com/zalo-webhook",
@@ -86,7 +86,7 @@ describe("zalo outbound hosted media", () => {
     const id = pathname.split("/").pop();
     expect(id).toBeTruthy();
 
-    const storageDir = join(resolvePreferredOpenClawTmpDir(), "openclaw-zalo-outbound-media");
+    const storageDir = join(resolvePreferredGenesisTmpDir(), "genesis-zalo-outbound-media");
     const [dirStats, metadataStats, bufferStats] = await Promise.all([
       stat(storageDir),
       stat(join(storageDir, `${id}.json`)),

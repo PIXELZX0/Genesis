@@ -52,7 +52,7 @@ describe("getMachineDisplayName", () => {
       name: "falls back to the default product name when hostname is blank",
       scope: "blank-hostname",
       hostname: "   ",
-      expected: "openclaw",
+      expected: "genesis",
       expectedCalls: 1,
       repeatLookup: false,
     },

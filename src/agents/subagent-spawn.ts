@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { SubagentSpawnPreparation } from "../context-engine/types.js";
 import type { SubagentLifecycleHookRunner } from "../plugins/hooks.js";
 import { isValidAgentId, normalizeAgentId, parseAgentSessionKey } from "../routing/session-key.js";
@@ -202,7 +202,7 @@ function loadSubagentConfig() {
 }
 
 async function persistInitialChildSessionRuntimeModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   childSessionKey: string;
   resolvedModel?: string;
 }): Promise<string | undefined> {
@@ -257,7 +257,7 @@ type PreparedSpawnContext =
   | { status: "error"; error: string };
 
 async function prepareSubagentSessionContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   contextMode: SpawnSubagentContextMode;
   requesterAgentId: string;
   targetAgentId: string;
@@ -313,7 +313,7 @@ async function prepareSubagentSessionContext(params: {
       });
       if (!fork) {
         throw new Error(
-          'context="fork" requested but OpenClaw could not fork the requester transcript.',
+          'context="fork" requested but Genesis could not fork the requester transcript.',
         );
       }
       pruneLegacyStoreKeys({
@@ -334,7 +334,7 @@ async function prepareSubagentSessionContext(params: {
       if (!parentEntry || !forked) {
         return {
           status: "error",
-          error: 'context="fork" requested but OpenClaw could not prepare forked context.',
+          error: 'context="fork" requested but Genesis could not prepare forked context.',
         };
       }
       return {
@@ -352,7 +352,7 @@ async function prepareSubagentSessionContext(params: {
 }
 
 async function prepareContextEngineSubagentSpawn(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   context: PreparedSpawnContext & { status: "ok" };
   requesterInternalKey: string;
   childSessionKey: string;

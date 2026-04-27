@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { CLAWHUB_INSTALL_ERROR_CODE } from "../plugins/clawhub.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
@@ -36,9 +36,9 @@ export function resolveFileNpmSpecToLocalPath(
 }
 
 export function applySlotSelectionForPlugin(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   pluginId: string,
-): { config: OpenClawConfig; warnings: string[] } {
+): { config: GenesisConfig; warnings: string[] } {
   const report = buildPluginDiagnosticsReport({ config });
   const plugin = report.plugins.find((entry) => entry.id === pluginId);
   if (!plugin) {
@@ -74,9 +74,9 @@ export function createHookPackInstallLogger(): {
 }
 
 export function enableInternalHookEntries(
-  config: OpenClawConfig,
+  config: GenesisConfig,
   hookNames: string[],
-): OpenClawConfig {
+): GenesisConfig {
   const entries = { ...config.hooks?.internal?.entries } as Record<string, HookInternalEntryLike>;
 
   for (const hookName of hookNames) {
@@ -104,7 +104,7 @@ export function formatPluginInstallWithHookFallbackError(
   hookError: string,
 ): string {
   if (/plugin already exists: .+ \(delete it first\)/.test(pluginError)) {
-    return `${pluginError}\nUse \`openclaw plugins update <id-or-npm-spec>\` to upgrade the tracked plugin, or rerun install with \`--force\` to replace it.`;
+    return `${pluginError}\nUse \`genesis plugins update <id-or-npm-spec>\` to upgrade the tracked plugin, or rerun install with \`--force\` to replace it.`;
   }
   return `${pluginError}\nAlso not a valid hook pack: ${hookError}`;
 }

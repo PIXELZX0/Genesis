@@ -1,5 +1,5 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
-import { normalizeWebhookPath } from "openclaw/plugin-sdk/webhook-path";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
+import { normalizeWebhookPath } from "genesis/plugin-sdk/webhook-path";
 import type { BlueBubblesAccountConfig } from "./types.js";
 
 export { normalizeWebhookPath };

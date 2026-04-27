@@ -12,7 +12,7 @@ import {
   type PluginHookRegistration,
 } from "../../../test/helpers/plugins/outbound-delivery.js";
 import { slackOutbound } from "./outbound-adapter.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 
 const sendMessageSlackMock = vi.hoisted(() => vi.fn());
 
@@ -20,7 +20,7 @@ vi.mock("./send.runtime.js", () => ({
   sendMessageSlack: sendMessageSlackMock,
 }));
 
-const cfg: OpenClawConfig = {
+const cfg: GenesisConfig = {
   channels: {
     slack: {
       botToken: "xoxb-test",

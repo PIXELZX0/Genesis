@@ -1,6 +1,6 @@
 // Public contract-safe web-search registration helpers for provider plugins.
 
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   WebSearchCredentialResolutionSource,
   WebSearchProviderSetupContext,
@@ -57,7 +57,7 @@ export function createWebSearchProviderContractFields(
     ...createBaseWebSearchProviderContractFields(options),
     ...(selectionPluginId
       ? {
-          applySelectionConfig: (config: OpenClawConfig) =>
+          applySelectionConfig: (config: GenesisConfig) =>
             enablePluginInConfig(config, selectionPluginId).config,
         }
       : {}),

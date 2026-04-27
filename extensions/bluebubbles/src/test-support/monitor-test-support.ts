@@ -1,4 +1,4 @@
-import type { HistoryEntry, PluginRuntime } from "openclaw/plugin-sdk/bluebubbles";
+import type { HistoryEntry, PluginRuntime } from "genesis/plugin-sdk/bluebubbles";
 import { vi } from "vitest";
 import { createPluginRuntimeMock } from "../../../../test/helpers/plugins/plugin-runtime-mock.js";
 import { _resetBlueBubblesInboundDedupForTest } from "../inbound-dedupe.js";

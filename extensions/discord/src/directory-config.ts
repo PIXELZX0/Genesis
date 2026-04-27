@@ -1,8 +1,8 @@
-import { normalizeAccountId } from "openclaw/plugin-sdk/account-id";
+import { normalizeAccountId } from "genesis/plugin-sdk/account-id";
 import {
   createResolvedDirectoryEntriesLister,
   type DirectoryConfigParams,
-} from "openclaw/plugin-sdk/directory-config-runtime";
+} from "genesis/plugin-sdk/directory-config-runtime";
 import { mergeDiscordAccountConfig, resolveDefaultDiscordAccountId } from "./accounts.js";
 
 function resolveDiscordDirectoryConfigAccount(

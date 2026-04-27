@@ -2,22 +2,19 @@ import {
   attachChannelToResult,
   type ChannelOutboundAdapter,
   createAttachedChannelResultAdapter,
-} from "openclaw/plugin-sdk/channel-send-result";
+} from "genesis/plugin-sdk/channel-send-result";
 import {
   resolveInteractiveTextFallback,
   type InteractiveReply,
   type MessagePresentation,
-} from "openclaw/plugin-sdk/interactive-runtime";
-import {
-  resolveOutboundSendDep,
-  type OutboundIdentity,
-} from "openclaw/plugin-sdk/outbound-runtime";
+} from "genesis/plugin-sdk/interactive-runtime";
+import { resolveOutboundSendDep, type OutboundIdentity } from "genesis/plugin-sdk/outbound-runtime";
 import {
   resolvePayloadMediaUrls,
   sendPayloadMediaSequenceAndFinalize,
   sendTextMediaPayload,
-} from "openclaw/plugin-sdk/reply-payload";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/reply-payload";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { parseSlackBlocksInput } from "./blocks-input.js";
 import {
   buildSlackInteractiveBlocks,

@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   hasOutboundReplyContent,
   resolveSendableOutboundReplyParts,
-} from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/reply-payload";
 import {
   resolveAgentConfig,
   resolveAgentWorkspaceDir,
@@ -45,7 +45,7 @@ import {
   updateSessionStore,
 } from "../config/sessions/store.js";
 import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveCronSession } from "../cron/isolated-agent/session.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getActivePluginChannelRegistry } from "../plugins/runtime.js";
@@ -161,7 +161,7 @@ type HeartbeatAgentState = {
 
 export type HeartbeatRunner = {
   stop: () => void;
-  updateConfig: (cfg: OpenClawConfig) => void;
+  updateConfig: (cfg: GenesisConfig) => void;
 };
 
 function resolveHeartbeatSchedulerSeed(explicitSeed?: string) {
@@ -180,15 +180,12 @@ function resolveHeartbeatSchedulerSeed(explicitSeed?: string) {
   }
 }
 
-function hasExplicitHeartbeatAgents(cfg: OpenClawConfig) {
+function hasExplicitHeartbeatAgents(cfg: GenesisConfig) {
   const list = cfg.agents?.list ?? [];
   return list.some((entry) => Boolean(entry?.heartbeat));
 }
 
-function resolveHeartbeatConfig(
-  cfg: OpenClawConfig,
-  agentId?: string,
-): HeartbeatConfig | undefined {
+function resolveHeartbeatConfig(cfg: GenesisConfig, agentId?: string): HeartbeatConfig | undefined {
   const defaults = cfg.agents?.defaults?.heartbeat;
   if (!agentId) {
     return defaults;
@@ -200,7 +197,7 @@ function resolveHeartbeatConfig(
   return { ...defaults, ...overrides };
 }
 
-function resolveHeartbeatAgents(cfg: OpenClawConfig): HeartbeatAgent[] {
+function resolveHeartbeatAgents(cfg: GenesisConfig): HeartbeatAgent[] {
   const list = cfg.agents?.list ?? [];
   if (hasExplicitHeartbeatAgents(cfg)) {
     return list
@@ -215,11 +212,11 @@ function resolveHeartbeatAgents(cfg: OpenClawConfig): HeartbeatAgent[] {
   return [{ agentId: fallbackId, heartbeat: resolveHeartbeatConfig(cfg, fallbackId) }];
 }
 
-export function resolveHeartbeatPrompt(cfg: OpenClawConfig, heartbeat?: HeartbeatConfig) {
+export function resolveHeartbeatPrompt(cfg: GenesisConfig, heartbeat?: HeartbeatConfig) {
   return resolveHeartbeatPromptText(heartbeat?.prompt ?? cfg.agents?.defaults?.heartbeat?.prompt);
 }
 
-function resolveHeartbeatAckMaxChars(cfg: OpenClawConfig, heartbeat?: HeartbeatConfig) {
+function resolveHeartbeatAckMaxChars(cfg: GenesisConfig, heartbeat?: HeartbeatConfig) {
   return Math.max(
     0,
     heartbeat?.ackMaxChars ??
@@ -228,7 +225,7 @@ function resolveHeartbeatAckMaxChars(cfg: OpenClawConfig, heartbeat?: HeartbeatC
   );
 }
 
-function isHeartbeatTypingEnabled(params: { cfg: OpenClawConfig; hasChatDelivery: boolean }) {
+function isHeartbeatTypingEnabled(params: { cfg: GenesisConfig; hasChatDelivery: boolean }) {
   if (!params.hasChatDelivery) {
     return false;
   }
@@ -237,14 +234,14 @@ function isHeartbeatTypingEnabled(params: { cfg: OpenClawConfig; hasChatDelivery
   return typingMode !== "never";
 }
 
-function resolveHeartbeatTypingIntervalSeconds(cfg: OpenClawConfig) {
+function resolveHeartbeatTypingIntervalSeconds(cfg: GenesisConfig) {
   const agentCfg = cfg.agents?.defaults;
   const configured = agentCfg?.typingIntervalSeconds ?? cfg.session?.typingIntervalSeconds;
   return typeof configured === "number" && configured > 0 ? configured : undefined;
 }
 
 function resolveHeartbeatSession(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId?: string,
   heartbeat?: HeartbeatConfig,
   forcedSessionKey?: string,
@@ -549,7 +546,7 @@ function resolveHeartbeatReasonFlags(reason?: string): HeartbeatReasonFlags {
 }
 
 async function resolveHeartbeatPreflight(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   heartbeat?: HeartbeatConfig;
   forcedSessionKey?: string;
@@ -659,7 +656,7 @@ function appendHeartbeatWorkspacePathHint(prompt: string, workspaceDir: string):
 }
 
 function resolveHeartbeatRunPrompt(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   heartbeat?: HeartbeatConfig;
   preflight: HeartbeatPreflight;
   canRelayToUser: boolean;
@@ -725,7 +722,7 @@ After completing all due tasks, reply HEARTBEAT_OK.`;
 }
 
 export async function runHeartbeatOnce(opts: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
   sessionKey?: string;
   heartbeat?: HeartbeatConfig;
@@ -1314,7 +1311,7 @@ export async function runHeartbeatOnce(opts: {
 }
 
 export function startHeartbeatRunner(opts: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;
   runOnce?: typeof runHeartbeatOnce;
@@ -1402,7 +1399,7 @@ export function startHeartbeatRunner(opts: {
     state.timer.unref?.();
   };
 
-  const updateConfig = (cfg: OpenClawConfig) => {
+  const updateConfig = (cfg: GenesisConfig) => {
     if (state.stopped) {
       return;
     }

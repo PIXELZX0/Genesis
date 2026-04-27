@@ -1,7 +1,7 @@
 import {
   DM_GROUP_ACCESS_REASON,
   resolveDmGroupAccessWithLists,
-} from "openclaw/plugin-sdk/channel-policy";
+} from "genesis/plugin-sdk/channel-policy";
 import { describe, expect, it } from "vitest";
 import { isSignalSenderAllowed, type SignalSender } from "../contract-api.js";
 

@@ -16,7 +16,7 @@ function createDedupe(root: string, overrides?: { ttlMs?: number }) {
 
 describe("createPersistentDedupe", () => {
   it("deduplicates keys and persists across instances", async () => {
-    const root = await createTempDir("openclaw-dedupe-");
+    const root = await createTempDir("genesis-dedupe-");
     const first = createDedupe(root);
     expect(await first.checkAndRecord("m1", { namespace: "a" })).toBe(true);
     expect(await first.checkAndRecord("m1", { namespace: "a" })).toBe(false);
@@ -27,7 +27,7 @@ describe("createPersistentDedupe", () => {
   });
 
   it("guards concurrent calls for the same key", async () => {
-    const root = await createTempDir("openclaw-dedupe-");
+    const root = await createTempDir("genesis-dedupe-");
     const dedupe = createDedupe(root, { ttlMs: 10_000 });
 
     const [first, second] = await Promise.all([
@@ -51,7 +51,7 @@ describe("createPersistentDedupe", () => {
   });
 
   it("warmup loads persisted entries into memory", async () => {
-    const root = await createTempDir("openclaw-dedupe-");
+    const root = await createTempDir("genesis-dedupe-");
     const writer = createDedupe(root);
     expect(await writer.checkAndRecord("msg-1", { namespace: "acct" })).toBe(true);
     expect(await writer.checkAndRecord("msg-2", { namespace: "acct" })).toBe(true);
@@ -65,7 +65,7 @@ describe("createPersistentDedupe", () => {
   });
 
   it("checks for recent keys without mutating the store", async () => {
-    const root = await createTempDir("openclaw-dedupe-");
+    const root = await createTempDir("genesis-dedupe-");
     const writer = createDedupe(root);
     expect(await writer.checkAndRecord("peek-me", { namespace: "acct" })).toBe(true);
 
@@ -102,7 +102,7 @@ describe("createPersistentDedupe", () => {
       },
     },
   ])("warmup $name", async ({ setup, namespace, expectedLoaded, verify }) => {
-    const root = await createTempDir("openclaw-dedupe-");
+    const root = await createTempDir("genesis-dedupe-");
     const reader = await setup(root);
     const loaded = await reader.warmup(namespace);
     expect(loaded).toBe(expectedLoaded);
@@ -166,7 +166,7 @@ describe("createClaimableDedupe", () => {
   });
 
   it("supports persistent-backed recent checks and warmup", async () => {
-    const root = await createTempDir("openclaw-claimable-dedupe-");
+    const root = await createTempDir("genesis-claimable-dedupe-");
     const writer = createClaimableDedupe({
       ttlMs: 10_000,
       memoryMaxSize: 100,

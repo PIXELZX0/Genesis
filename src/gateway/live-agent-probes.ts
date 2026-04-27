@@ -84,40 +84,40 @@ export function buildLiveCronProbeMessage(params: {
   const family = normalizeLiveAgentFamily(params.agent);
   if (params.attempt === 0) {
     return (
-      "Use the OpenClaw MCP tool `openclaw-tools/cron` (server `openclaw-tools`, tool `cron`). " +
+      "Use the Genesis MCP tool `genesis-tools/cron` (server `genesis-tools`, tool `cron`). " +
       `Call it with JSON arguments ${params.argsJson}. ` +
-      "Do the actual tool call; I will verify externally with the OpenClaw cron CLI. " +
+      "Do the actual tool call; I will verify externally with the Genesis cron CLI. " +
       `After the cron job is created, reply exactly: ${params.exactReply}`
     );
   }
   if (family === "claude") {
     return (
-      "Retry the OpenClaw MCP tool `openclaw-tools/cron` now. " +
+      "Retry the Genesis MCP tool `genesis-tools/cron` now. " +
       `Use these exact JSON arguments: ${params.argsJson}. ` +
       `If the cron job is created, reply exactly: ${params.exactReply}. ` +
       "If the tool call is cancelled, the job is not created, or you cannot confirm creation, " +
       "reply briefly saying that and ask me to retry. No markdown. " +
-      "I will verify externally with the OpenClaw cron CLI."
+      "I will verify externally with the Genesis cron CLI."
     );
   }
   return (
-    "Your previous OpenClaw cron MCP tool call was cancelled before the job was created. " +
-    "Retry the OpenClaw MCP tool `openclaw-tools/cron` now. " +
+    "Your previous Genesis cron MCP tool call was cancelled before the job was created. " +
+    "Retry the Genesis MCP tool `genesis-tools/cron` now. " +
     `Use these exact JSON arguments: ${params.argsJson}. ` +
     `If the cron job is created, reply exactly: ${params.exactReply}. ` +
     "If the tool call is cancelled, the job is not created, or you cannot confirm creation, " +
     "reply briefly saying that and ask me to retry. No markdown. " +
-    "I will verify externally with the OpenClaw cron CLI."
+    "I will verify externally with the Genesis cron CLI."
   );
 }
 
-export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessEnv): Promise<T> {
+export async function runGenesisCliJson<T>(args: string[], env: NodeJS.ProcessEnv): Promise<T> {
   const childEnv = { ...env };
   delete childEnv.VITEST;
   delete childEnv.VITEST_MODE;
   delete childEnv.VITEST_POOL_ID;
   delete childEnv.VITEST_WORKER_ID;
-  const { stdout, stderr } = await execFileAsync(process.execPath, ["openclaw.mjs", ...args], {
+  const { stdout, stderr } = await execFileAsync(process.execPath, ["genesis.mjs", ...args], {
     cwd: process.cwd(),
     env: childEnv,
     timeout: 30_000,
@@ -127,7 +127,7 @@ export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessE
   if (!trimmed) {
     throw new Error(
       [
-        `openclaw ${args.join(" ")} produced no JSON stdout`,
+        `genesis ${args.join(" ")} produced no JSON stdout`,
         stderr.trim() ? `stderr: ${stderr.trim()}` : undefined,
       ]
         .filter(Boolean)
@@ -139,7 +139,7 @@ export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessE
   } catch (error) {
     throw new Error(
       [
-        `openclaw ${args.join(" ")} returned invalid JSON`,
+        `genesis ${args.join(" ")} returned invalid JSON`,
         `stdout: ${trimmed}`,
         stderr.trim() ? `stderr: ${stderr.trim()}` : undefined,
         error instanceof Error ? `cause: ${error.message}` : undefined,
@@ -158,7 +158,7 @@ export async function assertCronJobVisibleViaCli(params: {
   expectedName: string;
   expectedMessage: string;
 }): Promise<CronListJob | undefined> {
-  const cronList = await runOpenClawCliJson<CronListCliResult>(
+  const cronList = await runGenesisCliJson<CronListCliResult>(
     [
       "cron",
       "list",

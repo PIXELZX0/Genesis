@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/plugin-entry";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { isRecord } from "./src/record-shared.js";
 
 function listContainsBrowser(value: unknown): boolean {
@@ -16,7 +16,7 @@ function toolPolicyReferencesBrowser(value: unknown): boolean {
   );
 }
 
-function hasBrowserToolReference(config: OpenClawConfig): boolean {
+function hasBrowserToolReference(config: GenesisConfig): boolean {
   if (toolPolicyReferencesBrowser(config.tools)) {
     return true;
   }

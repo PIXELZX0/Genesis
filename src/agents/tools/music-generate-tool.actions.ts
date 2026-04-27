@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { listSupportedMusicGenerationModes } from "../../music-generation/capabilities.js";
 import { listRuntimeMusicGenerationProviders } from "../../music-generation/runtime.js";
 import {
@@ -44,7 +44,7 @@ function summarizeMusicGenerationCapabilities(
 }
 
 export function createMusicGenerateListActionResult(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): MusicGenerateActionResult {
   const providers = listRuntimeMusicGenerationProviders({ config });
   return createMediaGenerateProviderListActionResult({

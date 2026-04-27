@@ -3,8 +3,8 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
 
 const REQUIRED_MATRIX_PACKAGES = [
   "matrix-js-sdk",

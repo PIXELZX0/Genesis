@@ -11,7 +11,7 @@ import {
 } from "./provider-openai-codex-oauth-tls.js";
 
 const manualInputPromptMessage = "Paste the authorization code (or full redirect URL):";
-const openAICodexOAuthOriginator = "openclaw";
+const openAICodexOAuthOriginator = "genesis";
 const localManualFallbackDelayMs = 15_000;
 const localManualFallbackGraceMs = 1_000;
 
@@ -193,7 +193,7 @@ export async function loginOpenAICodexOAuth(params: {
     spin.stop("OpenAI OAuth failed");
     const rewrittenError = rewriteOpenAICodexOAuthError(err);
     runtime.error(String(rewrittenError));
-    await prompter.note("Trouble with OAuth? See https://docs.openclaw.ai/start/faq", "OAuth help");
+    await prompter.note("Trouble with OAuth? See https://docs.genesis.ai/start/faq", "OAuth help");
     throw rewrittenError;
   } finally {
     markLoginSettled();

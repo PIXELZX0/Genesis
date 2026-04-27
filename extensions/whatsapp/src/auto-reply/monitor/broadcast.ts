@@ -1,11 +1,11 @@
-import type { loadConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { buildAgentSessionKey, deriveLastRoutePolicy } from "openclaw/plugin-sdk/routing";
+import type { loadConfig } from "genesis/plugin-sdk/config-runtime";
+import type { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { buildAgentSessionKey, deriveLastRoutePolicy } from "genesis/plugin-sdk/routing";
 import {
   buildAgentMainSessionKey,
   DEFAULT_MAIN_KEY,
   normalizeAgentId,
-} from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/routing";
 import { resolveWhatsAppGroupSessionRoute } from "../../group-session-key.js";
 import { formatError } from "../../session.js";
 import { whatsappInboundLog } from "../loggers.js";

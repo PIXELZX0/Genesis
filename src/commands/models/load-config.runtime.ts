@@ -4,5 +4,5 @@ export {
   getRuntimeConfig,
   readSourceConfigSnapshotForWrite,
   setRuntimeConfigSnapshot,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../../config/config.js";

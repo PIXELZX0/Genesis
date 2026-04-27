@@ -17,7 +17,7 @@ export type GatewayTlsConfig = {
 
 export type WideAreaDiscoveryConfig = {
   enabled?: boolean;
-  /** Optional unicast DNS-SD domain (e.g. "openclaw.internal"). */
+  /** Optional unicast DNS-SD domain (e.g. "genesis.internal"). */
   domain?: string;
 };
 
@@ -40,7 +40,7 @@ export type DiscoveryConfig = {
 
 export type CanvasHostConfig = {
   enabled?: boolean;
-  /** Directory to serve (default: ~/.openclaw/workspace/canvas). */
+  /** Directory to serve (default: ~/.genesis/workspace/canvas). */
   root?: string;
   /** HTTP port to listen on (default: 18793). */
   port?: number;
@@ -81,7 +81,7 @@ export type TalkConfigResponse = TalkConfig & {
 export type GatewayControlUiConfig = {
   /** If false, the Gateway will not serve the Control UI (default /). */
   enabled?: boolean;
-  /** Optional base path prefix for the Control UI (e.g. "/openclaw"). */
+  /** Optional base path prefix for the Control UI (e.g. "/genesis"). */
   basePath?: string;
   /** Optional filesystem root for Control UI assets (defaults to dist/control-ui). */
   root?: string;
@@ -94,7 +94,7 @@ export type GatewayControlUiConfig = {
   embedSandbox?: "strict" | "scripts" | "trusted";
   /**
    * DANGEROUS: Allow hosted embeds to load absolute external http(s) URLs.
-   * Default off; prefer hosted /__openclaw__/canvas or /__openclaw__/a2ui content.
+   * Default off; prefer hosted /__genesis__/canvas or /__genesis__/a2ui content.
    */
   allowExternalEmbedUrls?: boolean;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */
@@ -209,7 +209,7 @@ export type GatewayReloadConfig = {
    * Maximum time (ms) to wait for in-flight operations to complete before
    * forcing a SIGUSR1 restart. Default: 300000 (5 minutes).
    * Lower values risk aborting active subagent LLM calls.
-   * @see https://github.com/openclaw/openclaw/issues/47711
+   * @see https://github.com/PIXELZX0/Genesis/issues/47711
    */
   deferralTimeoutMs?: number;
 };

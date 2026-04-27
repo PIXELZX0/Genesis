@@ -1,5 +1,5 @@
 ---
-summary: Machine-checked security models for OpenClaw’s highest-risk paths.
+summary: Machine-checked security models for Genesis’s highest-risk paths.
 title: Formal verification (security models)
 read_when:
   - Reviewing formal security model guarantees or limits
@@ -7,11 +7,11 @@ read_when:
 permalink: /security/formal-verification/
 ---
 
-This page tracks OpenClaw’s **formal security models** (TLA+/TLC today; more as needed).
+This page tracks Genesis’s **formal security models** (TLA+/TLC today; more as needed).
 
 > Note: some older links may refer to the previous project name.
 
-**Goal (north star):** provide a machine-checked argument that OpenClaw enforces its
+**Goal (north star):** provide a machine-checked argument that Genesis enforces its
 intended security policy (authorization, session isolation, tool gating, and
 misconfiguration safety), under explicit assumptions.
 
@@ -20,11 +20,11 @@ misconfiguration safety), under explicit assumptions.
 - Each claim has a runnable model-check over a finite state space.
 - Many claims have a paired **negative model** that produces a counterexample trace for a realistic bug class.
 
-**What this is not (yet):** a proof that “OpenClaw is secure in all respects” or that the full TypeScript implementation is correct.
+**What this is not (yet):** a proof that “Genesis is secure in all respects” or that the full TypeScript implementation is correct.
 
 ## Where the models live
 
-Models are maintained in a separate repo: [vignesh07/openclaw-formal-models](https://github.com/vignesh07/openclaw-formal-models).
+Models are maintained in a separate repo: [vignesh07/genesis-formal-models](https://github.com/vignesh07/genesis-formal-models).
 
 ## Important caveats
 
@@ -42,8 +42,8 @@ Today, results are reproduced by cloning the models repo locally and running TLC
 Getting started:
 
 ```bash
-git clone https://github.com/vignesh07/openclaw-formal-models
-cd openclaw-formal-models
+git clone https://github.com/vignesh07/genesis-formal-models
+cd genesis-formal-models
 
 # Java 11+ required (TLC runs on the JVM).
 # The repo vendors a pinned `tla2tools.jar` (TLA+ tools) and provides `bin/tlc` + Make targets.

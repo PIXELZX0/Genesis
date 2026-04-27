@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "../../../src/plugins/registry-empty.js";
 import { setActivePluginRegistry } from "../../../src/plugins/runtime.js";
 import { createMockServerResponse } from "../../../test/helpers/plugins/mock-http-response.js";
-import type { OpenClawConfig, PluginRuntime } from "../runtime-api.js";
+import type { GenesisConfig, PluginRuntime } from "../runtime-api.js";
 import type { ResolvedGoogleChatAccount } from "./accounts.js";
 import { verifyGoogleChatRequest } from "./auth.js";
 import {
@@ -91,7 +91,7 @@ function registerTwoTargets() {
   const logA = vi.fn();
   const logB = vi.fn();
   const core = {} as PluginRuntime;
-  const config = {} as OpenClawConfig;
+  const config = {} as GenesisConfig;
 
   const unregisterA = registerGoogleChatWebhookTarget({
     account: baseAccount("A"),

@@ -6,7 +6,7 @@ const { buildGuardedModelFetchMock, guardedFetchMock } = vi.hoisted(() => ({
   guardedFetchMock: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-transport-runtime", async (importOriginal) => ({
+vi.mock("genesis/plugin-sdk/provider-transport-runtime", async (importOriginal) => ({
   ...(await importOriginal()),
   buildGuardedModelFetch: buildGuardedModelFetchMock,
 }));
@@ -14,9 +14,7 @@ vi.mock("openclaw/plugin-sdk/provider-transport-runtime", async (importOriginal)
 let buildGoogleGenerativeAiParams: typeof import("./transport-stream.js").buildGoogleGenerativeAiParams;
 let createGoogleGenerativeAiTransportStreamFn: typeof import("./transport-stream.js").createGoogleGenerativeAiTransportStreamFn;
 
-const MODEL_PROVIDER_REQUEST_TRANSPORT_SYMBOL = Symbol.for(
-  "openclaw.modelProviderRequestTransport",
-);
+const MODEL_PROVIDER_REQUEST_TRANSPORT_SYMBOL = Symbol.for("genesis.modelProviderRequestTransport");
 
 function attachModelProviderRequestTransport<TModel extends object>(
   model: TModel,

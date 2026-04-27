@@ -5,8 +5,8 @@ import type { resolveApiKeyForProfile } from "./oauth.js";
 import type { AuthProfileStore, OAuthCredential } from "./types.js";
 
 export const OAUTH_AGENT_ENV_KEYS = [
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_AGENT_DIR",
+  "GENESIS_STATE_DIR",
+  "GENESIS_AGENT_DIR",
   "PI_CODING_AGENT_DIR",
 ];
 
@@ -62,8 +62,8 @@ export async function createOAuthTestTempRoot(prefix: string): Promise<string> {
 
 export async function createOAuthMainAgentDir(stateDir: string): Promise<string> {
   const agentDir = path.join(stateDir, "agents", "main", "agent");
-  process.env.OPENCLAW_STATE_DIR = stateDir;
-  process.env.OPENCLAW_AGENT_DIR = agentDir;
+  process.env.GENESIS_STATE_DIR = stateDir;
+  process.env.GENESIS_AGENT_DIR = agentDir;
   process.env.PI_CODING_AGENT_DIR = agentDir;
   await fs.mkdir(agentDir, { recursive: true });
   return agentDir;

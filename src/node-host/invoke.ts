@@ -45,9 +45,9 @@ const WINDOWS_CODEPAGE_ENCODING_MAP: Record<number, string> = {
 let cachedWindowsConsoleEncoding: string | null | undefined;
 
 const execHostEnforced =
-  normalizeLowercaseStringOrEmpty(process.env.OPENCLAW_NODE_EXEC_HOST ?? "") === "app";
+  normalizeLowercaseStringOrEmpty(process.env.GENESIS_NODE_EXEC_HOST ?? "") === "app";
 const execHostFallbackAllowed =
-  normalizeLowercaseStringOrEmpty(process.env.OPENCLAW_NODE_EXEC_FALLBACK ?? "") !== "0";
+  normalizeLowercaseStringOrEmpty(process.env.GENESIS_NODE_EXEC_FALLBACK ?? "") !== "0";
 const preferMacAppExecHost = process.platform === "darwin" && execHostEnforced;
 
 type SystemWhichParams = {

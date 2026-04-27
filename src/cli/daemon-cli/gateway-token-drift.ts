@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveGatewayAuthToken } from "../../gateway/auth-token-resolution.js";
 import { createGatewayCredentialPlan } from "../../gateway/credential-planner.js";
 import { GatewaySecretRefUnavailableError } from "../../gateway/credentials.js";
@@ -7,10 +7,7 @@ function authModeDisablesToken(mode: string | undefined): boolean {
   return mode === "password" || mode === "none" || mode === "trusted-proxy";
 }
 
-function isPasswordFallbackActive(params: {
-  cfg: OpenClawConfig;
-  env: NodeJS.ProcessEnv;
-}): boolean {
+function isPasswordFallbackActive(params: { cfg: GenesisConfig; env: NodeJS.ProcessEnv }): boolean {
   const plan = createGatewayCredentialPlan({
     config: params.cfg,
     env: params.env,
@@ -22,7 +19,7 @@ function isPasswordFallbackActive(params: {
 }
 
 export async function resolveGatewayTokenForDriftCheck(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
 }): Promise<string | undefined> {
   const env = params.env ?? process.env;

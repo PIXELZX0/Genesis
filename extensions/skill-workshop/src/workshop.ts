@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../api.js";
+import type { GenesisPluginApi } from "../api.js";
 import { resolveDefaultAgentId } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
 import { applyProposalToWorkspace, prepareProposalWrite } from "./skills.js";
@@ -10,7 +10,7 @@ type ToolContext = {
   agentId?: string;
 };
 
-export function resolveWorkspaceDir(params: { api: OpenClawPluginApi; ctx?: ToolContext }): string {
+export function resolveWorkspaceDir(params: { api: GenesisPluginApi; ctx?: ToolContext }): string {
   return (
     params.ctx?.workspaceDir ||
     params.api.runtime.agent.resolveAgentWorkspaceDir(
@@ -21,7 +21,7 @@ export function resolveWorkspaceDir(params: { api: OpenClawPluginApi; ctx?: Tool
 }
 
 export function createStoreForContext(params: {
-  api: OpenClawPluginApi;
+  api: GenesisPluginApi;
   ctx?: ToolContext;
   config: SkillWorkshopConfig;
 }): SkillWorkshopStore {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthProfileStore } from "../../agents/auth-profiles.js";
 import type { ModelCatalogEntry } from "../../agents/model-catalog.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 
 let mockStore: AuthProfileStore;
 let mockAllowedProfiles: string[];
@@ -18,7 +18,7 @@ vi.mock("../../agents/model-catalog.js", () => ({
   loadModelCatalog: loadModelCatalogMock,
 }));
 vi.mock("../../agents/model-auth.js", () => ({
-  hasUsableCustomProviderApiKey: (cfg: OpenClawConfig, provider: string) => {
+  hasUsableCustomProviderApiKey: (cfg: GenesisConfig, provider: string) => {
     const raw = cfg.models?.providers?.[provider]?.apiKey;
     return typeof raw === "string" && raw.trim().length > 0 && raw !== "ollama-local";
   },
@@ -84,7 +84,7 @@ async function buildAnthropicProbePlan(order: string[]) {
           anthropic: order,
         },
       },
-    } as OpenClawConfig,
+    } as GenesisConfig,
     providers: ["anthropic"],
     modelCandidates: ["anthropic/claude-sonnet-4-6"],
     options: {
@@ -150,7 +150,7 @@ async function buildAnthropicPlanFromModelsJsonApiKey(apiKey: string) {
           },
         },
       },
-    } as OpenClawConfig,
+    } as GenesisConfig,
     providers: ["anthropic"],
     modelCandidates: ["anthropic/claude-sonnet-4-6"],
     options: {
@@ -300,7 +300,7 @@ describe("buildProbeTargets reason codes", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         providers: ["zai"],
         modelCandidates: [],
         options: {

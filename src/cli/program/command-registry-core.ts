@@ -111,6 +111,15 @@ const coreEntrySpecs: readonly CommandGroupDescriptorSpec<
   ...withProgramOnlySpecs(
     defineImportedProgramCommandGroupSpecs([
       {
+        commandNames: ["wallet"],
+        loadModule: () => import("./register.wallet.js"),
+        exportName: "registerWalletCommand",
+      },
+    ]),
+  ),
+  ...withProgramOnlySpecs(
+    defineImportedProgramCommandGroupSpecs([
+      {
         commandNames: ["status", "health", "sessions", "tasks"],
         loadModule: () => import("./register.status-health-sessions.js"),
         exportName: "registerStatusHealthSessionsCommands",

@@ -20,7 +20,7 @@ vi.mock("./shared.js", async (importOriginal) => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: vi.fn(),
 }));
 
@@ -48,7 +48,7 @@ vi.mock("./remote-media.js", () => ({
   downloadAndStoreMSTeamsRemoteMedia: vi.fn(),
 }));
 
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import { downloadMSTeamsGraphMedia } from "./graph.js";
 import { downloadAndStoreMSTeamsRemoteMedia } from "./remote-media.js";
 import { safeFetchWithPolicy } from "./shared.js";
@@ -200,7 +200,7 @@ describe("downloadMSTeamsGraphMedia hosted content $value fallback", () => {
     expect(result.media.length).toBeGreaterThan(0);
   });
 
-  it("adds the OpenClaw User-Agent to guarded Graph attachment fetches", async () => {
+  it("adds the Genesis User-Agent to guarded Graph attachment fetches", async () => {
     mockGraphMediaFetch({ messageId: "msg-ua" });
 
     await downloadMSTeamsGraphMedia({
@@ -214,13 +214,11 @@ describe("downloadMSTeamsGraphMedia hosted content $value fallback", () => {
       const headers = call.init?.headers;
       expect(headers).toBeInstanceOf(Headers);
       expect((headers as Headers).get("Authorization")).toBe("Bearer test-token");
-      expect((headers as Headers).get("User-Agent")).toMatch(
-        /^teams\.ts\[apps\]\/.+ OpenClaw\/.+$/,
-      );
+      expect((headers as Headers).get("User-Agent")).toMatch(/^teams\.ts\[apps\]\/.+ Genesis\/.+$/);
     }
   });
 
-  it("adds the OpenClaw User-Agent to Graph shares downloads for reference attachments", async () => {
+  it("adds the Genesis User-Agent to Graph shares downloads for reference attachments", async () => {
     mockGraphMediaFetch({
       messageId: "msg-share",
       messageResponse: {
@@ -261,7 +259,7 @@ describe("downloadMSTeamsGraphMedia hosted content $value fallback", () => {
     );
     const requestInit = vi.mocked(safeFetchWithPolicy).mock.calls[0]?.[0]?.requestInit;
     const headers = requestInit?.headers as Headers;
-    expect(headers.get("User-Agent")).toMatch(/^teams\.ts\[apps\]\/.+ OpenClaw\/.+$/);
+    expect(headers.get("User-Agent")).toMatch(/^teams\.ts\[apps\]\/.+ Genesis\/.+$/);
   });
 });
 

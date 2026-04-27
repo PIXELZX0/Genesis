@@ -6,7 +6,7 @@ run_logged() {
   local log_file
   local tmp_dir="${TMPDIR:-/tmp}"
   tmp_dir="${tmp_dir%/}"
-  log_file="$(mktemp "$tmp_dir/openclaw-${label}.XXXXXX")"
+  log_file="$(mktemp "$tmp_dir/genesis-${label}.XXXXXX")"
   if ! "$@" >"$log_file" 2>&1; then
     cat "$log_file"
     rm -f "$log_file"

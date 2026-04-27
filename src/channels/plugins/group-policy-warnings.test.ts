@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   collectAllowlistProviderGroupPolicyWarnings,
   collectAllowlistProviderRestrictSendersWarnings,
@@ -49,13 +49,13 @@ describe("group policy warning builders", () => {
   });
 
   it("projects cfg-only warning collector inputs", () => {
-    const collect = projectConfigWarningCollector<{ cfg: OpenClawConfig; accountId: string }>(
+    const collect = projectConfigWarningCollector<{ cfg: GenesisConfig; accountId: string }>(
       ({ cfg }) => [cfg.channels ? "configured" : "none"],
     );
 
     expect(
       collect({
-        cfg: { channels: { slack: {} } } as OpenClawConfig,
+        cfg: { channels: { slack: {} } } as GenesisConfig,
         accountId: "acct-1",
       }),
     ).toEqual(["configured"]);
@@ -63,14 +63,14 @@ describe("group policy warning builders", () => {
 
   it("projects cfg+accountId warning collector inputs", () => {
     const collect = projectConfigAccountIdWarningCollector<{
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       accountId?: string | null;
       account: { accountId: string };
     }>(({ accountId }) => [accountId ?? "default"]);
 
     expect(
       collect({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         accountId: "acct-1",
         account: { accountId: "ignored" },
       }),
@@ -90,16 +90,16 @@ describe("group policy warning builders", () => {
     const collect = projectAccountConfigWarningCollector<
       { accountId: string },
       Record<string, unknown>,
-      { account: { accountId: string }; cfg: OpenClawConfig }
+      { account: { accountId: string }; cfg: GenesisConfig }
     >(
-      (cfg: OpenClawConfig) => cfg.channels ?? {},
+      (cfg: GenesisConfig) => cfg.channels ?? {},
       ({ account, cfg }) => [account.accountId, Object.keys(cfg).join(",") || "none"],
     );
 
     expect(
       collect({
         account: { accountId: "acct-1" },
-        cfg: { channels: { slack: {} } } as OpenClawConfig,
+        cfg: { channels: { slack: {} } } as GenesisConfig,
       }),
     ).toEqual(["acct-1", "slack"]);
   });

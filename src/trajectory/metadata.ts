@@ -2,7 +2,7 @@ import type { SkillSnapshot } from "../agents/skills.js";
 import { resolveStateDir } from "../config/paths.js";
 import { redactConfigObject } from "../config/redact-snapshot.js";
 import type { SessionSystemPromptReport } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveCommitHash } from "../infra/git-commit.js";
 import { resolveOsSummary } from "../infra/os-summary.js";
 import {
@@ -16,7 +16,7 @@ import { VERSION } from "../version.js";
 
 type BuildTrajectoryRunMetadataParams = {
   env?: NodeJS.ProcessEnv;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir: string;
   sessionFile?: string;
   sessionKey?: string;
@@ -132,7 +132,7 @@ function buildPluginsFromActiveRegistry() {
 }
 
 function buildPluginsFromManifest(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }) {
@@ -225,8 +225,8 @@ export function buildTrajectoryRunMetadata(
   return {
     capturedAt: new Date().toISOString(),
     harness: {
-      type: "openclaw",
-      name: "OpenClaw",
+      type: "genesis",
+      name: "Genesis",
       version: VERSION,
       gitSha:
         resolveCommitHash({ cwd: params.workspaceDir, env, moduleUrl: import.meta.url }) ??

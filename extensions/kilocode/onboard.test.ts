@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveEnvApiKey } from "openclaw/plugin-sdk/provider-auth-runtime";
-import { resolveAgentModelPrimaryValue } from "openclaw/plugin-sdk/provider-onboard";
-import { captureEnv } from "openclaw/plugin-sdk/testing";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveEnvApiKey } from "genesis/plugin-sdk/provider-auth-runtime";
+import { resolveAgentModelPrimaryValue } from "genesis/plugin-sdk/provider-onboard";
+import { captureEnv } from "genesis/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import {
   buildKilocodeModelDefinition,
@@ -17,7 +17,7 @@ import {
   KILOCODE_DEFAULT_MODEL_REF,
 } from "./onboard.js";
 
-const emptyCfg: OpenClawConfig = {};
+const emptyCfg: GenesisConfig = {};
 const KILOCODE_MODEL_IDS = ["kilo/auto"];
 
 describe("Kilo Gateway provider config", () => {
@@ -101,7 +101,7 @@ describe("Kilo Gateway provider config", () => {
     });
 
     it("preserves existing alias if already set", () => {
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         agents: {
           defaults: {
             models: {
@@ -116,7 +116,7 @@ describe("Kilo Gateway provider config", () => {
     });
 
     it("does not change the default model selection", () => {
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         agents: {
           defaults: {
             model: { primary: "openai/gpt-5" },

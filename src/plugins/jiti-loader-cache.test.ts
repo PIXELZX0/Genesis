@@ -34,7 +34,7 @@ describe("getCachedPluginJitiLoader", () => {
       cache,
       modulePath: "/repo/extensions/demo/index.ts",
       importerUrl: "file:///repo/src/plugins/setup-registry.ts",
-      argvEntry: "/repo/openclaw.mjs",
+      argvEntry: "/repo/genesis.mjs",
       jitiFilename: "file:///repo/src/plugins/source-loader.ts",
     } as const;
 
@@ -55,7 +55,7 @@ describe("getCachedPluginJitiLoader", () => {
       cache,
       modulePath: "/repo/dist/extensions/demo/api.ts",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
-      argvEntry: "/repo/openclaw.mjs",
+      argvEntry: "/repo/genesis.mjs",
       preferBuiltDist: true,
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
     });
@@ -63,7 +63,7 @@ describe("getCachedPluginJitiLoader", () => {
       cache,
       modulePath: "/repo/dist/extensions/demo/api.ts",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
-      argvEntry: "/repo/openclaw.mjs",
+      argvEntry: "/repo/genesis.mjs",
       preferBuiltDist: true,
       jitiFilename: "file:///repo/src/plugins/bundled-channel-config-metadata.ts",
     });

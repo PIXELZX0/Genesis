@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { DiscordAccountConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { DiscordAccountConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { authorizeDiscordVoiceIngress } from "./access.js";
 
-const baseCfg = { commands: { useAccessGroups: true } } as OpenClawConfig;
+const baseCfg = { commands: { useAccessGroups: true } } as GenesisConfig;
 
 describe("authorizeDiscordVoiceIngress", () => {
   it("blocks speakers outside the configured channel user allowlist", async () => {

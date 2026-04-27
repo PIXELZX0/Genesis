@@ -8,43 +8,43 @@ import {
 } from "@buape/carbon";
 import { GatewayCloseCodes, type GatewayPlugin } from "@buape/carbon/gateway";
 import { Routes } from "discord-api-types/v10";
-import { CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY } from "openclaw/plugin-sdk/approval-handler-adapter-runtime";
-import type { ChannelRuntimeSurface } from "openclaw/plugin-sdk/channel-contract";
-import { registerChannelRuntimeContext } from "openclaw/plugin-sdk/channel-runtime-context";
+import { CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY } from "genesis/plugin-sdk/approval-handler-adapter-runtime";
+import type { ChannelRuntimeSurface } from "genesis/plugin-sdk/channel-contract";
+import { registerChannelRuntimeContext } from "genesis/plugin-sdk/channel-runtime-context";
 import {
   listNativeCommandSpecsForConfig,
   listSkillCommandsForAgents,
   type NativeCommandSpec,
-} from "openclaw/plugin-sdk/command-auth";
+} from "genesis/plugin-sdk/command-auth";
 import {
   isNativeCommandsExplicitlyDisabled,
   resolveNativeCommandsEnabled,
   resolveNativeSkillsEnabled,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { OpenClawConfig, ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
-import { loadConfig } from "openclaw/plugin-sdk/config-runtime";
-import { createConnectedChannelStatusPatch } from "openclaw/plugin-sdk/gateway-runtime";
-import { resolveTextChunkLimit } from "openclaw/plugin-sdk/reply-chunking";
+} from "genesis/plugin-sdk/config-runtime";
+import type { GenesisConfig, ReplyToMode } from "genesis/plugin-sdk/config-runtime";
+import { loadConfig } from "genesis/plugin-sdk/config-runtime";
+import { createConnectedChannelStatusPatch } from "genesis/plugin-sdk/gateway-runtime";
+import { resolveTextChunkLimit } from "genesis/plugin-sdk/reply-chunking";
 import {
   danger,
   isVerbose,
   logVerbose,
   shouldLogVerbose,
   warn,
-} from "openclaw/plugin-sdk/runtime-env";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { createNonExitingRuntime, type RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/runtime-env";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
+import { createNonExitingRuntime, type RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 import {
   GROUP_POLICY_BLOCKED_LABEL,
   resolveOpenProviderRuntimeGroupPolicy,
   resolveDefaultGroupPolicy,
   warnMissingProviderGroupPolicyFallbackOnce,
-} from "openclaw/plugin-sdk/runtime-group-policy";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/runtime-group-policy";
+import { formatErrorMessage } from "genesis/plugin-sdk/ssrf-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   summarizeStringEntries,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { resolveDiscordAccount } from "../accounts.js";
 import { isDiscordExecApprovalClientEnabled } from "../exec-approvals.js";
 import { fetchDiscordApplicationId } from "../probe.js";
@@ -93,7 +93,7 @@ import { formatThreadBindingDurationLabel } from "./thread-bindings.messages.js"
 export type MonitorDiscordOpts = {
   token?: string;
   accountId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   runtime?: RuntimeEnv;
   channelRuntime?: ChannelRuntimeSurface;
   abortSignal?: AbortSignal;
@@ -110,11 +110,11 @@ type DiscordVoiceManager = import("../voice/manager.js").DiscordVoiceManager;
 type DiscordVoiceRuntimeModule = typeof import("../voice/manager.runtime.js");
 type DiscordProviderSessionRuntimeModule = typeof import("./provider-session.runtime.js");
 type GetPluginCommandSpecs =
-  typeof import("openclaw/plugin-sdk/plugin-runtime").getPluginCommandSpecs;
+  typeof import("genesis/plugin-sdk/plugin-runtime").getPluginCommandSpecs;
 
 let discordVoiceRuntimePromise: Promise<DiscordVoiceRuntimeModule> | undefined;
 let discordProviderSessionRuntimePromise: Promise<DiscordProviderSessionRuntimeModule> | undefined;
-let pluginRuntimePromise: Promise<typeof import("openclaw/plugin-sdk/plugin-runtime")> | undefined;
+let pluginRuntimePromise: Promise<typeof import("genesis/plugin-sdk/plugin-runtime")> | undefined;
 
 let fetchDiscordApplicationIdForTesting: typeof fetchDiscordApplicationId | undefined;
 let createDiscordNativeCommandForTesting: typeof createDiscordNativeCommand | undefined;
@@ -158,7 +158,7 @@ async function loadDiscordProviderSessionRuntime(): Promise<DiscordProviderSessi
 }
 
 async function loadPluginRuntime() {
-  pluginRuntimePromise ??= import("openclaw/plugin-sdk/plugin-runtime");
+  pluginRuntimePromise ??= import("genesis/plugin-sdk/plugin-runtime");
   return await pluginRuntimePromise;
 }
 
@@ -251,7 +251,7 @@ function classifyAcpStatusProbeError(params: {
 }
 
 async function probeDiscordAcpBindingHealth(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey: string;
   storedState?: "idle" | "running" | "error";
   lastActivityAt?: number;
@@ -993,7 +993,7 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
     const logger = createSubsystemLogger("discord/monitor");
     const guildHistories = new Map<
       string,
-      import("openclaw/plugin-sdk/reply-history").HistoryEntry[]
+      import("genesis/plugin-sdk/reply-history").HistoryEntry[]
     >();
     let { botUserId, botUserName } = await fetchDiscordBotIdentity({
       client,

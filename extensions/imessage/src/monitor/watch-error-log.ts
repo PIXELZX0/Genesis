@@ -1,8 +1,4 @@
-import {
-  isRecord,
-  sanitizeTerminalText,
-  truncateUtf16Safe,
-} from "openclaw/plugin-sdk/text-runtime";
+import { isRecord, sanitizeTerminalText, truncateUtf16Safe } from "genesis/plugin-sdk/text-runtime";
 
 const MAX_WATCH_ERROR_MESSAGE_CHARS = 200;
 

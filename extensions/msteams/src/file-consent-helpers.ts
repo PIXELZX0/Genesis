@@ -9,7 +9,7 @@
  * and messenger.ts (reply path) to avoid duplication.
  */
 
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { buildFileConsentCard } from "./file-consent.js";
 import { storePendingUploadFs } from "./pending-uploads-fs.js";
 import { storePendingUpload } from "./pending-uploads.js";

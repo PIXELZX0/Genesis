@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { DEFAULT_AGENTS_FILENAME } from "../agents/workspace.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import {
   CANONICAL_ROOT_MEMORY_FILENAME,
@@ -20,8 +20,8 @@ export const MEMORY_SYSTEM_PROMPT = [
   "Paste this into your agent:",
   "",
   "Install the memory system by applying:",
-  "https://github.com/openclaw/openclaw/commit/9ffea23f31ca1df5183b25668f8f814bee0fb34e",
-  "https://github.com/openclaw/openclaw/commit/7d1fee70e76f2f634f1b41fca927ee663914183a",
+  "https://github.com/PIXELZX0/Genesis/commit/9ffea23f31ca1df5183b25668f8f814bee0fb34e",
+  "https://github.com/PIXELZX0/Genesis/commit/7d1fee70e76f2f634f1b41fca927ee663914183a",
 ].join("\n");
 
 export async function shouldSuggestMemorySystem(workspaceDir: string): Promise<boolean> {
@@ -149,9 +149,9 @@ export function formatRootMemoryFilesWarning(detection: RootMemoryFilesDetection
       "Split root durable memory files detected:",
       `- canonical: ${shortenHomePath(detection.canonicalPath)} (${formatBytes(detection.canonicalBytes)})`,
       `- legacy: ${shortenHomePath(detection.legacyPath)} (${formatBytes(detection.legacyBytes)})`,
-      `OpenClaw uses ${CANONICAL_ROOT_MEMORY_FILENAME} as the canonical durable memory file.`,
+      `Genesis uses ${CANONICAL_ROOT_MEMORY_FILENAME} as the canonical durable memory file.`,
       `Dreaming writes durable promotions to ${CANONICAL_ROOT_MEMORY_FILENAME}, so older facts in ${LEGACY_ROOT_MEMORY_FILENAME} can be shadowed.`,
-      `Run "openclaw doctor --fix" to merge the legacy file into ${CANONICAL_ROOT_MEMORY_FILENAME} with a backup.`,
+      `Run "genesis doctor --fix" to merge the legacy file into ${CANONICAL_ROOT_MEMORY_FILENAME} with a backup.`,
     ].join("\n");
   }
   return null;
@@ -199,7 +199,7 @@ function buildMergedLegacyRootMemorySection(params: {
     "",
     `## Imported From Legacy Root ${LEGACY_ROOT_MEMORY_FILENAME}`,
     "",
-    `<!-- openclaw-root-memory-merge source=${LEGACY_ROOT_MEMORY_FILENAME} archived=${params.archivedLegacyPath} -->`,
+    `<!-- genesis-root-memory-merge source=${LEGACY_ROOT_MEMORY_FILENAME} archived=${params.archivedLegacyPath} -->`,
     `This content came from legacy root \`${LEGACY_ROOT_MEMORY_FILENAME}\`, which was shadowed by \`${CANONICAL_ROOT_MEMORY_FILENAME}\`.`,
     "",
     params.legacyText.trim(),
@@ -246,7 +246,7 @@ export async function migrateLegacyRootMemoryFile(
   };
 }
 
-export async function noteWorkspaceMemoryHealth(cfg: OpenClawConfig): Promise<void> {
+export async function noteWorkspaceMemoryHealth(cfg: GenesisConfig): Promise<void> {
   try {
     const agentId = resolveDefaultAgentId(cfg);
     const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
@@ -262,7 +262,7 @@ export async function noteWorkspaceMemoryHealth(cfg: OpenClawConfig): Promise<vo
 }
 
 export async function maybeRepairWorkspaceMemoryHealth(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: DoctorPrompter;
 }): Promise<void> {
   try {

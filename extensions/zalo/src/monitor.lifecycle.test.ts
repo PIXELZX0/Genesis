@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "../../../src/plugins/registry-empty.js";
 import { setActivePluginRegistry } from "../../../src/plugins/runtime.js";
 import { createRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import type { ResolvedZaloAccount } from "./accounts.js";
 
 const getWebhookInfoMock = vi.fn(async () => ({ ok: true, result: { url: "" } }));
@@ -34,7 +34,7 @@ const TEST_ACCOUNT = {
   config: {},
 } as unknown as ResolvedZaloAccount;
 
-const TEST_CONFIG = {} as OpenClawConfig;
+const TEST_CONFIG = {} as GenesisConfig;
 
 async function settleLifecycleWork(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {

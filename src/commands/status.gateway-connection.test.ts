@@ -34,7 +34,7 @@ describe("status.gateway-connection", () => {
           message: "ignored",
         },
         bindMode: "loopback",
-        configPath: "/tmp/openclaw.json",
+        configPath: "/tmp/genesis.json",
       }),
     ).toContain("Local fallback (used for probes): ws://127.0.0.1:18789");
   });
@@ -54,7 +54,7 @@ describe("status.gateway-connection", () => {
           message: "Gateway mode: local",
         },
         bindMode: "loopback",
-        configPath: "/tmp/openclaw.json",
+        configPath: "/tmp/genesis.json",
       }),
     ).toBe("Node-only mode detected");
   });

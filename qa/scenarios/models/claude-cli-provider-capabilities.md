@@ -29,7 +29,7 @@ codeRefs:
   - extensions/qa-lab/src/suite.ts
 execution:
   kind: flow
-  summary: Run with `pnpm openclaw qa suite --provider-mode live-frontier --cli-auth-mode api-key --model claude-cli/claude-sonnet-4-6 --alt-model claude-cli/claude-sonnet-4-6 --scenario claude-cli-provider-capabilities`.
+  summary: Run with `pnpm genesis qa suite --provider-mode live-frontier --cli-auth-mode api-key --model claude-cli/claude-sonnet-4-6 --alt-model claude-cli/claude-sonnet-4-6 --scenario claude-cli-provider-capabilities`.
   config:
     authMode: api-key
     requiredProvider: claude-cli
@@ -64,20 +64,20 @@ steps:
           expr: splitModelRef(env.primaryModel)
       - set: preserveEnv
         value:
-          expr: "String(env.gateway.runtimeEnv.OPENCLAW_LIVE_CLI_BACKEND_PRESERVE_ENV ?? '')"
+          expr: "String(env.gateway.runtimeEnv.GENESIS_LIVE_CLI_BACKEND_PRESERVE_ENV ?? '')"
       - assert:
           expr: "env.providerMode !== 'live-frontier' || selected?.provider === config.requiredProvider"
           message:
             expr: "`expected live primary provider ${config.requiredProvider}, got ${env.primaryModel}`"
       - assert:
-          expr: "env.providerMode !== 'live-frontier' || env.gateway.runtimeEnv.OPENCLAW_LIVE_CLI_BACKEND_AUTH_MODE === config.authMode"
+          expr: "env.providerMode !== 'live-frontier' || env.gateway.runtimeEnv.GENESIS_LIVE_CLI_BACKEND_AUTH_MODE === config.authMode"
           message:
-            expr: "`expected Claude CLI auth mode ${config.authMode}, got ${env.gateway.runtimeEnv.OPENCLAW_LIVE_CLI_BACKEND_AUTH_MODE ?? 'unset'}`"
+            expr: "`expected Claude CLI auth mode ${config.authMode}, got ${env.gateway.runtimeEnv.GENESIS_LIVE_CLI_BACKEND_AUTH_MODE ?? 'unset'}`"
       - assert:
           expr: "env.providerMode !== 'live-frontier' || preserveEnv.includes('ANTHROPIC_API_KEY')"
           message:
             expr: "`expected ANTHROPIC_API_KEY to be preserved for Claude CLI API-key QA mode, got ${preserveEnv}`"
-    detailsExpr: "env.providerMode === 'live-frontier' ? `provider=${selected?.provider} model=${selected?.model} auth=${env.gateway.runtimeEnv.OPENCLAW_LIVE_CLI_BACKEND_AUTH_MODE} preserve=${preserveEnv}` : `mock-compatible provider=${selected?.provider}`"
+    detailsExpr: "env.providerMode === 'live-frontier' ? `provider=${selected?.provider} model=${selected?.model} auth=${env.gateway.runtimeEnv.GENESIS_LIVE_CLI_BACKEND_AUTH_MODE} preserve=${preserveEnv}` : `mock-compatible provider=${selected?.provider}`"
   - name: talks through the selected provider
     actions:
       - call: reset

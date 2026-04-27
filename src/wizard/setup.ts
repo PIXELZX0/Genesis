@@ -7,7 +7,7 @@ import type {
   ResetScope,
 } from "../commands/onboard-types.js";
 import { readConfigFileSnapshot, resolveGatewayPort, writeConfigFile } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeSecretInputString } from "../config/types.secrets.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import {
@@ -51,12 +51,12 @@ function loadModelPickerModule(): Promise<ModelPickerModule> {
 
 async function resolveAuthChoiceModelSelectionPolicy(params: {
   authChoice: string;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   resolvePreferredProviderForAuthChoice: (params: {
     choice: string;
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
   }) => Promise<string | undefined>;
@@ -131,11 +131,11 @@ export async function runSetupWizard(
 ) {
   const onboardHelpers = await import("../commands/onboard-helpers.js");
   onboardHelpers.printWizardHeader(runtime);
-  await prompter.intro("OpenClaw setup");
+  await prompter.intro("Genesis setup");
   await requireRiskAcknowledgement({ opts, prompter });
 
   const snapshot = await readConfigFileSnapshot();
-  let baseConfig: OpenClawConfig = snapshot.valid
+  let baseConfig: GenesisConfig = snapshot.valid
     ? snapshot.exists
       ? (snapshot.sourceConfig ?? snapshot.config)
       : {}
@@ -148,13 +148,13 @@ export async function runSetupWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.openclaw.ai/gateway/configuration",
+          "Docs: https://docs.genesis.ai/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );
     }
     await prompter.outro(
-      `Config invalid. Run \`${formatCliCommand("openclaw doctor")}\` to repair it, then re-run setup.`,
+      `Config invalid. Run \`${formatCliCommand("genesis doctor")}\` to repair it, then re-run setup.`,
     );
     runtime.exit(1);
     return;
@@ -174,14 +174,14 @@ export async function runSetupWizard(
           ? [`- ... +${compatibilityNotices.length - 4} more`]
           : []),
         "",
-        `Review: ${formatCliCommand("openclaw doctor")}`,
-        `Inspect: ${formatCliCommand("openclaw plugins inspect --all")}`,
+        `Review: ${formatCliCommand("genesis doctor")}`,
+        `Inspect: ${formatCliCommand("genesis plugins inspect --all")}`,
       ].join("\n"),
       "Plugin compatibility",
     );
   }
 
-  const quickstartHint = `Configure details later via ${formatCliCommand("openclaw configure")}.`;
+  const quickstartHint = `Configure details later via ${formatCliCommand("genesis configure")}.`;
   const manualHint = "Configure port, network, Tailscale, and auth options.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;
@@ -360,7 +360,7 @@ export async function runSetupWizard(
 
   const localPort = resolveGatewayPort(baseConfig);
   const localUrl = `ws://127.0.0.1:${localPort}`;
-  let localGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+  let localGatewayToken = process.env.GENESIS_GATEWAY_TOKEN;
   try {
     const resolvedGatewayToken = await resolveSetupSecretInputString({
       config: baseConfig,
@@ -380,7 +380,7 @@ export async function runSetupWizard(
       "Gateway auth",
     );
   }
-  let localGatewayPassword = process.env.OPENCLAW_GATEWAY_PASSWORD;
+  let localGatewayPassword = process.env.GENESIS_GATEWAY_PASSWORD;
   try {
     const resolvedGatewayPassword = await resolveSetupSecretInputString({
       config: baseConfig,
@@ -490,7 +490,7 @@ export async function runSetupWizard(
 
   const { applyLocalSetupWorkspaceConfig, applySkipBootstrapConfig } =
     await import("../commands/onboard-config.js");
-  let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);
+  let nextConfig: GenesisConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);
   if (opts.skipBootstrap) {
     nextConfig = applySkipBootstrapConfig(nextConfig);
   }

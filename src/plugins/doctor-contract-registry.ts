@@ -2,9 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { LegacyConfigRule } from "../config/legacy.shared.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { asNullableRecord } from "../shared/record-coerce.js";
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverGenesisPlugins } from "./discovery.js";
 import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
 import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import { tryNativeRequireJavaScriptModule } from "./native-module-require.js";
@@ -22,12 +22,12 @@ type PluginDoctorContractModule = {
 };
 
 type PluginDoctorCompatibilityMutation = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   changes: string[];
 };
 
 type PluginDoctorCompatibilityNormalizer = (params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 }) => PluginDoctorCompatibilityMutation;
 
 type PluginDoctorContractEntry = {
@@ -285,7 +285,7 @@ function resolvePluginDoctorContracts(params?: {
     return [];
   }
 
-  const discovery = discoverOpenClawPlugins({
+  const discovery = discoverGenesisPlugins({
     workspaceDir: params?.workspaceDir,
     env,
     cache: true,
@@ -334,14 +334,14 @@ export function listPluginDoctorLegacyConfigRules(params?: {
 }
 
 export function applyPluginDoctorCompatibilityMigrations(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params?: {
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];
   },
 ): {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   changes: string[];
 } {
   let nextCfg = cfg;

@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
 import { resolveStateDir } from "../config/paths.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 
 let loadWebMedia: typeof import("./web-media.js").loadWebMedia;
 
@@ -20,7 +20,7 @@ let workspacePngFile = "";
 
 beforeAll(async () => {
   ({ loadWebMedia } = await import("./web-media.js"));
-  fixtureRoot = await fs.mkdtemp(path.join(resolvePreferredOpenClawTmpDir(), "web-media-core-"));
+  fixtureRoot = await fs.mkdtemp(path.join(resolvePreferredGenesisTmpDir(), "web-media-core-"));
   tinyPngFile = path.join(fixtureRoot, "tiny.png");
   await fs.writeFile(tinyPngFile, Buffer.from(TINY_PNG_BASE64, "base64"));
   workspaceDir = path.join(fixtureRoot, "workspace");

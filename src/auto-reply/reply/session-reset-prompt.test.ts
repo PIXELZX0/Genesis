@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { makeTempWorkspace } from "../../test-helpers/workspace.js";
 import {
   buildBareSessionResetPrompt,
@@ -46,7 +46,7 @@ describe("buildBareSessionResetPrompt", () => {
   it("appends current time line so agents know the date", () => {
     const cfg = {
       agents: { defaults: { userTimezone: "America/New_York", timeFormat: "12" } },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     // 2026-03-03 14:00 UTC = 2026-03-03 09:00 EST
     const nowMs = Date.UTC(2026, 2, 3, 14, 0, 0);
     const prompt = buildBareSessionResetPrompt(cfg, nowMs);
@@ -68,7 +68,7 @@ describe("buildBareSessionResetPrompt", () => {
   });
 
   it("resolves shared bare reset prompt state from workspace bootstrap truth", async () => {
-    const workspaceDir = await makeTempWorkspace("openclaw-reset-bootstrap-");
+    const workspaceDir = await makeTempWorkspace("genesis-reset-bootstrap-");
     await fs.writeFile(path.join(workspaceDir, "BOOTSTRAP.md"), "ritual", "utf8");
 
     const pending = await resolveBareSessionResetPromptState({ workspaceDir });
@@ -85,7 +85,7 @@ describe("buildBareSessionResetPrompt", () => {
   });
 
   it("does not resolve bootstrap file access when bootstrap is complete", async () => {
-    const workspaceDir = await makeTempWorkspace("openclaw-reset-bootstrap-complete-");
+    const workspaceDir = await makeTempWorkspace("genesis-reset-bootstrap-complete-");
     let resolvedAccess = false;
 
     const complete = await resolveBareSessionResetPromptState({
@@ -102,7 +102,7 @@ describe("buildBareSessionResetPrompt", () => {
   });
 
   it("suppresses bootstrap mode for non-primary bare reset sessions", async () => {
-    const workspaceDir = await makeTempWorkspace("openclaw-reset-non-primary-");
+    const workspaceDir = await makeTempWorkspace("genesis-reset-non-primary-");
     await fs.writeFile(path.join(workspaceDir, "BOOTSTRAP.md"), "ritual", "utf8");
 
     const pending = await resolveBareSessionResetPromptState({
@@ -117,7 +117,7 @@ describe("buildBareSessionResetPrompt", () => {
   });
 
   it("suppresses bootstrap mode when bare reset has no bootstrap file access", async () => {
-    const workspaceDir = await makeTempWorkspace("openclaw-reset-no-file-access-");
+    const workspaceDir = await makeTempWorkspace("genesis-reset-no-file-access-");
     await fs.writeFile(path.join(workspaceDir, "BOOTSTRAP.md"), "ritual", "utf8");
 
     const pending = await resolveBareSessionResetPromptState({

@@ -179,7 +179,7 @@ export const uk: TranslationMap = {
     skills: "Навички та API-ключі.",
     nodes: "Спарені пристрої та команди.",
     chat: "Чат шлюзу для швидких втручань.",
-    config: "Редагування openclaw.json.",
+    config: "Редагування genesis.json.",
     communications: "Канали, повідомлення та налаштування аудіо.",
     appearance: "Тема, інтерфейс і налаштування майстра налаштування.",
     automation: "Команди, хуки, cron і плагіни.",
@@ -218,6 +218,13 @@ export const uk: TranslationMap = {
       channelsHint:
         "Використовуйте «Канали», щоб прив’язати WhatsApp, Telegram, Discord, Signal або iMessage.",
     },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
+    },
     stats: {
       instances: "Екземпляри",
       instancesHint: "Маячки присутності за останні 5 хвилин.",
@@ -255,7 +262,7 @@ export const uk: TranslationMap = {
       metadataUpgradeSummary:
         "Цей пристрій уже сполучено, але зміна метаданих очікує на схвалення.",
       mobileHint:
-        "На мобільному? Скопіюйте повний URL (включно з #token=...) з openclaw dashboard --no-open на вашому комп’ютері.",
+        "На мобільному? Скопіюйте повний URL (включно з #token=...) з genesis dashboard --no-open на вашому комп’ютері.",
       docsTitle: "Документація щодо сполучення пристроїв (відкривається в новій вкладці)",
       docsLink: "Документація: Сполучення пристроїв",
     },
@@ -292,7 +299,7 @@ export const uk: TranslationMap = {
       modelAuthAttentionExpiredTitle: "Авторизація моделей прострочена",
       modelAuthAttentionExpiringTitle: "Термін авторизації моделей скоро спливає",
       modelAuthAttentionExpiredDesc:
-        "{providers} — повторно виконайте авторизацію через openclaw models auth",
+        "{providers} — повторно виконайте авторизацію через genesis models auth",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

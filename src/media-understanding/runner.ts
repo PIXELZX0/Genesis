@@ -14,7 +14,7 @@ import {
   resolveAgentModelFallbackValues,
   resolveAgentModelPrimaryValue,
 } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type {
   MediaUnderstandingConfig,
   MediaUnderstandingModelConfig,
@@ -65,7 +65,7 @@ export type RunCapabilityResult = {
 };
 
 function resolveConfiguredKeyProviderOrder(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerRegistry: ProviderRegistry;
   capability: MediaUnderstandingCapability;
   fallbackProviders: readonly string[];
@@ -82,7 +82,7 @@ function resolveConfiguredKeyProviderOrder(params: {
 }
 
 function resolveConfiguredImageModelId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerId: string;
 }): string | undefined {
   const configured = resolveConfiguredImageModel(params);
@@ -91,7 +91,7 @@ function resolveConfiguredImageModelId(params: {
 }
 
 function resolveConfiguredImageModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerId: string;
 }): { id?: string; input?: string[] } | undefined {
   const providerCfg = findNormalizedProviderValue(
@@ -127,7 +127,7 @@ function resolveCatalogImageModelId(params: {
 }
 
 async function explicitImageModelVisionStatus(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerId: string;
   model: string;
 }): Promise<"supported" | "unsupported" | "unknown"> {
@@ -144,7 +144,7 @@ async function explicitImageModelVisionStatus(params: {
 }
 
 async function resolveAutoImageModelId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerId: string;
   explicitModel?: string;
 }): Promise<string | undefined> {
@@ -180,13 +180,13 @@ async function resolveAutoImageModelId(params: {
 
 export function buildProviderRegistry(
   overrides?: Record<string, MediaUnderstandingProvider>,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): ProviderRegistry {
   return buildMediaUnderstandingRegistry(overrides, cfg);
 }
 
 export function resolveMediaAttachmentLocalRoots(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: MsgContext;
 }): readonly string[] {
   return mergeInboundPathRoots(
@@ -432,7 +432,7 @@ async function resolveGeminiCliEntry(
 }
 
 async function resolveKeyEntry(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   providerRegistry: ProviderRegistry;
   capability: MediaUnderstandingCapability;
@@ -500,7 +500,7 @@ async function resolveKeyEntry(params: {
   return null;
 }
 
-function resolveImageModelFromAgentDefaults(cfg: OpenClawConfig): MediaUnderstandingModelConfig[] {
+function resolveImageModelFromAgentDefaults(cfg: GenesisConfig): MediaUnderstandingModelConfig[] {
   const refs: string[] = [];
   const primary = resolveAgentModelPrimaryValue(cfg.agents?.defaults?.imageModel);
   if (primary?.trim()) {
@@ -530,7 +530,7 @@ function resolveImageModelFromAgentDefaults(cfg: OpenClawConfig): MediaUnderstan
 }
 
 function hasExplicitImageUnderstandingConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   config?: MediaUnderstandingConfig;
 }): boolean {
   return (
@@ -540,7 +540,7 @@ function hasExplicitImageUnderstandingConfig(params: {
 }
 
 async function resolveAutoEntries(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   providerRegistry: ProviderRegistry;
   capability: MediaUnderstandingCapability;
@@ -578,7 +578,7 @@ async function resolveAutoEntries(params: {
 }
 
 export async function resolveAutoImageModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   activeModel?: ActiveMediaModel;
 }): Promise<ActiveMediaModel | null> {
@@ -622,7 +622,7 @@ export async function resolveAutoImageModel(params: {
 }
 
 async function resolveActiveModelEntry(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   providerRegistry: ProviderRegistry;
   capability: MediaUnderstandingCapability;
@@ -677,7 +677,7 @@ async function resolveActiveModelEntry(params: {
 
 async function runAttachmentEntries(params: {
   capability: MediaUnderstandingCapability;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: MsgContext;
   attachmentIndex: number;
   agentDir?: string;
@@ -770,7 +770,7 @@ function hasFailedMediaAttempt(attachments: MediaUnderstandingDecision["attachme
 
 export async function runCapability(params: {
   capability: MediaUnderstandingCapability;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: MsgContext;
   attachments: MediaAttachmentCache;
   media: MediaAttachment[];

@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 import { resolveMatrixTargetIdentity } from "./matrix/target-ids.js";
 
 export const defaultTopLevelPlacement = "child" as const;

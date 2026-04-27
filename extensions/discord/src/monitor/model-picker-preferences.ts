@@ -1,11 +1,11 @@
 import os from "node:os";
 import path from "node:path";
-import { normalizeAccountId as normalizeSharedAccountId } from "openclaw/plugin-sdk/account-id";
-import { withFileLock } from "openclaw/plugin-sdk/file-lock";
-import { readJsonFileWithFallback, writeJsonFileAtomically } from "openclaw/plugin-sdk/json-store";
-import { normalizeProviderId } from "openclaw/plugin-sdk/provider-model-shared";
-import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeAccountId as normalizeSharedAccountId } from "genesis/plugin-sdk/account-id";
+import { withFileLock } from "genesis/plugin-sdk/file-lock";
+import { readJsonFileWithFallback, writeJsonFileAtomically } from "genesis/plugin-sdk/json-store";
+import { normalizeProviderId } from "genesis/plugin-sdk/provider-model-shared";
+import { resolveStateDir } from "genesis/plugin-sdk/state-paths";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 
 const MODEL_PICKER_PREFERENCES_LOCK_OPTIONS = {
   retries: {

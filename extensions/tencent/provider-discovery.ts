@@ -1,4 +1,4 @@
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 import { buildTokenHubProvider } from "./provider-catalog.js";
 
 export const tencentProviderDiscovery: ProviderPlugin = {

@@ -279,7 +279,7 @@
   font-weight: 550;
   padding: 4px 12px;
   border: none;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: max(0px, calc(var(--radius-md) - 3px));
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -321,7 +321,7 @@
   height: 22px;
   background: color-mix(in srgb, var(--bg) 70%, var(--border) 30%);
   border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-  border-radius: 11px;
+  border-radius: var(--radius-full);
   transition:
     background var(--duration-normal) var(--ease-out),
     border-color var(--duration-normal) var(--ease-out);
@@ -336,7 +336,7 @@
   width: 16px;
   height: 16px;
   background: var(--muted);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   transition:
     transform var(--duration-normal) var(--ease-spring),
     background var(--duration-normal) var(--ease-out);
@@ -387,7 +387,7 @@
 .qs-status-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--muted);
   flex-shrink: 0;
   transition: background var(--duration-normal) var(--ease-out);

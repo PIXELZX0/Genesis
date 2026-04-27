@@ -8,7 +8,7 @@ import { getCompletionScript } from "./completion-cli.js";
 
 function createCompletionProgram(): Command {
   const program = new Command();
-  program.name("openclaw");
+  program.name("genesis");
   program.description("CLI root");
   program.option("-v, --verbose", "Verbose output");
 
@@ -25,9 +25,9 @@ describe("completion-cli", () => {
   it("generates zsh functions for nested subcommands", () => {
     const script = getCompletionScript("zsh", createCompletionProgram());
 
-    expect(script).toContain("_openclaw_gateway()");
-    expect(script).toContain("(status) _openclaw_gateway_status ;;");
-    expect(script).toContain("(restart) _openclaw_gateway_restart ;;");
+    expect(script).toContain("_genesis_gateway()");
+    expect(script).toContain("(status) _genesis_gateway_status ;;");
+    expect(script).toContain("(restart) _genesis_gateway_restart ;;");
     expect(script).toContain("--force[Force the action]");
   });
 
@@ -47,9 +47,9 @@ describe("completion-cli", () => {
       throw probe.error;
     }
 
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-zsh-completion-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-zsh-completion-"));
     try {
-      const scriptPath = path.join(tempDir, "openclaw.zsh");
+      const scriptPath = path.join(tempDir, "genesis.zsh");
       await fs.writeFile(scriptPath, getCompletionScript("zsh", createCompletionProgram()), "utf8");
 
       const result = spawnSync(
@@ -58,13 +58,13 @@ describe("completion-cli", () => {
           "-fc",
           `
             source ${JSON.stringify(scriptPath)}
-            [[ -z "\${_comps[openclaw]-}" ]] || exit 10
-            [[ "\${precmd_functions[(r)_openclaw_register_completion]}" = "_openclaw_register_completion" ]] || exit 11
+            [[ -z "\${_comps[genesis]-}" ]] || exit 10
+            [[ "\${precmd_functions[(r)_genesis_register_completion]}" = "_genesis_register_completion" ]] || exit 11
             autoload -Uz compinit
             compinit -C
-            _openclaw_register_completion
-            [[ -z "\${precmd_functions[(r)_openclaw_register_completion]}" ]] || exit 12
-            [[ "\${_comps[openclaw]-}" = "_openclaw_root_completion" ]]
+            _genesis_register_completion
+            [[ -z "\${precmd_functions[(r)_genesis_register_completion]}" ]] || exit 12
+            [[ "\${_comps[genesis]-}" = "_genesis_root_completion" ]]
           `,
         ],
         {
@@ -89,7 +89,7 @@ describe("completion-cli", () => {
 
     expect(script).toContain("if ($commandPath -eq 'gateway') {");
     expect(script).toContain("if ($commandPath -eq 'gateway status') {");
-    expect(script).not.toContain("if ($commandPath -eq 'openclaw gateway') {");
+    expect(script).not.toContain("if ($commandPath -eq 'genesis gateway') {");
     expect(script).toContain("$completions = @('status','restart','--force')");
   });
 
@@ -97,13 +97,13 @@ describe("completion-cli", () => {
     const script = getCompletionScript("fish", createCompletionProgram());
 
     expect(script).toContain(
-      'complete -c openclaw -n "__fish_use_subcommand" -a "gateway" -d \'Gateway commands\'',
+      'complete -c genesis -n "__fish_use_subcommand" -a "gateway" -d \'Gateway commands\'',
     );
     expect(script).toContain(
-      'complete -c openclaw -n "__fish_seen_subcommand_from gateway" -a "status" -d \'Show gateway status\'',
+      'complete -c genesis -n "__fish_seen_subcommand_from gateway" -a "status" -d \'Show gateway status\'',
     );
     expect(script).toContain(
-      "complete -c openclaw -n \"__fish_seen_subcommand_from gateway\" -l force -d 'Force the action'",
+      "complete -c genesis -n \"__fish_seen_subcommand_from gateway\" -l force -d 'Force the action'",
     );
   });
 });

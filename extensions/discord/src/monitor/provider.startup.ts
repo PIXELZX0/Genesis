@@ -8,11 +8,11 @@ import {
 } from "@buape/carbon";
 import type { GatewayPlugin } from "@buape/carbon/gateway";
 import { VoicePlugin } from "@buape/carbon/voice";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/config-runtime";
-import { danger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { isDangerousNameMatchingEnabled } from "genesis/plugin-sdk/config-runtime";
+import { danger } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { createDiscordRequestClient } from "../proxy-request-client.js";
 import type { DiscordGuildEntryResolved } from "./allow-list.js";
 import { createDiscordAutoPresenceController } from "./auto-presence.js";
@@ -236,7 +236,7 @@ export async function fetchDiscordBotIdentity(params: {
 }
 
 export function registerDiscordMonitorListeners(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   client: Pick<Client, "listeners">;
   accountId: string;
   discordConfig: DiscordListenerConfig;

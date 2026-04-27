@@ -1,6 +1,6 @@
 import type { WebClient } from "@slack/web-api";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { isRecord, normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { isRecord, normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { createSlackWebClient } from "./client.js";
 
 export type SlackScopesResult = {

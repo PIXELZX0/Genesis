@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { collectChannelSecurityFindings } from "./audit-channel.js";
 
 describe("security audit channel dm policy", () => {
   it("warns when multiple DM senders share the main session", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       session: { dmScope: "main" },
       channels: { whatsapp: { enabled: true } },
     };

@@ -27,18 +27,18 @@ describe("config io invalid config formatting", () => {
   });
 
   it("formats the logger message with the escaped newline separator", () => {
-    expect(formatInvalidConfigLogMessage("/tmp/openclaw.json", "- gateway.port: bad")).toBe(
-      "Invalid config at /tmp/openclaw.json:\\n- gateway.port: bad",
+    expect(formatInvalidConfigLogMessage("/tmp/genesis.json", "- gateway.port: bad")).toBe(
+      "Invalid config at /tmp/genesis.json:\\n- gateway.port: bad",
     );
   });
 
   it("creates INVALID_CONFIG errors with inline details", () => {
-    const err = createInvalidConfigError("/tmp/openclaw.json", "- gateway.port: bad") as Error & {
+    const err = createInvalidConfigError("/tmp/genesis.json", "- gateway.port: bad") as Error & {
       code?: string;
       details?: string;
     };
 
-    expect(err.message).toBe("Invalid config at /tmp/openclaw.json:\n- gateway.port: bad");
+    expect(err.message).toBe("Invalid config at /tmp/genesis.json:\n- gateway.port: bad");
     expect(err.code).toBe("INVALID_CONFIG");
     expect(err.details).toBe("- gateway.port: bad");
   });
@@ -48,13 +48,13 @@ describe("config io invalid config formatting", () => {
     const loggedConfigPaths = new Set<string>();
 
     logInvalidConfigOnce({
-      configPath: "/tmp/openclaw.json",
+      configPath: "/tmp/genesis.json",
       details: "- gateway.port: bad",
       logger,
       loggedConfigPaths,
     });
     logInvalidConfigOnce({
-      configPath: "/tmp/openclaw.json",
+      configPath: "/tmp/genesis.json",
       details: "- gateway.port: worse",
       logger,
       loggedConfigPaths,
@@ -62,7 +62,7 @@ describe("config io invalid config formatting", () => {
 
     expect(logger.error).toHaveBeenCalledOnce();
     expect(logger.error).toHaveBeenCalledWith(
-      "Invalid config at /tmp/openclaw.json:\\n- gateway.port: bad",
+      "Invalid config at /tmp/genesis.json:\\n- gateway.port: bad",
     );
   });
 
@@ -71,12 +71,12 @@ describe("config io invalid config formatting", () => {
 
     expect(() =>
       throwInvalidConfig({
-        configPath: "/tmp/openclaw.json",
+        configPath: "/tmp/genesis.json",
         issues: [{ path: "nope", message: "Unknown key(s): nope" }],
         logger,
         loggedConfigPaths: new Set<string>(),
       }),
-    ).toThrowError("Invalid config at /tmp/openclaw.json:\n- nope: Unknown key(s): nope");
+    ).toThrowError("Invalid config at /tmp/genesis.json:\n- nope: Unknown key(s): nope");
     expect(logger.error).toHaveBeenCalledOnce();
   });
 });

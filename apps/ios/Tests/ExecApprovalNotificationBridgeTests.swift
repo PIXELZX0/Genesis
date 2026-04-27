@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import UserNotifications
-@testable import OpenClaw
+@testable import Genesis
 
 private final class MockNotificationCenter: NotificationCentering, @unchecked Sendable {
     var authorization: NotificationAuthorizationStatus = .authorized
@@ -40,7 +40,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
             actionIdentifier: UNNotificationDefaultActionIdentifier,
             userInfo: [
-                "openclaw": [
+                "genesis": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-123",
                 ],
@@ -53,7 +53,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
             actionIdentifier: ExecApprovalNotificationBridge.reviewActionIdentifier,
             userInfo: [
-                "openclaw": [
+                "genesis": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-456",
                 ],
@@ -64,9 +64,9 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
 
     @Test func parsePromptIgnoresUnexpectedActionIdentifiers() {
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
-            actionIdentifier: "openclaw.exec-approval.allow-once",
+            actionIdentifier: "genesis.exec-approval.allow-once",
             userInfo: [
-                "openclaw": [
+                "genesis": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-789",
                 ],
@@ -81,7 +81,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
             NotificationSnapshot(
                 identifier: "remote-approval-1",
                 userInfo: [
-                    "openclaw": [
+                    "genesis": [
                         "kind": ExecApprovalNotificationBridge.requestedKind,
                         "approvalId": "approval-123",
                     ],
@@ -89,7 +89,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
             NotificationSnapshot(
                 identifier: "remote-other",
                 userInfo: [
-                    "openclaw": [
+                    "genesis": [
                         "kind": ExecApprovalNotificationBridge.requestedKind,
                         "approvalId": "approval-999",
                     ],
@@ -98,7 +98,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
 
         let handled = await ExecApprovalNotificationBridge.handleResolvedPushIfNeeded(
             userInfo: [
-                "openclaw": [
+                "genesis": [
                     "kind": ExecApprovalNotificationBridge.resolvedKind,
                     "approvalId": "approval-123",
                 ],

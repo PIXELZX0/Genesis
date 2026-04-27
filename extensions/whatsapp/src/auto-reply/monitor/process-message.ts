@@ -6,9 +6,9 @@ import {
   toPluginMessageContext,
   toPluginMessageReceivedEvent,
   triggerInternalHook,
-} from "openclaw/plugin-sdk/hook-runtime";
-import { getGlobalHookRunner } from "openclaw/plugin-sdk/plugin-runtime";
-import { resolveBatchedReplyThreadingPolicy } from "openclaw/plugin-sdk/reply-reference";
+} from "genesis/plugin-sdk/hook-runtime";
+import { getGlobalHookRunner } from "genesis/plugin-sdk/plugin-runtime";
+import { resolveBatchedReplyThreadingPolicy } from "genesis/plugin-sdk/reply-reference";
 import { getPrimaryIdentityId, getSelfIdentity, getSenderIdentity } from "../../identity.js";
 import {
   resolveWhatsAppCommandAuthorized,

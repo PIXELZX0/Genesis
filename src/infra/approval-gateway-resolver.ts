@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { withOperatorApprovalsGatewayClient } from "../gateway/operator-approvals-client.js";
 import { isApprovalNotFoundError } from "./approval-errors.js";
 import type { ExecApprovalDecision } from "./exec-approvals.js";
 
 export type ResolveApprovalOverGatewayParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   approvalId: string;
   decision: ExecApprovalDecision;
   senderId?: string | null;

@@ -1,14 +1,14 @@
 {
-  "name": "@openclaw/document-extract-plugin",
+  "name": "@genesis/document-extract-plugin",
   "version": "2026.4.24",
   "private": true,
-  "description": "OpenClaw local document extraction plugin",
+  "description": "Genesis local document extraction plugin",
   "type": "module",
   "dependencies": {
     "pdfjs-dist": "^5.6.205"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
   "peerDependencies": {
     "@napi-rs/canvas": "^0.1.89"
@@ -18,7 +18,7 @@
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

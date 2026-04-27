@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createSlackBoltApp,
   resolveSlackBoltInterop,
-  shouldSkipOpenClawSlackSelfEvent,
+  shouldSkipGenesisSlackSelfEvent,
 } from "./provider-support.js";
 
 describe("resolveSlackBoltInterop", () => {
@@ -139,7 +139,7 @@ describe("createSlackBoltApp", () => {
     }
   }
 
-  it("uses SocketModeReceiver with OpenClaw-owned reconnects and shared client options", () => {
+  it("uses SocketModeReceiver with Genesis-owned reconnects and shared client options", () => {
     const clientOptions = { teamId: "T1" };
     const { app, receiver } = createSlackBoltApp({
       interop: {
@@ -204,28 +204,28 @@ describe("createSlackBoltApp", () => {
 
   it("keeps Bolt self filtering except assistant message_changed events", () => {
     expect(
-      shouldSkipOpenClawSlackSelfEvent({
+      shouldSkipGenesisSlackSelfEvent({
         context: { botUserId: "U_BOT", botId: "B_BOT" },
         event: { type: "reaction_added", user: "U_BOT" },
       }),
     ).toBe(true);
 
     expect(
-      shouldSkipOpenClawSlackSelfEvent({
+      shouldSkipGenesisSlackSelfEvent({
         context: { botUserId: "U_BOT", botId: "B_BOT" },
         event: { type: "message", subtype: "message_changed", user: "U_BOT" },
       }),
     ).toBe(false);
 
     expect(
-      shouldSkipOpenClawSlackSelfEvent({
+      shouldSkipGenesisSlackSelfEvent({
         context: { botUserId: "U_BOT", botId: "B_BOT" },
         event: { type: "message", user: "U_BOT" },
       }),
     ).toBe(true);
 
     expect(
-      shouldSkipOpenClawSlackSelfEvent({
+      shouldSkipGenesisSlackSelfEvent({
         context: { botUserId: "U_BOT", botId: "B_BOT" },
         event: { type: "message", user: "U_OTHER" },
         message: { subtype: "bot_message", bot_id: "B_BOT" },

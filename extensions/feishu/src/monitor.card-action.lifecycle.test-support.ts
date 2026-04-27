@@ -36,7 +36,7 @@ const {
 
 let _handlers: Record<string, (data: unknown) => Promise<void>> = {};
 let lastRuntime: ReturnType<typeof createRuntimeEnv> | null = null;
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalStateDir = process.env.GENESIS_STATE_DIR;
 const lifecycleConfig = createFeishuLifecycleConfig({
   accountId: "acct-card",
   appId: "cli_test",
@@ -119,7 +119,7 @@ describe("Feishu card-action lifecycle", () => {
     _handlers = {};
     lastRuntime = null;
     resetProcessedFeishuCardActionTokensForTests();
-    setFeishuLifecycleStateDir("openclaw-feishu-card-action");
+    setFeishuLifecycleStateDir("genesis-feishu-card-action");
 
     createFeishuReplyDispatcherMock.mockReturnValue(createFeishuLifecycleReplyDispatcher());
 

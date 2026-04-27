@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { resolveBoundaryPath } from "../../infra/boundary-path.js";
 import { parseSshTarget } from "../../infra/ssh-tunnel.js";
-import { resolvePreferredOpenClawTmpDir } from "../../infra/tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../../infra/tmp-genesis-dir.js";
 import { resolveUserPath } from "../../utils.js";
 import type { SandboxBackendCommandResult } from "./backend-handle.types.js";
 import { sanitizeEnvVars } from "./sanitize-env-vars.js";
@@ -121,7 +121,7 @@ export async function createSshSandboxSessionFromConfigText(params: {
   if (!host) {
     throw new Error("Failed to parse SSH config output.");
   }
-  const configDir = await fs.mkdtemp(path.join(resolveSshTmpRoot(), "openclaw-sandbox-ssh-"));
+  const configDir = await fs.mkdtemp(path.join(resolveSshTmpRoot(), "genesis-sandbox-ssh-"));
   const configPath = path.join(configDir, "config");
   await fs.writeFile(configPath, params.configText, { encoding: "utf8", mode: 0o600 });
   await fs.chmod(configPath, 0o600);
@@ -140,7 +140,7 @@ export async function createSshSandboxSessionFromSettings(
     throw new Error(`Invalid sandbox SSH target: ${settings.target}`);
   }
 
-  const configDir = await fs.mkdtemp(path.join(resolveSshTmpRoot(), "openclaw-sandbox-ssh-"));
+  const configDir = await fs.mkdtemp(path.join(resolveSshTmpRoot(), "genesis-sandbox-ssh-"));
   try {
     const materializedIdentity = settings.identityData
       ? await writeSecretMaterial(configDir, "identity", settings.identityData)
@@ -156,7 +156,7 @@ export async function createSshSandboxSessionFromSettings(
       materializedCertificate ?? resolveOptionalLocalPath(settings.certificateFile);
     const knownHostsFile =
       materializedKnownHosts ?? resolveOptionalLocalPath(settings.knownHostsFile);
-    const hostAlias = "openclaw-sandbox";
+    const hostAlias = "genesis-sandbox";
     const configPath = path.join(configDir, "config");
     const lines = [
       `Host ${hostAlias}`,
@@ -263,7 +263,7 @@ export async function uploadDirectoryToSshTarget(params: {
     "/bin/sh",
     "-c",
     'mkdir -p -- "$1" && tar -xf - -C "$1"',
-    "openclaw-sandbox-upload",
+    "genesis-sandbox-upload",
     params.remoteDir,
   ]);
   const sshArgv = buildSshSandboxArgv({
@@ -376,7 +376,7 @@ function parseSshConfigHost(configText: string): string | null {
 }
 
 function resolveSshTmpRoot(): string {
-  return path.resolve(resolvePreferredOpenClawTmpDir() ?? os.tmpdir());
+  return path.resolve(resolvePreferredGenesisTmpDir() ?? os.tmpdir());
 }
 
 function resolveOptionalLocalPath(value: string | undefined): string | undefined {

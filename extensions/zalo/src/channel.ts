@@ -1,42 +1,42 @@
-import { describeWebhookAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import { formatAllowFromLowercase } from "openclaw/plugin-sdk/allow-from";
+import { describeWebhookAccountSnapshot } from "genesis/plugin-sdk/account-helpers";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
+import { formatAllowFromLowercase } from "genesis/plugin-sdk/allow-from";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
   createScopedDmSecurityResolver,
   mapAllowFromEntries,
-} from "openclaw/plugin-sdk/channel-config-helpers";
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
+} from "genesis/plugin-sdk/channel-config-helpers";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
 import {
   buildChannelConfigSchema,
   createChatChannelPlugin,
   type ChannelPlugin,
-} from "openclaw/plugin-sdk/channel-core";
+} from "genesis/plugin-sdk/channel-core";
 import {
   buildOpenGroupPolicyRestrictSendersWarning,
   buildOpenGroupPolicyWarning,
   createOpenProviderGroupPolicyWarningCollector,
-} from "openclaw/plugin-sdk/channel-policy";
+} from "genesis/plugin-sdk/channel-policy";
 import {
   createEmptyChannelResult,
   createRawChannelSendResultAdapter,
-} from "openclaw/plugin-sdk/channel-send-result";
-import { buildTokenChannelStatusSummary } from "openclaw/plugin-sdk/channel-status";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { createStaticReplyToModeResolver } from "openclaw/plugin-sdk/conversation-runtime";
-import { createChannelDirectoryAdapter } from "openclaw/plugin-sdk/directory-runtime";
-import { listResolvedDirectoryUserEntriesFromAllowFrom } from "openclaw/plugin-sdk/directory-runtime";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
+} from "genesis/plugin-sdk/channel-send-result";
+import { buildTokenChannelStatusSummary } from "genesis/plugin-sdk/channel-status";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { createStaticReplyToModeResolver } from "genesis/plugin-sdk/conversation-runtime";
+import { createChannelDirectoryAdapter } from "genesis/plugin-sdk/directory-runtime";
+import { listResolvedDirectoryUserEntriesFromAllowFrom } from "genesis/plugin-sdk/directory-runtime";
+import { createLazyRuntimeModule } from "genesis/plugin-sdk/lazy-runtime";
 import {
   isNumericTargetId,
   sendPayloadWithChunkedTextAndMedia,
-} from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/reply-payload";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
-import { chunkTextForOutbound } from "openclaw/plugin-sdk/text-chunking";
+} from "genesis/plugin-sdk/status-helpers";
+import { chunkTextForOutbound } from "genesis/plugin-sdk/text-chunking";
 import {
   listZaloAccountIds,
   resolveDefaultZaloAccountId,
@@ -121,7 +121,7 @@ const resolveZaloDmPolicy = createScopedDmSecurityResolver<ResolvedZaloAccount>(
 });
 
 const collectZaloSecurityWarnings = createOpenProviderGroupPolicyWarningCollector<{
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedZaloAccount;
 }>({
   providerConfigPresent: (cfg) => cfg.channels?.zalo !== undefined,

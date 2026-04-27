@@ -80,13 +80,13 @@ import { suppressDeprecations } from "./suppress-deprecations.js";
 
 const CLI_NAME = resolveCliName();
 const SERVICE_REFRESH_TIMEOUT_MS = 60_000;
-const POST_CORE_UPDATE_ENV = "OPENCLAW_UPDATE_POST_CORE";
-const POST_CORE_UPDATE_CHANNEL_ENV = "OPENCLAW_UPDATE_POST_CORE_CHANNEL";
-const POST_CORE_UPDATE_RESULT_PATH_ENV = "OPENCLAW_UPDATE_POST_CORE_RESULT_PATH";
+const POST_CORE_UPDATE_ENV = "GENESIS_UPDATE_POST_CORE";
+const POST_CORE_UPDATE_CHANNEL_ENV = "GENESIS_UPDATE_POST_CORE_CHANNEL";
+const POST_CORE_UPDATE_RESULT_PATH_ENV = "GENESIS_UPDATE_POST_CORE_RESULT_PATH";
 const SERVICE_REFRESH_PATH_ENV_KEYS = [
-  "OPENCLAW_HOME",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
+  "GENESIS_HOME",
+  "GENESIS_STATE_DIR",
+  "GENESIS_CONFIG_PATH",
 ] as const;
 
 const UPDATE_QUIPS = [
@@ -163,11 +163,11 @@ async function resolvePackageRuntimePreflightError(params: {
   }
   const targetLabel = status.version ?? target;
   return [
-    `Node ${process.versions.node ?? "unknown"} is too old for openclaw@${targetLabel}.`,
+    `Node ${process.versions.node ?? "unknown"} is too old for genesis@${targetLabel}.`,
     `The requested package requires ${status.nodeEngine}.`,
-    "Upgrade Node to 22.14+ or Node 24, then rerun `openclaw update`.",
-    "Bare `npm i -g openclaw` can silently install an older compatible release.",
-    "After upgrading Node, use `npm i -g openclaw@latest`.",
+    "Upgrade Node to 22.14+ or Node 24, then rerun `genesis update`.",
+    "Bare `npm i -g genesis` can silently install an older compatible release.",
+    "After upgrading Node, use `npm i -g genesis@latest`.",
   ].join("\n");
 }
 
@@ -319,7 +319,7 @@ async function tryInstallShellCompletion(opts: {
       if (!opts.skipPrompt) {
         defaultRuntime.log(
           theme.muted(
-            `Skipped. Run \`${replaceCliName(formatCliCommand("openclaw completion --install"), CLI_NAME)}\` later to enable.`,
+            `Skipped. Run \`${replaceCliName(formatCliCommand("genesis completion --install"), CLI_NAME)}\` later to enable.`,
           ),
         );
       }
@@ -419,7 +419,7 @@ async function runPackageInstallUpdate(params: {
         argv: [resolveNodeRunner(), entryPath, "doctor", "--non-interactive"],
         env: {
           ...process.env,
-          OPENCLAW_UPDATE_IN_PROGRESS: "1",
+          GENESIS_UPDATE_IN_PROGRESS: "1",
         },
         timeoutMs: params.timeoutMs,
         progress: params.progress,
@@ -764,7 +764,7 @@ async function maybeRestartService(params: {
       if (!params.opts.json && restarted) {
         defaultRuntime.log(theme.success("Daemon restarted successfully."));
         defaultRuntime.log("");
-        process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+        process.env.GENESIS_UPDATE_IN_PROGRESS = "1";
         try {
           const interactiveDoctor =
             process.stdin.isTTY && !params.opts.json && params.opts.yes !== true;
@@ -774,7 +774,7 @@ async function maybeRestartService(params: {
         } catch (err) {
           defaultRuntime.log(theme.warn(`Doctor failed: ${String(err)}`));
         } finally {
-          delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+          delete process.env.GENESIS_UPDATE_IN_PROGRESS;
         }
       }
 
@@ -812,7 +812,7 @@ async function maybeRestartService(params: {
           );
           defaultRuntime.log(
             theme.muted(
-              `Run \`${replaceCliName(formatCliCommand("openclaw gateway status --deep"), CLI_NAME)}\` for details.`,
+              `Run \`${replaceCliName(formatCliCommand("genesis gateway status --deep"), CLI_NAME)}\` for details.`,
             ),
           );
         }
@@ -823,7 +823,7 @@ async function maybeRestartService(params: {
         defaultRuntime.log(theme.warn(`Daemon restart failed: ${String(err)}`));
         defaultRuntime.log(
           theme.muted(
-            `You may need to restart the service manually: ${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}`,
+            `You may need to restart the service manually: ${replaceCliName(formatCliCommand("genesis gateway restart"), CLI_NAME)}`,
           ),
         );
       }
@@ -836,13 +836,13 @@ async function maybeRestartService(params: {
     if (params.result.mode === "npm" || params.result.mode === "pnpm") {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\`, then \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${replaceCliName(formatCliCommand("genesis doctor"), CLI_NAME)}\`, then \`${replaceCliName(formatCliCommand("genesis gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
         ),
       );
     } else {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${replaceCliName(formatCliCommand("genesis gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
         ),
       );
     }
@@ -914,7 +914,7 @@ async function continuePostCoreUpdateInFreshProcess(params: {
   }
   const resultDir =
     params.opts.json === true
-      ? await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-post-core-"))
+      ? await fs.mkdtemp(path.join(os.tmpdir(), "genesis-update-post-core-"))
       : null;
   const resultPath = resultDir ? path.join(resultDir, "plugins.json") : null;
 
@@ -1046,7 +1046,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     updateInstallKind === "git" ? DEFAULT_GIT_CHANNEL : DEFAULT_PACKAGE_CHANNEL;
   const channel = requestedChannel ?? storedChannel ?? defaultChannel;
   const devTargetRef =
-    channel === "dev" ? process.env.OPENCLAW_UPDATE_DEV_TARGET_REF?.trim() || undefined : undefined;
+    channel === "dev" ? process.env.GENESIS_UPDATE_DEV_TARGET_REF?.trim() || undefined : undefined;
 
   const explicitTag = normalizeTag(opts.tag);
   let tag = explicitTag ?? channelToNpmTag(channel);
@@ -1209,7 +1209,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
 
   const showProgress = !opts.json && process.stdout.isTTY;
   if (!opts.json) {
-    defaultRuntime.log(theme.heading("Updating OpenClaw..."));
+    defaultRuntime.log(theme.heading("Updating Genesis..."));
     defaultRuntime.log("");
   }
 
@@ -1260,18 +1260,18 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
         ),
       );
       defaultRuntime.log(
-        theme.muted("Commit, stash, or discard the local changes, then rerun `openclaw update`."),
+        theme.muted("Commit, stash, or discard the local changes, then rerun `genesis update`."),
       );
     }
     if (result.reason === "not-git-install") {
       defaultRuntime.log(
         theme.warn(
-          `Skipped: this OpenClaw install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
+          `Skipped: this Genesis install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("genesis doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("genesis gateway restart"), CLI_NAME)}\`.`,
         ),
       );
       defaultRuntime.log(
         theme.muted(
-          `Examples: \`${replaceCliName("npm i -g openclaw@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g openclaw@latest", CLI_NAME)}\``,
+          `Examples: \`${replaceCliName("npm i -g genesis@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g genesis@latest", CLI_NAME)}\``,
         ),
       );
     }

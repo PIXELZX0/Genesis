@@ -1,7 +1,7 @@
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { fetchDiscord } from "./api.js";
 import { listGuilds, type DiscordGuildSummary } from "./guilds.js";
 import {

@@ -19,8 +19,8 @@ type DiaryEntryNav = {
   page: number;
 };
 
-const DIARY_START_RE = /<!--\s*openclaw:dreaming:diary:start\s*-->/;
-const DIARY_END_RE = /<!--\s*openclaw:dreaming:diary:end\s*-->/;
+const DIARY_START_RE = /<!--\s*genesis:dreaming:diary:start\s*-->/;
+const DIARY_END_RE = /<!--\s*genesis:dreaming:diary:end\s*-->/;
 
 function parseDiaryEntries(raw: string): DiaryEntry[] {
   // Extract content between diary markers, or use full content.
@@ -250,8 +250,8 @@ const sleepingLobster = html`
   <svg viewBox="0 0 120 120" fill="none">
     <defs>
       <linearGradient id="dream-lob-g" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#ff4d4d" />
-        <stop offset="100%" stop-color="#991b1b" />
+        <stop offset="0%" stop-color="#39ff88" />
+        <stop offset="100%" stop-color="#047857" />
       </linearGradient>
     </defs>
     <path
@@ -263,8 +263,8 @@ const sleepingLobster = html`
       d="M100 45C115 40 120 50 115 60C110 70 100 65 95 55C92 48 95 45 100 45Z"
       fill="url(#dream-lob-g)"
     />
-    <path d="M45 15Q38 8 35 14" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round" />
-    <path d="M75 15Q82 8 85 14" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round" />
+    <path d="M45 15Q38 8 35 14" stroke="#39ff88" stroke-width="3" stroke-linecap="round" />
+    <path d="M75 15Q82 8 85 14" stroke="#39ff88" stroke-width="3" stroke-linecap="round" />
     <path
       d="M39 36Q45 32 51 36"
       stroke="#050810"

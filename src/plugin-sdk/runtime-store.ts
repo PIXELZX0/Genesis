@@ -1,6 +1,6 @@
 export type { PluginRuntime } from "../plugins/runtime/types.js";
 
-const pluginRuntimeStoreRegistryKey = Symbol.for("openclaw.plugin-sdk.runtime-store-registry");
+const pluginRuntimeStoreRegistryKey = Symbol.for("genesis.plugin-sdk.runtime-store-registry");
 
 type PluginRuntimeStoreRegistry = Map<string, { runtime: unknown }>;
 type PluginRuntimeStoreKeyOptions = {

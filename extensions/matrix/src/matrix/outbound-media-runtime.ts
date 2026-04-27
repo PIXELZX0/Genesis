@@ -1,1 +1,1 @@
-export { loadOutboundMediaFromUrl } from "openclaw/plugin-sdk/outbound-media";
+export { loadOutboundMediaFromUrl } from "genesis/plugin-sdk/outbound-media";

@@ -2,7 +2,7 @@ import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent
 import { initSubagentRegistry } from "../agents/subagent-registry.js";
 import { runChannelPluginStartupMaintenance } from "../channels/plugins/lifecycle-startup.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   resolveConfiguredDeferredChannelPluginIds,
   resolveGatewayStartupPluginIds,
@@ -22,8 +22,8 @@ type GatewayPluginBootstrapLog = {
 };
 
 export async function prepareGatewayPluginBootstrap(params: {
-  cfgAtStart: OpenClawConfig;
-  startupRuntimeConfig: OpenClawConfig;
+  cfgAtStart: GenesisConfig;
+  startupRuntimeConfig: GenesisConfig;
   minimalTestGateway: boolean;
   log: GatewayPluginBootstrapLog;
 }) {

@@ -23,7 +23,7 @@ describe("uninstallCommand", () => {
       dryRun: true,
     });
 
-    expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining("openclaw backup create"));
+    expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining("genesis backup create"));
   });
 
   it("does not recommend backup for service-only uninstall", async () => {
@@ -34,6 +34,6 @@ describe("uninstallCommand", () => {
       dryRun: true,
     });
 
-    expect(runtime.log).not.toHaveBeenCalledWith(expect.stringContaining("openclaw backup create"));
+    expect(runtime.log).not.toHaveBeenCalledWith(expect.stringContaining("genesis backup create"));
   });
 });

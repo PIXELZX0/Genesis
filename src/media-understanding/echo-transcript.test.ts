@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 
 const mockDeliverOutboundPayloads = vi.hoisted(() => vi.fn());
 
@@ -32,7 +32,7 @@ describe("sendTranscriptEcho", () => {
   it("sends the default formatted transcript to the resolved origin", async () => {
     await sendTranscriptEcho({
       ctx: createCtx(),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       transcript: "hello world",
     });
 
@@ -51,7 +51,7 @@ describe("sendTranscriptEcho", () => {
   it("uses a custom format when provided", async () => {
     await sendTranscriptEcho({
       ctx: createCtx(),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       transcript: "custom message",
       format: "🎙️ Heard: {transcript}",
     });
@@ -66,7 +66,7 @@ describe("sendTranscriptEcho", () => {
   it("skips non-deliverable channels", async () => {
     await sendTranscriptEcho({
       ctx: createCtx({ Provider: "internal-system", From: "some-source" }),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       transcript: "hello world",
     });
 
@@ -76,7 +76,7 @@ describe("sendTranscriptEcho", () => {
   it("skips when ctx has no resolved destination", async () => {
     await sendTranscriptEcho({
       ctx: createCtx({ From: undefined, OriginatingTo: undefined }),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       transcript: "hello world",
     });
 
@@ -86,7 +86,7 @@ describe("sendTranscriptEcho", () => {
   it("prefers OriginatingTo when From is absent", async () => {
     await sendTranscriptEcho({
       ctx: createCtx({ From: undefined, OriginatingTo: "+19999999999" }),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       transcript: "hello world",
     });
 
@@ -103,7 +103,7 @@ describe("sendTranscriptEcho", () => {
     await expect(
       sendTranscriptEcho({
         ctx: createCtx(),
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         transcript: "hello world",
       }),
     ).resolves.toBeUndefined();

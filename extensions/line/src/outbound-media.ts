@@ -1,5 +1,5 @@
-import { resolvePinnedHostnameWithPolicy, type SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { resolvePinnedHostnameWithPolicy, type SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 export type LineOutboundMediaKind = "image" | "video" | "audio";
 

@@ -136,7 +136,7 @@ describe("probeFeishu", () => {
     expect(requestFn).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "POST",
-        url: "/open-apis/bot/v1/openclaw_bot/ping",
+        url: "/open-apis/bot/v1/genesis_bot/ping",
         data: { needBotInfo: true },
         timeout: FEISHU_PROBE_REQUEST_TIMEOUT_MS,
       }),

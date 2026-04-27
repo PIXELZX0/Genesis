@@ -1,10 +1,10 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { RuntimeEnv } from "../runtime-api.js";
 import { probeFeishu } from "./probe.js";
 import type { ResolvedFeishuAccount } from "./types.js";
 
 const FEISHU_STARTUP_BOT_INFO_TIMEOUT_DEFAULT_MS = 30_000;
-const FEISHU_STARTUP_BOT_INFO_TIMEOUT_ENV = "OPENCLAW_FEISHU_STARTUP_PROBE_TIMEOUT_MS";
+const FEISHU_STARTUP_BOT_INFO_TIMEOUT_ENV = "GENESIS_FEISHU_STARTUP_PROBE_TIMEOUT_MS";
 
 function resolveStartupProbeTimeoutMs(): number {
   const raw = process.env[FEISHU_STARTUP_BOT_INFO_TIMEOUT_ENV];

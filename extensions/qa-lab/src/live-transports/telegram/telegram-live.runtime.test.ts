@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   LIVE_TRANSPORT_BASELINE_STANDARD_SCENARIO_IDS,
@@ -16,9 +16,9 @@ const fetchWithSsrFGuardMock = vi.hoisted(() =>
   })),
 );
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/ssrf-runtime")>(
-    "openclaw/plugin-sdk/ssrf-runtime",
+vi.mock("genesis/plugin-sdk/ssrf-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/ssrf-runtime")>(
+    "genesis/plugin-sdk/ssrf-runtime",
   );
   return {
     ...actual,
@@ -36,9 +36,9 @@ describe("telegram live qa runtime", () => {
   it("resolves required Telegram QA env vars", () => {
     expect(
       __testing.resolveTelegramQaRuntimeEnv({
-        OPENCLAW_QA_TELEGRAM_GROUP_ID: "-100123",
-        OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
-        OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: "sut",
+        GENESIS_QA_TELEGRAM_GROUP_ID: "-100123",
+        GENESIS_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_TELEGRAM_SUT_BOT_TOKEN: "sut",
       }),
     ).toEqual({
       groupId: "-100123",
@@ -50,20 +50,20 @@ describe("telegram live qa runtime", () => {
   it("fails when a required Telegram QA env var is missing", () => {
     expect(() =>
       __testing.resolveTelegramQaRuntimeEnv({
-        OPENCLAW_QA_TELEGRAM_GROUP_ID: "-100123",
-        OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_TELEGRAM_GROUP_ID: "-100123",
+        GENESIS_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
       }),
-    ).toThrow("OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN");
+    ).toThrow("GENESIS_QA_TELEGRAM_SUT_BOT_TOKEN");
   });
 
   it("fails when the Telegram group id is not numeric", () => {
     expect(() =>
       __testing.resolveTelegramQaRuntimeEnv({
-        OPENCLAW_QA_TELEGRAM_GROUP_ID: "qa-group",
-        OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
-        OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: "sut",
+        GENESIS_QA_TELEGRAM_GROUP_ID: "qa-group",
+        GENESIS_QA_TELEGRAM_DRIVER_BOT_TOKEN: "driver",
+        GENESIS_QA_TELEGRAM_SUT_BOT_TOKEN: "sut",
       }),
-    ).toThrow("OPENCLAW_QA_TELEGRAM_GROUP_ID must be a numeric Telegram chat id.");
+    ).toThrow("GENESIS_QA_TELEGRAM_GROUP_ID must be a numeric Telegram chat id.");
   });
 
   it("parses Telegram live progress env booleans", () => {
@@ -79,23 +79,23 @@ describe("telegram live qa runtime", () => {
     expect(__testing.shouldLogTelegramQaLiveProgress({ CI: "false" })).toBe(false);
   });
 
-  it("applies OPENCLAW_QA_SUITE_PROGRESS override to Telegram live logging", () => {
+  it("applies GENESIS_QA_SUITE_PROGRESS override to Telegram live logging", () => {
     expect(
       __testing.shouldLogTelegramQaLiveProgress({
         CI: "false",
-        OPENCLAW_QA_SUITE_PROGRESS: "true",
+        GENESIS_QA_SUITE_PROGRESS: "true",
       }),
     ).toBe(true);
     expect(
       __testing.shouldLogTelegramQaLiveProgress({
         CI: "true",
-        OPENCLAW_QA_SUITE_PROGRESS: "false",
+        GENESIS_QA_SUITE_PROGRESS: "false",
       }),
     ).toBe(false);
     expect(
       __testing.shouldLogTelegramQaLiveProgress({
         CI: "true",
-        OPENCLAW_QA_SUITE_PROGRESS: "definitely",
+        GENESIS_QA_SUITE_PROGRESS: "definitely",
       }),
     ).toBe(true);
   });
@@ -136,7 +136,7 @@ describe("telegram live qa runtime", () => {
   });
 
   it("injects a temporary Telegram account into the QA gateway config", () => {
-    const baseCfg: OpenClawConfig = {
+    const baseCfg: GenesisConfig = {
       plugins: {
         allow: ["memory-core", "qa-channel"],
         entries: {
@@ -148,8 +148,8 @@ describe("telegram live qa runtime", () => {
         "qa-channel": {
           enabled: true,
           baseUrl: "http://127.0.0.1:43123",
-          botUserId: "openclaw",
-          botDisplayName: "OpenClaw QA",
+          botUserId: "genesis",
+          botDisplayName: "Genesis QA",
           allowFrom: ["*"],
         },
       },

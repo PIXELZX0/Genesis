@@ -1,4 +1,4 @@
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 
 export const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const OPENROUTER_LEGACY_BASE_URL = "https://openrouter.ai/v1";

@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer } from "ws";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { AuthRateLimiter } from "../auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "../auth.js";
 import { VOICECLAW_REALTIME_PATH } from "./paths.js";
@@ -16,7 +16,7 @@ export function handleVoiceClawRealtimeUpgrade(opts: {
   socket: Duplex;
   head: Buffer;
   auth: ResolvedGatewayAuth;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   trustedProxies: string[];
   allowRealIpFallback: boolean;
   rateLimiter?: AuthRateLimiter;

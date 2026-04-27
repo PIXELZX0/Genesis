@@ -15,7 +15,7 @@ export const DEFAULT_DIAGNOSTIC_STABILITY_BUNDLE_RETENTION = 20;
 export const MAX_DIAGNOSTIC_STABILITY_BUNDLE_BYTES = 5 * 1024 * 1024;
 
 const SAFE_REASON_CODE = /^[A-Za-z0-9_.:-]{1,120}$/u;
-const BUNDLE_PREFIX = "openclaw-stability-";
+const BUNDLE_PREFIX = "genesis-stability-";
 const BUNDLE_SUFFIX = ".json";
 const REDACTED_HOSTNAME = "<redacted-hostname>";
 

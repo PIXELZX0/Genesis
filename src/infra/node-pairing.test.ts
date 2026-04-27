@@ -31,7 +31,7 @@ async function setupPairedNode(baseDir: string): Promise<string> {
 }
 
 async function withNodePairingDir<T>(run: (baseDir: string) => Promise<T>): Promise<T> {
-  return await withTempDir({ prefix: "openclaw-node-pairing-" }, run);
+  return await withTempDir({ prefix: "genesis-node-pairing-" }, run);
 }
 
 describe("node pairing tokens", () => {

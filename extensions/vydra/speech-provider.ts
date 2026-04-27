@@ -2,14 +2,14 @@ import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/provider-http";
+import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
 import type {
   SpeechProviderConfig,
   SpeechProviderOverrides,
   SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech-core";
-import { asObject } from "openclaw/plugin-sdk/speech-core";
+} from "genesis/plugin-sdk/speech-core";
+import { asObject } from "genesis/plugin-sdk/speech-core";
 import {
   DEFAULT_VYDRA_BASE_URL,
   DEFAULT_VYDRA_SPEECH_MODEL,

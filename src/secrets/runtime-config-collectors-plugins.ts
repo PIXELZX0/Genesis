@@ -1,5 +1,5 @@
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   collectPluginConfigContractMatches,
   resolvePluginConfigContractsById,
@@ -25,7 +25,7 @@ import { isRecord } from "./shared.js";
  * non-loadable plugins from blocking startup or preflight validation.
  */
 export function collectPluginConfigAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
   loadablePluginOrigins?: ReadonlyMap<string, PluginOrigin>;

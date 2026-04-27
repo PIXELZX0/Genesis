@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -19,7 +19,7 @@ export {
   applySkillEnvOverridesFromSnapshot,
 } from "./skills/env-overrides.js";
 export type {
-  OpenClawSkillMetadata,
+  GenesisSkillMetadata,
   SkillEligibilityContext,
   SkillCommandSpec,
   SkillEntry,
@@ -38,7 +38,7 @@ export {
 } from "./skills/workspace.js";
 export { buildWorkspaceSkillCommandSpecs } from "./skills/command-specs.js";
 
-export function resolveSkillsInstallPreferences(config?: OpenClawConfig): SkillsInstallPreferences {
+export function resolveSkillsInstallPreferences(config?: GenesisConfig): SkillsInstallPreferences {
   const raw = config?.skills?.install;
   const preferBrew = raw?.preferBrew ?? true;
   const manager = normalizeLowercaseStringOrEmpty(normalizeOptionalString(raw?.nodeManager));

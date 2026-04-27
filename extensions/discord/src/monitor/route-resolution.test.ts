@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ResolvedAgentRoute } from "openclaw/plugin-sdk/routing";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { ResolvedAgentRoute } from "genesis/plugin-sdk/routing";
 import { describe, expect, it } from "vitest";
 import {
   buildDiscordRoutePeer,
@@ -8,10 +8,7 @@ import {
   resolveDiscordEffectiveRoute,
 } from "./route-resolution.js";
 
-function buildWorkerBindingConfig(peer: {
-  kind: "channel" | "direct";
-  id: string;
-}): OpenClawConfig {
+function buildWorkerBindingConfig(peer: { kind: "channel" | "direct"; id: string }): GenesisConfig {
   return {
     agents: {
       list: [{ id: "worker" }],

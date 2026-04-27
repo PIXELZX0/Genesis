@@ -5,8 +5,8 @@ import type {
   StringSelectMenuInteraction,
 } from "@buape/carbon";
 import { ChannelType } from "discord-api-types/v10";
-import type { DiscordAccountConfig, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildPluginBindingApprovalCustomId } from "openclaw/plugin-sdk/conversation-runtime";
+import type { DiscordAccountConfig, GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { buildPluginBindingApprovalCustomId } from "genesis/plugin-sdk/conversation-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { type DiscordComponentEntry, type DiscordModalEntry } from "../components.js";
 import {
@@ -27,7 +27,7 @@ type CreateDiscordComponentModal =
 type CreateDiscordComponentStringSelect =
   typeof import("./agent-components.js").createDiscordComponentStringSelect;
 type DispatchReplyWithBufferedBlockDispatcherFn =
-  typeof import("openclaw/plugin-sdk/reply-dispatch-runtime").dispatchReplyWithBufferedBlockDispatcher;
+  typeof import("genesis/plugin-sdk/reply-dispatch-runtime").dispatchReplyWithBufferedBlockDispatcher;
 type DispatchReplyWithBufferedBlockDispatcherResult = Awaited<
   ReturnType<DispatchReplyWithBufferedBlockDispatcherFn>
 >;
@@ -52,14 +52,14 @@ function getLastRecordedCtx(): Record<string, unknown> | undefined {
 
 describe("discord component interactions", () => {
   let editDiscordComponentMessageMock: ReturnType<typeof vi.spyOn>;
-  const createCfg = (): OpenClawConfig =>
+  const createCfg = (): GenesisConfig =>
     ({
       channels: {
         discord: {
           replyToMode: "first",
         },
       },
-    }) as OpenClawConfig;
+    }) as GenesisConfig;
 
   const createDiscordConfig = (overrides?: Partial<DiscordAccountConfig>): DiscordAccountConfig =>
     ({
@@ -190,7 +190,7 @@ describe("discord component interactions", () => {
         cfg: {
           commands: { useAccessGroups: true },
           channels: { discord: { replyToMode: "first" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         allowFrom,
       }),
     );
@@ -280,7 +280,7 @@ describe("discord component interactions", () => {
       );
     recordInboundSessionMock.mockClear().mockResolvedValue(undefined);
     readSessionUpdatedAtMock.mockClear().mockReturnValue(undefined);
-    resolveStorePathMock.mockClear().mockReturnValue("/tmp/openclaw-sessions-test.json");
+    resolveStorePathMock.mockClear().mockReturnValue("/tmp/genesis-sessions-test.json");
     dispatchPluginInteractiveHandlerMock.mockReset().mockResolvedValue({
       matched: false,
       handled: false,
@@ -418,7 +418,7 @@ describe("discord component interactions", () => {
       createComponentContext({
         cfg: {
           channels: { discord: { replyToMode: "first", groupPolicy: "allowlist" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         discordConfig: createDiscordConfig({ groupPolicy: "allowlist" }),
         guildEntries: {},
       }),
@@ -490,7 +490,7 @@ describe("discord component interactions", () => {
       createComponentContext({
         cfg: {
           channels: { discord: { replyToMode: "first", groupPolicy: "allowlist" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         discordConfig: createDiscordConfig({ groupPolicy: "allowlist" }),
         guildEntries: params.guildEntries,
       }),
@@ -532,7 +532,7 @@ describe("discord component interactions", () => {
         cfg: {
           commands: { useAccessGroups: true },
           channels: { discord: { replyToMode: "first" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         allowFrom: params.allowFrom,
       }),
     );

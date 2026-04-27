@@ -17,9 +17,9 @@ const storeFactories: StoreFactory[] = [
   {
     name: "fs",
     createStore: async () => {
-      const stateDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "openclaw-msteams-store-"));
+      const stateDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "genesis-msteams-store-"));
       return createMSTeamsConversationStoreFs({
-        env: { ...process.env, OPENCLAW_STATE_DIR: stateDir },
+        env: { ...process.env, GENESIS_STATE_DIR: stateDir },
         ttlMs: 60_000,
       });
     },

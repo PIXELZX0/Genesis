@@ -1,12 +1,12 @@
 ---
-summary: "OpenClaw macOS companion app (menu bar + gateway broker)"
+summary: "Genesis macOS companion app (menu bar + gateway broker)"
 read_when:
   - Implementing macOS app features
   - Changing gateway lifecycle or node bridging on macOS
 title: "macOS app"
 ---
 
-The macOS app is the **menu‑bar companion** for OpenClaw. It owns permissions,
+The macOS app is the **menu‑bar companion** for Genesis. It owns permissions,
 manages/attaches to the Gateway locally (launchd or manual), and exposes macOS
 capabilities to the agent as a node.
 
@@ -19,12 +19,12 @@ capabilities to the agent as a node.
 - Exposes macOS‑only tools (Canvas, Camera, Screen Recording, `system.run`).
 - Starts the local node host service in **remote** mode (launchd), and stops it in **local** mode.
 - Optionally hosts **PeekabooBridge** for UI automation.
-- Installs the global CLI (`openclaw`) on request via npm, pnpm, or bun (the app prefers npm, then pnpm, then bun; Node remains the recommended Gateway runtime).
+- Installs the global CLI (`genesis`) on request via npm, pnpm, or bun (the app prefers npm, then pnpm, then bun; Node remains the recommended Gateway runtime).
 
 ## Local vs remote mode
 
 - **Local** (default): the app attaches to a running local Gateway if present;
-  otherwise it enables the launchd service via `openclaw gateway install`.
+  otherwise it enables the launchd service via `genesis gateway install`.
 - **Remote**: the app connects to a Gateway over SSH/Tailscale and never starts
   a local process.
   The app starts the local **node host service** so the remote Gateway can reach this Mac.
@@ -34,18 +34,18 @@ capabilities to the agent as a node.
 
 ## Launchd control
 
-The app manages a per‑user LaunchAgent labeled `ai.openclaw.gateway`
-(or `ai.openclaw.<profile>` when using `--profile`/`OPENCLAW_PROFILE`; legacy `com.openclaw.*` still unloads).
+The app manages a per‑user LaunchAgent labeled `ai.genesis.gateway`
+(or `ai.genesis.<profile>` when using `--profile`/`GENESIS_PROFILE`; legacy `com.genesis.*` still unloads).
 
 ```bash
-launchctl kickstart -k gui/$UID/ai.openclaw.gateway
-launchctl bootout gui/$UID/ai.openclaw.gateway
+launchctl kickstart -k gui/$UID/ai.genesis.gateway
+launchctl bootout gui/$UID/ai.genesis.gateway
 ```
 
-Replace the label with `ai.openclaw.<profile>` when running a named profile.
+Replace the label with `ai.genesis.<profile>` when running a named profile.
 
 If the LaunchAgent isn’t installed, enable it from the app or run
-`openclaw gateway install`.
+`genesis gateway install`.
 
 ## Node capabilities (mac)
 
@@ -78,7 +78,7 @@ Gateway -> Node Service (WS)
 Security + ask + allowlist are stored locally on the Mac in:
 
 ```
-~/.openclaw/exec-approvals.json
+~/.genesis/exec-approvals.json
 ```
 
 Example:
@@ -111,14 +111,14 @@ Notes:
 
 ## Deep links
 
-The app registers the `openclaw://` URL scheme for local actions.
+The app registers the `genesis://` URL scheme for local actions.
 
-### `openclaw://agent`
+### `genesis://agent`
 
 Triggers a Gateway `agent` request.
 
 ```bash
-open 'openclaw://agent?message=Hello%20from%20deep%20link'
+open 'genesis://agent?message=Hello%20from%20deep%20link'
 ```
 
 Query parameters:
@@ -138,24 +138,24 @@ Safety:
 
 ## Onboarding flow (typical)
 
-1. Install and launch **OpenClaw.app**.
+1. Install and launch **Genesis.app**.
 2. Complete the permissions checklist (TCC prompts).
 3. Ensure **Local** mode is active and the Gateway is running.
 4. Install the CLI if you want terminal access.
 
 ## State dir placement (macOS)
 
-Avoid putting your OpenClaw state dir in iCloud or other cloud-synced folders.
+Avoid putting your Genesis state dir in iCloud or other cloud-synced folders.
 Sync-backed paths can add latency and occasionally cause file-lock/sync races for
 sessions and credentials.
 
 Prefer a local non-synced state path such as:
 
 ```bash
-OPENCLAW_STATE_DIR=~/.openclaw
+GENESIS_STATE_DIR=~/.genesis
 ```
 
-If `openclaw doctor` detects state under:
+If `genesis doctor` detects state under:
 
 - `~/Library/Mobile Documents/com~apple~CloudDocs/...`
 - `~/Library/CloudStorage/...`
@@ -165,7 +165,7 @@ it will warn and recommend moving back to a local path.
 ## Build & dev workflow (native)
 
 - `cd apps/macos && swift build`
-- `swift run OpenClaw` (or Xcode)
+- `swift run Genesis` (or Xcode)
 - Package app: `scripts/package-mac-app.sh`
 
 ## Debug gateway connectivity (macOS CLI)
@@ -175,8 +175,8 @@ logic that the macOS app uses, without launching the app.
 
 ```bash
 cd apps/macos
-swift run openclaw-mac connect --json
-swift run openclaw-mac discover --timeout 3000 --json
+swift run genesis-mac connect --json
+swift run genesis-mac discover --timeout 3000 --json
 ```
 
 Connect options:
@@ -193,7 +193,7 @@ Discovery options:
 - `--timeout <ms>`: overall discovery window (default: `2000`)
 - `--json`: structured output for diffing
 
-Tip: compare against `openclaw gateway discover --json` to see whether the
+Tip: compare against `genesis gateway discover --json` to see whether the
 macOS app’s discovery pipeline (`local.` plus the configured wide-area domain, with
 wide-area and Tailscale Serve fallbacks) differs from
 the Node CLI’s `dns-sd` based discovery.

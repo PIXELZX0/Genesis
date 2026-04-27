@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw rotates auth profiles and falls back across models"
+summary: "How Genesis rotates auth profiles and falls back across models"
 read_when:
   - Diagnosing auth profile rotation, cooldowns, or model fallback behavior
   - Updating failover rules for auth profiles or models
@@ -7,7 +7,7 @@ read_when:
 title: "Model failover"
 ---
 
-OpenClaw handles failures in two stages:
+Genesis handles failures in two stages:
 
 1. **Auth profile rotation** within the current provider.
 2. **Model fallback** to the next model in `agents.defaults.model.fallbacks`.
@@ -16,13 +16,13 @@ This doc explains the runtime rules and the data that backs them.
 
 ## Runtime flow
 
-For a normal text run, OpenClaw evaluates candidates in this order:
+For a normal text run, Genesis evaluates candidates in this order:
 
 1. The currently selected session model.
 2. Configured `agents.defaults.model.fallbacks` in order.
 3. The configured primary model at the end when the run started from an override.
 
-Inside each candidate, OpenClaw tries auth-profile failover before advancing to
+Inside each candidate, Genesis tries auth-profile failover before advancing to
 the next model candidate.
 
 High-level sequence:
@@ -54,12 +54,12 @@ happened while the attempt was running.
 
 ## Auth storage (keys + OAuth)
 
-OpenClaw uses **auth profiles** for both API keys and OAuth tokens.
+Genesis uses **auth profiles** for both API keys and OAuth tokens.
 
-- Secrets live in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json` (legacy: `~/.openclaw/agent/auth-profiles.json`).
-- Runtime auth-routing state lives in `~/.openclaw/agents/<agentId>/agent/auth-state.json`.
+- Secrets live in `~/.genesis/agents/<agentId>/agent/auth-profiles.json` (legacy: `~/.genesis/agent/auth-profiles.json`).
+- Runtime auth-routing state lives in `~/.genesis/agents/<agentId>/agent/auth-state.json`.
 - Config `auth.profiles` / `auth.order` are **metadata + routing only** (no secrets).
-- Legacy import-only OAuth file: `~/.openclaw/credentials/oauth.json` (imported into `auth-profiles.json` on first use).
+- Legacy import-only OAuth file: `~/.genesis/credentials/oauth.json` (imported into `auth-profiles.json` on first use).
 
 More detail: [/concepts/oauth](/concepts/oauth)
 
@@ -75,17 +75,17 @@ OAuth logins create distinct profiles so multiple accounts can coexist.
 - Default: `provider:default` when no email is available.
 - OAuth with email: `provider:<email>` (for example `google-antigravity:user@gmail.com`).
 
-Profiles live in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json` under `profiles`.
+Profiles live in `~/.genesis/agents/<agentId>/agent/auth-profiles.json` under `profiles`.
 
 ## Rotation order
 
-When a provider has multiple profiles, OpenClaw chooses an order like this:
+When a provider has multiple profiles, Genesis chooses an order like this:
 
 1. **Explicit config**: `auth.order[provider]` (if set).
 2. **Configured profiles**: `auth.profiles` filtered by provider.
 3. **Stored profiles**: entries in `auth-profiles.json` for the provider.
 
-If no explicit order is configured, OpenClaw uses a round‑robin order:
+If no explicit order is configured, Genesis uses a round‑robin order:
 
 - **Primary key:** profile type (**OAuth before API keys**).
 - **Secondary key:** `usageStats.lastUsed` (oldest first, within each type).
@@ -93,7 +93,7 @@ If no explicit order is configured, OpenClaw uses a round‑robin order:
 
 ### Session stickiness (cache-friendly)
 
-OpenClaw **pins the chosen auth profile per session** to keep provider caches warm.
+Genesis **pins the chosen auth profile per session** to keep provider caches warm.
 It does **not** rotate on every request. The pinned profile is reused until:
 
 - the session is reset (`/new` / `/reset`)
@@ -104,9 +104,9 @@ Manual selection via `/model …@<profileId>` sets a **user override** for that 
 and is not auto‑rotated until a new session starts.
 
 Auto‑pinned profiles (selected by the session router) are treated as a **preference**:
-they are tried first, but OpenClaw may rotate to another profile on rate limits/timeouts.
+they are tried first, but Genesis may rotate to another profile on rate limits/timeouts.
 User‑pinned profiles stay locked to that profile; if it fails and model fallbacks
-are configured, OpenClaw moves to the next model instead of switching profiles.
+are configured, Genesis moves to the next model instead of switching profiles.
 
 ### Why OAuth can "look lost"
 
@@ -118,7 +118,7 @@ If you have both an OAuth profile and an API key profile for the same provider, 
 ## Cooldowns
 
 When a profile fails due to auth/rate‑limit errors (or a timeout that looks
-like rate limiting), OpenClaw marks it in cooldown and moves to the next profile.
+like rate limiting), Genesis marks it in cooldown and moves to the next profile.
 That rate-limit bucket is broader than plain `429`: it also includes provider
 messages such as `Too many concurrent requests`, `ThrottlingException`,
 `concurrency limit reached`, `workers_ai ... quota limit exceeded`,
@@ -140,15 +140,15 @@ fallback text such as `LLM request failed with an unknown error.` stays
 conservative and does not trigger failover by itself.
 
 Some provider SDKs may otherwise sleep for a long `Retry-After` window before
-returning control to OpenClaw. For Stainless-based SDKs such as Anthropic and
-OpenAI, OpenClaw caps SDK-internal `retry-after-ms` / `retry-after` waits at 60
+returning control to Genesis. For Stainless-based SDKs such as Anthropic and
+OpenAI, Genesis caps SDK-internal `retry-after-ms` / `retry-after` waits at 60
 seconds by default and surfaces longer retryable responses immediately so this
 failover path can run. Tune or disable the cap with
-`OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS`; see [/concepts/retry](/concepts/retry).
+`GENESIS_SDK_RETRY_MAX_WAIT_SECONDS`; see [/concepts/retry](/concepts/retry).
 
 Rate-limit cooldowns can also be model-scoped:
 
-- OpenClaw records `cooldownModel` for rate-limit failures when the failing
+- Genesis records `cooldownModel` for rate-limit failures when the failing
   model id is known.
 - A sibling model on the same provider can still be tried when the cooldown is
   scoped to a different model.
@@ -177,10 +177,10 @@ State is stored in `auth-state.json` under `usageStats`:
 
 ## Billing disables
 
-Billing/credit failures (for example “insufficient credits” / “credit balance too low”) are treated as failover‑worthy, but they’re usually not transient. Instead of a short cooldown, OpenClaw marks the profile as **disabled** (with a longer backoff) and rotates to the next profile/provider.
+Billing/credit failures (for example “insufficient credits” / “credit balance too low”) are treated as failover‑worthy, but they’re usually not transient. Instead of a short cooldown, Genesis marks the profile as **disabled** (with a longer backoff) and rotates to the next profile/provider.
 
 Not every billing-shaped response is `402`, and not every HTTP `402` lands
-here. OpenClaw keeps explicit billing text in the billing lane even when a
+here. Genesis keeps explicit billing text in the billing lane even when a
 provider returns `401` or `403` instead, but provider-specific matchers stay
 scoped to the provider that owns them (for example OpenRouter `403 Key limit
 exceeded`). Meanwhile temporary `402` usage-window and
@@ -212,12 +212,12 @@ Defaults:
 
 ## Model fallback
 
-If all profiles for a provider fail, OpenClaw moves to the next model in
+If all profiles for a provider fail, Genesis moves to the next model in
 `agents.defaults.model.fallbacks`. This applies to auth failures, rate limits, and
 timeouts that exhausted profile rotation (other errors do not advance fallback).
 
 Overloaded and rate-limit errors are handled more aggressively than billing
-cooldowns. By default, OpenClaw allows one same-provider auth-profile retry,
+cooldowns. By default, Genesis allows one same-provider auth-profile retry,
 then switches to the next configured model fallback without waiting.
 Provider-busy signals such as `ModelNotReadyException` land in that overloaded
 bucket. Tune this with `auth.cooldowns.overloadedProfileRotations`,
@@ -229,7 +229,7 @@ When a run starts with a model override (hooks or CLI), fallbacks still end at
 
 ### Candidate chain rules
 
-OpenClaw builds the candidate list from the currently requested `provider/model`
+Genesis builds the candidate list from the currently requested `provider/model`
 plus configured fallbacks.
 
 Rules:
@@ -238,9 +238,9 @@ Rules:
 - Explicit configured fallbacks are deduplicated but not filtered by the model
   allowlist. They are treated as explicit operator intent.
 - If the current run is already on a configured fallback in the same provider
-  family, OpenClaw keeps using the full configured chain.
+  family, Genesis keeps using the full configured chain.
 - If the current run is on a different provider than config and that current
-  model is not already part of the configured fallback chain, OpenClaw does not
+  model is not already part of the configured fallback chain, Genesis does not
   append unrelated configured fallbacks from another provider.
 - When the run started from an override, the configured primary is appended at
   the end so the chain can settle back onto the normal default once earlier
@@ -271,7 +271,7 @@ length exceeded`)
 
 ### Cooldown skip vs probe behavior
 
-When every auth profile for a provider is already in cooldown, OpenClaw does
+When every auth profile for a provider is already in cooldown, Genesis does
 not automatically skip that provider forever. It makes a per-candidate decision:
 
 - Persistent auth failures skip the whole provider immediately.
@@ -328,7 +328,7 @@ user-facing cooldown messaging:
 - optional status/code
 - human-readable error summary
 
-When every candidate fails, OpenClaw throws `FallbackSummaryError`. The outer
+When every candidate fails, Genesis throws `FallbackSummaryError`. The outer
 reply runner can use that to build a more specific message such as "all models
 are temporarily rate-limited" and include the soonest cooldown expiry when one
 is known.
@@ -337,7 +337,7 @@ That cooldown summary is model-aware:
 
 - unrelated model-scoped rate limits are ignored for the attempted
   provider/model chain
-- if the remaining block is a matching model-scoped rate limit, OpenClaw
+- if the remaining block is a matching model-scoped rate limit, Genesis
   reports the last matching expiry that still blocks that model
 
 ## Related config

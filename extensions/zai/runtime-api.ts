@@ -2,4 +2,4 @@ export {
   detectZaiEndpoint,
   type ZaiDetectedEndpoint,
   type ZaiEndpointId,
-} from "openclaw/plugin-sdk/provider-zai-endpoint";
+} from "genesis/plugin-sdk/provider-zai-endpoint";

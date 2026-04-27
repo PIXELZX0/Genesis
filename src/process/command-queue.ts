@@ -65,7 +65,7 @@ function isExpectedNonErrorLaneFailure(err: unknown): boolean {
  * Keep queue runtime state on globalThis so every bundled entry/chunk shares
  * the same lanes, counters, and draining flag in production builds.
  */
-const COMMAND_QUEUE_STATE_KEY = Symbol.for("openclaw.commandQueueState");
+const COMMAND_QUEUE_STATE_KEY = Symbol.for("genesis.commandQueueState");
 
 function getQueueState() {
   const state = resolveGlobalSingleton(COMMAND_QUEUE_STATE_KEY, () => ({

@@ -11,7 +11,7 @@ import {
   pruneBundledPluginSourceNodeModules,
 } from "./postinstall-bundled-plugins.mjs";
 
-const logLevel = process.env.OPENCLAW_BUILD_VERBOSE ? "info" : "warn";
+const logLevel = process.env.GENESIS_BUILD_VERBOSE ? "info" : "warn";
 const extraArgs = process.argv.slice(2);
 const INEFFECTIVE_DYNAMIC_IMPORT_MARKER = "[INEFFECTIVE_DYNAMIC_IMPORT]";
 const UNRESOLVED_IMPORT_RE = /\[UNRESOLVED_IMPORT\]/;
@@ -228,9 +228,9 @@ export async function runTsdownBuildInvocation(invocation, params = {}) {
   const stderr = params.stderr ?? process.stderr;
   const env = params.env ?? process.env;
   const scanner = params.scanner ?? createTsdownOutputScanner();
-  const timeoutMs = parsePositiveInteger(env.OPENCLAW_TSDOWN_TIMEOUT_MS);
+  const timeoutMs = parsePositiveInteger(env.GENESIS_TSDOWN_TIMEOUT_MS);
   const heartbeatMs =
-    parseNonNegativeInteger(env.OPENCLAW_TSDOWN_HEARTBEAT_MS) ?? DEFAULT_HEARTBEAT_MS;
+    parseNonNegativeInteger(env.GENESIS_TSDOWN_HEARTBEAT_MS) ?? DEFAULT_HEARTBEAT_MS;
   let timedOut = false;
   let settled = false;
   let lastOutputAt = Date.now();

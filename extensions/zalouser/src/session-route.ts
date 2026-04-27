@@ -1,11 +1,11 @@
 import {
   buildChannelOutboundSessionRoute,
   type ChannelOutboundSessionRouteParams,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 export function stripZalouserTargetPrefix(raw: string): string {
   return raw

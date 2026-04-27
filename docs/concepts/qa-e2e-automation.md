@@ -7,7 +7,7 @@ read_when:
 title: "QA E2E automation"
 ---
 
-The private QA stack is meant to exercise OpenClaw in a more realistic,
+The private QA stack is meant to exercise Genesis in a more realistic,
 channel-shaped way than a single unit test can.
 
 Current pieces:
@@ -39,7 +39,7 @@ For faster QA Lab UI iteration without rebuilding the Docker image each time,
 start the stack with a bind-mounted QA Lab bundle:
 
 ```bash
-pnpm openclaw qa docker-build-image
+pnpm genesis qa docker-build-image
 pnpm qa:lab:build
 pnpm qa:lab:up:fast
 pnpm qa:lab:watch
@@ -53,7 +53,7 @@ asset hash changes.
 For a transport-real Matrix smoke lane, run:
 
 ```bash
-pnpm openclaw qa matrix
+pnpm genesis qa matrix
 ```
 
 That lane provisions a disposable Tuwunel homeserver in Docker, registers
@@ -63,21 +63,21 @@ the child config scoped to the transport under test, so Matrix runs without
 `qa-channel` in the child config. It writes the structured report artifacts and
 a combined stdout/stderr log into the selected Matrix QA output directory. To
 capture the outer `scripts/run-node.mjs` build/launcher output too, set
-`OPENCLAW_RUN_NODE_OUTPUT_LOG=<path>` to a repo-local log file.
-Matrix progress is printed by default. `OPENCLAW_QA_MATRIX_TIMEOUT_MS` bounds
-the full run, and `OPENCLAW_QA_MATRIX_CLEANUP_TIMEOUT_MS` bounds cleanup so a
+`GENESIS_RUN_NODE_OUTPUT_LOG=<path>` to a repo-local log file.
+Matrix progress is printed by default. `GENESIS_QA_MATRIX_TIMEOUT_MS` bounds
+the full run, and `GENESIS_QA_MATRIX_CLEANUP_TIMEOUT_MS` bounds cleanup so a
 stuck Docker teardown reports the exact recovery command instead of hanging.
 
 For a transport-real Telegram smoke lane, run:
 
 ```bash
-pnpm openclaw qa telegram
+pnpm genesis qa telegram
 ```
 
 That lane targets one real private Telegram group instead of provisioning a
-disposable server. It requires `OPENCLAW_QA_TELEGRAM_GROUP_ID`,
-`OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN`, and
-`OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN`, plus two distinct bots in the same
+disposable server. It requires `GENESIS_QA_TELEGRAM_GROUP_ID`,
+`GENESIS_QA_TELEGRAM_DRIVER_BOT_TOKEN`, and
+`GENESIS_QA_TELEGRAM_SUT_BOT_TOKEN`, plus two distinct bots in the same
 private group. The SUT bot must have a Telegram username, and bot-to-bot
 observation works best when both bots have Bot-to-Bot Communication Mode
 enabled in `@BotFather`.
@@ -89,7 +89,7 @@ send request to the observed SUT reply, starting with the canary.
 Before using pooled live credentials, run:
 
 ```bash
-pnpm openclaw qa credentials doctor
+pnpm genesis qa credentials doctor
 ```
 
 The doctor checks Convex broker env, validates endpoint settings, and verifies
@@ -99,15 +99,15 @@ set/missing status for secrets.
 For a transport-real Discord smoke lane, run:
 
 ```bash
-pnpm openclaw qa discord
+pnpm genesis qa discord
 ```
 
 That lane targets one real private Discord guild channel with two bots: a
 driver bot controlled by the harness and a SUT bot started by the child
-OpenClaw gateway through the bundled Discord plugin. It requires
-`OPENCLAW_QA_DISCORD_GUILD_ID`, `OPENCLAW_QA_DISCORD_CHANNEL_ID`,
-`OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN`, `OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN`,
-and `OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID` when using env credentials.
+Genesis gateway through the bundled Discord plugin. It requires
+`GENESIS_QA_DISCORD_GUILD_ID`, `GENESIS_QA_DISCORD_CHANNEL_ID`,
+`GENESIS_QA_DISCORD_DRIVER_BOT_TOKEN`, `GENESIS_QA_DISCORD_SUT_BOT_TOKEN`,
+and `GENESIS_QA_DISCORD_SUT_APPLICATION_ID` when using env credentials.
 The lane verifies channel mention handling and checks that the SUT bot has
 registered the native `/help` command with Discord.
 The command exits non-zero when any scenario fails. Use `--allow-failures` when
@@ -132,10 +132,10 @@ checklist.
 For a disposable Linux VM lane without bringing Docker into the QA path, run:
 
 ```bash
-pnpm openclaw qa suite --runner multipass --scenario channel-chat-baseline
+pnpm genesis qa suite --runner multipass --scenario channel-chat-baseline
 ```
 
-This boots a fresh Multipass guest, installs dependencies, builds OpenClaw
+This boots a fresh Multipass guest, installs dependencies, builds Genesis
 inside the guest, runs `qa suite`, then copies the normal QA report and
 summary back into `.artifacts/qa-e2e/...` on the host.
 It reuses the same scenario-selection behavior as `qa suite` on the host.
@@ -195,7 +195,7 @@ The baseline list should stay broad enough to cover:
 
 `qa suite` has two local provider mock lanes:
 
-- `mock-openai` is the scenario-aware OpenClaw mock. It remains the default
+- `mock-openai` is the scenario-aware Genesis mock. It remains the default
   deterministic mock lane for repo-backed QA and parity gates.
 - `aimock` starts an AIMock-backed provider server for experimental protocol,
   fixture, record/replay, and chaos coverage. It is additive and does not
@@ -237,7 +237,7 @@ For character and style checks, run the same scenario across multiple live model
 refs and write a judged Markdown report:
 
 ```bash
-pnpm openclaw qa character-eval \
+pnpm genesis qa character-eval \
   --model openai/gpt-5.4,thinking=medium,fast \
   --model openai/gpt-5.2,thinking=xhigh \
   --model openai/gpt-5,thinking=xhigh \

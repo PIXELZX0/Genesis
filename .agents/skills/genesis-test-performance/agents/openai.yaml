@@ -1,0 +1,6 @@
+interface:
+  display_name: "Genesis Test Performance"
+  short_description: "Benchmark and fix slow Genesis tests"
+  default_prompt: "Use $genesis-test-performance to reassess the Genesis test benchmark, identify the next real hotspot, fix it without losing coverage, update the report, and commit scoped changes."
+policy:
+  allow_implicit_invocation: false

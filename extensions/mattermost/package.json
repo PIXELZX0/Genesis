@@ -1,24 +1,24 @@
 {
-  "name": "@openclaw/mattermost",
+  "name": "@genesis/mattermost",
   "version": "2026.4.20",
-  "description": "OpenClaw Mattermost channel plugin",
+  "description": "Genesis Mattermost channel plugin",
   "type": "module",
   "dependencies": {
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -33,7 +33,7 @@
       "order": 65
     },
     "install": {
-      "npmSpec": "@openclaw/mattermost",
+      "npmSpec": "@genesis/mattermost",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     }

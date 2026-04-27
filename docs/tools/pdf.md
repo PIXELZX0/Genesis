@@ -17,7 +17,7 @@ Quick behavior:
 
 ## Availability
 
-The tool is only registered when OpenClaw can resolve a PDF-capable model config for the agent:
+The tool is only registered when Genesis can resolve a PDF-capable model config for the agent:
 
 1. `agents.defaults.pdfModel`
 2. fallback to `agents.defaults.imageModel`
@@ -29,7 +29,7 @@ If no usable model can be resolved, the `pdf` tool is not exposed.
 Availability notes:
 
 - The fallback chain is auth-aware. A configured `provider/model` only counts if
-  OpenClaw can actually authenticate that provider for the agent.
+  Genesis can actually authenticate that provider for the agent.
 - Native PDF providers are currently **Anthropic** and **Google**.
 - If the resolved session/default provider already has a configured vision/PDF
   model, the PDF tool reuses that before falling back to other auth-backed
@@ -73,14 +73,14 @@ Input notes:
 - local file path (including `~` expansion)
 - `file://` URL
 - `http://` and `https://` URL
-- OpenClaw-managed inbound refs such as `media://inbound/<id>`
+- Genesis-managed inbound refs such as `media://inbound/<id>`
 
 Reference notes:
 
 - Other URI schemes (for example `ftp://`) are rejected with `unsupported_pdf_reference`.
 - In sandbox mode, remote `http(s)` URLs are rejected.
 - With workspace-only file policy enabled, local file paths outside allowed roots are rejected.
-- Managed inbound refs and replayed paths under OpenClaw's inbound media store are allowed with workspace-only file policy.
+- Managed inbound refs and replayed paths under Genesis's inbound media store are allowed with workspace-only file policy.
 
 ## Execution modes
 
@@ -110,7 +110,7 @@ Fallback details:
 - Page image extraction uses a pixel budget of `4,000,000`.
 - If the target model does not support image input and there is no extractable text, the tool errors.
 - If text extraction succeeds but image extraction would require vision on a
-  text-only model, OpenClaw drops the rendered images and continues with the
+  text-only model, Genesis drops the rendered images and continues with the
   extracted text.
 - Extraction fallback uses the bundled `document-extract` plugin. The plugin owns
   `pdfjs-dist`; `@napi-rs/canvas` is used only when image rendering fallback is

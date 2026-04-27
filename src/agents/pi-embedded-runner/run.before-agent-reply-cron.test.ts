@@ -32,11 +32,11 @@ describe("runEmbeddedPiAgent cron before_agent_reply seam", () => {
     const result = await runEmbeddedPiAgent({
       ...overflowBaseRunParams,
       trigger: "cron",
-      prompt: "__openclaw_memory_core_short_term_promotion_dream__",
+      prompt: "__genesis_memory_core_short_term_promotion_dream__",
     });
 
     expect(mockedGlobalHookRunner.runBeforeAgentReply).toHaveBeenCalledWith(
-      { cleanedBody: "__openclaw_memory_core_short_term_promotion_dream__" },
+      { cleanedBody: "__genesis_memory_core_short_term_promotion_dream__" },
       expect.objectContaining({
         agentId: "main",
         sessionId: "test-session",

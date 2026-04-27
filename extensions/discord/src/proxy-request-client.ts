@@ -6,7 +6,7 @@ import {
   type RequestData,
   type RequestClientOptions,
 } from "@buape/carbon";
-import { isRecord } from "openclaw/plugin-sdk/text-runtime";
+import { isRecord } from "genesis/plugin-sdk/text-runtime";
 import { FormData as UndiciFormData } from "undici";
 
 export type ProxyRequestClientOptions = RequestClientOptions & {
@@ -131,7 +131,7 @@ function toBlobPart(value: unknown): BlobPart {
 }
 
 // Carbon 0.14 removed the custom fetch seam from RequestClientOptions.
-// Keep a local proxy-aware clone so Discord proxy config still works on OpenClaw.
+// Keep a local proxy-aware clone so Discord proxy config still works on Genesis.
 class ProxyRequestClientCompat {
   readonly options: ProxyRequestClientOptions;
   readonly customFetch?: typeof fetch;

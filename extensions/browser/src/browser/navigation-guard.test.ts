@@ -243,6 +243,51 @@ describe("browser navigation guard", () => {
     ).resolves.toBeUndefined();
   });
 
+  it("allows onion navigation through Tor without local DNS resolution", async () => {
+    const lookupFn = createLookupFn("127.0.0.1");
+    await expect(
+      assertBrowserNavigationAllowed({
+        url: "http://examplehiddenservice.onion/",
+        lookupFn,
+        browserProxyMode: "tor",
+      }),
+    ).resolves.toBeUndefined();
+    expect(lookupFn).not.toHaveBeenCalled();
+  });
+
+  it("allows public non-onion navigation through Tor after normal SSRF checks", async () => {
+    const lookupFn = createLookupFn("93.184.216.34");
+    await expect(
+      assertBrowserNavigationAllowed({
+        url: "https://example.com",
+        lookupFn,
+        browserProxyMode: "tor",
+      }),
+    ).resolves.toBeUndefined();
+    expect(lookupFn).toHaveBeenCalledWith("example.com", { all: true });
+  });
+
+  it("blocks non-onion navigation through Tor when normal SSRF checks fail", async () => {
+    const lookupFn = createLookupFn("127.0.0.1");
+    await expect(
+      assertBrowserNavigationAllowed({
+        url: "https://example.com",
+        lookupFn,
+        browserProxyMode: "tor",
+      }),
+    ).rejects.toBeInstanceOf(SsrFBlockedError);
+  });
+
+  it("applies hostname allowlists to onion navigation", async () => {
+    await expect(
+      assertBrowserNavigationAllowed({
+        url: "http://blocked.onion/",
+        browserProxyMode: "tor",
+        ssrfPolicy: { hostnameAllowlist: ["allowed.onion"] },
+      }),
+    ).rejects.toBeInstanceOf(SsrFBlockedError);
+  });
+
   it("rejects invalid URLs", async () => {
     await expect(
       assertBrowserNavigationAllowed({

@@ -36,6 +36,7 @@ import type { GatewayRequestHandlers, GatewayRequestOptions } from "./server-met
 import { updateHandlers } from "./server-methods/update.js";
 import { usageHandlers } from "./server-methods/usage.js";
 import { voicewakeHandlers } from "./server-methods/voicewake.js";
+import { walletHandlers } from "./server-methods/wallet.js";
 import { webHandlers } from "./server-methods/web.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
 
@@ -101,6 +102,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...pushHandlers,
   ...sendHandlers,
   ...usageHandlers,
+  ...walletHandlers,
   ...agentHandlers,
   ...agentsHandlers,
 };

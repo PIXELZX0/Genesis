@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   isSameMemoryDreamingDay,
   resolveMemoryDeepDreamingConfig,
@@ -29,7 +29,7 @@ const SHORT_TERM_STORE_RELATIVE_PATH = path.join("memory", ".dreams", "short-ter
 const SHORT_TERM_PHASE_SIGNAL_RELATIVE_PATH = path.join("memory", ".dreams", "phase-signals.json");
 const MANAGED_DEEP_SLEEP_CRON_NAME = "Memory Dreaming Promotion";
 const MANAGED_DEEP_SLEEP_CRON_TAG = "[managed-by=memory-core.short-term-promotion]";
-const DEEP_SLEEP_SYSTEM_EVENT_TEXT = "__openclaw_memory_core_short_term_promotion_dream__";
+const DEEP_SLEEP_SYSTEM_EVENT_TEXT = "__genesis_memory_core_short_term_promotion_dream__";
 const DREAM_DIARY_FILE_NAMES = ["DREAMS.md", "dreams.md"] as const;
 
 type DoctorMemoryDreamingPhasePayload = {
@@ -179,7 +179,7 @@ async function listWorkspaceDailyFiles(memoryDir: string): Promise<string[]> {
 }
 
 function resolveDreamingConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
 ): Omit<
   DoctorMemoryDreamingPayload,
   | "shortTermCount"

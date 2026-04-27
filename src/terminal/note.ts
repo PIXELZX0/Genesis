@@ -180,7 +180,7 @@ function createNoteOutput(columns: number): NodeJS.WriteStream {
 }
 
 export function note(message: string, title?: string) {
-  if (isSuppressedByEnv(process.env.OPENCLAW_SUPPRESS_NOTES)) {
+  if (isSuppressedByEnv(process.env.GENESIS_SUPPRESS_NOTES)) {
     return;
   }
   const columns = resolveNoteColumns(process.stdout.columns);

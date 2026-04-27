@@ -1,4 +1,4 @@
-import { resolveAgentModelPrimaryValue } from "openclaw/plugin-sdk/provider-onboard";
+import { resolveAgentModelPrimaryValue } from "genesis/plugin-sdk/provider-onboard";
 import { describe, expect, it } from "vitest";
 import {
   expectProviderOnboardMergedLegacyConfig,

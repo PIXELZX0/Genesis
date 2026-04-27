@@ -1,6 +1,6 @@
-# OpenClaw iOS Versioning
+# Genesis iOS Versioning
 
-OpenClaw iOS uses a **pinned CalVer release version** instead of reading the current gateway version automatically on every build.
+Genesis iOS uses a **pinned CalVer release version** instead of reading the current gateway version automatically on every build.
 
 ## Goals
 

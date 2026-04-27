@@ -20,7 +20,7 @@ export {
   startLazyPluginServiceModule,
   type LazyPluginServiceHandle,
 } from "../plugins/lazy-service-module.js";
-export type { OpenClawPluginService } from "../plugins/types.js";
+export type { GenesisPluginService } from "../plugins/types.js";
 export { runExec } from "../process/exec.js";
 export { defaultRuntime } from "./runtime.js";
 export { withTimeout } from "../node-host/with-timeout.js";

@@ -184,7 +184,7 @@ function createLogWriters() {
     onBrokenPipe: (err, stream) => {
       const code = err.code ?? "EPIPE";
       const target = stream === process.stdout ? "stdout" : "stderr";
-      const message = `openclaw logs: output ${target} closed (${code}). Stopping tail.`;
+      const message = `genesis logs: output ${target} closed (${code}). Stopping tail.`;
       try {
         clearActiveProgressLine();
         process.stderr.write(`${message}\n`);
@@ -212,7 +212,7 @@ async function emitGatewayError(
 ) {
   const runtime = await loadLogsCliRuntime();
   const message = "Gateway not reachable. Is it running and accessible?";
-  const hint = `Hint: run \`${formatCliCommand("openclaw doctor")}\`.`;
+  const hint = `Hint: run \`${formatCliCommand("genesis doctor")}\`.`;
   const errorText = formatErrorMessage(err);
 
   const details = runtime.buildGatewayConnectionDetails({ url: opts.url });
@@ -258,7 +258,7 @@ export function registerLogsCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/logs", "docs.openclaw.ai/cli/logs")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/logs", "docs.genesis.ai/cli/logs")}\n`,
     );
 
   addGatewayClientOptions(logs);

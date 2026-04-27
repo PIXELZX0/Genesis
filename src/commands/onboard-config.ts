@@ -1,15 +1,15 @@
 import { setConfigValueAtPath } from "../config/config-paths.js";
 import type { DmScope } from "../config/types.base.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ToolProfileId } from "../config/types.tools.js";
 
 export const ONBOARDING_DEFAULT_DM_SCOPE: DmScope = "per-channel-peer";
 export const ONBOARDING_DEFAULT_TOOLS_PROFILE: ToolProfileId = "coding";
 
 export function applyLocalSetupWorkspaceConfig(
-  baseConfig: OpenClawConfig,
+  baseConfig: GenesisConfig,
   workspaceDir: string,
-): OpenClawConfig {
+): GenesisConfig {
   return {
     ...baseConfig,
     agents: {
@@ -34,7 +34,7 @@ export function applyLocalSetupWorkspaceConfig(
   };
 }
 
-export function applySkipBootstrapConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applySkipBootstrapConfig(cfg: GenesisConfig): GenesisConfig {
   const next = structuredClone(cfg);
   setConfigValueAtPath(
     next as Record<string, unknown>,

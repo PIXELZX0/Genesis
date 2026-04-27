@@ -80,7 +80,7 @@ function createPluginManifestRecord(
     channels: [],
     cliBackends: [],
     hooks: [],
-    manifestPath: `/tmp/${overrides.id}/openclaw.plugin.json`,
+    manifestPath: `/tmp/${overrides.id}/genesis.plugin.json`,
     origin: "bundled",
     providers: [],
     rootDir: `/tmp/${overrides.id}`,
@@ -106,7 +106,7 @@ vi.mock("../channels/plugins/legacy-config.js", () => ({
 }));
 
 vi.mock("./zod-schema.js", () => ({
-  OpenClawSchema: {
+  GenesisSchema: {
     safeParse: (raw: unknown) => ({ success: true, data: raw }),
   },
 }));

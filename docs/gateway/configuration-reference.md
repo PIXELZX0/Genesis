@@ -1,18 +1,18 @@
 ---
-summary: "Gateway config reference for core OpenClaw keys, defaults, and links to dedicated subsystem references"
+summary: "Gateway config reference for core Genesis keys, defaults, and links to dedicated subsystem references"
 title: "Configuration reference"
 read_when:
   - You need exact field-level config semantics or defaults
   - You are validating channel, model, gateway, or tool config blocks
 ---
 
-Core config reference for `~/.openclaw/openclaw.json`. For a task-oriented overview, see [Configuration](/gateway/configuration).
+Core config reference for `~/.genesis/genesis.json`. For a task-oriented overview, see [Configuration](/gateway/configuration).
 
-Covers the main OpenClaw config surfaces and links out when a subsystem has its own deeper reference. Channel- and plugin-owned command catalogs and deep memory/QMD knobs live on their own pages rather than on this one.
+Covers the main Genesis config surfaces and links out when a subsystem has its own deeper reference. Channel- and plugin-owned command catalogs and deep memory/QMD knobs live on their own pages rather than on this one.
 
 Code truth:
 
-- `openclaw config schema` prints the live JSON Schema used for validation and Control UI, with bundled/plugin/channel metadata merged in when available
+- `genesis config schema` prints the live JSON Schema used for validation and Control UI, with bundled/plugin/channel metadata merged in when available
 - `config.schema.lookup` returns one path-scoped schema node for drill-down tooling
 - `pnpm config:docs:check` / `pnpm config:docs:gen` validate the config-doc baseline hash against the current schema surface
 
@@ -22,7 +22,7 @@ Dedicated deep references:
 - [Slash commands](/tools/slash-commands) for the current built-in + bundled command catalog
 - owning channel/plugin pages for channel-specific command surfaces
 
-Config format is **JSON5** (comments + trailing commas allowed). All fields are optional — OpenClaw uses safe defaults when omitted.
+Config format is **JSON5** (comments + trailing commas allowed). All fields are optional — Genesis uses safe defaults when omitted.
 
 ---
 
@@ -53,8 +53,8 @@ provider / base-URL setup moved to a dedicated page — see
 
 ## MCP
 
-OpenClaw-managed MCP server definitions live under `mcp.servers` and are
-consumed by embedded Pi and other runtime adapters. The `openclaw mcp list`,
+Genesis-managed MCP server definitions live under `mcp.servers` and are
+consumed by embedded Pi and other runtime adapters. The `genesis mcp list`,
 `show`, `set`, and `unset` commands manage this block without connecting to the
 target server during config edits.
 
@@ -86,7 +86,7 @@ target server during config edits.
   One-shot embedded runs request run-end cleanup; this TTL is the backstop for
   long-lived sessions and future callers.
 
-See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
+See [MCP](/cli/mcp#genesis-as-an-mcp-client-registry) and
 [CLI backends](/gateway/cli-backends#bundle-mcp-overlays) for runtime behavior.
 
 ## Skills
@@ -118,7 +118,7 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 - `load.extraDirs`: extra shared skill roots (lowest precedence).
 - `install.preferBrew`: when true, prefer Homebrew installers when `brew` is
   available before falling back to other installer kinds.
-- `install.nodeManager`: node installer preference for `metadata.openclaw.install`
+- `install.nodeManager`: node installer preference for `metadata.genesis.install`
   specs (`npm` | `pnpm` | `yarn` | `bun`).
 - `entries.<skillKey>.enabled: false` disables a skill even if bundled/installed.
 - `entries.<skillKey>.apiKey`: convenience for skills declaring a primary env var (plaintext string or SecretRef object).
@@ -149,8 +149,8 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 }
 ```
 
-- Loaded from `~/.openclaw/extensions`, `<workspace>/.openclaw/extensions`, plus `plugins.load.paths`.
-- Discovery accepts native OpenClaw plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
+- Loaded from `~/.genesis/extensions`, `<workspace>/.genesis/extensions`, plus `plugins.load.paths`.
+- Discovery accepts native Genesis plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
 - **Config changes require a gateway restart.**
 - `allow`: optional allowlist (only listed plugins load). `deny` wins.
 - `plugins.entries.<id>.apiKey`: plugin-level API key convenience field (when supported by the plugin).
@@ -159,8 +159,8 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 - `plugins.entries.<id>.hooks.allowConversationAccess`: when `true`, trusted non-bundled plugins may read raw conversation content from typed hooks such as `llm_input`, `llm_output`, and `agent_end`.
 - `plugins.entries.<id>.subagent.allowModelOverride`: explicitly trust this plugin to request per-run `provider` and `model` overrides for background subagent runs.
 - `plugins.entries.<id>.subagent.allowedModels`: optional allowlist of canonical `provider/model` targets for trusted subagent overrides. Use `"*"` only when you intentionally want to allow any model.
-- `plugins.entries.<id>.config`: plugin-defined config object (validated by native OpenClaw plugin schema when available).
-- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central OpenClaw option registry.
+- `plugins.entries.<id>.config`: plugin-defined config object (validated by native Genesis plugin schema when available).
+- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central Genesis option registry.
 - `plugins.entries.firecrawl.config.webFetch`: Firecrawl web-fetch provider settings.
   - `apiKey`: Firecrawl API key (accepts SecretRef). Falls back to `plugins.entries.firecrawl.config.webSearch.apiKey`, legacy `tools.web.fetch.firecrawl.apiKey`, or `FIRECRAWL_API_KEY` env var.
   - `baseUrl`: Firecrawl API base URL (default: `https://api.firecrawl.dev`).
@@ -180,10 +180,10 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
   - `memory.citations`
   - `memory.qmd.*`
   - `plugins.entries.memory-core.config.dreaming`
-- Enabled Claude bundle plugins can also contribute embedded Pi defaults from `settings.json`; OpenClaw applies those as sanitized agent settings, not as raw OpenClaw config patches.
+- Enabled Claude bundle plugins can also contribute embedded Pi defaults from `settings.json`; Genesis applies those as sanitized agent settings, not as raw Genesis config patches.
 - `plugins.slots.memory`: pick the active memory plugin id, or `"none"` to disable memory plugins.
 - `plugins.slots.contextEngine`: pick the active context engine plugin id; defaults to `"legacy"` unless you install and select another engine.
-- `plugins.installs`: CLI-managed install metadata used by `openclaw plugins update`.
+- `plugins.installs`: CLI-managed install metadata used by `genesis plugins update`.
   - Includes `source`, `spec`, `sourcePath`, `installPath`, `version`, `resolvedName`, `resolvedVersion`, `resolvedSpec`, `integrity`, `shasum`, `resolvedAt`, `installedAt`.
   - Treat `plugins.installs.*` as managed state; prefer CLI commands over manual edits.
 
@@ -212,7 +212,7 @@ See [Plugins](/tools/plugin).
       sweepMinutes: 5,
     },
     profiles: {
-      openclaw: { cdpPort: 18800, color: "#FF4500" },
+      genesis: { cdpPort: 18800, color: "#FF4500" },
       work: {
         cdpPort: 18801,
         color: "#0066CC",
@@ -248,7 +248,7 @@ See [Plugins](/tools/plugin).
 - In strict mode, use `ssrfPolicy.hostnameAllowlist` and `ssrfPolicy.allowedHostnames` for explicit exceptions.
 - Remote profiles are attach-only (start/stop/reset disabled).
 - `profiles.*.cdpUrl` accepts `http://`, `https://`, `ws://`, and `wss://`.
-  Use HTTP(S) when you want OpenClaw to discover `/json/version`; use WS(S)
+  Use HTTP(S) when you want Genesis to discover `/json/version`; use WS(S)
   when your provider gives you a direct DevTools WebSocket URL.
 - `existing-session` profiles use Chrome MCP instead of CDP and can attach on
   the selected host or through a connected browser node.
@@ -258,7 +258,7 @@ See [Plugins](/tools/plugin).
   snapshot/ref-driven actions instead of CSS-selector targeting, one-file upload
   hooks, no dialog timeout overrides, no `wait --load networkidle`, and no
   `responsebody`, PDF export, download interception, or batch actions.
-- Local managed `openclaw` profiles auto-assign `cdpPort` and `cdpUrl`; only
+- Local managed `genesis` profiles auto-assign `cdpPort` and `cdpUrl`; only
   set `cdpUrl` explicitly for remote CDP.
 - Local managed profiles can set `executablePath` to override the global
   `browser.executablePath` for that profile. Use this to run one profile in
@@ -278,7 +278,7 @@ See [Plugins](/tools/plugin).
   ui: {
     seamColor: "#FF4500",
     assistant: {
-      name: "OpenClaw",
+      name: "Genesis",
       avatar: "CB", // emoji, short text, image URL, or data URI
     },
   },
@@ -301,7 +301,7 @@ See [Plugins](/tools/plugin).
     auth: {
       mode: "token", // none | token | password | trusted-proxy
       token: "your-token",
-      // password: "your-password", // or OPENCLAW_GATEWAY_PASSWORD
+      // password: "your-password", // or GENESIS_GATEWAY_PASSWORD
       // trustedProxy: { userHeader: "x-forwarded-user" }, // for mode=trusted-proxy; see /gateway/trusted-proxy-auth
       allowTailscale: true,
       rateLimit: {
@@ -317,7 +317,7 @@ See [Plugins](/tools/plugin).
     },
     controlUi: {
       enabled: true,
-      basePath: "/openclaw",
+      basePath: "/genesis",
       // root: "dist/control-ui",
       // embedSandbox: "scripts", // strict | scripts | trusted
       // allowExternalEmbedUrls: false, // dangerous: allow absolute external http(s) embed URLs
@@ -364,7 +364,7 @@ See [Plugins](/tools/plugin).
 <Accordion title="Gateway field details">
 
 - `mode`: `local` (run gateway) or `remote` (connect to remote gateway). Gateway refuses to start unless `local`.
-- `port`: single multiplexed port for WS + HTTP. Precedence: `--port` > `OPENCLAW_GATEWAY_PORT` > `gateway.port` > `18789`.
+- `port`: single multiplexed port for WS + HTTP. Precedence: `--port` > `GENESIS_GATEWAY_PORT` > `gateway.port` > `18789`.
 - `bind`: `auto`, `loopback` (default), `lan` (`0.0.0.0`), `tailnet` (Tailscale IP only), or `custom`.
 - **Legacy bind aliases**: use bind mode values in `gateway.bind` (`auto`, `loopback`, `lan`, `tailnet`, `custom`), not host aliases (`0.0.0.0`, `127.0.0.1`, `localhost`, `::`, `::1`).
 - **Docker note**: the default `loopback` bind listens on `127.0.0.1` inside the container. With Docker bridge networking (`-p 18789:18789`), traffic arrives on `eth0`, so the gateway is unreachable. Use `--network host`, or set `bind: "lan"` (or `bind: "custom"` with `customBindHost: "0.0.0.0"`) to listen on all interfaces.
@@ -384,9 +384,9 @@ See [Plugins](/tools/plugin).
 - `controlUi.allowedOrigins`: explicit browser-origin allowlist for Gateway WebSocket connects. Required when browser clients are expected from non-loopback origins.
 - `controlUi.dangerouslyAllowHostHeaderOriginFallback`: dangerous mode that enables Host-header origin fallback for deployments that intentionally rely on Host-header origin policy.
 - `remote.transport`: `ssh` (default) or `direct` (ws/wss). For `direct`, `remote.url` must be `ws://` or `wss://`.
-- `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1`: client-side process-environment
+- `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1`: client-side process-environment
   break-glass override that allows plaintext `ws://` to trusted private-network
-  IPs; default remains loopback-only for plaintext. There is no `openclaw.json`
+  IPs; default remains loopback-only for plaintext. There is no `genesis.json`
   equivalent, and browser private-network config such as
   `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork` does not affect Gateway
   WebSocket clients.
@@ -394,8 +394,8 @@ See [Plugins](/tools/plugin).
 - `gateway.push.apns.relay.baseUrl`: base HTTPS URL for the external APNs relay used by official/TestFlight iOS builds after they publish relay-backed registrations to the gateway. This URL must match the relay URL compiled into the iOS build.
 - `gateway.push.apns.relay.timeoutMs`: gateway-to-relay send timeout in milliseconds. Defaults to `10000`.
 - Relay-backed registrations are delegated to a specific gateway identity. The paired iOS app fetches `gateway.identity.get`, includes that identity in the relay registration, and forwards a registration-scoped send grant to the gateway. Another gateway cannot reuse that stored registration.
-- `OPENCLAW_APNS_RELAY_BASE_URL` / `OPENCLAW_APNS_RELAY_TIMEOUT_MS`: temporary env overrides for the relay config above.
-- `OPENCLAW_APNS_RELAY_ALLOW_HTTP=true`: development-only escape hatch for loopback HTTP relay URLs. Production relay URLs should stay on HTTPS.
+- `GENESIS_APNS_RELAY_BASE_URL` / `GENESIS_APNS_RELAY_TIMEOUT_MS`: temporary env overrides for the relay config above.
+- `GENESIS_APNS_RELAY_ALLOW_HTTP=true`: development-only escape hatch for loopback HTTP relay URLs. Production relay URLs should stay on HTTPS.
 - `gateway.channelHealthCheckMinutes`: channel health-monitor interval in minutes. Set `0` to disable health-monitor restarts globally. Default: `5`.
 - `gateway.channelStaleEventThresholdMinutes`: stale-socket threshold in minutes. Keep this greater than or equal to `gateway.channelHealthCheckMinutes`. Default: `30`.
 - `gateway.channelMaxRestartsPerHour`: maximum health-monitor restarts per channel/account in a rolling hour. Default: `10`.
@@ -430,12 +430,12 @@ See [Plugins](/tools/plugin).
 Run multiple gateways on one host with unique ports and state dirs:
 
 ```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json \
-OPENCLAW_STATE_DIR=~/.openclaw-a \
-openclaw gateway --port 19001
+GENESIS_CONFIG_PATH=~/.genesis/a.json \
+GENESIS_STATE_DIR=~/.genesis-a \
+genesis gateway --port 19001
 ```
 
-Convenience flags: `--dev` (uses `~/.openclaw-dev` + port `19001`), `--profile <name>` (uses `~/.openclaw-<name>`).
+Convenience flags: `--dev` (uses `~/.genesis-dev` + port `19001`), `--profile <name>` (uses `~/.genesis-<name>`).
 
 See [Multiple Gateways](/gateway/multiple-gateways).
 
@@ -447,9 +447,9 @@ See [Multiple Gateways](/gateway/multiple-gateways).
     tls: {
       enabled: false,
       autoGenerate: false,
-      certPath: "/etc/openclaw/tls/server.crt",
-      keyPath: "/etc/openclaw/tls/server.key",
-      caPath: "/etc/openclaw/tls/ca-bundle.crt",
+      certPath: "/etc/genesis/tls/server.crt",
+      keyPath: "/etc/genesis/tls/server.key",
+      caPath: "/etc/genesis/tls/ca-bundle.crt",
     },
   },
 }
@@ -499,7 +499,7 @@ See [Multiple Gateways](/gateway/multiple-gateways).
     allowedSessionKeyPrefixes: ["hook:", "hook:gmail:"],
     allowedAgentIds: ["hooks", "main"],
     presets: ["gmail"],
-    transformsDir: "~/.openclaw/hooks/transforms",
+    transformsDir: "~/.genesis/hooks/transforms",
     mappings: [
       {
         match: { path: "gmail" },
@@ -518,7 +518,7 @@ See [Multiple Gateways](/gateway/multiple-gateways).
 }
 ```
 
-Auth: `Authorization: Bearer <token>` or `x-openclaw-token: <token>`.
+Auth: `Authorization: Bearer <token>` or `x-genesis-token: <token>`.
 Query-string hook tokens are rejected.
 
 Validation and safety notes:
@@ -564,7 +564,7 @@ Validation and safety notes:
 {
   hooks: {
     gmail: {
-      account: "openclaw@gmail.com",
+      account: "genesis@gmail.com",
       topic: "projects/<project-id>/topics/gog-gmail-watch",
       subscription: "gog-gmail-watch-push",
       pushToken: "shared-push-token",
@@ -581,7 +581,7 @@ Validation and safety notes:
 }
 ```
 
-- Gateway auto-starts `gog gmail watch serve` on boot when configured. Set `OPENCLAW_SKIP_GMAIL_WATCHER=1` to disable.
+- Gateway auto-starts `gog gmail watch serve` on boot when configured. Set `GENESIS_SKIP_GMAIL_WATCHER=1` to disable.
 - Don't run a separate `gog gmail watch serve` alongside the Gateway.
 
 ---
@@ -591,23 +591,23 @@ Validation and safety notes:
 ```json5
 {
   canvasHost: {
-    root: "~/.openclaw/workspace/canvas",
+    root: "~/.genesis/workspace/canvas",
     liveReload: true,
-    // enabled: false, // or OPENCLAW_SKIP_CANVAS_HOST=1
+    // enabled: false, // or GENESIS_SKIP_CANVAS_HOST=1
   },
 }
 ```
 
 - Serves agent-editable HTML/CSS/JS and A2UI over HTTP under the Gateway port:
-  - `http://<gateway-host>:<gateway.port>/__openclaw__/canvas/`
-  - `http://<gateway-host>:<gateway.port>/__openclaw__/a2ui/`
+  - `http://<gateway-host>:<gateway.port>/__genesis__/canvas/`
+  - `http://<gateway-host>:<gateway.port>/__genesis__/a2ui/`
 - Local-only: keep `gateway.bind: "loopback"` (default).
 - Non-loopback binds: canvas routes require Gateway auth (token/password/trusted-proxy), same as other Gateway HTTP surfaces.
 - Node WebViews typically don't send auth headers; after a node is paired and connected, the Gateway advertises node-scoped capability URLs for canvas/A2UI access.
 - Capability URLs are bound to the active node WS session and expire quickly. IP-based fallback is not used.
 - Injects live-reload client into served HTML.
 - Auto-creates starter `index.html` when empty.
-- Also serves A2UI at `/__openclaw__/a2ui/`.
+- Also serves A2UI at `/__genesis__/a2ui/`.
 - Changes require a gateway restart.
 - Disable live reload for large directories or `EMFILE` errors.
 
@@ -629,7 +629,7 @@ Validation and safety notes:
 
 - `minimal` (default): omit `cliPath` + `sshPort` from TXT records.
 - `full`: include `cliPath` + `sshPort`.
-- Hostname defaults to `openclaw`. Override with `OPENCLAW_MDNS_HOSTNAME`.
+- Hostname defaults to `genesis`. Override with `GENESIS_MDNS_HOSTNAME`.
 
 ### Wide-area (DNS-SD)
 
@@ -641,9 +641,9 @@ Validation and safety notes:
 }
 ```
 
-Writes a unicast DNS-SD zone under `~/.openclaw/dns/`. For cross-network discovery, pair with a DNS server (CoreDNS recommended) + Tailscale split DNS.
+Writes a unicast DNS-SD zone under `~/.genesis/dns/`. For cross-network discovery, pair with a DNS server (CoreDNS recommended) + Tailscale split DNS.
 
-Setup: `openclaw dns setup --apply`.
+Setup: `genesis dns setup --apply`.
 
 ---
 
@@ -667,7 +667,7 @@ Setup: `openclaw dns setup --apply`.
 ```
 
 - Inline env vars are only applied if the process env is missing the key.
-- `.env` files: CWD `.env` + `~/.openclaw/.env` (neither overrides existing vars).
+- `.env` files: CWD `.env` + `~/.genesis/.env` (neither overrides existing vars).
 - `shellEnv`: imports missing expected keys from your login shell profile.
 - See [Environment](/help/environment) for full precedence.
 
@@ -678,7 +678,7 @@ Reference env vars in any config string with `${VAR_NAME}`:
 ```json5
 {
   gateway: {
-    auth: { token: "${OPENCLAW_GATEWAY_TOKEN}" },
+    auth: { token: "${GENESIS_GATEWAY_TOKEN}" },
   },
 }
 ```
@@ -713,7 +713,7 @@ Validation:
 ### Supported credential surface
 
 - Canonical matrix: [SecretRef Credential Surface](/reference/secretref-credential-surface)
-- `secrets apply` targets supported `openclaw.json` credential paths.
+- `secrets apply` targets supported `genesis.json` credential paths.
 - `auth-profiles.json` refs are included in runtime resolution and audit coverage.
 
 ### Secret providers config
@@ -725,13 +725,13 @@ Validation:
       default: { source: "env" }, // optional explicit env provider
       filemain: {
         source: "file",
-        path: "~/.openclaw/secrets.json",
+        path: "~/.genesis/secrets.json",
         mode: "json",
         timeoutMs: 5000,
       },
       vault: {
         source: "exec",
-        command: "/usr/local/bin/openclaw-vault-resolver",
+        command: "/usr/local/bin/genesis-vault-resolver",
         passEnv: ["PATH", "VAULT_ADDR"],
       },
     },
@@ -779,7 +779,7 @@ Notes:
 - `auth-profiles.json` supports value-level refs (`keyRef` for `api_key`, `tokenRef` for `token`) for static credential modes.
 - OAuth-mode profiles (`auth.profiles.<id>.mode = "oauth"`) do not support SecretRef-backed auth-profile credentials.
 - Static runtime credentials come from in-memory resolved snapshots; legacy static `auth.json` entries are scrubbed when discovered.
-- Legacy OAuth imports from `~/.openclaw/credentials/oauth.json`.
+- Legacy OAuth imports from `~/.genesis/credentials/oauth.json`.
 - See [OAuth](/concepts/oauth).
 - Secrets runtime behavior and `audit/configure/apply` tooling: [Secrets Management](/gateway/secrets).
 
@@ -827,7 +827,7 @@ Notes:
 {
   logging: {
     level: "info",
-    file: "/tmp/openclaw/openclaw.log",
+    file: "/tmp/genesis/genesis.log",
     consoleLevel: "info",
     consoleStyle: "pretty", // pretty | compact | json
     redactSensitive: "tools", // off | tools
@@ -836,7 +836,7 @@ Notes:
 }
 ```
 
-- Default log file: `/tmp/openclaw/openclaw-YYYY-MM-DD.log`.
+- Default log file: `/tmp/genesis/genesis-YYYY-MM-DD.log`.
 - Set `logging.file` for a stable path.
 - `consoleLevel` bumps to `debug` when `--verbose`.
 - `maxFileBytes`: maximum log file size in bytes before writes are suppressed (positive integer; default: `524288000` = 500 MB). Use external log rotation for production deployments.
@@ -857,7 +857,7 @@ Notes:
       endpoint: "https://otel-collector.example.com:4318",
       protocol: "http/protobuf", // http/protobuf | grpc
       headers: { "x-tenant-id": "my-org" },
-      serviceName: "openclaw-gateway",
+      serviceName: "genesis-gateway",
       traces: true,
       metrics: true,
       logs: false,
@@ -875,7 +875,7 @@ Notes:
 
     cacheTrace: {
       enabled: false,
-      filePath: "~/.openclaw/logs/cache-trace.jsonl",
+      filePath: "~/.genesis/logs/cache-trace.jsonl",
       includeMessages: true,
       includePrompt: true,
       includeSystem: true,
@@ -896,9 +896,9 @@ Notes:
 - `otel.sampleRate`: trace sampling rate `0`–`1`.
 - `otel.flushIntervalMs`: periodic telemetry flush interval in ms.
 - `otel.captureContent`: opt-in raw content capture for OTEL span attributes. Defaults to off. Boolean `true` captures non-system message/tool content; the object form lets you enable `inputMessages`, `outputMessages`, `toolInputs`, `toolOutputs`, and `systemPrompt` explicitly.
-- `OPENCLAW_OTEL_PRELOADED=1`: environment toggle for hosts that already registered a global OpenTelemetry SDK. OpenClaw then skips plugin-owned SDK startup/shutdown while keeping diagnostic listeners active.
+- `GENESIS_OTEL_PRELOADED=1`: environment toggle for hosts that already registered a global OpenTelemetry SDK. Genesis then skips plugin-owned SDK startup/shutdown while keeping diagnostic listeners active.
 - `cacheTrace.enabled`: log cache trace snapshots for embedded runs (default: `false`).
-- `cacheTrace.filePath`: output path for cache trace JSONL (default: `$OPENCLAW_STATE_DIR/logs/cache-trace.jsonl`).
+- `cacheTrace.filePath`: output path for cache trace JSONL (default: `$GENESIS_STATE_DIR/logs/cache-trace.jsonl`).
 - `cacheTrace.includeMessages` / `includePrompt` / `includeSystem`: control what is included in cache trace output (all default: `true`).
 
 ---
@@ -992,9 +992,9 @@ Notes:
 
 - `cli.banner.taglineMode` controls banner tagline style:
   - `"random"` (default): rotating funny/seasonal taglines.
-  - `"default"`: fixed neutral tagline (`All your chats, one OpenClaw.`).
+  - `"default"`: fixed neutral tagline (`All your chats, one Genesis.`).
   - `"off"`: no tagline text (banner title/version still shown).
-- To hide the entire banner (not just taglines), set env `OPENCLAW_HIDE_BANNER=1`.
+- To hide the entire banner (not just taglines), set env `GENESIS_HIDE_BANNER=1`.
 
 ---
 
@@ -1024,7 +1024,7 @@ See `agents.list` identity fields under [Agent defaults](/gateway/config-agents#
 
 ## Bridge (legacy, removed)
 
-Current builds no longer include the TCP bridge. Nodes connect over the Gateway WebSocket. `bridge.*` keys are no longer part of the config schema (validation fails until removed; `openclaw doctor --fix` can strip unknown keys).
+Current builds no longer include the TCP bridge. Nodes connect over the Gateway WebSocket. `bridge.*` keys are no longer part of the config schema (validation fails until removed; `genesis doctor --fix` can strip unknown keys).
 
 <Accordion title="Legacy bridge config (historical reference)">
 
@@ -1174,7 +1174,7 @@ Template placeholders expanded in `tools.media.models[].args`:
 Split config into multiple files:
 
 ```json5
-// ~/.openclaw/openclaw.json
+// ~/.genesis/genesis.json
 {
   gateway: { port: 18789 },
   agents: { $include: "./agents.json5" },
@@ -1190,9 +1190,9 @@ Split config into multiple files:
 - Array of files: deep-merged in order (later overrides earlier).
 - Sibling keys: merged after includes (override included values).
 - Nested includes: up to 10 levels deep.
-- Paths: resolved relative to the including file, but must stay inside the top-level config directory (`dirname` of `openclaw.json`). Absolute/`../` forms are allowed only when they still resolve inside that boundary.
-- OpenClaw-owned writes that change only one top-level section backed by a single-file include write through to that included file. For example, `plugins install` updates `plugins: { $include: "./plugins.json5" }` in `plugins.json5` and leaves `openclaw.json` intact.
-- Root includes, include arrays, and includes with sibling overrides are read-only for OpenClaw-owned writes; those writes fail closed instead of flattening the config.
+- Paths: resolved relative to the including file, but must stay inside the top-level config directory (`dirname` of `genesis.json`). Absolute/`../` forms are allowed only when they still resolve inside that boundary.
+- Genesis-owned writes that change only one top-level section backed by a single-file include write through to that included file. For example, `plugins install` updates `plugins: { $include: "./plugins.json5" }` in `plugins.json5` and leaves `genesis.json` intact.
+- Root includes, include arrays, and includes with sibling overrides are read-only for Genesis-owned writes; those writes fail closed instead of flattening the config.
 - Errors: clear messages for missing files, parse errors, and circular includes.
 
 ---

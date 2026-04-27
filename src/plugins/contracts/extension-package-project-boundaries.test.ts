@@ -70,7 +70,7 @@ describe("opt-in extension package boundaries", () => {
       expect(tsconfig.exclude).toEqual([...EXTENSION_PACKAGE_BOUNDARY_EXCLUDE]);
 
       const packageJson = readExtensionPackageBoundaryPackageJson(extensionName, REPO_ROOT);
-      expect(packageJson.devDependencies?.["@openclaw/plugin-sdk"]).toBe("workspace:*");
+      expect(packageJson.devDependencies?.["@genesis/plugin-sdk"]).toBe("workspace:*");
     }
   });
 
@@ -104,7 +104,7 @@ describe("opt-in extension package boundaries", () => {
     ]);
 
     const packageJson = readJsonFile<PackageJson>("packages/plugin-sdk/package.json");
-    expect(packageJson.name).toBe("@openclaw/plugin-sdk");
+    expect(packageJson.name).toBe("@genesis/plugin-sdk");
     expect(packageJson.exports?.["./account-id"]?.types).toBe(
       "./dist/src/plugin-sdk/account-id.d.ts",
     );

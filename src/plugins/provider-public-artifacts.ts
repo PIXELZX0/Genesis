@@ -1,6 +1,6 @@
 import { normalizeProviderId } from "../agents/provider-id.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
 import type {
   ProviderApplyConfigDefaultsContext,
@@ -15,7 +15,7 @@ export type BundledProviderPolicySurface = {
   normalizeConfig?: (ctx: ProviderNormalizeConfigContext) => ModelProviderConfig | null | undefined;
   applyConfigDefaults?: (
     ctx: ProviderApplyConfigDefaultsContext,
-  ) => OpenClawConfig | null | undefined;
+  ) => GenesisConfig | null | undefined;
   resolveConfigApiKey?: (ctx: ProviderResolveConfigApiKeyContext) => string | null | undefined;
 };
 

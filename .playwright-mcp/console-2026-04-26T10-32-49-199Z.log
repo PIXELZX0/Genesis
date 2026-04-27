@@ -1,0 +1,26 @@
+[     620ms] [WARNING] Lit is in dev mode. Not recommended for production! See https://lit.dev/msg/dev-mode for more information. @ http://127.0.0.1:5173/@vite/client:509
+[     680ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5173/chat?session=main:0
+[     681ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5173/chat?session=main:0
+[     774ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[    1578ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[    2939ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[    5255ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[    9189ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   15872ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   22131ms] [WARNING] Lit is in dev mode. Not recommended for production! See https://lit.dev/msg/dev-mode for more information. @ http://127.0.0.1:5173/@vite/client:509
+[   22136ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5173/chat?session=main:0
+[   22136ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5173/chat?session=main:0
+[   22272ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   23076ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   24440ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   26757ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   30692ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   37377ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   48738ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   63744ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   78748ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[   93754ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[  108760ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[  123765ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[  138779ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138
+[  153787ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:18789/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5173/src/ui/gateway.ts:138

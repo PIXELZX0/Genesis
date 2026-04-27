@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
-import { loadOpenClawPluginCliRegistry, loadOpenClawPlugins } from "./loader.js";
+import { loadGenesisPluginCliRegistry, loadGenesisPlugins } from "./loader.js";
 import {
   cleanupPluginLoaderFixturesForTest,
   EMPTY_PLUGIN_SCHEMA,
@@ -47,8 +47,8 @@ describe("plugin loader CLI metadata", () => {
     });
 
     const warnings: string[] = [];
-    const registry = await loadOpenClawPluginCliRegistry({
-      env: { ...process.env, OPENCLAW_STATE_DIR: stateDir },
+    const registry = await loadGenesisPluginCliRegistry({
+      env: { ...process.env, GENESIS_STATE_DIR: stateDir },
       logger: {
         info: () => {},
         warn: (msg: string) => warnings.push(msg),
@@ -90,7 +90,7 @@ describe("plugin loader CLI metadata", () => {
 };`,
     });
     fs.writeFileSync(
-      path.join(plugin.dir, "openclaw.plugin.json"),
+      path.join(plugin.dir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "config-cli",
@@ -109,7 +109,7 @@ describe("plugin loader CLI metadata", () => {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           load: { paths: [plugin.file] },
@@ -140,8 +140,8 @@ describe("plugin loader CLI metadata", () => {
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/cli-metadata-channel",
-          openclaw: { extensions: ["./index.cjs"], setupEntry: "./setup-entry.cjs" },
+          name: "@genesis/cli-metadata-channel",
+          genesis: { extensions: ["./index.cjs"], setupEntry: "./setup-entry.cjs" },
         },
         null,
         2,
@@ -149,7 +149,7 @@ describe("plugin loader CLI metadata", () => {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "cli-metadata-channel",
@@ -218,7 +218,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           load: { paths: [pluginDir] },
@@ -241,14 +241,14 @@ module.exports = {
     const fullMarker = path.join(pluginDir, "full-loaded.txt");
 
     fs.mkdirSync(pluginDir, { recursive: true });
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledRoot;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = bundledRoot;
 
     fs.writeFileSync(
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/bundled-skip-channel",
-          openclaw: { extensions: ["./index.cjs"] },
+          name: "@genesis/bundled-skip-channel",
+          genesis: { extensions: ["./index.cjs"] },
         },
         null,
         2,
@@ -256,7 +256,7 @@ module.exports = {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "bundled-skip-channel",
@@ -280,7 +280,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           allow: ["bundled-skip-channel"],
@@ -309,14 +309,14 @@ module.exports = {
     const cliMarker = path.join(pluginDir, "cli-loaded.txt");
 
     fs.mkdirSync(pluginDir, { recursive: true });
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledRoot;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = bundledRoot;
 
     fs.writeFileSync(
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/bundled-cli-channel",
-          openclaw: { extensions: ["./index.cjs"] },
+          name: "@genesis/bundled-cli-channel",
+          genesis: { extensions: ["./index.cjs"] },
         },
         null,
         2,
@@ -324,7 +324,7 @@ module.exports = {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "bundled-cli-channel",
@@ -367,7 +367,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           allow: ["bundled-cli-channel"],
@@ -393,14 +393,14 @@ module.exports = {
     const fullMarker = path.join(pluginDir, "full-loaded.txt");
 
     fs.mkdirSync(pluginDir, { recursive: true });
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledRoot;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = bundledRoot;
 
     fs.writeFileSync(
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/bundled-skip-provider",
-          openclaw: { extensions: ["./index.cjs"] },
+          name: "@genesis/bundled-skip-provider",
+          genesis: { extensions: ["./index.cjs"] },
         },
         null,
         2,
@@ -408,7 +408,7 @@ module.exports = {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "bundled-skip-provider",
@@ -431,7 +431,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           allow: ["bundled-skip-provider"],
@@ -463,8 +463,8 @@ module.exports = {
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/full-cli-metadata-channel",
-          openclaw: { extensions: ["./index.cjs"] },
+          name: "@genesis/full-cli-metadata-channel",
+          genesis: { extensions: ["./index.cjs"] },
         },
         null,
         2,
@@ -472,7 +472,7 @@ module.exports = {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "full-cli-metadata-channel",
@@ -532,7 +532,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = loadOpenClawPlugins({
+    const registry = loadGenesisPlugins({
       cache: false,
       config: {
         plugins: {
@@ -560,8 +560,8 @@ module.exports = {
       path.join(pluginDir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/discovery-cli-metadata-channel",
-          openclaw: { extensions: ["./index.cjs"] },
+          name: "@genesis/discovery-cli-metadata-channel",
+          genesis: { extensions: ["./index.cjs"] },
         },
         null,
         2,
@@ -569,7 +569,7 @@ module.exports = {
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "discovery-cli-metadata-channel",
@@ -632,7 +632,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = loadOpenClawPlugins({
+    const registry = loadGenesisPlugins({
       activate: false,
       cache: false,
       config: {
@@ -685,7 +685,7 @@ module.exports = {
 };`,
     });
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       cache: false,
       config: {
         plugins: {
@@ -732,7 +732,7 @@ module.exports = {
 };`,
     });
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           load: { paths: [plugin.file] },
@@ -770,7 +770,7 @@ module.exports = {
 };`,
     });
     fs.writeFileSync(
-      path.join(plugin.dir, "openclaw.plugin.json"),
+      path.join(plugin.dir, "genesis.plugin.json"),
       JSON.stringify(
         {
           id: "memory-external",
@@ -783,7 +783,7 @@ module.exports = {
       "utf-8",
     );
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           load: { paths: [plugin.file] },
@@ -823,7 +823,7 @@ module.exports = {
 };`,
     });
 
-    const registry = await loadOpenClawPluginCliRegistry({
+    const registry = await loadGenesisPluginCliRegistry({
       config: {
         plugins: {
           load: { paths: [plugin.file] },

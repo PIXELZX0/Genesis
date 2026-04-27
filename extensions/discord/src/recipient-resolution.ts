@@ -1,4 +1,4 @@
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { requireRuntimeConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { resolveDiscordAccount } from "./accounts.js";
 import { parseAndResolveDiscordTarget } from "./target-resolver.js";
 import type { DiscordTargetParseOptions } from "./targets.js";
@@ -15,7 +15,7 @@ type DiscordRecipient =
 
 export async function parseAndResolveRecipient(
   raw: string,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId?: string,
   parseOptions: DiscordTargetParseOptions = {},
 ): Promise<DiscordRecipient> {

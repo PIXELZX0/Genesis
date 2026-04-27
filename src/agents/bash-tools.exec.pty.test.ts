@@ -36,9 +36,9 @@ test("exec supports pty output", async () => {
   expect(result.aggregated).toContain("ok");
 });
 
-test("exec sets OPENCLAW_SHELL in pty mode", async () => {
+test("exec sets GENESIS_SHELL in pty mode", async () => {
   const result = await runPtyCommand(
-    "node -e \"process.stdout.write(process.env.OPENCLAW_SHELL || '')\"",
+    "node -e \"process.stdout.write(process.env.GENESIS_SHELL || '')\"",
   );
 
   expect(result.status).toBe("completed");

@@ -199,7 +199,7 @@ describe("setActivePluginRegistry", () => {
         id: "runtime-plugin",
         name: "Runtime Plugin",
         source: "/tmp/runtime",
-        format: "openclaw",
+        format: "genesis",
         configSchema: true,
       }),
     );

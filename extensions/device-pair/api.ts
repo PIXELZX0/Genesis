@@ -6,15 +6,15 @@ export {
   listDevicePairing,
   revokeDeviceBootstrapToken,
   type DeviceBootstrapProfile,
-} from "openclaw/plugin-sdk/device-bootstrap";
-export { definePluginEntry, type OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+} from "genesis/plugin-sdk/device-bootstrap";
+export { definePluginEntry, type GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
 export {
   resolveGatewayBindUrl,
   resolveGatewayPort,
   resolveTailnetHostWithRunner,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";
 export {
-  resolvePreferredOpenClawTmpDir,
+  resolvePreferredGenesisTmpDir,
   runPluginCommandWithTimeout,
-} from "openclaw/plugin-sdk/sandbox";
+} from "genesis/plugin-sdk/sandbox";
 export { renderQrPngBase64, renderQrPngDataUrl, writeQrPngTempFile } from "./qr-image.js";

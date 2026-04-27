@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import * as providerAuth from "openclaw/plugin-sdk/provider-auth-runtime";
-import * as providerHttp from "openclaw/plugin-sdk/provider-http";
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import * as providerAuth from "genesis/plugin-sdk/provider-auth-runtime";
+import * as providerHttp from "genesis/plugin-sdk/provider-http";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.js";
 import {
@@ -22,14 +22,14 @@ const runtimeMocks = vi.hoisted(() => ({
 }));
 
 type OpenAIRefreshDelegateGlobal = typeof globalThis & {
-  __OPENCLAW_TEST_REFRESH_OPENAI_CODEX_TOKEN__?: (...args: unknown[]) => unknown;
+  __GENESIS_TEST_REFRESH_OPENAI_CODEX_TOKEN__?: (...args: unknown[]) => unknown;
 };
 
 const openAIRefreshDelegateGlobal = () => globalThis as OpenAIRefreshDelegateGlobal;
 
-vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/runtime-env")>(
-    "openclaw/plugin-sdk/runtime-env",
+vi.mock("genesis/plugin-sdk/runtime-env", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/runtime-env")>(
+    "genesis/plugin-sdk/runtime-env",
   );
   return {
     ...actual,
@@ -42,7 +42,7 @@ vi.mock("@mariozechner/pi-ai/oauth", () => ({
   getOAuthProviders: () => [],
   loginOpenAICodex: vi.fn(),
   refreshOpenAICodexToken: vi.fn((...args: unknown[]) =>
-    openAIRefreshDelegateGlobal().__OPENCLAW_TEST_REFRESH_OPENAI_CODEX_TOKEN__?.(...args),
+    openAIRefreshDelegateGlobal().__GENESIS_TEST_REFRESH_OPENAI_CODEX_TOKEN__?.(...args),
   ),
 }));
 
@@ -298,7 +298,7 @@ describe("openai plugin", () => {
               },
             },
           },
-        } satisfies OpenClawConfig,
+        } satisfies GenesisConfig,
       }),
     ).rejects.toThrow("Blocked hostname or private/internal/special-use IP address");
 
@@ -312,7 +312,7 @@ describe("openai plugin", () => {
       expires: Date.now() + 60_000,
     };
     runtimeMocks.refreshOpenAICodexToken.mockResolvedValue(refreshed);
-    openAIRefreshDelegateGlobal().__OPENCLAW_TEST_REFRESH_OPENAI_CODEX_TOKEN__ =
+    openAIRefreshDelegateGlobal().__GENESIS_TEST_REFRESH_OPENAI_CODEX_TOKEN__ =
       runtimeMocks.refreshOpenAICodexToken;
     try {
       await expect(refreshOpenAICodexToken("refresh-token")).resolves.toBe(refreshed);
@@ -323,7 +323,7 @@ describe("openai plugin", () => {
         runtimeMocks.ensureGlobalUndiciEnvProxyDispatcher.mock.invocationCallOrder[0],
       ).toBeLessThan(runtimeMocks.refreshOpenAICodexToken.mock.invocationCallOrder[0]);
     } finally {
-      delete openAIRefreshDelegateGlobal().__OPENCLAW_TEST_REFRESH_OPENAI_CODEX_TOKEN__;
+      delete openAIRefreshDelegateGlobal().__GENESIS_TEST_REFRESH_OPENAI_CODEX_TOKEN__;
     }
   });
 

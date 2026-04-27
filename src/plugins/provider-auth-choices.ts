@@ -1,5 +1,5 @@
 import { resolveProviderIdForAuth } from "../agents/provider-auth-aliases.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { sanitizeForLog } from "../terminal/ansi.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-state.js";
 import { loadPluginManifestRegistry, type PluginManifestRecord } from "./manifest-registry.js";
@@ -42,7 +42,7 @@ type ProviderOnboardAuthFlagCandidate = ProviderAuthChoiceCandidate & {
   cliOption: string;
 };
 type ManifestProviderAuthChoiceParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;
@@ -174,7 +174,7 @@ function stripChoiceOrigin(choice: ProviderAuthChoiceCandidate): ProviderAuthCho
 }
 
 function resolveManifestProviderAuthChoiceCandidates(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;
@@ -288,7 +288,7 @@ export function resolveManifestProviderAuthChoice(
 
 export function resolveManifestProviderApiKeyChoice(params: {
   providerId: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;

@@ -1,4 +1,4 @@
-import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
+import type { ProviderRuntimeModel } from "genesis/plugin-sdk/plugin-entry";
 import { describe, expect, it } from "vitest";
 import { createProviderDynamicModelContext as createContext } from "../test-support/provider-model-test-helpers.js";
 import { isModernGoogleModel, resolveGoogleGeminiForwardCompatModel } from "./provider-models.js";

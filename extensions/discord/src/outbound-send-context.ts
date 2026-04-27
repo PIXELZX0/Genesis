@@ -1,11 +1,11 @@
-import type { OpenClawConfig, ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig, ReplyToMode } from "genesis/plugin-sdk/config-runtime";
 import {
   createReplyToFanout,
   resolveOutboundSendDep,
   type ReplyToResolution,
   type OutboundSendDeps,
-} from "openclaw/plugin-sdk/outbound-runtime";
-import { normalizeOptionalStringifiedId } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/outbound-runtime";
+import { normalizeOptionalStringifiedId } from "genesis/plugin-sdk/text-runtime";
 import { withDiscordDeliveryRetry } from "./delivery-retry.js";
 
 type DiscordSendRuntime = typeof import("./send.js");
@@ -53,7 +53,7 @@ export function resolveDiscordFormattingOptions(ctx: {
 }
 
 export async function createDiscordPayloadSendContext(ctx: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   to: string;
   accountId?: string | null;
   deps?: OutboundSendDeps;

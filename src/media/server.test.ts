@@ -23,7 +23,7 @@ vi.mock("./store.js", async () => {
 
 let MEDIA_MAX_BYTES: typeof import("./store.js").MEDIA_MAX_BYTES;
 let mediaHarness: MediaServerTestHarness | undefined;
-const mediaRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-media-test-" });
+const mediaRootTracker = createSuiteTempRootTracker({ prefix: "genesis-media-test-" });
 
 async function waitForFileRemoval(filePath: string, maxTicks = 1000) {
   for (let tick = 0; tick < maxTicks; tick += 1) {

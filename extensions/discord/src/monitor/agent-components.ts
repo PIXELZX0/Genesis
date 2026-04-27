@@ -18,17 +18,17 @@ import {
 } from "@buape/carbon";
 import type { APIStringSelectComponent } from "discord-api-types/v10";
 import { ButtonStyle, ChannelType } from "discord-api-types/v10";
-import { resolveHumanDelayConfig } from "openclaw/plugin-sdk/agent-runtime";
+import { resolveHumanDelayConfig } from "genesis/plugin-sdk/agent-runtime";
 import {
   formatInboundEnvelope,
   resolveEnvelopeFormatOptions,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/dangerous-name-runtime";
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/markdown-table-runtime";
-import { getAgentScopedMediaLocalRoots } from "openclaw/plugin-sdk/media-runtime";
-import { createNonExitingRuntime, logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { resolveOpenProviderRuntimeGroupPolicy } from "openclaw/plugin-sdk/runtime-group-policy";
-import { logDebug, logError } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/channel-inbound";
+import { isDangerousNameMatchingEnabled } from "genesis/plugin-sdk/dangerous-name-runtime";
+import { resolveMarkdownTableMode } from "genesis/plugin-sdk/markdown-table-runtime";
+import { getAgentScopedMediaLocalRoots } from "genesis/plugin-sdk/media-runtime";
+import { createNonExitingRuntime, logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { resolveOpenProviderRuntimeGroupPolicy } from "genesis/plugin-sdk/runtime-group-policy";
+import { logDebug, logError } from "genesis/plugin-sdk/text-runtime";
 import { resolveDiscordMaxLinesPerMessage } from "../accounts.js";
 import { createDiscordRestClient } from "../client.js";
 import {
@@ -88,9 +88,9 @@ import { deliverDiscordReply } from "./reply-delivery.js";
 
 let conversationRuntimePromise: Promise<typeof import("./agent-components.runtime.js")> | undefined;
 let componentsRuntimePromise: Promise<typeof import("../components.js")> | undefined;
-let replyRuntimePromise: Promise<typeof import("openclaw/plugin-sdk/reply-runtime")> | undefined;
+let replyRuntimePromise: Promise<typeof import("genesis/plugin-sdk/reply-runtime")> | undefined;
 let replyPipelineRuntimePromise:
-  | Promise<typeof import("openclaw/plugin-sdk/channel-reply-pipeline")>
+  | Promise<typeof import("genesis/plugin-sdk/channel-reply-pipeline")>
   | undefined;
 let typingRuntimePromise: Promise<typeof import("./typing.js")> | undefined;
 
@@ -105,11 +105,11 @@ async function loadComponentsRuntime() {
 }
 
 async function _loadReplyRuntime() {
-  replyRuntimePromise ??= import("openclaw/plugin-sdk/reply-runtime");
+  replyRuntimePromise ??= import("genesis/plugin-sdk/reply-runtime");
   return await replyRuntimePromise;
 }
 async function loadReplyPipelineRuntime() {
-  replyPipelineRuntimePromise ??= import("openclaw/plugin-sdk/channel-reply-pipeline");
+  replyPipelineRuntimePromise ??= import("genesis/plugin-sdk/channel-reply-pipeline");
   return await replyPipelineRuntimePromise;
 }
 
@@ -1099,7 +1099,7 @@ export class AgentSelectMenu extends StringSelectMenu {
 
 class DiscordComponentButton extends Button {
   label = "component";
-  customId = "__openclaw_discord_component_button_wildcard__";
+  customId = "__genesis_discord_component_button_wildcard__";
   style = ButtonStyle.Primary;
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
@@ -1142,7 +1142,7 @@ class DiscordComponentButton extends Button {
 }
 
 class DiscordComponentStringSelect extends StringSelectMenu {
-  customId = "__openclaw_discord_component_string_select_wildcard__";
+  customId = "__genesis_discord_component_string_select_wildcard__";
   options: APIStringSelectComponent["options"] = [];
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
@@ -1165,7 +1165,7 @@ class DiscordComponentStringSelect extends StringSelectMenu {
 }
 
 class DiscordComponentUserSelect extends UserSelectMenu {
-  customId = "__openclaw_discord_component_user_select_wildcard__";
+  customId = "__genesis_discord_component_user_select_wildcard__";
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
 
@@ -1187,7 +1187,7 @@ class DiscordComponentUserSelect extends UserSelectMenu {
 }
 
 class DiscordComponentRoleSelect extends RoleSelectMenu {
-  customId = "__openclaw_discord_component_role_select_wildcard__";
+  customId = "__genesis_discord_component_role_select_wildcard__";
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
 
@@ -1209,7 +1209,7 @@ class DiscordComponentRoleSelect extends RoleSelectMenu {
 }
 
 class DiscordComponentMentionableSelect extends MentionableSelectMenu {
-  customId = "__openclaw_discord_component_mentionable_select_wildcard__";
+  customId = "__genesis_discord_component_mentionable_select_wildcard__";
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
 
@@ -1231,7 +1231,7 @@ class DiscordComponentMentionableSelect extends MentionableSelectMenu {
 }
 
 class DiscordComponentChannelSelect extends ChannelSelectMenu {
-  customId = "__openclaw_discord_component_channel_select_wildcard__";
+  customId = "__genesis_discord_component_channel_select_wildcard__";
   customIdParser = parseDiscordComponentCustomIdForCarbon;
   private ctx: AgentComponentContext;
 
@@ -1253,8 +1253,8 @@ class DiscordComponentChannelSelect extends ChannelSelectMenu {
 }
 
 class DiscordComponentModal extends Modal {
-  title = "OpenClaw form";
-  customId = "__openclaw_discord_component_modal_wildcard__";
+  title = "Genesis form";
+  customId = "__genesis_discord_component_modal_wildcard__";
   components = [];
   customIdParser = parseDiscordModalCustomIdForCarbon;
   private ctx: AgentComponentContext;

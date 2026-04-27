@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -11,7 +11,7 @@ import { stripInboundMetadata } from "./reply/strip-inbound-meta.js";
 
 export function hasControlCommand(
   text?: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   options?: CommandNormalizeOptions,
 ): boolean {
   if (!text) {
@@ -53,7 +53,7 @@ export function hasControlCommand(
 
 export function isControlCommandMessage(
   text?: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   options?: CommandNormalizeOptions,
 ): boolean {
   if (!text) {
@@ -89,7 +89,7 @@ export function hasInlineCommandTokens(text?: string): boolean {
 
 export function shouldComputeCommandAuthorized(
   text?: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   options?: CommandNormalizeOptions,
 ): boolean {
   return isControlCommandMessage(text, cfg, options) || hasInlineCommandTokens(text);

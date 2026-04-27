@@ -15,6 +15,7 @@ import type {
   SessionsListResult,
   SessionsUsageResult,
   SkillStatusReport,
+  WalletSummaryResult,
 } from "../types.ts";
 import { renderConnectCommand } from "./connect-command.ts";
 import { renderOverviewAttention } from "./overview-attention.ts";
@@ -48,6 +49,8 @@ export type OverviewProps = {
   skillsReport: SkillStatusReport | null;
   cronJobs: CronJob[];
   cronStatus: CronStatus | null;
+  walletSummary: WalletSummaryResult | null;
+  walletSummaryError: string | null;
   attentionItems: AttentionItem[];
   eventLog: EventLogEntry[];
   overviewLogLines: string[];
@@ -89,6 +92,69 @@ const PAIRING_HINT_COPY: Record<
   },
 };
 
+function truncateAddress(address: string): string {
+  return address.length <= 18 ? address : `${address.slice(0, 10)}...${address.slice(-6)}`;
+}
+
+function copyAddress(address: string) {
+  void navigator.clipboard?.writeText(address).catch(() => undefined);
+}
+
+function renderWalletCard(props: Pick<OverviewProps, "walletSummary" | "walletSummaryError">) {
+  const summary = props.walletSummary;
+  const accounts = summary?.accounts ?? [];
+  return html`
+    <div class="card">
+      <div class="card-title">${t("overview.wallet.title")}</div>
+      <div class="card-sub">${t("overview.wallet.subtitle")}</div>
+      ${props.walletSummaryError
+        ? html`<div class="callout danger" style="margin-top: 14px">
+            ${props.walletSummaryError}
+          </div>`
+        : accounts.length === 0
+          ? html`<div class="callout" style="margin-top: 14px">
+              ${summary?.keystore.exists
+                ? t("overview.wallet.noAccounts")
+                : t("overview.wallet.empty")}
+            </div>`
+          : html`
+              <div class="mini-list" style="margin-top: 14px">
+                ${accounts.map(
+                  (account) => html`
+                    <div class="mini-row">
+                      <div>
+                        <div class="mini-row__title">
+                          ${account.chain.toUpperCase()}
+                          ${account.network
+                            ? html`<span class="muted">· ${account.network}</span>`
+                            : nothing}
+                        </div>
+                        <div class="mono" title=${account.address}>
+                          ${truncateAddress(account.address)}
+                        </div>
+                      </div>
+                      <button
+                        class="icon-btn"
+                        title=${t("overview.wallet.copyAddress")}
+                        aria-label=${t("overview.wallet.copyAddress")}
+                        @click=${() => copyAddress(account.address)}
+                      >
+                        ${icons.copy}
+                      </button>
+                    </div>
+                  `,
+                )}
+              </div>
+              ${summary?.warnings.length
+                ? html`<div class="muted" style="margin-top: 10px">
+                    ${summary.warnings.slice(0, 2).join(" · ")}
+                  </div>`
+                : nothing}
+            `}
+    </div>
+  `;
+}
+
 export function renderOverview(props: OverviewProps) {
   const snapshot = props.hello?.snapshot as
     | {
@@ -119,16 +185,16 @@ export function renderOverview(props: OverviewProps) {
           : nothing}
         <div style="margin-top: 6px">
           ${pairingState.requestId
-            ? html`<span class="mono">openclaw devices approve ${pairingState.requestId}</span
+            ? html`<span class="mono">genesis devices approve ${pairingState.requestId}</span
                 ><br />`
             : nothing}
-          <span class="mono">openclaw devices list</span>
+          <span class="mono">genesis devices list</span>
         </div>
         <div style="margin-top: 6px; font-size: 12px;">${t("overview.pairing.mobileHint")}</div>
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection"
+            href="https://docs.genesis.ai/web/control-ui#device-pairing-first-connection"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.pairing.docsTitle")}
@@ -155,13 +221,13 @@ export function renderOverview(props: OverviewProps) {
         <div class="muted" style="margin-top: 8px">
           ${t("overview.auth.required")}
           <div style="margin-top: 6px">
-            <span class="mono">openclaw dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">openclaw doctor --generate-gateway-token</span> → set token
+            <span class="mono">genesis dashboard --no-open</span> → tokenized URL<br />
+            <span class="mono">genesis doctor --generate-gateway-token</span> → set token
           </div>
           <div style="margin-top: 6px">
             <a
               class="session-link"
-              href="https://docs.openclaw.ai/web/dashboard"
+              href="https://docs.genesis.ai/web/dashboard"
               target=${EXTERNAL_LINK_TARGET}
               rel=${buildExternalLinkRel()}
               title=${t("overview.connection.authDocsTitle")}
@@ -173,11 +239,11 @@ export function renderOverview(props: OverviewProps) {
     }
     return html`
       <div class="muted" style="margin-top: 8px">
-        ${t("overview.auth.failed", { command: "openclaw dashboard --no-open" })}
+        ${t("overview.auth.failed", { command: "genesis dashboard --no-open" })}
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/dashboard"
+            href="https://docs.genesis.ai/web/dashboard"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.authDocsTitle")}
@@ -210,7 +276,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/gateway/tailscale"
+            href="https://docs.genesis.ai/gateway/tailscale"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.tailscaleDocsTitle")}
@@ -219,7 +285,7 @@ export function renderOverview(props: OverviewProps) {
           <span class="muted"> · </span>
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/control-ui#insecure-http"
+            href="https://docs.genesis.ai/web/control-ui#insecure-http"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.insecureHttpDocsTitle")}
@@ -289,7 +355,7 @@ export function renderOverview(props: OverviewProps) {
                         const v = (e.target as HTMLInputElement).value;
                         props.onSettingsChange({ ...props.settings, token: v });
                       }}
-                      placeholder="OPENCLAW_GATEWAY_TOKEN"
+                      placeholder="GENESIS_GATEWAY_TOKEN"
                     />
                     <button
                       type="button"
@@ -380,16 +446,15 @@ export function renderOverview(props: OverviewProps) {
                 <div class="login-gate__help-title">${t("overview.connection.title")}</div>
                 <ol class="login-gate__steps">
                   <li>
-                    ${t("overview.connection.step1")}
-                    ${renderConnectCommand("openclaw gateway run")}
+                    ${t("overview.connection.step1")} ${renderConnectCommand("genesis gateway run")}
                   </li>
                   <li>
-                    ${t("overview.connection.step2")} ${renderConnectCommand("openclaw dashboard")}
+                    ${t("overview.connection.step2")} ${renderConnectCommand("genesis dashboard")}
                   </li>
                   <li>${t("overview.connection.step3")}</li>
                   <li>
                     ${t("overview.connection.step4")}<code
-                      >openclaw doctor --generate-gateway-token</code
+                      >genesis doctor --generate-gateway-token</code
                     >
                   </li>
                 </ol>
@@ -397,7 +462,7 @@ export function renderOverview(props: OverviewProps) {
                   ${t("overview.connection.docsHint")}
                   <a
                     class="session-link"
-                    href="https://docs.openclaw.ai/web/dashboard"
+                    href="https://docs.genesis.ai/web/dashboard"
                     target="_blank"
                     rel="noreferrer"
                     >${t("overview.connection.docsLink")}</a
@@ -447,6 +512,7 @@ export function renderOverview(props: OverviewProps) {
               </div>
             `}
       </div>
+      ${renderWalletCard(props)}
     </section>
 
     <div class="ov-section-divider"></div>

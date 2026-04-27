@@ -1,6 +1,6 @@
 import { performance } from "node:perf_hooks";
 
-const CLI_DEBUG_TIMING_ENV = "OPENCLAW_DEBUG_TIMING";
+const CLI_DEBUG_TIMING_ENV = "GENESIS_DEBUG_TIMING";
 
 type TimingDetailValue = string | number | boolean | null | undefined;
 type TimingDetails = Record<string, TimingDetailValue>;
@@ -157,7 +157,7 @@ export function createCliDebugTiming(params: {
       return;
     }
     if (!wrotePrettyHeader) {
-      writer(`OpenClaw CLI debug timing: ${formatPrettyLabel(params.command)}`);
+      writer(`Genesis CLI debug timing: ${formatPrettyLabel(params.command)}`);
       wrotePrettyHeader = true;
     }
     writer(formatPrettyTimingLine(payload));

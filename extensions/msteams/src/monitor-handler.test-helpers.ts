@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { OpenClawConfig, PluginRuntime, RuntimeEnv } from "../runtime-api.js";
+import type { GenesisConfig, PluginRuntime, RuntimeEnv } from "../runtime-api.js";
 import type { MSTeamsConversationStore } from "./conversation-store.js";
 import type { MSTeamsAdapter } from "./messenger.js";
 import type { MSTeamsActivityHandler, MSTeamsMessageHandlerDeps } from "./monitor-handler.js";
@@ -91,7 +91,7 @@ export function createActivityHandler(
 }
 
 export function createMSTeamsMessageHandlerDeps(params?: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   runtime?: RuntimeEnv;
 }): MSTeamsMessageHandlerDeps {
   const adapter: MSTeamsAdapter = {

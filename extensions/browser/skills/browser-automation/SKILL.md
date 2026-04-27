@@ -1,6 +1,6 @@
 ---
 name: browser-automation
-description: Use when controlling web pages with the OpenClaw browser tool, especially multi-step flows, login checks, tab management, or recovery from stale refs/timeouts.
+description: Use when controlling web pages with the Genesis browser tool, especially multi-step flows, login checks, tab management, or recovery from stale refs/timeouts.
 user-invocable: false
 ---
 
@@ -11,7 +11,7 @@ Use this skill when you need the `browser` tool for anything beyond a single pag
 ## Operating Loop
 
 1. Check browser state before acting:
-   - `openclaw browser doctor` or `action="status"` when the browser/plugin setup itself may be broken.
+   - `genesis browser doctor` or `action="status"` when the browser/plugin setup itself may be broken.
    - `action="status"` for availability.
    - `action="profiles"` if login state or profile choice matters.
    - `action="tabs"` before opening a new tab if retries/timeouts may have left windows behind.
@@ -61,7 +61,7 @@ If a retry creates duplicates, close the extras by `tabId`:
 { "action": "close", "targetId": "t3" }
 ```
 
-Do not pass bare numbers like `"2"` as `targetId`. Numeric tab positions are only for the CLI `openclaw browser tab select 2` helper; browser tool calls need a `suggestedTargetId`, label, `tabId`, or raw target id.
+Do not pass bare numbers like `"2"` as `targetId`. Numeric tab positions are only for the CLI `genesis browser tab select 2` helper; browser tool calls need a `suggestedTargetId`, label, `tabId`, or raw target id.
 
 ## Stale Ref Recovery
 

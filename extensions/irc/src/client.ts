@@ -1,6 +1,6 @@
 import net from "node:net";
 import tls from "node:tls";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import {
   parseIrcLine,
   parseIrcPrefix,
@@ -85,7 +85,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): 
 function buildFallbackNick(nick: string): string {
   const normalized = nick.replace(/\s+/g, "");
   const safe = normalized.replace(/[^A-Za-z0-9_\-[\]\\`^{}|]/g, "");
-  const base = safe || "openclaw";
+  const base = safe || "genesis";
   const suffix = "_";
   const maxNickLen = 30;
   if (base.length >= maxNickLen) {

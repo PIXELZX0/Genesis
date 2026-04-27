@@ -12,7 +12,7 @@ export function getRuntimeApiMockState() {
   return runtimeApiMockState;
 }
 
-vi.mock("openclaw/plugin-sdk/inbound-reply-dispatch", () => {
+vi.mock("genesis/plugin-sdk/inbound-reply-dispatch", () => {
   return {
     dispatchReplyFromConfigWithSettledDispatcher:
       runtimeApiMockState.dispatchReplyFromConfigWithSettledDispatcher,

@@ -5,7 +5,7 @@ import {
   clearRuntimeConfigSnapshot,
   setRuntimeConfigSnapshot,
 } from "../config/runtime-snapshot.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { clearPluginDiscoveryCache } from "../plugins/discovery.js";
 import { clearPluginManifestRegistryCache } from "../plugins/manifest-registry.js";
 import { captureEnv, withPathResolutionEnv } from "../test-utils/env.js";
@@ -30,10 +30,10 @@ vi.mock("./skills/plugin-skills.js", () => ({
   resolvePluginSkillDirs: () => [],
 }));
 
-const fixtureSuite = createFixtureSuite("openclaw-skills-suite-");
+const fixtureSuite = createFixtureSuite("genesis-skills-suite-");
 let tempHome: TempHomeEnv | null = null;
 let skillsHomeEnv: SkillsHomeEnvSnapshot | null = null;
-const pluginEnvSnapshot = captureEnv(["OPENCLAW_DISABLE_BUNDLED_PLUGINS"]);
+const pluginEnvSnapshot = captureEnv(["GENESIS_DISABLE_BUNDLED_PLUGINS"]);
 
 const resolveTestSkillDirs = (workspaceDir: string) => ({
   managedSkillsDir: path.join(workspaceDir, ".managed"),
@@ -120,7 +120,7 @@ function envSkillSnapshot(name: string, metadata: SkillEntry["metadata"]): Skill
   };
 }
 
-function rawSkillApiKeyRefConfig(skillName: string): OpenClawConfig {
+function rawSkillApiKeyRefConfig(skillName: string): GenesisConfig {
   return {
     skills: {
       entries: {
@@ -136,7 +136,7 @@ function rawSkillApiKeyRefConfig(skillName: string): OpenClawConfig {
   };
 }
 
-function resolvedSkillApiKeyConfig(skillName: string, apiKey: string): OpenClawConfig {
+function resolvedSkillApiKeyConfig(skillName: string, apiKey: string): GenesisConfig {
   return {
     skills: {
       entries: {
@@ -150,10 +150,10 @@ function resolvedSkillApiKeyConfig(skillName: string, apiKey: string): OpenClawC
 
 beforeAll(async () => {
   await fixtureSuite.setup();
-  process.env.OPENCLAW_DISABLE_BUNDLED_PLUGINS = "1";
-  tempHome = await createTempHomeEnv("openclaw-skills-home-");
+  process.env.GENESIS_DISABLE_BUNDLED_PLUGINS = "1";
+  tempHome = await createTempHomeEnv("genesis-skills-home-");
   skillsHomeEnv = setMockSkillsHomeEnv(tempHome.home);
-  await fs.mkdir(path.join(tempHome.home, ".openclaw", "agents", "main", "sessions"), {
+  await fs.mkdir(path.join(tempHome.home, ".genesis", "agents", "main", "sessions"), {
     recursive: true,
   });
 });
@@ -279,7 +279,7 @@ describe("buildWorkspaceSkillCommandSpecs", () => {
     expect(commands.map((entry) => entry.skillName)).toEqual(["alpha-skill"]);
   });
 
-  it("includes enabled Claude bundle markdown commands as native OpenClaw slash commands", async () => {
+  it("includes enabled Claude bundle markdown commands as native Genesis slash commands", async () => {
     const workspaceDir = await makeWorkspace();
     const config = {
       plugins: {
@@ -287,7 +287,7 @@ describe("buildWorkspaceSkillCommandSpecs", () => {
           "compound-bundle": { enabled: true },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
 
     // Prime plugin discovery before the bundle exists so command loading proves
     // it sees the current filesystem state instead of a stale cached snapshot.
@@ -296,7 +296,7 @@ describe("buildWorkspaceSkillCommandSpecs", () => {
       config,
     });
 
-    const pluginRoot = path.join(workspaceDir, ".openclaw", "extensions", "compound-bundle");
+    const pluginRoot = path.join(workspaceDir, ".genesis", "extensions", "compound-bundle");
     await fs.mkdir(path.join(pluginRoot, ".claude-plugin"), { recursive: true });
     await fs.mkdir(path.join(pluginRoot, "commands"), { recursive: true });
     await fs.writeFile(

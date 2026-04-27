@@ -23,7 +23,7 @@ export function registerTuiCli(program: Command) {
     .option("--history-limit <n>", "History entries to load", "200")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/tui", "docs.openclaw.ai/cli/tui")}\n`,
+      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/tui", "docs.genesis.ai/cli/tui")}\n`,
     )
     .action(async (opts, cmd) => {
       try {

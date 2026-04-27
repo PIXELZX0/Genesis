@@ -1,10 +1,6 @@
+import { computeBackoff, sleepWithAbort, type BackoffPolicy } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { Bot } from "grammy";
-import {
-  computeBackoff,
-  sleepWithAbort,
-  type BackoffPolicy,
-} from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
 
 export type TelegramSendChatActionLogger = (message: string) => void;
 
@@ -122,7 +118,7 @@ export function createTelegramSendChatActionHandler({
           logger(
             `CRITICAL: sendChatAction suspended after ${consecutive401Failures} consecutive 401 errors. ` +
               `Bot token is likely invalid. Telegram may DELETE the bot if requests continue. ` +
-              `Replace the token and restart: openclaw channels restart telegram`,
+              `Replace the token and restart: genesis channels restart telegram`,
           );
         } else {
           logger(

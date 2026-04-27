@@ -1,4 +1,4 @@
-import { isVoiceCompatibleAudio } from "openclaw/plugin-sdk/media-runtime";
+import { isVoiceCompatibleAudio } from "genesis/plugin-sdk/media-runtime";
 
 export function resolveTelegramVoiceDecision(opts: {
   wantsVoice: boolean;

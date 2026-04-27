@@ -29,7 +29,7 @@ vi.mock("./server.runtime.js", () => {
 
 let mediaHarness: MediaServerTestHarness | undefined;
 const mediaRootTracker = createSuiteTempRootTracker({
-  prefix: "openclaw-media-outside-workspace-",
+  prefix: "genesis-media-outside-workspace-",
 });
 
 async function expectOutsideWorkspaceServerResponse(url: string) {

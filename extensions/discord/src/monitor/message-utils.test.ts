@@ -5,9 +5,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 const fetchRemoteMedia = vi.fn();
 const saveMediaBuffer = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/media-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/media-runtime")>(
-    "openclaw/plugin-sdk/media-runtime",
+vi.mock("genesis/plugin-sdk/media-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/media-runtime")>(
+    "genesis/plugin-sdk/media-runtime",
   );
   return {
     ...actual,
@@ -16,9 +16,9 @@ vi.mock("openclaw/plugin-sdk/media-runtime", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/runtime-env", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/runtime-env")>(
-    "openclaw/plugin-sdk/runtime-env",
+vi.mock("genesis/plugin-sdk/runtime-env", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/runtime-env")>(
+    "genesis/plugin-sdk/runtime-env",
   );
   return {
     ...actual,

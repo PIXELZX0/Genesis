@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/discord",
+  "name": "@genesis/discord",
   "version": "2026.4.20",
-  "description": "OpenClaw Discord channel plugin",
+  "description": "Genesis Discord channel plugin",
   "type": "module",
   "dependencies": {
     "@buape/carbon": "0.16.0",
@@ -14,18 +14,18 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -46,7 +46,7 @@
       }
     },
     "install": {
-      "npmSpec": "@openclaw/discord",
+      "npmSpec": "@genesis/discord",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     },
@@ -54,7 +54,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "bundle": {
       "stageRuntimeDependencies": true

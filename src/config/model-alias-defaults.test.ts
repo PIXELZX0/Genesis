@@ -3,13 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_CONTEXT_TOKENS } from "../agents/defaults.js";
 import { clearBundledProviderPolicySurfaceCache } from "../plugins/provider-public-artifacts.js";
 import { applyModelDefaults } from "./defaults.js";
-import type { OpenClawConfig } from "./types.js";
+import type { GenesisConfig } from "./types.js";
 
 describe("applyModelDefaults", () => {
   beforeEach(() => {
     clearBundledProviderPolicySurfaceCache();
     vi.stubEnv(
-      "OPENCLAW_BUNDLED_PLUGINS_DIR",
+      "GENESIS_BUNDLED_PLUGINS_DIR",
       path.resolve(import.meta.dirname, "../../extensions"),
     );
   });
@@ -41,7 +41,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
   }
 
   function buildMistralProviderConfig(overrides?: {
@@ -70,7 +70,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
   }
 
   it("adds default aliases when models are present", () => {
@@ -83,7 +83,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
     const next = applyModelDefaults(cfg);
 
     expect(next.agents?.defaults?.models?.["anthropic/claude-opus-4-7"]?.alias).toBe("opus");
@@ -99,7 +99,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
 
     const next = applyModelDefaults(cfg);
 
@@ -117,7 +117,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
 
     const next = applyModelDefaults(cfg);
 
@@ -184,7 +184,7 @@ describe("applyModelDefaults", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies GenesisConfig;
 
     const next = applyModelDefaults(cfg);
     const provider = next.models?.providers?.anthropic;

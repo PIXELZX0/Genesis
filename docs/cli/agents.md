@@ -1,11 +1,11 @@
 ---
-summary: "CLI reference for `openclaw agents` (list/add/delete/bindings/bind/unbind/set identity)"
+summary: "CLI reference for `genesis agents` (list/add/delete/bindings/bind/unbind/set identity)"
 read_when:
   - You want multiple isolated agents (workspaces + routing + auth)
 title: "Agents"
 ---
 
-# `openclaw agents`
+# `genesis agents`
 
 Manage isolated agents (workspaces + auth + routing).
 
@@ -18,16 +18,16 @@ Related:
 ## Examples
 
 ```bash
-openclaw agents list
-openclaw agents list --bindings
-openclaw agents add work --workspace ~/.openclaw/workspace-work
-openclaw agents add ops --workspace ~/.openclaw/workspace-ops --bind telegram:ops --non-interactive
-openclaw agents bindings
-openclaw agents bind --agent work --bind telegram:ops
-openclaw agents unbind --agent work --bind telegram:ops
-openclaw agents set-identity --workspace ~/.openclaw/workspace --from-identity
-openclaw agents set-identity --agent main --avatar avatars/openclaw.png
-openclaw agents delete work
+genesis agents list
+genesis agents list --bindings
+genesis agents add work --workspace ~/.genesis/workspace-work
+genesis agents add ops --workspace ~/.genesis/workspace-ops --bind telegram:ops --non-interactive
+genesis agents bindings
+genesis agents bind --agent work --bind telegram:ops
+genesis agents unbind --agent work --bind telegram:ops
+genesis agents set-identity --workspace ~/.genesis/workspace --from-identity
+genesis agents set-identity --agent main --avatar avatars/genesis.png
+genesis agents delete work
 ```
 
 ## Routing bindings
@@ -35,42 +35,42 @@ openclaw agents delete work
 Use routing bindings to pin inbound channel traffic to a specific agent.
 
 If you also want different visible skills per agent, configure
-`agents.defaults.skills` and `agents.list[].skills` in `openclaw.json`. See
+`agents.defaults.skills` and `agents.list[].skills` in `genesis.json`. See
 [Skills config](/tools/skills-config) and
 [Configuration Reference](/gateway/config-agents#agents-defaults-skills).
 
 List bindings:
 
 ```bash
-openclaw agents bindings
-openclaw agents bindings --agent work
-openclaw agents bindings --json
+genesis agents bindings
+genesis agents bindings --agent work
+genesis agents bindings --json
 ```
 
 Add bindings:
 
 ```bash
-openclaw agents bind --agent work --bind telegram:ops --bind discord:guild-a
+genesis agents bind --agent work --bind telegram:ops --bind discord:guild-a
 ```
 
-If you omit `accountId` (`--bind <channel>`), OpenClaw resolves it from channel defaults and plugin setup hooks when available.
+If you omit `accountId` (`--bind <channel>`), Genesis resolves it from channel defaults and plugin setup hooks when available.
 
-If you omit `--agent` for `bind` or `unbind`, OpenClaw targets the current default agent.
+If you omit `--agent` for `bind` or `unbind`, Genesis targets the current default agent.
 
 ### Binding scope behavior
 
 - A binding without `accountId` matches the channel default account only.
 - `accountId: "*"` is the channel-wide fallback (all accounts) and is less specific than an explicit account binding.
-- If the same agent already has a matching channel binding without `accountId`, and you later bind with an explicit or resolved `accountId`, OpenClaw upgrades that existing binding in place instead of adding a duplicate.
+- If the same agent already has a matching channel binding without `accountId`, and you later bind with an explicit or resolved `accountId`, Genesis upgrades that existing binding in place instead of adding a duplicate.
 
 Example:
 
 ```bash
 # initial channel-only binding
-openclaw agents bind --agent work --bind telegram
+genesis agents bind --agent work --bind telegram
 
 # later upgrade to account-scoped binding
-openclaw agents bind --agent work --bind telegram:ops
+genesis agents bind --agent work --bind telegram:ops
 ```
 
 After the upgrade, routing for that binding is scoped to `telegram:ops`. If you also want default-account routing, add it explicitly (for example `--bind telegram:default`).
@@ -78,8 +78,8 @@ After the upgrade, routing for that binding is scoped to `telegram:ops`. If you 
 Remove bindings:
 
 ```bash
-openclaw agents unbind --agent work --bind telegram:ops
-openclaw agents unbind --agent work --all
+genesis agents unbind --agent work --bind telegram:ops
+genesis agents unbind --agent work --all
 ```
 
 `unbind` accepts either `--all` or one or more `--bind` values, not both.
@@ -88,7 +88,7 @@ openclaw agents unbind --agent work --all
 
 ### `agents`
 
-Running `openclaw agents` with no subcommand is equivalent to `openclaw agents list`.
+Running `genesis agents` with no subcommand is equivalent to `genesis agents list`.
 
 ### `agents list`
 
@@ -158,7 +158,7 @@ Notes:
 
 Each agent workspace can include an `IDENTITY.md` at the workspace root:
 
-- Example path: `~/.openclaw/workspace/IDENTITY.md`
+- Example path: `~/.genesis/workspace/IDENTITY.md`
 - `set-identity --from-identity` reads from the workspace root (or an explicit `--identity-file`)
 
 Avatar paths resolve relative to the workspace root.
@@ -193,13 +193,13 @@ Notes:
 Load from `IDENTITY.md`:
 
 ```bash
-openclaw agents set-identity --workspace ~/.openclaw/workspace --from-identity
+genesis agents set-identity --workspace ~/.genesis/workspace --from-identity
 ```
 
 Override fields explicitly:
 
 ```bash
-openclaw agents set-identity --agent main --name "OpenClaw" --emoji "🦞" --avatar avatars/openclaw.png
+genesis agents set-identity --agent main --name "Genesis" --emoji "🦞" --avatar avatars/genesis.png
 ```
 
 Config sample:
@@ -211,10 +211,10 @@ Config sample:
       {
         id: "main",
         identity: {
-          name: "OpenClaw",
+          name: "Genesis",
           theme: "space lobster",
           emoji: "🦞",
-          avatar: "avatars/openclaw.png",
+          avatar: "avatars/genesis.png",
         },
       },
     ],

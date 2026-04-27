@@ -1,8 +1,8 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk/core";
+import type { PluginRuntime } from "genesis/plugin-sdk/core";
 import {
   resetPluginRuntimeStateForTest,
   setActivePluginRegistry,
-} from "openclaw/plugin-sdk/testing";
+} from "genesis/plugin-sdk/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import { extractToolPayload } from "../../../src/infra/outbound/tool-payload.js";
 import { createTestRegistry } from "../../../test/helpers/plugins/plugin-registry.js";
@@ -88,8 +88,8 @@ function createQaChannelConfig(params: { baseUrl: string; allowFrom?: string[] }
     channels: {
       "qa-channel": {
         baseUrl: params.baseUrl,
-        botUserId: "openclaw",
-        botDisplayName: "OpenClaw QA",
+        botUserId: "genesis",
+        botDisplayName: "Genesis QA",
         allowFrom: params.allowFrom,
       },
     },

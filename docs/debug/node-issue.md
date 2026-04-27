@@ -2,7 +2,7 @@
 summary: Node + tsx "__name is not a function" crash notes and workarounds
 read_when:
   - Debugging Node-only dev scripts or watch mode failures
-  - Investigating tsx/esbuild loader crashes in OpenClaw
+  - Investigating tsx/esbuild loader crashes in Genesis
 title: "Node + tsx crash"
 ---
 
@@ -10,10 +10,10 @@ title: "Node + tsx crash"
 
 ## Summary
 
-Running OpenClaw via Node with `tsx` fails at startup with:
+Running Genesis via Node with `tsx` fails at startup with:
 
 ```
-[openclaw] Failed to start CLI: TypeError: __name is not a function
+[genesis] Failed to start CLI: TypeError: __name is not a function
     at createSubsystemLogger (.../src/logging/subsystem.ts:203:25)
     at .../src/agents/auth-profiles/constants.ts:25:20
 ```
@@ -56,7 +56,7 @@ node --import tsx scripts/repro/tsx-name-repro.ts
 ## Regression history
 
 - `2871657e` (2026-01-06): scripts changed from Bun to tsx to make Bun optional.
-- Before that (Bun path), `openclaw status` and `gateway:watch` worked.
+- Before that (Bun path), `genesis status` and `gateway:watch` worked.
 
 ## Workarounds
 
@@ -65,7 +65,7 @@ node --import tsx scripts/repro/tsx-name-repro.ts
 
   ```bash
   pnpm tsgo
-  node openclaw.mjs status
+  node genesis.mjs status
   ```
 
 - Historical note: `tsc` was used here while debugging this Node/tsx issue, but repo type-check lanes now use `tsgo`.

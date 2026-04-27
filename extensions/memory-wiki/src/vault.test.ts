@@ -34,7 +34,7 @@ describe("initializeMemoryWikiVault", () => {
       "Render mode: `obsidian`",
     );
     await expect(
-      fs.readFile(path.join(rootDir, ".openclaw-wiki", "state.json"), "utf8"),
+      fs.readFile(path.join(rootDir, ".genesis-wiki", "state.json"), "utf8"),
     ).resolves.toContain('"renderMode": "obsidian"');
   });
 

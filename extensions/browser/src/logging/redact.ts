@@ -1,1 +1,1 @@
-export { redactSensitiveText } from "openclaw/plugin-sdk/browser-security-runtime";
+export { redactSensitiveText } from "genesis/plugin-sdk/browser-security-runtime";

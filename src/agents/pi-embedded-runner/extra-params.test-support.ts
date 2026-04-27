@@ -1,7 +1,7 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
 import type { Context, Model, SimpleStreamOptions } from "@mariozechner/pi-ai";
 import type { ThinkLevel } from "../../auto-reply/thinking.shared.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { __testing as extraParamsTesting, applyExtraParamsToAgent } from "./extra-params.js";
 
 export type ExtraParamsCapture<TPayload extends Record<string, unknown>> = {
@@ -29,7 +29,7 @@ type RunExtraParamsCaseParams<
   applyModelId?: string;
   applyProvider?: string;
   callerHeaders?: Record<string, string>;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   model: Model<TApi>;
   mockProviderRuntime?: boolean;
   options?: SimpleStreamOptions;

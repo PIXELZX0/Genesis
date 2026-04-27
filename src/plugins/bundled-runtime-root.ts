@@ -142,7 +142,7 @@ function prepareBundledPluginRuntimeDistMirror(params: {
       }
     }
   }
-  ensureOpenClawPluginSdkAlias(mirrorDistRoot);
+  ensureGenesisPluginSdkAlias(mirrorDistRoot);
   return mirrorExtensionsRoot;
 }
 
@@ -224,16 +224,16 @@ function writeRuntimeModuleWrapper(sourcePath: string, targetPath: string): void
   );
 }
 
-function ensureOpenClawPluginSdkAlias(distRoot: string): void {
+function ensureGenesisPluginSdkAlias(distRoot: string): void {
   const pluginSdkDir = path.join(distRoot, "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(distRoot, "extensions", "node_modules", "openclaw");
+  const aliasDir = path.join(distRoot, "extensions", "node_modules", "genesis");
   const pluginSdkAliasDir = path.join(aliasDir, "plugin-sdk");
   writeRuntimeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "openclaw",
+    name: "genesis",
     type: "module",
     exports: {
       "./plugin-sdk": "./plugin-sdk/index.js",

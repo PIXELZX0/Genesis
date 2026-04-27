@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getActivePluginChannelRegistry } from "../../plugins/runtime.js";
 import {
   normalizeOptionalLowercaseString,
@@ -18,7 +18,7 @@ type CommandSurfaceParams = {
 };
 
 type ChannelAccountParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: {
     OriginatingChannel?: string;
     Surface?: string;

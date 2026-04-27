@@ -68,7 +68,7 @@ afterEach(async () => {
 
 describe("reconcileSessionStoreCompactionCountAfterSuccess", () => {
   it("raises the stored compaction count to the observed value", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-compaction-reconcile-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-compaction-reconcile-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     await seedSessionStore({
@@ -90,7 +90,7 @@ describe("reconcileSessionStoreCompactionCountAfterSuccess", () => {
   });
 
   it("does not double count when the store is already at or above the observed value", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-compaction-idempotent-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-compaction-idempotent-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     await seedSessionStore({
@@ -114,7 +114,7 @@ describe("reconcileSessionStoreCompactionCountAfterSuccess", () => {
 
 describe("handleCompactionEnd", () => {
   it("reconciles the session store after a successful compaction end event", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-compaction-handler-"));
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-compaction-handler-"));
     const storePath = path.join(tmp, "sessions.json");
     const sessionKey = "main";
     await seedSessionStore({

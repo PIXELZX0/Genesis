@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   clearDeviceBootstrapTokens,
   definePluginEntry,
@@ -16,10 +16,10 @@ import {
   revokeDeviceBootstrapToken,
   resolveGatewayBindUrl,
   resolveGatewayPort,
-  resolvePreferredOpenClawTmpDir,
+  resolvePreferredGenesisTmpDir,
   runPluginCommandWithTimeout,
   resolveTailnetHostWithRunner,
-  type OpenClawPluginApi,
+  type GenesisPluginApi,
 } from "./api.js";
 import {
   armPairNotifyOnce,
@@ -160,7 +160,7 @@ function parseNormalizedGatewayUrl(raw: string): string | null {
 }
 
 function resolveScheme(
-  cfg: OpenClawPluginApi["config"],
+  cfg: GenesisPluginApi["config"],
   opts?: { forceSecure?: boolean },
 ): "ws" | "wss" {
   if (opts?.forceSecure) {
@@ -250,12 +250,12 @@ async function resolveTailnetHost(): Promise<string | null> {
   );
 }
 
-function resolveAuthLabel(cfg: OpenClawPluginApi["config"]): ResolveAuthLabelResult {
+function resolveAuthLabel(cfg: GenesisPluginApi["config"]): ResolveAuthLabelResult {
   const mode = cfg.gateway?.auth?.mode;
   const token =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_TOKEN, cfg.gateway?.auth?.token]) ?? undefined;
+    pickFirstDefined([process.env.GENESIS_GATEWAY_TOKEN, cfg.gateway?.auth?.token]) ?? undefined;
   const password =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_PASSWORD, cfg.gateway?.auth?.password]) ??
+    pickFirstDefined([process.env.GENESIS_GATEWAY_PASSWORD, cfg.gateway?.auth?.password]) ??
     undefined;
 
   if (mode === "token" || mode === "password") {
@@ -294,7 +294,7 @@ function resolveRequiredAuthLabel(
     : { error: "Gateway auth is set to password, but no password is configured." };
 }
 
-async function resolveGatewayUrl(api: OpenClawPluginApi): Promise<ResolveUrlResult> {
+async function resolveGatewayUrl(api: GenesisPluginApi): Promise<ResolveUrlResult> {
   const cfg = api.config;
   const pluginCfg = (api.pluginConfig ?? {}) as DevicePairPluginConfig;
   const scheme = resolveScheme(cfg);
@@ -508,7 +508,7 @@ async function issueSetupPayload(url: string): Promise<SetupPayload> {
 }
 
 async function sendQrPngToSupportedChannel(params: {
-  api: OpenClawPluginApi;
+  api: GenesisPluginApi;
   ctx: QrCommandContext;
   target: string;
   caption: string;
@@ -542,8 +542,8 @@ async function sendQrPngToSupportedChannel(params: {
 export default definePluginEntry({
   id: "device-pair",
   name: "Device Pair",
-  description: "QR/bootstrap pairing helpers for OpenClaw devices",
-  register(api: OpenClawPluginApi) {
+  description: "QR/bootstrap pairing helpers for Genesis devices",
+  register(api: GenesisPluginApi) {
     registerPairingNotifierService(api);
 
     api.registerCommand({
@@ -660,7 +660,7 @@ export default definePluginEntry({
             try {
               qrFilePath = (
                 await writeQrPngTempFile(setupCode, {
-                  tmpRoot: resolvePreferredOpenClawTmpDir(),
+                  tmpRoot: resolvePreferredGenesisTmpDir(),
                   dirPrefix: "device-pair-qr-",
                   fileName: "pair-qr.png",
                 })
@@ -669,7 +669,7 @@ export default definePluginEntry({
                 api,
                 ctx,
                 target,
-                caption: ["Scan this QR code with the OpenClaw iOS app:", "", ...infoLines].join(
+                caption: ["Scan this QR code with the Genesis iOS app:", "", ...infoLines].join(
                   "\n",
                 ),
                 qrFilePath,
@@ -717,7 +717,7 @@ export default definePluginEntry({
             }
             return {
               text: [
-                "Scan this QR code with the OpenClaw iOS app:",
+                "Scan this QR code with the Genesis iOS app:",
                 "",
                 formatQrInfoMarkdown({
                   payload,

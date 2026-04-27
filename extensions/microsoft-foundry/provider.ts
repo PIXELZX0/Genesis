@@ -1,8 +1,5 @@
-import type { ProviderNormalizeResolvedModelContext } from "openclaw/plugin-sdk/core";
-import type {
-  ModelProviderConfig,
-  ProviderPlugin,
-} from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderNormalizeResolvedModelContext } from "genesis/plugin-sdk/core";
+import type { ModelProviderConfig, ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 import { apiKeyAuthMethod, entraIdAuthMethod } from "./auth.js";
 import { prepareFoundryRuntimeAuth } from "./runtime.js";
 import {

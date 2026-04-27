@@ -16,7 +16,7 @@ import {
 } from "./test-helpers/console-snapshot.js";
 
 let snapshot: ConsoleSnapshot;
-const logPathTracker = createSuiteLogPathTracker("openclaw-log-");
+const logPathTracker = createSuiteLogPathTracker("genesis-log-");
 
 beforeAll(async () => {
   await logPathTracker.setup();

@@ -1,12 +1,12 @@
 ---
-summary: "Use Amazon Bedrock (Converse API) models with OpenClaw"
+summary: "Use Amazon Bedrock (Converse API) models with Genesis"
 read_when:
-  - You want to use Amazon Bedrock models with OpenClaw
+  - You want to use Amazon Bedrock models with Genesis
   - You need AWS credential/region setup for model calls
 title: "Amazon Bedrock"
 ---
 
-OpenClaw can use **Amazon Bedrock** models via pi-ai's **Bedrock Converse**
+Genesis can use **Amazon Bedrock** models via pi-ai's **Bedrock Converse**
 streaming provider. Bedrock auth uses the **AWS SDK default credential chain**,
 not an API key.
 
@@ -73,13 +73,13 @@ Choose your preferred auth method and follow the setup steps.
       </Step>
       <Step title="Verify models are available">
         ```bash
-        openclaw models list
+        genesis models list
         ```
       </Step>
     </Steps>
 
     <Tip>
-    With env-marker auth (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`, or `AWS_BEARER_TOKEN_BEDROCK`), OpenClaw auto-enables the implicit Bedrock provider for model discovery without extra config.
+    With env-marker auth (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`, or `AWS_BEARER_TOKEN_BEDROCK`), Genesis auto-enables the implicit Bedrock provider for model discovery without extra config.
     </Tip>
 
   </Tab>
@@ -89,15 +89,15 @@ Choose your preferred auth method and follow the setup steps.
 
     <Steps>
       <Step title="Enable discovery explicitly">
-        When using IMDS, OpenClaw cannot detect AWS auth from env markers alone, so you must opt in:
+        When using IMDS, Genesis cannot detect AWS auth from env markers alone, so you must opt in:
 
         ```bash
-        openclaw config set plugins.entries.amazon-bedrock.config.discovery.enabled true
-        openclaw config set plugins.entries.amazon-bedrock.config.discovery.region us-east-1
+        genesis config set plugins.entries.amazon-bedrock.config.discovery.enabled true
+        genesis config set plugins.entries.amazon-bedrock.config.discovery.region us-east-1
         ```
       </Step>
       <Step title="Optionally add an env marker for auto mode">
-        If you also want the env-marker auto-detection path to work (for example, for `openclaw status` surfaces):
+        If you also want the env-marker auto-detection path to work (for example, for `genesis status` surfaces):
 
         ```bash
         export AWS_PROFILE=default
@@ -108,7 +108,7 @@ Choose your preferred auth method and follow the setup steps.
       </Step>
       <Step title="Verify models are discovered">
         ```bash
-        openclaw models list
+        genesis models list
         ```
       </Step>
     </Steps>
@@ -133,16 +133,16 @@ Choose your preferred auth method and follow the setup steps.
 
 ## Automatic model discovery
 
-OpenClaw can automatically discover Bedrock models that support **streaming**
+Genesis can automatically discover Bedrock models that support **streaming**
 and **text output**. Discovery uses `bedrock:ListFoundationModels` and
 `bedrock:ListInferenceProfiles`, and results are cached (default: 1 hour).
 
 How the implicit provider is enabled:
 
 - If `plugins.entries.amazon-bedrock.config.discovery.enabled` is `true`,
-  OpenClaw will try discovery even when no AWS env marker is present.
+  Genesis will try discovery even when no AWS env marker is present.
 - If `plugins.entries.amazon-bedrock.config.discovery.enabled` is unset,
-  OpenClaw only auto-adds the
+  Genesis only auto-adds the
   implicit Bedrock provider when it sees one of these AWS auth markers:
   `AWS_BEARER_TOKEN_BEDROCK`, `AWS_ACCESS_KEY_ID` +
   `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`.
@@ -151,7 +151,7 @@ How the implicit provider is enabled:
   needed `enabled: true` to opt in.
 
 <Note>
-For explicit `models.providers["amazon-bedrock"]` entries, OpenClaw can still resolve Bedrock env-marker auth early from AWS env markers such as `AWS_BEARER_TOKEN_BEDROCK` without forcing full runtime auth loading. The actual model-call auth path still uses the AWS SDK default chain.
+For explicit `models.providers["amazon-bedrock"]` entries, Genesis can still resolve Bedrock env-marker auth early from AWS env markers such as `AWS_BEARER_TOKEN_BEDROCK` without forcing full runtime auth loading. The actual model-call auth path still uses the AWS SDK default chain.
 </Note>
 
 <AccordionGroup>
@@ -181,7 +181,7 @@ For explicit `models.providers["amazon-bedrock"]` entries, OpenClaw can still re
 
     | Option | Default | Description |
     | ------ | ------- | ----------- |
-    | `enabled` | auto | In auto mode, OpenClaw only enables the implicit Bedrock provider when it sees a supported AWS env marker. Set `true` to force discovery. |
+    | `enabled` | auto | In auto mode, Genesis only enables the implicit Bedrock provider when it sees a supported AWS env marker. Set `true` to force discovery. |
     | `region` | `AWS_REGION` / `AWS_DEFAULT_REGION` / `us-east-1` | AWS region used for discovery API calls. |
     | `providerFilter` | (all) | Matches Bedrock provider names (for example `anthropic`, `amazon`). |
     | `refreshInterval` | `3600` | Cache duration in seconds. Set to `0` to disable caching. |
@@ -194,7 +194,7 @@ For explicit `models.providers["amazon-bedrock"]` entries, OpenClaw can still re
 ## Quick setup (AWS path)
 
 This walkthrough creates an IAM role, attaches Bedrock permissions, associates
-the instance profile, and enables OpenClaw discovery on the EC2 host.
+the instance profile, and enables Genesis discovery on the EC2 host.
 
 ```bash
 # 1. Create IAM role and instance profile
@@ -222,8 +222,8 @@ aws ec2 associate-iam-instance-profile \
   --iam-instance-profile Name=EC2-Bedrock-Access
 
 # 3. On the EC2 instance, enable discovery explicitly
-openclaw config set plugins.entries.amazon-bedrock.config.discovery.enabled true
-openclaw config set plugins.entries.amazon-bedrock.config.discovery.region us-east-1
+genesis config set plugins.entries.amazon-bedrock.config.discovery.enabled true
+genesis config set plugins.entries.amazon-bedrock.config.discovery.region us-east-1
 
 # 4. Optional: add an env marker if you want auto mode without explicit enable
 echo 'export AWS_PROFILE=default' >> ~/.bashrc
@@ -231,14 +231,14 @@ echo 'export AWS_REGION=us-east-1' >> ~/.bashrc
 source ~/.bashrc
 
 # 5. Verify models are discovered
-openclaw models list
+genesis models list
 ```
 
 ## Advanced configuration
 
 <AccordionGroup>
   <Accordion title="Inference profiles">
-    OpenClaw discovers **regional and global inference profiles** alongside
+    Genesis discovers **regional and global inference profiles** alongside
     foundation models. When a profile maps to a known foundation model, the
     profile inherits that model's capabilities (context window, max tokens,
     reasoning, vision) and the correct Bedrock request region is injected
@@ -252,7 +252,7 @@ openclaw models list
 
     No extra configuration is needed. As long as discovery is enabled and the IAM
     principal has `bedrock:ListInferenceProfiles`, profiles appear alongside
-    foundation models in `openclaw models list`.
+    foundation models in `genesis models list`.
 
   </Accordion>
 
@@ -332,7 +332,7 @@ openclaw models list
     - If you rely on auto mode, set one of the supported AWS auth env markers on the
       gateway host. If you prefer IMDS/shared-config auth without env markers, set
       `plugins.entries.amazon-bedrock.config.discovery.enabled: true`.
-    - OpenClaw surfaces the credential source in this order: `AWS_BEARER_TOKEN_BEDROCK`,
+    - Genesis surfaces the credential source in this order: `AWS_BEARER_TOKEN_BEDROCK`,
       then `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`, then `AWS_PROFILE`, then the
       default AWS SDK chain.
     - Reasoning support depends on the model; check the Bedrock model card for

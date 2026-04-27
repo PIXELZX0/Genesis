@@ -22,7 +22,7 @@ Quick "get unstuck" path for the most common problems:
 
 ## Diagnostics
 
-- [Environment variables](/help/environment) — where OpenClaw loads env vars and precedence
+- [Environment variables](/help/environment) — where Genesis loads env vars and precedence
 - [Diagnostics flags](/diagnostics/flags) — runtime diagnostics and verbose modes
 - [Node + tsx crash](/debug/node-issue) — specific Node / tsx runtime crash scenarios
 
@@ -33,6 +33,6 @@ Quick "get unstuck" path for the most common problems:
 
 ## Community and meta
 
-- [OpenClaw lore](/start/lore) — the story
+- [Genesis lore](/start/lore) — the story
 - [Docs hubs](/start/hubs) — how this documentation is organized
 - [Docs directory](/start/docs-directory) — full file map

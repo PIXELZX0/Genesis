@@ -59,7 +59,7 @@ describe("config validation SecretRef policy guards", () => {
       expect(issue).toBeDefined();
       expect(issue?.message).toContain("SecretRef objects are not supported at hooks.token");
       expect(issue?.message).toContain(
-        "https://docs.openclaw.ai/reference/secretref-credential-surface",
+        "https://docs.genesis.ai/reference/secretref-credential-surface",
       );
       expect(
         result.issues.some(
@@ -122,7 +122,7 @@ describe("config validation SecretRef policy guards", () => {
       expect(issue?.message).toContain(
         '{"source":"env","provider":"gateway-env","id":"DISCORD_BOT_TOKEN"}',
       );
-      expect(issue?.message).toContain('Run "openclaw doctor --fix"');
+      expect(issue?.message).toContain('Run "genesis doctor --fix"');
     }
   });
 

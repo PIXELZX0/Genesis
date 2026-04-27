@@ -10,9 +10,9 @@ const require = createRequire(import.meta.url);
 const { createJiti } = require("jiti");
 
 const PLUGIN_ID = "matrix";
-const OPENCLAW_PLUGIN_SDK_PACKAGE_NAMES = [
-  ["openclaw", "plugin-sdk"].join("/"),
-  ["@openclaw", "plugin-sdk"].join("/"),
+const GENESIS_PLUGIN_SDK_PACKAGE_NAMES = [
+  ["genesis", "plugin-sdk"].join("/"),
+  ["@genesis", "plugin-sdk"].join("/"),
 ];
 const PLUGIN_SDK_EXPORT_PREFIX = "./plugin-sdk/";
 const PLUGIN_SDK_SOURCE_EXTENSIONS = [".ts", ".mts", ".js", ".mjs", ".cts", ".cjs"];
@@ -42,27 +42,27 @@ function normalizeLowercaseStringOrEmpty(value) {
   return typeof value === "string" ? value.toLowerCase() : "";
 }
 
-function hasTrustedOpenClawRootIndicator(packageRoot, packageJson) {
+function hasTrustedGenesisRootIndicator(packageRoot, packageJson) {
   const packageExports = packageJson?.exports ?? {};
   if (!Object.prototype.hasOwnProperty.call(packageExports, "./plugin-sdk")) {
     return false;
   }
   const hasCliEntryExport = Object.prototype.hasOwnProperty.call(packageExports, "./cli-entry");
-  const hasOpenClawBin =
+  const hasGenesisBin =
     (typeof packageJson?.bin === "string" &&
-      normalizeLowercaseStringOrEmpty(packageJson.bin).includes("openclaw")) ||
+      normalizeLowercaseStringOrEmpty(packageJson.bin).includes("genesis")) ||
     (typeof packageJson?.bin === "object" &&
       packageJson.bin !== null &&
-      typeof packageJson.bin.openclaw === "string");
-  const hasOpenClawEntrypoint = fs.existsSync(path.join(packageRoot, "openclaw.mjs"));
-  return hasCliEntryExport || hasOpenClawBin || hasOpenClawEntrypoint;
+      typeof packageJson.bin.genesis === "string");
+  const hasGenesisEntrypoint = fs.existsSync(path.join(packageRoot, "genesis.mjs"));
+  return hasCliEntryExport || hasGenesisBin || hasGenesisEntrypoint;
 }
 
-function findOpenClawPackageRoot(startDir) {
+function findGenesisPackageRoot(startDir) {
   let cursor = path.resolve(startDir);
   for (let i = 0; i < 12; i += 1) {
     const pkg = readPackageJson(cursor);
-    if (pkg?.name === "openclaw" && hasTrustedOpenClawRootIndicator(cursor, pkg)) {
+    if (pkg?.name === "genesis" && hasTrustedGenesisRootIndicator(cursor, pkg)) {
       return { packageRoot: cursor, packageJson: pkg };
     }
     const parent = path.dirname(cursor);
@@ -85,7 +85,7 @@ function resolveExistingFile(basePath, extensions) {
 }
 
 function buildPluginSdkAliasMap(moduleUrl) {
-  const location = findOpenClawPackageRoot(path.dirname(fileURLToPath(moduleUrl)));
+  const location = findGenesisPackageRoot(path.dirname(fileURLToPath(moduleUrl)));
   if (!location) {
     return {};
   }
@@ -98,7 +98,7 @@ function buildPluginSdkAliasMap(moduleUrl) {
     resolveExistingFile(path.join(sourcePluginSdkDir, "root-alias"), [".cjs"]) ??
     resolveExistingFile(path.join(distPluginSdkDir, "root-alias"), [".cjs"]);
   if (rootAlias) {
-    for (const packageName of OPENCLAW_PLUGIN_SDK_PACKAGE_NAMES) {
+    for (const packageName of GENESIS_PLUGIN_SDK_PACKAGE_NAMES) {
       aliasMap[packageName] = rootAlias;
     }
   }
@@ -115,7 +115,7 @@ function buildPluginSdkAliasMap(moduleUrl) {
       resolveExistingFile(path.join(sourcePluginSdkDir, subpath), PLUGIN_SDK_SOURCE_EXTENSIONS) ??
       resolveExistingFile(path.join(distPluginSdkDir, subpath), [".js"]);
     if (resolvedPath) {
-      for (const packageName of OPENCLAW_PLUGIN_SDK_PACKAGE_NAMES) {
+      for (const packageName of GENESIS_PLUGIN_SDK_PACKAGE_NAMES) {
         aliasMap[`${packageName}/${subpath}`] = resolvedPath;
       }
     }
@@ -127,7 +127,7 @@ function buildPluginSdkAliasMap(moduleUrl) {
       PLUGIN_SDK_SOURCE_EXTENSIONS,
     ) ?? resolveExistingFile(path.join(packageRoot, "dist", "extensionAPI"), [".js"]);
   if (extensionApi) {
-    aliasMap["openclaw/extension-api"] = extensionApi;
+    aliasMap["genesis/extension-api"] = extensionApi;
   }
 
   return aliasMap;
@@ -148,7 +148,7 @@ function resolveBundledPluginRuntimeModulePath(moduleUrl, params) {
     }
   }
 
-  const location = findOpenClawPackageRoot(moduleDir);
+  const location = findGenesisPackageRoot(moduleDir);
   if (location) {
     const { packageRoot } = location;
     const packageCandidates = [

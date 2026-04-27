@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/nvidia-provider",
+  "name": "@genesis/nvidia-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw NVIDIA provider plugin",
+  "description": "Genesis NVIDIA provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

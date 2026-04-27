@@ -1,7 +1,7 @@
 import {
   createProviderHttpError,
   formatProviderHttpErrorMessage,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import {
   buildSearchCacheKey,
   buildUnsupportedSearchFilterResponse,
@@ -19,7 +19,7 @@ import {
   withTrustedWebSearchEndpoint,
   wrapWebContent,
   writeCachedSearchPayload,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "genesis/plugin-sdk/provider-web-search";
 import { DEFAULT_GOOGLE_API_BASE_URL } from "../api.js";
 import {
   resolveGeminiConfig,
@@ -153,7 +153,7 @@ export async function executeGeminiSearch(
       error: "missing_gemini_api_key",
       message:
         "web_search (gemini) needs an API key. Set GEMINI_API_KEY in the Gateway environment, or configure tools.web.search.gemini.apiKey.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
 

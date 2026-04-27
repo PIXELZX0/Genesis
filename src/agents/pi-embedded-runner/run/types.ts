@@ -36,7 +36,7 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   modelId: string;
   /** Session-pinned embedded harness id. Prevents runtime hot-switching. */
   agentHarnessId?: string;
-  /** OpenClaw-owned runtime policy prepared by the orchestrator for this attempt. */
+  /** Genesis-owned runtime policy prepared by the orchestrator for this attempt. */
   runtimePlan?: AgentRuntimePlan;
   model: Model<Api>;
   authStorage: AuthStorage;

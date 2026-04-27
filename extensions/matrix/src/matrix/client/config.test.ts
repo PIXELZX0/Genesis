@@ -291,7 +291,7 @@ describe("Matrix auth/config live surfaces", () => {
               homeserver: "https://matrix.gumadeiras.com",
               userId: "@pinguini:matrix.gumadeiras.com",
               password: "cfg-pass", // pragma: allowlist secret
-              deviceName: "OpenClaw Gateway Pinguini",
+              deviceName: "Genesis Gateway Pinguini",
               encryption: true,
             },
           },
@@ -311,7 +311,7 @@ describe("Matrix auth/config live surfaces", () => {
       homeserver: "https://matrix.gumadeiras.com",
       userId: "@pinguini:matrix.gumadeiras.com",
       password: "cfg-pass",
-      deviceName: "OpenClaw Gateway Pinguini",
+      deviceName: "Genesis Gateway Pinguini",
       encryption: true,
     });
   });

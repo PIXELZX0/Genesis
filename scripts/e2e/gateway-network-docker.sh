@@ -3,15 +3,15 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-gateway-network-e2e" OPENCLAW_GATEWAY_NETWORK_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_GATEWAY_NETWORK_E2E_SKIP_BUILD:-0}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-gateway-network-e2e" GENESIS_GATEWAY_NETWORK_E2E_IMAGE)"
+SKIP_BUILD="${GENESIS_GATEWAY_NETWORK_E2E_SKIP_BUILD:-0}"
 
 PORT="18789"
 TOKEN="e2e-$(date +%s)-$$"
-NET_NAME="openclaw-net-e2e-$$"
-GW_NAME="openclaw-gateway-e2e-$$"
-DOCKER_COMMAND_TIMEOUT="${OPENCLAW_GATEWAY_NETWORK_DOCKER_COMMAND_TIMEOUT:-600s}"
-CLIENT_TIMEOUT="${OPENCLAW_GATEWAY_NETWORK_CLIENT_TIMEOUT:-90s}"
+NET_NAME="genesis-net-e2e-$$"
+GW_NAME="genesis-gateway-e2e-$$"
+DOCKER_COMMAND_TIMEOUT="${GENESIS_GATEWAY_NETWORK_DOCKER_COMMAND_TIMEOUT:-600s}"
+CLIENT_TIMEOUT="${GENESIS_GATEWAY_NETWORK_CLIENT_TIMEOUT:-90s}"
 
 docker_cmd() {
   timeout "$DOCKER_COMMAND_TIMEOUT" "$@"
@@ -32,11 +32,11 @@ echo "Starting gateway container..."
 docker_cmd docker run -d \
   --name "$GW_NAME" \
   --network "$NET_NAME" \
-  -e "OPENCLAW_GATEWAY_TOKEN=$TOKEN" \
-  -e "OPENCLAW_SKIP_CHANNELS=1" \
-  -e "OPENCLAW_SKIP_GMAIL_WATCHER=1" \
-  -e "OPENCLAW_SKIP_CRON=1" \
-  -e "OPENCLAW_SKIP_CANVAS_HOST=1" \
+  -e "GENESIS_GATEWAY_TOKEN=$TOKEN" \
+  -e "GENESIS_SKIP_CHANNELS=1" \
+  -e "GENESIS_SKIP_GMAIL_WATCHER=1" \
+  -e "GENESIS_SKIP_CRON=1" \
+  -e "GENESIS_SKIP_CANVAS_HOST=1" \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail; entry=dist/index.mjs; [ -f \"\$entry\" ] || entry=dist/index.js; node \"\$entry\" config set gateway.controlUi.enabled false >/dev/null; node \"\$entry\" gateway --port $PORT --bind lan --allow-unconfigured > /tmp/gateway-net-e2e.log 2>&1" >/dev/null
 

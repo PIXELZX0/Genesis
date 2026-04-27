@@ -1,12 +1,12 @@
 import type {
   ModelDefinitionConfig,
   ModelProviderConfig,
-} from "openclaw/plugin-sdk/provider-model-shared";
+} from "genesis/plugin-sdk/provider-model-shared";
 import {
   SELF_HOSTED_DEFAULT_CONTEXT_WINDOW,
   SELF_HOSTED_DEFAULT_COST,
   SELF_HOSTED_DEFAULT_MAX_TOKENS,
-} from "openclaw/plugin-sdk/provider-setup";
+} from "genesis/plugin-sdk/provider-setup";
 import { LMSTUDIO_DEFAULT_BASE_URL, LMSTUDIO_DEFAULT_LOAD_CONTEXT_LENGTH } from "./defaults.js";
 
 export type LmstudioModelWire = {

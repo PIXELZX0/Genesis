@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import type { probeGatewayMemoryStatus } from "../commands/doctor-gateway-health.js";
 import type { DoctorOptions, DoctorPrompter } from "../commands/doctor-prompter.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { buildGatewayConnectionDetails } from "../gateway/call.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { FlowContribution } from "./types.js";
@@ -9,7 +9,7 @@ import type { FlowContribution } from "./types.js";
 export type DoctorFlowMode = "local" | "remote";
 
 export type DoctorConfigResult = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   path?: string;
   shouldWriteConfig?: boolean;
   sourceConfigValid?: boolean;
@@ -20,8 +20,8 @@ export type DoctorHealthFlowContext = {
   options: DoctorOptions;
   prompter: DoctorPrompter;
   configResult: DoctorConfigResult;
-  cfg: OpenClawConfig;
-  cfgForPersistence: OpenClawConfig;
+  cfg: GenesisConfig;
+  cfgForPersistence: GenesisConfig;
   sourceConfigValid: boolean;
   configPath: string;
   gatewayDetails?: ReturnType<typeof buildGatewayConnectionDetails>;
@@ -35,7 +35,7 @@ export type DoctorHealthContribution = FlowContribution & {
   run: (ctx: DoctorHealthFlowContext) => Promise<void>;
 };
 
-export function resolveDoctorMode(cfg: OpenClawConfig): DoctorFlowMode {
+export function resolveDoctorMode(cfg: GenesisConfig): DoctorFlowMode {
   return cfg.gateway?.mode === "remote" ? "remote" : "local";
 }
 
@@ -66,11 +66,11 @@ async function runGatewayConfigHealth(ctx: DoctorHealthFlowContext): Promise<voi
   if (!ctx.cfg.gateway?.mode) {
     const lines = [
       "gateway.mode is unset; gateway start will be blocked.",
-      `Fix: run ${formatCliCommand("openclaw configure")} and set Gateway mode (local/remote).`,
-      `Or set directly: ${formatCliCommand("openclaw config set gateway.mode local")}`,
+      `Fix: run ${formatCliCommand("genesis configure")} and set Gateway mode (local/remote).`,
+      `Or set directly: ${formatCliCommand("genesis config set gateway.mode local")}`,
     ];
     if (!fs.existsSync(ctx.configPath)) {
-      lines.push(`Missing config: run ${formatCliCommand("openclaw setup")} first.`);
+      lines.push(`Missing config: run ${formatCliCommand("genesis setup")} first.`);
     }
     note(lines.join("\n"), "Gateway");
   }
@@ -79,8 +79,8 @@ async function runGatewayConfigHealth(ctx: DoctorHealthFlowContext): Promise<voi
       [
         "gateway.auth.token and gateway.auth.password are both configured while gateway.auth.mode is unset.",
         "Set an explicit mode to avoid ambiguous auth selection and startup/runtime failures.",
-        `Set token mode: ${formatCliCommand("openclaw config set gateway.auth.mode token")}`,
-        `Set password mode: ${formatCliCommand("openclaw config set gateway.auth.mode password")}`,
+        `Set token mode: ${formatCliCommand("genesis config set gateway.auth.mode token")}`,
+        `Set password mode: ${formatCliCommand("genesis config set gateway.auth.mode password")}`,
       ].join("\n"),
       "Gateway auth",
     );
@@ -478,7 +478,7 @@ async function runWriteConfigHealth(ctx: DoctorHealthFlowContext): Promise<void>
     return;
   }
   if (!ctx.prompter.shouldRepair) {
-    ctx.runtime.log(`Run "${formatCliCommand("openclaw doctor --fix")}" to apply changes.`);
+    ctx.runtime.log(`Run "${formatCliCommand("genesis doctor --fix")}" to apply changes.`);
   }
 }
 

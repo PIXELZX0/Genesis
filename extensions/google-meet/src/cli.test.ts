@@ -22,7 +22,7 @@ const fetchGuardMocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchGuardMocks.fetchWithSsrFGuard,
 }));
 
@@ -319,7 +319,7 @@ describe("google-meet CLI", () => {
 
   it("prints markdown artifact and attendance output", async () => {
     stubMeetArtifactsApi();
-    const tempDir = mkdtempSync(path.join(tmpdir(), "openclaw-google-meet-artifacts-"));
+    const tempDir = mkdtempSync(path.join(tmpdir(), "genesis-google-meet-artifacts-"));
     const outputPath = path.join(tempDir, "artifacts.md");
     const artifactsStdout = captureStdout();
 
@@ -538,10 +538,10 @@ describe("google-meet CLI", () => {
               inCall: false,
               manualActionRequired: true,
               manualActionReason: "meet-admission-required",
-              manualActionMessage: "Admit the OpenClaw browser participant in Google Meet.",
+              manualActionMessage: "Admit the Genesis browser participant in Google Meet.",
               browserUrl: "https://meet.google.com/abc-defg-hij",
             },
-            message: "Admit the OpenClaw browser participant in Google Meet.",
+            message: "Admit the Genesis browser participant in Google Meet.",
           }),
         },
       }).parseAsync(["googlemeet", "recover-tab"], { from: "user" });

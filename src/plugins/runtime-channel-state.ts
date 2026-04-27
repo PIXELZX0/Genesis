@@ -1,6 +1,6 @@
 import type { ActivePluginChannelRegistry } from "./channel-registry-state.types.js";
 
-export const PLUGIN_REGISTRY_STATE = Symbol.for("openclaw.pluginRegistryState");
+export const PLUGIN_REGISTRY_STATE = Symbol.for("genesis.pluginRegistryState");
 
 type GlobalChannelRegistryState = typeof globalThis & {
   [PLUGIN_REGISTRY_STATE]?: {

@@ -2,7 +2,7 @@ import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "typebox";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { ReplyPayload } from "../../auto-reply/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import type { FailoverReason } from "../pi-embedded-helpers/types.js";
 import type { PromptMode } from "../system-prompt.types.js";
@@ -21,7 +21,7 @@ export type AgentRuntimeSystemPromptContribution = {
 };
 
 export type AgentRuntimeSystemPromptContributionContext = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   provider: string;
@@ -177,7 +177,7 @@ export type AgentRuntimePlan = {
 };
 
 export type BuildAgentRuntimeDeliveryPlanParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   agentDir?: string;
   provider: string;
@@ -185,7 +185,7 @@ export type BuildAgentRuntimeDeliveryPlanParams = {
 };
 
 export type BuildAgentRuntimePlanParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   agentDir?: string;
   provider: string;

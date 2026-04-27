@@ -1,5 +1,5 @@
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   buildChannelOutboundSessionRoute,
   buildThreadAwareOutboundSessionRoute,
@@ -44,7 +44,7 @@ function createSessionRouteTestPlugin(params: {
 }
 
 function buildThreadedChannelRoute(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   channel: string;
   accountId?: string | null;

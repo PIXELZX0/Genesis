@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it, vi } from "vitest";
 import type { SignalDaemonExitEvent } from "./daemon.js";
 import {
@@ -45,7 +45,7 @@ function createAutoAbortController() {
 
 async function runMonitorWithMocks(opts: MonitorSignalProviderOptions) {
   return monitorSignalProvider({
-    config: config as OpenClawConfig,
+    config: config as GenesisConfig,
     waitForTransportReady:
       waitForTransportReadyMock as MonitorSignalProviderOptions["waitForTransportReady"],
     ...opts,

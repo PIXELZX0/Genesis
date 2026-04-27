@@ -1,5 +1,5 @@
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
   buildMediaGenerationNormalizationMetadata,
@@ -73,7 +73,7 @@ function validateProviderOptionsAgainstDeclaration(params: {
   return undefined;
 }
 
-function buildNoVideoGenerationModelConfiguredMessage(cfg: OpenClawConfig): string {
+function buildNoVideoGenerationModelConfiguredMessage(cfg: GenesisConfig): string {
   return buildNoCapabilityModelConfiguredMessage({
     capabilityLabel: "video-generation",
     modelConfigKey: "videoGenerationModel",
@@ -81,7 +81,7 @@ function buildNoVideoGenerationModelConfiguredMessage(cfg: OpenClawConfig): stri
   });
 }
 
-export function listRuntimeVideoGenerationProviders(params?: { config?: OpenClawConfig }) {
+export function listRuntimeVideoGenerationProviders(params?: { config?: GenesisConfig }) {
   return listVideoGenerationProviders(params?.config);
 }
 

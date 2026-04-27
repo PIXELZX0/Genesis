@@ -1,9 +1,9 @@
-import type { ChannelConfigUiHint } from "openclaw/plugin-sdk/core";
+import type { ChannelConfigUiHint } from "genesis/plugin-sdk/core";
 
 export const ircChannelConfigUiHints = {
   "": {
     label: "IRC",
-    help: "IRC channel provider configuration and compatibility settings for classic IRC transport workflows. Use this section when bridging legacy chat infrastructure into OpenClaw.",
+    help: "IRC channel provider configuration and compatibility settings for classic IRC transport workflows. Use this section when bridging legacy chat infrastructure into Genesis.",
   },
   dmPolicy: {
     label: "IRC DM Policy",

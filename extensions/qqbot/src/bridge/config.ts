@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { getPlatformAdapter } from "../engine/adapter/index.js";
 import {
   DEFAULT_ACCOUNT_ID as ENGINE_DEFAULT_ACCOUNT_ID,
@@ -18,18 +18,18 @@ interface QQBotChannelConfig extends QQBotAccountConfig {
 }
 
 /** List all configured QQBot account IDs. */
-export function listQQBotAccountIds(cfg: OpenClawConfig): string[] {
+export function listQQBotAccountIds(cfg: GenesisConfig): string[] {
   return listAccountIds(cfg as unknown as Record<string, unknown>);
 }
 
 /** Resolve the default QQBot account ID. */
-export function resolveDefaultQQBotAccountId(cfg: OpenClawConfig): string {
+export function resolveDefaultQQBotAccountId(cfg: GenesisConfig): string {
   return resolveDefaultAccountId(cfg as unknown as Record<string, unknown>);
 }
 
 /** Resolve QQBot account config for runtime or setup flows. */
 export function resolveQQBotAccount(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId?: string | null,
   opts?: { allowUnresolvedSecretRef?: boolean },
 ): ResolvedQQBotAccount {
@@ -84,9 +84,9 @@ export function resolveQQBotAccount(
   };
 }
 
-/** Apply account config updates back into the OpenClaw config object. */
+/** Apply account config updates back into the Genesis config object. */
 export function applyQQBotAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   input: {
     appId?: string;
@@ -94,10 +94,10 @@ export function applyQQBotAccountConfig(
     clientSecretFile?: string;
     name?: string;
   },
-): OpenClawConfig {
+): GenesisConfig {
   return applyAccountConfig(
     cfg as unknown as Record<string, unknown>,
     accountId,
     input,
-  ) as OpenClawConfig;
+  ) as GenesisConfig;
 }

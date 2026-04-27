@@ -13,11 +13,11 @@ describe("msteams conversation store (fs-only)", () => {
   });
 
   it("filters and prunes expired entries while preserving legacy entries without lastSeenAt", async () => {
-    const stateDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "openclaw-msteams-store-"));
+    const stateDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "genesis-msteams-store-"));
 
     const env: NodeJS.ProcessEnv = {
       ...process.env,
-      OPENCLAW_STATE_DIR: stateDir,
+      GENESIS_STATE_DIR: stateDir,
     };
 
     const store = createMSTeamsConversationStoreFs({ env, ttlMs: 1_000 });

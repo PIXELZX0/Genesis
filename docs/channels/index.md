@@ -1,12 +1,12 @@
 ---
-summary: "Messaging platforms OpenClaw can connect to"
+summary: "Messaging platforms Genesis can connect to"
 read_when:
-  - You want to choose a chat channel for OpenClaw
+  - You want to choose a chat channel for Genesis
   - You need a quick overview of supported messaging platforms
 title: "Chat channels"
 ---
 
-OpenClaw can talk to you on any chat app you already use. Each channel connects via the Gateway.
+Genesis can talk to you on any chat app you already use. Each channel connects via the Gateway.
 Text is supported everywhere; media and reactions vary by channel.
 
 ## Delivery notes
@@ -49,7 +49,7 @@ Text is supported everywhere; media and reactions vary by channel.
 
 ## Notes
 
-- Channels can run simultaneously; configure multiple and OpenClaw will route per chat.
+- Channels can run simultaneously; configure multiple and Genesis will route per chat.
 - Fastest setup is usually **Telegram** (simple bot token). WhatsApp requires QR pairing and
   stores more state on disk.
 - Group behavior varies by channel; see [Groups](/channels/groups).

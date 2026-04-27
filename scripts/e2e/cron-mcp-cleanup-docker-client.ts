@@ -73,7 +73,7 @@ async function waitForProbeExit(params: {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const args = await describeProbePid(pid);
-    if (!args || !args.includes("openclaw-cron-mcp-cleanup-probe")) {
+    if (!args || !args.includes("genesis-cron-mcp-cleanup-probe")) {
       return;
     }
     await delay(100);
@@ -93,7 +93,7 @@ async function waitForAnyProbeExit(params: {
     observed = await readProbePids(params.pidsPath);
     for (const pid of observed) {
       const args = await describeProbePid(pid);
-      if (!args || !args.includes("openclaw-cron-mcp-cleanup-probe")) {
+      if (!args || !args.includes("genesis-cron-mcp-cleanup-probe")) {
         return pid;
       }
     }
@@ -169,7 +169,7 @@ async function runCronCleanupScenario(params: {
   );
   const initialArgs = await describeProbePid(pid);
   assert(
-    initialArgs?.includes("openclaw-cron-mcp-cleanup-probe"),
+    initialArgs?.includes("genesis-cron-mcp-cleanup-probe"),
     `cron MCP probe pid did not look like the test server: pid=${pid} args=${initialArgs}`,
   );
 
@@ -235,7 +235,7 @@ async function runSubagentCleanupScenario(params: {
 async function main() {
   const gatewayUrl = process.env.GW_URL?.trim();
   const gatewayToken = process.env.GW_TOKEN?.trim();
-  const stateDir = process.env.OPENCLAW_STATE_DIR?.trim() || path.join(os.homedir(), ".openclaw");
+  const stateDir = process.env.GENESIS_STATE_DIR?.trim() || path.join(os.homedir(), ".genesis");
   const pidPath = path.join(stateDir, "cron-mcp-cleanup", "probe.pid");
   const pidsPath = path.join(stateDir, "cron-mcp-cleanup", "probe.pids");
   const exitPath = path.join(stateDir, "cron-mcp-cleanup", "probe.exit");

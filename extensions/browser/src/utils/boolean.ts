@@ -1,1 +1,1 @@
-export { parseBooleanValue } from "openclaw/plugin-sdk/browser-config-runtime";
+export { parseBooleanValue } from "genesis/plugin-sdk/browser-config-runtime";

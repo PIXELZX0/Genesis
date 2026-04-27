@@ -16,7 +16,7 @@ import { loadModelCatalog } from "../agents/model-catalog.js";
 import { modelsAuthLoginCommand, modelsStatusCommand } from "../commands/models.js";
 import { loadConfig } from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { callGateway, randomIdempotencyKey } from "../gateway/call.js";
 import { buildGatewayConnectionDetailsWithResolvers } from "../gateway/connection-details.js";
 import { isLoopbackHost } from "../gateway/net.js";
@@ -402,14 +402,14 @@ function resolveSelectedProviderFromModelRef(modelRef: string | undefined): stri
   return resolveModelRefOverride(modelRef).provider;
 }
 
-function getAuthProfileIdsForProvider(cfg: OpenClawConfig, providerId: string): string[] {
+function getAuthProfileIdsForProvider(cfg: GenesisConfig, providerId: string): string[] {
   const agentDir = resolveAgentDir(cfg, resolveDefaultAgentId(cfg));
   const store = loadAuthProfileStoreForRuntime(agentDir);
   return listProfilesForProvider(store, providerId);
 }
 
 function providerHasGenericConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   providerId: string;
   envVars?: string[];
 }): boolean {
@@ -1246,7 +1246,7 @@ export function registerCapabilityCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/infer", "docs.openclaw.ai/cli/infer")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/infer", "docs.genesis.ai/cli/infer")}\n`,
     );
 
   registerCapabilityListAndInspect(capability);

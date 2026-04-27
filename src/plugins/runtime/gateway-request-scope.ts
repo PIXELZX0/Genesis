@@ -13,7 +13,7 @@ export type PluginRuntimeGatewayRequestScope = {
 };
 
 const PLUGIN_RUNTIME_GATEWAY_REQUEST_SCOPE_KEY: unique symbol = Symbol.for(
-  "openclaw.pluginRuntimeGatewayRequestScope",
+  "genesis.pluginRuntimeGatewayRequestScope",
 );
 
 const pluginRuntimeGatewayRequestScope = resolveGlobalSingleton<

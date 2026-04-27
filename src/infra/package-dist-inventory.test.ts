@@ -11,7 +11,7 @@ import {
 
 describe("package dist inventory", () => {
   it("tracks missing and stale dist files", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "genesis-dist-inventory-" }, async (packageRoot) => {
       const currentFile = path.join(packageRoot, "dist", "current-BR6xv1a1.js");
       await fs.mkdir(path.dirname(currentFile), { recursive: true });
       await fs.writeFile(currentFile, "export {};\n", "utf8");
@@ -37,7 +37,7 @@ describe("package dist inventory", () => {
   });
 
   it("keeps npm-omitted dist artifacts out of the inventory", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-pack-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "genesis-dist-inventory-pack-" }, async (packageRoot) => {
       const packagedQaChannelRuntime = path.join(
         packageRoot,
         "dist",
@@ -76,14 +76,14 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "discord",
-        ".openclaw-runtime-deps-stamp.json",
+        ".genesis-runtime-deps-stamp.json",
       );
       const omittedRuntimeDepsTempFile = path.join(
         packageRoot,
         "dist",
         "extensions",
         "discord",
-        ".openclaw-runtime-deps-backup-node_modules-old",
+        ".genesis-runtime-deps-backup-node_modules-old",
         "left-pad",
         "index.js",
       );
@@ -92,7 +92,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "amazon-bedrock",
-        ".openclaw-runtime-deps-copy-KZmXaz",
+        ".genesis-runtime-deps-copy-KZmXaz",
         "node_modules",
         ".bin",
         "fxparser",
@@ -111,7 +111,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "node_modules",
-        "openclaw",
+        "genesis",
         "plugin-sdk",
       );
       const omittedMap = path.join(packageRoot, "dist", "feature.runtime.js.map");
@@ -153,7 +153,7 @@ describe("package dist inventory", () => {
     });
   });
   it("fails closed when the inventory is missing", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-missing-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "genesis-dist-inventory-missing-" }, async (packageRoot) => {
       await fs.mkdir(path.join(packageRoot, "dist"), { recursive: true });
       await expect(collectPackageDistInventoryErrors(packageRoot)).resolves.toEqual([
         `missing package dist inventory ${PACKAGE_DIST_INVENTORY_RELATIVE_PATH}`,
@@ -162,7 +162,7 @@ describe("package dist inventory", () => {
   });
 
   it("rejects symlinked dist entries", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-symlink-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "genesis-dist-inventory-symlink-" }, async (packageRoot) => {
       const distDir = path.join(packageRoot, "dist");
       await fs.mkdir(distDir, { recursive: true });
       await fs.writeFile(path.join(packageRoot, "escape.js"), "export {};\n", "utf8");

@@ -61,10 +61,10 @@ vi.mock("../config/paths.js", async () => {
   const actual = await vi.importActual<typeof import("../config/paths.js")>("../config/paths.js");
   return {
     ...actual,
-    STATE_DIR: "/tmp/openclaw-state",
-    resolveConfigPath: vi.fn(() => "/tmp/openclaw-state/openclaw.json"),
+    STATE_DIR: "/tmp/genesis-state",
+    resolveConfigPath: vi.fn(() => "/tmp/genesis-state/genesis.json"),
     resolveGatewayPort: vi.fn(() => 18789),
-    resolveStateDir: vi.fn(() => "/tmp/openclaw-state"),
+    resolveStateDir: vi.fn(() => "/tmp/genesis-state"),
   };
 });
 
@@ -258,7 +258,7 @@ describe("startGatewayPostAttachRuntime", () => {
       await startGatewaySidecars({
         cfg,
         pluginRegistry: createPostAttachParams().pluginRegistry,
-        defaultWorkspaceDir: "/tmp/openclaw-workspace",
+        defaultWorkspaceDir: "/tmp/genesis-workspace",
         deps,
         startChannels: vi.fn(async () => undefined),
         log: { warn: vi.fn() },
@@ -285,7 +285,7 @@ describe("startGatewayPostAttachRuntime", () => {
         {
           cfg,
           deps,
-          workspaceDir: "/tmp/openclaw-workspace",
+          workspaceDir: "/tmp/genesis-workspace",
         },
       );
       expect(hoisted.triggerInternalHook).toHaveBeenCalledWith(hoisted.startupHookEvent);
@@ -331,7 +331,7 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(ctx).toMatchObject({
       port: 18789,
       config: params.gatewayPluginConfigAtStart,
-      workspaceDir: "/tmp/openclaw-workspace",
+      workspaceDir: "/tmp/genesis-workspace",
     });
     expect(typeof ctx.getCron).toBe("function");
     const getCron = ctx.getCron;
@@ -387,7 +387,7 @@ function createPostAttachParams(overrides: Partial<PostAttachParams> = {}): Post
         { id: "broken", status: "error" },
       ],
     } as never,
-    defaultWorkspaceDir: "/tmp/openclaw-workspace",
+    defaultWorkspaceDir: "/tmp/genesis-workspace",
     deps: {} as never,
     startChannels: vi.fn(async () => undefined),
     logHooks: {

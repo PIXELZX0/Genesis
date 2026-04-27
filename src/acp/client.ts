@@ -11,7 +11,7 @@ import {
   type RequestPermissionRequest,
   type SessionNotification,
 } from "@agentclientprotocol/sdk";
-import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { ensureGenesisCliOnPath } from "../infra/path-env.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import {
   buildAcpClientStripKeys,
@@ -117,11 +117,11 @@ export async function createAcpClient(opts: AcpClientOptions = {}): Promise<AcpC
   const verbose = Boolean(opts.verbose);
   const log = verbose ? (msg: string) => console.error(`[acp-client] ${msg}`) : () => {};
 
-  ensureOpenClawCliOnPath();
+  ensureGenesisCliOnPath();
   const serverArgs = buildServerArgs(opts);
 
   const entryPath = resolveSelfEntryPath();
-  const defaultServerCommand = entryPath ? process.execPath : "openclaw";
+  const defaultServerCommand = entryPath ? process.execPath : "genesis";
   const defaultServerArgs = entryPath ? [entryPath, ...serverArgs] : serverArgs;
   const serverCommand = opts.serverCommand ?? defaultServerCommand;
   const effectiveArgs = opts.serverCommand || !entryPath ? serverArgs : defaultServerArgs;
@@ -183,7 +183,7 @@ export async function createAcpClient(opts: AcpClientOptions = {}): Promise<AcpC
       fs: { readTextFile: true, writeTextFile: true },
       terminal: true,
     },
-    clientInfo: { name: "openclaw-acp-client", version: "1.0.0" },
+    clientInfo: { name: "genesis-acp-client", version: "1.0.0" },
   });
 
   log("creating session");
@@ -207,7 +207,7 @@ export async function runAcpClientInteractive(opts: AcpClientOptions = {}): Prom
     output: process.stdout,
   });
 
-  console.log("OpenClaw ACP client");
+  console.log("Genesis ACP client");
   console.log(`Session: ${sessionId}`);
   console.log('Type a prompt, or "exit" to quit.\n');
 

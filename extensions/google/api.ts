@@ -1,7 +1,7 @@
 import {
   resolveProviderHttpRequestConfig,
   type ProviderRequestTransportOverrides,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 import { parseGeminiAuth } from "./gemini-auth.js";
 export { parseGeminiAuth };
 export { applyGoogleGeminiModelDefault, GOOGLE_GEMINI_DEFAULT_MODEL } from "./onboard.js";

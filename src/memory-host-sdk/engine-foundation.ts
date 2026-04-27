@@ -34,7 +34,7 @@ export {
   resolveUserPath,
   truncateUtf16Safe,
 } from "../utils.js";
-export type { OpenClawConfig } from "../config/config.js";
+export type { GenesisConfig } from "../config/config.js";
 export type { SessionSendPolicyConfig } from "../config/types.base.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type {

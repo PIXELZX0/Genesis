@@ -1,11 +1,11 @@
 ---
-summary: "CLI reference for `openclaw agent` (send one agent turn via the Gateway)"
+summary: "CLI reference for `genesis agent` (send one agent turn via the Gateway)"
 read_when:
   - You want to run one agent turn from scripts (optionally deliver reply)
 title: "Agent"
 ---
 
-# `openclaw agent`
+# `genesis agent`
 
 Run an agent turn via the Gateway (use `--local` for embedded).
 Use `--agent <id>` to target a configured agent directly.
@@ -40,12 +40,12 @@ Related:
 ## Examples
 
 ```bash
-openclaw agent --to +15555550123 --message "status update" --deliver
-openclaw agent --agent ops --message "Summarize logs"
-openclaw agent --session-id 1234 --message "Summarize inbox" --thinking medium
-openclaw agent --to +15555550123 --message "Trace logs" --verbose on --json
-openclaw agent --agent ops --message "Generate report" --deliver --reply-channel slack --reply-to "#reports"
-openclaw agent --agent ops --message "Run locally" --local
+genesis agent --to +15555550123 --message "status update" --deliver
+genesis agent --agent ops --message "Summarize logs"
+genesis agent --session-id 1234 --message "Summarize inbox" --thinking medium
+genesis agent --to +15555550123 --message "Trace logs" --verbose on --json
+genesis agent --agent ops --message "Generate report" --deliver --reply-channel slack --reply-to "#reports"
+genesis agent --agent ops --message "Run locally" --local
 ```
 
 ## Notes
@@ -55,7 +55,7 @@ openclaw agent --agent ops --message "Run locally" --local
 - `--channel`, `--reply-channel`, and `--reply-account` affect reply delivery, not session routing.
 - `--json` keeps stdout reserved for the JSON response. Gateway, plugin, and embedded-fallback diagnostics are routed to stderr so scripts can parse stdout directly.
 - When this command triggers `models.json` regeneration, SecretRef-managed provider credentials are persisted as non-secret markers (for example env var names, `secretref-env:ENV_VAR_NAME`, or `secretref-managed`), not resolved secret plaintext.
-- Marker writes are source-authoritative: OpenClaw persists markers from the active source config snapshot, not from resolved runtime secret values.
+- Marker writes are source-authoritative: Genesis persists markers from the active source config snapshot, not from resolved runtime secret values.
 
 ## Related
 

@@ -89,7 +89,7 @@ describe("plugin activation boundary", () => {
     expect(
       isStaticallyChannelConfigured({}, "irc", {
         IRC_HOST: "irc.example.com",
-        IRC_NICK: "openclaw",
+        IRC_NICK: "genesis",
       }),
     ).toBe(true);
     expect(isStaticallyChannelConfigured({}, "whatsapp", {})).toBe(false);

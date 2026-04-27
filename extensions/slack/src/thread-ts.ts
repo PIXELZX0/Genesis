@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 
 const SLACK_THREAD_TS_PATTERN = /^\d+\.\d+$/;
 

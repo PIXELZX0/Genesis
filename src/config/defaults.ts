@@ -6,8 +6,8 @@ import {
   normalizeProviderConfigForConfigDefaults,
 } from "./provider-policy.js";
 import { normalizeTalkConfig } from "./talk.js";
+import type { GenesisConfig } from "./types.genesis.js";
 import type { ModelDefinitionConfig } from "./types.models.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
 
 type WarnState = { warned: boolean };
 
@@ -89,7 +89,7 @@ export type SessionDefaultsOptions = {
   warnState?: WarnState;
 };
 
-export function applyMessageDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyMessageDefaults(cfg: GenesisConfig): GenesisConfig {
   const messages = cfg.messages;
   const hasAckScope = messages?.ackReactionScope !== undefined;
   if (hasAckScope) {
@@ -105,9 +105,9 @@ export function applyMessageDefaults(cfg: OpenClawConfig): OpenClawConfig {
 }
 
 export function applySessionDefaults(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   options: SessionDefaultsOptions = {},
-): OpenClawConfig {
+): GenesisConfig {
   const session = cfg.session;
   if (!session || session.mainKey === undefined) {
     return cfg;
@@ -117,7 +117,7 @@ export function applySessionDefaults(
   const warn = options.warn ?? console.warn;
   const warnState = options.warnState ?? defaultWarnState;
 
-  const next: OpenClawConfig = {
+  const next: GenesisConfig = {
     ...cfg,
     session: { ...session, mainKey: "main" },
   };
@@ -130,11 +130,11 @@ export function applySessionDefaults(
   return next;
 }
 
-export function applyTalkConfigNormalization(config: OpenClawConfig): OpenClawConfig {
+export function applyTalkConfigNormalization(config: GenesisConfig): GenesisConfig {
   return normalizeTalkConfig(config);
 }
 
-export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyModelDefaults(cfg: GenesisConfig): GenesisConfig {
   let mutated = false;
   let nextCfg = cfg;
 
@@ -281,7 +281,7 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-export function applyAgentDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyAgentDefaults(cfg: GenesisConfig): GenesisConfig {
   const agents = cfg.agents;
   const defaults = agents?.defaults;
   const hasMax =
@@ -322,7 +322,7 @@ export function applyAgentDefaults(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-export function applyLoggingDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyLoggingDefaults(cfg: GenesisConfig): GenesisConfig {
   const logging = cfg.logging;
   if (!logging) {
     return cfg;
@@ -339,7 +339,7 @@ export function applyLoggingDefaults(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-function hasAnthropicDefaultSignal(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function hasAnthropicDefaultSignal(cfg: GenesisConfig, env: NodeJS.ProcessEnv): boolean {
   if (env.ANTHROPIC_API_KEY?.trim() || env.ANTHROPIC_OAUTH_TOKEN?.trim()) {
     return true;
   }
@@ -365,7 +365,7 @@ function hasAnthropicDefaultSignal(cfg: OpenClawConfig, env: NodeJS.ProcessEnv):
   });
 }
 
-export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyContextPruningDefaults(cfg: GenesisConfig): GenesisConfig {
   if (!cfg.agents?.defaults) {
     return cfg;
   }
@@ -381,7 +381,7 @@ export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig
   );
 }
 
-export function applyCompactionDefaults(cfg: OpenClawConfig): OpenClawConfig {
+export function applyCompactionDefaults(cfg: GenesisConfig): GenesisConfig {
   const defaults = cfg.agents?.defaults;
   if (!defaults) {
     return cfg;

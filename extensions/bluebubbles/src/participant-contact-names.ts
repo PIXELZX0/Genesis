@@ -2,7 +2,7 @@ import { execFile, type ExecFileOptionsWithStringEncoding } from "node:child_pro
 import { access, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { BlueBubblesParticipant } from "./monitor-normalize.js";
 
 const execFileAsync = promisify(execFile) as ExecFileRunner;

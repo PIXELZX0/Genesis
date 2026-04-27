@@ -1,14 +1,14 @@
 import { ChannelType } from "discord-api-types/v10";
-import type { NativeCommandSpec } from "openclaw/plugin-sdk/command-auth";
-import { resolveDirectStatusReplyForSession } from "openclaw/plugin-sdk/command-status-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { NativeCommandSpec } from "genesis/plugin-sdk/command-auth";
+import { resolveDirectStatusReplyForSession } from "genesis/plugin-sdk/command-status-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   clearPluginCommands,
   executePluginCommand,
   matchPluginCommand,
   registerPluginCommand,
-} from "openclaw/plugin-sdk/plugin-runtime";
-import { dispatchReplyWithDispatcher } from "openclaw/plugin-sdk/reply-dispatch-runtime";
+} from "genesis/plugin-sdk/plugin-runtime";
+import { dispatchReplyWithDispatcher } from "genesis/plugin-sdk/reply-dispatch-runtime";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createTestRegistry,
@@ -31,14 +31,14 @@ const runtimeModuleMocks = vi.hoisted(() => ({
   resolveDirectStatusReplyForSession: vi.fn(),
 }));
 
-function createConfig(): OpenClawConfig {
+function createConfig(): GenesisConfig {
   return {
     channels: {
       discord: {
         dm: { enabled: true, policy: "open" },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function createConfiguredAcpBinding(params: {
@@ -104,7 +104,7 @@ function createConfiguredAcpCase(params: {
           agentId: params.agentId,
         }),
       ],
-    } as OpenClawConfig,
+    } as GenesisConfig,
     interaction: createInteraction({
       channelType: params.channelType,
       channelId: params.channelId,
@@ -114,7 +114,7 @@ function createConfiguredAcpCase(params: {
   };
 }
 
-async function createNativeCommand(cfg: OpenClawConfig, commandSpec: NativeCommandSpec) {
+async function createNativeCommand(cfg: GenesisConfig, commandSpec: NativeCommandSpec) {
   return createDiscordNativeCommand({
     command: commandSpec,
     cfg,
@@ -192,7 +192,7 @@ function createUnboundRouteState(params: {
   >;
 }
 
-async function createPluginCommand(params: { cfg: OpenClawConfig; name: string }) {
+async function createPluginCommand(params: { cfg: GenesisConfig; name: string }) {
   return createDiscordNativeCommand({
     command: {
       name: params.name,
@@ -229,7 +229,7 @@ function registerPairPlugin(params?: { discordNativeName?: string }) {
 }
 
 async function expectPairCommandReply(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   commandName: string;
   interaction: MockCommandInteraction;
   expectedRegisteredName?: string;
@@ -265,7 +265,7 @@ async function expectPairCommandReply(params: {
   expect(params.interaction.reply).not.toHaveBeenCalled();
 }
 
-async function createStatusCommand(cfg: OpenClawConfig) {
+async function createStatusCommand(cfg: GenesisConfig) {
   return await createNativeCommand(cfg, {
     name: "status",
     description: "Status",
@@ -284,7 +284,7 @@ function createDispatchSpy() {
 }
 
 async function expectBoundStatusCommandDirectReply(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   interaction: MockCommandInteraction;
   expectedPattern: RegExp;
 }) {
@@ -344,10 +344,10 @@ describe("Discord native plugin command dispatch", () => {
       text: "status reply",
     });
     discordNativeCommandTesting.setMatchPluginCommand(
-      runtimeModuleMocks.matchPluginCommand as typeof import("openclaw/plugin-sdk/plugin-runtime").matchPluginCommand,
+      runtimeModuleMocks.matchPluginCommand as typeof import("genesis/plugin-sdk/plugin-runtime").matchPluginCommand,
     );
     discordNativeCommandTesting.setExecutePluginCommand(
-      runtimeModuleMocks.executePluginCommand as typeof import("openclaw/plugin-sdk/plugin-runtime").executePluginCommand,
+      runtimeModuleMocks.executePluginCommand as typeof import("genesis/plugin-sdk/plugin-runtime").executePluginCommand,
     );
     discordNativeCommandTesting.setDispatchReplyWithDispatcher(
       runtimeModuleMocks.dispatchReplyWithDispatcher as typeof dispatchReplyWithDispatcher,
@@ -411,7 +411,7 @@ describe("Discord native plugin command dispatch", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const commandSpec: NativeCommandSpec = {
       name: "pair",
       description: "Pair",
@@ -472,7 +472,7 @@ describe("Discord native plugin command dispatch", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const interaction = createInteraction({
       channelType: ChannelType.GroupDM,
       channelId: "blocked-group",
@@ -555,7 +555,7 @@ describe("Discord native plugin command dispatch", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const commandSpec: NativeCommandSpec = {
       name: "cron_jobs",
       description: "List cron jobs",
@@ -625,7 +625,7 @@ describe("Discord native plugin command dispatch", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const commandSpec: NativeCommandSpec = {
       name: "cron_jobs",
       description: "List cron jobs",
@@ -733,7 +733,7 @@ describe("Discord native plugin command dispatch", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const interaction = createInteraction({
       channelType: ChannelType.GuildText,
       channelId,

@@ -4,7 +4,7 @@ import * as Lark from "@larksuiteoapi/node-sdk";
 import {
   readPluginPackageVersion,
   resolveAmbientNodeProxyAgent,
-} from "openclaw/plugin-sdk/extension-shared";
+} from "genesis/plugin-sdk/extension-shared";
 import type { FeishuConfig, FeishuDomain, ResolvedFeishuAccount } from "./types.js";
 
 const require = createRequire(import.meta.url);
@@ -12,7 +12,7 @@ const pluginVersion = readPluginPackageVersion({ require });
 
 export { pluginVersion };
 
-const FEISHU_USER_AGENT = `openclaw-feishu-builtin/${pluginVersion}/${process.platform}`;
+const FEISHU_USER_AGENT = `genesis-feishu-builtin/${pluginVersion}/${process.platform}`;
 export { FEISHU_USER_AGENT };
 
 /** User-Agent header value for all Feishu API requests. */
@@ -75,7 +75,7 @@ let feishuClientSdk: FeishuClientSdk = defaultFeishuClientSdk;
 /** Default HTTP timeout for Feishu API requests (30 seconds). */
 export const FEISHU_HTTP_TIMEOUT_MS = 30_000;
 export const FEISHU_HTTP_TIMEOUT_MAX_MS = 300_000;
-export const FEISHU_HTTP_TIMEOUT_ENV_VAR = "OPENCLAW_FEISHU_HTTP_TIMEOUT_MS";
+export const FEISHU_HTTP_TIMEOUT_ENV_VAR = "GENESIS_FEISHU_HTTP_TIMEOUT_MS";
 
 type FeishuHttpInstanceLike = Pick<
   typeof feishuClientSdk.defaultHttpInstance,

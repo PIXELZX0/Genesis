@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import type { ReplyPayload } from "../runtime-api.js";
 import { formatUnknownError } from "./errors.js";
 import type { MSTeamsMonitorLogger } from "./monitor-types.js";

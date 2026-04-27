@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 
 export function buildEmbeddedMessageActionDiscoveryInput(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   channel: string;
   currentChannelId?: string | null;
   currentThreadTs?: string | null;

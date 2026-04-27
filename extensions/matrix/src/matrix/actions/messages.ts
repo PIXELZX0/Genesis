@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 import { fetchMatrixPollMessageSummary, resolveMatrixPollRootEventId } from "../poll-summary.js";
 import { isPollEventType } from "../poll-types.js";
 import { editMessageMatrix, sendMessageMatrix } from "../send.js";

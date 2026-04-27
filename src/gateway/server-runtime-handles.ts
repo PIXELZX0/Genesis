@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { ChannelHealthMonitor } from "./channel-health-monitor.js";
 
@@ -42,7 +42,7 @@ export function createGatewayServerMutableState(): GatewayServerMutableState {
     mediaCleanup: null as ReturnType<typeof setInterval> | null,
     heartbeatRunner: {
       stop: () => {},
-      updateConfig: (_cfg: OpenClawConfig) => {},
+      updateConfig: (_cfg: GenesisConfig) => {},
     } satisfies HeartbeatRunner,
     stopGatewayUpdateCheck: () => {},
     tailscaleCleanup: null as (() => Promise<void>) | null,

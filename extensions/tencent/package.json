@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/tencent-provider",
+  "name": "@genesis/tencent-provider",
   "version": "2026.4.10",
   "private": true,
-  "description": "OpenClaw Tencent Cloud provider plugin (TokenHub + Token Plan)",
+  "description": "Genesis Tencent Cloud provider plugin (TokenHub + Token Plan)",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

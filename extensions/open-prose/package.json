@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/open-prose",
+  "name": "@genesis/open-prose",
   "version": "2026.4.20",
   "private": true,
   "description": "OpenProse VM skill pack plugin (slash command + telemetry).",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

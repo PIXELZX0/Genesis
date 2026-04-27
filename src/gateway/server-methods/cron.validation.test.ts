@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { CronJob } from "../../cron/types.js";
 
-const loadConfig = vi.hoisted(() => vi.fn<() => OpenClawConfig>(() => ({}) as OpenClawConfig));
+const loadConfig = vi.hoisted(() => vi.fn<() => GenesisConfig>(() => ({}) as GenesisConfig));
 
 vi.mock("../../config/config.js", async () => {
   const actual =
@@ -76,7 +76,7 @@ function createCronJob(overrides: Partial<CronJob> = {}): CronJob {
 
 describe("cron method validation", () => {
   beforeEach(() => {
-    loadConfig.mockReset().mockReturnValue({} as OpenClawConfig);
+    loadConfig.mockReset().mockReturnValue({} as GenesisConfig);
   });
 
   it("rejects ambiguous announce delivery on add when multiple channels are configured", async () => {
@@ -99,7 +99,7 @@ describe("cron method validation", () => {
           slack: { enabled: true },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const { context, respond } = await invokeCronAdd({
       name: "ambiguous announce add",
@@ -141,7 +141,7 @@ describe("cron method validation", () => {
           slack: { enabled: true },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const { context, respond } = await invokeCronUpdate(
       {
@@ -179,7 +179,7 @@ describe("cron method validation", () => {
           slack: { enabled: true },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
 
     const { context, respond } = await invokeCronAdd({
       name: "invalid delivery provider",

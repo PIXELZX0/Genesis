@@ -177,7 +177,7 @@ export const zh_CN: TranslationMap = {
     skills: "技能和 API 密钥。",
     nodes: "配对设备和命令。",
     chat: "网关聊天，快速干预。",
-    config: "编辑 openclaw.json。",
+    config: "编辑 genesis.json。",
     communications: "频道、消息和音频设置。",
     appearance: "主题、界面和设置向导设置。",
     automation: "命令、钩子、定时任务和插件设置。",
@@ -215,6 +215,13 @@ export const zh_CN: TranslationMap = {
       lastChannelsRefresh: "最后频道刷新",
       channelsHint: "使用频道链接 WhatsApp、Telegram、Discord、Signal 或 iMessage。",
     },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
+    },
     stats: {
       instances: "实例",
       instancesHint: "过去 5 分钟内的在线信号。",
@@ -246,7 +253,7 @@ export const zh_CN: TranslationMap = {
       metadataUpgradeTitle: "设备元数据更改等待批准。",
       metadataUpgradeSummary: "此设备已配对，但元数据更改仍在等待批准。",
       mobileHint:
-        "在手机上？从桌面运行 openclaw dashboard --no-open 复制完整 URL（包括 #token=...）。",
+        "在手机上？从桌面运行 genesis dashboard --no-open 复制完整 URL（包括 #token=...）。",
       docsTitle: "设备配对文档（在新标签页中打开）",
       docsLink: "文档：设备配对",
     },
@@ -282,7 +289,7 @@ export const zh_CN: TranslationMap = {
       modelAuthExpiresIn: "于 {when} 过期",
       modelAuthAttentionExpiredTitle: "模型认证已过期",
       modelAuthAttentionExpiringTitle: "模型认证即将过期",
-      modelAuthAttentionExpiredDesc: "{providers} — 使用 openclaw models auth 重新认证",
+      modelAuthAttentionExpiredDesc: "{providers} — 使用 genesis models auth 重新认证",
       modelAuthAttentionExpiringEntry: "{provider}（{when}）",
     },
     attention: {

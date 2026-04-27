@@ -3,9 +3,9 @@
  *
  * Migrated from feishu-plugin-cli's `feishu-auth.ts` and `install-prompts.ts`.
  * Replaces axios with native fetch, removes inquirer/ora/chalk in favor of
- * the openclaw WizardPrompter surface.
+ * the genesis WizardPrompter surface.
  */
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import { renderQrTerminal } from "./qr-terminal.js";
 import type { FeishuDomain } from "./types.js";
 

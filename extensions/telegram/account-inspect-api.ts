@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import { inspectTelegramAccount } from "./src/account-inspect.js";
 
-export function inspectTelegramReadOnlyAccount(cfg: OpenClawConfig, accountId?: string | null) {
+export function inspectTelegramReadOnlyAccount(cfg: GenesisConfig, accountId?: string | null) {
   return inspectTelegramAccount({ cfg, accountId });
 }

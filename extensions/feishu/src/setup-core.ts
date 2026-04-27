@@ -1,16 +1,16 @@
 import {
   DEFAULT_ACCOUNT_ID,
   type ChannelSetupAdapter,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/setup";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/setup";
 import { resolveDefaultFeishuAccountId } from "./accounts.js";
 import type { FeishuConfig } from "./types.js";
 
 export function setFeishuNamedAccountEnabled(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   enabled: boolean,
-): OpenClawConfig {
+): GenesisConfig {
   const feishuCfg = cfg.channels?.feishu as FeishuConfig | undefined;
   return {
     ...cfg,

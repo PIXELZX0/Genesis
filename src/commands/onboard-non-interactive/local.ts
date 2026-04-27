@@ -1,7 +1,7 @@
 import { formatCliCommand } from "../../cli/command-format.js";
 import { replaceConfigFile, resolveGatewayPort } from "../../config/config.js";
 import { logConfigUpdated } from "../../config/logging.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveGatewayAuthToken } from "../../gateway/auth-token-resolution.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import { DEFAULT_GATEWAY_DAEMON_RUNTIME } from "../daemon-runtime.js";
@@ -94,7 +94,7 @@ async function collectGatewayHealthFailureDiagnostics(): Promise<
 }
 
 export async function resolveGatewayHealthProbeToken(
-  nextConfig: OpenClawConfig,
+  nextConfig: GenesisConfig,
 ): Promise<{ token?: string; unresolvedRefReason?: string }> {
   const resolved = await resolveGatewayAuthToken({
     cfg: nextConfig,
@@ -123,7 +123,7 @@ function formatGatewayHealthFailureDetail(params: {
 export async function runNonInteractiveLocalSetup(params: {
   opts: OnboardOptions;
   runtime: RuntimeEnv;
-  baseConfig: OpenClawConfig;
+  baseConfig: GenesisConfig;
   baseHash?: string;
 }) {
   const { opts, runtime, baseConfig, baseHash } = params;
@@ -135,7 +135,7 @@ export async function runNonInteractiveLocalSetup(params: {
     defaultWorkspaceDir: DEFAULT_WORKSPACE,
   });
 
-  let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);
+  let nextConfig: GenesisConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);
   if (opts.skipBootstrap) {
     nextConfig = applySkipBootstrapConfig(nextConfig);
   }
@@ -246,9 +246,9 @@ export async function runNonInteractiveLocalSetup(params: {
           daemonInstall.skippedReason === "systemd-user-unavailable"
             ? [
                 "Fix: rerun without `--install-daemon` for one-shot setup, or enable a working user-systemd session and retry.",
-                "If your auth profile uses env-backed refs, keep those env vars set in the shell that runs `openclaw gateway run` or `openclaw agent --local`.",
+                "If your auth profile uses env-backed refs, keep those env vars set in the shell that runs `genesis gateway run` or `genesis agent --local`.",
               ]
-            : [`Run \`${formatCliCommand("openclaw gateway status --deep")}\` for more detail.`],
+            : [`Run \`${formatCliCommand("genesis gateway status --deep")}\` for more detail.`],
       });
       runtime.exit(1);
       return;
@@ -301,12 +301,12 @@ export async function runNonInteractiveLocalSetup(params: {
         hints: !opts.installDaemon
           ? [
               "Non-interactive local setup only waits for an already-running gateway unless you pass --install-daemon.",
-              `Fix: start \`${formatCliCommand("openclaw gateway run")}\`, re-run with \`--install-daemon\`, or use \`--skip-health\`.`,
+              `Fix: start \`${formatCliCommand("genesis gateway run")}\`, re-run with \`--install-daemon\`, or use \`--skip-health\`.`,
               process.platform === "win32"
                 ? "Native Windows managed gateway install tries Scheduled Tasks first and falls back to a per-user Startup-folder login item when task creation is denied."
                 : undefined,
             ].filter((value): value is string => Boolean(value))
-          : [`Run \`${formatCliCommand("openclaw gateway status --deep")}\` for more detail.`],
+          : [`Run \`${formatCliCommand("genesis gateway status --deep")}\` for more detail.`],
       });
       runtime.exit(1);
       return;
@@ -343,7 +343,7 @@ export async function runNonInteractiveLocalSetup(params: {
 
   if (!opts.json) {
     runtime.log(
-      `Tip: run \`${formatCliCommand("openclaw configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.openclaw.ai/tools/web`,
+      `Tip: run \`${formatCliCommand("genesis configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.genesis.ai/tools/web`,
     );
   }
 }

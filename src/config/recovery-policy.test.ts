@@ -3,7 +3,7 @@ import {
   isPluginLocalInvalidConfigSnapshot,
   shouldAttemptLastKnownGoodRecovery,
 } from "./recovery-policy.js";
-import type { ConfigFileSnapshot } from "./types.openclaw.js";
+import type { ConfigFileSnapshot } from "./types.genesis.js";
 
 type PolicySnapshot = Pick<ConfigFileSnapshot, "valid" | "issues" | "legacyIssues">;
 

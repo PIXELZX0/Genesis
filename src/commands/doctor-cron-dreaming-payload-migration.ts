@@ -8,7 +8,7 @@ import {
 // extension. Keep in sync if the memory-core constants change.
 const MANAGED_DREAMING_CRON_NAME = "Memory Dreaming Promotion";
 const MANAGED_DREAMING_CRON_TAG = "[managed-by=memory-core.short-term-promotion]";
-const DREAMING_SYSTEM_EVENT_TEXT = "__openclaw_memory_core_short_term_promotion_dream__";
+const DREAMING_SYSTEM_EVENT_TEXT = "__genesis_memory_core_short_term_promotion_dream__";
 
 type UnknownRecord = Record<string, unknown>;
 

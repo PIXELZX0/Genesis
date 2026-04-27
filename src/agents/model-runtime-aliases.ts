@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { normalizeProviderId } from "./provider-id.js";
 
@@ -85,7 +85,7 @@ export function isLegacyRuntimeModelProvider(provider: string): boolean {
 }
 
 function resolveConfiguredRuntime(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
   runtimeOverride?: string;
 }): string | undefined {
@@ -110,7 +110,7 @@ function resolveConfiguredRuntime(params: {
 
 export function resolveCliRuntimeExecutionProvider(params: {
   provider: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
   runtimeOverride?: string;
 }): string | undefined {

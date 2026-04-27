@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   resolveGatewayProbeAuthSafe,
   resolveGatewayProbeAuthSafeWithSecretInputs,
@@ -7,7 +7,7 @@ import {
   resolveGatewayProbeAuthWithSecretInputs,
 } from "./probe-auth.js";
 
-function expectUnresolvedProbeTokenWarning(cfg: OpenClawConfig) {
+function expectUnresolvedProbeTokenWarning(cfg: GenesisConfig) {
   const result = resolveGatewayProbeAuthSafe({
     cfg,
     mode: "local",
@@ -28,7 +28,7 @@ describe("resolveGatewayProbeAuthSafe", () => {
             token: "token-value",
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       mode: "local",
       env: {} as NodeJS.ProcessEnv,
     });
@@ -54,7 +54,7 @@ describe("resolveGatewayProbeAuthSafe", () => {
           default: { source: "env" },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
   });
 
   it("does not fall through to remote token when local token SecretRef is unresolved", () => {
@@ -74,7 +74,7 @@ describe("resolveGatewayProbeAuthSafe", () => {
           default: { source: "env" },
         },
       },
-    } as OpenClawConfig);
+    } as GenesisConfig);
   });
 
   it("ignores unresolved local token SecretRef in remote mode when remote-only auth is requested", () => {
@@ -95,7 +95,7 @@ describe("resolveGatewayProbeAuthSafe", () => {
             default: { source: "env" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       mode: "remote",
       env: {} as NodeJS.ProcessEnv,
     });
@@ -116,7 +116,7 @@ describe("resolveGatewayProbeTarget", () => {
         gateway: {
           mode: "remote",
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toEqual({
       gatewayMode: "remote",
       mode: "local",
@@ -133,7 +133,7 @@ describe("resolveGatewayProbeTarget", () => {
             url: "wss://gateway.example",
           },
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toEqual({
       gatewayMode: "remote",
       mode: "remote",
@@ -149,7 +149,7 @@ describe("resolveGatewayProbeAuthSafeWithSecretInputs", () => {
         gateway: {
           auth: {
             mode: "token",
-            token: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+            token: { source: "env", provider: "default", id: "GENESIS_GATEWAY_TOKEN" },
           },
         },
         secrets: {
@@ -157,10 +157,10 @@ describe("resolveGatewayProbeAuthSafeWithSecretInputs", () => {
             default: { source: "env" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       mode: "local",
       env: {
-        OPENCLAW_GATEWAY_TOKEN: "test-token-from-env",
+        GENESIS_GATEWAY_TOKEN: "test-token-from-env",
       } as NodeJS.ProcessEnv,
     });
 
@@ -185,7 +185,7 @@ describe("resolveGatewayProbeAuthSafeWithSecretInputs", () => {
             default: { source: "env" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       mode: "local",
       env: {} as NodeJS.ProcessEnv,
     });
@@ -211,7 +211,7 @@ describe("resolveGatewayProbeAuthWithSecretInputs", () => {
             default: { source: "env" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       mode: "local",
       env: {
         DAEMON_GATEWAY_TOKEN: "resolved-daemon-token",

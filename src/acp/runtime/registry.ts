@@ -13,7 +13,7 @@ type AcpRuntimeRegistryGlobalState = {
   backendsById: Map<string, AcpRuntimeBackend>;
 };
 
-const ACP_RUNTIME_REGISTRY_STATE_KEY = Symbol.for("openclaw.acpRuntimeRegistryState");
+const ACP_RUNTIME_REGISTRY_STATE_KEY = Symbol.for("genesis.acpRuntimeRegistryState");
 
 function resolveAcpRuntimeRegistryGlobalState(): AcpRuntimeRegistryGlobalState {
   const processStore = process as NodeJS.Process & Record<PropertyKey, unknown>;

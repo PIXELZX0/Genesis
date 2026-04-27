@@ -18,7 +18,7 @@ type SessionStoreEntry = {
 async function makeSessionStore(
   entries: Record<string, unknown> = {},
 ): Promise<{ storePath: string; cleanup: () => Promise<void> }> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-session-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-session-"));
   const storePath = path.join(dir, "sessions.json");
   await fs.writeFile(storePath, JSON.stringify(entries));
   return {

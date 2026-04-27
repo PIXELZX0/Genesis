@@ -1,13 +1,13 @@
 import type {
   ChannelDoctorAdapter,
   ChannelDoctorConfigMutation,
-} from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
 export function normalizeCompatibilityConfig({
   cfg,
 }: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 }): ChannelDoctorConfigMutation {
   const legacyAckReaction = cfg.messages?.ackReaction?.trim();
   if (!legacyAckReaction || cfg.channels?.whatsapp === undefined) {

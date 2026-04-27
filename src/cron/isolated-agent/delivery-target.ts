@@ -2,7 +2,7 @@ import type { ChannelId } from "../../channels/plugins/types.public.js";
 import { resolveAgentMainSessionKey } from "../../config/sessions/main-session.js";
 import { resolveStorePath } from "../../config/sessions/paths.js";
 import { loadSessionStore } from "../../config/sessions/store-load.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { maybeResolveIdLikeTarget } from "../../infra/outbound/target-id-resolution.js";
 import { tryResolveLoadedOutboundTarget } from "../../infra/outbound/targets-loaded.js";
@@ -66,7 +66,7 @@ async function loadDeliveryTargetRuntime() {
   return await deliveryTargetRuntimePromise;
 }
 export async function resolveDeliveryTarget(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   jobPayload: {
     channel?: ChannelId;

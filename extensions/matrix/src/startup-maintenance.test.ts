@@ -15,7 +15,7 @@ import { runMatrixStartupMaintenance } from "./startup-maintenance.js";
 import { resolveMatrixAccountStorageRoot } from "./storage-paths.js";
 
 async function seedLegacyMatrixState(home: string) {
-  const stateDir = path.join(home, ".openclaw");
+  const stateDir = path.join(home, ".genesis");
   await fs.mkdir(path.join(stateDir, "matrix"), { recursive: true });
   await fs.writeFile(path.join(stateDir, "matrix", "bot-storage.json"), '{"legacy":true}');
 }
@@ -37,7 +37,7 @@ function makeMatrixStartupConfig(includeCredentials = true) {
 }
 
 async function seedLegacyMatrixCrypto(home: string) {
-  const stateDir = path.join(home, ".openclaw");
+  const stateDir = path.join(home, ".genesis");
   const { rootDir } = resolveMatrixAccountStorageRoot({
     stateDir,
     homeserver: "https://matrix.example.org",

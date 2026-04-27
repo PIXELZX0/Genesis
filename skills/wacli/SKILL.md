@@ -4,7 +4,7 @@ description: Send third-party WhatsApp messages or sync/search WhatsApp history 
 homepage: https://wacli.sh
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "emoji": "📱",
         "requires": { "bins": ["wacli"] },
@@ -32,7 +32,7 @@ metadata:
 # wacli
 
 Use `wacli` only when the user explicitly asks you to message someone else on WhatsApp or when they ask to sync/search WhatsApp history.
-Do NOT use `wacli` for normal user chats; OpenClaw routes WhatsApp conversations automatically.
+Do NOT use `wacli` for normal user chats; Genesis routes WhatsApp conversations automatically.
 If the user is chatting with you on WhatsApp, you should not reach for this tool unless they ask you to contact a third party.
 
 Safety

@@ -38,13 +38,13 @@ export function createLazyFacadeValue<TFacade extends object, K extends keyof TF
   }) as TFacade[K];
 }
 
-const OPENCLAW_PACKAGE_ROOT =
+const GENESIS_PACKAGE_ROOT =
   resolveLoaderPackageRoot({
     modulePath: fileURLToPath(import.meta.url),
     moduleUrl: import.meta.url,
   }) ?? fileURLToPath(new URL("../..", import.meta.url));
 const CURRENT_MODULE_PATH = fileURLToPath(import.meta.url);
-const OPENCLAW_SOURCE_EXTENSIONS_ROOT = path.resolve(OPENCLAW_PACKAGE_ROOT, "extensions");
+const GENESIS_SOURCE_EXTENSIONS_ROOT = path.resolve(GENESIS_PACKAGE_ROOT, "extensions");
 const cachedFacadeModuleLocationsByKey = new Map<
   string,
   {
@@ -82,7 +82,7 @@ function resolveFacadeModuleLocationUncached(params: {
   const bundledLocation = resolveBundledFacadeModuleLocation({
     ...params,
     currentModulePath: CURRENT_MODULE_PATH,
-    packageRoot: OPENCLAW_PACKAGE_ROOT,
+    packageRoot: GENESIS_PACKAGE_ROOT,
     bundledPluginsDir,
   });
   if (bundledLocation) {
@@ -180,7 +180,7 @@ function buildFacadeActivationCheckParams(
   return {
     ...params,
     location,
-    sourceExtensionsRoot: OPENCLAW_SOURCE_EXTENSIONS_ROOT,
+    sourceExtensionsRoot: GENESIS_SOURCE_EXTENSIONS_ROOT,
     resolutionKey: createFacadeResolutionKey(params),
   };
 }

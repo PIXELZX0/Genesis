@@ -1,4 +1,4 @@
-import type { EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness-runtime";
+import type { EmbeddedRunAttemptParams } from "genesis/plugin-sdk/agent-harness-runtime";
 import { describe, expect, it, vi } from "vitest";
 import { createCodexUserInputBridge } from "./user-input-bridge.js";
 
@@ -88,11 +88,11 @@ describe("Codex app-server user input bridge", () => {
     });
 
     await vi.waitFor(() => expect(params.onBlockReply).toHaveBeenCalledTimes(1));
-    expect(bridge.handleQueuedMessage("repo: openclaw\nscope: Tests")).toBe(true);
+    expect(bridge.handleQueuedMessage("repo: genesis\nscope: Tests")).toBe(true);
 
     await expect(response).resolves.toEqual({
       answers: {
-        repo: { answers: ["openclaw"] },
+        repo: { answers: ["genesis"] },
         scope: { answers: ["Tests"] },
       },
     });

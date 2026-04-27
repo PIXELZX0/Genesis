@@ -1,4 +1,4 @@
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import {
   MSTEAMS_DEFAULT_DELEGATED_SCOPES,
   MSTEAMS_DEFAULT_TOKEN_FETCH_TIMEOUT_MS,

@@ -7,7 +7,7 @@ import {
   type SimpleStreamOptions,
   type ThinkingLevel,
 } from "@mariozechner/pi-ai";
-import { createProviderHttpError } from "openclaw/plugin-sdk/provider-http";
+import { createProviderHttpError } from "genesis/plugin-sdk/provider-http";
 import {
   buildGuardedModelFetch,
   coerceTransportToolCallArguments,
@@ -20,8 +20,8 @@ import {
   stripSystemPromptCacheBoundary,
   transformTransportMessages,
   type WritableTransportStream,
-} from "openclaw/plugin-sdk/provider-transport-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/provider-transport-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { parseGeminiAuth } from "./gemini-auth.js";
 import { normalizeGoogleApiBaseUrl } from "./provider-policy.js";
 import {

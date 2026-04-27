@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import { secretRefKey } from "../secrets/ref-contract.js";
 import { resolveSecretRefValues } from "../secrets/resolve.js";
@@ -29,7 +29,7 @@ function buildUnresolvedReason(params: {
 }
 
 export async function resolveConfiguredSecretInputString(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
   value: unknown;
   path: string;
@@ -86,7 +86,7 @@ export async function resolveConfiguredSecretInputString(params: {
 }
 
 export async function resolveConfiguredSecretInputWithFallback(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
   value: unknown;
   path: string;
@@ -153,7 +153,7 @@ export async function resolveConfiguredSecretInputWithFallback(params: {
 }
 
 export async function resolveRequiredConfiguredSecretRefInputString(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   env: NodeJS.ProcessEnv;
   value: unknown;
   path: string;

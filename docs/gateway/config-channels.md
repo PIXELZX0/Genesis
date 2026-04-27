@@ -135,7 +135,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
         default: {},
         personal: {},
         biz: {
-          // authDir: "~/.openclaw/credentials/whatsapp/biz",
+          // authDir: "~/.genesis/credentials/whatsapp/biz",
         },
       },
     },
@@ -145,7 +145,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
 
 - Outbound commands default to account `default` if present; otherwise the first configured account id (sorted).
 - Optional `channels.whatsapp.defaultAccount` overrides that fallback default account selection when it matches a configured account id.
-- Legacy single-account Baileys auth dir is migrated by `openclaw doctor` into `whatsapp/default`.
+- Legacy single-account Baileys auth dir is migrated by `genesis doctor` into `whatsapp/default`.
 - Per-account overrides: `channels.whatsapp.accounts.<id>.sendReadReceipts`, `channels.whatsapp.accounts.<id>.dmPolicy`, `channels.whatsapp.accounts.<id>.allowFrom`.
 
 </Accordion>
@@ -206,7 +206,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
 
 - Bot token: `channels.telegram.botToken` or `channels.telegram.tokenFile` (regular file only; symlinks rejected), with `TELEGRAM_BOT_TOKEN` as fallback for the default account.
 - Optional `channels.telegram.defaultAccount` overrides default account selection when it matches a configured account id.
-- In multi-account setups (2+ account ids), set an explicit default (`channels.telegram.defaultAccount` or `channels.telegram.accounts.default`) to avoid fallback routing; `openclaw doctor` warns when this is missing or invalid.
+- In multi-account setups (2+ account ids), set an explicit default (`channels.telegram.defaultAccount` or `channels.telegram.accounts.default`) to avoid fallback routing; `genesis doctor` warns when this is missing or invalid.
 - `configWrites: false` blocks Telegram-initiated config writes (supergroup ID migrations, `/config set|unset`).
 - Top-level `bindings[]` entries with `type: "acp"` configure persistent ACP bindings for forum topics (use canonical `chatId:topic:topicId` in `match.peer.id`). Field semantics are shared in [ACP Agents](/tools/acp-agents#channel-specific-settings).
 - Telegram stream previews use `sendMessage` + `editMessageText` (works in direct and group chats).
@@ -242,10 +242,10 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
       replyToMode: "off", // off | first | all | batched
       dmPolicy: "pairing",
       allowFrom: ["1234567890", "123456789012345678"],
-      dm: { enabled: true, groupEnabled: false, groupChannels: ["openclaw-dm"] },
+      dm: { enabled: true, groupEnabled: false, groupChannels: ["genesis-dm"] },
       guilds: {
         "123456789012345678": {
-          slug: "friends-of-openclaw",
+          slug: "friends-of-genesis",
           requireMention: false,
           ignoreOtherMentions: true,
           reactionNotifications: "own",
@@ -329,7 +329,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
 - `channels.discord.ui.components.accentColor` sets the accent color for Discord components v2 containers.
 - `channels.discord.voice` enables Discord voice channel conversations and optional auto-join + TTS overrides.
 - `channels.discord.voice.daveEncryption` and `channels.discord.voice.decryptionFailureTolerance` pass through to `@discordjs/voice` DAVE options (`true` and `24` by default).
-- OpenClaw additionally attempts voice receive recovery by leaving/rejoining a voice session after repeated decrypt failures.
+- Genesis additionally attempts voice receive recovery by leaving/rejoining a voice session after repeated decrypt failures.
 - `channels.discord.streaming` is the canonical stream mode key. Legacy `streamMode` and boolean `streaming` values are auto-migrated.
 - `channels.discord.autoPresence` maps runtime availability to bot presence (healthy => online, degraded => idle, exhausted => dnd) and allows optional status text overrides.
 - `channels.discord.dangerouslyAllowNameMatching` re-enables mutable name/tag matching (break-glass compatibility mode).
@@ -419,7 +419,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
       },
       slashCommand: {
         enabled: true,
-        name: "openclaw",
+        name: "genesis",
         sessionPrefix: "slack:slash",
         ephemeral: true,
       },
@@ -475,7 +475,7 @@ WhatsApp runs through the gateway's web channel (Baileys Web). It starts automat
 
 ### Mattermost
 
-Mattermost ships as a plugin: `openclaw plugins install @openclaw/mattermost`.
+Mattermost ships as a plugin: `genesis plugins install @genesis/mattermost`.
 
 ```json5
 {
@@ -510,10 +510,10 @@ Chat modes: `oncall` (respond on @-mention, default), `onmessage` (every message
 When Mattermost native commands are enabled:
 
 - `commands.callbackPath` must be a path (for example `/api/channels/mattermost/command`), not a full URL.
-- `commands.callbackUrl` must resolve to the OpenClaw gateway endpoint and be reachable from the Mattermost server.
+- `commands.callbackUrl` must resolve to the Genesis gateway endpoint and be reachable from the Mattermost server.
 - Native slash callbacks are authenticated with the per-command tokens returned
   by Mattermost during slash command registration. If registration fails or no
-  commands are activated, OpenClaw rejects callbacks with
+  commands are activated, Genesis rejects callbacks with
   `Unauthorized: invalid command token.`
 - For private/tailnet/internal callback hosts, Mattermost may require
   `ServiceSettings.AllowedUntrustedInternalConnections` to include the callback host/domain.
@@ -572,7 +572,7 @@ BlueBubbles is the recommended iMessage path (plugin-backed, configured under `c
 
 ### iMessage
 
-OpenClaw spawns `imsg rpc` (JSON-RPC over stdio). No daemon or port required.
+Genesis spawns `imsg rpc` (JSON-RPC over stdio). No daemon or port required.
 
 ```json5
 {
@@ -737,9 +737,9 @@ Run multiple accounts per channel (each with its own `accountId`):
 - Env tokens only apply to the **default** account.
 - Base channel settings apply to all accounts unless overridden per account.
 - Use `bindings[].match.accountId` to route each account to a different agent.
-- If you add a non-default account via `openclaw channels add` (or channel onboarding) while still on a single-account top-level channel config, OpenClaw promotes account-scoped top-level single-account values into the channel account map first so the original account keeps working. Most channels move them into `channels.<channel>.accounts.default`; Matrix can preserve an existing matching named/default target instead.
+- If you add a non-default account via `genesis channels add` (or channel onboarding) while still on a single-account top-level channel config, Genesis promotes account-scoped top-level single-account values into the channel account map first so the original account keeps working. Most channels move them into `channels.<channel>.accounts.default`; Matrix can preserve an existing matching named/default target instead.
 - Existing channel-only bindings (no `accountId`) keep matching the default account; account-scoped bindings remain optional.
-- `openclaw doctor --fix` also repairs mixed shapes by moving account-scoped top-level single-account values into the promoted account chosen for that channel. Most channels use `accounts.default`; Matrix can preserve an existing matching named/default target instead.
+- `genesis doctor --fix` also repairs mixed shapes by moving account-scoped top-level single-account values into the promoted account chosen for that channel. Most channels use `accounts.default`; Matrix can preserve an existing matching named/default target instead.
 
 ### Other plugin channels
 
@@ -762,7 +762,7 @@ Group messages default to **require mention** (metadata mention or safe regex pa
     groupChat: { historyLimit: 50 },
   },
   agents: {
-    list: [{ id: "main", groupChat: { mentionPatterns: ["@openclaw", "openclaw"] } }],
+    list: [{ id: "main", groupChat: { mentionPatterns: ["@genesis", "genesis"] } }],
   },
 }
 ```
@@ -804,7 +804,7 @@ Include your own number in `allowFrom` to enable self-chat mode (ignores native 
     list: [
       {
         id: "main",
-        groupChat: { mentionPatterns: ["reisponde", "@openclaw"] },
+        groupChat: { mentionPatterns: ["reisponde", "@genesis"] },
       },
     ],
   },
@@ -849,8 +849,8 @@ Include your own number in `allowFrom` to enable self-chat mode (ignores native 
 - Override native skill registration per channel with `channels.<provider>.commands.nativeSkills`.
 - `channels.telegram.customCommands` adds extra Telegram bot menu entries.
 - `bash: true` enables `! <cmd>` for host shell. Requires `tools.elevated.enabled` and sender in `tools.elevated.allowFrom.<channel>`.
-- `config: true` enables `/config` (reads/writes `openclaw.json`). For gateway `chat.send` clients, persistent `/config set|unset` writes also require `operator.admin`; read-only `/config show` stays available to normal write-scoped operator clients.
-- `mcp: true` enables `/mcp` for OpenClaw-managed MCP server config under `mcp.servers`.
+- `config: true` enables `/config` (reads/writes `genesis.json`). For gateway `chat.send` clients, persistent `/config set|unset` writes also require `operator.admin`; read-only `/config show` stays available to normal write-scoped operator clients.
+- `mcp: true` enables `/mcp` for Genesis-managed MCP server config under `mcp.servers`.
 - `plugins: true` enables `/plugins` for plugin discovery, install, and enable/disable controls.
 - `channels.<provider>.configWrites` gates config mutations per channel (default: true).
 - For multi-account channels, `channels.<provider>.accounts.<id>.configWrites` also gates writes that target that account (for example `/allowlist --config --account <id>` or `/config set channels.<provider>.accounts.<id>...`).

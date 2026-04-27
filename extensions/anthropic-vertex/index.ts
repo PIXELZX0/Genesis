@@ -1,6 +1,6 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { readConfiguredProviderCatalogEntries } from "openclaw/plugin-sdk/provider-catalog-shared";
-import { NATIVE_ANTHROPIC_REPLAY_HOOKS } from "openclaw/plugin-sdk/provider-model-shared";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { readConfiguredProviderCatalogEntries } from "genesis/plugin-sdk/provider-catalog-shared";
+import { NATIVE_ANTHROPIC_REPLAY_HOOKS } from "genesis/plugin-sdk/provider-model-shared";
 import {
   hasAnthropicVertexAvailableAuth,
   mergeImplicitAnthropicVertexProvider,

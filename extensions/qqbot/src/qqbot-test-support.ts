@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
-export function makeQqbotSecretRefConfig(): OpenClawConfig {
+export function makeQqbotSecretRefConfig(): GenesisConfig {
   return {
     channels: {
       qqbot: {
@@ -12,10 +12,10 @@ export function makeQqbotSecretRefConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
-export function makeQqbotDefaultAccountConfig(): OpenClawConfig {
+export function makeQqbotDefaultAccountConfig(): GenesisConfig {
   return {
     channels: {
       qqbot: {
@@ -25,5 +25,5 @@ export function makeQqbotDefaultAccountConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }

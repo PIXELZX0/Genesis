@@ -19,7 +19,7 @@ export function formatPluginLine(plugin: PluginRecord, verbose = false): string 
           : plugin.description,
       )
     : theme.muted("(no description)");
-  const format = plugin.format ?? "openclaw";
+  const format = plugin.format ?? "genesis";
 
   if (!verbose) {
     return `${name}${idSuffix} ${status} ${theme.muted(`[${format}]`)} - ${desc}`;

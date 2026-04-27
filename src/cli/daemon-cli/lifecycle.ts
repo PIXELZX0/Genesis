@@ -85,8 +85,8 @@ async function assertUnmanagedGatewayRestartEnabled(port: number): Promise<void>
   const probe = await probeGateway({
     url: `${scheme}://127.0.0.1:${port}`,
     auth: {
-      token: normalizeOptionalString(process.env.OPENCLAW_GATEWAY_TOKEN),
-      password: normalizeOptionalString(process.env.OPENCLAW_GATEWAY_PASSWORD),
+      token: normalizeOptionalString(process.env.GENESIS_GATEWAY_TOKEN),
+      password: normalizeOptionalString(process.env.GENESIS_GATEWAY_PASSWORD),
     },
     timeoutMs: 1_000,
   }).catch(() => null);
@@ -129,7 +129,7 @@ async function restartGatewayWithoutServiceManager(port: number) {
   }
   if (pids.length > 1) {
     throw new Error(
-      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "openclaw gateway status --deep" before retrying restart`,
+      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "genesis gateway status --deep" before retrying restart`,
     );
   }
   signalVerifiedGatewayPidSync(pids[0], "SIGUSR1");
@@ -232,8 +232,8 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
         }
 
         fail(`Gateway restart timed out after ${restartWaitSeconds}s waiting for health checks.`, [
-          formatCliCommand("openclaw gateway status --deep"),
-          formatCliCommand("openclaw doctor"),
+          formatCliCommand("genesis gateway status --deep"),
+          formatCliCommand("genesis doctor"),
         ]);
         throw new Error("unreachable after gateway restart health failure");
       }
@@ -299,8 +299,8 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
       }
 
       fail(failure.failMessage, [
-        formatCliCommand("openclaw gateway status --deep"),
-        formatCliCommand("openclaw doctor"),
+        formatCliCommand("genesis gateway status --deep"),
+        formatCliCommand("genesis doctor"),
       ]);
       throw new Error("unreachable after gateway restart failure");
     },

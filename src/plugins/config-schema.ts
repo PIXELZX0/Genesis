@@ -1,7 +1,7 @@
 import { z, type ZodTypeAny } from "zod";
 import type { JsonSchemaObject } from "../shared/json-schema.types.js";
 import type { PluginConfigUiHint } from "./manifest-types.js";
-import type { OpenClawPluginConfigSchema } from "./types.js";
+import type { GenesisPluginConfigSchema } from "./types.js";
 
 type Issue = { path: Array<string | number>; message: string };
 
@@ -15,7 +15,7 @@ type ZodSchemaWithToJsonSchema = ZodTypeAny & {
 
 type BuildPluginConfigSchemaOptions = {
   uiHints?: Record<string, PluginConfigUiHint>;
-  safeParse?: OpenClawPluginConfigSchema["safeParse"];
+  safeParse?: GenesisPluginConfigSchema["safeParse"];
 };
 
 function error(message: string): SafeParseResult {
@@ -80,7 +80,7 @@ function normalizeJsonSchema(schema: unknown): unknown {
 export function buildPluginConfigSchema(
   schema: ZodTypeAny,
   options?: BuildPluginConfigSchemaOptions,
-): OpenClawPluginConfigSchema {
+): GenesisPluginConfigSchema {
   const schemaWithJson = schema as ZodSchemaWithToJsonSchema;
   const safeParse = options?.safeParse ?? ((value) => safeParseRuntimeSchema(schema, value));
   if (typeof schemaWithJson.toJSONSchema === "function") {
@@ -107,7 +107,7 @@ export function buildPluginConfigSchema(
   };
 }
 
-export function emptyPluginConfigSchema(): OpenClawPluginConfigSchema {
+export function emptyPluginConfigSchema(): GenesisPluginConfigSchema {
   return {
     safeParse(value: unknown): SafeParseResult {
       if (value === undefined) {

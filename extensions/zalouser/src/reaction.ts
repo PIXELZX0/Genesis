@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { Reactions } from "./zca-constants.js";
 
 const REACTION_ALIAS_MAP = new Map<string, string>([

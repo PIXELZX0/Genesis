@@ -2,12 +2,12 @@
 summary: "Plugin compatibility contracts, deprecation metadata, and migration expectations"
 title: "Plugin compatibility"
 read_when:
-  - You maintain an OpenClaw plugin
+  - You maintain an Genesis plugin
   - You see a plugin compatibility warning
   - You are planning a plugin SDK or manifest migration
 ---
 
-OpenClaw keeps older plugin contracts wired through named compatibility
+Genesis keeps older plugin contracts wired through named compatibility
 adapters before removing them. This protects existing bundled and external
 plugins while the SDK, manifest, setup, config, and agent runtime contracts
 evolve.
@@ -33,14 +33,14 @@ record in the same change that adds the adapter.
 
 ## Plugin inspector package
 
-The plugin inspector should live outside the core OpenClaw repo as a separate
+The plugin inspector should live outside the core Genesis repo as a separate
 package/repository backed by the versioned compatibility and manifest
 contracts.
 
 The day-one CLI should be:
 
 ```sh
-openclaw-plugin-inspector ./my-plugin
+genesis-plugin-inspector ./my-plugin
 ```
 
 It should emit:
@@ -51,13 +51,13 @@ It should emit:
 - cold-path import checks
 - deprecation and compatibility warnings
 
-Use `--json` for stable machine-readable output in CI annotations. OpenClaw
+Use `--json` for stable machine-readable output in CI annotations. Genesis
 core should expose contracts and fixtures the inspector can consume, but should
-not publish the inspector binary from the main `openclaw` package.
+not publish the inspector binary from the main `genesis` package.
 
 ## Deprecation policy
 
-OpenClaw should not remove a documented plugin contract in the same release
+Genesis should not remove a documented plugin contract in the same release
 that introduces its replacement.
 
 The migration sequence is:
@@ -77,7 +77,7 @@ and target removal date when known.
 
 Current compatibility records include:
 
-- legacy broad SDK imports such as `openclaw/plugin-sdk/compat`
+- legacy broad SDK imports such as `genesis/plugin-sdk/compat`
 - legacy hook-only plugin shapes and `before_agent_start`
 - bundled plugin allowlist and enablement behavior
 - legacy provider/channel env-var manifest metadata

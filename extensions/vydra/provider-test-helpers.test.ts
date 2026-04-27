@@ -1,4 +1,4 @@
-import * as providerAuth from "openclaw/plugin-sdk/provider-auth-runtime";
+import * as providerAuth from "genesis/plugin-sdk/provider-auth-runtime";
 import { vi } from "vitest";
 
 export function stubVydraApiKey(): void {

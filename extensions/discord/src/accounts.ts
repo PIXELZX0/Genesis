@@ -2,11 +2,11 @@ import {
   createAccountActionGate,
   createAccountListHelpers,
   resolveMergedAccountConfig,
-} from "openclaw/plugin-sdk/account-helpers";
-import { normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import { resolveAccountEntry } from "openclaw/plugin-sdk/routing";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
-import type { DiscordAccountConfig, DiscordActionConfig, OpenClawConfig } from "./runtime-api.js";
+} from "genesis/plugin-sdk/account-helpers";
+import { normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import { resolveAccountEntry } from "genesis/plugin-sdk/routing";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
+import type { DiscordAccountConfig, DiscordActionConfig, GenesisConfig } from "./runtime-api.js";
 import { resolveDiscordToken } from "./token.js";
 
 export type ResolvedDiscordAccount = {
@@ -23,14 +23,14 @@ export const listDiscordAccountIds = listAccountIds;
 export const resolveDefaultDiscordAccountId = resolveDefaultAccountId;
 
 export function resolveDiscordAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): DiscordAccountConfig | undefined {
   return resolveAccountEntry(cfg.channels?.discord?.accounts, accountId);
 }
 
 export function mergeDiscordAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): DiscordAccountConfig {
   return resolveMergedAccountConfig<DiscordAccountConfig>({
@@ -43,7 +43,7 @@ export function mergeDiscordAccountConfig(
 }
 
 export function createDiscordActionGate(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): (key: keyof DiscordActionConfig, defaultValue?: boolean) => boolean {
   const accountId = normalizeAccountId(
@@ -56,7 +56,7 @@ export function createDiscordActionGate(params: {
 }
 
 export function resolveDiscordAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): ResolvedDiscordAccount {
   const accountId = normalizeAccountId(
@@ -78,7 +78,7 @@ export function resolveDiscordAccount(params: {
 }
 
 export function resolveDiscordMaxLinesPerMessage(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   discordConfig?: DiscordAccountConfig | null;
   accountId?: string | null;
 }): number | undefined {
@@ -91,7 +91,7 @@ export function resolveDiscordMaxLinesPerMessage(params: {
   }).config.maxLinesPerMessage;
 }
 
-export function listEnabledDiscordAccounts(cfg: OpenClawConfig): ResolvedDiscordAccount[] {
+export function listEnabledDiscordAccounts(cfg: GenesisConfig): ResolvedDiscordAccount[] {
   return listDiscordAccountIds(cfg)
     .map((accountId) => resolveDiscordAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

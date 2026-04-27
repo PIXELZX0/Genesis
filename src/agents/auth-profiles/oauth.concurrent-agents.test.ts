@@ -49,7 +49,7 @@ describe("resolveApiKeyForProfile cross-agent refresh coordination (#26322)", ()
       formatProviderAuthProfileApiKeyWithPluginMock,
     });
     clearRuntimeAuthProfileStoreSnapshots();
-    tempRoot = await createOAuthTestTempRoot("openclaw-oauth-concurrent-");
+    tempRoot = await createOAuthTestTempRoot("genesis-oauth-concurrent-");
     mainAgentDir = await createOAuthMainAgentDir(tempRoot);
     await loadOAuthModuleForTest();
     // Drop any refresh-queue entries left behind by a prior timed-out test.

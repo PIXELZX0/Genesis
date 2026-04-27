@@ -1,5 +1,5 @@
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { buildCommandsPaginationKeyboard } from "openclaw/plugin-sdk/telegram-command-ui";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+import { buildCommandsPaginationKeyboard } from "genesis/plugin-sdk/telegram-command-ui";
 import {
   buildBrowseProvidersButton,
   buildModelsKeyboard,

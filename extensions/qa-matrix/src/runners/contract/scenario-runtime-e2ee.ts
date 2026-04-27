@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import { chmod, mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import type { MatrixVerificationSummary } from "@openclaw/matrix/test-api.js";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+import type { MatrixVerificationSummary } from "@genesis/matrix/test-api.js";
+import { resolvePreferredGenesisTmpDir } from "genesis/plugin-sdk/temp-path";
 import { createMatrixQaClient } from "../../substrate/client.js";
 import {
   createMatrixQaE2eeScenarioClient,
@@ -31,8 +31,8 @@ import {
 import {
   formatMatrixQaCliCommand,
   redactMatrixQaCliOutput,
-  runMatrixQaOpenClawCli,
-  startMatrixQaOpenClawCli,
+  runMatrixQaGenesisCli,
+  startMatrixQaGenesisCli,
   type MatrixQaCliRunResult,
 } from "./scenario-runtime-cli.js";
 import {
@@ -392,7 +392,7 @@ async function createMatrixQaCliSelfVerificationRuntime(params: {
 }) {
   const outputDir = requireMatrixQaE2eeOutputDir(params.context);
   const rootDir = await mkdtemp(
-    path.join(resolvePreferredOpenClawTmpDir(), "openclaw-matrix-cli-qa-"),
+    path.join(resolvePreferredGenesisTmpDir(), "genesis-matrix-cli-qa-"),
   );
   const artifactDir = path.join(
     outputDir,
@@ -444,18 +444,18 @@ async function createMatrixQaCliSelfVerificationRuntime(params: {
     ...requireMatrixQaCliRuntimeEnv(params.context),
     FORCE_COLOR: "0",
     NO_COLOR: "1",
-    OPENCLAW_CONFIG_PATH: configPath,
-    OPENCLAW_DISABLE_AUTO_UPDATE: "1",
-    OPENCLAW_STATE_DIR: stateDir,
+    GENESIS_CONFIG_PATH: configPath,
+    GENESIS_DISABLE_AUTO_UPDATE: "1",
+    GENESIS_STATE_DIR: stateDir,
   };
   const run = async (args: string[], timeoutMs = params.context.timeoutMs) =>
-    await runMatrixQaOpenClawCli({
+    await runMatrixQaGenesisCli({
       args,
       env,
       timeoutMs,
     });
   const start = (args: string[], timeoutMs = params.context.timeoutMs) =>
-    startMatrixQaOpenClawCli({
+    startMatrixQaGenesisCli({
       args,
       env,
       timeoutMs,
@@ -1009,7 +1009,7 @@ export async function runMatrixQaE2eeRecoveryKeyLifecycleScenario(
         baseUrl: context.baseUrl,
       });
       const recoveryDevice = await loginClient.loginWithPassword({
-        deviceName: "OpenClaw Matrix QA Recovery Restore Device",
+        deviceName: "Genesis Matrix QA Recovery Restore Device",
         password: driverPassword,
         userId: context.driverUserId,
       });
@@ -1119,7 +1119,7 @@ export async function runMatrixQaE2eeRecoveryOwnerVerificationRequiredScenario(
         baseUrl: context.baseUrl,
       });
       const recoveryDevice = await loginClient.loginWithPassword({
-        deviceName: "OpenClaw Matrix QA Owner Verification Required Device",
+        deviceName: "Genesis Matrix QA Owner Verification Required Device",
         password: driverPassword,
         userId: context.driverUserId,
       });
@@ -1189,7 +1189,7 @@ export async function runMatrixQaE2eeCliSelfVerificationScenario(
         baseUrl: context.baseUrl,
       });
       const cliDevice = await loginClient.loginWithPassword({
-        deviceName: "OpenClaw Matrix QA CLI Self Verification Device",
+        deviceName: "Genesis Matrix QA CLI Self Verification Device",
         password: driverPassword,
         userId: context.driverUserId,
       });
@@ -1269,7 +1269,7 @@ export async function runMatrixQaE2eeCliSelfVerificationScenario(
           );
           const cliSas = parseMatrixQaCliSasText(
             sasOutput.text,
-            "interactive openclaw matrix verify self",
+            "interactive genesis matrix verify self",
           );
           const ownerSas = await waitForMatrixQaVerificationSummary({
             client: owner,
@@ -1363,7 +1363,7 @@ export async function runMatrixQaE2eeCliSelfVerificationScenario(
               secondaryDeviceId: cliDevice.deviceId,
             },
             details: [
-              "Matrix CLI self-verification established full Matrix identity trust through interactive openclaw matrix verify self",
+              "Matrix CLI self-verification established full Matrix identity trust through interactive genesis matrix verify self",
               "cli secret config cleaned after run: yes",
               `cli backup restore stdout: ${restoreArtifacts.stdoutPath}`,
               `cli backup restore stderr: ${restoreArtifacts.stderrPath}`,
@@ -1583,7 +1583,7 @@ export async function runMatrixQaE2eeStaleDeviceHygieneScenario(
         baseUrl: context.baseUrl,
       });
       const secondary = await loginClient.loginWithPassword({
-        deviceName: "OpenClaw Matrix QA Stale Device",
+        deviceName: "Genesis Matrix QA Stale Device",
         password: driverPassword,
         userId: context.driverUserId,
       });
@@ -1796,7 +1796,7 @@ export async function runMatrixQaE2eeArtifactRedactionScenario(
     },
     details: [
       "decrypted E2EE payload reached in-memory assertions only",
-      "observed-event artifacts redact body/formatted_body unless OPENCLAW_QA_MATRIX_CAPTURE_CONTENT=1",
+      "observed-event artifacts redact body/formatted_body unless GENESIS_QA_MATRIX_CAPTURE_CONTENT=1",
       `encrypted room id: ${result.roomId}`,
       ...buildMatrixReplyDetails("E2EE reply", result.reply),
     ].join("\n"),

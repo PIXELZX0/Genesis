@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   resolvePluginCapabilityProvider,
   resolvePluginCapabilityProviders,
@@ -15,7 +15,7 @@ export function listRegisteredMemoryEmbeddingProviderAdapters(): MemoryEmbedding
   return listRegisteredMemoryEmbeddingProviders().map((entry) => entry.adapter);
 }
 export function listMemoryEmbeddingProviders(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): MemoryEmbeddingProviderAdapter[] {
   const registered = listRegisteredMemoryEmbeddingProviderAdapters();
   const merged = new Map(registered.map((adapter) => [adapter.id, adapter]));
@@ -32,7 +32,7 @@ export function listMemoryEmbeddingProviders(
 
 export function getMemoryEmbeddingProvider(
   id: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): MemoryEmbeddingProviderAdapter | undefined {
   const registered = getRegisteredMemoryEmbeddingProvider(id);
   if (registered) {

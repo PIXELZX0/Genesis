@@ -30,9 +30,9 @@ export function createAuthAliasManifestRegistry(): PluginManifestRegistry {
         cliBackends: [],
         skills: [],
         hooks: [],
-        rootDir: "/tmp/openclaw-auth-contract-plugin",
+        rootDir: "/tmp/genesis-auth-contract-plugin",
         source: "test",
-        manifestPath: "/tmp/openclaw-auth-contract-plugin/plugin.json",
+        manifestPath: "/tmp/genesis-auth-contract-plugin/plugin.json",
         providerAuthChoices: [
           {
             provider: AUTH_PROFILE_RUNTIME_CONTRACT.openAiCodexProvider,

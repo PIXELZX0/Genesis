@@ -3,11 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-cron-mcp-cleanup-e2e" OPENCLAW_IMAGE)"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-cron-mcp-cleanup-e2e" GENESIS_IMAGE)"
 PORT="18789"
 TOKEN="cron-mcp-e2e-$(date +%s)-$$"
-CONTAINER_NAME="openclaw-cron-mcp-e2e-$$"
-CLIENT_LOG="$(mktemp -t openclaw-cron-mcp-client-log.XXXXXX)"
+CONTAINER_NAME="genesis-cron-mcp-e2e-$$"
+CLIENT_LOG="$(mktemp -t genesis-cron-mcp-client-log.XXXXXX)"
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -21,23 +21,23 @@ echo "Running in-container cron/subagent MCP cleanup smoke..."
 set +e
 docker run --rm \
   --name "$CONTAINER_NAME" \
-  -e "OPENCLAW_GATEWAY_TOKEN=$TOKEN" \
-  -e "OPENCLAW_SKIP_CHANNELS=1" \
-  -e "OPENCLAW_SKIP_GMAIL_WATCHER=1" \
-  -e "OPENCLAW_SKIP_CANVAS_HOST=1" \
-  -e "OPENCLAW_STATE_DIR=/tmp/openclaw-state" \
-  -e "OPENCLAW_CONFIG_PATH=/tmp/openclaw-state/openclaw.json" \
+  -e "GENESIS_GATEWAY_TOKEN=$TOKEN" \
+  -e "GENESIS_SKIP_CHANNELS=1" \
+  -e "GENESIS_SKIP_GMAIL_WATCHER=1" \
+  -e "GENESIS_SKIP_CANVAS_HOST=1" \
+  -e "GENESIS_STATE_DIR=/tmp/genesis-state" \
+  -e "GENESIS_CONFIG_PATH=/tmp/genesis-state/genesis.json" \
   -e "GW_URL=ws://127.0.0.1:$PORT" \
   -e "GW_TOKEN=$TOKEN" \
-  -e "OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1" \
+  -e "GENESIS_ALLOW_INSECURE_PRIVATE_WS=1" \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail
     entry=dist/index.mjs
     [ -f \"\$entry\" ] || entry=dist/index.js
     export MOCK_PORT=44081
-    export SUCCESS_MARKER=OPENCLAW_CRON_MCP_CLEANUP_OK
-    export MOCK_REQUEST_LOG=/tmp/openclaw-cron-mock-openai-requests.jsonl
-    export OPENCLAW_DOCKER_OPENAI_BASE_URL=\"http://127.0.0.1:\$MOCK_PORT/v1\"
+    export SUCCESS_MARKER=GENESIS_CRON_MCP_CLEANUP_OK
+    export MOCK_REQUEST_LOG=/tmp/genesis-cron-mock-openai-requests.jsonl
+    export GENESIS_DOCKER_OPENAI_BASE_URL=\"http://127.0.0.1:\$MOCK_PORT/v1\"
     node scripts/e2e/mock-openai-server.mjs >/tmp/cron-mcp-cleanup-mock-openai.log 2>&1 &
     mock_pid=\$!
     node --import tsx scripts/e2e/cron-mcp-cleanup-seed.ts >/tmp/cron-mcp-cleanup-seed.log

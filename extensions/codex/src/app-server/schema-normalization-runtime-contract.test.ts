@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness";
+import type { EmbeddedRunAttemptParams } from "genesis/plugin-sdk/agent-harness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createParameterFreeTool,
@@ -83,7 +83,7 @@ function threadStartResult(threadId = "thread-1") {
 
 describe("Codex app-server dynamic tool schema boundary contract", () => {
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-schema-contract-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-schema-contract-"));
   });
 
   afterEach(async () => {

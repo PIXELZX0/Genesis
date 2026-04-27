@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   expectedIntegrityForUpdate,
   readInstalledPackageVersion,
@@ -26,7 +26,7 @@ export type HookPackUpdateOutcome = {
 };
 
 export type HookPackUpdateSummary = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   changed: boolean;
   outcomes: HookPackUpdateOutcome[];
 };
@@ -66,7 +66,7 @@ function createHookPackUpdateIntegrityDriftHandler(params: {
 }
 
 export async function updateNpmInstalledHookPacks(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   logger?: HookPackUpdateLogger;
   hookIds?: string[];
   dryRun?: boolean;

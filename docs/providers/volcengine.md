@@ -2,7 +2,7 @@
 summary: "Volcano Engine setup (Doubao models, general + coding endpoints)"
 title: "Volcengine (Doubao)"
 read_when:
-  - You want to use Volcano Engine or Doubao models with OpenClaw
+  - You want to use Volcano Engine or Doubao models with Genesis
   - You need the Volcengine API key setup
 ---
 
@@ -23,7 +23,7 @@ workloads.
     Run interactive onboarding:
 
     ```bash
-    openclaw onboard --auth-choice volcengine-api-key
+    genesis onboard --auth-choice volcengine-api-key
     ```
 
     This registers both the general (`volcengine`) and coding (`volcengine-plan`) providers from a single API key.
@@ -42,8 +42,8 @@ workloads.
   </Step>
   <Step title="Verify the model is available">
     ```bash
-    openclaw models list --provider volcengine
-    openclaw models list --provider volcengine-plan
+    genesis models list --provider volcengine
+    genesis models list --provider volcengine-plan
     ```
   </Step>
 </Steps>
@@ -52,7 +52,7 @@ workloads.
 For non-interactive setup (CI, scripting), pass the key directly:
 
 ```bash
-openclaw onboard --non-interactive \
+genesis onboard --non-interactive \
   --mode local \
   --auth-choice volcengine-api-key \
   --volcengine-api-key "$VOLCANO_ENGINE_API_KEY"
@@ -99,7 +99,7 @@ Both providers are configured from a single API key. Setup registers both automa
 
 <AccordionGroup>
   <Accordion title="Default model after onboarding">
-    `openclaw onboard --auth-choice volcengine-api-key` currently sets
+    `genesis onboard --auth-choice volcengine-api-key` currently sets
     `volcengine-plan/ark-code-latest` as the default model while also registering
     the general `volcengine` catalog.
   </Accordion>
@@ -107,19 +107,19 @@ Both providers are configured from a single API key. Setup registers both automa
   <Accordion title="Model picker fallback behavior">
     During onboarding/configure model selection, the Volcengine auth choice prefers
     both `volcengine/*` and `volcengine-plan/*` rows. If those models are not
-    loaded yet, OpenClaw falls back to the unfiltered catalog instead of showing an
+    loaded yet, Genesis falls back to the unfiltered catalog instead of showing an
     empty provider-scoped picker.
   </Accordion>
 
   <Accordion title="Environment variables for daemon processes">
     If the Gateway runs as a daemon (launchd/systemd), make sure
     `VOLCANO_ENGINE_API_KEY` is available to that process (for example, in
-    `~/.openclaw/.env` or via `env.shellEnv`).
+    `~/.genesis/.env` or via `env.shellEnv`).
   </Accordion>
 </AccordionGroup>
 
 <Warning>
-When running OpenClaw as a background service, environment variables set in your
+When running Genesis as a background service, environment variables set in your
 interactive shell are not automatically inherited. See the daemon note above.
 </Warning>
 
@@ -136,6 +136,6 @@ interactive shell are not automatically inherited. See the daemon note above.
     Common issues and debugging steps.
   </Card>
   <Card title="FAQ" href="/help/faq" icon="circle-question">
-    Frequently asked questions about OpenClaw setup.
+    Frequently asked questions about Genesis setup.
   </Card>
 </CardGroup>

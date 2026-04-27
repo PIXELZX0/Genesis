@@ -1,5 +1,5 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { MemorySyncProgressUpdate } from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { MemorySyncProgressUpdate } from "genesis/plugin-sdk/memory-core-host-engine-storage";
 
 type TargetedSyncProgress = {
   completed: number;

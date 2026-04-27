@@ -111,7 +111,7 @@ describe("listMemoryFiles", () => {
   it("skips root-memory repair backups from extra workspace paths", async () => {
     const tmpDir = getTmpDir();
     await fs.writeFile(path.join(tmpDir, "MEMORY.md"), "# Default memory");
-    const repairDir = path.join(tmpDir, ".openclaw-repair", "root-memory", "2026-04-23");
+    const repairDir = path.join(tmpDir, ".genesis-repair", "root-memory", "2026-04-23");
     await fs.mkdir(repairDir, { recursive: true });
     await fs.writeFile(path.join(repairDir, "memory.md"), "# Archived legacy memory");
 

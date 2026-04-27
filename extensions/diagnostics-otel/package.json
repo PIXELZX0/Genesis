@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/diagnostics-otel",
+  "name": "@genesis/diagnostics-otel",
   "version": "2026.4.20",
-  "description": "OpenClaw diagnostics OpenTelemetry exporter",
+  "description": "Genesis diagnostics OpenTelemetry exporter",
   "type": "module",
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
@@ -17,9 +17,9 @@
     "@opentelemetry/semantic-conventions": "^1.40.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -27,7 +27,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "release": {
       "publishToClawHub": true,

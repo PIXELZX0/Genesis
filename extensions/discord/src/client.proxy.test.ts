@@ -1,15 +1,15 @@
 import http from "node:http";
 import { fetch as undiciFetch } from "undici";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../../src/config/config.js";
+import type { GenesisConfig } from "../../../src/config/config.js";
 import { createDiscordRestClient } from "./client.js";
 import { createDiscordRequestClient } from "./proxy-request-client.js";
 
 const makeProxyFetchMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/infra-runtime")>(
-    "openclaw/plugin-sdk/infra-runtime",
+vi.mock("genesis/plugin-sdk/infra-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/infra-runtime")>(
+    "genesis/plugin-sdk/infra-runtime",
   );
   makeProxyFetchMock.mockImplementation((proxyUrl: string) => {
     if (proxyUrl === "bad-proxy") {
@@ -36,7 +36,7 @@ describe("createDiscordRestClient proxy support", () => {
           proxy: "http://127.0.0.1:8080",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const { rest } = createDiscordRestClient({ cfg });
     const requestClient = rest as unknown as {
@@ -55,7 +55,7 @@ describe("createDiscordRestClient proxy support", () => {
           token: "Bot test-token",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const { rest } = createDiscordRestClient({ cfg });
     const requestClient = rest as unknown as {
@@ -73,7 +73,7 @@ describe("createDiscordRestClient proxy support", () => {
           proxy: "bad-proxy",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const { rest } = createDiscordRestClient({ cfg });
     const requestClient = rest as unknown as {
@@ -92,7 +92,7 @@ describe("createDiscordRestClient proxy support", () => {
           proxy: "http://proxy.test:8080",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const { rest } = createDiscordRestClient({ cfg });
     const requestClient = rest as unknown as {
@@ -111,7 +111,7 @@ describe("createDiscordRestClient proxy support", () => {
           proxy: "http://[::1]:8080",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const { rest } = createDiscordRestClient({ cfg });
     const requestClient = rest as unknown as {

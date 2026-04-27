@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeEmbeddedAgentRuntime } from "../pi-embedded-runner/runtime.js";
 import { resolveProviderIdForAuth } from "../provider-auth-aliases.js";
 import type { AgentRuntimeAuthPlan } from "./types.js";
@@ -18,7 +18,7 @@ export function buildAgentRuntimeAuthPlan(params: {
   provider: string;
   authProfileProvider?: string;
   sessionAuthProfileId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   harnessId?: string;
   harnessRuntime?: string;

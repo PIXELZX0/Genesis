@@ -1,7 +1,7 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { GatewayRequestHandlerOptions } from "openclaw/plugin-sdk/gateway-runtime";
-import { definePluginEntry, type OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import type { GatewayRequestHandlerOptions } from "genesis/plugin-sdk/gateway-runtime";
+import { definePluginEntry, type GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { Type } from "typebox";
 import {
   resolveGoogleMeetConfig,
@@ -58,7 +58,7 @@ const googleMeetConfigSchema = {
     },
     "chrome.autoJoin": {
       label: "Auto Join Guest Screen",
-      help: "Best-effort guest-name fill and Join Now click through OpenClaw browser automation.",
+      help: "Best-effort guest-name fill and Join Now click through Genesis browser automation.",
     },
     "chrome.waitForInCallMs": {
       label: "Wait For In-Call (ms)",
@@ -243,7 +243,7 @@ function shouldJoinCreatedMeet(raw: Record<string, unknown>): boolean {
 
 async function createMeetFromParams(params: {
   config: GoogleMeetConfig;
-  runtime: OpenClawPluginApi["runtime"];
+  runtime: GenesisPluginApi["runtime"];
   raw: Record<string, unknown>;
 }) {
   const create = await import("./src/create.js");
@@ -252,7 +252,7 @@ async function createMeetFromParams(params: {
 
 async function createAndJoinMeetFromParams(params: {
   config: GoogleMeetConfig;
-  runtime: OpenClawPluginApi["runtime"];
+  runtime: GenesisPluginApi["runtime"];
   raw: Record<string, unknown>;
   ensureRuntime: () => Promise<GoogleMeetRuntime>;
 }) {
@@ -309,7 +309,7 @@ export default definePluginEntry({
   name: "Google Meet",
   description: "Join Google Meet calls through Chrome or Twilio transports",
   configSchema: googleMeetConfigSchema,
-  register(api: OpenClawPluginApi) {
+  register(api: GenesisPluginApi) {
     const config = googleMeetConfigSchema.parse(api.pluginConfig);
     let runtime: GoogleMeetRuntime | null = null;
 

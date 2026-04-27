@@ -1,10 +1,10 @@
-import { buildThreadAwareOutboundSessionRoute } from "openclaw/plugin-sdk/channel-core";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildOutboundBaseSessionKey, type RoutePeer } from "openclaw/plugin-sdk/routing";
+import { buildThreadAwareOutboundSessionRoute } from "genesis/plugin-sdk/channel-core";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { buildOutboundBaseSessionKey, type RoutePeer } from "genesis/plugin-sdk/routing";
 import { parseDiscordTarget } from "./target-parsing.js";
 
 export type ResolveDiscordOutboundSessionRouteParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   accountId?: string | null;
   target: string;

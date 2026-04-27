@@ -9,7 +9,7 @@ title: "Control UI"
 The Control UI is a small **Vite + Lit** single-page app served by the Gateway:
 
 - default: `http://<host>:18789/`
-- optional prefix: set `gateway.controlUi.basePath` (e.g. `/openclaw`)
+- optional prefix: set `gateway.controlUi.basePath` (e.g. `/genesis`)
 
 It speaks **directly to the Gateway WebSocket** on the same port.
 
@@ -19,7 +19,7 @@ If the Gateway is running on the same computer, open:
 
 - [http://127.0.0.1:18789/](http://127.0.0.1:18789/) (or [http://localhost:18789/](http://localhost:18789/))
 
-If the page fails to load, start the Gateway first: `openclaw gateway`.
+If the page fails to load, start the Gateway first: `genesis gateway`.
 
 Auth is supplied during the WebSocket handshake via:
 
@@ -46,23 +46,23 @@ unauthorized access.
 
 ```bash
 # List pending requests
-openclaw devices list
+genesis devices list
 
 # Approve by request ID
-openclaw devices approve <requestId>
+genesis devices approve <requestId>
 ```
 
 If the browser retries pairing with changed auth details (role/scopes/public
 key), the previous pending request is superseded and a new `requestId` is
-created. Re-run `openclaw devices list` before approval.
+created. Re-run `genesis devices list` before approval.
 
 If the browser is already paired and you change it from read access to
 write/admin access, this is treated as an approval upgrade, not a silent
-reconnect. OpenClaw keeps the old approval active, blocks the broader reconnect,
+reconnect. Genesis keeps the old approval active, blocks the broader reconnect,
 and asks you to approve the new scope set explicitly.
 
 Once approved, the device is remembered and won't require re-approval unless
-you revoke it with `openclaw devices revoke --device <id> --role <role>`. See
+you revoke it with `genesis devices revoke --device <id> --role <role>`. See
 [Devices CLI](/cli/devices) for token rotation and revocation.
 
 **Notes:**
@@ -86,7 +86,7 @@ switching browsers resets it to empty.
 ## Runtime config endpoint
 
 The Control UI fetches its runtime settings from
-`/__openclaw/control-ui-config.json`. That endpoint is gated by the same
+`/__genesis/control-ui-config.json`. That endpoint is gated by the same
 gateway auth as the rest of the HTTP surface: unauthenticated browsers cannot
 fetch it, and a successful fetch requires either an already valid gateway
 token/password, Tailscale Serve identity, or a trusted-proxy identity.
@@ -108,8 +108,8 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway
   mints a short-lived Realtime client secret with `talk.realtime.session`; the
   browser sends microphone audio directly to OpenAI and relays
-  `openclaw_agent_consult` tool calls back through `chat.send` for the larger
-  configured OpenClaw model.
+  `genesis_agent_consult` tool calls back through `chat.send` for the larger
+  configured Genesis model.
 - Stream tool calls + live tool output cards in Chat (agent events)
 - Channels: built-in plus bundled/external plugin channels status, QR login, and per-channel config (`channels.status`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
@@ -117,9 +117,10 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
+- Wallet: public wallet addresses and copy buttons from read-only `wallet.summary`; no seed, private key, passphrase, or send controls
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
-- Config: view/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`)
+- Config: view/edit `~/.genesis/genesis.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session
 - Config writes include a base-hash guard to prevent clobbering concurrent edits
 - Config writes (`config.set`/`config.apply`/`config.patch`) also preflight active SecretRef resolution for refs in the submitted config payload; unresolved active submitted refs are rejected before write
@@ -175,12 +176,12 @@ Cron jobs panel notes:
 - In the Chat composer, the Talk control is the waves button next to the
   microphone dictation button. When Talk starts, the composer status row shows
   `Connecting Talk...`, then `Talk live` while audio is connected, or
-  `Asking OpenClaw...` while a realtime tool call is consulting the configured
+  `Asking Genesis...` while a realtime tool call is consulting the configured
   larger model through `chat.send`.
 - Stop:
   - Click **Stop** (calls `chat.abort`)
   - While a run is active, normal follow-ups queue. Click **Steer** on a queued message to inject that follow-up into the running turn.
-  - Type `/stop` (or standalone abort phrases like `stop`, `stop action`, `stop run`, `stop openclaw`, `please stop`) to abort out-of-band
+  - Type `/stop` (or standalone abort phrases like `stop`, `stop action`, `stop run`, `stop genesis`, `please stop`) to abort out-of-band
   - `chat.abort` supports `{ sessionKey }` (no `runId`) to abort all active runs for that session
 - Abort partial retention:
   - When a run is aborted, partial assistant text can still be shown in the UI
@@ -226,7 +227,7 @@ intentionally want `[embed url="https://..."]` to load third-party pages, set
 Keep the Gateway on loopback and let Tailscale Serve proxy it with HTTPS:
 
 ```bash
-openclaw gateway --tailscale serve
+genesis gateway --tailscale serve
 ```
 
 Open:
@@ -234,7 +235,7 @@ Open:
 - `https://<magicdns>/` (or your configured `gateway.controlUi.basePath`)
 
 By default, Control UI/WebSocket Serve requests can authenticate via Tailscale identity headers
-(`tailscale-user-login`) when `gateway.auth.allowTailscale` is `true`. OpenClaw
+(`tailscale-user-login`) when `gateway.auth.allowTailscale` is `true`. Genesis
 verifies the identity by resolving the `x-forwarded-for` address with
 `tailscale whois` and matching it to the header, and only accepts these when the
 request hits loopback with Tailscale’s `x-forwarded-*` headers. Set
@@ -251,7 +252,7 @@ code may run on that host, require token/password auth.
 ### Bind to tailnet + token
 
 ```bash
-openclaw gateway --bind tailnet --token "$(openssl rand -hex 32)"
+genesis gateway --bind tailnet --token "$(openssl rand -hex 32)"
 ```
 
 Then open:
@@ -265,7 +266,7 @@ Paste the matching shared secret into the UI settings (sent as
 
 If you open the dashboard over plain HTTP (`http://<lan-ip>` or `http://<tailscale-ip>`),
 the browser runs in a **non-secure context** and blocks WebCrypto. By default,
-OpenClaw **blocks** Control UI connections without device identity.
+Genesis **blocks** Control UI connections without device identity.
 
 Documented exceptions:
 
@@ -355,7 +356,7 @@ pnpm ui:build
 Optional absolute base (when you want fixed asset URLs):
 
 ```bash
-OPENCLAW_CONTROL_UI_BASE_PATH=/openclaw/ pnpm ui:build
+GENESIS_CONTROL_UI_BASE_PATH=/genesis/ pnpm ui:build
 ```
 
 For local development (separate dev server):

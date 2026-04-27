@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createDelegatedSetupWizardStatusResolvers } from "./setup-wizard-binary.js";
 import type { ChannelSetupDmPolicy } from "./setup-wizard-types.js";
 import type { ChannelSetupWizard } from "./setup-wizard.js";
@@ -73,7 +73,7 @@ export function createDelegatedSetupWizardProxy(params: {
 export function createAllowlistSetupWizardProxy<TGroupResolved>(params: {
   loadWizard: () => Promise<ChannelSetupWizard>;
   createBase: (handlers: {
-    promptAllowFrom: (params: PromptAllowFromParams) => Promise<OpenClawConfig>;
+    promptAllowFrom: (params: PromptAllowFromParams) => Promise<GenesisConfig>;
     resolveAllowFromEntries: (
       params: ResolveAllowFromEntriesParams,
     ) => Promise<ResolveAllowFromEntriesResult>;

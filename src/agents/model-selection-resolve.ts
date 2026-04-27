@@ -1,5 +1,5 @@
 import { resolveAgentModelFallbackValues } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ModelCatalogEntry } from "./model-catalog.types.js";
 import type { ModelRef } from "./model-selection-normalize.js";
 import {
@@ -22,12 +22,12 @@ export {
 } from "./model-selection-shared.js";
 export type { ModelAliasIndex, ModelRefStatus } from "./model-selection-shared.js";
 
-function resolveDefaultFallbackModels(cfg: OpenClawConfig): string[] {
+function resolveDefaultFallbackModels(cfg: GenesisConfig): string[] {
   return resolveAgentModelFallbackValues(cfg.agents?.defaults?.model);
 }
 
 export function buildAllowedModelSet(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   catalog: ModelCatalogEntry[];
   defaultProvider: string;
   defaultModel?: string;
@@ -47,7 +47,7 @@ export function buildAllowedModelSet(params: {
 }
 
 export function getModelRefStatus(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   catalog: ModelCatalogEntry[];
   ref: ModelRef;
   defaultProvider: string;
@@ -65,7 +65,7 @@ export function getModelRefStatus(params: {
 }
 
 export function resolveAllowedModelRef(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   catalog: ModelCatalogEntry[];
   raw: string;
   defaultProvider: string;

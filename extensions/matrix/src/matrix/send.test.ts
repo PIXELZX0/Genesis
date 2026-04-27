@@ -9,7 +9,7 @@ import {
   sendSingleTextMessageMatrix,
   sendTypingMatrix,
 } from "./send.js";
-import { MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY } from "./send/types.js";
+import { MATRIX_GENESIS_FINALIZED_PREVIEW_KEY } from "./send/types.js";
 
 const loadOutboundMediaFromUrlMock = vi.hoisted(() => vi.fn());
 const loadWebMediaMock = vi.fn().mockResolvedValue({
@@ -33,9 +33,9 @@ const resolveMarkdownTableModeMock = vi.fn(() => "code");
 const convertMarkdownTablesMock = vi.fn((text: string) => text);
 const chunkMarkdownTextWithModeMock = vi.fn((text: string) => (text ? [text] : []));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -419,14 +419,14 @@ describe("sendMessageMatrix media", () => {
       client,
       cfg: {} as never,
       mediaUrl: "file:///tmp/photo.png",
-      mediaLocalRoots: ["/tmp/openclaw-matrix-test"],
+      mediaLocalRoots: ["/tmp/genesis-matrix-test"],
     });
 
     expect(loadWebMediaMock).toHaveBeenCalledWith(
       "file:///tmp/photo.png",
       expect.objectContaining({
         maxBytes: undefined,
-        localRoots: ["/tmp/openclaw-matrix-test"],
+        localRoots: ["/tmp/genesis-matrix-test"],
       }),
     );
   });
@@ -679,12 +679,12 @@ describe("sendSingleTextMessageMatrix", () => {
     await sendSingleTextMessageMatrix("room:!room:example", "done", {
       client,
       cfg: {} as never,
-      extraContent: { [MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY]: true },
+      extraContent: { [MATRIX_GENESIS_FINALIZED_PREVIEW_KEY]: true },
     });
 
     expect(sendMessage.mock.calls[0]?.[1]).toMatchObject({
       body: "done",
-      [MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY]: true,
+      [MATRIX_GENESIS_FINALIZED_PREVIEW_KEY]: true,
     });
   });
 });
@@ -808,13 +808,13 @@ describe("editMessageMatrix mentions", () => {
     await editMessageMatrix("room:!room:example", "$original", "done", {
       client,
       cfg: {} as never,
-      extraContent: { [MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY]: true },
+      extraContent: { [MATRIX_GENESIS_FINALIZED_PREVIEW_KEY]: true },
     });
 
     expect(sendMessage.mock.calls[0]?.[1]).toMatchObject({
-      [MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY]: true,
+      [MATRIX_GENESIS_FINALIZED_PREVIEW_KEY]: true,
       "m.new_content": {
-        [MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY]: true,
+        [MATRIX_GENESIS_FINALIZED_PREVIEW_KEY]: true,
       },
     });
   });

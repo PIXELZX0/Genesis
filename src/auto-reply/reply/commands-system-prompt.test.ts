@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveSessionAgentIds } from "../../agents/agent-scope.js";
 import { resolveBootstrapContextForRun } from "../../agents/bootstrap-files.js";
-import { createOpenClawCodingTools } from "../../agents/pi-tools.js";
+import { createGenesisCodingTools } from "../../agents/pi-tools.js";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import { buildAgentSystemPrompt } from "../../agents/system-prompt.js";
 import { resolveCommandsSystemPromptBundle } from "./commands-system-prompt.js";
 import type { HandleCommandsParams } from "./commands-types.js";
 
-const { createOpenClawCodingToolsMock } = vi.hoisted(() => ({
-  createOpenClawCodingToolsMock: vi.fn(() => []),
+const { createGenesisCodingToolsMock } = vi.hoisted(() => ({
+  createGenesisCodingToolsMock: vi.fn(() => []),
 }));
 
 vi.mock("../../agents/bootstrap-files.js", () => ({
@@ -53,7 +53,7 @@ vi.mock("../../agents/system-prompt.js", () => ({
 }));
 
 vi.mock("../../agents/pi-tools.js", () => ({
-  createOpenClawCodingTools: createOpenClawCodingToolsMock,
+  createGenesisCodingTools: createGenesisCodingToolsMock,
 }));
 
 vi.mock("../../tts/tts.js", () => ({
@@ -116,14 +116,14 @@ function makeParams(): HandleCommandsParams {
 describe("resolveCommandsSystemPromptBundle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    createOpenClawCodingToolsMock.mockClear();
-    createOpenClawCodingToolsMock.mockReturnValue([]);
+    createGenesisCodingToolsMock.mockClear();
+    createGenesisCodingToolsMock.mockReturnValue([]);
   });
 
   it("opts command tool builds into gateway subagent binding", async () => {
     await resolveCommandsSystemPromptBundle(makeParams());
 
-    expect(vi.mocked(createOpenClawCodingTools)).toHaveBeenCalledWith(
+    expect(vi.mocked(createGenesisCodingTools)).toHaveBeenCalledWith(
       expect.objectContaining({
         allowGatewaySubagentBinding: true,
         sessionKey: "agent:main:default",
@@ -161,7 +161,7 @@ describe("resolveCommandsSystemPromptBundle", () => {
 
     await resolveCommandsSystemPromptBundle(params);
 
-    expect(vi.mocked(createOpenClawCodingTools)).toHaveBeenCalledWith(
+    expect(vi.mocked(createGenesisCodingTools)).toHaveBeenCalledWith(
       expect.objectContaining({
         agentId: "target",
         sessionKey: "agent:target:telegram:direct:target-session",
@@ -198,7 +198,7 @@ describe("resolveCommandsSystemPromptBundle", () => {
         sessionId: "target-session",
       }),
     );
-    expect(vi.mocked(createOpenClawCodingTools)).toHaveBeenCalledWith(
+    expect(vi.mocked(createGenesisCodingTools)).toHaveBeenCalledWith(
       expect.objectContaining({
         groupId: "target-group",
         groupChannel: "#target",

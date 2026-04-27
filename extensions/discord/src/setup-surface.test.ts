@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { createDiscordSetupWizardBase } from "./setup-core.js";
 
@@ -33,7 +33,7 @@ describe("discordSetupWizard.dmPolicy", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         "alerts",
       ),
     ).toBe("allowlist");
@@ -59,7 +59,7 @@ describe("discordSetupWizard.dmPolicy", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       "open",
       "alerts",
     );
@@ -88,7 +88,7 @@ describe("discordSetupWizard.status", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(configured).toBe(false);

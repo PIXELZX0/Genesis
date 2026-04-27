@@ -1,10 +1,10 @@
 import { ChannelType } from "discord-api-types/v10";
-import * as commandRegistryModule from "openclaw/plugin-sdk/command-auth";
-import type { ChatCommandDefinition, CommandArgsParsing } from "openclaw/plugin-sdk/command-auth";
-import type { ModelsProviderData } from "openclaw/plugin-sdk/command-auth";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import * as globalsModule from "openclaw/plugin-sdk/runtime-env";
-import * as commandTextModule from "openclaw/plugin-sdk/text-runtime";
+import * as commandRegistryModule from "genesis/plugin-sdk/command-auth";
+import type { ChatCommandDefinition, CommandArgsParsing } from "genesis/plugin-sdk/command-auth";
+import type { ModelsProviderData } from "genesis/plugin-sdk/command-auth";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import * as globalsModule from "genesis/plugin-sdk/runtime-env";
+import * as commandTextModule from "genesis/plugin-sdk/text-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineThrowingDiscordChannelGetter } from "../test-support/partial-channel.js";
 import { resolveDiscordChannelContext } from "./agent-components-helpers.js";
@@ -69,7 +69,7 @@ function createModelPickerContext(): ModelPickerContext {
         },
       },
     },
-  } as unknown as OpenClawConfig;
+  } as unknown as GenesisConfig;
 
   return {
     cfg,
@@ -415,8 +415,8 @@ describe("Discord model picker interactions", () => {
         [
           {
             id: "pi",
-            label: "OpenClaw Pi Default",
-            description: "Use the built-in OpenClaw Pi runtime.",
+            label: "Genesis Pi Default",
+            description: "Use the built-in Genesis Pi runtime.",
           },
           {
             id: "codex",

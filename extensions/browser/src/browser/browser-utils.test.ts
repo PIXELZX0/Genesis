@@ -230,14 +230,14 @@ describe("fetchBrowserJson loopback auth (bridge auth registry)", () => {
 describe("browser server-context listKnownProfileNames", () => {
   it("includes configured and runtime-only profile names", () => {
     const resolved = resolveBrowserConfig({
-      defaultProfile: "openclaw",
+      defaultProfile: "genesis",
       profiles: {
-        openclaw: { cdpPort: 18800, color: "#FF4500" },
+        genesis: { cdpPort: 18800, color: "#FF4500" },
       },
     });
-    const openclaw = resolveProfile(resolved, "openclaw");
-    if (!openclaw) {
-      throw new Error("expected openclaw profile");
+    const genesis = resolveProfile(resolved, "genesis");
+    if (!genesis) {
+      throw new Error("expected genesis profile");
     }
 
     const state: BrowserServerState = {
@@ -248,13 +248,13 @@ describe("browser server-context listKnownProfileNames", () => {
         [
           "stale-removed",
           {
-            profile: { ...openclaw, name: "stale-removed" },
+            profile: { ...genesis, name: "stale-removed" },
             running: null,
           },
         ],
       ]),
     };
 
-    expect(listKnownProfileNames(state).toSorted()).toEqual(["openclaw", "stale-removed", "user"]);
+    expect(listKnownProfileNames(state).toSorted()).toEqual(["genesis", "stale-removed", "user"]);
   });
 });

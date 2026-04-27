@@ -352,7 +352,7 @@ describe("getHealthSnapshot", () => {
     expect(calls.some((c) => c.includes("/getMe"))).toBe(true);
     expect(calls.some((c) => c.includes("/getWebhookInfo"))).toBe(true);
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-health-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-health-"));
     const tokenFile = path.join(tmpDir, "telegram-token");
     try {
       fs.writeFileSync(tokenFile, "t-file\n", "utf-8");

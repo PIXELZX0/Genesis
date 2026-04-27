@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.js";
+import type { GenesisConfig } from "../../config/types.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -105,7 +105,7 @@ export function listInspectedDirectoryEntriesFromSources<InspectedAccount>(
   params: DirectoryConfigParams & {
     kind: "user" | "group";
     inspectAccount: (
-      cfg: OpenClawConfig,
+      cfg: GenesisConfig,
       accountId?: string | null,
     ) => InspectedAccount | null | undefined;
     resolveSources: (account: InspectedAccount) => Iterable<unknown>[];
@@ -128,7 +128,7 @@ export function listInspectedDirectoryEntriesFromSources<InspectedAccount>(
 export function createInspectedDirectoryEntriesLister<InspectedAccount>(params: {
   kind: "user" | "group";
   inspectAccount: (
-    cfg: OpenClawConfig,
+    cfg: GenesisConfig,
     accountId?: string | null,
   ) => InspectedAccount | null | undefined;
   resolveSources: (account: InspectedAccount) => Iterable<unknown>[];
@@ -144,7 +144,7 @@ export function createInspectedDirectoryEntriesLister<InspectedAccount>(params: 
 export function listResolvedDirectoryEntriesFromSources<ResolvedAccount>(
   params: DirectoryConfigParams & {
     kind: "user" | "group";
-    resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) => ResolvedAccount;
+    resolveAccount: (cfg: GenesisConfig, accountId?: string | null) => ResolvedAccount;
     resolveSources: (account: ResolvedAccount) => Iterable<unknown>[];
     normalizeId: (entry: string) => string | null | undefined;
   },
@@ -161,7 +161,7 @@ export function listResolvedDirectoryEntriesFromSources<ResolvedAccount>(
 
 export function createResolvedDirectoryEntriesLister<ResolvedAccount>(params: {
   kind: "user" | "group";
-  resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) => ResolvedAccount;
+  resolveAccount: (cfg: GenesisConfig, accountId?: string | null) => ResolvedAccount;
   resolveSources: (account: ResolvedAccount) => Iterable<unknown>[];
   normalizeId: (entry: string) => string | null | undefined;
 }) {
@@ -246,7 +246,7 @@ export function listDirectoryGroupEntriesFromMapKeysAndAllowFrom(params: {
 
 export function listResolvedDirectoryUserEntriesFromAllowFrom<ResolvedAccount>(
   params: DirectoryConfigParams & {
-    resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) => ResolvedAccount;
+    resolveAccount: (cfg: GenesisConfig, accountId?: string | null) => ResolvedAccount;
     resolveAllowFrom: (account: ResolvedAccount) => readonly unknown[] | undefined;
     normalizeId?: (entry: string) => string | null | undefined;
   },
@@ -262,7 +262,7 @@ export function listResolvedDirectoryUserEntriesFromAllowFrom<ResolvedAccount>(
 
 export function listResolvedDirectoryGroupEntriesFromMapKeys<ResolvedAccount>(
   params: DirectoryConfigParams & {
-    resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) => ResolvedAccount;
+    resolveAccount: (cfg: GenesisConfig, accountId?: string | null) => ResolvedAccount;
     resolveGroups: (account: ResolvedAccount) => Record<string, unknown> | undefined;
     normalizeId?: (entry: string) => string | null | undefined;
   },

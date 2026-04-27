@@ -4,7 +4,7 @@ import { listProfilesForProvider } from "../agents/auth-profiles/profiles.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles/store.js";
 import { resolveEnvApiKey } from "../agents/model-auth-env.js";
 
-export type { OpenClawConfig } from "../config/config.js";
+export type { GenesisConfig } from "../config/config.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type { SecretInputMode } from "../plugins/provider-auth-types.js";
 export type { ProviderAuthResult } from "../plugins/types.js";
@@ -62,7 +62,7 @@ export { createProviderApiKeyAuthMethod } from "../plugins/provider-api-key-auth
 export { coerceSecretRef, hasConfiguredSecretInput } from "../config/types.secrets.js";
 export { resolveDefaultSecretProviderAlias } from "../secrets/ref-contract.js";
 export { resolveRequiredHomeDir } from "../infra/home-dir.js";
-export { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
+export { resolveGenesisAgentDir } from "../agents/agent-paths.js";
 export {
   normalizeOptionalSecretInput,
   normalizeSecretInput,

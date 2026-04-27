@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/copilot-proxy",
+  "name": "@genesis/copilot-proxy",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Copilot Proxy provider plugin",
+  "description": "Genesis Copilot Proxy provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

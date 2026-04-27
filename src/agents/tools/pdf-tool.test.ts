@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import * as pdfExtractModule from "../../media/pdf-extract.js";
 import * as webMedia from "../../media/web-media.js";
 import * as modelAuth from "../model-auth.js";
@@ -65,10 +65,10 @@ async function withConfiguredPdfTool(
   });
 }
 
-function withPdfModel(primary: string): OpenClawConfig {
+function withPdfModel(primary: string): GenesisConfig {
   return {
     agents: { defaults: { pdfModel: { primary } } },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 async function stubPdfToolInfra(
@@ -99,7 +99,7 @@ async function stubPdfToolInfra(
           }) as never;
   vi.spyOn(modelDiscovery, "discoverModels").mockReturnValue({ find } as never);
 
-  vi.spyOn(modelsConfig, "ensureOpenClawModelsJson").mockResolvedValue({
+  vi.spyOn(modelsConfig, "ensureGenesisModelsJson").mockResolvedValue({
     agentDir,
     wrote: false,
   });
@@ -113,13 +113,13 @@ async function stubPdfToolInfra(
 async function withManagedInboundPdf(
   run: (params: { stateDir: string; mediaId: string; mediaPath: string }) => Promise<void>,
 ) {
-  const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-pdf-managed-inbound-"));
+  const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-pdf-managed-inbound-"));
   const inboundDir = path.join(stateDir, "media", "inbound");
   const mediaId = "claim-check-test.pdf";
   const mediaPath = path.join(inboundDir, mediaId);
   await fs.mkdir(inboundDir, { recursive: true });
   await fs.writeFile(mediaPath, FAKE_PDF_MEDIA.buffer);
-  vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+  vi.stubEnv("GENESIS_STATE_DIR", stateDir);
   try {
     await run({ stateDir, mediaId, mediaPath });
   } finally {
@@ -177,8 +177,8 @@ describe("createPdfTool", () => {
 
   it("respects fsPolicy.workspaceOnly for non-sandbox pdf paths", async () => {
     await withTempPdfAgentDir(async (agentDir) => {
-      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-pdf-ws-"));
-      const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-pdf-out-"));
+      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-pdf-ws-"));
+      const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-pdf-out-"));
       try {
         const cfg = withPdfModel(ANTHROPIC_PDF_MODEL);
         const tool = requirePdfTool(
@@ -259,7 +259,7 @@ describe("createPdfTool", () => {
         input: ["text", "document"],
       });
       vi.spyOn(pdfNativeProviders, "anthropicAnalyzePdf").mockResolvedValue("native summary");
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         ...withPdfModel(ANTHROPIC_PDF_MODEL),
         tools: {
           web: {

@@ -12,7 +12,7 @@ import { log } from "./logger.js";
 import { isGooglePromptCacheEligible, resolveCacheRetention } from "./prompt-cache-retention.js";
 import { streamWithPayloadPatch } from "./stream-payload-utils.js";
 
-const GOOGLE_PROMPT_CACHE_CUSTOM_TYPE = "openclaw.google-prompt-cache";
+const GOOGLE_PROMPT_CACHE_CUSTOM_TYPE = "genesis.google-prompt-cache";
 const GOOGLE_PROMPT_CACHE_RETRY_BACKOFF_MS = 10 * 60_000;
 const GOOGLE_PROMPT_CACHE_SHORT_REFRESH_WINDOW_MS = 30_000;
 const GOOGLE_PROMPT_CACHE_LONG_REFRESH_WINDOW_MS = 5 * 60_000;

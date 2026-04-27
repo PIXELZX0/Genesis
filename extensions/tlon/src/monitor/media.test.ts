@@ -2,11 +2,11 @@ import {
   fetchRemoteMedia,
   MAX_IMAGE_BYTES,
   saveMediaBuffer,
-} from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/media-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { downloadMedia, extractImageBlocks } from "./media.js";
 
-vi.mock("openclaw/plugin-sdk/media-runtime", () => ({
+vi.mock("genesis/plugin-sdk/media-runtime", () => ({
   MAX_IMAGE_BYTES: 6 * 1024 * 1024,
   fetchRemoteMedia: vi.fn(),
   saveMediaBuffer: vi.fn(),
@@ -47,7 +47,7 @@ describe("tlon monitor media", () => {
     });
     saveMediaBufferMock.mockResolvedValue({
       id: "photo---uuid.png",
-      path: "/tmp/openclaw/media/inbound/photo---uuid.png",
+      path: "/tmp/genesis/media/inbound/photo---uuid.png",
       size: "image-data".length,
       contentType: "image/png",
     });
@@ -70,7 +70,7 @@ describe("tlon monitor media", () => {
       "photo.png",
     );
     expect(result).toEqual({
-      localPath: "/tmp/openclaw/media/inbound/photo---uuid.png",
+      localPath: "/tmp/genesis/media/inbound/photo---uuid.png",
       contentType: "image/png",
       originalUrl: "https://example.com/photo.png",
     });

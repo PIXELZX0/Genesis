@@ -2,17 +2,17 @@ import { ChannelType, type Client, type MessageCreateListener } from "@buape/car
 import { Routes, type APIAttachment, type APIStickerItem } from "discord-api-types/v10";
 import {
   resolveChannelModelOverride,
-  type OpenClawConfig,
+  type GenesisConfig,
   type ReplyToMode,
-} from "openclaw/plugin-sdk/config-runtime";
-import { createReplyReferencePlanner } from "openclaw/plugin-sdk/reply-reference";
-import { buildAgentSessionKey } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/config-runtime";
+import { createReplyReferencePlanner } from "genesis/plugin-sdk/reply-reference";
+import { buildAgentSessionKey } from "genesis/plugin-sdk/routing";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 import {
   normalizeOptionalString,
   normalizeOptionalStringifiedId,
   truncateUtf16Safe,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import type { DiscordChannelConfigResolved } from "./allow-list.js";
 import {
   resolveDiscordChannelIdSafe,
@@ -450,7 +450,7 @@ type MaybeCreateDiscordAutoThreadParams = {
   channelDescription?: string;
   baseText: string;
   combinedBody: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
 };
 
@@ -459,7 +459,7 @@ export async function resolveDiscordAutoThreadReplyPlan(
     replyToMode: ReplyToMode;
     agentId: string;
     channel: string;
-    cfg: OpenClawConfig;
+    cfg: GenesisConfig;
     threadParentInheritanceEnabled?: boolean;
   },
 ): Promise<DiscordAutoThreadReplyPlan> {
@@ -600,7 +600,7 @@ export async function maybeCreateDiscordAutoThread(
 }
 
 function resolveDiscordThreadTitleModelRef(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string;
   agentId: string;
   threadId: string;
@@ -639,7 +639,7 @@ async function maybeRenameDiscordAutoThread(params: {
   modelRef?: string;
   channelName?: string;
   channelDescription?: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
 }): Promise<void> {
   try {

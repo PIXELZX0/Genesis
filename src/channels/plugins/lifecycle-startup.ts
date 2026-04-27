@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { listChannelPlugins } from "./registry.js";
 
 type ChannelStartupLogger = {
@@ -7,7 +7,7 @@ type ChannelStartupLogger = {
 };
 
 export async function runChannelPluginStartupMaintenance(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   log: ChannelStartupLogger;
   trigger?: string;

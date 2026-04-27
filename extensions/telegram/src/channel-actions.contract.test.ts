@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe } from "vitest";
 import { installChannelActionsContractSuite } from "../../../test/helpers/channels/registry-contract-suites.js";
 import { telegramPlugin } from "../api.js";
@@ -15,7 +15,7 @@ describe("telegram actions contract", () => {
               botToken: "123:telegram-test-token",
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectedActions: ["send", "poll", "react", "delete", "edit", "topic-create", "topic-edit"],
         expectedCapabilities: ["delivery-pin", "presentation"],
       },

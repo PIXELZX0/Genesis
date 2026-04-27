@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { inspectDiscordAccount } from "./account-inspect.js";
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
 describe("inspectDiscordAccount", () => {

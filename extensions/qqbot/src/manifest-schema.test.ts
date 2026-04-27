@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { validateJsonSchemaValue } from "../../../src/plugins/schema-validator.js";
 
 const manifest = JSON.parse(
-  fs.readFileSync(new URL("../openclaw.plugin.json", import.meta.url), "utf-8"),
+  fs.readFileSync(new URL("../genesis.plugin.json", import.meta.url), "utf-8"),
 ) as { configSchema: Record<string, unknown> };
 const manifestConfigSchemaCacheKey = "qqbot.manifest.config-schema";
 

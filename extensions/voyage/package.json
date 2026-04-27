@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/voyage-provider",
+  "name": "@genesis/voyage-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Voyage embedding provider plugin",
+  "description": "Genesis Voyage embedding provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

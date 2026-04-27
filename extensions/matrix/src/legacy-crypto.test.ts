@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { withTempHome } from "../../../test/helpers/temp-home.js";
 
@@ -27,7 +27,7 @@ import {
   writeMatrixCredentials,
 } from "./test-helpers.js";
 
-function createDefaultMatrixConfig(): OpenClawConfig {
+function createDefaultMatrixConfig(): GenesisConfig {
   return {
     channels: {
       matrix: {
@@ -40,7 +40,7 @@ function createDefaultMatrixConfig(): OpenClawConfig {
 }
 
 function writeDefaultLegacyCryptoFixture(home: string) {
-  const stateDir = path.join(home, ".openclaw");
+  const stateDir = path.join(home, ".genesis");
   const cfg = createDefaultMatrixConfig();
   const { rootDir } = resolveMatrixAccountStorageRoot({
     stateDir,
@@ -60,7 +60,7 @@ function createOpsLegacyCryptoFixture(params: {
   accessToken?: string;
   includeStoredCredentials?: boolean;
 }) {
-  const stateDir = path.join(params.home, ".openclaw");
+  const stateDir = path.join(params.home, ".genesis");
   writeFile(
     path.join(stateDir, "matrix", "crypto", "bot-sdk.json"),
     JSON.stringify({ deviceId: MATRIX_OPS_DEVICE_ID }),
@@ -173,7 +173,7 @@ describe("matrix legacy encrypted-state migration", () => {
         home,
         includeStoredCredentials: true,
       });
-      const cfg: OpenClawConfig = {
+      const cfg: GenesisConfig = {
         channels: {
           matrix: {
             accounts: {

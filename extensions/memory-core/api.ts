@@ -1,9 +1,9 @@
-export type { OpenClawConfig } from "openclaw/plugin-sdk/memory-core";
+export type { GenesisConfig } from "genesis/plugin-sdk/memory-core";
 export type {
   MemoryEmbeddingProbeResult,
   MemoryProviderStatus,
   MemorySyncProgressUpdate,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
 export {
   dedupeDreamDiaryEntries,
   removeBackfillDiaryEntries,

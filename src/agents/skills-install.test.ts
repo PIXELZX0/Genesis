@@ -13,7 +13,7 @@ import {
   runCommandWithTimeoutMock,
   scanDirectoryWithSummaryMock,
 } from "./skills-install.test-mocks.js";
-import { resolveOpenClawMetadata, resolveSkillInvocationPolicy } from "./skills/frontmatter.js";
+import { resolveGenesisMetadata, resolveSkillInvocationPolicy } from "./skills/frontmatter.js";
 import { loadSkillsFromDirSafe, readSkillFrontmatterSafe } from "./skills/local-loader.js";
 import type { SkillEntry } from "./skills/types.js";
 
@@ -37,7 +37,7 @@ async function writeInstallableSkill(workspaceDir: string, name: string): Promis
     `---
 name: ${name}
 description: test skill
-metadata: {"openclaw":{"install":[{"id":"deps","kind":"node","package":"example-package"}]}}
+metadata: {"genesis":{"install":[{"id":"deps","kind":"node","package":"example-package"}]}}
 ---
 
 # ${name}
@@ -70,7 +70,7 @@ function mockDangerousSkillScanFinding(skillDir: string) {
 function loadTestWorkspaceSkillEntries(workspaceDir: string): SkillEntry[] {
   const skills = loadSkillsFromDirSafe({
     dir: path.join(workspaceDir, "skills"),
-    source: "openclaw-workspace",
+    source: "genesis-workspace",
   }).skills;
   return skills.map((skill) => {
     const frontmatter =
@@ -82,7 +82,7 @@ function loadTestWorkspaceSkillEntries(workspaceDir: string): SkillEntry[] {
     return {
       skill,
       frontmatter,
-      metadata: resolveOpenClawMetadata(frontmatter),
+      metadata: resolveGenesisMetadata(frontmatter),
       invocation,
       exposure: {
         includeInRuntimeRegistry: true,
@@ -93,7 +93,7 @@ function loadTestWorkspaceSkillEntries(workspaceDir: string): SkillEntry[] {
   });
 }
 
-const workspaceSuite = createFixtureSuite("openclaw-skills-install-");
+const workspaceSuite = createFixtureSuite("genesis-skills-install-");
 
 beforeAll(async () => {
   await workspaceSuite.setup();
@@ -110,9 +110,9 @@ async function withWorkspaceCase(
 ): Promise<void> {
   const workspaceDir = await workspaceSuite.createCaseDir("case");
   const stateDir = path.join(workspaceDir, "state");
-  const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+  const envSnapshot = captureEnv(["GENESIS_STATE_DIR"]);
   try {
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    process.env.GENESIS_STATE_DIR = stateDir;
     await run({ workspaceDir, stateDir });
   } finally {
     envSnapshot.restore();
@@ -231,7 +231,7 @@ describe("installSkill code safety scanning", () => {
       expect(handler.mock.calls[0]?.[0]).toMatchObject({
         targetName: "policy-skill",
         targetType: "skill",
-        origin: "openclaw-workspace",
+        origin: "genesis-workspace",
         sourcePath: expect.stringContaining("policy-skill"),
         sourcePathKind: "directory",
         request: {
@@ -251,7 +251,7 @@ describe("installSkill code safety scanning", () => {
         },
       });
       expect(handler.mock.calls[0]?.[1]).toEqual({
-        origin: "openclaw-workspace",
+        origin: "genesis-workspace",
         targetType: "skill",
         requestKind: "skill-install",
       });

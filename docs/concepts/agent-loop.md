@@ -10,7 +10,7 @@ An agentic loop is the full “real” run of an agent: intake → context assem
 tool execution → streaming replies → persistence. It’s the authoritative path that turns a message
 into actions and a final reply, while keeping session state consistent.
 
-In OpenClaw, a loop is a single, serialized run per session that emits lifecycle and stream events
+In Genesis, a loop is a single, serialized run per session that emits lifecycle and stream events
 as the model thinks, calls tools, and streams output. This doc explains how that authentic loop is
 wired end-to-end.
 
@@ -33,7 +33,7 @@ wired end-to-end.
    - subscribes to pi events and streams assistant/tool deltas
    - enforces timeout -> aborts run if exceeded
    - returns payloads + usage metadata
-4. `subscribeEmbeddedPiSession` bridges pi-agent-core events to OpenClaw `agent` stream:
+4. `subscribeEmbeddedPiSession` bridges pi-agent-core events to Genesis `agent` stream:
    - tool events => `stream: "tool"`
    - assistant deltas => `stream: "assistant"`
    - lifecycle events => `stream: "lifecycle"` (`phase: "start" | "end" | "error"`)
@@ -65,13 +65,13 @@ wired end-to-end.
 
 ## Prompt assembly + system prompt
 
-- System prompt is built from OpenClaw’s base prompt, skills prompt, bootstrap context, and per-run overrides.
+- System prompt is built from Genesis’s base prompt, skills prompt, bootstrap context, and per-run overrides.
 - Model-specific limits and compaction reserve tokens are enforced.
 - See [System prompt](/concepts/system-prompt) for what the model sees.
 
 ## Hook points (where you can intercept)
 
-OpenClaw has two hook systems:
+Genesis has two hook systems:
 
 - **Internal hooks** (Gateway hooks): event-driven scripts for commands and lifecycle events.
 - **Plugin hooks**: extension points inside the agent/tool lifecycle and gateway pipeline.
@@ -96,7 +96,7 @@ These run inside the agent loop or gateway pipeline:
 - **`before_compaction` / `after_compaction`**: observe or annotate compaction cycles.
 - **`before_tool_call` / `after_tool_call`**: intercept tool params/results.
 - **`before_install`**: inspect built-in scan findings and optionally block skill or plugin installs.
-- **`tool_result_persist`**: synchronously transform tool results before they are written to an OpenClaw-owned session transcript.
+- **`tool_result_persist`**: synchronously transform tool results before they are written to an Genesis-owned session transcript.
 - **`message_received` / `message_sending` / `message_sent`**: inbound + outbound message hooks.
 - **`session_start` / `session_end`**: session lifecycle boundaries.
 - **`gateway_start` / `gateway_stop`**: gateway lifecycle events.
@@ -113,7 +113,7 @@ Hook decision rules for outbound/tool guards:
 See [Plugin hooks](/plugins/hooks) for the hook API and registration details.
 
 Harnesses may adapt these hooks differently. The Codex app-server harness keeps
-OpenClaw plugin hooks as the compatibility contract for documented mirrored
+Genesis plugin hooks as the compatibility contract for documented mirrored
 surfaces, while Codex native hooks remain a separate lower-level Codex mechanism.
 
 ## Streaming + partial replies
@@ -162,7 +162,7 @@ surfaces, while Codex native hooks remain a separate lower-level Codex mechanism
 
 - `agent.wait` default: 30s (just the wait). `timeoutMs` param overrides.
 - Agent runtime: `agents.defaults.timeoutSeconds` default 172800s (48 hours); enforced in `runEmbeddedPiAgent` abort timer.
-- LLM idle timeout: `agents.defaults.llm.idleTimeoutSeconds` aborts a model request when no response chunks arrive before the idle window. Set it explicitly for slow local models or reasoning/tool-call providers; set it to 0 to disable. If it is not set, OpenClaw uses `agents.defaults.timeoutSeconds` when configured, otherwise 120s. Cron-triggered runs with no explicit LLM or agent timeout disable the idle watchdog and rely on the cron outer timeout.
+- LLM idle timeout: `agents.defaults.llm.idleTimeoutSeconds` aborts a model request when no response chunks arrive before the idle window. Set it explicitly for slow local models or reasoning/tool-call providers; set it to 0 to disable. If it is not set, Genesis uses `agents.defaults.timeoutSeconds` when configured, otherwise 120s. Cron-triggered runs with no explicit LLM or agent timeout disable the idle watchdog and rely on the cron outer timeout.
 
 ## Where things can end early
 

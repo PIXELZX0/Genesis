@@ -30,7 +30,7 @@ const cachedFacadeModuleLocationsByKey = new Map<
   } | null
 >();
 let facadeLoaderJitiFactory: PluginJitiLoaderFactory | undefined;
-let cachedOpenClawPackageRoot: string | undefined;
+let cachedGenesisPackageRoot: string | undefined;
 
 function getJitiFactory() {
   if (facadeLoaderJitiFactory) {
@@ -41,16 +41,16 @@ function getJitiFactory() {
   return facadeLoaderJitiFactory;
 }
 
-function getOpenClawPackageRoot() {
-  if (cachedOpenClawPackageRoot) {
-    return cachedOpenClawPackageRoot;
+function getGenesisPackageRoot() {
+  if (cachedGenesisPackageRoot) {
+    return cachedGenesisPackageRoot;
   }
-  cachedOpenClawPackageRoot =
+  cachedGenesisPackageRoot =
     resolveLoaderPackageRoot({
       modulePath: fileURLToPath(import.meta.url),
       moduleUrl: import.meta.url,
     }) ?? fileURLToPath(new URL("../..", import.meta.url));
-  return cachedOpenClawPackageRoot;
+  return cachedGenesisPackageRoot;
 }
 
 function createFacadeResolutionKey(params: {
@@ -71,7 +71,7 @@ function resolveFacadeModuleLocationUncached(params: {
   return resolveBundledFacadeModuleLocation({
     ...params,
     currentModulePath: CURRENT_MODULE_PATH,
-    packageRoot: getOpenClawPackageRoot(),
+    packageRoot: getGenesisPackageRoot(),
     bundledPluginsDir,
   });
 }
@@ -180,8 +180,8 @@ export function loadFacadeModuleAtLocationSync<T extends object>(params: {
     absolutePath: params.location.modulePath,
     rootPath: params.location.boundaryRoot,
     boundaryLabel:
-      params.location.boundaryRoot === getOpenClawPackageRoot()
-        ? "OpenClaw package root"
+      params.location.boundaryRoot === getGenesisPackageRoot()
+        ? "Genesis package root"
         : (() => {
             const bundledDir = resolveBundledPluginsDir();
             return bundledDir &&
@@ -260,7 +260,7 @@ export async function loadBundledPluginPublicSurfaceModule<T extends object>(par
     absolutePath: location.modulePath,
     rootPath: location.boundaryRoot,
     boundaryLabel:
-      location.boundaryRoot === getOpenClawPackageRoot() ? "OpenClaw package root" : "plugin root",
+      location.boundaryRoot === getGenesisPackageRoot() ? "Genesis package root" : "plugin root",
     rejectHardlinks: false,
   });
   if (!opened.ok) {
@@ -297,7 +297,7 @@ export function resetFacadeLoaderStateForTest(): void {
   jitiLoaders.clear();
   cachedFacadeModuleLocationsByKey.clear();
   facadeLoaderJitiFactory = undefined;
-  cachedOpenClawPackageRoot = undefined;
+  cachedGenesisPackageRoot = undefined;
 }
 
 export function setFacadeLoaderJitiFactoryForTest(

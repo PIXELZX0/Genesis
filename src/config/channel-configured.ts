@@ -5,10 +5,10 @@ import {
   hasMeaningfulChannelConfigShallow,
   resolveChannelConfigRecord,
 } from "./channel-configured-shared.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { GenesisConfig } from "./types.genesis.js";
 
 export function isChannelConfigured(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   channelId: string,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {

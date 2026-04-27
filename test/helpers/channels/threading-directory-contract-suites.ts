@@ -6,7 +6,7 @@ import type {
   ChannelThreadingToolContext,
 } from "../../../src/channels/plugins/types.core.js";
 import type { ChannelPlugin } from "../../../src/channels/plugins/types.js";
-import type { OpenClawConfig } from "../../../src/config/config.js";
+import type { GenesisConfig } from "../../../src/config/config.js";
 import type { RuntimeEnv } from "../../../src/runtime.js";
 
 let contractRuntime: RuntimeEnv | undefined;
@@ -110,7 +110,7 @@ export function expectChannelThreadingReturnValuesNormalized(
     expect(
       ["off", "first", "all"].includes(
         threading.resolveReplyToMode({
-          cfg: {} as OpenClawConfig,
+          cfg: {} as GenesisConfig,
           accountId: "default",
           chatType: "group",
         }),
@@ -120,7 +120,7 @@ export function expectChannelThreadingReturnValuesNormalized(
 
   const repliedRef = { value: false };
   const toolContext = threading?.buildToolContext?.({
-    cfg: {} as OpenClawConfig,
+    cfg: {} as GenesisConfig,
     accountId: "default",
     context: {
       Channel: "group:test",
@@ -144,7 +144,7 @@ export function expectChannelThreadingReturnValuesNormalized(
   }
 
   const autoThreadId = threading?.resolveAutoThreadId?.({
-    cfg: {} as OpenClawConfig,
+    cfg: {} as GenesisConfig,
     accountId: "default",
     to: "group:test",
     toolContext,
@@ -156,7 +156,7 @@ export function expectChannelThreadingReturnValuesNormalized(
   }
 
   const replyTransport = threading?.resolveReplyTransport?.({
-    cfg: {} as OpenClawConfig,
+    cfg: {} as GenesisConfig,
     accountId: "default",
     threadId: "thread-0",
     replyToId: "msg-0",
@@ -166,7 +166,7 @@ export function expectChannelThreadingReturnValuesNormalized(
   }
 
   const focusedBinding = threading?.resolveFocusedBinding?.({
-    cfg: {} as OpenClawConfig,
+    cfg: {} as GenesisConfig,
     accountId: "default",
     context: {
       Channel: "group:test",
@@ -188,7 +188,7 @@ export function expectChannelThreadingReturnValuesNormalized(
 export function installChannelDirectoryContractSuite(params: {
   plugin: Pick<ChannelPlugin, "id" | "directory">;
   coverage?: "lookups" | "presence";
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   accountId?: string;
 }) {
   it("exposes the base directory contract", async () => {
@@ -199,7 +199,7 @@ export function installChannelDirectoryContractSuite(params: {
 export async function expectChannelDirectoryBaseContract(params: {
   plugin: Pick<ChannelPlugin, "id" | "directory">;
   coverage?: "lookups" | "presence";
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   accountId?: string;
 }) {
   const directory = params.plugin.directory;
@@ -210,7 +210,7 @@ export async function expectChannelDirectoryBaseContract(params: {
   }
   const runtime = await getDirectoryContractRuntime();
   const self = await directory?.self?.({
-    cfg: params.cfg ?? ({} as OpenClawConfig),
+    cfg: params.cfg ?? ({} as GenesisConfig),
     accountId: params.accountId ?? "default",
     runtime,
   });
@@ -220,7 +220,7 @@ export async function expectChannelDirectoryBaseContract(params: {
 
   const peers =
     (await directory?.listPeers?.({
-      cfg: params.cfg ?? ({} as OpenClawConfig),
+      cfg: params.cfg ?? ({} as GenesisConfig),
       accountId: params.accountId ?? "default",
       query: "",
       limit: 5,
@@ -233,7 +233,7 @@ export async function expectChannelDirectoryBaseContract(params: {
 
   const groups =
     (await directory?.listGroups?.({
-      cfg: params.cfg ?? ({} as OpenClawConfig),
+      cfg: params.cfg ?? ({} as GenesisConfig),
       accountId: params.accountId ?? "default",
       query: "",
       limit: 5,
@@ -246,7 +246,7 @@ export async function expectChannelDirectoryBaseContract(params: {
 
   if (directory?.listGroupMembers && groups[0]?.id) {
     const members = await directory.listGroupMembers({
-      cfg: params.cfg ?? ({} as OpenClawConfig),
+      cfg: params.cfg ?? ({} as GenesisConfig),
       accountId: params.accountId ?? "default",
       groupId: groups[0].id,
       limit: 5,

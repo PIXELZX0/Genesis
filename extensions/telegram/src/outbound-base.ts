@@ -1,4 +1,4 @@
-import { chunkMarkdownText } from "openclaw/plugin-sdk/reply-runtime";
+import { chunkMarkdownText } from "genesis/plugin-sdk/reply-runtime";
 
 export const telegramOutboundBaseAdapter = {
   deliveryMode: "direct" as const,

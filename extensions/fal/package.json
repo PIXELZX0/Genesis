@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/fal-provider",
+  "name": "@genesis/fal-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw fal provider plugin",
+  "description": "Genesis fal provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

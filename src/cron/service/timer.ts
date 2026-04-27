@@ -695,7 +695,7 @@ export async function onTimer(state: CronServiceState) {
     // We use MAX_TIMER_DELAY_MS as a fixed re-check interval to avoid a
     // zero-delay hot-loop when past-due jobs are waiting for the current
     // execution to finish.
-    // See: https://github.com/openclaw/openclaw/issues/12025
+    // See: https://github.com/PIXELZX0/Genesis/issues/12025
     armRunningRecheckTimer(state);
     return;
   }

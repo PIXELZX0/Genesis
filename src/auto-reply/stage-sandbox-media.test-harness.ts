@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { MsgContext, TemplateContext } from "./templating.js";
 
 export async function withSandboxMediaTempHome<T>(
@@ -27,12 +27,12 @@ export function createSandboxMediaContexts(mediaPath: string): {
   return { ctx, sessionCtx: { ...ctx } };
 }
 
-export function createSandboxMediaStageConfig(home: string): OpenClawConfig {
+export function createSandboxMediaStageConfig(home: string): GenesisConfig {
   return {
     agents: {
       defaults: {
         model: "anthropic/claude-opus-4-6",
-        workspace: join(home, "openclaw"),
+        workspace: join(home, "genesis"),
         sandbox: {
           mode: "non-main",
           workspaceRoot: join(home, "sandboxes"),
@@ -41,5 +41,5 @@ export function createSandboxMediaStageConfig(home: string): OpenClawConfig {
     },
     channels: { whatsapp: { allowFrom: ["*"] } },
     session: { store: join(home, "sessions.json") },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }

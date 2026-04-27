@@ -2,7 +2,7 @@ import type { BlockReplyChunking } from "../../agents/pi-embedded-block-chunker.
 import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { ChannelId } from "../../channels/plugins/types.public.js";
 import type { SessionEntry, SessionScope } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { MsgContext } from "../templating.js";
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
@@ -33,7 +33,7 @@ export type CommandContext = {
 export type HandleCommandsParams = {
   ctx: MsgContext;
   rootCtx?: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   command: CommandContext;
   agentId?: string;
   agentDir?: string;

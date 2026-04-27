@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   PluginWebFetchProviderEntry,
   PluginWebSearchProviderEntry,
@@ -11,7 +11,7 @@ type CommonWebProviderTestParams = {
   autoDetectOrder?: number;
   requiresCredential?: boolean;
   getCredentialValue?: (config?: Record<string, unknown>) => unknown;
-  getConfiguredCredentialValue?: (config?: OpenClawConfig) => unknown;
+  getConfiguredCredentialValue?: (config?: GenesisConfig) => unknown;
 };
 
 export type WebSearchTestProviderParams = CommonWebProviderTestParams & {

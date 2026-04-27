@@ -9,7 +9,7 @@ import type { BrowserServerState, ProfileRuntimeState } from "./server-context.t
 export const originalFetch = globalThis.fetch;
 
 export function makeState(
-  profile: "remote" | "openclaw",
+  profile: "remote" | "genesis",
 ): BrowserServerState & { profiles: Map<string, { lastTargetId?: string | null }> } {
   return {
     server: null as unknown as BrowserServerState["server"],
@@ -27,6 +27,7 @@ export function makeState(
       actionTimeoutMs: 60_000,
       evaluateEnabled: false,
       extraArgs: [],
+      torDefaultEnabled: true,
       color: "#FF4500",
       headless: true,
       noSandbox: false,
@@ -45,7 +46,7 @@ export function makeState(
           cdpPort: 9222,
           color: "#00AA00",
         },
-        openclaw: { cdpPort: 18800, color: "#FF4500" },
+        genesis: { cdpPort: 18800, color: "#FF4500" },
       },
     },
     profiles: new Map(),
@@ -83,7 +84,7 @@ function resolveProfileForTest(
     cdpHost,
     cdpIsLoopback,
     color: rawProfile.color ?? state.resolved.color,
-    driver: rawProfile.driver === "existing-session" ? "existing-session" : "openclaw",
+    driver: rawProfile.driver === "existing-session" ? "existing-session" : "genesis",
     headless: rawProfile.headless ?? state.resolved.headless,
     attachOnly: rawProfile.attachOnly ?? state.resolved.attachOnly,
     userDataDir: rawProfile.userDataDir,

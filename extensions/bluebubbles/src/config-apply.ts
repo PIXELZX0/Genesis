@@ -1,5 +1,5 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 
 type BlueBubblesConfigPatch = {
   serverUrl?: string;
@@ -34,12 +34,12 @@ function normalizePatch(
 }
 
 export function applyBlueBubblesConnectionConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   patch: BlueBubblesConfigPatch;
   onlyDefinedFields?: boolean;
   accountEnabled?: AccountEnabledMode;
-}): OpenClawConfig {
+}): GenesisConfig {
   const patch = normalizePatch(params.patch, params.onlyDefinedFields === true);
   if (params.accountId === DEFAULT_ACCOUNT_ID) {
     return {

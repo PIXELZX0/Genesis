@@ -24,7 +24,7 @@ vi.mock("./model-auth-env.js", () => ({
 }));
 
 async function createAgentDir(): Promise<string> {
-  return await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-pi-auth-storage-"));
+  return await fs.mkdtemp(path.join(os.tmpdir(), "genesis-pi-auth-storage-"));
 }
 
 async function withAgentDir(run: (agentDir: string) => Promise<void>): Promise<void> {
@@ -115,8 +115,8 @@ describe("discoverAuthStorage", () => {
 
   it("preserves legacy auth.json when auth store is forced read-only", async () => {
     await withAgentDir(async (agentDir) => {
-      const previous = process.env.OPENCLAW_AUTH_STORE_READONLY;
-      process.env.OPENCLAW_AUTH_STORE_READONLY = "1";
+      const previous = process.env.GENESIS_AUTH_STORE_READONLY;
+      process.env.GENESIS_AUTH_STORE_READONLY = "1";
       try {
         await writeLegacyAuthJson(agentDir, {
           openrouter: { type: "api_key", key: "legacy-static-key" },
@@ -128,9 +128,9 @@ describe("discoverAuthStorage", () => {
         expect(parsed.openrouter).toMatchObject({ type: "api_key", key: "legacy-static-key" });
       } finally {
         if (previous === undefined) {
-          delete process.env.OPENCLAW_AUTH_STORE_READONLY;
+          delete process.env.GENESIS_AUTH_STORE_READONLY;
         } else {
-          process.env.OPENCLAW_AUTH_STORE_READONLY = previous;
+          process.env.GENESIS_AUTH_STORE_READONLY = previous;
         }
       }
     });
@@ -138,11 +138,11 @@ describe("discoverAuthStorage", () => {
 
   it("includes env-backed provider auth when no auth profile exists", async () => {
     const previousMistral = process.env.MISTRAL_API_KEY;
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
-    const previousDisableBundledPlugins = process.env.OPENCLAW_DISABLE_BUNDLED_PLUGINS;
+    const previousBundledPluginsDir = process.env.GENESIS_BUNDLED_PLUGINS_DIR;
+    const previousDisableBundledPlugins = process.env.GENESIS_DISABLE_BUNDLED_PLUGINS;
     process.env.MISTRAL_API_KEY = "mistral-env-test-key";
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
-    delete process.env.OPENCLAW_DISABLE_BUNDLED_PLUGINS;
+    delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
+    delete process.env.GENESIS_DISABLE_BUNDLED_PLUGINS;
     try {
       const credentials = addEnvBackedPiCredentials({}, process.env);
 
@@ -157,14 +157,14 @@ describe("discoverAuthStorage", () => {
         process.env.MISTRAL_API_KEY = previousMistral;
       }
       if (previousBundledPluginsDir === undefined) {
-        delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+        delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
       } else {
-        process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = previousBundledPluginsDir;
+        process.env.GENESIS_BUNDLED_PLUGINS_DIR = previousBundledPluginsDir;
       }
       if (previousDisableBundledPlugins === undefined) {
-        delete process.env.OPENCLAW_DISABLE_BUNDLED_PLUGINS;
+        delete process.env.GENESIS_DISABLE_BUNDLED_PLUGINS;
       } else {
-        process.env.OPENCLAW_DISABLE_BUNDLED_PLUGINS = previousDisableBundledPlugins;
+        process.env.GENESIS_DISABLE_BUNDLED_PLUGINS = previousDisableBundledPlugins;
       }
     }
   });

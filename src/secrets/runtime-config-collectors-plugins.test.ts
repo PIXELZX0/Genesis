@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { PluginOrigin } from "../plugins/types.js";
 import { collectPluginConfigAssignments } from "./runtime-config-collectors-plugins.js";
 import {
@@ -16,11 +16,11 @@ vi.mock("../plugins/manifest-registry.js", () => ({
   loadPluginManifestRegistry: loadPluginManifestRegistryMock,
 }));
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): GenesisConfig {
+  return value as GenesisConfig;
 }
 
-function makeContext(sourceConfig: OpenClawConfig): ResolverContext {
+function makeContext(sourceConfig: GenesisConfig): ResolverContext {
   return createResolverContext({
     sourceConfig,
     env: {},
@@ -38,7 +38,7 @@ function loadablePluginOrigins(entries: Array<[string, PluginOrigin]>) {
 function createAcpxMcpSecretConfig(params: {
   plugins?: Record<string, unknown>;
   entry?: Record<string, unknown>;
-}): OpenClawConfig {
+}): GenesisConfig {
   return asConfig({
     plugins: {
       ...params.plugins,
@@ -56,7 +56,7 @@ function createAcpxMcpSecretConfig(params: {
   });
 }
 
-function collectAcpxConfigAssignments(config: OpenClawConfig): ResolverContext {
+function collectAcpxConfigAssignments(config: GenesisConfig): ResolverContext {
   const context = makeContext(config);
   collectPluginConfigAssignments({
     config,
@@ -67,7 +67,7 @@ function collectAcpxConfigAssignments(config: OpenClawConfig): ResolverContext {
   return context;
 }
 
-function expectInactiveAcpxConfig(config: OpenClawConfig): void {
+function expectInactiveAcpxConfig(config: GenesisConfig): void {
   const context = collectAcpxConfigAssignments(config);
   expect(context.assignments).toHaveLength(0);
   expect(context.warnings.some((w) => w.code === "SECRETS_REF_IGNORED_INACTIVE_SURFACE")).toBe(

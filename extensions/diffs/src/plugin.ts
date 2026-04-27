@@ -1,6 +1,6 @@
 import path from "node:path";
-import { resolveLivePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
-import { resolvePreferredOpenClawTmpDir, type OpenClawPluginApi } from "../api.js";
+import { resolveLivePluginConfigObject } from "genesis/plugin-sdk/config-runtime";
+import { resolvePreferredGenesisTmpDir, type GenesisPluginApi } from "../api.js";
 import {
   resolveDiffsPluginDefaults,
   resolveDiffsPluginSecurity,
@@ -11,9 +11,9 @@ import { DIFFS_AGENT_GUIDANCE } from "./prompt-guidance.js";
 import { DiffArtifactStore } from "./store.js";
 import { createDiffsTool } from "./tool.js";
 
-export function registerDiffsPlugin(api: OpenClawPluginApi): void {
+export function registerDiffsPlugin(api: GenesisPluginApi): void {
   const store = new DiffArtifactStore({
-    rootDir: path.join(resolvePreferredOpenClawTmpDir(), "openclaw-diffs"),
+    rootDir: path.join(resolvePreferredGenesisTmpDir(), "genesis-diffs"),
     logger: api.logger,
   });
   const resolveCurrentPluginConfig = () =>

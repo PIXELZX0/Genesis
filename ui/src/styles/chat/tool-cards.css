@@ -109,7 +109,7 @@
   height: 28px;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--secondary) 55%, transparent);
   cursor: pointer;
   font: inherit;
@@ -218,7 +218,7 @@
   border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   background: color-mix(in srgb, var(--bg) 72%, transparent);
   color: var(--muted);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 4px 10px;
   font: inherit;
   font-size: 12px;
@@ -683,7 +683,7 @@
   height: 24px;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--secondary) 55%, transparent);
   color: var(--muted);
   display: inline-flex;
@@ -756,7 +756,7 @@
 .chat-reading-indicator__dots span {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--muted);
   animation: reading-pulse 1.4s ease-in-out infinite;
 }

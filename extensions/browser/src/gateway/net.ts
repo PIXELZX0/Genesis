@@ -1,1 +1,1 @@
-export { isLoopbackHost } from "openclaw/plugin-sdk/browser-config-support";
+export { isLoopbackHost } from "genesis/plugin-sdk/browser-config-support";

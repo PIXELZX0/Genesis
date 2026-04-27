@@ -17,7 +17,7 @@ describe("managed-child-process", () => {
   });
 
   it("kills the managed child process group when the runner is terminated", async () => {
-    const dir = createTempDir("openclaw-managed-child-");
+    const dir = createTempDir("genesis-managed-child-");
     const childPath = path.join(dir, "child.mjs");
     const runnerPath = path.join(dir, "runner.mjs");
     const childPidPath = path.join(dir, "child.pid");

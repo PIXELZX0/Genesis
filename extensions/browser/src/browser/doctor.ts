@@ -40,7 +40,7 @@ export function buildBrowserDoctorReport(params: {
     id: "profile",
     label: "Profile",
     status: "pass",
-    summary: `${status.profile ?? "openclaw"} via ${transport}`,
+    summary: `${status.profile ?? "genesis"} via ${transport}`,
   });
 
   if (transport === "chrome-mcp") {
@@ -109,7 +109,7 @@ export function buildBrowserDoctorReport(params: {
       ...(status.cdpHttp || !status.running
         ? {}
         : {
-            fixHint: "Run openclaw browser start or inspect browser.cdpUrl/CDP port reachability.",
+            fixHint: "Run genesis browser start or inspect browser.cdpUrl/CDP port reachability.",
           }),
     });
 
@@ -130,7 +130,7 @@ export function buildBrowserDoctorReport(params: {
 
   return {
     ok: checks.every((check) => check.status !== "fail"),
-    profile: status.profile ?? "openclaw",
+    profile: status.profile ?? "genesis",
     transport,
     checks,
     status,

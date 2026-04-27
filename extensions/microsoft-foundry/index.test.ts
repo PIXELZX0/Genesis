@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.js";
 import { getAccessTokenResultAsync } from "./cli.js";
@@ -30,9 +30,9 @@ vi.mock("node:child_process", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/provider-auth", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/provider-auth")>(
-    "openclaw/plugin-sdk/provider-auth",
+vi.mock("genesis/plugin-sdk/provider-auth", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/provider-auth")>(
+    "genesis/plugin-sdk/provider-auth",
   );
   return {
     ...actual,
@@ -123,7 +123,7 @@ function buildFoundryConfig(params?: {
         },
       },
     },
-  } satisfies OpenClawConfig;
+  } satisfies GenesisConfig;
 }
 
 function buildEntraProfileStore(
@@ -362,7 +362,7 @@ describe("microsoft-foundry plugin", () => {
 
   it("keeps other configured Foundry models when switching the selected model", async () => {
     const provider = registerProvider();
-    const config: OpenClawConfig = {
+    const config: GenesisConfig = {
       auth: {
         profiles: {
           "microsoft-foundry:default": {
@@ -552,7 +552,7 @@ describe("microsoft-foundry plugin", () => {
 
   it("keeps persisted response-mode routing for custom deployment aliases", async () => {
     const provider = registerProvider();
-    const config: OpenClawConfig = {
+    const config: GenesisConfig = {
       auth: {
         profiles: {
           "microsoft-foundry:entra": {

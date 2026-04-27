@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/exa-plugin",
+  "name": "@genesis/exa-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Exa plugin",
+  "description": "Genesis Exa plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

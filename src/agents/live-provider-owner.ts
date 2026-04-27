@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveOwningPluginIdsForProvider } from "../plugins/providers.js";
 import { normalizeProviderId } from "./provider-id.js";
 
 export type LiveProviderOwnerContext = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   ownerCache: Map<string, readonly string[]>;

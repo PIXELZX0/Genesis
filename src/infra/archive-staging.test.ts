@@ -15,7 +15,7 @@ const directorySymlinkType = process.platform === "win32" ? "junction" : undefin
 
 describe("archive-staging helpers", () => {
   it("accepts real destination directories and returns their real path", async () => {
-    await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+    await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
       const destDir = path.join(rootDir, "dest");
       await fs.mkdir(destDir, { recursive: true });
 
@@ -26,7 +26,7 @@ describe("archive-staging helpers", () => {
   it.runIf(process.platform !== "win32")(
     "rejects symlink and non-directory archive destinations",
     async () => {
-      await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+      await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
         const realDestDir = path.join(rootDir, "real-dest");
         const symlinkDestDir = path.join(rootDir, "dest-link");
         const fileDest = path.join(rootDir, "dest.txt");
@@ -45,7 +45,7 @@ describe("archive-staging helpers", () => {
   );
 
   it("creates in-destination parent directories for file outputs", async () => {
-    await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+    await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
       const destDir = path.join(rootDir, "dest");
       await fs.mkdir(destDir, { recursive: true });
       const destinationRealDir = await prepareArchiveDestinationDir(destDir);
@@ -71,7 +71,7 @@ describe("archive-staging helpers", () => {
   it.runIf(process.platform !== "win32")(
     "rejects output paths that traverse a destination symlink",
     async () => {
-      await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+      await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
         const destDir = path.join(rootDir, "dest");
         const outsideDir = path.join(rootDir, "outside");
         const linkDir = path.join(destDir, "escape");
@@ -97,7 +97,7 @@ describe("archive-staging helpers", () => {
   );
 
   it("cleans up staged archive directories after success and failure", async () => {
-    await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+    await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
       const destDir = path.join(rootDir, "dest");
       await fs.mkdir(destDir, { recursive: true });
       const destinationRealDir = await prepareArchiveDestinationDir(destDir);
@@ -129,7 +129,7 @@ describe("archive-staging helpers", () => {
   it.runIf(process.platform !== "win32")(
     "merges staged trees and rejects symlink entries from the source",
     async () => {
-      await withTempDir({ prefix: "openclaw-archive-staging-" }, async (rootDir) => {
+      await withTempDir({ prefix: "genesis-archive-staging-" }, async (rootDir) => {
         const sourceDir = path.join(rootDir, "source");
         const sourceNestedDir = path.join(sourceDir, "nested");
         const destDir = path.join(rootDir, "dest");

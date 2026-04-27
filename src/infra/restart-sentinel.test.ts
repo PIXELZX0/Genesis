@@ -17,10 +17,10 @@ import {
 } from "./restart-sentinel.js";
 
 async function withRestartSentinelStateDir(run: () => Promise<void>): Promise<void> {
-  const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+  const envSnapshot = captureEnv(["GENESIS_STATE_DIR"]);
   try {
-    await withTempDir({ prefix: "openclaw-sentinel-" }, async (tempDir) => {
-      process.env.OPENCLAW_STATE_DIR = tempDir;
+    await withTempDir({ prefix: "genesis-sentinel-" }, async (tempDir) => {
+      process.env.GENESIS_STATE_DIR = tempDir;
       await run();
     });
   } finally {
@@ -136,7 +136,7 @@ describe("restart sentinel", () => {
       status: "error" as const,
       ts: Date.now(),
       message: "Patch failed",
-      doctorHint: "Run openclaw doctor",
+      doctorHint: "Run genesis doctor",
       stats: { mode: "patch", reason: "validation failed" },
     };
 
@@ -145,7 +145,7 @@ describe("restart sentinel", () => {
         "Gateway restart config-patch error (patch)",
         "Patch failed",
         "Reason: validation failed",
-        "Run openclaw doctor",
+        "Run genesis doctor",
       ].join("\n"),
     );
   });
@@ -242,7 +242,7 @@ describe("restart sentinel message dedup", () => {
 
   it("formats the non-interactive doctor command", () => {
     expect(formatDoctorNonInteractiveHint({ PATH: "/usr/bin:/bin" })).toContain(
-      "openclaw doctor --non-interactive",
+      "genesis doctor --non-interactive",
     );
   });
 });

@@ -16,7 +16,7 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveStableSessionEndTranscript } from "../../gateway/session-transcript-files.fs.js";
 import { logVerbose } from "../../globals.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
@@ -48,7 +48,7 @@ async function persistSessionEntryUpdate(params: {
 }
 
 function emitCompactionSessionLifecycleHooks(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey: string;
   storePath?: string;
   previousEntry: SessionEntry;
@@ -101,7 +101,7 @@ export async function ensureSkillSnapshot(params: {
   sessionId?: string;
   isFirstTurnInSession: boolean;
   workspaceDir: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   /** If provided, only load skills with these names (for per-channel skill filtering) */
   skillFilter?: string[];
 }): Promise<{
@@ -109,7 +109,7 @@ export async function ensureSkillSnapshot(params: {
   skillsSnapshot?: SessionEntry["skillsSnapshot"];
   systemSent: boolean;
 }> {
-  if (process.env.OPENCLAW_TEST_FAST === "1") {
+  if (process.env.GENESIS_TEST_FAST === "1") {
     // In fast unit-test runs we skip filesystem scanning, watchers, and session-store writes.
     // Dedicated skills tests cover snapshot generation behavior.
     return {
@@ -212,7 +212,7 @@ export async function incrementCompactionCount(params: {
   sessionStore?: Record<string, SessionEntry>;
   sessionKey?: string;
   storePath?: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   now?: number;
   amount?: number;
   /** Token count after compaction - if provided, updates session token counts */

@@ -180,7 +180,7 @@ export const tr: TranslationMap = {
     skills: "Skills ve API anahtarları.",
     nodes: "Eşleştirilmiş cihazlar ve komutlar.",
     chat: "Hızlı müdahaleler için Gateway sohbeti.",
-    config: "openclaw.json dosyasını düzenleyin.",
+    config: "genesis.json dosyasını düzenleyin.",
     communications: "Kanallar, mesajlar ve ses ayarları.",
     appearance: "Tema, UI ve kurulum sihirbazı ayarları.",
     automation: "Komutlar, kancalar, cron ve eklentiler.",
@@ -219,6 +219,13 @@ export const tr: TranslationMap = {
       channelsHint:
         "WhatsApp, Telegram, Discord, Signal veya iMessage bağlamak için Kanallar'ı kullanın.",
     },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
+    },
     stats: {
       instances: "Örnekler",
       instancesHint: "Son 5 dakikadaki varlık işaretçileri.",
@@ -256,7 +263,7 @@ export const tr: TranslationMap = {
       metadataUpgradeSummary:
         "Bu cihaz zaten eşleştirilmiş, ancak meta veri değişikliği onay bekliyor.",
       mobileHint:
-        "Mobilde misiniz? Masaüstünüzde openclaw dashboard --no-open komutundan tam URL'yi (#token=... dahil) kopyalayın.",
+        "Mobilde misiniz? Masaüstünüzde genesis dashboard --no-open komutundan tam URL'yi (#token=... dahil) kopyalayın.",
       docsTitle: "Cihaz eşleştirme belgeleri (yeni sekmede açılır)",
       docsLink: "Belgeler: Cihaz eşleştirme",
     },
@@ -294,7 +301,7 @@ export const tr: TranslationMap = {
       modelAuthAttentionExpiredTitle: "Model kimlik doğrulamasının süresi doldu",
       modelAuthAttentionExpiringTitle: "Model kimlik doğrulamasının süresi yakında dolacak",
       modelAuthAttentionExpiredDesc:
-        "{providers} — openclaw models auth ile yeniden kimlik doğrulayın",
+        "{providers} — genesis models auth ile yeniden kimlik doğrulayın",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

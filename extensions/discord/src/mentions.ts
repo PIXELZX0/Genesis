@@ -2,7 +2,7 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
   normalizeOptionalStringifiedId,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { resolveDiscordDirectoryUserId } from "./directory-cache.js";
 
 const MARKDOWN_CODE_SEGMENT_PATTERN = /```[\s\S]*?```|`[^`\n]*`/g;

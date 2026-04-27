@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolveThreadSessionKeys } from "openclaw/plugin-sdk/routing";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { resolveThreadSessionKeys } from "genesis/plugin-sdk/routing";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { formatUnknownError } from "./errors.js";
 import { buildFeedbackEvent, runFeedbackReflection } from "./feedback-reflection.js";
 import { respondToMSTeamsFileConsentInvoke } from "./file-consent-invoke.js";

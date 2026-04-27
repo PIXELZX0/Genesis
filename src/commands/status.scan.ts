@@ -49,7 +49,7 @@ export async function scanStatus(
       const overview = await collectStatusScanOverview({
         commandName: "status",
         opts,
-        showSecrets: process.env.OPENCLAW_SHOW_SECRETS?.trim() !== "0",
+        showSecrets: process.env.GENESIS_SHOW_SECRETS?.trim() !== "0",
         progress,
         labels: {
           loadingConfig: "Loading config…",

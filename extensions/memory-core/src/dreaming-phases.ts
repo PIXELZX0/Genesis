@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { Dirent } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/memory-core";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/memory-core";
 import {
   buildSessionEntry,
   listSessionFilesForAgent,
@@ -10,14 +10,14 @@ import {
   normalizeSessionTranscriptPathForComparison,
   parseUsageCountedSessionIdFromFileName,
   sessionPathForFile,
-} from "openclaw/plugin-sdk/memory-core-host-engine-qmd";
-import type { MemorySearchResult } from "openclaw/plugin-sdk/memory-core-host-runtime-files";
+} from "genesis/plugin-sdk/memory-core-host-engine-qmd";
+import type { MemorySearchResult } from "genesis/plugin-sdk/memory-core-host-runtime-files";
 import {
   formatMemoryDreamingDay,
   resolveMemoryDreamingWorkspaces,
   resolveMemoryLightDreamingConfig,
   resolveMemoryRemDreamingConfig,
-} from "openclaw/plugin-sdk/memory-core-host-status";
+} from "genesis/plugin-sdk/memory-core-host-status";
 import { writeDailyDreamingPhaseBlock } from "./dreaming-markdown.js";
 import {
   buildNarrativeSessionKey,
@@ -32,7 +32,7 @@ import {
   type ShortTermRecallEntry,
 } from "./short-term-promotion.js";
 
-type Logger = Pick<OpenClawPluginApi["logger"], "info" | "warn" | "error">;
+type Logger = Pick<GenesisPluginApi["logger"], "info" | "warn" | "error">;
 type DreamingHostConfig = unknown;
 type DreamingPhaseStorageConfig = {
   timezone?: string;
@@ -68,8 +68,8 @@ type RunPhaseIfTriggeredParams = {
       config: RemDreamingConfig;
     }
 );
-const LIGHT_SLEEP_EVENT_TEXT = "__openclaw_memory_core_light_sleep__";
-const REM_SLEEP_EVENT_TEXT = "__openclaw_memory_core_rem_sleep__";
+const LIGHT_SLEEP_EVENT_TEXT = "__genesis_memory_core_light_sleep__";
+const REM_SLEEP_EVENT_TEXT = "__genesis_memory_core_rem_sleep__";
 const DAILY_MEMORY_FILENAME_RE = /^(\d{4}-\d{2}-\d{2})\.md$/;
 const DAILY_INGESTION_STATE_RELATIVE_PATH = path.join("memory", ".dreams", "daily-ingestion.json");
 const DAILY_INGESTION_SCORE = 0.62;
@@ -95,13 +95,13 @@ const GENERIC_DAY_HEADING_RE =
 const MANAGED_DAILY_DREAMING_BLOCKS = [
   {
     heading: "## Light Sleep",
-    startMarker: "<!-- openclaw:dreaming:light:start -->",
-    endMarker: "<!-- openclaw:dreaming:light:end -->",
+    startMarker: "<!-- genesis:dreaming:light:start -->",
+    endMarker: "<!-- genesis:dreaming:light:end -->",
   },
   {
     heading: "## REM Sleep",
-    startMarker: "<!-- openclaw:dreaming:rem:start -->",
-    endMarker: "<!-- openclaw:dreaming:rem:end -->",
+    startMarker: "<!-- genesis:dreaming:rem:start -->",
+    endMarker: "<!-- genesis:dreaming:rem:end -->",
   },
 ] as const;
 
@@ -1813,7 +1813,7 @@ async function runPhaseIfTriggered(
 /**
  * @deprecated Unified dreaming registration lives in registerShortTermPromotionDreaming().
  */
-export function registerMemoryDreamingPhases(_api: OpenClawPluginApi): void {
+export function registerMemoryDreamingPhases(_api: GenesisPluginApi): void {
   // LEGACY(memory-v1): kept as a no-op compatibility shim while the unified
   // dreaming controller owns startup reconciliation and heartbeat triggers.
 }

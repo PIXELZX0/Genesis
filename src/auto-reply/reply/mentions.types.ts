@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 
-export type BuildMentionRegexes = (cfg: OpenClawConfig | undefined, agentId?: string) => RegExp[];
+export type BuildMentionRegexes = (cfg: GenesisConfig | undefined, agentId?: string) => RegExp[];
 
 export type MatchesMentionPatterns = (text: string, mentionRegexes: RegExp[]) => boolean;
 

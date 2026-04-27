@@ -14,7 +14,7 @@ import type {
   CaptureProtocol,
 } from "./types.js";
 
-const DEBUG_PROXY_FETCH_PATCH_KEY = Symbol.for("openclaw.debugProxy.fetchPatch");
+const DEBUG_PROXY_FETCH_PATCH_KEY = Symbol.for("genesis.debugProxy.fetchPatch");
 const REDACTED_CAPTURE_HEADER_VALUE = "[REDACTED]";
 const SENSITIVE_CAPTURE_HEADER_NAMES = new Set([
   "authorization",
@@ -117,7 +117,7 @@ function createHttpCaptureEventBase(params: {
   return {
     sessionId: params.settings.sessionId,
     ts: Date.now(),
-    sourceScope: "openclaw",
+    sourceScope: "genesis",
     sourceProcess: params.settings.sourceProcess,
     protocol: params.transport ?? protocolFromUrl(params.rawUrl),
     direction: params.direction,
@@ -178,7 +178,7 @@ function installDebugProxyGlobalFetchPatch(settings: DebugProxySettings): void {
         store.recordEvent({
           sessionId: settings.sessionId,
           ts: Date.now(),
-          sourceScope: "openclaw",
+          sourceScope: "genesis",
           sourceProcess: settings.sourceProcess,
           protocol: protocolFromUrl(url),
           direction: "local",
@@ -224,7 +224,7 @@ export function initializeDebugProxyCapture(mode: string, resolved?: DebugProxyS
     id: settings.sessionId,
     startedAt: Date.now(),
     mode,
-    sourceScope: "openclaw",
+    sourceScope: "genesis",
     sourceProcess: settings.sourceProcess,
     proxyUrl: settings.proxyUrl,
     dbPath: settings.dbPath,
@@ -385,7 +385,7 @@ export function captureWsEvent(params: {
   store.recordEvent({
     sessionId: settings.sessionId,
     ts: Date.now(),
-    sourceScope: "openclaw",
+    sourceScope: "genesis",
     sourceProcess: settings.sourceProcess,
     protocol: protocolFromUrl(params.url),
     direction: params.direction,

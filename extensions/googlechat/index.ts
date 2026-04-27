@@ -1,9 +1,9 @@
-import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
+import { defineBundledChannelEntry } from "genesis/plugin-sdk/channel-entry-contract";
 
 export default defineBundledChannelEntry({
   id: "googlechat",
   name: "Google Chat",
-  description: "OpenClaw Google Chat channel plugin",
+  description: "Genesis Google Chat channel plugin",
   importMetaUrl: import.meta.url,
   plugin: {
     specifier: "./channel-plugin-api.js",

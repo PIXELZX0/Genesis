@@ -1,8 +1,8 @@
-import { resolveChannelGroupRequireMention } from "openclaw/plugin-sdk/channel-policy";
-import { resolveExactLineGroupConfigKey, type OpenClawConfig } from "./channel-api.js";
+import { resolveChannelGroupRequireMention } from "genesis/plugin-sdk/channel-policy";
+import { resolveExactLineGroupConfigKey, type GenesisConfig } from "./channel-api.js";
 
 type LineGroupContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   groupId?: string | null;
 };

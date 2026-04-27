@@ -125,13 +125,13 @@ const LEGACY_TTS_RULES: LegacyConfigRule[] = [
   {
     path: ["messages", "tts"],
     message:
-      'messages.tts legacy provider aliases/keys are legacy; use provider: "microsoft" and messages.tts.providers.<provider>. Run "openclaw doctor --fix".',
+      'messages.tts legacy provider aliases/keys are legacy; use provider: "microsoft" and messages.tts.providers.<provider>. Run "genesis doctor --fix".',
     match: (value) => hasLegacyTtsProviderKeys(value),
   },
   {
     path: ["plugins", "entries"],
     message:
-      'plugins.entries.voice-call.config.tts legacy provider aliases/keys are legacy; use provider: "microsoft" and plugins.entries.voice-call.config.tts.providers.<provider>. Run "openclaw doctor --fix".',
+      'plugins.entries.voice-call.config.tts legacy provider aliases/keys are legacy; use provider: "microsoft" and plugins.entries.voice-call.config.tts.providers.<provider>. Run "genesis doctor --fix".',
     match: (value) => hasLegacyPluginEntryTtsProviderKeys(value),
   },
 ];

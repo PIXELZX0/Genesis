@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import { getChannelInfoMSTeams, listChannelsMSTeams } from "./graph-teams.js";
 
 const mockState = vi.hoisted(() => ({
@@ -43,7 +43,7 @@ describe("listChannelsMSTeams", () => {
     });
 
     const result = await listChannelsMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-abc",
     });
 
@@ -71,7 +71,7 @@ describe("listChannelsMSTeams", () => {
     mockState.fetchGraphJson.mockResolvedValue({ value: [] });
 
     const result = await listChannelsMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-empty",
     });
 
@@ -82,7 +82,7 @@ describe("listChannelsMSTeams", () => {
     mockState.fetchGraphJson.mockResolvedValue({});
 
     const result = await listChannelsMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-no-value",
     });
 
@@ -112,7 +112,7 @@ describe("listChannelsMSTeams", () => {
       });
 
     const result = await listChannelsMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-paged",
     });
 
@@ -144,7 +144,7 @@ describe("listChannelsMSTeams", () => {
     }
 
     const result = await listChannelsMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-huge",
     });
 
@@ -172,7 +172,7 @@ describe("getChannelInfoMSTeams", () => {
     });
 
     const result = await getChannelInfoMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-abc",
       channelId: "ch-1",
     });
@@ -198,7 +198,7 @@ describe("getChannelInfoMSTeams", () => {
     });
 
     const result = await getChannelInfoMSTeams({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       teamId: "team-abc",
       channelId: "ch-2",
     });

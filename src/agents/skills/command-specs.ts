@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { loadEnabledClaudeBundleCommands } from "../../plugins/bundle-commands.js";
 import {
@@ -60,7 +60,7 @@ function resolveUniqueSkillCommandName(base: string, used: Set<string>): string 
 export function buildWorkspaceSkillCommandSpecs(
   workspaceDir: string,
   opts?: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
     entries?: SkillEntry[];

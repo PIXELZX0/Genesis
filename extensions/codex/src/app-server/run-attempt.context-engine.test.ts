@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness";
-import { embeddedAgentLog } from "openclaw/plugin-sdk/agent-harness-runtime";
+import type { EmbeddedRunAttemptParams } from "genesis/plugin-sdk/agent-harness";
+import { embeddedAgentLog } from "genesis/plugin-sdk/agent-harness-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ContextEngine } from "../../../../src/context-engine/types.js";
 import type { CodexServerNotification } from "./protocol.js";
@@ -72,7 +72,7 @@ function threadStartResult(threadId = "thread-1") {
       updatedAt: 1,
       status: { type: "idle" },
       path: null,
-      cwd: tempDir || "/tmp/openclaw-codex-test",
+      cwd: tempDir || "/tmp/genesis-codex-test",
       cliVersion: "0.118.0",
       source: "unknown",
       agentNickname: null,
@@ -84,7 +84,7 @@ function threadStartResult(threadId = "thread-1") {
     model: "gpt-5.4-codex",
     modelProvider: "openai",
     serviceTier: null,
-    cwd: tempDir || "/tmp/openclaw-codex-test",
+    cwd: tempDir || "/tmp/genesis-codex-test",
     instructionSources: [],
     approvalPolicy: "never",
     approvalsReviewer: "user",
@@ -204,7 +204,7 @@ function createContextEngine(overrides: Partial<ContextEngine> = {}): MockContex
 
 describe("runCodexAppServerAttempt context-engine lifecycle", () => {
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-context-engine-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-context-engine-"));
   });
 
   afterEach(async () => {
@@ -262,7 +262,7 @@ describe("runCodexAppServerAttempt context-engine lifecycle", () => {
             input: expect.arrayContaining([
               expect.objectContaining({
                 type: "text",
-                text: expect.stringContaining("OpenClaw assembled context for this turn:"),
+                text: expect.stringContaining("Genesis assembled context for this turn:"),
               }),
             ]),
           }),

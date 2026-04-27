@@ -5,7 +5,7 @@ import type { SkillSnapshot } from "../../agents/skills.js";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { CliDeps } from "../../cli/outbound-send-deps.js";
 import type { AgentDefaultsConfig } from "../../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { resolveCronDeliveryPlan, type CronDeliveryPlan } from "../delivery-plan.js";
 import type {
@@ -111,7 +111,7 @@ async function loadCronDeliveryRuntime() {
   return await cronDeliveryRuntimePromise;
 }
 
-function hasConfiguredAuthProfiles(cfg: OpenClawConfig): boolean {
+function hasConfiguredAuthProfiles(cfg: GenesisConfig): boolean {
   return (
     Boolean(cfg.auth?.profiles && Object.keys(cfg.auth.profiles).length > 0) ||
     Boolean(cfg.auth?.order && Object.keys(cfg.auth.order).length > 0)
@@ -302,7 +302,7 @@ function canPromptForMessageTool(params: {
 }
 
 async function resolveCronDeliveryContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   job: CronJob;
   agentId: string;
 }) {
@@ -375,7 +375,7 @@ async function loadUsageFormatRuntime() {
 }
 
 type RunCronAgentTurnParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   deps: CliDeps;
   job: CronJob;
   message: string;
@@ -392,7 +392,7 @@ type WithRunSession = (
 
 type PreparedCronRunContext = {
   input: RunCronAgentTurnParams;
-  cfgWithAgentDefaults: OpenClawConfig;
+  cfgWithAgentDefaults: GenesisConfig;
   agentId: string;
   agentCfg: AgentDefaultsConfig;
   agentDir: string;
@@ -441,7 +441,7 @@ async function prepareCronRunContext(params: {
     defaults: input.cfg.agents?.defaults,
     agentConfigOverride,
   });
-  const cfgWithAgentDefaults: OpenClawConfig = {
+  const cfgWithAgentDefaults: GenesisConfig = {
     ...input.cfg,
     agents: Object.assign({}, input.cfg.agents, { defaults: agentCfg }),
   };
@@ -925,7 +925,7 @@ async function finalizeCronRun(params: {
 }
 
 export async function runCronIsolatedAgentTurn(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   deps: CliDeps;
   job: CronJob;
   message: string;
@@ -943,7 +943,7 @@ export async function runCronIsolatedAgentTurn(params: {
       ? reason.trim()
       : "cron: job execution timed out";
   };
-  const isFastTestEnv = process.env.OPENCLAW_TEST_FAST === "1";
+  const isFastTestEnv = process.env.GENESIS_TEST_FAST === "1";
   const prepared = await prepareCronRunContext({ input: params, isFastTestEnv });
   if (!prepared.ok) {
     return prepared.result;

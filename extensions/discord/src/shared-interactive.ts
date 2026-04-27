@@ -1,12 +1,12 @@
 import {
   presentationToInteractiveReply,
   reduceInteractiveReply,
-} from "openclaw/plugin-sdk/interactive-runtime";
+} from "genesis/plugin-sdk/interactive-runtime";
 import type {
   InteractiveButtonStyle,
   InteractiveReply,
   MessagePresentation,
-} from "openclaw/plugin-sdk/interactive-runtime";
+} from "genesis/plugin-sdk/interactive-runtime";
 import type {
   DiscordComponentButtonSpec,
   DiscordComponentButtonStyle,

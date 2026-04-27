@@ -12,7 +12,7 @@ describe("brew helpers", () => {
   }
 
   it("resolves brew from ~/.linuxbrew/bin when executable exists", async () => {
-    await withTempDir({ prefix: "openclaw-brew-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-brew-" }, async (tmp) => {
       const homebrewBin = path.join(tmp, ".linuxbrew", "bin");
       const brewPath = path.join(homebrewBin, "brew");
       await writeExecutable(brewPath);
@@ -23,7 +23,7 @@ describe("brew helpers", () => {
   });
 
   it("prefers HOMEBREW_PREFIX/bin/brew when present", async () => {
-    await withTempDir({ prefix: "openclaw-brew-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-brew-" }, async (tmp) => {
       const prefix = path.join(tmp, "prefix");
       const prefixBin = path.join(prefix, "bin");
       const prefixBrew = path.join(prefixBin, "brew");
@@ -39,7 +39,7 @@ describe("brew helpers", () => {
   });
 
   it("prefers HOMEBREW_BREW_FILE over prefix and trims value", async () => {
-    await withTempDir({ prefix: "openclaw-brew-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-brew-" }, async (tmp) => {
       const explicit = path.join(tmp, "custom", "brew");
       const prefix = path.join(tmp, "prefix");
       const prefixBrew = path.join(prefix, "bin", "brew");
@@ -55,7 +55,7 @@ describe("brew helpers", () => {
   });
 
   it("falls back to prefix when HOMEBREW_BREW_FILE is missing or not executable", async () => {
-    await withTempDir({ prefix: "openclaw-brew-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-brew-" }, async (tmp) => {
       const explicit = path.join(tmp, "custom", "brew");
       const prefix = path.join(tmp, "prefix");
       const prefixBrew = path.join(prefix, "bin", "brew");
@@ -80,7 +80,7 @@ describe("brew helpers", () => {
   });
 
   it("ignores blank HOMEBREW_BREW_FILE and HOMEBREW_PREFIX values", async () => {
-    await withTempDir({ prefix: "openclaw-brew-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-brew-" }, async (tmp) => {
       const homebrewBin = path.join(tmp, ".linuxbrew", "bin");
       const brewPath = path.join(homebrewBin, "brew");
       await writeExecutable(brewPath);

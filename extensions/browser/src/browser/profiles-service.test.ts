@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadConfig, writeConfigFile } from "../config/config.js";
-import { resolveOpenClawUserDataDir } from "./chrome.js";
+import { resolveGenesisUserDataDir } from "./chrome.js";
 import type { BrowserRouteContext, BrowserServerState } from "./server-context.js";
 import { movePathToTrash } from "./trash.js";
 
@@ -20,7 +20,7 @@ vi.mock("./trash.js", () => ({
 }));
 
 vi.mock("./chrome.js", () => ({
-  resolveOpenClawUserDataDir: vi.fn(() => "/tmp/openclaw-test/openclaw/user-data"),
+  resolveGenesisUserDataDir: vi.fn(() => "/tmp/genesis-test/genesis/user-data"),
 }));
 
 const [{ resolveBrowserConfig }, { createBrowserProfilesService }] = await Promise.all([
@@ -108,6 +108,36 @@ describe("BrowserProfilesService", () => {
     expect(result.isRemote).toBe(false);
     expect(state.resolved.profiles.work?.cdpPort).toBe(19001);
     expect(writeConfigFile).toHaveBeenCalled();
+  });
+
+  it("creates Tor profiles as headless local managed profiles", async () => {
+    const resolved = resolveBrowserConfig({});
+    const { ctx, state } = createCtx(resolved);
+    vi.mocked(loadConfig).mockReturnValue({ browser: { profiles: {} } });
+
+    const service = createBrowserProfilesService(ctx);
+    const result = await service.createProfile({ name: "tor", tor: true });
+
+    expect(result.cdpPort).toBe(18801);
+    expect(result.isRemote).toBe(false);
+    expect(state.resolved.profiles.tor).toEqual({
+      cdpPort: 18801,
+      headless: true,
+      tor: { enabled: true, mode: "managed" },
+      color: expect.any(String),
+    });
+    expect(writeConfigFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        browser: expect.objectContaining({
+          profiles: expect.objectContaining({
+            tor: expect.objectContaining({
+              headless: true,
+              tor: { enabled: true, mode: "managed" },
+            }),
+          }),
+        }),
+      }),
+    );
   });
 
   it("accepts per-profile cdpUrl for remote Chrome", async () => {
@@ -220,7 +250,7 @@ describe("BrowserProfilesService", () => {
     const { ctx, state } = createCtx(resolved);
     vi.mocked(loadConfig).mockReturnValue({ browser: { profiles: {} } });
 
-    const tempDir = fs.mkdtempSync(path.join("/tmp", "openclaw-profile-"));
+    const tempDir = fs.mkdtempSync(path.join("/tmp", "genesis-profile-"));
     const userDataDir = path.join(tempDir, "BraveSoftware", "Brave-Browser");
     fs.mkdirSync(userDataDir, { recursive: true });
 
@@ -246,7 +276,7 @@ describe("BrowserProfilesService", () => {
     const { ctx } = createCtx(resolved);
     vi.mocked(loadConfig).mockReturnValue({ browser: { profiles: {} } });
 
-    const tempDir = fs.mkdtempSync(path.join("/tmp", "openclaw-profile-"));
+    const tempDir = fs.mkdtempSync(path.join("/tmp", "genesis-profile-"));
     const userDataDir = path.join(tempDir, "BraveSoftware", "Brave-Browser");
     fs.mkdirSync(userDataDir, { recursive: true });
 
@@ -270,9 +300,9 @@ describe("BrowserProfilesService", () => {
 
     vi.mocked(loadConfig).mockReturnValue({
       browser: {
-        defaultProfile: "openclaw",
+        defaultProfile: "genesis",
         profiles: {
-          openclaw: { cdpPort: 18800, color: "#FF4500" },
+          genesis: { cdpPort: 18800, color: "#FF4500" },
           remote: { cdpUrl: "http://10.0.0.42:9222", color: "#0066CC" },
         },
       },
@@ -296,18 +326,18 @@ describe("BrowserProfilesService", () => {
 
     vi.mocked(loadConfig).mockReturnValue({
       browser: {
-        defaultProfile: "openclaw",
+        defaultProfile: "genesis",
         profiles: {
-          openclaw: { cdpPort: 18800, color: "#FF4500" },
+          genesis: { cdpPort: 18800, color: "#FF4500" },
           work: { cdpPort: 18801, color: "#0066CC" },
         },
       },
     });
 
-    const tempDir = fs.mkdtempSync(path.join("/tmp", "openclaw-profile-"));
+    const tempDir = fs.mkdtempSync(path.join("/tmp", "genesis-profile-"));
     const userDataDir = path.join(tempDir, "work", "user-data");
     fs.mkdirSync(path.dirname(userDataDir), { recursive: true });
-    vi.mocked(resolveOpenClawUserDataDir).mockReturnValue(userDataDir);
+    vi.mocked(resolveGenesisUserDataDir).mockReturnValue(userDataDir);
 
     const service = createBrowserProfilesService(ctx);
     const result = await service.deleteProfile("work");
@@ -331,9 +361,9 @@ describe("BrowserProfilesService", () => {
 
     vi.mocked(loadConfig).mockReturnValue({
       browser: {
-        defaultProfile: "openclaw",
+        defaultProfile: "genesis",
         profiles: {
-          openclaw: { cdpPort: 18800, color: "#FF4500" },
+          genesis: { cdpPort: 18800, color: "#FF4500" },
           "chrome-live": {
             cdpPort: 18801,
             color: "#0066CC",

@@ -1,5 +1,5 @@
-import type { BaseProbeResult, BaseTokenResolution } from "openclaw/plugin-sdk/channel-contract";
-import { type OpenClawConfig, withEnvAsync } from "openclaw/plugin-sdk/testing";
+import type { BaseProbeResult, BaseTokenResolution } from "genesis/plugin-sdk/channel-contract";
+import { type GenesisConfig, withEnvAsync } from "genesis/plugin-sdk/testing";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { expectDirectoryIds } from "../../../test/helpers/channels/directory-ids.js";
 import {
@@ -25,7 +25,7 @@ describe("Telegram directory contract", () => {
           groups: { "-1001": {}, "*": {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     await expectDirectoryIds(
       listTelegramDirectoryPeersFromConfig,
@@ -52,7 +52,7 @@ describe("Telegram directory contract", () => {
             },
           },
         },
-      } as unknown as OpenClawConfig;
+      } as unknown as GenesisConfig;
 
       await expectDirectoryIds(listTelegramDirectoryPeersFromConfig, cfg, ["@alice"]);
       await expectDirectoryIds(listTelegramDirectoryGroupsFromConfig, cfg, ["-1001"]);
@@ -73,7 +73,7 @@ describe("Telegram directory contract", () => {
           groups: { "-1001": {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     await expectDirectoryIds(listTelegramDirectoryPeersFromConfig, cfg, ["@alice"]);
     await expectDirectoryIds(listTelegramDirectoryGroupsFromConfig, cfg, ["-1001"]);
@@ -87,7 +87,7 @@ describe("Telegram directory contract", () => {
           groups: { "-1001": {}, "-1002": {}, "-2001": {} },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     const groups = await listTelegramDirectoryGroupsFromConfig({
       cfg,

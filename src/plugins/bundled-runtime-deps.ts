@@ -5,7 +5,7 @@ import { Module } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveHomeRelativePath } from "../infra/home-dir.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { normalizePluginsConfig } from "./config-state.js";
@@ -41,7 +41,7 @@ export type BundledRuntimeDepsInstallRoot = {
 };
 
 type JsonObject = Record<string, unknown>;
-const RETAINED_RUNTIME_DEPS_MANIFEST = ".openclaw-runtime-deps.json";
+const RETAINED_RUNTIME_DEPS_MANIFEST = ".genesis-runtime-deps.json";
 // Packaged bundled plugins (Docker image, npm global install) keep their
 // `package.json` next to their entry point; running `npm install <specs>` with
 // `cwd: pluginRoot` would make npm resolve the plugin's own `workspace:*`
@@ -49,8 +49,8 @@ const RETAINED_RUNTIME_DEPS_MANIFEST = ".openclaw-runtime-deps.json";
 // install inside this sub-directory and move the produced `node_modules/` back
 // to the plugin root. Source-checkout installs already have their own cache
 // path and keep using it.
-const PLUGIN_ROOT_INSTALL_STAGE_DIR = ".openclaw-install-stage";
-const BUNDLED_RUNTIME_DEPS_LOCK_DIR = ".openclaw-runtime-deps.lock";
+const PLUGIN_ROOT_INSTALL_STAGE_DIR = ".genesis-install-stage";
+const BUNDLED_RUNTIME_DEPS_LOCK_DIR = ".genesis-runtime-deps.lock";
 const BUNDLED_RUNTIME_DEPS_LOCK_OWNER_FILE = "owner.json";
 const BUNDLED_RUNTIME_DEPS_LOCK_WAIT_MS = 100;
 const BUNDLED_RUNTIME_DEPS_LOCK_TIMEOUT_MS = 5 * 60_000;
@@ -448,7 +448,7 @@ function shouldPersistRetainedRuntimeDepsManifest(params: {
 export function isWritableDirectory(dir: string): boolean {
   let probeDir: string | null = null;
   try {
-    probeDir = fs.mkdtempSync(path.join(dir, ".openclaw-write-probe-"));
+    probeDir = fs.mkdtempSync(path.join(dir, ".genesis-write-probe-"));
     fs.writeFileSync(path.join(probeDir, "probe"), "", "utf8");
     return true;
   } catch {
@@ -475,7 +475,7 @@ function resolveSystemdStateDirectory(env: NodeJS.ProcessEnv): string | null {
 }
 
 function resolveBundledRuntimeDepsExternalBaseDir(env: NodeJS.ProcessEnv): string {
-  const explicit = env.OPENCLAW_PLUGIN_STAGE_DIR?.trim();
+  const explicit = env.GENESIS_PLUGIN_STAGE_DIR?.trim();
   if (explicit) {
     return resolveHomeRelativePath(explicit, { env, homedir: os.homedir });
   }
@@ -492,7 +492,7 @@ function resolveExternalBundledRuntimeDepsInstallRoot(params: {
 }): string {
   const packageRoot = resolveBundledPluginPackageRoot(params.pluginRoot) ?? params.pluginRoot;
   const version = sanitizePathSegment(readPackageVersion(packageRoot));
-  const packageKey = `openclaw-${version}-${createPathHash(packageRoot)}`;
+  const packageKey = `genesis-${version}-${createPathHash(packageRoot)}`;
   return path.join(resolveBundledRuntimeDepsExternalBaseDir(params.env), packageKey);
 }
 
@@ -543,7 +543,7 @@ function hasDependencySentinel(
 
 function replaceNodeModulesDir(targetDir: string, sourceDir: string): void {
   const parentDir = path.dirname(targetDir);
-  const tempDir = fs.mkdtempSync(path.join(parentDir, ".openclaw-runtime-deps-copy-"));
+  const tempDir = fs.mkdtempSync(path.join(parentDir, ".genesis-runtime-deps-copy-"));
   const stagedDir = path.join(tempDir, "node_modules");
   try {
     fs.cpSync(sourceDir, stagedDir, { recursive: true });
@@ -705,7 +705,7 @@ export function resolveBundledRuntimeDepsNpmRunner(params: {
   };
 }
 function readBundledPluginChannels(pluginDir: string): string[] {
-  const manifest = readJsonObject(path.join(pluginDir, "openclaw.plugin.json"));
+  const manifest = readJsonObject(path.join(pluginDir, "genesis.plugin.json"));
   const channels = manifest?.channels;
   if (!Array.isArray(channels)) {
     return [];
@@ -714,11 +714,11 @@ function readBundledPluginChannels(pluginDir: string): string[] {
 }
 
 function readBundledPluginEnabledByDefault(pluginDir: string): boolean {
-  return readJsonObject(path.join(pluginDir, "openclaw.plugin.json"))?.enabledByDefault === true;
+  return readJsonObject(path.join(pluginDir, "genesis.plugin.json"))?.enabledByDefault === true;
 }
 
 function isBundledPluginConfiguredForRuntimeDeps(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   pluginId: string;
   pluginDir: string;
   includeConfiguredChannels?: boolean;
@@ -772,7 +772,7 @@ function isBundledPluginConfiguredForRuntimeDeps(params: {
 }
 
 function shouldIncludeBundledPluginRuntimeDeps(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   pluginIds?: ReadonlySet<string>;
   pluginId: string;
   pluginDir: string;
@@ -794,7 +794,7 @@ function shouldIncludeBundledPluginRuntimeDeps(params: {
 
 function collectBundledPluginRuntimeDeps(params: {
   extensionsDir: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   pluginIds?: ReadonlySet<string>;
   includeConfiguredChannels?: boolean;
 }): {
@@ -886,7 +886,7 @@ function normalizePluginIdSet(
 
 export function scanBundledPluginRuntimeDeps(params: {
   packageRoot: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   pluginIds?: readonly string[];
   includeConfiguredChannels?: boolean;
   env?: NodeJS.ProcessEnv;
@@ -937,7 +937,7 @@ export function resolveBundledRuntimeDependencyPackageInstallRoot(
   });
   if (
     options.forceExternal ||
-    env.OPENCLAW_PLUGIN_STAGE_DIR?.trim() ||
+    env.GENESIS_PLUGIN_STAGE_DIR?.trim() ||
     env.STATE_DIRECTORY?.trim() ||
     !isSourceCheckoutRoot(packageRoot)
   ) {
@@ -954,7 +954,7 @@ export function resolveBundledRuntimeDependencyInstallRoot(
   const externalRoot = resolveExternalBundledRuntimeDepsInstallRoot({ pluginRoot, env });
   if (
     options.forceExternal ||
-    env.OPENCLAW_PLUGIN_STAGE_DIR?.trim() ||
+    env.GENESIS_PLUGIN_STAGE_DIR?.trim() ||
     env.STATE_DIRECTORY?.trim() ||
     isPackagedBundledPluginRoot(pluginRoot)
   ) {
@@ -1031,12 +1031,12 @@ export function installBundledRuntimeDeps(params: {
     if (isolatedExecutionRoot) {
       fs.writeFileSync(
         path.join(installExecutionRoot, "package.json"),
-        `${JSON.stringify({ name: "openclaw-runtime-deps-install", private: true }, null, 2)}\n`,
+        `${JSON.stringify({ name: "genesis-runtime-deps-install", private: true }, null, 2)}\n`,
         "utf8",
       );
     }
     const installEnv = createBundledRuntimeDepsInstallEnv(params.env, {
-      cacheDir: path.join(installExecutionRoot, ".openclaw-npm-cache"),
+      cacheDir: path.join(installExecutionRoot, ".genesis-npm-cache"),
     });
     const npmRunner = resolveBundledRuntimeDepsNpmRunner({
       env: installEnv,
@@ -1103,7 +1103,7 @@ export function ensureBundledPluginRuntimeDeps(params: {
   pluginId: string;
   pluginRoot: string;
   env: NodeJS.ProcessEnv;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   retainSpecs?: readonly string[];
   installDeps?: (params: BundledRuntimeDepsInstallParams) => void;
 }): BundledRuntimeDepsEnsureResult {

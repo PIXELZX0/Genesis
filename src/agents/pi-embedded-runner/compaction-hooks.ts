@@ -1,5 +1,5 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
@@ -9,7 +9,7 @@ import { resolveSessionAgentId } from "../agent-scope.js";
 import { resolveMemorySearchConfig } from "../memory-search.js";
 import { log } from "./logger.js";
 
-function resolvePostCompactionIndexSyncMode(config?: OpenClawConfig): "off" | "async" | "await" {
+function resolvePostCompactionIndexSyncMode(config?: GenesisConfig): "off" | "async" | "await" {
   const mode = config?.agents?.defaults?.compaction?.postIndexSync;
   if (mode === "off" || mode === "async" || mode === "await") {
     return mode;
@@ -18,7 +18,7 @@ function resolvePostCompactionIndexSyncMode(config?: OpenClawConfig): "off" | "a
 }
 
 async function runPostCompactionSessionMemorySync(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   sessionKey?: string;
   sessionFile: string;
 }): Promise<void> {
@@ -58,7 +58,7 @@ async function runPostCompactionSessionMemorySync(params: {
 }
 
 function syncPostCompactionSessionMemory(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   sessionKey?: string;
   sessionFile: string;
   mode: "off" | "async" | "await";
@@ -80,7 +80,7 @@ function syncPostCompactionSessionMemory(params: {
 }
 
 export async function runPostCompactionSideEffects(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   sessionKey?: string;
   sessionFile: string;
 }): Promise<void> {

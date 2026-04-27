@@ -4,11 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-config-reload-e2e" OPENCLAW_CONFIG_RELOAD_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_CONFIG_RELOAD_E2E_SKIP_BUILD:-0}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-config-reload-e2e" GENESIS_CONFIG_RELOAD_E2E_IMAGE)"
+SKIP_BUILD="${GENESIS_CONFIG_RELOAD_E2E_SKIP_BUILD:-0}"
 PORT="18789"
 TOKEN="reload-e2e-token"
-CONTAINER_NAME="openclaw-config-reload-e2e-$$"
+CONTAINER_NAME="genesis-config-reload-e2e-$$"
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -22,17 +22,17 @@ docker run -d \
   --name "$CONTAINER_NAME" \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
   -e GATEWAY_AUTH_TOKEN_REF="$TOKEN" \
-  -e OPENCLAW_SKIP_CHANNELS=1 \
-  -e OPENCLAW_SKIP_PROVIDERS=1 \
-  -e OPENCLAW_SKIP_GMAIL_WATCHER=1 \
-  -e OPENCLAW_SKIP_CRON=1 \
-  -e OPENCLAW_SKIP_CANVAS_HOST=1 \
+  -e GENESIS_SKIP_CHANNELS=1 \
+  -e GENESIS_SKIP_PROVIDERS=1 \
+  -e GENESIS_SKIP_GMAIL_WATCHER=1 \
+  -e GENESIS_SKIP_CRON=1 \
+  -e GENESIS_SKIP_CANVAS_HOST=1 \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail
 entry=dist/index.mjs
 [ -f \"\$entry\" ] || entry=dist/index.js
-mkdir -p \"\$HOME/.openclaw\"
-cat > \"\$HOME/.openclaw/openclaw.json\" <<'JSON'
+mkdir -p \"\$HOME/.genesis\"
+cat > \"\$HOME/.genesis/genesis.json\" <<'JSON'
 {
   \"gateway\": {
     \"port\": $PORT,
@@ -116,7 +116,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const configPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');
+const configPath = path.join(os.homedir(), '.genesis', 'genesis.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 config.plugins.installs['lossless-claw'].installedAt = '2026-04-22T00:01:00.000Z';
 config.plugins.installs['lossless-claw'].resolvedAt = '2026-04-22T00:01:00.000Z';

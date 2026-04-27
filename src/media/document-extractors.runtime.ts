@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   DocumentExtractionRequest,
   DocumentExtractionResult,
@@ -8,11 +8,11 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 let extractorPromise: Promise<ReturnType<typeof resolvePluginDocumentExtractors>> | undefined;
 const extractorPromisesByConfig = new WeakMap<
-  OpenClawConfig,
+  GenesisConfig,
   Promise<ReturnType<typeof resolvePluginDocumentExtractors>>
 >();
 
-async function loadDocumentExtractors(config?: OpenClawConfig) {
+async function loadDocumentExtractors(config?: GenesisConfig) {
   if (config) {
     const cached = extractorPromisesByConfig.get(config);
     if (cached) {
@@ -31,7 +31,7 @@ async function loadDocumentExtractors(config?: OpenClawConfig) {
 
 export async function extractDocumentContent(
   params: DocumentExtractionRequest & {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
   },
 ): Promise<(DocumentExtractionResult & { extractor: string }) | null> {
   const mimeType = normalizeLowercaseStringOrEmpty(params.mimeType);

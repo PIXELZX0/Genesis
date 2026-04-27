@@ -51,7 +51,7 @@ vi.mock("../version.js", () => ({
 }));
 
 vi.mock("./channel-bridge.js", () => ({
-  OpenClawChannelBridge: class MockOpenClawChannelBridge {
+  GenesisChannelBridge: class MockGenesisChannelBridge {
     setServer(server: unknown) {
       bridgeState.setServer(server);
     }
@@ -79,7 +79,7 @@ vi.mock("./channel-tools.js", () => ({
   registerChannelMcpTools: vi.fn(),
 }));
 
-describe("serveOpenClawChannelMcp shutdown", () => {
+describe("serveGenesisChannelMcp shutdown", () => {
   const unhandledRejections: unknown[] = [];
   const onUnhandledRejection = (reason: unknown) => {
     unhandledRejections.push(reason);
@@ -99,9 +99,9 @@ describe("serveOpenClawChannelMcp shutdown", () => {
 
   it("does not leak unhandled rejections when shutdown close fails", async () => {
     process.on("unhandledRejection", onUnhandledRejection);
-    const { serveOpenClawChannelMcp } = await import("./channel-server.js");
+    const { serveGenesisChannelMcp } = await import("./channel-server.js");
 
-    const servePromise = serveOpenClawChannelMcp({ verbose: false });
+    const servePromise = serveGenesisChannelMcp({ verbose: false });
     await Promise.resolve();
 
     transportState.lastTransport?.onclose?.();

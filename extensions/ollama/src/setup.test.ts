@@ -1,5 +1,5 @@
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import type { WizardPrompter } from "openclaw/plugin-sdk/setup";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import type { WizardPrompter } from "genesis/plugin-sdk/setup";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { jsonResponse, requestBodyText, requestUrl } from "../../../src/test-helpers/http.js";
 import { resetOllamaModelShowInfoCacheForTest } from "./provider-models.js";
@@ -10,8 +10,8 @@ import {
 } from "./setup.js";
 
 const upsertAuthProfileWithLock = vi.hoisted(() => vi.fn(async () => {}));
-vi.mock("openclaw/plugin-sdk/provider-auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/provider-auth")>();
+vi.mock("genesis/plugin-sdk/provider-auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("genesis/plugin-sdk/provider-auth")>();
   return {
     ...actual,
     upsertAuthProfileWithLock,

@@ -1,15 +1,15 @@
 import { join } from "node:path";
 import { loadConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { augmentModelCatalogWithProviderPlugins } from "../plugins/provider-runtime.runtime.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
-import { resolveOpenClawAgentDir } from "./agent-paths.js";
+import { resolveGenesisAgentDir } from "./agent-paths.js";
 import type { ModelCatalogEntry, ModelInputType } from "./model-catalog.types.js";
-import { ensureOpenClawModelsJson } from "./models-config.js";
+import { ensureGenesisModelsJson } from "./models-config.js";
 import { normalizeProviderId } from "./provider-id.js";
 
 const log = createSubsystemLogger("model-catalog");
@@ -43,7 +43,7 @@ let importPiSdk = defaultImportPiSdk;
 let modelSuppressionPromise: Promise<typeof import("./model-suppression.runtime.js")> | undefined;
 
 function shouldLogModelCatalogTiming(): boolean {
-  return process.env.OPENCLAW_DEBUG_INGRESS_TIMING === "1";
+  return process.env.GENESIS_DEBUG_INGRESS_TIMING === "1";
 }
 
 function loadModelSuppression() {
@@ -79,7 +79,7 @@ function instantiatePiModelRegistry(
 }
 
 export async function loadModelCatalog(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   useCache?: boolean;
   readOnly?: boolean;
 }): Promise<ModelCatalogEntry[]> {
@@ -113,7 +113,7 @@ export async function loadModelCatalog(params?: {
     try {
       const cfg = params?.config ?? loadConfig();
       if (!readOnly) {
-        await ensureOpenClawModelsJson(cfg);
+        await ensureGenesisModelsJson(cfg);
         logStage("models-json-ready");
       }
       // IMPORTANT: keep the dynamic import *inside* the try/catch.
@@ -122,7 +122,7 @@ export async function loadModelCatalog(params?: {
       // will keep failing until restart).
       const piSdk = await importPiSdk();
       logStage("pi-sdk-imported");
-      const agentDir = resolveOpenClawAgentDir();
+      const agentDir = resolveGenesisAgentDir();
       const { shouldSuppressBuiltInModel } = await loadModelSuppression();
       logStage("catalog-deps-ready");
       const authStorage = piSdk.discoverAuthStorage(

@@ -1,12 +1,12 @@
 import {
   DEFAULT_ACCOUNT_ID,
-  type OpenClawConfig as ClawdbotConfig,
+  type GenesisConfig as ClawdbotConfig,
   createAccountListHelpers,
   normalizeAccountId,
   normalizeOptionalAccountId,
   resolveMergedAccountConfig,
-} from "openclaw/plugin-sdk/account-resolution";
-import { coerceSecretRef } from "openclaw/plugin-sdk/provider-auth";
+} from "genesis/plugin-sdk/account-resolution";
+import { coerceSecretRef } from "genesis/plugin-sdk/provider-auth";
 import { normalizeString } from "./comment-shared.js";
 import type {
   FeishuConfig,

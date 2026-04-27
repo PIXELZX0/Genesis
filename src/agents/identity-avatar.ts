@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   AVATAR_MAX_BYTES,
   isAvatarDataUrl,
@@ -21,7 +21,7 @@ export type AgentAvatarResolution =
   | { kind: "data"; url: string };
 
 function resolveAvatarSource(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: { includeUiOverride?: boolean },
 ): string | null {
@@ -81,7 +81,7 @@ function resolveLocalAvatarPath(params: {
 }
 
 export function resolveAgentAvatar(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
   opts?: { includeUiOverride?: boolean },
 ): AgentAvatarResolution {

@@ -11,7 +11,7 @@ import type { PluginRegistry } from "./registry.js";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 
 const tempDirs: string[] = [];
-const tempRoot = makeTrackedTempDir("openclaw-plugin-binding", tempDirs);
+const tempRoot = makeTrackedTempDir("genesis-plugin-binding", tempDirs);
 const approvalsPath = path.join(tempRoot, "plugin-binding-approvals.json");
 
 const sessionBindingState = vi.hoisted(() => {
@@ -98,7 +98,7 @@ vi.mock("../infra/home-dir.js", async () => {
   return {
     ...actual,
     expandHomePrefix: (value: string) => {
-      if (value === "~/.openclaw/plugin-binding-approvals.json") {
+      if (value === "~/.genesis/plugin-binding-approvals.json") {
         return approvalsPath;
       }
       return actual.expandHomePrefix(value);
@@ -397,7 +397,7 @@ describe("plugin conversation binding approvals", () => {
       return {
         ...actual,
         expandHomePrefix: (value: string) => {
-          if (value === "~/.openclaw/plugin-binding-approvals.json") {
+          if (value === "~/.genesis/plugin-binding-approvals.json") {
             return approvalsPath;
           }
           return actual.expandHomePrefix(value);
@@ -627,8 +627,8 @@ describe("plugin conversation binding approvals", () => {
     const data = {
       kind: "codex-app-server-session",
       version: 1,
-      sessionFile: "/tmp/openclaw/session.jsonl",
-      workspaceDir: "/workspace/openclaw",
+      sessionFile: "/tmp/genesis/session.jsonl",
+      workspaceDir: "/workspace/genesis",
     };
     const binding = await requestResolvedBinding(
       createCodexBindRequest({
@@ -905,7 +905,7 @@ describe("plugin conversation binding approvals", () => {
       name: "migrates a legacy codex thread binding session key through the new approval flow",
       existingRecord: {
         bindingId: "binding-legacy-codex-thread",
-        targetSessionKey: "openclaw-app-server:thread:019ce411-6322-7db2-a821-1a61c530e7d9",
+        targetSessionKey: "genesis-app-server:thread:019ce411-6322-7db2-a821-1a61c530e7d9",
         targetKind: "session" as const,
         conversation: {
           channel: "telegram",
@@ -922,10 +922,10 @@ describe("plugin conversation binding approvals", () => {
         accountId: "default",
         conversationId: "8460800771",
         summary: "Bind this conversation to Codex thread 019ce411-6322-7db2-a821-1a61c530e7d9.",
-        pluginId: "openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
       }),
       expectedBinding: {
-        pluginId: "openclaw-codex-app-server",
+        pluginId: "genesis-codex-app-server",
         pluginRoot: "/plugins/codex-a",
         conversationId: "8460800771",
       },

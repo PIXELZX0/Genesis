@@ -1,6 +1,6 @@
 import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { normalizeProviderId } from "../agents/model-selection.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
@@ -108,7 +108,7 @@ export function buildProviderPluginMethodChoice(providerId: string, methodId: st
 }
 
 function resolveProviderWizardProviders(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderPlugin[] {
@@ -121,7 +121,7 @@ function resolveProviderWizardProviders(params: {
 }
 
 export function resolveProviderWizardOptions(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderWizardOption[] {
@@ -192,7 +192,7 @@ function resolveModelPickerChoiceValue(
 }
 
 export function resolveProviderModelPickerEntries(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderModelPickerEntry[] {
@@ -273,7 +273,7 @@ export function resolveProviderPluginChoice(params: {
 }
 
 export async function runProviderModelSelectedHook(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   model: string;
   prompter: WizardPrompter;
   agentDir?: string;

@@ -1,7 +1,4 @@
-import {
-  assertHttpUrlTargetsPrivateNetwork,
-  type LookupFn,
-} from "openclaw/plugin-sdk/ssrf-runtime";
+import { assertHttpUrlTargetsPrivateNetwork, type LookupFn } from "genesis/plugin-sdk/ssrf-runtime";
 import { isPrivateOrLoopbackHost } from "./private-network-host.js";
 
 const MATRIX_HTTP_HOMESERVER_ERROR =

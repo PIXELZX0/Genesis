@@ -1,11 +1,11 @@
 ---
-summary: "CLI reference for `openclaw configure` (interactive configuration prompts)"
+summary: "CLI reference for `genesis configure` (interactive configuration prompts)"
 read_when:
   - You want to tweak credentials, devices, or agent defaults interactively
 title: "Configure"
 ---
 
-# `openclaw configure`
+# `genesis configure`
 
 Interactive prompt to set up credentials, devices, and agent defaults.
 
@@ -14,8 +14,8 @@ Note: The **Model** section now includes a multi-select for the
 Provider-scoped setup choices merge their selected models into the existing
 allowlist instead of replacing unrelated providers already in the config.
 Re-running provider auth from configure preserves an existing
-`agents.defaults.model.primary`; use `openclaw models auth login --provider <id> --set-default`
-or `openclaw models set <model>` when you intentionally want to change the default model.
+`agents.defaults.model.primary`; use `genesis models auth login --provider <id> --set-default`
+or `genesis models set <model>` when you intentionally want to change the default model.
 
 When configure starts from a provider auth choice, the default-model and
 allowlist pickers prefer that provider automatically. For paired providers such
@@ -24,10 +24,10 @@ variants (`volcengine-plan/*`, `byteplus-plan/*`). If the preferred-provider
 filter would produce an empty list, configure falls back to the unfiltered
 catalog instead of showing a blank picker.
 
-Tip: `openclaw config` without a subcommand opens the same wizard. Use
-`openclaw config get|set|unset` for non-interactive edits.
+Tip: `genesis config` without a subcommand opens the same wizard. Use
+`genesis config get|set|unset` for non-interactive edits.
 
-For web search, `openclaw configure --section web` lets you choose a provider
+For web search, `genesis configure --section web` lets you choose a provider
 and configure its credentials. Some providers also show provider-specific
 follow-up prompts:
 
@@ -68,10 +68,10 @@ Notes:
 ## Examples
 
 ```bash
-openclaw configure
-openclaw configure --section web
-openclaw configure --section model --section channels
-openclaw configure --section gateway --section daemon
+genesis configure
+genesis configure --section web
+genesis configure --section model --section channels
+genesis configure --section gateway --section daemon
 ```
 
 ## Related

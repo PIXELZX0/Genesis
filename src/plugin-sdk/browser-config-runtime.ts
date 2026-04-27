@@ -5,7 +5,7 @@ export {
   writeConfigFile,
   type BrowserConfig,
   type BrowserProfileConfig,
-  type OpenClawConfig,
+  type GenesisConfig,
 } from "../config/config.js";
 export { resolveConfigPath, resolveGatewayPort } from "../config/paths.js";
 export {

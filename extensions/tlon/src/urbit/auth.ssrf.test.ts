@@ -1,5 +1,5 @@
-import { SsrFBlockedError } from "openclaw/plugin-sdk/browser-security-runtime";
-import type { LookupFn } from "openclaw/plugin-sdk/ssrf-runtime";
+import { SsrFBlockedError } from "genesis/plugin-sdk/browser-security-runtime";
+import type { LookupFn } from "genesis/plugin-sdk/ssrf-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticate } from "./auth.js";
 

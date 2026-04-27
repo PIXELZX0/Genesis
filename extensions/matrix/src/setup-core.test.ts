@@ -1,4 +1,4 @@
-import type { ChannelSetupWizardAdapter } from "openclaw/plugin-sdk/setup";
+import type { ChannelSetupWizardAdapter } from "genesis/plugin-sdk/setup";
 import { describe, expect, it, vi } from "vitest";
 import { createMatrixSetupWizardProxy, matrixSetupAdapter } from "./setup-core.js";
 import type { CoreConfig } from "./types.js";

@@ -32,50 +32,50 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
   descendant subagent work is still draining, and it prefers final descendant
   output when that arrives before delivery.
 - Completion notifications are delivered directly to a channel or queued for the next heartbeat.
-- `openclaw tasks list` shows all tasks; `openclaw tasks audit` surfaces issues.
+- `genesis tasks list` shows all tasks; `genesis tasks audit` surfaces issues.
 - Terminal records are kept for 7 days, then automatically pruned.
 
 ## Quick start
 
 ```bash
 # List all tasks (newest first)
-openclaw tasks list
+genesis tasks list
 
 # Filter by runtime or status
-openclaw tasks list --runtime acp
-openclaw tasks list --status running
+genesis tasks list --runtime acp
+genesis tasks list --status running
 
 # Show details for a specific task (by ID, run ID, or session key)
-openclaw tasks show <lookup>
+genesis tasks show <lookup>
 
 # Cancel a running task (kills the child session)
-openclaw tasks cancel <lookup>
+genesis tasks cancel <lookup>
 
 # Change notification policy for a task
-openclaw tasks notify <lookup> state_changes
+genesis tasks notify <lookup> state_changes
 
 # Run a health audit
-openclaw tasks audit
+genesis tasks audit
 
 # Preview or apply maintenance
-openclaw tasks maintenance
-openclaw tasks maintenance --apply
+genesis tasks maintenance
+genesis tasks maintenance --apply
 
 # Inspect TaskFlow state
-openclaw tasks flow list
-openclaw tasks flow show <lookup>
-openclaw tasks flow cancel <lookup>
+genesis tasks flow list
+genesis tasks flow show <lookup>
+genesis tasks flow cancel <lookup>
 ```
 
 ## What creates a task
 
-| Source                 | Runtime type | When a task record is created                          | Default notify policy |
-| ---------------------- | ------------ | ------------------------------------------------------ | --------------------- |
-| ACP background runs    | `acp`        | Spawning a child ACP session                           | `done_only`           |
-| Subagent orchestration | `subagent`   | Spawning a subagent via `sessions_spawn`               | `done_only`           |
-| Cron jobs (all types)  | `cron`       | Every cron execution (main-session and isolated)       | `silent`              |
-| CLI operations         | `cli`        | `openclaw agent` commands that run through the gateway | `silent`              |
-| Agent media jobs       | `cli`        | Session-backed `video_generate` runs                   | `silent`              |
+| Source                 | Runtime type | When a task record is created                         | Default notify policy |
+| ---------------------- | ------------ | ----------------------------------------------------- | --------------------- |
+| ACP background runs    | `acp`        | Spawning a child ACP session                          | `done_only`           |
+| Subagent orchestration | `subagent`   | Spawning a subagent via `sessions_spawn`              | `done_only`           |
+| Cron jobs (all types)  | `cron`       | Every cron execution (main-session and isolated)      | `silent`              |
+| CLI operations         | `cli`        | `genesis agent` commands that run through the gateway | `silent`              |
+| Agent media jobs       | `cli`        | Session-backed `video_generate` runs                  | `silent`              |
 
 Main-session cron tasks use `silent` notify policy by default — they create records for tracking but do not generate notifications. Isolated cron tasks also default to `silent` but are more visible because they run in their own session.
 
@@ -110,7 +110,7 @@ stateDiagram-v2
 | `succeeded` | Completed successfully                                                     |
 | `failed`    | Completed with an error                                                    |
 | `timed_out` | Exceeded the configured timeout                                            |
-| `cancelled` | Stopped by the operator via `openclaw tasks cancel`                        |
+| `cancelled` | Stopped by the operator via `genesis tasks cancel`                         |
 | `lost`      | The runtime lost authoritative backing state after a 5-minute grace period |
 
 Transitions happen automatically — when the associated agent run ends, the task status updates to match.
@@ -124,9 +124,9 @@ Transitions happen automatically — when the associated agent run ends, the tas
 
 ## Delivery and notifications
 
-When a task reaches a terminal state, OpenClaw notifies you. There are two delivery paths:
+When a task reaches a terminal state, Genesis notifies you. There are two delivery paths:
 
-**Direct delivery** — if the task has a channel target (the `requesterOrigin`), the completion message goes straight to that channel (Telegram, Discord, Slack, etc.). For subagent completions, OpenClaw also preserves bound thread/topic routing when available and can fill a missing `to` / account from the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) before giving up on direct delivery.
+**Direct delivery** — if the task has a channel target (the `requesterOrigin`), the completion message goes straight to that channel (Telegram, Discord, Slack, etc.). For subagent completions, Genesis also preserves bound thread/topic routing when available and can fill a missing `to` / account from the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) before giving up on direct delivery.
 
 **Session-queued delivery** — if direct delivery fails or no origin is set, the update is queued as a system event in the requester's session and surfaces on the next heartbeat.
 
@@ -151,7 +151,7 @@ Control how much you hear about each task:
 Change the policy while a task is running:
 
 ```bash
-openclaw tasks notify <lookup> state_changes
+genesis tasks notify <lookup> state_changes
 ```
 
 ## CLI reference
@@ -159,7 +159,7 @@ openclaw tasks notify <lookup> state_changes
 ### `tasks list`
 
 ```bash
-openclaw tasks list [--runtime <acp|subagent|cron|cli>] [--status <status>] [--json]
+genesis tasks list [--runtime <acp|subagent|cron|cli>] [--status <status>] [--json]
 ```
 
 Output columns: Task ID, Kind, Status, Delivery, Run ID, Child Session, Summary.
@@ -167,7 +167,7 @@ Output columns: Task ID, Kind, Status, Delivery, Run ID, Child Session, Summary.
 ### `tasks show`
 
 ```bash
-openclaw tasks show <lookup>
+genesis tasks show <lookup>
 ```
 
 The lookup token accepts a task ID, run ID, or session key. Shows the full record including timing, delivery state, error, and terminal summary.
@@ -175,7 +175,7 @@ The lookup token accepts a task ID, run ID, or session key. Shows the full recor
 ### `tasks cancel`
 
 ```bash
-openclaw tasks cancel <lookup>
+genesis tasks cancel <lookup>
 ```
 
 For ACP and subagent tasks, this kills the child session. For CLI-tracked tasks, cancellation is recorded in the task registry (there is no separate child runtime handle). Status transitions to `cancelled` and a delivery notification is sent when applicable.
@@ -183,16 +183,16 @@ For ACP and subagent tasks, this kills the child session. For CLI-tracked tasks,
 ### `tasks notify`
 
 ```bash
-openclaw tasks notify <lookup> <done_only|state_changes|silent>
+genesis tasks notify <lookup> <done_only|state_changes|silent>
 ```
 
 ### `tasks audit`
 
 ```bash
-openclaw tasks audit [--json]
+genesis tasks audit [--json]
 ```
 
-Surfaces operational issues. Findings also appear in `openclaw status` when issues are detected.
+Surfaces operational issues. Findings also appear in `genesis status` when issues are detected.
 
 | Finding                   | Severity | Trigger                                               |
 | ------------------------- | -------- | ----------------------------------------------------- |
@@ -206,8 +206,8 @@ Surfaces operational issues. Findings also appear in `openclaw status` when issu
 ### `tasks maintenance`
 
 ```bash
-openclaw tasks maintenance [--json]
-openclaw tasks maintenance --apply [--json]
+genesis tasks maintenance [--json]
+genesis tasks maintenance --apply [--json]
 ```
 
 Use this to preview or apply reconciliation, cleanup stamping, and pruning for
@@ -231,9 +231,9 @@ Completion cleanup is also runtime-aware:
 ### `tasks flow list|show|cancel`
 
 ```bash
-openclaw tasks flow list [--status <status>] [--json]
-openclaw tasks flow show <lookup> [--json]
-openclaw tasks flow cancel <lookup>
+genesis tasks flow list [--status <status>] [--json]
+genesis tasks flow show <lookup> [--json]
+genesis tasks flow cancel <lookup>
 ```
 
 Use these when the orchestrating Task Flow is the thing you care about rather
@@ -247,11 +247,11 @@ active and recently completed tasks with runtime, status, timing, and progress o
 When the current session has no visible linked tasks, `/tasks` falls back to agent-local task counts
 so you still get an overview without leaking other-session details.
 
-For the full operator ledger, use the CLI: `openclaw tasks list`.
+For the full operator ledger, use the CLI: `genesis tasks list`.
 
 ## Status integration (task pressure)
 
-`openclaw status` includes an at-a-glance task summary:
+`genesis status` includes an at-a-glance task summary:
 
 ```
 Tasks: 3 queued · 2 running · 1 issues
@@ -274,7 +274,7 @@ remains. This keeps the status card focused on what matters right now.
 Task records persist in SQLite at:
 
 ```
-$OPENCLAW_STATE_DIR/tasks/runs.sqlite
+$GENESIS_STATE_DIR/tasks/runs.sqlite
 ```
 
 The registry loads into memory at gateway start and syncs writes to SQLite for durability across restarts.
@@ -293,13 +293,13 @@ A sweeper runs every **60 seconds** and handles three things:
 
 ### Tasks and Task Flow
 
-[Task Flow](/automation/taskflow) is the flow orchestration layer above background tasks. A single flow may coordinate multiple tasks over its lifetime using managed or mirrored sync modes. Use `openclaw tasks` to inspect individual task records and `openclaw tasks flow` to inspect the orchestrating flow.
+[Task Flow](/automation/taskflow) is the flow orchestration layer above background tasks. A single flow may coordinate multiple tasks over its lifetime using managed or mirrored sync modes. Use `genesis tasks` to inspect individual task records and `genesis tasks flow` to inspect the orchestrating flow.
 
 See [Task Flow](/automation/taskflow) for details.
 
 ### Tasks and cron
 
-A cron job **definition** lives in `~/.openclaw/cron/jobs.json`; runtime execution state lives beside it in `~/.openclaw/cron/jobs-state.json`. **Every** cron execution creates a task record — both main-session and isolated. Main-session cron tasks default to `silent` notify policy so they track without generating notifications.
+A cron job **definition** lives in `~/.genesis/cron/jobs.json`; runtime execution state lives beside it in `~/.genesis/cron/jobs-state.json`. **Every** cron execution creates a task record — both main-session and isolated. Main-session cron tasks default to `silent` notify policy so they track without generating notifications.
 
 See [Cron Jobs](/automation/cron-jobs).
 

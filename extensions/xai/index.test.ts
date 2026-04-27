@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
 import { describe, expect, it } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.js";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";
@@ -31,7 +31,7 @@ function createProviderModel(overrides: {
   };
 }
 
-type XaiAutoEnableProbe = Parameters<OpenClawPluginApi["registerAutoEnableProbe"]>[0];
+type XaiAutoEnableProbe = Parameters<GenesisPluginApi["registerAutoEnableProbe"]>[0];
 
 function registerXaiAutoEnableProbe(): XaiAutoEnableProbe {
   const probes: XaiAutoEnableProbe[] = [];

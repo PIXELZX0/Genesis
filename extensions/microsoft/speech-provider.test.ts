@@ -1,7 +1,7 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { installDebugProxyTestResetHooks } from "../test-support/debug-proxy-env-test-helpers.js";
 
@@ -18,7 +18,7 @@ import {
 } from "./speech-provider.js";
 import * as ttsModule from "./tts.js";
 
-const TEST_CFG = {} as OpenClawConfig;
+const TEST_CFG = {} as GenesisConfig;
 
 describe("listMicrosoftVoices", () => {
   const proxyReset = installDebugProxyTestResetHooks();
@@ -70,10 +70,10 @@ describe("listMicrosoftVoices", () => {
   it("records voice discovery exchanges in debug proxy capture mode", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "microsoft-voices-capture-"));
     proxyReset.captureProxyEnv();
-    process.env.OPENCLAW_DEBUG_PROXY_ENABLED = "1";
-    process.env.OPENCLAW_DEBUG_PROXY_DB_PATH = path.join(tempDir, "capture.sqlite");
-    process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR = path.join(tempDir, "blobs");
-    process.env.OPENCLAW_DEBUG_PROXY_SESSION_ID = "ms-voices-session";
+    process.env.GENESIS_DEBUG_PROXY_ENABLED = "1";
+    process.env.GENESIS_DEBUG_PROXY_DB_PATH = path.join(tempDir, "capture.sqlite");
+    process.env.GENESIS_DEBUG_PROXY_BLOB_DIR = path.join(tempDir, "blobs");
+    process.env.GENESIS_DEBUG_PROXY_SESSION_ID = "ms-voices-session";
 
     globalThis.fetch = vi
       .fn()
@@ -83,17 +83,17 @@ describe("listMicrosoftVoices", () => {
 
     const { getDebugProxyCaptureStore } = await import("../../src/proxy-capture/store.sqlite.js");
     const store = getDebugProxyCaptureStore(
-      process.env.OPENCLAW_DEBUG_PROXY_DB_PATH,
-      process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR,
+      process.env.GENESIS_DEBUG_PROXY_DB_PATH,
+      process.env.GENESIS_DEBUG_PROXY_BLOB_DIR,
     );
     store.upsertSession({
       id: "ms-voices-session",
       startedAt: Date.now(),
       mode: "test",
-      sourceScope: "openclaw",
-      sourceProcess: "openclaw",
-      dbPath: process.env.OPENCLAW_DEBUG_PROXY_DB_PATH,
-      blobDir: process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR,
+      sourceScope: "genesis",
+      sourceProcess: "genesis",
+      dbPath: process.env.GENESIS_DEBUG_PROXY_DB_PATH,
+      blobDir: process.env.GENESIS_DEBUG_PROXY_BLOB_DIR,
     });
 
     await listMicrosoftVoices();
@@ -113,10 +113,10 @@ describe("listMicrosoftVoices", () => {
   it("does not double-capture voice discovery when the global fetch patch is installed", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "microsoft-voices-global-"));
     proxyReset.captureProxyEnv();
-    process.env.OPENCLAW_DEBUG_PROXY_ENABLED = "1";
-    process.env.OPENCLAW_DEBUG_PROXY_DB_PATH = path.join(tempDir, "capture.sqlite");
-    process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR = path.join(tempDir, "blobs");
-    process.env.OPENCLAW_DEBUG_PROXY_SESSION_ID = "ms-voices-global-session";
+    process.env.GENESIS_DEBUG_PROXY_ENABLED = "1";
+    process.env.GENESIS_DEBUG_PROXY_DB_PATH = path.join(tempDir, "capture.sqlite");
+    process.env.GENESIS_DEBUG_PROXY_BLOB_DIR = path.join(tempDir, "blobs");
+    process.env.GENESIS_DEBUG_PROXY_SESSION_ID = "ms-voices-global-session";
 
     globalThis.fetch = vi.fn(
       async () => new Response(JSON.stringify([{ ShortName: "en-US-AvaNeural" }]), { status: 200 }),
@@ -126,17 +126,17 @@ describe("listMicrosoftVoices", () => {
     const { finalizeDebugProxyCapture, initializeDebugProxyCapture } =
       await import("../../src/proxy-capture/runtime.js");
     const store = getDebugProxyCaptureStore(
-      process.env.OPENCLAW_DEBUG_PROXY_DB_PATH,
-      process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR,
+      process.env.GENESIS_DEBUG_PROXY_DB_PATH,
+      process.env.GENESIS_DEBUG_PROXY_BLOB_DIR,
     );
     store.upsertSession({
       id: "ms-voices-global-session",
       startedAt: Date.now(),
       mode: "test",
-      sourceScope: "openclaw",
-      sourceProcess: "openclaw",
-      dbPath: process.env.OPENCLAW_DEBUG_PROXY_DB_PATH,
-      blobDir: process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR,
+      sourceScope: "genesis",
+      sourceProcess: "genesis",
+      dbPath: process.env.GENESIS_DEBUG_PROXY_DB_PATH,
+      blobDir: process.env.GENESIS_DEBUG_PROXY_BLOB_DIR,
     });
     initializeDebugProxyCapture("test");
 

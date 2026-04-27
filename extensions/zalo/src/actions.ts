@@ -1,11 +1,11 @@
-import { jsonResult, readStringParam } from "openclaw/plugin-sdk/channel-actions";
+import { jsonResult, readStringParam } from "genesis/plugin-sdk/channel-actions";
 import type {
   ChannelMessageActionAdapter,
   ChannelMessageActionName,
-} from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { createLazyRuntimeNamedExport } from "openclaw/plugin-sdk/lazy-runtime";
-import { extractToolSend } from "openclaw/plugin-sdk/tool-send";
+} from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { createLazyRuntimeNamedExport } from "genesis/plugin-sdk/lazy-runtime";
+import { extractToolSend } from "genesis/plugin-sdk/tool-send";
 import { listEnabledZaloAccounts, resolveZaloAccount } from "./accounts.js";
 
 const loadZaloActionsRuntime = createLazyRuntimeNamedExport(
@@ -15,7 +15,7 @@ const loadZaloActionsRuntime = createLazyRuntimeNamedExport(
 
 const providerId = "zalo";
 
-function listEnabledAccounts(cfg: OpenClawConfig, accountId?: string | null) {
+function listEnabledAccounts(cfg: GenesisConfig, accountId?: string | null) {
   return (
     accountId ? [resolveZaloAccount({ cfg, accountId })] : listEnabledZaloAccounts(cfg)
   ).filter((account) => account.enabled && account.tokenSource !== "none");

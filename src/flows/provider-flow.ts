@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "../plugins/config-state.js";
 import { resolveManifestProviderAuthChoices } from "../plugins/provider-auth-choices.js";
 import { resolveProviderInstallCatalogEntries } from "../plugins/provider-install-catalog.js";
@@ -48,7 +48,7 @@ function includesProviderFlowScope(
 }
 
 function resolveProviderDocsById(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): Map<string, string> {
@@ -67,7 +67,7 @@ function resolveProviderDocsById(params?: {
 }
 
 function resolveInstallCatalogProviderSetupFlowContributions(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   scope?: ProviderFlowScope;
@@ -123,7 +123,7 @@ function resolveInstallCatalogProviderSetupFlowContributions(params?: {
 }
 
 function resolveManifestProviderSetupFlowContributions(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   scope?: ProviderFlowScope;
@@ -168,7 +168,7 @@ function resolveManifestProviderSetupFlowContributions(params?: {
 }
 
 export function resolveProviderSetupFlowContributions(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   scope?: ProviderFlowScope;
@@ -231,7 +231,7 @@ export function resolveProviderSetupFlowContributions(params?: {
 }
 
 export function resolveProviderModelPickerFlowEntries(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderModelPickerFlowEntry[] {
@@ -241,7 +241,7 @@ export function resolveProviderModelPickerFlowEntries(params?: {
 }
 
 export function resolveProviderModelPickerFlowContributions(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderModelPickerFlowContribution[] {

@@ -5,19 +5,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "OpenClawMLXTTS",
+    name: "GenesisMLXTTS",
     platforms: [
         .macOS(.v15),
     ],
     products: [
-        .executable(name: "openclaw-mlx-tts", targets: ["OpenClawMLXTTSHelper"]),
+        .executable(name: "genesis-mlx-tts", targets: ["GenesisMLXTTSHelper"]),
     ],
     dependencies: [
         .package(url: "https://github.com/Blaizzy/mlx-audio-swift", exact: "0.1.2"),
     ],
     targets: [
         .executableTarget(
-            name: "OpenClawMLXTTSHelper",
+            name: "GenesisMLXTTSHelper",
             dependencies: [
                 .product(name: "MLXAudioTTS", package: "mlx-audio-swift"),
             ],

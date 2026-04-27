@@ -1,9 +1,9 @@
 ---
-summary: "Use Kilo Gateway's unified API to access many models in OpenClaw"
+summary: "Use Kilo Gateway's unified API to access many models in Genesis"
 title: "Kilocode"
 read_when:
   - You want a single API key for many LLMs
-  - You want to run models via Kilo Gateway in OpenClaw
+  - You want to run models via Kilo Gateway in Genesis
 ---
 
 # Kilo Gateway
@@ -26,7 +26,7 @@ endpoint and API key. It is OpenAI-compatible, so most OpenAI SDKs work by switc
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice kilocode-api-key
+    genesis onboard --auth-choice kilocode-api-key
     ```
 
     Or set the environment variable directly:
@@ -38,7 +38,7 @@ endpoint and API key. It is OpenAI-compatible, so most OpenAI SDKs work by switc
   </Step>
   <Step title="Verify the model is available">
     ```bash
-    openclaw models list --provider kilocode
+    genesis models list --provider kilocode
     ```
   </Step>
 </Steps>
@@ -49,15 +49,15 @@ The default model is `kilocode/kilo/auto`, a provider-owned smart-routing
 model managed by Kilo Gateway.
 
 <Note>
-OpenClaw treats `kilocode/kilo/auto` as the stable default ref, but does not
+Genesis treats `kilocode/kilo/auto` as the stable default ref, but does not
 publish a source-backed task-to-upstream-model mapping for that route. Exact
 upstream routing behind `kilocode/kilo/auto` is owned by Kilo Gateway, not
-hard-coded in OpenClaw.
+hard-coded in Genesis.
 </Note>
 
 ## Built-in catalog
 
-OpenClaw dynamically discovers available models from the Kilo Gateway at startup. Use
+Genesis dynamically discovers available models from the Kilo Gateway at startup. Use
 `/models kilocode` to see the full list of models available with your account.
 
 Any model available on the gateway can be used with the `kilocode/` prefix:
@@ -71,7 +71,7 @@ Any model available on the gateway can be used with the `kilocode/` prefix:
 | ...and many more                       | Use `/models kilocode` to list all |
 
 <Tip>
-At startup, OpenClaw queries `GET https://api.kilo.ai/api/gateway/models` and merges
+At startup, Genesis queries `GET https://api.kilo.ai/api/gateway/models` and merges
 discovered models ahead of the static fallback catalog. The bundled fallback always
 includes `kilocode/kilo/auto` (`Kilo Auto`) with `input: ["text", "image"]`,
 `reasoning: true`, `contextWindow: 1000000`, and `maxTokens: 128000`.
@@ -95,7 +95,7 @@ includes `kilocode/kilo/auto` (`Kilo Auto`) with `input: ["text", "image"]`,
     Kilo Gateway is documented in source as OpenRouter-compatible, so it stays on
     the proxy-style OpenAI-compatible path rather than native OpenAI request shaping.
 
-    - Gemini-backed Kilo refs stay on the proxy-Gemini path, so OpenClaw keeps
+    - Gemini-backed Kilo refs stay on the proxy-Gemini path, so Genesis keeps
       Gemini thought-signature sanitation there without enabling native Gemini
       replay validation or bootstrap rewrites.
     - Kilo Gateway uses a Bearer token with your API key under the hood.
@@ -115,9 +115,9 @@ includes `kilocode/kilo/auto` (`Kilo Auto`) with `input: ["text", "image"]`,
   </Accordion>
 
   <Accordion title="Troubleshooting">
-    - If model discovery fails at startup, OpenClaw falls back to the bundled static catalog containing `kilocode/kilo/auto`.
+    - If model discovery fails at startup, Genesis falls back to the bundled static catalog containing `kilocode/kilo/auto`.
     - Confirm your API key is valid and that your Kilo account has the desired models enabled.
-    - When the Gateway runs as a daemon, ensure `KILOCODE_API_KEY` is available to that process (for example in `~/.openclaw/.env` or via `env.shellEnv`).
+    - When the Gateway runs as a daemon, ensure `KILOCODE_API_KEY` is available to that process (for example in `~/.genesis/.env` or via `env.shellEnv`).
   </Accordion>
 </AccordionGroup>
 
@@ -128,7 +128,7 @@ includes `kilocode/kilo/auto` (`Kilo Auto`) with `input: ["text", "image"]`,
     Choosing providers, model refs, and failover behavior.
   </Card>
   <Card title="Configuration reference" href="/gateway/configuration-reference" icon="gear">
-    Full OpenClaw configuration reference.
+    Full Genesis configuration reference.
   </Card>
   <Card title="Kilo Gateway" href="https://app.kilo.ai" icon="arrow-up-right-from-square">
     Kilo Gateway dashboard, API keys, and account management.

@@ -36,11 +36,11 @@ vi.mock("./store.sqlite.js", () => ({
 
 describe("debug proxy runtime", () => {
   const envKeys = [
-    "OPENCLAW_DEBUG_PROXY_ENABLED",
-    "OPENCLAW_DEBUG_PROXY_DB_PATH",
-    "OPENCLAW_DEBUG_PROXY_BLOB_DIR",
-    "OPENCLAW_DEBUG_PROXY_SESSION_ID",
-    "OPENCLAW_DEBUG_PROXY_SOURCE_PROCESS",
+    "GENESIS_DEBUG_PROXY_ENABLED",
+    "GENESIS_DEBUG_PROXY_DB_PATH",
+    "GENESIS_DEBUG_PROXY_BLOB_DIR",
+    "GENESIS_DEBUG_PROXY_SESSION_ID",
+    "GENESIS_DEBUG_PROXY_SOURCE_PROCESS",
   ] as const;
   const savedEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
   const originalFetch = globalThis.fetch;
@@ -51,11 +51,11 @@ describe("debug proxy runtime", () => {
     storeState.store.endSession.mockClear();
     storeState.store.recordEvent.mockClear();
     storeState.closeDebugProxyCaptureStore.mockClear();
-    process.env.OPENCLAW_DEBUG_PROXY_ENABLED = "1";
-    process.env.OPENCLAW_DEBUG_PROXY_DB_PATH = "/tmp/openclaw-proxy-runtime-test.sqlite";
-    process.env.OPENCLAW_DEBUG_PROXY_BLOB_DIR = "/tmp/openclaw-proxy-runtime-test-blobs";
-    process.env.OPENCLAW_DEBUG_PROXY_SESSION_ID = "runtime-test-session";
-    process.env.OPENCLAW_DEBUG_PROXY_SOURCE_PROCESS = "runtime-test";
+    process.env.GENESIS_DEBUG_PROXY_ENABLED = "1";
+    process.env.GENESIS_DEBUG_PROXY_DB_PATH = "/tmp/genesis-proxy-runtime-test.sqlite";
+    process.env.GENESIS_DEBUG_PROXY_BLOB_DIR = "/tmp/genesis-proxy-runtime-test-blobs";
+    process.env.GENESIS_DEBUG_PROXY_SESSION_ID = "runtime-test-session";
+    process.env.GENESIS_DEBUG_PROXY_SOURCE_PROCESS = "runtime-test";
   });
 
   afterEach(() => {

@@ -5,8 +5,8 @@ import {
   GroupPolicySchema,
   MarkdownConfigSchema,
   ToolPolicySchema,
-} from "openclaw/plugin-sdk/channel-config-schema";
-import { z } from "openclaw/plugin-sdk/zod";
+} from "genesis/plugin-sdk/channel-config-schema";
+import { z } from "genesis/plugin-sdk/zod";
 
 const groupConfigSchema = z.object({
   enabled: z.boolean().optional(),

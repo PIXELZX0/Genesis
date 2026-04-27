@@ -1,8 +1,8 @@
 import {
   REALTIME_VOICE_AGENT_CONSULT_TOOL_POLICIES,
   type RealtimeVoiceAgentConsultToolPolicy,
-} from "openclaw/plugin-sdk/realtime-voice";
-import { z } from "openclaw/plugin-sdk/zod";
+} from "genesis/plugin-sdk/realtime-voice";
+import { z } from "genesis/plugin-sdk/zod";
 import { TtsAutoSchema, TtsConfigSchema, TtsModeSchema, TtsProviderSchema } from "../api.js";
 import { deepMergeDefined } from "./deep-merge.js";
 import { DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS } from "./realtime-defaults.js";
@@ -232,7 +232,7 @@ export const VoiceCallRealtimeConfigSchema = z
     streamPath: z.string().min(1).optional(),
     /** System instructions passed to the realtime provider. */
     instructions: z.string().default(DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS),
-    /** Tool policy for the shared OpenClaw agent consult tool. */
+    /** Tool policy for the shared Genesis agent consult tool. */
     toolPolicy: VoiceCallRealtimeToolPolicySchema.default("safe-read-only"),
     /** Tool definitions exposed to the realtime provider. */
     tools: z.array(RealtimeToolSchema).default([]),

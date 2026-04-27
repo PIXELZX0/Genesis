@@ -7,7 +7,7 @@ import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
-import type { OpenClawConfig } from "./config-runtime.js";
+import type { GenesisConfig } from "./config-runtime.js";
 import type { ReplyPayload } from "./reply-payload.js";
 import { normalizeAccountId } from "./routing.js";
 
@@ -23,11 +23,11 @@ type ChannelApprovalConfig = {
 };
 
 type ApprovalProfileParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 };
 
-function isApprovalTargetsMode(cfg: OpenClawConfig): boolean {
+function isApprovalTargetsMode(cfg: GenesisConfig): boolean {
   const execApprovals = cfg.approvals?.exec;
   if (!execApprovals?.enabled) {
     return false;
@@ -48,7 +48,7 @@ export function isChannelExecApprovalClientEnabledFromConfig(params: {
 }
 
 export function isChannelExecApprovalTargetRecipient(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   senderId?: string | null;
   accountId?: string | null;
   channel: string;

@@ -1,14 +1,14 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 
 export type DoctorConfigMutationState = {
-  cfg: OpenClawConfig;
-  candidate: OpenClawConfig;
+  cfg: GenesisConfig;
+  candidate: GenesisConfig;
   pendingChanges: boolean;
   fixHints: string[];
 };
 
 export type DoctorConfigMutationResult = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   changes: string[];
 };
 

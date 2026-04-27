@@ -5,7 +5,7 @@ export function buildOfficialChannelCatalog(params?: { repoRoot?: string; cwd?: 
     name: string;
     version?: string;
     description?: string;
-    openclaw: {
+    genesis: {
       channel: Record<string, unknown>;
       install: {
         npmSpec: string;

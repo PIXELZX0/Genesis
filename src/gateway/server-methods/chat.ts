@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { CURRENT_SESSION_VERSION, SessionManager } from "@mariozechner/pi-coding-agent";
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
 import { rewriteTranscriptEntriesInSessionFile } from "../../agents/pi-embedded-runner/transcript-rewrite.js";
@@ -1416,7 +1416,7 @@ export function buildOversizedHistoryPlaceholder(message?: unknown): Record<stri
     role,
     timestamp,
     content: [{ type: "text", text: CHAT_HISTORY_OVERSIZED_PLACEHOLDER }],
-    __openclaw: { truncated: true, reason: "oversized" },
+    __genesis: { truncated: true, reason: "oversized" },
   };
 }
 
@@ -2209,7 +2209,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         model: modelRef.model,
       });
       // Bound plugin sessions own the real recipient model, so keep image
-      // attachments even when the parent OpenClaw session model is text-only.
+      // attachments even when the parent Genesis session model is text-only.
       const supportsImages =
         supportsSessionModelImages ||
         explicitOriginTargetsAcpSession(explicitOriginResult.value) ||

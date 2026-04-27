@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/core";
 import { getAccessToken } from "../../engine/messaging/sender.js";
 import { ChannelApiSchema, executeChannelApi } from "../../engine/tools/channel-api.js";
 import type { ChannelApiParams } from "../../engine/tools/channel-api.js";
@@ -12,7 +12,7 @@ import { getBridgeLogger } from "../logger.js";
  * channel APIs. Agents learn endpoint details from the skill docs and
  * send requests through this proxy.
  */
-export function registerChannelTool(api: OpenClawPluginApi): void {
+export function registerChannelTool(api: GenesisPluginApi): void {
   const cfg = api.config;
   if (!cfg) {
     getBridgeLogger().debug?.("[qqbot-channel-api] No config available, skipping");

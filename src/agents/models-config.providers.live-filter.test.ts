@@ -6,8 +6,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: {
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_PROVIDERS: "claude-cli",
+          GENESIS_LIVE_TEST: "1",
+          GENESIS_LIVE_PROVIDERS: "claude-cli",
           VITEST: "1",
         } as NodeJS.ProcessEnv,
       }),
@@ -18,8 +18,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: {
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_GATEWAY_PROVIDERS: "claude-cli",
+          GENESIS_LIVE_TEST: "1",
+          GENESIS_LIVE_GATEWAY_PROVIDERS: "claude-cli",
           VITEST: "1",
         } as NodeJS.ProcessEnv,
       }),
@@ -30,8 +30,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: {
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_PROVIDERS: "openrouter",
+          GENESIS_LIVE_TEST: "1",
+          GENESIS_LIVE_PROVIDERS: "openrouter",
           VITEST: "1",
         } as NodeJS.ProcessEnv,
       }),

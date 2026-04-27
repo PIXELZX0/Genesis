@@ -2,10 +2,10 @@ import {
   createAccountListHelpers,
   normalizeAccountId,
   resolveMergedAccountConfig,
-} from "openclaw/plugin-sdk/account-resolution";
-import { resolveChannelStreamingChunkMode } from "openclaw/plugin-sdk/channel-streaming";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/account-resolution";
+import { resolveChannelStreamingChunkMode } from "genesis/plugin-sdk/channel-streaming";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   normalizeBlueBubblesAccountsMap,
   normalizeBlueBubblesPrivateNetworkAliases,
@@ -31,7 +31,7 @@ const {
 export { listBlueBubblesAccountIds, resolveDefaultBlueBubblesAccountId };
 
 function mergeBlueBubblesAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): BlueBubblesAccountConfig {
   const channelConfig = normalizeBlueBubblesPrivateNetworkAliases(
@@ -57,7 +57,7 @@ function mergeBlueBubblesAccountConfig(
 }
 
 export function resolveBlueBubblesAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): ResolvedBlueBubblesAccount {
   const accountId = normalizeAccountId(
@@ -93,7 +93,7 @@ export function resolveBlueBubblesEffectiveAllowPrivateNetwork(params: {
   return resolveBlueBubblesEffectiveAllowPrivateNetworkFromConfig(params);
 }
 
-export function listEnabledBlueBubblesAccounts(cfg: OpenClawConfig): ResolvedBlueBubblesAccount[] {
+export function listEnabledBlueBubblesAccounts(cfg: GenesisConfig): ResolvedBlueBubblesAccount[] {
   return listBlueBubblesAccountIds(cfg)
     .map((accountId) => resolveBlueBubblesAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

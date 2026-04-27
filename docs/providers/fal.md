@@ -1,13 +1,13 @@
 ---
-summary: "fal image and video generation setup in OpenClaw"
+summary: "fal image and video generation setup in Genesis"
 title: "Fal"
 read_when:
-  - You want to use fal image generation in OpenClaw
+  - You want to use fal image generation in Genesis
   - You need the FAL_KEY auth flow
   - You want fal defaults for image_generate or video_generate
 ---
 
-OpenClaw ships a bundled `fal` provider for hosted image and video generation.
+Genesis ships a bundled `fal` provider for hosted image and video generation.
 
 | Property | Value                                                         |
 | -------- | ------------------------------------------------------------- |
@@ -20,7 +20,7 @@ OpenClaw ships a bundled `fal` provider for hosted image and video generation.
 <Steps>
   <Step title="Set the API key">
     ```bash
-    openclaw onboard --auth-choice fal-api-key
+    genesis onboard --auth-choice fal-api-key
     ```
   </Step>
   <Step title="Set a default image model">
@@ -124,7 +124,7 @@ The bundled `fal` video-generation provider defaults to
 </AccordionGroup>
 
 <Tip>
-Use `openclaw models list --provider fal` to see the full list of available fal
+Use `genesis models list --provider fal` to see the full list of available fal
 models, including any recently added entries.
 </Tip>
 

@@ -53,7 +53,7 @@ describeLive("deepgram live", () => {
       throw new Error("ELEVENLABS_API_KEY required to synthesize live realtime STT input");
     }
     const provider = buildDeepgramRealtimeTranscriptionProvider();
-    const phrase = "Testing OpenClaw Deepgram realtime transcription integration OK.";
+    const phrase = "Testing Genesis Deepgram realtime transcription integration OK.";
     const speech = await synthesizeElevenLabsLiveSpeech({
       text: phrase,
       apiKey: ELEVENLABS_KEY,

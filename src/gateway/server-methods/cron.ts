@@ -1,5 +1,5 @@
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { resolveCronDeliveryPreviews } from "../../cron/delivery-preview.js";
 import { normalizeCronJobCreate, normalizeCronJobPatch } from "../../cron/normalize.js";
 import {
@@ -29,7 +29,7 @@ import {
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
-function listConfiguredAnnounceChannelIds(cfg: OpenClawConfig): string[] {
+function listConfiguredAnnounceChannelIds(cfg: GenesisConfig): string[] {
   return listConfiguredAnnounceChannelIdsForConfig({
     config: cfg,
     env: process.env,
@@ -38,7 +38,7 @@ function listConfiguredAnnounceChannelIds(cfg: OpenClawConfig): string[] {
 }
 
 function assertConfiguredAnnounceChannel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string;
   field: "delivery.channel" | "delivery.failureDestination.channel";
 }) {
@@ -68,7 +68,7 @@ function assertConfiguredAnnounceChannel(params: {
   throw new Error(`${params.field} must be one of: ${configuredChannels.join(", ")}`);
 }
 
-function assertValidCronAnnounceDelivery(params: { cfg: OpenClawConfig; delivery?: CronDelivery }) {
+function assertValidCronAnnounceDelivery(params: { cfg: GenesisConfig; delivery?: CronDelivery }) {
   if (params.delivery?.mode === "announce") {
     assertConfiguredAnnounceChannel({
       cfg: params.cfg,
@@ -87,7 +87,7 @@ function assertValidCronAnnounceDelivery(params: { cfg: OpenClawConfig; delivery
   }
 }
 
-function assertValidCronCreateDelivery(cfg: OpenClawConfig, jobCreate: CronJobCreate) {
+function assertValidCronCreateDelivery(cfg: GenesisConfig, jobCreate: CronJobCreate) {
   assertValidCronAnnounceDelivery({
     cfg,
     delivery: jobCreate.delivery,
@@ -95,7 +95,7 @@ function assertValidCronCreateDelivery(cfg: OpenClawConfig, jobCreate: CronJobCr
 }
 
 function assertValidCronUpdateDelivery(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   defaultAgentId?: string;
   currentJob: CronJob | undefined;
   patch: CronJobPatch;

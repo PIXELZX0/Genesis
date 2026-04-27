@@ -1,1 +1,1 @@
-export { resolveOAuthDir } from "openclaw/plugin-sdk/state-paths";
+export { resolveOAuthDir } from "genesis/plugin-sdk/state-paths";

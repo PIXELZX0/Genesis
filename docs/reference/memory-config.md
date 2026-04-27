@@ -8,7 +8,7 @@ read_when:
   - You want to enable multimodal memory indexing
 ---
 
-This page lists every configuration knob for OpenClaw memory search. For
+This page lists every configuration knob for Genesis memory search. For
 conceptual overviews, see:
 
 - [Memory Overview](/concepts/memory) -- how memory works
@@ -18,7 +18,7 @@ conceptual overviews, see:
 - [Active Memory](/concepts/active-memory) -- enabling the memory sub-agent for interactive sessions
 
 All memory search settings live under `agents.defaults.memorySearch` in
-`openclaw.json` unless noted otherwise.
+`genesis.json` unless noted otherwise.
 
 If you are looking for the **active memory** feature toggle and sub-agent config,
 that lives under `plugins.entries.active-memory` instead of `memorySearch`.
@@ -44,7 +44,7 @@ plugin-owned config, transcript persistence, and safe rollout pattern.
 
 ### Auto-detection order
 
-When `provider` is not set, OpenClaw selects the first available:
+When `provider` is not set, Genesis selects the first available:
 
 1. `local` -- if `memorySearch.local.modelPath` is configured and the file exists.
 2. `github-copilot` -- if a GitHub Copilot token can be resolved (env var or auth profile).
@@ -121,7 +121,7 @@ Changing model or `outputDimensionality` triggers an automatic full reindex.
 ## Bedrock embedding config
 
 Bedrock uses the AWS SDK default credential chain -- no API keys needed.
-If OpenClaw runs on EC2 with a Bedrock-enabled instance role, just set the
+If Genesis runs on EC2 with a Bedrock-enabled instance role, just set the
 provider and model:
 
 ```json5
@@ -210,8 +210,8 @@ Requires native build: `pnpm approve-builds` then `pnpm rebuild node-llama-cpp`.
 Use the standalone CLI to verify the same provider path the Gateway uses:
 
 ```bash
-openclaw memory status --deep --agent main
-openclaw memory index --force --agent main
+genesis memory status --deep --agent main
+genesis memory index --force --agent main
 ```
 
 If `provider` is `auto`, `local` is selected only when `local.modelPath` points
@@ -373,17 +373,17 @@ boundary.
 | `store.vector.enabled`       | `boolean` | `true`  | Use sqlite-vec for vector queries |
 | `store.vector.extensionPath` | `string`  | bundled | Override sqlite-vec path          |
 
-When sqlite-vec is unavailable, OpenClaw falls back to in-process cosine
+When sqlite-vec is unavailable, Genesis falls back to in-process cosine
 similarity automatically.
 
 ---
 
 ## Index storage
 
-| Key                   | Type     | Default                               | Description                                 |
-| --------------------- | -------- | ------------------------------------- | ------------------------------------------- |
-| `store.path`          | `string` | `~/.openclaw/memory/{agentId}.sqlite` | Index location (supports `{agentId}` token) |
-| `store.fts.tokenizer` | `string` | `unicode61`                           | FTS5 tokenizer (`unicode61` or `trigram`)   |
+| Key                   | Type     | Default                              | Description                                 |
+| --------------------- | -------- | ------------------------------------ | ------------------------------------------- |
+| `store.path`          | `string` | `~/.genesis/memory/{agentId}.sqlite` | Index location (supports `{agentId}` token) |
+| `store.fts.tokenizer` | `string` | `unicode61`                          | FTS5 tokenizer (`unicode61` or `trigram`)   |
 
 ---
 
@@ -402,11 +402,11 @@ Set `memory.backend = "qmd"` to enable. All QMD settings live under
 | `sessions.retentionDays` | `number`  | --       | Transcript retention                         |
 | `sessions.exportDir`     | `string`  | --       | Export directory                             |
 
-OpenClaw prefers the current QMD collection and MCP query shapes, but keeps
+Genesis prefers the current QMD collection and MCP query shapes, but keeps
 older QMD releases working by falling back to legacy `--mask` collection flags
 and older MCP tool names when needed.
 
-QMD model overrides stay on the QMD side, not OpenClaw config. If you need to
+QMD model overrides stay on the QMD side, not Genesis config. If you need to
 override QMD's models globally, set environment variables such as
 `QMD_EMBED_MODEL`, `QMD_RERANK_MODEL`, and `QMD_GENERATE_MODEL` in the gateway
 runtime environment.

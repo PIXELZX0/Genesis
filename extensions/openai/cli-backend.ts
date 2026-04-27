@@ -1,8 +1,8 @@
-import type { CliBackendPlugin } from "openclaw/plugin-sdk/cli-backend";
+import type { CliBackendPlugin } from "genesis/plugin-sdk/cli-backend";
 import {
   CLI_FRESH_WATCHDOG_DEFAULTS,
   CLI_RESUME_WATCHDOG_DEFAULTS,
-} from "openclaw/plugin-sdk/cli-backend";
+} from "genesis/plugin-sdk/cli-backend";
 
 const CODEX_CLI_DEFAULT_MODEL_REF = "codex-cli/gpt-5.5";
 

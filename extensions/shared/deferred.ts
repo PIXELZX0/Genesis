@@ -1,1 +1,1 @@
-export { createDeferred } from "openclaw/plugin-sdk/extension-shared";
+export { createDeferred } from "genesis/plugin-sdk/extension-shared";

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 
 const listPotentialConfiguredChannelIds = vi.hoisted(() => vi.fn());
 const listPotentialConfiguredChannelPresenceSignals = vi.hoisted(() => vi.fn());
@@ -202,8 +202,8 @@ function createManifestRegistryFixtureWithWorkspaceDemoChannel() {
 }
 
 function expectStartupPluginIds(params: {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   expected: readonly string[];
 }) {
@@ -221,8 +221,8 @@ function expectStartupPluginIds(params: {
 }
 
 function expectStartupPluginIdsCase(params: {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
   env?: NodeJS.ProcessEnv;
   expected: readonly string[];
 }) {
@@ -341,12 +341,12 @@ function createStartupConfig(params: {
             },
           }
         : {}),
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 describe("resolveGatewayStartupPluginIds", () => {
   beforeEach(() => {
-    listPotentialConfiguredChannelIds.mockReset().mockImplementation((config: OpenClawConfig) => {
+    listPotentialConfiguredChannelIds.mockReset().mockImplementation((config: GenesisConfig) => {
       if (Object.prototype.hasOwnProperty.call(config, "channels")) {
         return Object.keys(config.channels ?? {});
       }
@@ -354,13 +354,13 @@ describe("resolveGatewayStartupPluginIds", () => {
     });
     listPotentialConfiguredChannelPresenceSignals
       .mockReset()
-      .mockImplementation((config: OpenClawConfig) => {
+      .mockImplementation((config: GenesisConfig) => {
         return listPotentialConfiguredChannelIds(config).map((channelId: string) => ({
           channelId,
           source: "config",
         }));
       });
-    hasPotentialConfiguredChannels.mockReset().mockImplementation((config: OpenClawConfig) => {
+    hasPotentialConfiguredChannels.mockReset().mockImplementation((config: GenesisConfig) => {
       if (Object.prototype.hasOwnProperty.call(config, "channels")) {
         return Object.keys(config.channels ?? {}).length > 0;
       }
@@ -380,7 +380,7 @@ describe("resolveGatewayStartupPluginIds", () => {
     ],
     [
       "keeps bundled startup sidecars with enabledByDefault at idle startup",
-      {} as OpenClawConfig,
+      {} as GenesisConfig,
       ["demo-channel", "browser"],
     ],
     [
@@ -433,7 +433,7 @@ describe("resolveGatewayStartupPluginIds", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expectStartupPluginIdsCase({
       config: effectiveConfig,
@@ -451,7 +451,7 @@ describe("resolveGatewayStartupPluginIds", () => {
       { channelId: "demo-channel", source: "env" },
     ]);
 
-    const config = {} as OpenClawConfig;
+    const config = {} as GenesisConfig;
 
     expectStartupPluginIdsCase({
       config,
@@ -486,7 +486,7 @@ describe("resolveGatewayStartupPluginIds", () => {
           plugins: {
             allow: ["workspace-demo-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
       }),
@@ -504,7 +504,7 @@ describe("resolveGatewayStartupPluginIds", () => {
         plugins: {
           allow: ["browser"],
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {},
       expected: ["demo-channel", "browser"],
     });
@@ -519,7 +519,7 @@ describe("resolveGatewayStartupPluginIds", () => {
             token: "stale",
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       env: {},
       expected: ["browser"],
     });
@@ -542,7 +542,7 @@ describe("resolveGatewayStartupPluginIds", () => {
           plugins: {
             allow: ["workspace-demo-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
       }),
@@ -603,7 +603,7 @@ describe("resolveGatewayStartupPluginIds", () => {
       config: createStartupConfig({
         enabledPluginIds: ["codex"],
       }),
-      env: { OPENCLAW_AGENT_RUNTIME: "codex" },
+      env: { GENESIS_AGENT_RUNTIME: "codex" },
       expected: ["demo-channel", "browser", "codex"],
     });
   });
@@ -626,7 +626,7 @@ describe("resolveGatewayStartupPluginIds", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       expected: ["demo-channel", "browser"],
     });
   });
@@ -634,7 +634,7 @@ describe("resolveGatewayStartupPluginIds", () => {
 
 describe("resolveConfiguredChannelPluginIds", () => {
   beforeEach(() => {
-    listPotentialConfiguredChannelIds.mockReset().mockImplementation((config: OpenClawConfig) => {
+    listPotentialConfiguredChannelIds.mockReset().mockImplementation((config: GenesisConfig) => {
       if (Object.prototype.hasOwnProperty.call(config, "channels")) {
         return Object.keys(config.channels ?? {});
       }
@@ -642,13 +642,13 @@ describe("resolveConfiguredChannelPluginIds", () => {
     });
     listPotentialConfiguredChannelPresenceSignals
       .mockReset()
-      .mockImplementation((config: OpenClawConfig) => {
+      .mockImplementation((config: GenesisConfig) => {
         return listPotentialConfiguredChannelIds(config).map((channelId: string) => ({
           channelId,
           source: "config",
         }));
       });
-    hasPotentialConfiguredChannels.mockReset().mockImplementation((config: OpenClawConfig) => {
+    hasPotentialConfiguredChannels.mockReset().mockImplementation((config: GenesisConfig) => {
       if (Object.prototype.hasOwnProperty.call(config, "channels")) {
         return Object.keys(config.channels ?? {}).length > 0;
       }
@@ -694,7 +694,7 @@ describe("resolveConfiguredChannelPluginIds", () => {
           plugins: {
             allow: ["browser"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
       }),
@@ -711,7 +711,7 @@ describe("resolveConfiguredChannelPluginIds", () => {
           plugins: {
             deny: ["activation-only-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: process.env,
       }),
@@ -728,7 +728,7 @@ describe("resolveConfiguredChannelPluginIds", () => {
           plugins: {
             enabled: false,
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: process.env,
       }),
@@ -795,7 +795,7 @@ describe("resolveConfiguredChannelPluginIds", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -818,7 +818,7 @@ describe("resolveConfiguredChannelPluginIds", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: process.env,
       }),
@@ -847,7 +847,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["memory-core"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "token",
@@ -862,7 +862,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["memory-core"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "token",
@@ -884,7 +884,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["memory-core"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "token",
@@ -918,7 +918,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "token",
@@ -937,7 +937,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
         includePersistedAuthState: false,
@@ -960,7 +960,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
         includePersistedAuthState: false,
@@ -976,7 +976,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           token: "stale-token",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(listExplicitConfiguredChannelIdsForConfig(config)).toEqual([]);
     expect(
@@ -1017,7 +1017,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(
       resolveConfiguredChannelPresencePolicy({
@@ -1062,7 +1062,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
       }),
@@ -1081,7 +1081,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -1101,7 +1101,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
       plugins: {
         allow: ["browser"],
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(
       resolveConfiguredChannelPresencePolicy({
@@ -1143,7 +1143,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               token: "configured",
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
         includePersistedAuthState: false,
@@ -1168,7 +1168,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             enabled: false,
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
         includePersistedAuthState: false,
@@ -1186,7 +1186,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             deny: ["demo-channel"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {},
         includePersistedAuthState: false,
@@ -1208,7 +1208,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
             enabled: false,
           },
         },
-      } as OpenClawConfig),
+      } as GenesisConfig),
     ).toEqual(["demo-channel"]);
   });
 
@@ -1234,7 +1234,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "ambient",
@@ -1261,7 +1261,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["demo-other-channel"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           DEMO_CHANNEL_TOKEN: "ambient",
@@ -1286,7 +1286,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           ACTIVATION_ONLY_CHANNEL_TOKEN: "ambient",
@@ -1311,7 +1311,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -1324,7 +1324,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
   it("ignores manifest env vars from untrusted external plugins", () => {
     expect(
       listConfiguredChannelIdsForReadOnlyScope({
-        config: {} as OpenClawConfig,
+        config: {} as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -1335,7 +1335,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
 
     expect(
       hasConfiguredChannelsForReadOnlyScope({
-        config: {} as OpenClawConfig,
+        config: {} as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -1352,7 +1352,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["ambient-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           HOME: "/tmp/user",
@@ -1371,7 +1371,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           external_env_channel_token: "token",
@@ -1401,7 +1401,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",
@@ -1435,7 +1435,7 @@ describe("listConfiguredChannelIdsForReadOnlyScope", () => {
           plugins: {
             allow: ["external-env-channel-plugin"],
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         workspaceDir: "/tmp",
         env: {
           EXTERNAL_ENV_CHANNEL_TOKEN: "token",

@@ -3,7 +3,7 @@ import type { ClientToolDefinition } from "./run/params.js";
 
 /**
  * Pi built-in tools that remain present in the embedded runtime even when
- * OpenClaw routes execution through custom tool definitions.
+ * Genesis routes execution through custom tool definitions.
  */
 export const PI_RESERVED_TOOL_NAMES = ["bash", "edit", "find", "grep", "ls", "read", "write"];
 

@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import * as path from "node:path";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   fetchRemoteMedia,
   MAX_IMAGE_BYTES,
   saveMediaBuffer,
-} from "openclaw/plugin-sdk/media-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/media-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { getDefaultSsrFPolicy } from "../urbit/context.js";
 
 const MAX_IMAGES_PER_MESSAGE = 8;
@@ -145,7 +145,7 @@ function getExtensionFromUrl(url: string): string | null {
 
 /**
  * Download all images from a message and return attachment metadata.
- * Format matches OpenClaw's expected attachment structure.
+ * Format matches Genesis's expected attachment structure.
  */
 export async function downloadMessageImages(
   content: unknown,

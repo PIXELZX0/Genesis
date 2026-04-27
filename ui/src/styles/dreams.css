@@ -23,7 +23,7 @@
 .dreams__tab {
   padding: 4px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font-family: inherit;
@@ -61,7 +61,7 @@
 
 .dreams__lobster {
   animation: dreams-breathe 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 40px rgba(255, 77, 77, 0.25));
+  filter: drop-shadow(0 0 40px var(--accent-glow));
   transition: filter 0.6s ease;
 }
 
@@ -152,7 +152,7 @@
 
 .dreams__star {
   position: absolute;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: dreams-twinkle 3s ease-in-out infinite alternate;
 }
 
@@ -175,8 +175,8 @@
   left: calc(50% - 200px);
   padding: 16px 20px;
   background: var(--accent-subtle);
-  border: 1px solid rgba(255, 92, 92, 0.12);
-  border-radius: 20px;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent);
+  border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -217,9 +217,9 @@
 /* Bubble trail dots */
 .dreams__bubble-dot {
   position: absolute;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--accent-subtle);
-  border: 1px solid rgba(255, 92, 92, 0.1);
+  border: 1px solid color-mix(in oklab, var(--accent) 14%, transparent);
   animation: dreams-bubble-float 6s ease-in-out infinite;
 }
 
@@ -231,7 +231,7 @@
   right: 80px;
   width: 64px;
   height: 64px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: radial-gradient(circle at 35% 35%, #fef3c7, #fbbf24);
   box-shadow:
     0 0 40px rgba(251, 191, 36, 0.2),
@@ -264,8 +264,8 @@
   transform: translateX(-50%);
   width: 240px;
   height: 100px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 77, 77, 0.08) 0%, transparent 70%);
+  border-radius: var(--radius-full);
+  background: radial-gradient(ellipse, var(--accent-subtle) 0%, transparent 70%);
   pointer-events: none;
   animation: dreams-glow-pulse 4s ease-in-out infinite;
 }
@@ -295,7 +295,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: color-mix(in oklab, var(--panel) 70%, transparent);
   border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
 }
@@ -307,7 +307,7 @@
 .dreams__phase-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--muted);
   opacity: 0.4;
 }
@@ -360,7 +360,7 @@
 .dreams__phase-toggle-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--muted);
   opacity: 0.4;
   transition:
@@ -418,7 +418,7 @@
 .dreams__status-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--ok);
   animation: dreams-dot-pulse 2s ease-in-out infinite;
 }
@@ -438,7 +438,7 @@
 /* ---- Idle / inactive state ---- */
 
 .dreams--idle .dreams__lobster {
-  filter: drop-shadow(0 0 20px rgba(255, 77, 77, 0.1));
+  filter: drop-shadow(0 0 20px var(--accent-subtle));
 }
 
 .dreams--idle .dreams__status-dot {
@@ -526,7 +526,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   background: color-mix(in oklab, var(--panel) 86%, transparent);
   overflow: hidden;
@@ -573,7 +573,7 @@
   min-width: 26px;
   height: 26px;
   padding: 0 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -589,7 +589,7 @@
   align-items: center;
   gap: 6px;
   padding: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid color-mix(in oklab, var(--border) 62%, transparent);
   background: color-mix(in oklab, var(--surface) 92%, transparent);
 }
@@ -599,7 +599,7 @@
   background: transparent;
   color: var(--muted);
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 11px;
   line-height: 1;
   cursor: pointer;
@@ -632,7 +632,7 @@
   align-items: center;
   margin-bottom: 10px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in oklab, var(--accent-subtle) 72%, transparent);
   color: var(--accent);
   font-size: 10px;
@@ -726,7 +726,7 @@
   display: inline-flex;
   gap: 6px;
   padding: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in oklab, var(--panel) 82%, transparent);
   border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
 }
@@ -735,7 +735,7 @@
   border: 0;
   background: transparent;
   color: var(--muted);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 5px 10px;
   font-size: 11px;
   cursor: pointer;
@@ -792,7 +792,7 @@
   left: 0;
   width: 2px;
   height: calc(100% - 8px);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(
     180deg,
     color-mix(in oklab, var(--accent) 40%, transparent) 0%,
@@ -840,7 +840,7 @@
 
 .dreams-diary__day-chip {
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   background: color-mix(in oklab, var(--panel) 84%, transparent);
   color: var(--muted);
@@ -882,7 +882,7 @@
 .dreams-diary__insight-card {
   border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   background: color-mix(in oklab, var(--panel) 86%, transparent);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 14px;
 }
 
@@ -923,7 +923,7 @@
 .dreams-diary__insight-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 3px 8px;
   font-size: 10px;
   text-transform: uppercase;
@@ -987,7 +987,7 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 11px;
   color: var(--text);
   background: color-mix(in oklab, var(--accent-subtle) 84%, transparent);
@@ -1011,7 +1011,7 @@
   flex-direction: column;
   width: min(1120px, 100%);
   min-height: 0;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
   background: color-mix(in oklab, var(--panel) 96%, transparent);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);

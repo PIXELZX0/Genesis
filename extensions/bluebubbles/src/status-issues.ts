@@ -1,5 +1,5 @@
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
-import { collectIssuesForEnabledAccounts } from "openclaw/plugin-sdk/status-helpers";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
+import { collectIssuesForEnabledAccounts } from "genesis/plugin-sdk/status-helpers";
 import { asRecord } from "./monitor-normalize.js";
 
 type BlueBubblesAccountStatus = {
@@ -68,7 +68,7 @@ export function collectBlueBubblesStatusIssues(accounts: ChannelAccountSnapshot[
           accountId,
           kind: "config",
           message: "Not configured (missing serverUrl or password).",
-          fix: "Run: openclaw channels add bluebubbles --http-url <server-url> --password <password>",
+          fix: "Run: genesis channels add bluebubbles --http-url <server-url> --password <password>",
         });
         return;
       }

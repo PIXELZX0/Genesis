@@ -1,5 +1,5 @@
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { InboundDebounceByProvider } from "../config/types.messages.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 const resolveMs = (value: unknown): number | undefined => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -19,7 +19,7 @@ const resolveChannelOverride = (params: {
 };
 
 export function resolveInboundDebounceMs(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: string;
   overrideMs?: number;
 }): number {

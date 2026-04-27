@@ -7,7 +7,7 @@ let monolithicSdk = null;
 let diagnosticEventsModule = null;
 const jitiLoaders = new Map();
 const pluginSdkSubpathsCache = new Map();
-const pluginSdkPackageNames = ["openclaw/plugin-sdk", "@openclaw/plugin-sdk"];
+const pluginSdkPackageNames = ["genesis/plugin-sdk", "@genesis/plugin-sdk"];
 const pluginSdkSourceExtensions = [".ts", ".mts", ".js", ".mjs", ".cts", ".cjs"];
 const isDistRootAlias = __filename.includes(
   `${path.sep}dist${path.sep}plugin-sdk${path.sep}root-alias.cjs`,
@@ -19,7 +19,7 @@ const shouldPreferSourceGraph =
   !isDistRootAlias &&
   (process.env.NODE_ENV !== "production" ||
     Boolean(process.env.VITEST) ||
-    process.env.OPENCLAW_PLUGIN_SDK_SOURCE_IN_TESTS === "1");
+    process.env.GENESIS_PLUGIN_SDK_SOURCE_IN_TESTS === "1");
 
 function emptyPluginConfigSchema() {
   function error(message) {
@@ -79,7 +79,7 @@ function resolveControlCommandGate(params) {
 function onDiagnosticEvent(listener) {
   const diagnosticEvents = loadDiagnosticEventsModule();
   if (!diagnosticEvents || typeof diagnosticEvents.onDiagnosticEvent !== "function") {
-    throw new Error("openclaw/plugin-sdk root alias could not resolve onDiagnosticEvent");
+    throw new Error("genesis/plugin-sdk root alias could not resolve onDiagnosticEvent");
   }
   return diagnosticEvents.onDiagnosticEvent(listener);
 }
@@ -106,7 +106,7 @@ function findDistChunkByPrefix(prefix) {
 
 function listPluginSdkExportedSubpaths() {
   const packageRoot = getPackageRoot();
-  const cacheKey = `${packageRoot}::privateQa=${process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI === "1" ? "1" : "0"}`;
+  const cacheKey = `${packageRoot}::privateQa=${process.env.GENESIS_ENABLE_PRIVATE_QA_CLI === "1" ? "1" : "0"}`;
   if (pluginSdkSubpathsCache.has(cacheKey)) {
     return pluginSdkSubpathsCache.get(cacheKey);
   }
@@ -129,7 +129,7 @@ function listPluginSdkExportedSubpaths() {
 }
 
 function listPrivateLocalOnlyPluginSdkSubpaths() {
-  if (process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI !== "1") {
+  if (process.env.GENESIS_ENABLE_PRIVATE_QA_CLI !== "1") {
     return [];
   }
   try {
@@ -206,7 +206,7 @@ function getJiti(tryNative) {
     alias: buildPluginSdkAliasMap(effectiveTryNative),
     interopDefault: true,
     // Prefer Node's native sync ESM loader for built dist/plugin-sdk/*.js files
-    // so local plugins do not create a second transpiled OpenClaw core graph.
+    // so local plugins do not create a second transpiled Genesis core graph.
     tryNative: effectiveTryNative,
     extensions: [".ts", ".tsx", ".mts", ".cts", ".mtsx", ".ctsx", ".js", ".mjs", ".cjs", ".json"],
   });

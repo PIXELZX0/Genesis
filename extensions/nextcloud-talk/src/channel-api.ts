@@ -1,5 +1,5 @@
-export type { ChannelPlugin } from "openclaw/plugin-sdk/channel-plugin-common";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-export { clearAccountEntryFields } from "openclaw/plugin-sdk/channel-plugin-common";
-export { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-export { buildChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-schema";
+export type { ChannelPlugin } from "genesis/plugin-sdk/channel-plugin-common";
+export type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+export { clearAccountEntryFields } from "genesis/plugin-sdk/channel-plugin-common";
+export { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
+export { buildChannelConfigSchema } from "genesis/plugin-sdk/channel-config-schema";

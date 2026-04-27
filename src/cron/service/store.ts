@@ -49,7 +49,7 @@ export async function ensureLoaded(
       normalized = null;
       state.deps.log.warn(
         { storePath: state.deps.storePath, jobId: typeof raw.id === "string" ? raw.id : undefined },
-        "cron: job has invalid persisted sessionTarget; run openclaw doctor --fix to repair",
+        "cron: job has invalid persisted sessionTarget; run genesis doctor --fix to repair",
       );
     }
     const hydrated =
@@ -59,7 +59,7 @@ export async function ensureLoaded(
       const resolvedId = typeof hydrated.id === "string" ? hydrated.id : undefined;
       state.deps.log.warn(
         { storePath: state.deps.storePath, jobId: resolvedId },
-        "cron: job used legacy jobId field; normalized id in memory (run openclaw doctor --fix to persist canonical shape)",
+        "cron: job used legacy jobId field; normalized id in memory (run genesis doctor --fix to persist canonical shape)",
       );
     }
     // Persisted legacy jobs may predate the required `enabled` field.

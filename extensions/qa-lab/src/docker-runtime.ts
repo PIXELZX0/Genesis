@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { createServer } from "node:net";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 
 export type RunCommand = (
   command: string,

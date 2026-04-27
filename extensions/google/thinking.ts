@@ -11,4 +11,4 @@ export {
   stripInvalidGoogleThinkingBudget,
   type GoogleThinkingInputLevel,
   type GoogleThinkingLevel,
-} from "openclaw/plugin-sdk/provider-stream-shared";
+} from "genesis/plugin-sdk/provider-stream-shared";

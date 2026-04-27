@@ -1,16 +1,16 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 export type RealtimeTranscriptionProviderId = string;
 
 export type RealtimeTranscriptionProviderConfig = Record<string, unknown>;
 
 export type RealtimeTranscriptionProviderResolveConfigContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   rawConfig: RealtimeTranscriptionProviderConfig;
 };
 
 export type RealtimeTranscriptionProviderConfiguredContext = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerConfig: RealtimeTranscriptionProviderConfig;
 };
 

@@ -2,7 +2,7 @@
 
 Stop typing `docker-compose` commands. Just type `clawdock-start`.
 
-Inspired by Simon Willison's [Running OpenClaw in Docker](https://til.simonwillison.net/llms/openclaw-docker).
+Inspired by Simon Willison's [Running Genesis in Docker](https://til.simonwillison.net/llms/genesis-docker).
 
 - [Quickstart](#quickstart)
 - [Available Commands](#available-commands)
@@ -32,14 +32,14 @@ Inspired by Simon Willison's [Running OpenClaw in Docker](https://til.simonwilli
 **Install:**
 
 ```bash
-mkdir -p ~/.clawdock && curl -sL https://raw.githubusercontent.com/openclaw/openclaw/main/scripts/clawdock/clawdock-helpers.sh -o ~/.clawdock/clawdock-helpers.sh
+mkdir -p ~/.clawdock && curl -sL https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/clawdock/clawdock-helpers.sh -o ~/.clawdock/clawdock-helpers.sh
 ```
 
 ```bash
 echo 'source ~/.clawdock/clawdock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
 ```
 
-Canonical docs page: https://docs.openclaw.ai/install/clawdock
+Canonical docs page: https://docs.genesis.ai/install/clawdock
 
 If you previously installed ClawDock from `scripts/shell-helpers/clawdock-helpers.sh`, rerun the install command above. The old raw GitHub path has been removed.
 
@@ -49,9 +49,9 @@ If you previously installed ClawDock from `scripts/shell-helpers/clawdock-helper
 clawdock-help
 ```
 
-On first command, ClawDock auto-detects your OpenClaw directory:
+On first command, ClawDock auto-detects your Genesis directory:
 
-- Checks common paths (`~/openclaw`, `~/workspace/openclaw`, etc.)
+- Checks common paths (`~/genesis`, `~/workspace/genesis`, etc.)
 - If found, asks you to confirm
 - Saves to `~/.clawdock/config`
 
@@ -98,7 +98,7 @@ clawdock-approve <request-id>
 | Command                   | Description                                    |
 | ------------------------- | ---------------------------------------------- |
 | `clawdock-shell`          | Interactive shell inside the gateway container |
-| `clawdock-cli <command>`  | Run OpenClaw CLI commands                      |
+| `clawdock-cli <command>`  | Run Genesis CLI commands                       |
 | `clawdock-exec <command>` | Execute arbitrary commands in the container    |
 
 ### Web UI & Devices
@@ -129,8 +129,8 @@ clawdock-approve <request-id>
 | ---------------------- | ----------------------------------------- |
 | `clawdock-health`      | Run gateway health check                  |
 | `clawdock-token`       | Display the gateway authentication token  |
-| `clawdock-cd`          | Jump to the OpenClaw project directory    |
-| `clawdock-config`      | Open the OpenClaw config directory        |
+| `clawdock-cd`          | Jump to the Genesis project directory     |
+| `clawdock-config`      | Open the Genesis config directory         |
 | `clawdock-show-config` | Print config files with redacted values   |
 | `clawdock-workspace`   | Open the workspace directory              |
 | `clawdock-help`        | Show all available commands with examples |
@@ -141,31 +141,31 @@ The Docker setup uses three config files on the host. The container never stores
 
 ### Docker Files
 
-| File                       | Purpose                                                                    |
-| -------------------------- | -------------------------------------------------------------------------- |
-| `Dockerfile`               | Builds the `openclaw:local` image (Node 22, pnpm, non-root `node` user)    |
-| `docker-compose.yml`       | Defines `openclaw-gateway` and `openclaw-cli` services, bind-mounts, ports |
-| `docker-setup.sh`          | First-time setup — builds image, creates `.env` from `.env.example`        |
-| `.env.example`             | Template for `<project>/.env` with all supported vars and docs             |
-| `docker-compose.extra.yml` | Optional overrides — auto-loaded by ClawDock helpers if present            |
+| File                       | Purpose                                                                  |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `Dockerfile`               | Builds the `genesis:local` image (Node 22, pnpm, non-root `node` user)   |
+| `docker-compose.yml`       | Defines `genesis-gateway` and `genesis-cli` services, bind-mounts, ports |
+| `docker-setup.sh`          | First-time setup — builds image, creates `.env` from `.env.example`      |
+| `.env.example`             | Template for `<project>/.env` with all supported vars and docs           |
+| `docker-compose.extra.yml` | Optional overrides — auto-loaded by ClawDock helpers if present          |
 
 ### Config Files
 
-| File                        | Purpose                                          | Examples                                                            |
-| --------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
-| `<project>/.env`            | **Docker infra** — image, ports, gateway token   | `OPENCLAW_GATEWAY_TOKEN`, `OPENCLAW_IMAGE`, `OPENCLAW_GATEWAY_PORT` |
-| `~/.openclaw/.env`          | **Secrets** — API keys and bot tokens            | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`         |
-| `~/.openclaw/openclaw.json` | **Behavior config** — models, channels, policies | Model selection, WhatsApp allowlists, agent settings                |
+| File                      | Purpose                                          | Examples                                                         |
+| ------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `<project>/.env`          | **Docker infra** — image, ports, gateway token   | `GENESIS_GATEWAY_TOKEN`, `GENESIS_IMAGE`, `GENESIS_GATEWAY_PORT` |
+| `~/.genesis/.env`         | **Secrets** — API keys and bot tokens            | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`      |
+| `~/.genesis/genesis.json` | **Behavior config** — models, channels, policies | Model selection, WhatsApp allowlists, agent settings             |
 
-**Do NOT** put API keys or bot tokens in `openclaw.json`. Use `~/.openclaw/.env` for all secrets.
+**Do NOT** put API keys or bot tokens in `genesis.json`. Use `~/.genesis/.env` for all secrets.
 
 ### Initial Setup
 
 `./docker-setup.sh` (in the project root) handles first-time Docker configuration:
 
-- Builds the `openclaw:local` image from `Dockerfile`
+- Builds the `genesis:local` image from `Dockerfile`
 - Creates `<project>/.env` from `.env.example` with a generated gateway token
-- Sets up `~/.openclaw` directories if they don't exist
+- Sets up `~/.genesis` directories if they don't exist
 
 ```bash
 ./docker-setup.sh
@@ -174,15 +174,15 @@ The Docker setup uses three config files on the host. The container never stores
 After setup, add your API keys:
 
 ```bash
-vim ~/.openclaw/.env
+vim ~/.genesis/.env
 ```
 
 See `.env.example` for all supported keys.
 
 The `Dockerfile` supports two optional build args:
 
-- `OPENCLAW_DOCKER_APT_PACKAGES` — extra apt packages to install (e.g. `ffmpeg`)
-- `OPENCLAW_INSTALL_BROWSER=1` — pre-install Chromium for browser automation (adds ~300MB, but skips the 60-90s Playwright install on each container start)
+- `GENESIS_DOCKER_APT_PACKAGES` — extra apt packages to install (e.g. `ffmpeg`)
+- `GENESIS_INSTALL_BROWSER=1` — pre-install Chromium for browser automation (adds ~300MB, but skips the 60-90s Playwright install on each container start)
 
 ### How It Works in Docker
 
@@ -190,20 +190,20 @@ The `Dockerfile` supports two optional build args:
 
 ```yaml
 volumes:
-  - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-  - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+  - ${GENESIS_CONFIG_DIR}:/home/node/.genesis
+  - ${GENESIS_WORKSPACE_DIR}:/home/node/.genesis/workspace
 ```
 
 This means:
 
-- `~/.openclaw/.env` is available inside the container at `/home/node/.openclaw/.env` — OpenClaw loads it automatically as the global env fallback
-- `~/.openclaw/openclaw.json` is available at `/home/node/.openclaw/openclaw.json` — the gateway watches it and hot-reloads most changes
+- `~/.genesis/.env` is available inside the container at `/home/node/.genesis/.env` — Genesis loads it automatically as the global env fallback
+- `~/.genesis/genesis.json` is available at `/home/node/.genesis/genesis.json` — the gateway watches it and hot-reloads most changes
 - No need to add API keys to `docker-compose.yml` or configure anything inside the container
 - Keys survive `clawdock-update`, `clawdock-rebuild`, and `clawdock-clean` because they live on the host
 
-The project `.env` feeds Docker Compose directly (gateway token, image name, ports). The `~/.openclaw/.env` feeds the OpenClaw process inside the container.
+The project `.env` feeds Docker Compose directly (gateway token, image name, ports). The `~/.genesis/.env` feeds the Genesis process inside the container.
 
-### Example `~/.openclaw/.env`
+### Example `~/.genesis/.env`
 
 ```bash
 OPENAI_API_KEY=sk-...
@@ -214,30 +214,30 @@ TELEGRAM_BOT_TOKEN=123456:ABCDEF...
 ### Example `<project>/.env`
 
 ```bash
-OPENCLAW_CONFIG_DIR=/Users/you/.openclaw
-OPENCLAW_WORKSPACE_DIR=/Users/you/.openclaw/workspace
-OPENCLAW_GATEWAY_PORT=18789
-OPENCLAW_BRIDGE_PORT=18790
-OPENCLAW_GATEWAY_BIND=lan
-OPENCLAW_GATEWAY_TOKEN=<generated-by-docker-setup>
-OPENCLAW_IMAGE=openclaw:local
+GENESIS_CONFIG_DIR=/Users/you/.genesis
+GENESIS_WORKSPACE_DIR=/Users/you/.genesis/workspace
+GENESIS_GATEWAY_PORT=18789
+GENESIS_BRIDGE_PORT=18790
+GENESIS_GATEWAY_BIND=lan
+GENESIS_GATEWAY_TOKEN=<generated-by-docker-setup>
+GENESIS_IMAGE=genesis:local
 ```
 
 ### Env Precedence
 
-OpenClaw loads env vars in this order (highest wins, never overrides existing):
+Genesis loads env vars in this order (highest wins, never overrides existing):
 
 1. **Process environment** — `docker-compose.yml` `environment:` block (gateway token, session keys)
 2. **`.env` in CWD** — project root `.env` (Docker infra vars)
-3. **`~/.openclaw/.env`** — global secrets (API keys, bot tokens)
-4. **`openclaw.json` `env` block** — inline vars, applied only if still missing
-5. **Shell env import** — optional login-shell scrape (`OPENCLAW_LOAD_SHELL_ENV=1`)
+3. **`~/.genesis/.env`** — global secrets (API keys, bot tokens)
+4. **`genesis.json` `env` block** — inline vars, applied only if still missing
+5. **Shell env import** — optional login-shell scrape (`GENESIS_LOAD_SHELL_ENV=1`)
 
 ## Common Workflows
 
-### Update OpenClaw
+### Update Genesis
 
-> **Important:** `openclaw update` does not work inside Docker.
+> **Important:** `genesis update` does not work inside Docker.
 > The container runs as a non-root user with a source-built image, so `npm i -g` fails with EACCES.
 > Use `clawdock-update` instead — it pulls, rebuilds, and restarts from the host.
 
@@ -284,7 +284,7 @@ clawdock-shell
 **Inside the container, login to WhatsApp:**
 
 ```bash
-openclaw channels login --channel whatsapp --verbose
+genesis channels login --channel whatsapp --verbose
 ```
 
 Scan the QR code with WhatsApp on your phone.
@@ -292,7 +292,7 @@ Scan the QR code with WhatsApp on your phone.
 **Verify connection:**
 
 ```bash
-openclaw status
+genesis status
 ```
 
 ### Troubleshooting Device Pairing
@@ -322,7 +322,7 @@ clawdock-fix-token
 This will:
 
 1. Read the token from your `.env` file
-2. Configure it in the OpenClaw config
+2. Configure it in the Genesis config
 3. Restart the gateway
 4. Verify the configuration
 
@@ -338,7 +338,7 @@ docker ps
 
 - Docker and Docker Compose installed
 - Bash or Zsh shell
-- OpenClaw project (run `scripts/docker/setup.sh`)
+- Genesis project (run `scripts/docker/setup.sh`)
 
 ## Development
 

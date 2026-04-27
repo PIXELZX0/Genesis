@@ -3,11 +3,11 @@ summary: "Pairing overview: approve who can DM you + which nodes can join"
 read_when:
   - Setting up DM access control
   - Pairing a new iOS/Android node
-  - Reviewing OpenClaw security posture
+  - Reviewing Genesis security posture
 title: "Pairing"
 ---
 
-“Pairing” is OpenClaw’s explicit **owner approval** step.
+“Pairing” is Genesis’s explicit **owner approval** step.
 It is used in two places:
 
 1. **DM pairing** (who is allowed to talk to the bot)
@@ -30,15 +30,15 @@ Pairing codes:
 ### Approve a sender
 
 ```bash
-openclaw pairing list telegram
-openclaw pairing approve telegram <CODE>
+genesis pairing list telegram
+genesis pairing approve telegram <CODE>
 ```
 
-Supported channels: `bluebubbles`, `discord`, `feishu`, `googlechat`, `imessage`, `irc`, `line`, `matrix`, `mattermost`, `msteams`, `nextcloud-talk`, `nostr`, `openclaw-weixin`, `signal`, `slack`, `synology-chat`, `telegram`, `twitch`, `whatsapp`, `zalo`, `zalouser`.
+Supported channels: `bluebubbles`, `discord`, `feishu`, `googlechat`, `imessage`, `irc`, `line`, `matrix`, `mattermost`, `msteams`, `nextcloud-talk`, `nostr`, `genesis-weixin`, `signal`, `slack`, `synology-chat`, `telegram`, `twitch`, `whatsapp`, `zalo`, `zalouser`.
 
 ### Where the state lives
 
-Stored under `~/.openclaw/credentials/`:
+Stored under `~/.genesis/credentials/`:
 
 - Pending requests: `<channel>-pairing.json`
 - Approved allowlist store:
@@ -66,7 +66,7 @@ If you use the `device-pair` plugin, you can do first-time device pairing entire
 
 1. In Telegram, message your bot: `/pair`
 2. The bot replies with two messages: an instruction message and a separate **setup code** message (easy to copy/paste in Telegram).
-3. On your phone, open the OpenClaw iOS app → Settings → Gateway.
+3. On your phone, open the Genesis iOS app → Settings → Gateway.
 4. Paste the setup code and connect.
 5. Back in Telegram: `/pair pending` (review request IDs, role, and scopes), then approve.
 
@@ -89,9 +89,9 @@ Treat the setup code like a password while it is valid.
 ### Approve a node device
 
 ```bash
-openclaw devices list
-openclaw devices approve <requestId>
-openclaw devices reject <requestId>
+genesis devices list
+genesis devices approve <requestId>
+genesis devices reject <requestId>
 ```
 
 If the same device retries with different auth details (for example different
@@ -99,9 +99,9 @@ role/scopes/public key), the previous pending request is superseded and a new
 `requestId` is created.
 
 Important: an already paired device does not get broader access silently. If it
-reconnects asking for more scopes or a broader role, OpenClaw keeps the
+reconnects asking for more scopes or a broader role, Genesis keeps the
 existing approval as-is and creates a fresh pending upgrade request. Use
-`openclaw devices list` to compare the currently approved access with the newly
+`genesis devices list` to compare the currently approved access with the newly
 requested access before you approve.
 
 ### Optional trusted-CIDR node auto-approve
@@ -128,14 +128,14 @@ approval.
 
 ### Node pairing state storage
 
-Stored under `~/.openclaw/devices/`:
+Stored under `~/.genesis/devices/`:
 
 - `pending.json` (short-lived; pending requests expire)
 - `paired.json` (paired devices + tokens)
 
 ### Notes
 
-- The legacy `node.pair.*` API (CLI: `openclaw nodes pending|approve|reject|rename`) is a
+- The legacy `node.pair.*` API (CLI: `genesis nodes pending|approve|reject|rename`) is a
   separate gateway-owned pairing store. WS nodes still require device pairing.
 - The pairing record is the durable source of truth for approved roles. Active
   device tokens stay bounded to that approved role set; a stray token entry

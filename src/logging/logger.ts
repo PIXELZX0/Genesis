@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Logger as TsLogger } from "tslog";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import {
   isValidDiagnosticSpanId,
@@ -10,10 +10,7 @@ import {
   type DiagnosticTraceContext,
 } from "../infra/diagnostic-trace-context.js";
 import { isBlockedObjectKey } from "../infra/prototype-keys.js";
-import {
-  POSIX_OPENCLAW_TMP_DIR,
-  resolvePreferredOpenClawTmpDir,
-} from "../infra/tmp-openclaw-dir.js";
+import { POSIX_GENESIS_TMP_DIR, resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { readLoggingConfig, shouldSkipMutatingLoggingConfigRead } from "./config.js";
 import { resolveEnvLogLevelOverride } from "./env-log-level.js";
 import { type LogLevel, levelToMinLevel, normalizeLogLevel } from "./levels.js";
@@ -41,19 +38,19 @@ function canUseNodeFs(): boolean {
 }
 
 function resolveDefaultLogDir(): string {
-  return canUseNodeFs() ? resolvePreferredOpenClawTmpDir() : POSIX_OPENCLAW_TMP_DIR;
+  return canUseNodeFs() ? resolvePreferredGenesisTmpDir() : POSIX_GENESIS_TMP_DIR;
 }
 
 function resolveDefaultLogFile(defaultLogDir: string): string {
   return canUseNodeFs()
-    ? path.join(defaultLogDir, "openclaw.log")
-    : `${POSIX_OPENCLAW_TMP_DIR}/openclaw.log`;
+    ? path.join(defaultLogDir, "genesis.log")
+    : `${POSIX_GENESIS_TMP_DIR}/genesis.log`;
 }
 
 export const DEFAULT_LOG_DIR = resolveDefaultLogDir();
 export const DEFAULT_LOG_FILE = resolveDefaultLogFile(DEFAULT_LOG_DIR); // legacy single-file path
 
-const LOG_PREFIX = "openclaw";
+const LOG_PREFIX = "genesis";
 const LOG_SUFFIX = ".log";
 const MAX_LOG_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 const DEFAULT_MAX_LOG_FILE_BYTES = 500 * 1024 * 1024; // 500 MB
@@ -329,7 +326,7 @@ function attachDiagnosticEventTransport(logger: TsLogger<LogObj>): void {
 function canUseSilentVitestFileLogFastPath(envLevel: LogLevel | undefined): boolean {
   return (
     process.env.VITEST === "true" &&
-    process.env.OPENCLAW_TEST_FILE_LOG !== "1" &&
+    process.env.GENESIS_TEST_FILE_LOG !== "1" &&
     !envLevel &&
     !loggingState.overrideSettings
   );
@@ -355,13 +352,13 @@ function resolveSettings(): ResolvedSettings {
     };
   }
 
-  let cfg: OpenClawConfig["logging"] | undefined =
+  let cfg: GenesisConfig["logging"] | undefined =
     (loggingState.overrideSettings as LoggerSettings | null) ?? readLoggingConfig();
   if (!cfg && !shouldSkipMutatingLoggingConfigRead()) {
     try {
       const loaded = requireConfig?.("../config/config.js") as
         | {
-            loadConfig?: () => OpenClawConfig;
+            loadConfig?: () => GenesisConfig;
           }
         | undefined;
       cfg = loaded?.loadConfig?.().logging;
@@ -370,7 +367,7 @@ function resolveSettings(): ResolvedSettings {
     }
   }
   const defaultLevel =
-    process.env.VITEST === "true" && process.env.OPENCLAW_TEST_FILE_LOG !== "1" ? "silent" : "info";
+    process.env.VITEST === "true" && process.env.GENESIS_TEST_FILE_LOG !== "1" ? "silent" : "info";
   const fromConfig = normalizeLogLevel(cfg?.level, defaultLevel);
   const level = envLevel ?? fromConfig;
   const file = cfg?.file ?? defaultRollingPathForToday();
@@ -401,7 +398,7 @@ export function isFileLogLevelEnabled(level: LogLevel): boolean {
 
 function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
   const logger = new TsLogger<LogObj>({
-    name: "openclaw",
+    name: "genesis",
     minLevel: levelToMinLevel(settings.level),
     type: "hidden", // no ansi formatting
   });
@@ -438,7 +435,7 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
           });
           appendLogLine(settings.file, `${warningLine}\n`);
           process.stderr.write(
-            `[openclaw] log file size cap reached; suppressing writes file=${settings.file} maxFileBytes=${settings.maxFileBytes}\n`,
+            `[genesis] log file size cap reached; suppressing writes file=${settings.file} maxFileBytes=${settings.maxFileBytes}\n`,
           );
         }
         return;

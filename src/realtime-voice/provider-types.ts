@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 
 export type RealtimeVoiceProviderId = string;
 
@@ -38,12 +38,12 @@ export type RealtimeVoiceBridgeCallbacks = {
 export type RealtimeVoiceProviderConfig = Record<string, unknown>;
 
 export type RealtimeVoiceProviderResolveConfigContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   rawConfig: RealtimeVoiceProviderConfig;
 };
 
 export type RealtimeVoiceProviderConfiguredContext = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerConfig: RealtimeVoiceProviderConfig;
 };
 

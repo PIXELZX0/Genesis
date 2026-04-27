@@ -27,11 +27,11 @@ const providerEnvVarsById = vi.hoisted(
 );
 
 vi.mock("../agents/agent-paths.js", () => ({
-  resolveOpenClawAgentDir: () => process.env.OPENCLAW_AGENT_DIR ?? "/tmp/openclaw-agent",
+  resolveGenesisAgentDir: () => process.env.GENESIS_AGENT_DIR ?? "/tmp/genesis-agent",
 }));
 
 vi.mock("../config/paths.js", () => ({
-  resolveStateDir: () => process.env.OPENCLAW_STATE_DIR ?? "/tmp/openclaw-state",
+  resolveStateDir: () => process.env.GENESIS_STATE_DIR ?? "/tmp/genesis-state",
 }));
 
 vi.mock("../agents/auth-profiles/profiles.js", async () => {
@@ -39,7 +39,7 @@ vi.mock("../agents/auth-profiles/profiles.js", async () => {
   const path = await import("node:path");
   return {
     upsertAuthProfile: (params: { profileId: string; credential: unknown; agentDir?: string }) => {
-      const agentDir = params.agentDir ?? process.env.OPENCLAW_AGENT_DIR ?? "/tmp/openclaw-agent";
+      const agentDir = params.agentDir ?? process.env.GENESIS_AGENT_DIR ?? "/tmp/genesis-agent";
       const file = path.join(agentDir, "auth-profiles.json");
       fs.mkdirSync(agentDir, { recursive: true });
       const existing = (() => {
@@ -86,10 +86,10 @@ vi.mock("../secrets/provider-env-vars.js", () => ({
 
 describe("writeOAuthCredentials", () => {
   const lifecycle = createAuthTestLifecycle([
-    "OPENCLAW_STATE_DIR",
-    "OPENCLAW_AGENT_DIR",
+    "GENESIS_STATE_DIR",
+    "GENESIS_AGENT_DIR",
     "PI_CODING_AGENT_DIR",
-    "OPENCLAW_OAUTH_DIR",
+    "GENESIS_OAUTH_DIR",
   ]);
 
   let tempStateDir: string;
@@ -99,8 +99,8 @@ describe("writeOAuthCredentials", () => {
     await lifecycle.cleanup();
   });
 
-  it("writes auth-profiles.json under OPENCLAW_AGENT_DIR when set", async () => {
-    const env = await setupAuthTestEnv("openclaw-oauth-");
+  it("writes auth-profiles.json under GENESIS_AGENT_DIR when set", async () => {
+    const env = await setupAuthTestEnv("genesis-oauth-");
     lifecycle.setStateDir(env.stateDir);
 
     const creds = {
@@ -126,8 +126,8 @@ describe("writeOAuthCredentials", () => {
   });
 
   it("writes OAuth credentials to all sibling agent dirs when syncSiblingAgents=true", async () => {
-    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-oauth-sync-"));
-    process.env.OPENCLAW_STATE_DIR = tempStateDir;
+    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-oauth-sync-"));
+    process.env.GENESIS_STATE_DIR = tempStateDir;
 
     const mainAgentDir = path.join(tempStateDir, "agents", "main", "agent");
     const kidAgentDir = path.join(tempStateDir, "agents", "kid", "agent");
@@ -136,7 +136,7 @@ describe("writeOAuthCredentials", () => {
     await fs.mkdir(kidAgentDir, { recursive: true });
     await fs.mkdir(workerAgentDir, { recursive: true });
 
-    process.env.OPENCLAW_AGENT_DIR = kidAgentDir;
+    process.env.GENESIS_AGENT_DIR = kidAgentDir;
     process.env.PI_CODING_AGENT_DIR = kidAgentDir;
 
     const creds = {
@@ -163,15 +163,15 @@ describe("writeOAuthCredentials", () => {
   });
 
   it("writes OAuth credentials only to target dir by default", async () => {
-    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-oauth-nosync-"));
-    process.env.OPENCLAW_STATE_DIR = tempStateDir;
+    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-oauth-nosync-"));
+    process.env.GENESIS_STATE_DIR = tempStateDir;
 
     const mainAgentDir = path.join(tempStateDir, "agents", "main", "agent");
     const kidAgentDir = path.join(tempStateDir, "agents", "kid", "agent");
     await fs.mkdir(mainAgentDir, { recursive: true });
     await fs.mkdir(kidAgentDir, { recursive: true });
 
-    process.env.OPENCLAW_AGENT_DIR = kidAgentDir;
+    process.env.GENESIS_AGENT_DIR = kidAgentDir;
     process.env.PI_CODING_AGENT_DIR = kidAgentDir;
 
     const creds = {
@@ -194,11 +194,11 @@ describe("writeOAuthCredentials", () => {
     await expect(fs.readFile(authProfilePathFor(mainAgentDir), "utf8")).rejects.toThrow();
   });
 
-  it("syncs siblings from explicit agentDir outside OPENCLAW_STATE_DIR", async () => {
-    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-oauth-external-"));
-    process.env.OPENCLAW_STATE_DIR = tempStateDir;
+  it("syncs siblings from explicit agentDir outside GENESIS_STATE_DIR", async () => {
+    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-oauth-external-"));
+    process.env.GENESIS_STATE_DIR = tempStateDir;
 
-    // Create standard-layout agents tree *outside* OPENCLAW_STATE_DIR
+    // Create standard-layout agents tree *outside* GENESIS_STATE_DIR
     const externalRoot = path.join(tempStateDir, "external", "agents");
     const extMain = path.join(externalRoot, "main", "agent");
     const extKid = path.join(externalRoot, "kid", "agent");
@@ -238,8 +238,8 @@ describe("writeOAuthCredentials", () => {
 
 describe("upsertApiKeyProfile secret refs", () => {
   const lifecycle = createAuthTestLifecycle([
-    "OPENCLAW_STATE_DIR",
-    "OPENCLAW_AGENT_DIR",
+    "GENESIS_STATE_DIR",
+    "GENESIS_AGENT_DIR",
     "PI_CODING_AGENT_DIR",
     "MOONSHOT_API_KEY",
     "OPENAI_API_KEY",
@@ -266,7 +266,7 @@ describe("upsertApiKeyProfile secret refs", () => {
   }
 
   it("handles plaintext, ref mode, and inline env-ref provider keys", async () => {
-    const env = await setupAuthTestEnv("openclaw-onboard-auth-credentials-");
+    const env = await setupAuthTestEnv("genesis-onboard-auth-credentials-");
     lifecycle.setStateDir(env.stateDir);
     process.env.MOONSHOT_API_KEY = "sk-moonshot-env"; // pragma: allowlist secret
     process.env.OPENAI_API_KEY = "sk-openai-env"; // pragma: allowlist secret
@@ -331,7 +331,7 @@ describe("upsertApiKeyProfile secret refs", () => {
   });
 
   it("stores provider-specific env refs and metadata in ref mode", async () => {
-    const env = await setupAuthTestEnv("openclaw-onboard-auth-credentials-provider-ref-");
+    const env = await setupAuthTestEnv("genesis-onboard-auth-credentials-provider-ref-");
     lifecycle.setStateDir(env.stateDir);
     process.env.CLOUDFLARE_AI_GATEWAY_API_KEY = "cf-secret"; // pragma: allowlist secret
     process.env.VOLCANO_ENGINE_API_KEY = "volcengine-secret"; // pragma: allowlist secret
@@ -384,8 +384,8 @@ describe("upsertApiKeyProfile secret refs", () => {
 
 describe("upsertApiKeyProfile", () => {
   const lifecycle = createAuthTestLifecycle([
-    "OPENCLAW_STATE_DIR",
-    "OPENCLAW_AGENT_DIR",
+    "GENESIS_STATE_DIR",
+    "GENESIS_AGENT_DIR",
     "PI_CODING_AGENT_DIR",
   ]);
 
@@ -393,8 +393,8 @@ describe("upsertApiKeyProfile", () => {
     await lifecycle.cleanup();
   });
 
-  it("writes to OPENCLAW_AGENT_DIR when set", async () => {
-    const env = await setupAuthTestEnv("openclaw-minimax-", { agentSubdir: "custom-agent" });
+  it("writes to GENESIS_AGENT_DIR when set", async () => {
+    const env = await setupAuthTestEnv("genesis-minimax-", { agentSubdir: "custom-agent" });
     lifecycle.setStateDir(env.stateDir);
 
     upsertApiKeyProfile({ provider: "minimax", input: "sk-minimax-test" });

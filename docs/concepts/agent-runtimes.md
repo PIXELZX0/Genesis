@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw separates model providers, models, channels, and agent runtimes"
+summary: "How Genesis separates model providers, models, channels, and agent runtimes"
 title: "Agent runtimes"
 read_when:
   - You are choosing between PI, Codex, ACP, or another native agent runtime
@@ -9,17 +9,17 @@ read_when:
 
 An **agent runtime** is the component that owns one prepared model loop: it
 receives the prompt, drives model output, handles native tool calls, and returns
-the finished turn to OpenClaw.
+the finished turn to Genesis.
 
 Runtimes are easy to confuse with providers because both show up near model
 configuration. They are different layers:
 
-| Layer         | Examples                              | What it means                                                       |
-| ------------- | ------------------------------------- | ------------------------------------------------------------------- |
-| Provider      | `openai`, `anthropic`, `openai-codex` | How OpenClaw authenticates, discovers models, and names model refs. |
-| Model         | `gpt-5.5`, `claude-opus-4-6`          | The model selected for the agent turn.                              |
-| Agent runtime | `pi`, `codex`, ACP-backed runtimes    | The low level loop that executes the prepared turn.                 |
-| Channel       | Telegram, Discord, Slack, WhatsApp    | Where messages enter and leave OpenClaw.                            |
+| Layer         | Examples                              | What it means                                                      |
+| ------------- | ------------------------------------- | ------------------------------------------------------------------ |
+| Provider      | `openai`, `anthropic`, `openai-codex` | How Genesis authenticates, discovers models, and names model refs. |
+| Model         | `gpt-5.5`, `claude-opus-4-6`          | The model selected for the agent turn.                             |
+| Agent runtime | `pi`, `codex`, ACP-backed runtimes    | The low level loop that executes the prepared turn.                |
+| Channel       | Telegram, Discord, Slack, WhatsApp    | Where messages enter and leave Genesis.                            |
 
 You will also see the word **harness** in code and config. A harness is the
 implementation that provides an agent runtime. For example, the bundled Codex
@@ -42,9 +42,9 @@ The common Codex setup uses the `openai` provider with the `codex` runtime:
 }
 ```
 
-That means OpenClaw selects an OpenAI model ref, then asks the Codex app-server
+That means Genesis selects an OpenAI model ref, then asks the Codex app-server
 runtime to run the embedded agent turn. It does not mean the channel, model
-provider catalog, or OpenClaw session store becomes Codex.
+provider catalog, or Genesis session store becomes Codex.
 
 For the OpenAI-family prefix split, see [OpenAI](/providers/openai) and
 [Model providers](/concepts/model-providers). For the Codex runtime support
@@ -54,36 +54,36 @@ contract, see [Codex harness](/plugins/codex-harness#v1-support-contract).
 
 Different runtimes own different amounts of the loop.
 
-| Surface                     | OpenClaw PI embedded                    | Codex app-server                                                            |
-| --------------------------- | --------------------------------------- | --------------------------------------------------------------------------- |
-| Model loop owner            | OpenClaw through the PI embedded runner | Codex app-server                                                            |
-| Canonical thread state      | OpenClaw transcript                     | Codex thread, plus OpenClaw transcript mirror                               |
-| OpenClaw dynamic tools      | Native OpenClaw tool loop               | Bridged through the Codex adapter                                           |
-| Native shell and file tools | PI/OpenClaw path                        | Codex-native tools, bridged through native hooks where supported            |
-| Context engine              | Native OpenClaw context assembly        | OpenClaw projects assembled context into the Codex turn                     |
-| Compaction                  | OpenClaw or selected context engine     | Codex-native compaction, with OpenClaw notifications and mirror maintenance |
-| Channel delivery            | OpenClaw                                | OpenClaw                                                                    |
+| Surface                     | Genesis PI embedded                    | Codex app-server                                                           |
+| --------------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
+| Model loop owner            | Genesis through the PI embedded runner | Codex app-server                                                           |
+| Canonical thread state      | Genesis transcript                     | Codex thread, plus Genesis transcript mirror                               |
+| Genesis dynamic tools       | Native Genesis tool loop               | Bridged through the Codex adapter                                          |
+| Native shell and file tools | PI/Genesis path                        | Codex-native tools, bridged through native hooks where supported           |
+| Context engine              | Native Genesis context assembly        | Genesis projects assembled context into the Codex turn                     |
+| Compaction                  | Genesis or selected context engine     | Codex-native compaction, with Genesis notifications and mirror maintenance |
+| Channel delivery            | Genesis                                | Genesis                                                                    |
 
 This ownership split is the main design rule:
 
-- If OpenClaw owns the surface, OpenClaw can provide normal plugin hook behavior.
-- If the native runtime owns the surface, OpenClaw needs runtime events or native hooks.
-- If the native runtime owns canonical thread state, OpenClaw should mirror and project context, not rewrite unsupported internals.
+- If Genesis owns the surface, Genesis can provide normal plugin hook behavior.
+- If the native runtime owns the surface, Genesis needs runtime events or native hooks.
+- If the native runtime owns canonical thread state, Genesis should mirror and project context, not rewrite unsupported internals.
 
 ## Runtime selection
 
-OpenClaw chooses an embedded runtime after provider and model resolution:
+Genesis chooses an embedded runtime after provider and model resolution:
 
 1. A session's recorded runtime wins. Config changes do not hot-switch an
    existing transcript to a different native thread system.
-2. `OPENCLAW_AGENT_RUNTIME=<id>` forces that runtime for new or reset sessions.
+2. `GENESIS_AGENT_RUNTIME=<id>` forces that runtime for new or reset sessions.
 3. `agents.defaults.embeddedHarness.runtime` or
    `agents.list[].embeddedHarness.runtime` can set `auto`, `pi`, or a registered
    runtime id such as `codex`.
 4. In `auto` mode, registered plugin runtimes can claim supported provider/model
    pairs.
 5. If no runtime claims a turn in `auto` mode and `fallback: "pi"` is set
-   (the default), OpenClaw uses PI as the compatibility fallback. Set
+   (the default), Genesis uses PI as the compatibility fallback. Set
    `fallback: "none"` to make unmatched `auto`-mode selection fail instead.
 
 Explicit plugin runtimes fail closed by default. For example,
@@ -94,19 +94,19 @@ routed back to PI just because defaults used `fallback: "pi"`.
 
 ## Compatibility contract
 
-When a runtime is not PI, it should document what OpenClaw surfaces it supports.
+When a runtime is not PI, it should document what Genesis surfaces it supports.
 Use this shape for runtime docs:
 
-| Question                               | Why it matters                                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.                   |
-| Who owns canonical thread history?     | Determines whether OpenClaw can edit history or only mirror it.                                   |
-| Do OpenClaw dynamic tools work?        | Messaging, sessions, cron, and OpenClaw-owned tools rely on this.                                 |
-| Do dynamic tool hooks work?            | Plugins expect `before_tool_call`, `after_tool_call`, and middleware around OpenClaw-owned tools. |
-| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.        |
-| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.      |
-| What compaction data is exposed?       | Some plugins only need notifications, while others need kept/dropped metadata.                    |
-| What is intentionally unsupported?     | Users should not assume PI equivalence where the native runtime owns more state.                  |
+| Question                               | Why it matters                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.                  |
+| Who owns canonical thread history?     | Determines whether Genesis can edit history or only mirror it.                                   |
+| Do Genesis dynamic tools work?         | Messaging, sessions, cron, and Genesis-owned tools rely on this.                                 |
+| Do dynamic tool hooks work?            | Plugins expect `before_tool_call`, `after_tool_call`, and middleware around Genesis-owned tools. |
+| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.       |
+| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.     |
+| What compaction data is exposed?       | Some plugins only need notifications, while others need kept/dropped metadata.                   |
+| What is intentionally unsupported?     | Users should not assume PI equivalence where the native runtime owns more state.                 |
 
 The Codex runtime support contract is documented in
 [Codex harness](/plugins/codex-harness#v1-support-contract).

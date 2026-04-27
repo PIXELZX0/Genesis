@@ -66,7 +66,7 @@ export const EXPECTED_CODEX_MODELS_COMMAND_TEXT = [
   "Active model: `codex/",
   "Current active model is `openai/",
   "Current active model is `codex/",
-  "Current OpenClaw session status reports the active model as:",
+  "Current Genesis session status reports the active model as:",
 ] as const;
 
 export function isExpectedCodexModelsCommandText(text: string): boolean {
@@ -118,7 +118,7 @@ export function isExpectedCodexModelsCommandText(text: string): boolean {
     normalized.includes("registered models") ||
     normalized.includes("only listed model") ||
     normalized.includes("single codex model") ||
-    normalized.includes("live openclaw config shows") ||
+    normalized.includes("live genesis config shows") ||
     normalized.includes("current gateway config");
   const isSessionConfigFallback =
     (text.includes("`openai/") || text.includes("`codex/")) &&

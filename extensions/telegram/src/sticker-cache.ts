@@ -1,19 +1,19 @@
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/agent-runtime";
-import type { ModelCatalogEntry } from "openclaw/plugin-sdk/agent-runtime";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/agent-runtime";
+import type { ModelCatalogEntry } from "genesis/plugin-sdk/agent-runtime";
 import {
   findModelInCatalog,
   loadModelCatalog,
   modelSupportsVision,
-} from "openclaw/plugin-sdk/agent-runtime";
-import { resolveDefaultModelForAgent } from "openclaw/plugin-sdk/agent-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveAutoImageModel } from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/agent-runtime";
+import { resolveDefaultModelForAgent } from "genesis/plugin-sdk/agent-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveAutoImageModel } from "genesis/plugin-sdk/media-runtime";
 import {
   resolveAutoMediaKeyProviders,
   resolveDefaultMediaModel,
-} from "openclaw/plugin-sdk/media-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/media-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { getTelegramRuntime } from "./runtime.js";
 export {
   cacheSticker,
@@ -29,7 +29,7 @@ const STICKER_DESCRIPTION_PROMPT =
 
 export interface DescribeStickerParams {
   imagePath: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir?: string;
   agentId?: string;
 }

@@ -44,7 +44,7 @@ async function callPluginToolsMcp(params: {
     stderr: "pipe",
     env: transportEnv,
   });
-  const client = new Client({ name: "openclaw-qa-suite", version: "0.0.0" }, {});
+  const client = new Client({ name: "genesis-qa-suite", version: "0.0.0" }, {});
   try {
     await client.connect(transport);
     const listed = await client.listTools();

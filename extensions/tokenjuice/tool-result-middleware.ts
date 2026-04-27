@@ -2,20 +2,21 @@ import process from "node:process";
 import type {
   AgentToolResultMiddleware,
   AgentToolResultMiddlewareEvent,
-  OpenClawAgentToolResult,
-} from "openclaw/plugin-sdk/agent-harness";
-import { createTokenjuiceOpenClawEmbeddedExtension } from "./runtime-api.js";
+  GenesisAgentToolResult,
+} from "genesis/plugin-sdk/agent-harness";
+import { createTokenjuiceGenesisEmbeddedExtension } from "./runtime-api.js";
+import type { TokenjuiceGenesisPiRuntime } from "./tokenjuice-genesis.js";
 
 type TokenjuiceToolResultHandler = (
   event: {
     toolName: string;
     input: Record<string, unknown>;
-    content: OpenClawAgentToolResult["content"];
+    content: GenesisAgentToolResult["content"];
     details: unknown;
     isError?: boolean;
   },
   ctx: { cwd: string },
-) => Promise<Partial<OpenClawAgentToolResult> | void> | Partial<OpenClawAgentToolResult> | void;
+) => Promise<Partial<GenesisAgentToolResult> | void> | Partial<GenesisAgentToolResult> | void;
 
 function readCwd(event: AgentToolResultMiddlewareEvent): string {
   if (event.cwd?.trim()) {
@@ -28,19 +29,30 @@ function readCwd(event: AgentToolResultMiddlewareEvent): string {
   return process.cwd();
 }
 
-export function createTokenjuiceAgentToolResultMiddleware(): AgentToolResultMiddleware {
+async function loadTokenjuiceHandlers(): Promise<TokenjuiceToolResultHandler[]> {
   const handlers: TokenjuiceToolResultHandler[] = [];
-  createTokenjuiceOpenClawEmbeddedExtension()({
+  const createExtension = await createTokenjuiceGenesisEmbeddedExtension();
+  const runtime: TokenjuiceGenesisPiRuntime = {
     on(event, handler) {
       if (event === "tool_result") {
         handlers.push(handler as TokenjuiceToolResultHandler);
       }
     },
-  });
+  };
+  createExtension(runtime);
+  return handlers;
+}
+
+export function createTokenjuiceAgentToolResultMiddleware(): AgentToolResultMiddleware {
+  let handlersPromise: Promise<TokenjuiceToolResultHandler[]> | undefined;
+  const getHandlers = () => {
+    handlersPromise ??= loadTokenjuiceHandlers();
+    return handlersPromise;
+  };
 
   return async (event) => {
     let current = event.result;
-    for (const handler of handlers) {
+    for (const handler of await getHandlers()) {
       const next = await handler(
         {
           toolName: event.toolName,

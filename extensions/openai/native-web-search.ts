@@ -1,8 +1,8 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
 import { streamSimple } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeProviderId } from "openclaw/plugin-sdk/provider-model-shared";
-import { streamWithPayloadPatch } from "openclaw/plugin-sdk/provider-stream-shared";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeProviderId } from "genesis/plugin-sdk/provider-model-shared";
+import { streamWithPayloadPatch } from "genesis/plugin-sdk/provider-stream-shared";
 import { isOpenAIApiBaseUrl } from "./base-url.js";
 
 const OPENAI_WEB_SEARCH_TOOL = { type: "web_search" } as const;
@@ -29,7 +29,7 @@ function isOpenAINativeWebSearchEligibleModel(model: {
   return !baseUrl || isOpenAIApiBaseUrl(baseUrl);
 }
 
-function shouldUseOpenAINativeWebSearchProvider(config: OpenClawConfig | undefined): boolean {
+function shouldUseOpenAINativeWebSearchProvider(config: GenesisConfig | undefined): boolean {
   const provider = config?.tools?.web?.search?.provider;
   if (typeof provider !== "string") {
     return true;
@@ -39,7 +39,7 @@ function shouldUseOpenAINativeWebSearchProvider(config: OpenClawConfig | undefin
 }
 
 export function shouldEnableOpenAINativeWebSearch(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   model: { api?: unknown; provider?: unknown; baseUrl?: unknown };
 }): boolean {
   return (
@@ -89,7 +89,7 @@ export function patchOpenAINativeWebSearchPayload(
 
 export function createOpenAINativeWebSearchWrapper(
   baseStreamFn: StreamFn | undefined,
-  params: { config?: OpenClawConfig },
+  params: { config?: GenesisConfig },
 ): StreamFn {
   const underlying = baseStreamFn ?? streamSimple;
   return (model, context, options) => {

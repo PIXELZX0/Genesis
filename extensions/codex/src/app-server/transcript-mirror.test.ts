@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 
 async function createTempSessionFile() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-transcript-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-transcript-"));
   tempDirs.push(dir);
   return path.join(dir, "session.jsonl");
 }

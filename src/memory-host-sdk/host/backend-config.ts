@@ -3,6 +3,7 @@ import path from "node:path";
 import { resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
 import { parseDurationMs } from "../../cli/parse-duration.js";
 import type { SessionSendPolicyConfig } from "../../config/types.base.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type {
   MemoryBackend,
   MemoryCitationsMode,
@@ -11,7 +12,6 @@ import type {
   MemoryQmdMcporterConfig,
   MemoryQmdSearchMode,
 } from "../../config/types.memory.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { CANONICAL_ROOT_MEMORY_FILENAME } from "../../memory/root-memory-files.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
 import {
@@ -348,7 +348,7 @@ function resolveDefaultCollections(
 }
 
 export function resolveMemoryBackendConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
 }): ResolvedMemoryBackendConfig {
   const normalizedAgentId = normalizeAgentId(params.agentId);

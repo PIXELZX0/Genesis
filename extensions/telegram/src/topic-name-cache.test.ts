@@ -106,7 +106,7 @@ describe("topic-name-cache", () => {
   });
 
   it("reloads persisted entries from disk", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-topic-cache-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-topic-cache-"));
     const persistedPath = path.join(tempDir, "topic-names.json");
     try {
       updateTopicName(-100123, 42, { name: "Deployments" }, persistedPath);
@@ -119,7 +119,7 @@ describe("topic-name-cache", () => {
   });
 
   it("keeps separate in-memory stores for separate persisted paths", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-topic-cache-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-topic-cache-"));
     const firstPath = path.join(tempDir, "first-topic-names.json");
     const secondPath = path.join(tempDir, "second-topic-names.json");
     try {

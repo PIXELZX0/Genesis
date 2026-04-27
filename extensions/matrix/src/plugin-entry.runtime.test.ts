@@ -10,10 +10,10 @@ const REPO_ROOT = process.cwd();
 const require = createRequire(import.meta.url);
 const JITI_ENTRY_PATH = require.resolve("jiti");
 const matrixWrapperGlobal = globalThis as typeof globalThis & {
-  __openclawMatrixWrapperJitiOptions?: unknown;
+  __genesisMatrixWrapperJitiOptions?: unknown;
 };
-const PLUGIN_SDK_ROOT = ["openclaw", "plugin-sdk"].join("/");
-const SCOPED_PLUGIN_SDK_ROOT = ["@openclaw", "plugin-sdk"].join("/");
+const PLUGIN_SDK_ROOT = ["genesis", "plugin-sdk"].join("/");
+const SCOPED_PLUGIN_SDK_ROOT = ["@genesis", "plugin-sdk"].join("/");
 const GROUP_ACCESS_SUBPATH = `${PLUGIN_SDK_ROOT}/group-access`;
 const SCOPED_GROUP_ACCESS_SUBPATH = `${SCOPED_PLUGIN_SDK_ROOT}/group-access`;
 const MATRIX_RUNTIME_WRAPPER_SOURCE = fs.readFileSync(
@@ -54,7 +54,7 @@ function writeCapturingJitiFixture(fixtureRoot: string) {
     "node_modules/jiti/index.js",
     [
       "exports.createJiti = function createJiti(_filename, options) {",
-      "  globalThis.__openclawMatrixWrapperJitiOptions = options;",
+      "  globalThis.__genesisMatrixWrapperJitiOptions = options;",
       "  return function jiti() {",
       "    return {",
       "      ensureMatrixCryptoRuntime: async function ensureMatrixCryptoRuntime() {},",
@@ -69,13 +69,13 @@ function writeCapturingJitiFixture(fixtureRoot: string) {
   );
 }
 
-function writeOpenClawPackageFixture(fixtureRoot: string) {
+function writeGenesisPackageFixture(fixtureRoot: string) {
   writeFixtureFile(
     fixtureRoot,
     "package.json",
     JSON.stringify(
       {
-        name: "openclaw",
+        name: "genesis",
         type: "module",
         exports: {
           "./plugin-sdk": "./dist/plugin-sdk/index.js",
@@ -85,17 +85,17 @@ function writeOpenClawPackageFixture(fixtureRoot: string) {
       2,
     ) + "\n",
   );
-  writeFixtureFile(fixtureRoot, "openclaw.mjs", "export {};\n");
+  writeFixtureFile(fixtureRoot, "genesis.mjs", "export {};\n");
   writeFixtureFile(fixtureRoot, "dist/plugin-sdk/index.js", "export {};\n");
 }
 
-function writeOpenClawAliasFixture(fixtureRoot: string, extraExports?: Record<string, string>) {
+function writeGenesisAliasFixture(fixtureRoot: string, extraExports?: Record<string, string>) {
   writeFixtureFile(
     fixtureRoot,
     "package.json",
     JSON.stringify(
       {
-        name: "openclaw",
+        name: "genesis",
         type: "module",
         exports: {
           "./plugin-sdk": "./dist/plugin-sdk/index.js",
@@ -109,13 +109,13 @@ function writeOpenClawAliasFixture(fixtureRoot: string, extraExports?: Record<st
   );
   writeFixtureFile(fixtureRoot, "src/plugin-sdk/root-alias.cjs", "module.exports = {};\n");
   writeFixtureFile(fixtureRoot, "src/plugin-sdk/group-access.ts", "export {};\n");
-  writeFixtureFile(fixtureRoot, "openclaw.mjs", "export {};\n");
+  writeFixtureFile(fixtureRoot, "genesis.mjs", "export {};\n");
   writeFixtureFile(fixtureRoot, "dist/plugin-sdk/index.js", "export {};\n");
   writeFixtureFile(fixtureRoot, "dist/plugin-sdk/root-alias.cjs", "module.exports = {};\n");
   writeFixtureFile(fixtureRoot, "dist/plugin-sdk/group-access.js", "export {};\n");
 }
 
-function writeTrustedOpenClawBinFixture(
+function writeTrustedGenesisBinFixture(
   fixtureRoot: string,
   packageBin: string | Record<string, string>,
 ) {
@@ -124,7 +124,7 @@ function writeTrustedOpenClawBinFixture(
     "package.json",
     JSON.stringify(
       {
-        name: "openclaw",
+        name: "genesis",
         type: "module",
         bin: packageBin,
         exports: {
@@ -171,14 +171,14 @@ function expectRuntimeWrapperExports(mod: unknown) {
 }
 
 function writeCapturingSourceRuntimeWrapperFixture(fixtureRoot: string) {
-  delete matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions;
-  writeOpenClawAliasFixture(fixtureRoot);
+  delete matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions;
+  writeGenesisAliasFixture(fixtureRoot);
   writeCapturingJitiFixture(fixtureRoot);
   writeSourceRuntimeWrapperFixture(fixtureRoot);
 }
 
 function expectSourcePluginSdkAliases(fixtureRoot: string) {
-  expect(matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions).toMatchObject({
+  expect(matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions).toMatchObject({
     alias: {
       [PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
       [SCOPED_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
@@ -197,7 +197,7 @@ afterEach(() => {
 it("loads the source-checkout runtime wrapper through native ESM import", async () => {
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-source-runtime-");
 
-  writeOpenClawPackageFixture(fixtureRoot);
+  writeGenesisPackageFixture(fixtureRoot);
   writeJitiFixture(fixtureRoot);
   writeSourceRuntimeWrapperFixture(fixtureRoot);
 
@@ -209,7 +209,7 @@ it("loads the source-checkout runtime wrapper through native ESM import", async 
 it("loads the packaged runtime wrapper without recursing through the stable root alias", async () => {
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-runtime-");
 
-  writeOpenClawPackageFixture(fixtureRoot);
+  writeGenesisPackageFixture(fixtureRoot);
   writeJitiFixture(fixtureRoot);
   writeFixtureFile(
     fixtureRoot,
@@ -248,9 +248,9 @@ it("resolves extension-api aliases through the same source extension family", as
   writeCapturingSourceRuntimeWrapperFixture(fixtureRoot);
   await importFixtureModule(fixtureRoot, "extensions/matrix/src/plugin-entry.runtime.js");
 
-  expect(matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions).toMatchObject({
+  expect(matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions).toMatchObject({
     alias: {
-      "openclaw/extension-api": path.join(fixtureRoot, "src", "extensionAPI.mts"),
+      "genesis/extension-api": path.join(fixtureRoot, "src", "extensionAPI.mts"),
     },
   });
 }, 240_000);
@@ -258,8 +258,8 @@ it("resolves extension-api aliases through the same source extension family", as
 it("keeps wrapper plugin-sdk aliases deterministic and ignores unsafe subpaths", async () => {
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-runtime-alias-order-");
 
-  delete matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions;
-  writeOpenClawAliasFixture(fixtureRoot, {
+  delete matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions;
+  writeGenesisAliasFixture(fixtureRoot, {
     "./plugin-sdk/zeta": "./dist/plugin-sdk/zeta.js",
     "./plugin-sdk/../escape": "./dist/plugin-sdk/escape.js",
     "./plugin-sdk/alpha": "./dist/plugin-sdk/alpha.js",
@@ -272,7 +272,7 @@ it("keeps wrapper plugin-sdk aliases deterministic and ignores unsafe subpaths",
 
   const aliasKeys = Object.keys(
     (
-      (matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions ?? {}) as {
+      (matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions ?? {}) as {
         alias?: Record<string, string>;
       }
     ).alias ?? {},
@@ -289,17 +289,17 @@ it("keeps wrapper plugin-sdk aliases deterministic and ignores unsafe subpaths",
   ]);
 }, 240_000);
 
-it("ignores nearby untrusted openclaw package stubs when resolving the wrapper root", async () => {
+it("ignores nearby untrusted genesis package stubs when resolving the wrapper root", async () => {
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-runtime-trusted-root-");
 
-  delete matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions;
-  writeOpenClawAliasFixture(fixtureRoot);
+  delete matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions;
+  writeGenesisAliasFixture(fixtureRoot);
   writeFixtureFile(
     fixtureRoot,
     "extensions/package.json",
     JSON.stringify(
       {
-        name: "openclaw",
+        name: "genesis",
         type: "module",
         exports: {
           "./plugin-sdk": "./dist/plugin-sdk/index.js",
@@ -326,13 +326,13 @@ it("ignores nearby untrusted openclaw package stubs when resolving the wrapper r
 it("treats string bin hints case-insensitively when trusting wrapper package roots", async () => {
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-runtime-bin-root-");
 
-  delete matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions;
-  writeTrustedOpenClawBinFixture(fixtureRoot, "OpenClaw.MJS");
+  delete matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions;
+  writeTrustedGenesisBinFixture(fixtureRoot, "Genesis.MJS");
   writeCapturingJitiFixture(fixtureRoot);
   writeSourceRuntimeWrapperFixture(fixtureRoot);
   await importFixtureModule(fixtureRoot, "extensions/matrix/src/plugin-entry.runtime.js");
 
-  expect(matrixWrapperGlobal.__openclawMatrixWrapperJitiOptions).toMatchObject({
+  expect(matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions).toMatchObject({
     alias: {
       [PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
       [SCOPED_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),

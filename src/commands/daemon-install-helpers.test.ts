@@ -48,11 +48,11 @@ afterEach(() => {
 
 describe("resolveGatewayDevMode", () => {
   it("detects dev mode for src ts entrypoints", () => {
-    expect(resolveGatewayDevMode(["node", "/Users/me/openclaw/src/cli/index.ts"])).toBe(true);
-    expect(resolveGatewayDevMode(["node", "C:\\Users\\me\\openclaw\\src\\cli\\index.ts"])).toBe(
+    expect(resolveGatewayDevMode(["node", "/Users/me/genesis/src/cli/index.ts"])).toBe(true);
+    expect(resolveGatewayDevMode(["node", "C:\\Users\\me\\genesis\\src\\cli\\index.ts"])).toBe(
       true,
     );
-    expect(resolveGatewayDevMode(["node", "/Users/me/openclaw/dist/cli/index.js"])).toBe(false);
+    expect(resolveGatewayDevMode(["node", "/Users/me/genesis/dist/cli/index.js"])).toBe(false);
   });
 });
 
@@ -70,7 +70,7 @@ function mockNodeGatewayPlanFixture(
     version = "22.0.0",
     supported = true,
     warning,
-    serviceEnvironment = { OPENCLAW_PORT: "3000" },
+    serviceEnvironment = { GENESIS_PORT: "3000" },
   } = params;
   mocks.resolvePreferredNodePath.mockResolvedValue("/opt/node");
   mocks.resolveGatewayProgramArguments.mockResolvedValue({
@@ -91,7 +91,7 @@ function mockNodeGatewayPlanFixture(
 }
 
 describe("buildGatewayInstallPlan", () => {
-  // Prevent tests from reading the developer's real ~/.openclaw/.env when
+  // Prevent tests from reading the developer's real ~/.genesis/.env when
   // passing `env: {}` (which falls back to os.homedir for state-dir resolution).
   let isolatedHome: string;
   beforeEach(() => {
@@ -117,7 +117,7 @@ describe("buildGatewayInstallPlan", () => {
 
     expect(plan.programArguments).toEqual(["node", "gateway"]);
     expect(plan.workingDirectory).toBe("/Users/me");
-    expect(plan.environment).toEqual({ OPENCLAW_PORT: "3000" });
+    expect(plan.environment).toEqual({ GENESIS_PORT: "3000" });
     expect(mocks.resolvePreferredNodePath).not.toHaveBeenCalled();
     expect(mocks.buildServiceEnvironment).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -170,7 +170,7 @@ describe("buildGatewayInstallPlan", () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/Users/service",
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
       },
     });
 
@@ -186,7 +186,7 @@ describe("buildGatewayInstallPlan", () => {
           TRIMMED_KEY: "  ",
           vars: {
             GOOGLE_API_KEY: "test-key", // pragma: allowlist secret
-            OPENCLAW_PORT: "9999",
+            GENESIS_PORT: "9999",
             NODE_OPTIONS: "--require /tmp/evil.js",
             SAFE_KEY: "safe-value",
           },
@@ -201,16 +201,16 @@ describe("buildGatewayInstallPlan", () => {
     expect(plan.environment.EMPTY_KEY).toBeUndefined();
     expect(plan.environment.TRIMMED_KEY).toBeUndefined();
     expect(plan.environment.HOME).toBe("/Users/service");
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBe(
-      "CUSTOM_VAR,GOOGLE_API_KEY,OPENCLAW_PORT,SAFE_KEY",
+    expect(plan.environment.GENESIS_PORT).toBe("3000");
+    expect(plan.environment.GENESIS_SERVICE_MANAGED_ENV_KEYS).toBe(
+      "CUSTOM_VAR,GENESIS_PORT,GOOGLE_API_KEY,SAFE_KEY",
     );
   });
 
   it("skips auth-profile store load when no auth-profile source exists", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
       },
     });
     mocks.hasAnyAuthProfileStoreSource.mockReturnValue(false);
@@ -222,13 +222,13 @@ describe("buildGatewayInstallPlan", () => {
     });
 
     expect(mocks.loadAuthProfileStoreForSecretsRuntime).not.toHaveBeenCalled();
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
+    expect(plan.environment.GENESIS_PORT).toBe("3000");
   });
 
   it("uses the provided authStore without probing auth-profile runtime", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
       },
     });
 
@@ -258,7 +258,7 @@ describe("buildGatewayInstallPlan", () => {
   it("merges only portable auth-profile env refs into the service environment", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
       },
     });
     mocks.loadAuthProfileStoreForSecretsRuntime.mockReturnValue({
@@ -336,13 +336,13 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     await writeStateDirDotEnv(
       "BRAVE_API_KEY=BSA-from-env\nOPENROUTER_API_KEY=or-key\nMY_KEY=from-dotenv\nHOME=/from-dotenv\n",
       {
-        stateDir: path.join(tmpDir, ".openclaw"),
+        stateDir: path.join(tmpDir, ".genesis"),
       },
     );
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
       },
     });
 
@@ -363,11 +363,11 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.OPENROUTER_API_KEY).toBe("or-key");
     expect(plan.environment.MY_KEY).toBe("from-config");
     expect(plan.environment.HOME).toBe("/from-service");
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
+    expect(plan.environment.GENESIS_PORT).toBe("3000");
   });
 
   it("works when .env file does not exist", async () => {
-    mockNodeGatewayPlanFixture({ serviceEnvironment: { OPENCLAW_PORT: "3000" } });
+    mockNodeGatewayPlanFixture({ serviceEnvironment: { GENESIS_PORT: "3000" } });
 
     const plan = await buildGatewayInstallPlan({
       env: { HOME: tmpDir },
@@ -375,14 +375,14 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
       runtime: "node",
     });
 
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
+    expect(plan.environment.GENESIS_PORT).toBe("3000");
   });
 
   it("preserves safe custom vars from an existing service env and merges PATH", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
         PATH: "/managed/bin:/usr/bin",
         TMPDIR: "/tmp",
       },
@@ -398,7 +398,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
         BLOGWATCHER_HOME: "/Users/test/.blogwatcher",
         NODE_OPTIONS: "--require /tmp/evil.js",
         GOPATH: "/Users/test/.local/gopath",
-        OPENCLAW_SERVICE_MARKER: "openclaw",
+        GENESIS_SERVICE_MARKER: "genesis",
       },
     });
 
@@ -407,14 +407,14 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.BLOGWATCHER_HOME).toBe("/Users/test/.blogwatcher");
     expect(plan.environment.NODE_OPTIONS).toBeUndefined();
     expect(plan.environment.GOPATH).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MARKER).toBeUndefined();
+    expect(plan.environment.GENESIS_SERVICE_MARKER).toBeUndefined();
   });
 
   it("drops keys that were previously tracked as managed service env", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        GENESIS_PORT: "3000",
         PATH: "/managed/bin:/usr/bin",
       },
     });
@@ -428,7 +428,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
         GOBIN: "/Users/test/.local/gopath/bin",
         BLOGWATCHER_HOME: "/Users/test/.blogwatcher",
         GOPATH: "/Users/test/.local/gopath",
-        OPENCLAW_SERVICE_MANAGED_ENV_KEYS: "GOBIN,GOPATH",
+        GENESIS_SERVICE_MANAGED_ENV_KEYS: "GOBIN,GOPATH",
       },
     });
 
@@ -436,7 +436,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.GOBIN).toBeUndefined();
     expect(plan.environment.BLOGWATCHER_HOME).toBe("/Users/test/.blogwatcher");
     expect(plan.environment.GOPATH).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
+    expect(plan.environment.GENESIS_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
   });
 });
 
@@ -445,7 +445,7 @@ describe("gatewayInstallErrorHint", () => {
     expect(gatewayInstallErrorHint("win32")).toContain("Startup-folder login item");
     expect(gatewayInstallErrorHint("win32")).toContain("elevated PowerShell");
     expect(gatewayInstallErrorHint("linux")).toMatch(
-      /(?:openclaw|openclaw)( --profile isolated)? gateway install/,
+      /(?:genesis|genesis)( --profile isolated)? gateway install/,
     );
   });
 });

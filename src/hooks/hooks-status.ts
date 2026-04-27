@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { evaluateEntryRequirementsForCurrentPlatform } from "../shared/entry-status.js";
 import type { RequirementConfigCheck, Requirements } from "../shared/requirements.js";
 import { CONFIG_DIR } from "../utils.js";
@@ -70,7 +70,7 @@ function normalizeInstallOptions(entry: HookEntry): HookInstallOption[] {
 
     if (!label) {
       if (spec.kind === "bundled") {
-        label = "Bundled with OpenClaw";
+        label = "Bundled with Genesis";
       } else if (spec.kind === "npm" && spec.package) {
         label = `Install ${spec.package} (npm)`;
       } else if (spec.kind === "git" && spec.repository) {
@@ -86,12 +86,12 @@ function normalizeInstallOptions(entry: HookEntry): HookInstallOption[] {
 
 function buildHookStatus(
   entry: HookEntry,
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
   eligibility?: HookEligibilityContext,
 ): HookStatusEntry {
   const hookKey = resolveHookKey(entry);
   const hookConfig = resolveHookConfig(config, hookKey);
-  const managedByPlugin = entry.hook.source === "openclaw-plugin";
+  const managedByPlugin = entry.hook.source === "genesis-plugin";
   const enableState = resolveHookEnableState({ entry, config, hookConfig });
   const always = entry.metadata?.always === true;
   const events = entry.metadata?.events ?? [];
@@ -142,7 +142,7 @@ function buildHookStatus(
 export function buildWorkspaceHookStatus(
   workspaceDir: string,
   opts?: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     managedHooksDir?: string;
     entries?: HookEntry[];
     eligibility?: HookEligibilityContext;

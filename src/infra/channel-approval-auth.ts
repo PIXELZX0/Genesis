@@ -1,5 +1,5 @@
 import { getChannelPlugin, resolveChannelApprovalCapability } from "../channels/plugins/index.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { isImplicitSameChatApprovalAuthorization } from "../plugin-sdk/approval-auth-helpers.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 
@@ -10,7 +10,7 @@ export type ApprovalCommandAuthorization = {
 };
 
 export function resolveApprovalCommandAuthorization(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel?: string | null;
   accountId?: string | null;
   senderId?: string | null;

@@ -1,16 +1,16 @@
 ---
-summary: "Use ElevenLabs speech, Scribe STT, and realtime transcription with OpenClaw"
+summary: "Use ElevenLabs speech, Scribe STT, and realtime transcription with Genesis"
 read_when:
-  - You want ElevenLabs text-to-speech in OpenClaw
+  - You want ElevenLabs text-to-speech in Genesis
   - You want ElevenLabs Scribe speech-to-text for audio attachments
   - You want ElevenLabs realtime transcription for Voice Call
 title: "ElevenLabs"
 ---
 
-OpenClaw uses ElevenLabs for text-to-speech, batch speech-to-text with Scribe
+Genesis uses ElevenLabs for text-to-speech, batch speech-to-text with Scribe
 v2, and Voice Call streaming STT with Scribe v2 Realtime.
 
-| Capability               | OpenClaw surface                              | Default                  |
+| Capability               | Genesis surface                               | Default                  |
 | ------------------------ | --------------------------------------------- | ------------------------ |
 | Text-to-speech           | `messages.tts` / `talk`                       | `eleven_multilingual_v2` |
 | Batch speech-to-text     | `tools.media.audio`                           | `scribe_v2`              |
@@ -60,7 +60,7 @@ Use Scribe v2 for inbound audio attachments and short recorded voice segments:
 }
 ```
 
-OpenClaw sends multipart audio to ElevenLabs `/v1/speech-to-text` with
+Genesis sends multipart audio to ElevenLabs `/v1/speech-to-text` with
 `model_id: "scribe_v2"`. Language hints map to `language_code` when present.
 
 ## Voice Call streaming STT

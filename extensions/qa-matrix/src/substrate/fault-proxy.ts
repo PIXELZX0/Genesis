@@ -4,7 +4,7 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",

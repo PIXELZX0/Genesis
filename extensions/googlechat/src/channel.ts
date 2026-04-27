@@ -1,16 +1,16 @@
-import { describeAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { formatNormalizedAllowFromEntries } from "openclaw/plugin-sdk/allow-from";
+import { describeAccountSnapshot } from "genesis/plugin-sdk/account-helpers";
+import { formatNormalizedAllowFromEntries } from "genesis/plugin-sdk/allow-from";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
-import { createChatChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { buildPassiveProbedChannelStatusSummary } from "openclaw/plugin-sdk/extension-shared";
-import { createLazyRuntimeNamedExport } from "openclaw/plugin-sdk/lazy-runtime";
+} from "genesis/plugin-sdk/channel-config-helpers";
+import { createChatChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { buildPassiveProbedChannelStatusSummary } from "genesis/plugin-sdk/extension-shared";
+import { createLazyRuntimeNamedExport } from "genesis/plugin-sdk/lazy-runtime";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
+} from "genesis/plugin-sdk/status-helpers";
 import { googlechatMessageActions } from "./actions.js";
 import { googleChatApprovalAuth } from "./approval-auth.js";
 import {

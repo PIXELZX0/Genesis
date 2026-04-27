@@ -1,6 +1,6 @@
 import type { EventEmitter } from "node:events";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
 
 type GatewayEmitter = Pick<EventEmitter, "on" | "removeListener">;
 

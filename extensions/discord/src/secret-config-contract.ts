@@ -8,14 +8,14 @@ import {
   type ResolverContext,
   type SecretDefaults,
   type SecretTargetRegistryEntry,
-} from "openclaw/plugin-sdk/channel-secret-basic-runtime";
-import { collectNestedChannelTtsAssignments } from "openclaw/plugin-sdk/channel-secret-tts-runtime";
+} from "genesis/plugin-sdk/channel-secret-basic-runtime";
+import { collectNestedChannelTtsAssignments } from "genesis/plugin-sdk/channel-secret-tts-runtime";
 
 export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.accounts.*.pluralkit.token",
     targetType: "channels.discord.accounts.*.pluralkit.token",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.accounts.*.pluralkit.token",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -26,7 +26,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.accounts.*.token",
     targetType: "channels.discord.accounts.*.token",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.accounts.*.token",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -37,7 +37,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.accounts.*.voice.tts.providers.*.apiKey",
     targetType: "channels.discord.accounts.*.voice.tts.providers.*.apiKey",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.accounts.*.voice.tts.providers.*.apiKey",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -49,7 +49,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.pluralkit.token",
     targetType: "channels.discord.pluralkit.token",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.pluralkit.token",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -60,7 +60,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.token",
     targetType: "channels.discord.token",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.token",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -71,7 +71,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.discord.voice.tts.providers.*.apiKey",
     targetType: "channels.discord.voice.tts.providers.*.apiKey",
-    configFile: "openclaw.json",
+    configFile: "genesis.json",
     pathPattern: "channels.discord.voice.tts.providers.*.apiKey",
     secretShape: "secret_input",
     expectedResolvedValue: "string",

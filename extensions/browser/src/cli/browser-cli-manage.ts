@@ -86,7 +86,7 @@ async function runBrowserToggle(
   if (printJsonResult(parent, status)) {
     return;
   }
-  const name = status.profile ?? "openclaw";
+  const name = status.profile ?? "genesis";
   defaultRuntime.log(info(`🦞 browser [${name}] running: ${status.running}`));
 }
 
@@ -148,14 +148,14 @@ async function runBrowserDoctor(parent: BrowserParentOpts, profile?: string) {
   checks.push({
     name: "profile",
     ok: true,
-    detail: `${status.profile ?? "openclaw"} (${usesChromeMcpTransport(status) ? "chrome-mcp" : (status.transport ?? "cdp")})`,
+    detail: `${status.profile ?? "genesis"} (${usesChromeMcpTransport(status) ? "chrome-mcp" : (status.transport ?? "cdp")})`,
   });
   checks.push({
     name: "browser",
     ok: status.running,
     detail: status.running
       ? `running${status.cdpReady === false ? ", CDP not ready" : ""}`
-      : "not running; run `openclaw browser start`",
+      : "not running; run `genesis browser start`",
   });
 
   try {
@@ -208,14 +208,14 @@ async function runBrowserDoctor(parent: BrowserParentOpts, profile?: string) {
 
 function usesChromeMcpTransport(params: {
   transport?: BrowserTransport;
-  driver?: "openclaw" | "existing-session";
+  driver?: "genesis" | "existing-session";
 }): boolean {
   return params.transport === "chrome-mcp" || params.driver === "existing-session";
 }
 
 function formatBrowserConnectionSummary(params: {
   transport?: BrowserTransport;
-  driver?: "openclaw" | "existing-session";
+  driver?: "genesis" | "existing-session";
   isRemote?: boolean;
   cdpPort?: number | null;
   cdpUrl?: string | null;
@@ -251,7 +251,7 @@ export function registerBrowserManageCommands(
         const detectedDisplay = detectedPath ? shortenHomePath(detectedPath) : "auto";
         defaultRuntime.log(
           [
-            `profile: ${status.profile ?? "openclaw"}`,
+            `profile: ${status.profile ?? "genesis"}`,
             `enabled: ${status.enabled}`,
             `running: ${status.running}`,
             `transport: ${
@@ -269,6 +269,13 @@ export function registerBrowserManageCommands(
             `detectedBrowser: ${status.detectedBrowser ?? "unknown"}`,
             `detectedPath: ${detectedDisplay}`,
             `profileColor: ${status.color}`,
+            ...(status.tor
+              ? [
+                  `tor: ${status.tor.mode} ${status.tor.socksHost}:${status.tor.socksPort}${
+                    status.tor.running === true ? " (running)" : ""
+                  }`,
+                ]
+              : []),
             ...(status.detectError ? [`detectError: ${status.detectError}`] : []),
           ].join("\n"),
         );
@@ -595,8 +602,13 @@ export function registerBrowserManageCommands(
               const def = p.isDefault ? " [default]" : "";
               const loc = formatBrowserConnectionSummary(p);
               const remote = p.isRemote ? " [remote]" : "";
-              const driver = p.driver !== "openclaw" ? ` [${p.driver}]` : "";
-              return `${p.name}: ${status}${tabs}${def}${remote}${driver}\n  ${loc}, color: ${p.color}`;
+              const driver = p.driver !== "genesis" ? ` [${p.driver}]` : "";
+              const tor = p.tor
+                ? `\n  tor: ${p.tor.mode} ${p.tor.socksHost}:${p.tor.socksPort}${
+                    p.tor.running === true ? " (running)" : ""
+                  }`
+                : "";
+              return `${p.name}: ${status}${tabs}${def}${remote}${driver}\n  ${loc}, color: ${p.color}${tor}`;
             })
             .join("\n"),
         );
@@ -610,7 +622,8 @@ export function registerBrowserManageCommands(
     .option("--color <hex>", "Profile color (hex format, e.g. #0066CC)")
     .option("--cdp-url <url>", "CDP URL for remote Chrome (http/https)")
     .option("--user-data-dir <path>", "User data dir for existing-session Chromium attach")
-    .option("--driver <driver>", "Profile driver (openclaw|existing-session). Default: openclaw")
+    .option("--driver <driver>", "Profile driver (genesis|existing-session). Default: genesis")
+    .option("--tor", "Route this managed headless profile through a Tor SOCKS sidecar")
     .action(
       async (
         opts: {
@@ -619,6 +632,7 @@ export function registerBrowserManageCommands(
           cdpUrl?: string;
           userDataDir?: string;
           driver?: string;
+          tor?: boolean;
         },
         cmd,
       ) => {
@@ -634,6 +648,7 @@ export function registerBrowserManageCommands(
                 color: opts.color,
                 cdpUrl: opts.cdpUrl,
                 userDataDir: opts.userDataDir,
+                tor: opts.tor === true,
                 driver: opts.driver === "existing-session" ? "existing-session" : undefined,
               },
             },
@@ -647,7 +662,9 @@ export function registerBrowserManageCommands(
             info(
               `🦞 Created profile "${result.profile}"\n${loc}\n  color: ${result.color}${
                 result.userDataDir ? `\n  userDataDir: ${shortenHomePath(result.userDataDir)}` : ""
-              }${opts.driver === "existing-session" ? "\n  driver: existing-session" : ""}`,
+              }${opts.driver === "existing-session" ? "\n  driver: existing-session" : ""}${
+                opts.tor ? "\n  tor: managed" : ""
+              }`,
             ),
           );
         });

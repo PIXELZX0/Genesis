@@ -8,7 +8,7 @@ const resolveDefaultAccountId = () => DEFAULT_ACCOUNT_ID;
 const mocks = vi.hoisted(() => ({
   callGateway: vi.fn(),
   resolveCommandConfigWithSecrets: vi.fn(),
-  readConfigFileSnapshot: vi.fn(async () => ({ path: "/tmp/openclaw.json" })),
+  readConfigFileSnapshot: vi.fn(async () => ({ path: "/tmp/genesis.json" })),
   requireValidConfigSnapshot: vi.fn(),
   listChannelPlugins: vi.fn(),
   listConfiguredChannelIdsForReadOnlyScope: vi.fn((_params: unknown) => ["discord"]),
@@ -247,7 +247,7 @@ describe("channelsStatusCommand SecretRef fallback flow", () => {
           "gateway timeout after 3000ms",
           "Gateway target: wss://user:pass@gateway.example.com/socket?token=secret-token&keep=visible",
           "Gateway fallback: (wss://fallback-user:fallback-pass@[bad-host/socket?token=fallback-secret&keep=visible)",
-          "Source: env OPENCLAW_GATEWAY_URL",
+          "Source: env GENESIS_GATEWAY_URL",
         ].join("\n"),
       ),
     );

@@ -1,10 +1,10 @@
-import { generateHexPkceVerifierChallenge } from "openclaw/plugin-sdk/provider-auth";
+import { generateHexPkceVerifierChallenge } from "genesis/plugin-sdk/provider-auth";
 import {
   generateOAuthState,
   parseOAuthCallbackInput,
   waitForLocalOAuthCallback,
-} from "openclaw/plugin-sdk/provider-auth-runtime";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/provider-auth-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 
 export const GOOGLE_MEET_REDIRECT_URI = "http://localhost:8085/oauth2callback";
 export const GOOGLE_MEET_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";

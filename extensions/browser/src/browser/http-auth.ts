@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { safeEqualSecret } from "../security/secret-equal.js";
 
 function firstHeaderValue(value: string | string[] | undefined): string {
@@ -49,7 +49,7 @@ export function isAuthorizedBrowserRequest(
   }
 
   if (auth.password) {
-    const passwordHeader = firstHeaderValue(req.headers["x-openclaw-password"]).trim();
+    const passwordHeader = firstHeaderValue(req.headers["x-genesis-password"]).trim();
     if (passwordHeader && safeEqualSecret(passwordHeader, auth.password)) {
       return true;
     }

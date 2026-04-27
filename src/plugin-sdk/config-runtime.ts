@@ -1,9 +1,9 @@
 // Shared config/runtime boundary for plugins that need config loading,
 // config writes, or session-store helpers without importing src internals.
 
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 
-export function requireRuntimeConfig(config: OpenClawConfig, context: string): OpenClawConfig {
+export function requireRuntimeConfig(config: GenesisConfig, context: string): GenesisConfig {
   if (config) {
     return config;
   }
@@ -13,7 +13,7 @@ export function requireRuntimeConfig(config: OpenClawConfig, context: string): O
 }
 
 export function resolvePluginConfigObject(
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
   pluginId: string,
 ): Record<string, unknown> | undefined {
   const plugins =
@@ -35,7 +35,7 @@ export function resolvePluginConfigObject(
 }
 
 export function resolveLivePluginConfigObject(
-  runtimeConfigLoader: (() => OpenClawConfig | undefined) | undefined,
+  runtimeConfigLoader: (() => GenesisConfig | undefined) | undefined,
   pluginId: string,
   startupPluginConfig?: Record<string, unknown>,
 ): Record<string, unknown> | undefined {
@@ -118,7 +118,7 @@ export type {
   GroupToolPolicyConfig,
   MarkdownConfig,
   MarkdownTableMode,
-  OpenClawConfig,
+  GenesisConfig,
   ReplyToMode,
   SignalReactionNotificationMode,
   SlackAccountConfig,

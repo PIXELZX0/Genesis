@@ -2,9 +2,9 @@ import {
   createAccountListHelpers,
   normalizeAccountId,
   resolveMergedAccountConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/account-resolution";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/account-resolution";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { IMessageAccountConfig } from "./account-types.js";
 
 export type ResolvedIMessageAccount = {
@@ -19,7 +19,7 @@ const { listAccountIds, resolveDefaultAccountId } = createAccountListHelpers("im
 export const listIMessageAccountIds = listAccountIds;
 export const resolveDefaultIMessageAccountId = resolveDefaultAccountId;
 
-function mergeIMessageAccountConfig(cfg: OpenClawConfig, accountId: string): IMessageAccountConfig {
+function mergeIMessageAccountConfig(cfg: GenesisConfig, accountId: string): IMessageAccountConfig {
   return resolveMergedAccountConfig<IMessageAccountConfig>({
     channelConfig: cfg.channels?.imessage as IMessageAccountConfig | undefined,
     accounts: cfg.channels?.imessage?.accounts as
@@ -30,7 +30,7 @@ function mergeIMessageAccountConfig(cfg: OpenClawConfig, accountId: string): IMe
 }
 
 export function resolveIMessageAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): ResolvedIMessageAccount {
   const accountId = normalizeAccountId(
@@ -64,7 +64,7 @@ export function resolveIMessageAccount(params: {
   };
 }
 
-export function listEnabledIMessageAccounts(cfg: OpenClawConfig): ResolvedIMessageAccount[] {
+export function listEnabledIMessageAccounts(cfg: GenesisConfig): ResolvedIMessageAccount[] {
   return listIMessageAccountIds(cfg)
     .map((accountId) => resolveIMessageAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import type { UpdateCheckResult } from "../infra/update-check.js";
 import { runExec } from "../process/exec.js";
 import { createEmptyTaskAuditSummary } from "../tasks/task-registry.audit.shared.js";
@@ -59,7 +59,7 @@ type StatusScanExecRunner = (
 
 type StatusScanCoreBootstrapParams<TAgentStatus> = {
   coldStart: boolean;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   hasConfiguredChannels: boolean;
   opts: { timeoutMs?: number; all?: boolean };
   getTailnetHostname: (runner: StatusScanExecRunner) => Promise<string | null>;
@@ -68,15 +68,15 @@ type StatusScanCoreBootstrapParams<TAgentStatus> = {
     fetchGit: boolean;
     includeRegistry: boolean;
   }) => Promise<UpdateCheckResult>;
-  getAgentLocalStatuses: (cfg: OpenClawConfig) => Promise<TAgentStatus>;
+  getAgentLocalStatuses: (cfg: GenesisConfig) => Promise<TAgentStatus>;
 };
 
 type StatusScanBootstrapParams<TAgentStatus, TSummary> =
   StatusScanCoreBootstrapParams<TAgentStatus> & {
-    sourceConfig: OpenClawConfig;
+    sourceConfig: GenesisConfig;
     getStatusSummary: (params: {
-      config: OpenClawConfig;
-      sourceConfig: OpenClawConfig;
+      config: GenesisConfig;
+      sourceConfig: GenesisConfig;
     }) => Promise<TSummary>;
   };
 

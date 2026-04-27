@@ -1,4 +1,4 @@
-import type { LookupFn } from "openclaw/plugin-sdk/ssrf-runtime";
+import type { LookupFn } from "genesis/plugin-sdk/ssrf-runtime";
 import { describe, expect, it, vi } from "vitest";
 import { __testing } from "./searxng-client.js";
 
@@ -16,12 +16,12 @@ describe("searxng client", () => {
     expect(
       __testing.buildSearxngSearchUrl({
         baseUrl: "https://search.example.com/searxng",
-        query: "openclaw",
+        query: "genesis",
         categories: "general,news",
         language: "en",
       }),
     ).toBe(
-      "https://search.example.com/searxng/search?q=openclaw&format=json&categories=general%2Cnews&language=en",
+      "https://search.example.com/searxng/search?q=genesis&format=json&categories=general%2Cnews&language=en",
     );
   });
 

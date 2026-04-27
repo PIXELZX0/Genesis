@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const runtimeModule = await import("./runtime.js");
@@ -23,7 +23,7 @@ describe("handleDiscordMessageAction", () => {
       },
       cfg: {
         channels: { discord: { token: "tok", actions: { moderation: true } } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       requesterSenderId: "trusted-sender-id",
       toolContext: { currentChannelProvider: "discord" },
     });
@@ -55,7 +55,7 @@ describe("handleDiscordMessageAction", () => {
       },
       cfg: {
         channels: { discord: { token: "tok" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       toolContext: { currentMessageId: "9001" },
     });
 
@@ -79,7 +79,7 @@ describe("handleDiscordMessageAction", () => {
       },
       cfg: {
         channels: { discord: { token: "tok" } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       toolContext: {
         currentChannelProvider: "discord",
         currentChannelId: "user:U1",
@@ -108,7 +108,7 @@ describe("handleDiscordMessageAction", () => {
         },
         cfg: {
           channels: { discord: { token: "tok" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         toolContext: {
           currentChannelProvider: "telegram",
           currentChannelId: "user:U1",
@@ -130,7 +130,7 @@ describe("handleDiscordMessageAction", () => {
         },
         cfg: {
           channels: { discord: { token: "tok" } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     ).rejects.toThrow(/messageId required/i);
 

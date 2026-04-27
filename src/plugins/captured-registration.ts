@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   AgentToolResultMiddleware,
   AgentToolResultMiddlewareOptions,
@@ -13,12 +13,12 @@ import type {
   AnyAgentTool,
   AgentHarness,
   CliBackendPlugin,
-  OpenClawPluginApi,
+  GenesisPluginApi,
   ImageGenerationProviderPlugin,
   MediaUnderstandingProviderPlugin,
   MusicGenerationProviderPlugin,
-  OpenClawPluginCliCommandDescriptor,
-  OpenClawPluginCliRegistrar,
+  GenesisPluginCliCommandDescriptor,
+  GenesisPluginCliRegistrar,
   PluginTextTransformRegistration,
   ProviderPlugin,
   RealtimeTranscriptionProviderPlugin,
@@ -30,13 +30,13 @@ import type {
 } from "./types.js";
 
 type CapturedPluginCliRegistration = {
-  register: OpenClawPluginCliRegistrar;
+  register: GenesisPluginCliRegistrar;
   commands: string[];
-  descriptors: OpenClawPluginCliCommandDescriptor[];
+  descriptors: GenesisPluginCliCommandDescriptor[];
 };
 
 export type CapturedPluginRegistration = {
-  api: OpenClawPluginApi;
+  api: GenesisPluginApi;
   providers: ProviderPlugin[];
   agentHarnesses: AgentHarness[];
   cliRegistrars: CapturedPluginCliRegistration[];
@@ -58,8 +58,8 @@ export type CapturedPluginRegistration = {
 };
 
 export function createCapturedPluginRegistration(params?: {
-  config?: OpenClawConfig;
-  registrationMode?: OpenClawPluginApi["registrationMode"];
+  config?: GenesisConfig;
+  registrationMode?: GenesisPluginApi["registrationMode"];
 }): CapturedPluginRegistration {
   const providers: ProviderPlugin[] = [];
   const agentHarnesses: AgentHarness[] = [];
@@ -110,7 +110,7 @@ export function createCapturedPluginRegistration(params?: {
       name: "Captured Plugin Registration",
       source: "captured-plugin-registration",
       registrationMode: params?.registrationMode ?? "full",
-      config: params?.config ?? ({} as OpenClawConfig),
+      config: params?.config ?? ({} as GenesisConfig),
       runtime: {} as PluginRuntime,
       logger: noopLogger,
       resolvePath: (input) => input,
@@ -208,7 +208,7 @@ export function createCapturedPluginRegistration(params?: {
 }
 
 export function capturePluginRegistration(params: {
-  register(api: OpenClawPluginApi): void;
+  register(api: GenesisPluginApi): void;
 }): CapturedPluginRegistration {
   const captured = createCapturedPluginRegistration();
   params.register(captured.api);

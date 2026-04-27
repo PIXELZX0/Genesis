@@ -45,16 +45,16 @@ Production-ready for bot DMs and groups via grammY. Long polling is the default 
 ```
 
     Env fallback: `TELEGRAM_BOT_TOKEN=...` (default account only).
-    Telegram does **not** use `openclaw channels login telegram`; configure token in config/env, then start gateway.
+    Telegram does **not** use `genesis channels login telegram`; configure token in config/env, then start gateway.
 
   </Step>
 
   <Step title="Start gateway and approve first DM">
 
 ```bash
-openclaw gateway
-openclaw pairing list telegram
-openclaw pairing approve telegram <CODE>
+genesis gateway
+genesis pairing list telegram
+genesis pairing approve telegram <CODE>
 ```
 
     Pairing codes expire after 1 hour.
@@ -114,8 +114,8 @@ Token resolution order is account-aware. In practice, config values win over env
     `channels.telegram.allowFrom` accepts numeric Telegram user IDs. `telegram:` / `tg:` prefixes are accepted and normalized.
     `dmPolicy: "allowlist"` with empty `allowFrom` blocks all DMs and is rejected by config validation.
     Setup asks for numeric user IDs only.
-    If you upgraded and your config contains `@username` allowlist entries, run `openclaw doctor --fix` to resolve them (best-effort; requires a Telegram bot token).
-    If you previously relied on pairing-store allowlist files, `openclaw doctor --fix` can recover entries into `channels.telegram.allowFrom` in allowlist flows (for example when `dmPolicy: "allowlist"` has no explicit IDs yet).
+    If you upgraded and your config contains `@username` allowlist entries, run `genesis doctor --fix` to resolve them (best-effort; requires a Telegram bot token).
+    If you previously relied on pairing-store allowlist files, `genesis doctor --fix` can recover entries into `channels.telegram.allowFrom` in allowlist flows (for example when `dmPolicy: "allowlist"` has no explicit IDs yet).
 
     For one-owner bots, prefer `dmPolicy: "allowlist"` with explicit numeric `allowFrom` IDs to keep access policy durable in config (instead of depending on previous pairing approvals).
 
@@ -128,7 +128,7 @@ Token resolution order is account-aware. In practice, config values win over env
     Safer (no third-party bot):
 
     1. DM your bot.
-    2. Run `openclaw logs --follow`.
+    2. Run `genesis logs --follow`.
     3. Read `from.id`.
 
     Official Bot API method:
@@ -243,7 +243,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
     Getting the group chat ID:
 
     - forward a group message to `@userinfobot` / `@getidsbot`
-    - or read `chat.id` from `openclaw logs --follow`
+    - or read `chat.id` from `genesis logs --follow`
     - or inspect Bot API `getUpdates`
 
   </Tab>
@@ -255,7 +255,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 - Routing is deterministic: Telegram inbound replies back to Telegram (the model does not pick channels).
 - Inbound messages normalize into the shared channel envelope with reply metadata and media placeholders.
 - Group sessions are isolated by group ID. Forum topics append `:topic:<threadId>` to keep topics isolated.
-- DM messages can carry `message_thread_id`; OpenClaw routes them with thread-aware session keys and preserves thread ID for replies.
+- DM messages can carry `message_thread_id`; Genesis routes them with thread-aware session keys and preserves thread ID for replies.
 - Long polling uses grammY runner with per-chat/per-thread sequencing. Overall runner sink concurrency uses `agents.defaults.maxConcurrent`.
 - Long-polling watchdog restarts trigger after 120 seconds without completed `getUpdates` liveness by default. Increase `channels.telegram.pollingStallThresholdMs` only if your deployment still sees false polling-stall restarts during long-running work. The value is in milliseconds and is allowed from `30000` to `600000`; per-account overrides are supported.
 - Telegram Bot API has no read-receipt support (`sendReadReceipts` does not apply).
@@ -264,7 +264,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 
 <AccordionGroup>
   <Accordion title="Live stream preview (message edits)">
-    OpenClaw can stream partial replies in real time:
+    Genesis can stream partial replies in real time:
 
     - direct chats: preview message + `editMessageText`
     - groups/topics: preview message + `editMessageText`
@@ -276,7 +276,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
     - `streaming.preview.toolProgress` controls whether tool/progress updates reuse the same edited preview message (default: `true` when preview streaming is active)
     - legacy `channels.telegram.streamMode` and boolean `streaming` values are auto-mapped
 
-    Tool-progress preview updates are the short "Working..." lines shown while tools run, for example command execution, file reads, planning updates, or patch summaries. Telegram keeps these enabled by default to match released OpenClaw behavior from `v2026.4.22` and later. To keep the edited preview for answer text but hide tool-progress lines, set:
+    Tool-progress preview updates are the short "Working..." lines shown while tools run, for example command execution, file reads, planning updates, or patch summaries. Telegram keeps these enabled by default to match released Genesis behavior from `v2026.4.22` and later. To keep the edited preview for answer text but hide tool-progress lines, set:
 
     ```json
     {
@@ -297,14 +297,14 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 
     For text-only replies:
 
-    - DM: OpenClaw keeps the same preview message and performs a final edit in place (no second message)
-    - group/topic: OpenClaw keeps the same preview message and performs a final edit in place (no second message)
+    - DM: Genesis keeps the same preview message and performs a final edit in place (no second message)
+    - group/topic: Genesis keeps the same preview message and performs a final edit in place (no second message)
 
-    For complex replies (for example media payloads), OpenClaw falls back to normal final delivery and then cleans up the preview message.
+    For complex replies (for example media payloads), Genesis falls back to normal final delivery and then cleans up the preview message.
 
-    Preview streaming is separate from block streaming. When block streaming is explicitly enabled for Telegram, OpenClaw skips the preview stream to avoid double-streaming.
+    Preview streaming is separate from block streaming. When block streaming is explicitly enabled for Telegram, Genesis skips the preview stream to avoid double-streaming.
 
-    If native draft transport is unavailable/rejected, OpenClaw automatically falls back to `sendMessage` + `editMessageText`.
+    If native draft transport is unavailable/rejected, Genesis automatically falls back to `sendMessage` + `editMessageText`.
 
     Telegram-only reasoning stream:
 
@@ -318,7 +318,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 
     - Markdown-ish text is rendered to Telegram-safe HTML.
     - Raw model HTML is escaped to reduce Telegram parse failures.
-    - If Telegram rejects parsed HTML, OpenClaw retries as plain text.
+    - If Telegram rejects parsed HTML, Genesis retries as plain text.
 
     Link previews are enabled by default and can be disabled with `channels.telegram.linkPreview: false`.
 
@@ -532,7 +532,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 
     **Persistent ACP topic binding**: Forum topics can pin ACP harness sessions through top-level typed ACP bindings (`bindings[]` with `type: "acp"` and `match.channel: "telegram"`, `peer.kind: "group"`, and a topic-qualified id like `-1001234567890:topic:42`). Currently scoped to forum topics in groups/supergroups. See [ACP Agents](/tools/acp-agents).
 
-    **Thread-bound ACP spawn from chat**: `/acp spawn <agent> --thread here|auto` binds the current topic to a new ACP session; follow-ups route there directly. OpenClaw pins the spawn confirmation in-topic. Requires `channels.telegram.threadBindings.spawnAcpSessions=true`.
+    **Thread-bound ACP spawn from chat**: `/acp spawn <agent> --thread here|auto` binds the current topic to a new ACP session; follow-ups route there directly. Genesis pins the spawn confirmation in-topic. Requires `channels.telegram.threadBindings.spawnAcpSessions=true`.
 
     Template context exposes `MessageThreadId` and `IsForum`. DM chats with `message_thread_id` keep DM routing but use thread-aware session keys.
 
@@ -594,7 +594,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
 
     Sticker cache file:
 
-    - `~/.openclaw/telegram/sticker-cache.json`
+    - `~/.genesis/telegram/sticker-cache.json`
 
     Stickers are described once (when possible) and cached to reduce repeated vision calls.
 
@@ -639,7 +639,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
   <Accordion title="Reaction notifications">
     Telegram reactions arrive as `message_reaction` updates (separate from message payloads).
 
-    When enabled, OpenClaw enqueues system events like:
+    When enabled, Genesis enqueues system events like:
 
     - `Telegram reaction added: 👍 by Alice (@alice) on msg 42`
 
@@ -661,7 +661,7 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
   </Accordion>
 
   <Accordion title="Ack reactions">
-    `ackReaction` sends an acknowledgement emoji while OpenClaw is processing an inbound message.
+    `ackReaction` sends an acknowledgement emoji while Genesis is processing an inbound message.
 
     Resolution order:
 
@@ -723,16 +723,16 @@ curl "https://api.telegram.org/bot<bot_token>/getUpdates"
     CLI send target can be numeric chat ID or username:
 
 ```bash
-openclaw message send --channel telegram --target 123456789 --message "hi"
-openclaw message send --channel telegram --target @name --message "hi"
+genesis message send --channel telegram --target 123456789 --message "hi"
+genesis message send --channel telegram --target @name --message "hi"
 ```
 
-    Telegram polls use `openclaw message poll` and support forum topics:
+    Telegram polls use `genesis message poll` and support forum topics:
 
 ```bash
-openclaw message poll --channel telegram --target 123456789 \
+genesis message poll --channel telegram --target 123456789 \
   --poll-question "Ship it?" --poll-option "Yes" --poll-option "No"
-openclaw message poll --channel telegram --target -1001234567890:topic:42 \
+genesis message poll --channel telegram --target -1001234567890:topic:42 \
   --poll-question "Pick a time" --poll-option "10am" --poll-option "2pm" \
   --poll-duration-seconds 300 --poll-public
 ```
@@ -767,7 +767,7 @@ openclaw message poll --channel telegram --target -1001234567890:topic:42 \
     - `channels.telegram.execApprovals.target`: `dm` (default) | `channel` | `both`
     - `agentFilter`, `sessionFilter`
 
-    Channel delivery shows the command text in the chat; only enable `channel` or `both` in trusted groups/topics. When the prompt lands in a forum topic, OpenClaw preserves the topic for the approval prompt and the follow-up. Exec approvals expire after 30 minutes by default.
+    Channel delivery shows the command text in the chat; only enable `channel` or `both` in trusted groups/topics. When the prompt lands in a forum topic, Genesis preserves the topic for the approval prompt and the follow-up. Exec approvals expire after 30 minutes by default.
 
     Inline approval buttons also require `channels.telegram.capabilities.inlineButtons` to allow the target surface (`dm`, `group`, or `all`). Approval IDs prefixed with `plugin:` resolve through plugin approvals; others resolve through exec approvals first.
 
@@ -811,8 +811,8 @@ Per-account, per-group, and per-topic overrides are supported (same inheritance 
     - If `requireMention=false`, Telegram privacy mode must allow full visibility.
       - BotFather: `/setprivacy` -> Disable
       - then remove + re-add bot to group
-    - `openclaw channels status` warns when config expects unmentioned group messages.
-    - `openclaw channels status --probe` can check explicit numeric group IDs; wildcard `"*"` cannot be membership-probed.
+    - `genesis channels status` warns when config expects unmentioned group messages.
+    - `genesis channels status --probe` can check explicit numeric group IDs; wildcard `"*"` cannot be membership-probed.
     - quick session test: `/activation always`.
 
   </Accordion>
@@ -821,7 +821,7 @@ Per-account, per-group, and per-topic overrides are supported (same inheritance 
 
     - when `channels.telegram.groups` exists, group must be listed (or include `"*"`)
     - verify bot membership in group
-    - review logs: `openclaw logs --follow` for skip reasons
+    - review logs: `genesis logs --follow` for skip reasons
 
   </Accordion>
 
@@ -838,8 +838,8 @@ Per-account, per-group, and per-topic overrides are supported (same inheritance 
 
     - Node 22+ + custom fetch/proxy can trigger immediate abort behavior if AbortSignal types mismatch.
     - Some hosts resolve `api.telegram.org` to IPv6 first; broken IPv6 egress can cause intermittent Telegram API failures.
-    - If logs include `TypeError: fetch failed` or `Network request for 'getUpdates' failed!`, OpenClaw now retries these as recoverable network errors.
-    - If logs include `Polling stall detected`, OpenClaw restarts polling and rebuilds the Telegram transport after 120 seconds without completed long-poll liveness by default.
+    - If logs include `TypeError: fetch failed` or `Network request for 'getUpdates' failed!`, Genesis now retries these as recoverable network errors.
+    - If logs include `Polling stall detected`, Genesis restarts polling and rebuilds the Telegram transport after 120 seconds without completed long-poll liveness by default.
     - Increase `channels.telegram.pollingStallThresholdMs` only when long-running `getUpdates` calls are healthy but your host still reports false polling-stall restarts. Persistent stalls usually point to proxy, DNS, IPv6, or TLS egress issues between the host and `api.telegram.org`.
     - On VPS hosts with unstable direct egress/TLS, route Telegram API calls through `channels.telegram.proxy`:
 
@@ -887,9 +887,9 @@ channels:
     </Warning>
 
     - Environment overrides (temporary):
-      - `OPENCLAW_TELEGRAM_DISABLE_AUTO_SELECT_FAMILY=1`
-      - `OPENCLAW_TELEGRAM_ENABLE_AUTO_SELECT_FAMILY=1`
-      - `OPENCLAW_TELEGRAM_DNS_RESULT_ORDER=ipv4first`
+      - `GENESIS_TELEGRAM_DISABLE_AUTO_SELECT_FAMILY=1`
+      - `GENESIS_TELEGRAM_ENABLE_AUTO_SELECT_FAMILY=1`
+      - `GENESIS_TELEGRAM_DNS_RESULT_ORDER=ipv4first`
     - Validate DNS answers:
 
 ```bash
@@ -925,7 +925,7 @@ Primary reference: [Configuration reference - Telegram](/gateway/config-channels
 </Accordion>
 
 <Note>
-Multi-account precedence: when two or more account IDs are configured, set `channels.telegram.defaultAccount` (or include `channels.telegram.accounts.default`) to make default routing explicit. Otherwise OpenClaw falls back to the first normalized account ID and `openclaw doctor` warns. Named accounts inherit `channels.telegram.allowFrom` / `groupAllowFrom`, but not `accounts.default.*` values.
+Multi-account precedence: when two or more account IDs are configured, set `channels.telegram.defaultAccount` (or include `channels.telegram.accounts.default`) to make default routing explicit. Otherwise Genesis falls back to the first normalized account ID and `genesis doctor` warns. Named accounts inherit `channels.telegram.allowFrom` / `groupAllowFrom`, but not `accounts.default.*` values.
 </Note>
 
 ## Related

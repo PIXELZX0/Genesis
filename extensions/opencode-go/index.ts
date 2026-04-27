@@ -1,6 +1,6 @@
-import { createOpencodeCatalogApiKeyAuthMethod } from "openclaw/plugin-sdk/opencode";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { PASSTHROUGH_GEMINI_REPLAY_HOOKS } from "openclaw/plugin-sdk/provider-model-shared";
+import { createOpencodeCatalogApiKeyAuthMethod } from "genesis/plugin-sdk/opencode";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { PASSTHROUGH_GEMINI_REPLAY_HOOKS } from "genesis/plugin-sdk/provider-model-shared";
 import { applyOpencodeGoConfig, OPENCODE_GO_DEFAULT_MODEL_REF } from "./api.js";
 import { opencodeGoMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { normalizeOpencodeGoBaseUrl } from "./provider-catalog.js";

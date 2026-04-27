@@ -57,7 +57,7 @@ vi.mock("../../text-runtime.js", () => ({
   normalizeE164: (value: string) => value,
 }));
 
-vi.mock("openclaw/plugin-sdk/routing", () => ({
+vi.mock("genesis/plugin-sdk/routing", () => ({
   buildGroupHistoryKey: () => "group-key",
   resolveAgentRoute: () => ({
     agentId: "main",
@@ -163,7 +163,6 @@ describe("createWebOnMessageHandler audio preflight", () => {
   });
 
   it("skips early DM ack/preflight when access-control was not explicitly passed through", async () => {
-
     const handler = createWebOnMessageHandler({
       cfg: {
         channels: {

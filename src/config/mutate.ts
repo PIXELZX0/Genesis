@@ -13,7 +13,7 @@ import {
   writeConfigFile,
   type ConfigWriteOptions,
 } from "./io.js";
-import type { ConfigFileSnapshot, OpenClawConfig } from "./types.js";
+import type { ConfigFileSnapshot, GenesisConfig } from "./types.js";
 import { validateConfigObjectWithPlugins } from "./validation.js";
 
 export type ConfigMutationBase = "runtime" | "source";
@@ -32,7 +32,7 @@ export type ConfigReplaceResult = {
   path: string;
   previousHash: string | null;
   snapshot: ConfigFileSnapshot;
-  nextConfig: OpenClawConfig;
+  nextConfig: GenesisConfig;
 };
 
 function assertBaseHashMatches(snapshot: ConfigFileSnapshot, expectedHash?: string): string | null {
@@ -110,7 +110,7 @@ async function writeJsonFileAtomic(filePath: string, value: unknown): Promise<vo
 
 async function tryWriteSingleTopLevelIncludeMutation(params: {
   snapshot: ConfigFileSnapshot;
-  nextConfig: OpenClawConfig;
+  nextConfig: GenesisConfig;
 }): Promise<boolean> {
   const changedKeys = getChangedTopLevelKeys(params.snapshot.sourceConfig, params.nextConfig);
   if (changedKeys.length !== 1 || changedKeys[0] === "<root>") {
@@ -137,7 +137,7 @@ async function tryWriteSingleTopLevelIncludeMutation(params: {
 }
 
 export async function replaceConfigFile(params: {
-  nextConfig: OpenClawConfig;
+  nextConfig: GenesisConfig;
   baseHash?: string;
   snapshot?: ConfigFileSnapshot;
   writeOptions?: ConfigWriteOptions;
@@ -172,14 +172,14 @@ export async function mutateConfigFile<T = void>(params: {
   baseHash?: string;
   writeOptions?: ConfigWriteOptions;
   mutate: (
-    draft: OpenClawConfig,
+    draft: GenesisConfig,
     context: { snapshot: ConfigFileSnapshot; previousHash: string | null },
   ) => Promise<T | void> | T | void;
 }): Promise<ConfigReplaceResult & { result: T | undefined }> {
   const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
   const previousHash = assertBaseHashMatches(snapshot, params.baseHash);
   const baseConfig = params.base === "runtime" ? snapshot.runtimeConfig : snapshot.sourceConfig;
-  const draft = structuredClone(baseConfig) as OpenClawConfig;
+  const draft = structuredClone(baseConfig) as GenesisConfig;
   const result = (await params.mutate(draft, { snapshot, previousHash })) as T | undefined;
   const wroteInclude = await tryWriteSingleTopLevelIncludeMutation({
     snapshot,

@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveRuntimePluginRegistry } from "../plugins/loader.js";
 import { getActivePluginRuntimeSubagentMode } from "../plugins/runtime.js";
 import { resolveUserPath } from "../utils.js";
 
 export function ensureRuntimePluginsLoaded(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string | null;
   allowGatewaySubagentBinding?: boolean;
 }): void {

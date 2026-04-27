@@ -2,7 +2,7 @@ import { createAssistantMessageEventStream, type Model } from "@mariozechner/pi-
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { AnthropicVertexStreamDeps } from "./stream-runtime.js";
 
-const SYSTEM_PROMPT_CACHE_BOUNDARY = "\n<!-- OPENCLAW_CACHE_BOUNDARY -->\n";
+const SYSTEM_PROMPT_CACHE_BOUNDARY = "\n<!-- GENESIS_CACHE_BOUNDARY -->\n";
 
 function createStreamDeps(): {
   deps: AnthropicVertexStreamDeps;

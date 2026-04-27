@@ -10,5 +10,5 @@ export {
   withEnvAsync,
   withFetchPreconnect,
   isLiveTestEnabled,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/testing";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/testing";

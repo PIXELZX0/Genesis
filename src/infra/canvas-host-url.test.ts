@@ -17,11 +17,11 @@ describe("resolveCanvasHostUrl", () => {
       name: "prefers non-loopback host overrides and preserves explicit ports",
       params: {
         canvasPort: 3000,
-        hostOverride: " canvas.openclaw.ai ",
+        hostOverride: " canvas.genesis.ai ",
         requestHost: "gateway.local:9000",
         localAddress: "192.168.1.10",
       },
-      expected: "http://canvas.openclaw.ai:3000",
+      expected: "http://canvas.genesis.ai:3000",
     },
     {
       name: "falls back from rejected loopback overrides to request hosts",

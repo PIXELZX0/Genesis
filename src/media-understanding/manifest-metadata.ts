@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
 import { normalizeMediaProviderId } from "./provider-id.js";
 import type { MediaUnderstandingProvider } from "./types.js";
 
 export function buildMediaUnderstandingManifestMetadataRegistry(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
 ): Map<string, MediaUnderstandingProvider> {
   const registry = new Map<string, MediaUnderstandingProvider>();
   for (const plugin of loadPluginManifestRegistry({

@@ -5,11 +5,11 @@
 
 import * as http from "node:http";
 import * as https from "node:https";
-import { safeParseJsonWithSchema, safeParseWithSchema } from "openclaw/plugin-sdk/extension-shared";
+import { safeParseJsonWithSchema, safeParseWithSchema } from "genesis/plugin-sdk/extension-shared";
 import {
   formatErrorMessage,
   resolvePinnedHostnameWithPolicy,
-} from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/ssrf-runtime";
 import { z } from "zod";
 
 const MIN_SEND_INTERVAL_MS = 500;

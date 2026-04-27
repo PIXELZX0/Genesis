@@ -3,7 +3,7 @@ import type {
   GatewayBindMode,
   GatewayTailscaleConfig,
 } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   assertGatewayAuthConfigured,
   type ResolvedGatewayAuth,
@@ -38,7 +38,7 @@ export type GatewayRuntimeConfig = {
 };
 
 export async function resolveGatewayRuntimeConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   port: number;
   bind?: GatewayBindMode;
   host?: string;
@@ -120,7 +120,7 @@ export async function resolveGatewayRuntimeConfig(params: {
     (authMode === "token" && hasToken) || (authMode === "password" && hasPassword);
   const hooksConfig = resolveHooksConfig(params.cfg);
   const canvasHostEnabled =
-    process.env.OPENCLAW_SKIP_CANVAS_HOST !== "1" && params.cfg.canvasHost?.enabled !== false;
+    process.env.GENESIS_SKIP_CANVAS_HOST !== "1" && params.cfg.canvasHost?.enabled !== false;
 
   const trustedProxies = params.cfg.gateway?.trustedProxies ?? [];
   const controlUiAllowedOrigins = (params.cfg.gateway?.controlUi?.allowedOrigins ?? [])
@@ -132,7 +132,7 @@ export async function resolveGatewayRuntimeConfig(params: {
   assertGatewayAuthConfigured(resolvedAuth, params.cfg.gateway?.auth);
   if (tailscaleMode === "funnel" && authMode !== "password") {
     throw new Error(
-      "tailscale funnel requires gateway auth mode=password (set gateway.auth.password or OPENCLAW_GATEWAY_PASSWORD)",
+      "tailscale funnel requires gateway auth mode=password (set gateway.auth.password or GENESIS_GATEWAY_PASSWORD)",
     );
   }
   if (tailscaleMode !== "off" && !isLoopbackHost(bindHost)) {
@@ -140,7 +140,7 @@ export async function resolveGatewayRuntimeConfig(params: {
   }
   if (!isLoopbackHost(bindHost) && !hasSharedSecret && authMode !== "trusted-proxy") {
     throw new Error(
-      `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD)`,
+      `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set GENESIS_GATEWAY_TOKEN/GENESIS_GATEWAY_PASSWORD)`,
     );
   }
   if (

@@ -1,8 +1,8 @@
 import { format } from "node:util";
-import { CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY } from "openclaw/plugin-sdk/approval-handler-adapter-runtime";
-import type { ChannelRuntimeSurface } from "openclaw/plugin-sdk/channel-contract";
-import { waitUntilAbort } from "openclaw/plugin-sdk/channel-lifecycle";
-import { registerChannelRuntimeContext } from "openclaw/plugin-sdk/channel-runtime-context";
+import { CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY } from "genesis/plugin-sdk/approval-handler-adapter-runtime";
+import type { ChannelRuntimeSurface } from "genesis/plugin-sdk/channel-contract";
+import { waitUntilAbort } from "genesis/plugin-sdk/channel-lifecycle";
+import { registerChannelRuntimeContext } from "genesis/plugin-sdk/channel-runtime-context";
 import {
   GROUP_POLICY_BLOCKED_LABEL,
   resolveThreadBindingIdleTimeoutMsForChannel,
@@ -57,7 +57,7 @@ export type MonitorMatrixOpts = {
   initialSyncLimit?: number;
   replyToMode?: ReplyToMode;
   accountId?: string | null;
-  setStatus?: (next: import("openclaw/plugin-sdk/channel-contract").ChannelAccountSnapshot) => void;
+  setStatus?: (next: import("genesis/plugin-sdk/channel-contract").ChannelAccountSnapshot) => void;
 };
 
 const DEFAULT_MEDIA_MAX_MB = 20;

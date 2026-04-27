@@ -1,12 +1,12 @@
-import { createLazyChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-adapter-runtime";
-import type { ChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-runtime";
-import { resolveApprovalRequestSessionConversation } from "openclaw/plugin-sdk/approval-native-runtime";
-import type { ChannelApprovalCapability } from "openclaw/plugin-sdk/channel-contract";
-import type { DiscordExecApprovalConfig } from "openclaw/plugin-sdk/config-runtime";
+import { createLazyChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-adapter-runtime";
+import type { ChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-runtime";
+import { resolveApprovalRequestSessionConversation } from "genesis/plugin-sdk/approval-native-runtime";
+import type { ChannelApprovalCapability } from "genesis/plugin-sdk/channel-contract";
+import type { DiscordExecApprovalConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 export { shouldHandleDiscordApprovalRequest } from "./approval-shared.js";
 import { listDiscordAccountIds, resolveDiscordAccount } from "./accounts.js";
 import {

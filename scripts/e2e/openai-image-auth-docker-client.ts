@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 
 const DIRECT_IMAGE_BYTES = Buffer.from("docker-direct-image");
 const CODEX_IMAGE_BYTES = Buffer.from("docker-codex-image");
-const DIRECT_TOKEN = "sk-openclaw-image-auth-e2e";
+const DIRECT_TOKEN = "sk-genesis-image-auth-e2e";
 const CODEX_TOKEN = "docker-codex-oauth-token";
 
 type RequestRecord = {

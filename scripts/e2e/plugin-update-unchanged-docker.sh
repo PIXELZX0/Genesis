@@ -4,37 +4,37 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-plugin-update-e2e" OPENCLAW_PLUGIN_UPDATE_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_PLUGIN_UPDATE_E2E_SKIP_BUILD:-0}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-plugin-update-e2e" GENESIS_PLUGIN_UPDATE_E2E_IMAGE)"
+SKIP_BUILD="${GENESIS_PLUGIN_UPDATE_E2E_SKIP_BUILD:-0}"
 
 docker_e2e_build_or_reuse "$IMAGE_NAME" plugin-update "$ROOT_DIR/scripts/e2e/Dockerfile" "$ROOT_DIR" "" "$SKIP_BUILD"
 
 echo "Running unchanged plugin update smoke..."
 docker run --rm \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e OPENCLAW_SKIP_CHANNELS=1 \
-  -e OPENCLAW_SKIP_PROVIDERS=1 \
+  -e GENESIS_SKIP_CHANNELS=1 \
+  -e GENESIS_SKIP_PROVIDERS=1 \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail
 entry=dist/index.mjs
 [ -f \"\$entry\" ] || entry=dist/index.js
 export NPM_CONFIG_REGISTRY=http://127.0.0.1:4873
 
-mkdir -p \"\$HOME/.openclaw/extensions/lossless-claw\"
-cat > \"\$HOME/.openclaw/extensions/lossless-claw/package.json\" <<'JSON'
+mkdir -p \"\$HOME/.genesis/extensions/lossless-claw\"
+cat > \"\$HOME/.genesis/extensions/lossless-claw/package.json\" <<'JSON'
 {
   \"name\": \"@example/lossless-claw\",
   \"version\": \"0.9.0\"
 }
 JSON
-cat > \"\$HOME/.openclaw/openclaw.json\" <<'JSON'
+cat > \"\$HOME/.genesis/genesis.json\" <<'JSON'
 {
   \"plugins\": {
     \"installs\": {
       \"lossless-claw\": {
         \"source\": \"npm\",
         \"spec\": \"@example/lossless-claw@0.9.0\",
-        \"installPath\": \"~/.openclaw/extensions/lossless-claw\",
+        \"installPath\": \"~/.genesis/extensions/lossless-claw\",
         \"resolvedName\": \"@example/lossless-claw\",
         \"resolvedVersion\": \"0.9.0\",
         \"resolvedSpec\": \"@example/lossless-claw@0.9.0\",
@@ -46,7 +46,7 @@ cat > \"\$HOME/.openclaw/openclaw.json\" <<'JSON'
 }
 JSON
 
-cat > /tmp/openclaw-e2e-registry.mjs <<'NODE'
+cat > /tmp/genesis-e2e-registry.mjs <<'NODE'
 import http from 'node:http';
 
 const metadata = {
@@ -77,7 +77,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(4873, '127.0.0.1');
 NODE
-node /tmp/openclaw-e2e-registry.mjs >/tmp/openclaw-e2e-registry.log 2>&1 &
+node /tmp/genesis-e2e-registry.mjs >/tmp/genesis-e2e-registry.log 2>&1 &
 registry_pid=\$!
 trap 'kill \"\$registry_pid\" >/dev/null 2>&1 || true' EXIT
 
@@ -101,7 +101,7 @@ for _ in \$(seq 1 50); do
 done
 if [ \"\$registry_ready\" -ne 1 ]; then
   echo \"Local npm metadata registry failed to start\"
-  cat /tmp/openclaw-e2e-registry.log || true
+  cat /tmp/genesis-e2e-registry.log || true
   exit 1
 fi
 
@@ -110,7 +110,7 @@ before_hash=\$(node --input-type=module -e '
   import fs from \"node:fs\";
   import os from \"node:os\";
   import path from \"node:path\";
-  const file = path.join(os.homedir(), \".openclaw\", \"openclaw.json\");
+  const file = path.join(os.homedir(), \".genesis\", \"genesis.json\");
   process.stdout.write(crypto.createHash(\"sha256\").update(fs.readFileSync(file)).digest(\"hex\"));
 ')
 
@@ -121,7 +121,7 @@ after_hash=\$(node --input-type=module -e '
   import fs from \"node:fs\";
   import os from \"node:os\";
   import path from \"node:path\";
-  const file = path.join(os.homedir(), \".openclaw\", \"openclaw.json\");
+  const file = path.join(os.homedir(), \".genesis\", \"genesis.json\");
   process.stdout.write(crypto.createHash(\"sha256\").update(fs.readFileSync(file)).digest(\"hex\"));
 ')
 

@@ -194,7 +194,7 @@
 
 .chart-toggle .toggle-btn {
   border: none;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: max(0px, calc(var(--radius-md) - 3px));
   background: transparent;
   min-height: 28px;
   padding: 4px 12px;

@@ -31,7 +31,7 @@ describe("secrets runtime snapshot channel inactive variants", () => {
         },
       }),
       env: {},
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
@@ -62,7 +62,7 @@ describe("secrets runtime snapshot channel inactive variants", () => {
         },
       }),
       env: {},
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
@@ -97,7 +97,7 @@ describe("secrets runtime snapshot channel inactive variants", () => {
         },
       }),
       env: {},
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
@@ -137,7 +137,7 @@ describe("secrets runtime snapshot channel inactive variants", () => {
         },
       }),
       env: {},
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
@@ -182,7 +182,7 @@ describe("secrets runtime snapshot channel inactive variants", () => {
       env: {
         GOOGLECHAT_WORK_SERVICE_ACCOUNT: "work-service-account-json",
       },
-      agentDirs: ["/tmp/openclaw-agent-main"],
+      agentDirs: ["/tmp/genesis-agent-main"],
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 

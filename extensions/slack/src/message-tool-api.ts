@@ -1,4 +1,4 @@
-import type { ChannelMessageActionAdapter } from "openclaw/plugin-sdk/channel-contract";
+import type { ChannelMessageActionAdapter } from "genesis/plugin-sdk/channel-contract";
 import { isSlackInteractiveRepliesEnabled } from "./interactive-replies.js";
 import { listSlackMessageActions } from "./message-actions.js";
 

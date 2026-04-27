@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-runtime";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-runtime";
 import {
   jsonResult,
   readNumberParam,
   readStringParam,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "genesis/plugin-sdk/provider-web-search";
 import { Type } from "typebox";
 import { runFirecrawlScrape } from "./firecrawl-client.js";
 
@@ -61,7 +61,7 @@ const FirecrawlScrapeToolSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export function createFirecrawlScrapeTool(api: OpenClawPluginApi) {
+export function createFirecrawlScrapeTool(api: GenesisPluginApi) {
   return {
     name: "firecrawl_scrape",
     label: "Firecrawl Scrape",

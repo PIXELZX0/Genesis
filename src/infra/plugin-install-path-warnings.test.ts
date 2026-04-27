@@ -27,7 +27,7 @@ async function detectMatrixCustomPathIssue(sourcePath: string | ((pluginPath: st
   });
 }
 
-const MATRIX_REPO_INSTALL_COMMAND = `openclaw plugins install ${repoInstallSpec("matrix")}`;
+const MATRIX_REPO_INSTALL_COMMAND = `genesis plugins install ${repoInstallSpec("matrix")}`;
 
 describe("plugin install path warnings", () => {
   it("ignores non-path installs and blank path candidates", async () => {
@@ -54,32 +54,32 @@ describe("plugin install path warnings", () => {
       pluginId: "matrix",
       install: {
         source: "path",
-        sourcePath: "/tmp/openclaw-matrix-missing",
-        installPath: "/tmp/openclaw-matrix-missing",
+        sourcePath: "/tmp/genesis-matrix-missing",
+        installPath: "/tmp/genesis-matrix-missing",
       },
     });
 
     expect(issue).toEqual({
       kind: "missing-path",
       pluginId: "matrix",
-      path: "/tmp/openclaw-matrix-missing",
+      path: "/tmp/genesis-matrix-missing",
     });
     expect(
       formatPluginInstallPathIssue({
         issue: issue!,
         pluginLabel: "Matrix",
-        defaultInstallCommand: "openclaw plugins install @openclaw/matrix",
+        defaultInstallCommand: "genesis plugins install @genesis/matrix",
         repoInstallCommand: MATRIX_REPO_INSTALL_COMMAND,
       }),
     ).toEqual([
-      "Matrix is installed from a custom path that no longer exists: /tmp/openclaw-matrix-missing",
-      'Reinstall with "openclaw plugins install @openclaw/matrix".',
+      "Matrix is installed from a custom path that no longer exists: /tmp/genesis-matrix-missing",
+      'Reinstall with "genesis plugins install @genesis/matrix".',
       `If you are running from a repo checkout, you can also use "${MATRIX_REPO_INSTALL_COMMAND}".`,
     ]);
   });
 
   it("uses the second candidate path when the first one is stale", async () => {
-    const { issue, pluginPath } = await detectMatrixCustomPathIssue("/tmp/openclaw-matrix-missing");
+    const { issue, pluginPath } = await detectMatrixCustomPathIssue("/tmp/genesis-matrix-missing");
     expect(issue).toEqual({
       kind: "custom-path",
       pluginId: "matrix",
@@ -107,14 +107,14 @@ describe("plugin install path warnings", () => {
           path: "/tmp/matrix-plugin",
         },
         pluginLabel: "Matrix",
-        defaultInstallCommand: "openclaw plugins install @openclaw/matrix",
+        defaultInstallCommand: "genesis plugins install @genesis/matrix",
         repoInstallCommand: MATRIX_REPO_INSTALL_COMMAND,
         formatCommand: (command) => `<${command}>`,
       }),
     ).toEqual([
       "Matrix is installed from a custom path: /tmp/matrix-plugin",
       "Main updates will not automatically replace that plugin with the repo's default Matrix package.",
-      'Reinstall with "<openclaw plugins install @openclaw/matrix>" when you want to return to the standard Matrix plugin.',
+      'Reinstall with "<genesis plugins install @genesis/matrix>" when you want to return to the standard Matrix plugin.',
       `If you are intentionally running from a repo checkout, reinstall that checkout explicitly with "<${MATRIX_REPO_INSTALL_COMMAND}>" after updates.`,
     ]);
   });
@@ -125,15 +125,15 @@ describe("plugin install path warnings", () => {
         issue: {
           kind: "missing-path",
           pluginId: "matrix",
-          path: "/tmp/openclaw-matrix-missing",
+          path: "/tmp/genesis-matrix-missing",
         },
         pluginLabel: "Matrix",
-        defaultInstallCommand: "openclaw plugins install @openclaw/matrix",
+        defaultInstallCommand: "genesis plugins install @genesis/matrix",
         repoInstallCommand: null,
       }),
     ).toEqual([
-      "Matrix is installed from a custom path that no longer exists: /tmp/openclaw-matrix-missing",
-      'Reinstall with "openclaw plugins install @openclaw/matrix".',
+      "Matrix is installed from a custom path that no longer exists: /tmp/genesis-matrix-missing",
+      'Reinstall with "genesis plugins install @genesis/matrix".',
     ]);
   });
 });

@@ -1,6 +1,6 @@
 import { resolveChannelGroupRequireMention } from "../../config/group-policy.js";
 import type { GroupKeyResolution, SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { SilentReplyPolicy } from "../../shared/silent-reply-policy.js";
 import {
   normalizeOptionalLowercaseString,
@@ -61,7 +61,7 @@ function normalizeDiscordSlug(value?: string | null) {
 }
 
 function resolveDiscordGuilds(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId?: string | null,
 ): Record<string, DiscordGroupConfig> | undefined {
   const discord = cfg.channels?.discord as DiscordConfigWithGuilds | undefined;
@@ -118,7 +118,7 @@ function resolveDiscordChannelEntry(
 }
 
 function resolveDiscordRequireMentionFallback(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channel: string;
   groupId?: string | null;
   groupChannel?: string | null;
@@ -143,7 +143,7 @@ function resolveDiscordRequireMentionFallback(params: {
 }
 
 export async function resolveGroupRequireMention(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   ctx: TemplateContext;
   groupResolution?: GroupKeyResolution;
 }): Promise<boolean> {
@@ -240,11 +240,11 @@ export function buildDirectChatContext(params: {
   lines.push("Your replies are automatically sent to this conversation.");
   if (params.silentReplyPolicy === "allow") {
     lines.push(
-      `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so OpenClaw stays silent.`,
+      `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so Genesis stays silent.`,
     );
   } else if (params.silentReplyRewrite === true) {
     lines.push(
-      `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so OpenClaw can send a short fallback reply.`,
+      `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so Genesis can send a short fallback reply.`,
     );
   } else {
     lines.push(`Do not use "${params.silentToken}" as your final answer in this conversation.`);
@@ -253,7 +253,7 @@ export function buildDirectChatContext(params: {
 }
 
 export function buildGroupIntro(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionCtx: TemplateContext;
   sessionEntry?: SessionEntry;
   defaultActivation: "always" | "mention";
@@ -272,8 +272,8 @@ export function buildGroupIntro(params: {
   const silenceLine =
     activation === "always" && canUseSilentReply
       ? params.silentReplyPolicy === "allow"
-        ? `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so OpenClaw stays silent. Do not add any other words, punctuation, tags, markdown/code blocks, or explanations.`
-        : `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so OpenClaw can send a short fallback reply. Do not add any other words, punctuation, tags, markdown/code blocks, or explanations.`
+        ? `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so Genesis stays silent. Do not add any other words, punctuation, tags, markdown/code blocks, or explanations.`
+        : `If no response is needed, reply with exactly "${params.silentToken}" (and nothing else) so Genesis can send a short fallback reply. Do not add any other words, punctuation, tags, markdown/code blocks, or explanations.`
       : undefined;
   const toolSilenceLine =
     activation === "always" && canUseSilentReply

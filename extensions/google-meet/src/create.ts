@@ -1,5 +1,5 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { GoogleMeetConfig, GoogleMeetMode, GoogleMeetTransport } from "./config.js";
 import { createGoogleMeetSpace } from "./meet.js";
 import { resolveGoogleMeetAccessToken } from "./oauth.js";
@@ -41,7 +41,7 @@ export function shouldJoinCreatedMeet(raw: Record<string, unknown>): boolean {
 
 export async function createMeetFromParams(params: {
   config: GoogleMeetConfig;
-  runtime: OpenClawPluginApi["runtime"];
+  runtime: GenesisPluginApi["runtime"];
   raw: Record<string, unknown>;
 }) {
   if (hasGoogleMeetOAuth(params.config, params.raw)) {
@@ -79,7 +79,7 @@ export async function createMeetFromParams(params: {
 
 export async function createAndJoinMeetFromParams(params: {
   config: GoogleMeetConfig;
-  runtime: OpenClawPluginApi["runtime"];
+  runtime: GenesisPluginApi["runtime"];
   raw: Record<string, unknown>;
   ensureRuntime: () => Promise<GoogleMeetRuntime>;
 }) {
@@ -97,7 +97,7 @@ export async function createAndJoinMeetFromParams(params: {
   return {
     ...created,
     joined: true,
-    nextAction: "Share meetingUri with participants; the OpenClaw agent has started the join flow.",
+    nextAction: "Share meetingUri with participants; the Genesis agent has started the join flow.",
     join,
   };
 }

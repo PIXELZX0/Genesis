@@ -1,4 +1,4 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/string-coerce-runtime";
 import { getMatrixRuntime } from "../../runtime.js";
 import type { RoomMessageEventContent } from "./types.js";
 

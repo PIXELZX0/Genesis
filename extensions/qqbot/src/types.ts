@@ -1,4 +1,4 @@
-import type { SecretInput } from "openclaw/plugin-sdk/secret-input";
+import type { SecretInput } from "genesis/plugin-sdk/secret-input";
 import type { QQBotDmPolicy, QQBotGroupPolicy } from "./engine/access/index.js";
 
 export type { QQBotDmPolicy, QQBotGroupPolicy };

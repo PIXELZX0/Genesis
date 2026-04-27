@@ -6,7 +6,7 @@ import { createMSTeamsSsoTokenStoreFs } from "./sso-token-store.js";
 
 describe("msteams sso token store (fs)", () => {
   it("keeps distinct tokens when connectionName and userId contain the legacy delimiter", async () => {
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-msteams-sso-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-msteams-sso-"));
     const storePath = path.join(stateDir, "msteams-sso-tokens.json");
     const store = createMSTeamsSsoTokenStoreFs({ storePath });
 
@@ -36,7 +36,7 @@ describe("msteams sso token store (fs)", () => {
   });
 
   it("loads legacy flat-key files by rebuilding keys from stored token payloads", async () => {
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-msteams-sso-legacy-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-msteams-sso-legacy-"));
     const storePath = path.join(stateDir, "msteams-sso-tokens.json");
     await fs.writeFile(
       storePath,

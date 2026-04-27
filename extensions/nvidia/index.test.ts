@@ -10,7 +10,7 @@ type NvidiaManifest = {
 
 function readManifest(): NvidiaManifest {
   return JSON.parse(
-    fs.readFileSync(new URL("./openclaw.plugin.json", import.meta.url), "utf8"),
+    fs.readFileSync(new URL("./genesis.plugin.json", import.meta.url), "utf8"),
   ) as NvidiaManifest;
 }
 

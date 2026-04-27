@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
-const DIAGNOSTICS_ENV = "OPENCLAW_DIAGNOSTICS";
+const DIAGNOSTICS_ENV = "GENESIS_DIAGNOSTICS";
 
 function parseEnvFlags(raw?: string): string[] {
   if (!raw) {
@@ -39,7 +39,7 @@ function uniqueFlags(flags: string[]): string[] {
 }
 
 export function resolveDiagnosticFlags(
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
   const configFlags = Array.isArray(cfg?.diagnostics?.flags) ? cfg?.diagnostics?.flags : [];
@@ -81,7 +81,7 @@ export function matchesDiagnosticFlag(flag: string, enabledFlags: string[]): boo
 
 export function isDiagnosticFlagEnabled(
   flag: string,
-  cfg?: OpenClawConfig,
+  cfg?: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   const flags = resolveDiagnosticFlags(cfg, env);

@@ -1,15 +1,15 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import Ajv from "ajv";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { Type } from "typebox";
 import {
   formatThinkingLevels,
   isThinkingLevelSupported,
   normalizeThinkLevel,
-  resolvePreferredOpenClawTmpDir,
+  resolvePreferredGenesisTmpDir,
 } from "../api.js";
-import type { OpenClawPluginApi } from "../api.js";
+import type { GenesisPluginApi } from "../api.js";
 
 const AjvCtor = Ajv as unknown as typeof import("ajv").default;
 
@@ -63,12 +63,12 @@ type LlmTaskParams = {
 const INVALID_THINKING_LEVELS_HINT =
   "off, minimal, low, medium, high, adaptive, xhigh where supported, and max where supported";
 
-export function createLlmTaskTool(api: OpenClawPluginApi) {
+export function createLlmTaskTool(api: GenesisPluginApi) {
   return {
     name: "llm-task",
     label: "LLM Task",
     description:
-      "Run a generic JSON-only LLM task and return schema-validated JSON. Designed for orchestration from Lobster workflows via openclaw.invoke.",
+      "Run a generic JSON-only LLM task and return schema-validated JSON. Designed for orchestration from Lobster workflows via genesis.invoke.",
     parameters: Type.Object({
       prompt: Type.String({ description: "Task instruction for the LLM." }),
       input: Type.Optional(Type.Unknown({ description: "Optional input payload for the task." })),
@@ -196,9 +196,7 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
 
       let tmpDir: string | null = null;
       try {
-        tmpDir = await fs.mkdtemp(
-          path.join(resolvePreferredOpenClawTmpDir(), "openclaw-llm-task-"),
-        );
+        tmpDir = await fs.mkdtemp(path.join(resolvePreferredGenesisTmpDir(), "genesis-llm-task-"));
         const sessionId = `llm-task-${Date.now()}`;
         const sessionFile = path.join(tmpDir, "session.json");
 

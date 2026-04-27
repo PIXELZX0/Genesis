@@ -7,7 +7,7 @@
   "rules": [
     {
       "method": "masked",
-      "match_all": ["Deploying OpenClaw on Fly.io"],
+      "match_all": ["Deploying Genesis on Fly.io"],
       "response_file": "masked-tagged-wrapper.txt"
     }
   ]

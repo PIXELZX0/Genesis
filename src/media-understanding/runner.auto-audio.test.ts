@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import { clearMediaUnderstandingBinaryCacheForTests, runCapability } from "./runner.js";
 import { withAudioFixture } from "./runner.test-utils.js";
@@ -38,7 +38,7 @@ function createOpenAiAudioProvider(
   });
 }
 
-function createOpenAiAudioCfg(extra?: Partial<OpenClawConfig>): OpenClawConfig {
+function createOpenAiAudioCfg(extra?: Partial<GenesisConfig>): GenesisConfig {
   return {
     models: {
       providers: {
@@ -49,7 +49,7 @@ function createOpenAiAudioCfg(extra?: Partial<OpenClawConfig>): OpenClawConfig {
       },
     },
     ...extra,
-  } as unknown as OpenClawConfig;
+  } as unknown as GenesisConfig;
 }
 
 async function createMockExecutable(dir: string, name: string) {
@@ -60,10 +60,10 @@ async function createMockExecutable(dir: string, name: string) {
 
 async function runAutoAudioCase(params: {
   transcribeAudio: (req: AudioTranscriptionRequest) => Promise<{ text: string; model: string }>;
-  cfgExtra?: Partial<OpenClawConfig>;
+  cfgExtra?: Partial<GenesisConfig>;
 }) {
   let runResult: Awaited<ReturnType<typeof runCapability>> | undefined;
-  await withAudioFixture("openclaw-auto-audio", async ({ ctx, media, cache }) => {
+  await withAudioFixture("genesis-auto-audio", async ({ ctx, media, cache }) => {
     const providerRegistry = createOpenAiAudioProvider(params.transcribeAudio);
     const cfg = createOpenAiAudioCfg(params.cfgExtra);
     runResult = await runCapability({
@@ -96,7 +96,7 @@ describe("runCapability auto audio entries", () => {
   });
 
   it("prefers provider keys over auto-detected local whisper", async () => {
-    const binDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auto-audio-bin-"));
+    const binDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-auto-audio-bin-"));
     try {
       await createMockExecutable(binDir, "whisper");
       clearMediaUnderstandingBinaryCacheForTests();
@@ -197,7 +197,7 @@ describe("runCapability auto audio entries", () => {
             },
           },
         },
-      } as Partial<OpenClawConfig>,
+      } as Partial<GenesisConfig>,
     });
 
     expect(result.outputs[0]?.text).toBe("ok");
@@ -206,7 +206,7 @@ describe("runCapability auto audio entries", () => {
   });
 
   it("uses mistral when only mistral key is configured", async () => {
-    const isolatedAgentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-audio-agent-"));
+    const isolatedAgentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-audio-agent-"));
     let runResult: Awaited<ReturnType<typeof runCapability>> | undefined;
     try {
       await withEnvAsync(
@@ -217,11 +217,11 @@ describe("runCapability auto audio entries", () => {
           GEMINI_API_KEY: undefined,
           GOOGLE_API_KEY: undefined,
           MISTRAL_API_KEY: "mistral-test-key", // pragma: allowlist secret
-          OPENCLAW_AGENT_DIR: isolatedAgentDir,
+          GENESIS_AGENT_DIR: isolatedAgentDir,
           PI_CODING_AGENT_DIR: isolatedAgentDir,
         },
         async () => {
-          await withAudioFixture("openclaw-auto-audio-mistral", async ({ ctx, media, cache }) => {
+          await withAudioFixture("genesis-auto-audio-mistral", async ({ ctx, media, cache }) => {
             const providerRegistry = createProviderRegistry({
               openai: {
                 id: "openai",
@@ -256,7 +256,7 @@ describe("runCapability auto audio entries", () => {
                   },
                 },
               },
-            } as unknown as OpenClawConfig;
+            } as unknown as GenesisConfig;
 
             runResult = await runCapability({
               capability: "audio",

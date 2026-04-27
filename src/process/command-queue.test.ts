@@ -384,7 +384,7 @@ describe("command queue", () => {
     // the `activeTaskWaiters` field.  The schema migration in getQueueState()
     // must patch the missing field so resetAllLanes() and
     // notifyActiveTaskWaiters() do not throw.
-    const key = Symbol.for("openclaw.commandQueueState");
+    const key = Symbol.for("genesis.commandQueueState");
     const globalStore = globalThis as Record<PropertyKey, unknown>;
     const original = globalStore[key];
 

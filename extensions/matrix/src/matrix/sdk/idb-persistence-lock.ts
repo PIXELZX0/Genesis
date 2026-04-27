@@ -1,4 +1,4 @@
-import type { FileLockOptions } from "openclaw/plugin-sdk/file-lock";
+import type { FileLockOptions } from "genesis/plugin-sdk/file-lock";
 
 export const MATRIX_IDB_PERSIST_INTERVAL_MS = 60_000;
 

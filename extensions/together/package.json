@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/together-provider",
+  "name": "@genesis/together-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Together provider plugin",
+  "description": "Genesis Together provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

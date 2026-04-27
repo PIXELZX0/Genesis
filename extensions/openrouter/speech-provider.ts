@@ -2,8 +2,8 @@ import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "genesis/plugin-sdk/provider-http";
+import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
 import {
   asFiniteNumber,
   asObject,
@@ -12,8 +12,8 @@ import {
   type SpeechProviderConfig,
   type SpeechProviderOverrides,
   type SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/speech";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { normalizeOpenRouterBaseUrl, OPENROUTER_BASE_URL } from "./provider-catalog.js";
 
 const DEFAULT_OPENROUTER_TTS_MODEL = "hexgrad/kokoro-82m";
@@ -262,8 +262,8 @@ export function buildOpenRouterSpeechProvider(): SpeechProviderPlugin {
         defaultHeaders: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://openclaw.ai",
-          "X-OpenRouter-Title": "OpenClaw",
+          "HTTP-Referer": "https://genesis.ai",
+          "X-OpenRouter-Title": "Genesis",
         },
         provider: "openrouter",
         capability: "audio",

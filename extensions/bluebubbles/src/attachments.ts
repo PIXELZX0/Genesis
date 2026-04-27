@@ -4,7 +4,7 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import { resolveBlueBubblesServerAccount } from "./account-resolve.js";
 import {
   createBlueBubblesClient,
@@ -17,7 +17,7 @@ import {
   getCachedBlueBubblesPrivateApiStatus,
   isBlueBubblesPrivateApiStatusEnabled,
 } from "./probe.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import { warnBlueBubbles } from "./runtime.js";
 import { extractBlueBubblesMessageId, resolveBlueBubblesSendTarget } from "./send-helpers.js";
 import { createChatForHandle, resolveChatGuidForTarget } from "./send.js";
@@ -28,7 +28,7 @@ export type BlueBubblesAttachmentOpts = {
   password?: string;
   accountId?: string;
   timeoutMs?: number;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 };
 
 const AUDIO_MIME_MP3 = new Set(["audio/mpeg", "audio/mp3"]);

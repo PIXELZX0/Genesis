@@ -15,7 +15,7 @@ let tempDir: string;
 
 describe("codex conversation controls", () => {
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-control-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-control-"));
   });
 
   afterEach(async () => {

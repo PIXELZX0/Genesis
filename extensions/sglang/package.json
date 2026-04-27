@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/sglang-provider",
+  "name": "@genesis/sglang-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw SGLang provider plugin",
+  "description": "Genesis SGLang provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

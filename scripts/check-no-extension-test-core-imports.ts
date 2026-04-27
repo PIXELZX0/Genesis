@@ -4,15 +4,15 @@ import { collectFilesSync, relativeToCwd } from "./check-file-utils.js";
 
 const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; hint: string }> = [
   {
-    pattern: /["']openclaw\/plugin-sdk["']/,
-    hint: "Use openclaw/plugin-sdk/<subpath> instead of the monolithic root entry.",
+    pattern: /["']genesis\/plugin-sdk["']/,
+    hint: "Use genesis/plugin-sdk/<subpath> instead of the monolithic root entry.",
   },
   {
-    pattern: /["']openclaw\/plugin-sdk\/test-utils["']/,
-    hint: "Use openclaw/plugin-sdk/testing for the public extension test surface.",
+    pattern: /["']genesis\/plugin-sdk\/test-utils["']/,
+    hint: "Use genesis/plugin-sdk/testing for the public extension test surface.",
   },
   {
-    pattern: /["']openclaw\/plugin-sdk\/compat["']/,
+    pattern: /["']genesis\/plugin-sdk\/compat["']/,
     hint: "Use a focused public plugin-sdk subpath instead of compat.",
   },
   {
@@ -21,7 +21,7 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; hint: string }> = [
   },
   {
     pattern: /["'](?:\.\.\/)+(?:src\/test-utils\/)[^"']+["']/,
-    hint: "Use test/helpers/plugins/* for repo-only helpers, or openclaw/plugin-sdk/testing for public surfaces.",
+    hint: "Use test/helpers/plugins/* for repo-only helpers, or genesis/plugin-sdk/testing for public surfaces.",
   },
   {
     pattern: /["'](?:\.\.\/)+(?:src\/plugins\/types\.js)["']/,
@@ -29,7 +29,7 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; hint: string }> = [
   },
   {
     pattern: /["'](?:\.\.\/)+(?:src\/channels\/plugins\/contracts\/test-helpers\.js)["']/,
-    hint: "Use openclaw/plugin-sdk/testing for channel contract test helpers.",
+    hint: "Use genesis/plugin-sdk/testing for channel contract test helpers.",
   },
 ];
 

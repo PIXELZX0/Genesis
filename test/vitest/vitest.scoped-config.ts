@@ -145,7 +145,7 @@ export function createScopedVitestConfig(
     environment?: string;
     exclude?: string[];
     argv?: string[];
-    includeOpenClawRuntimeSetup?: boolean;
+    includeGenesisRuntimeSetup?: boolean;
     isolate?: boolean;
     name?: string;
     fileParallelism?: boolean;
@@ -161,7 +161,7 @@ export function createScopedVitestConfig(
   const scopedDir = options?.dir;
   const resolvedScopedDir = scopedDir ? path.join(repoRoot, scopedDir) : undefined;
   const env = options?.env;
-  const includeFromEnv = loadPatternListFromEnv("OPENCLAW_VITEST_INCLUDE_FILE", env);
+  const includeFromEnv = loadPatternListFromEnv("GENESIS_VITEST_INCLUDE_FILE", env);
   const cliInclude = narrowIncludePatternsForCli(include, options?.argv);
   const unitFastExcludePatterns =
     options?.excludeUnitFastTests === false ? [] : getUnitFastTestFiles();
@@ -174,7 +174,7 @@ export function createScopedVitestConfig(
     ...new Set([
       ...(baseTest.setupFiles ?? []),
       ...(options?.setupFiles ?? []),
-      ...(options?.includeOpenClawRuntimeSetup === false ? [] : ["test/setup-openclaw-runtime.ts"]),
+      ...(options?.includeGenesisRuntimeSetup === false ? [] : ["test/setup-genesis-runtime.ts"]),
     ]),
   ].map(resolveRepoRootPath);
   const useNonIsolatedRunner = options?.useNonIsolatedRunner ?? !isolate;

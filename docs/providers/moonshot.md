@@ -52,13 +52,13 @@ Choose your provider and follow the setup steps.
       </Step>
       <Step title="Run onboarding">
         ```bash
-        openclaw onboard --auth-choice moonshot-api-key
+        genesis onboard --auth-choice moonshot-api-key
         ```
 
         Or for the China endpoint:
 
         ```bash
-        openclaw onboard --auth-choice moonshot-api-key-cn
+        genesis onboard --auth-choice moonshot-api-key-cn
         ```
       </Step>
       <Step title="Set a default model">
@@ -74,7 +74,7 @@ Choose your provider and follow the setup steps.
       </Step>
       <Step title="Verify models are available">
         ```bash
-        openclaw models list --provider moonshot
+        genesis models list --provider moonshot
         ```
       </Step>
       <Step title="Run a live smoke test">
@@ -82,9 +82,9 @@ Choose your provider and follow the setup steps.
         tracking without touching your normal sessions:
 
         ```bash
-        OPENCLAW_CONFIG_PATH=/tmp/openclaw-kimi/openclaw.json \
-        OPENCLAW_STATE_DIR=/tmp/openclaw-kimi \
-        openclaw agent --local \
+        GENESIS_CONFIG_PATH=/tmp/genesis-kimi/genesis.json \
+        GENESIS_STATE_DIR=/tmp/genesis-kimi \
+        genesis agent --local \
           --session-id live-kimi-cost \
           --message 'Reply exactly: KIMI_LIVE_OK' \
           --thinking off \
@@ -191,7 +191,7 @@ Choose your provider and follow the setup steps.
     <Steps>
       <Step title="Run onboarding">
         ```bash
-        openclaw onboard --auth-choice kimi-code-api-key
+        genesis onboard --auth-choice kimi-code-api-key
         ```
       </Step>
       <Step title="Set a default model">
@@ -207,7 +207,7 @@ Choose your provider and follow the setup steps.
       </Step>
       <Step title="Verify the model is available">
         ```bash
-        openclaw models list --provider kimi
+        genesis models list --provider kimi
         ```
       </Step>
     </Steps>
@@ -233,13 +233,13 @@ Choose your provider and follow the setup steps.
 
 ## Kimi web search
 
-OpenClaw also ships **Kimi** as a `web_search` provider, backed by Moonshot web
+Genesis also ships **Kimi** as a `web_search` provider, backed by Moonshot web
 search.
 
 <Steps>
   <Step title="Run interactive web search setup">
     ```bash
-    openclaw configure --section web
+    genesis configure --section web
     ```
 
     Choose **Kimi** in the web-search section to store
@@ -311,7 +311,7 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
     }
     ```
 
-    OpenClaw also maps runtime `/think` levels for Moonshot:
+    Genesis also maps runtime `/think` levels for Moonshot:
 
     | `/think` level       | Moonshot behavior          |
     | -------------------- | -------------------------- |
@@ -319,13 +319,13 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
     | Any non-off level    | `thinking.type=enabled`    |
 
     <Warning>
-    When Moonshot thinking is enabled, `tool_choice` must be `auto` or `none`. OpenClaw normalizes incompatible `tool_choice` values to `auto` for compatibility.
+    When Moonshot thinking is enabled, `tool_choice` must be `auto` or `none`. Genesis normalizes incompatible `tool_choice` values to `auto` for compatibility.
     </Warning>
 
     Kimi K2.6 also accepts an optional `thinking.keep` field that controls
     multi-turn retention of `reasoning_content`. Set it to `"all"` to keep full
     reasoning across turns; omit it (or leave it `null`) to use the server
-    default strategy. OpenClaw only forwards `thinking.keep` for
+    default strategy. Genesis only forwards `thinking.keep` for
     `moonshot/kimi-k2.6` and strips it from other models.
 
     ```json5
@@ -347,7 +347,7 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
   </Accordion>
 
   <Accordion title="Tool call id sanitization">
-    Moonshot Kimi serves tool_call ids shaped like `functions.<name>:<index>`. OpenClaw preserves them unchanged so multi-turn tool calls keep working.
+    Moonshot Kimi serves tool_call ids shaped like `functions.<name>:<index>`. Genesis preserves them unchanged so multi-turn tool calls keep working.
 
     To force strict sanitization on a custom OpenAI-compatible provider, set `sanitizeToolCallIds: true`:
 
@@ -369,7 +369,7 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
   <Accordion title="Streaming usage compatibility">
     Native Moonshot endpoints (`https://api.moonshot.ai/v1` and
     `https://api.moonshot.cn/v1`) advertise streaming usage compatibility on the
-    shared `openai-completions` transport. OpenClaw keys that off endpoint
+    shared `openai-completions` transport. Genesis keys that off endpoint
     capabilities, so compatible custom provider ids targeting the same native
     Moonshot hosts inherit the same streaming-usage behavior.
 

@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-logs.sh"
-IMAGE_NAME="${OPENCLAW_IMAGE:-openclaw:local}"
-LIVE_IMAGE_NAME="${OPENCLAW_LIVE_IMAGE:-${IMAGE_NAME}-live}"
-DOCKER_BUILD_EXTENSIONS="${OPENCLAW_DOCKER_BUILD_EXTENSIONS:-${OPENCLAW_EXTENSIONS:-}}"
+IMAGE_NAME="${GENESIS_IMAGE:-genesis:local}"
+LIVE_IMAGE_NAME="${GENESIS_LIVE_IMAGE:-${IMAGE_NAME}-live}"
+DOCKER_BUILD_EXTENSIONS="${GENESIS_DOCKER_BUILD_EXTENSIONS:-${GENESIS_EXTENSIONS:-}}"
 
 case " ${DOCKER_BUILD_EXTENSIONS} " in
   *" matrix "*)
@@ -17,10 +17,10 @@ esac
 
 DOCKER_BUILD_ARGS=()
 if [[ -n "${DOCKER_BUILD_EXTENSIONS}" ]]; then
-  DOCKER_BUILD_ARGS+=(--build-arg "OPENCLAW_EXTENSIONS=${DOCKER_BUILD_EXTENSIONS}")
+  DOCKER_BUILD_ARGS+=(--build-arg "GENESIS_EXTENSIONS=${DOCKER_BUILD_EXTENSIONS}")
 fi
 
-if [[ "${OPENCLAW_SKIP_DOCKER_BUILD:-}" == "1" ]]; then
+if [[ "${GENESIS_SKIP_DOCKER_BUILD:-}" == "1" ]]; then
   echo "==> Reuse live-test image: $LIVE_IMAGE_NAME"
   exit 0
 fi

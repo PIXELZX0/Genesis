@@ -7,13 +7,13 @@ let registerSlackMemberEvents: typeof import("./members.js").registerSlackMember
 let initSlackHarness: typeof import("./system-event-test-harness.js").createSlackSystemEventTestHarness;
 type MemberOverrides = import("./system-event-test-harness.js").SlackSystemEventTestOverrides;
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", () => ({
+vi.mock("genesis/plugin-sdk/infra-runtime", () => ({
   enqueueSystemEvent: (...args: unknown[]) => memberMocks.enqueue(...args),
 }));
-vi.mock("openclaw/plugin-sdk/infra-runtime.js", () => ({
+vi.mock("genesis/plugin-sdk/infra-runtime.js", () => ({
   enqueueSystemEvent: (...args: unknown[]) => memberMocks.enqueue(...args),
 }));
-vi.mock("openclaw/plugin-sdk/security-runtime", () => ({
+vi.mock("genesis/plugin-sdk/security-runtime", () => ({
   readStoreAllowFromForDmPolicy: async () => [],
 }));
 

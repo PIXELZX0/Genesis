@@ -28,7 +28,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
       ttlMs: 10_000,
       command: {
-        executable: "/opt/Open Claw/openclaw.mjs",
+        executable: "/opt/Open Claw/genesis.mjs",
         nodeExecutable: "/usr/local/bin/node",
         timeoutMs: 1234,
       },
@@ -41,7 +41,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
     });
     expect(relay.commandForEvent("pre_tool_use")).toBe(
-      "/usr/local/bin/node '/opt/Open Claw/openclaw.mjs' hooks relay --provider codex --relay-id " +
+      "/usr/local/bin/node '/opt/Open Claw/genesis.mjs' hooks relay --provider codex --relay-id " +
         `${relay.relayId} --event pre_tool_use --timeout 1234`,
     );
   });
@@ -227,7 +227,7 @@ describe("native hook relay registry", () => {
     expect(__testing.getNativeHookRelayRegistrationForTests(relay.relayId)).toBeUndefined();
   });
 
-  it("uses the Codex no-op output when no OpenClaw hook decides", async () => {
+  it("uses the Codex no-op output when no Genesis hook decides", async () => {
     const relay = registerNativeHookRelay({
       provider: "codex",
       sessionId: "session-1",
@@ -246,7 +246,7 @@ describe("native hook relay registry", () => {
     }
   });
 
-  it("maps Codex PreToolUse to OpenClaw before_tool_call and blocks before execution", async () => {
+  it("maps Codex PreToolUse to Genesis before_tool_call and blocks before execution", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "repo policy blocks this command",
@@ -331,7 +331,7 @@ describe("native hook relay registry", () => {
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
   });
 
-  it("maps Codex PostToolUse to OpenClaw after_tool_call observation", async () => {
+  it("maps Codex PostToolUse to Genesis after_tool_call observation", async () => {
     const afterToolCall = vi.fn();
     initializeGlobalHookRunner(
       createMockPluginRegistry([{ hookName: "after_tool_call", handler: afterToolCall }]),
@@ -441,7 +441,7 @@ describe("native hook relay registry", () => {
     );
   });
 
-  it("defers PermissionRequest when OpenClaw approval does not decide", async () => {
+  it("defers PermissionRequest when Genesis approval does not decide", async () => {
     __testing.setNativeHookRelayPermissionApprovalRequesterForTests(
       vi.fn(async () => "defer" as const),
     );
@@ -584,10 +584,10 @@ describe("native hook relay command builder", () => {
         provider: "codex",
         relayId: "relay-1",
         event: "permission_request",
-        executable: "openclaw",
+        executable: "genesis",
       }),
     ).toBe(
-      "openclaw hooks relay --provider codex --relay-id relay-1 --event permission_request --timeout 5000",
+      "genesis hooks relay --provider codex --relay-id relay-1 --event permission_request --timeout 5000",
     );
   });
 });

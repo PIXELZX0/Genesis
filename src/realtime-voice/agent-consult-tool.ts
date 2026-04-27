@@ -4,7 +4,7 @@ import {
 } from "../shared/string-coerce.js";
 import type { RealtimeVoiceTool } from "./provider-types.js";
 
-export const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "openclaw_agent_consult";
+export const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "genesis_agent_consult";
 export const REALTIME_VOICE_AGENT_CONSULT_TOOL_POLICIES = [
   "safe-read-only",
   "owner",
@@ -26,7 +26,7 @@ export const REALTIME_VOICE_AGENT_CONSULT_TOOL: RealtimeVoiceTool = {
   type: "function",
   name: REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME,
   description:
-    "Ask the full OpenClaw agent for deeper reasoning, current information, or tool-backed help before speaking.",
+    "Ask the full Genesis agent for deeper reasoning, current information, or tool-backed help before speaking.",
   parameters: {
     type: "object",
     properties: {
@@ -145,7 +145,7 @@ export function buildRealtimeVoiceAgentConsultPrompt(params: {
     .join("\n");
 
   return [
-    `You are helping an OpenClaw realtime voice agent during ${params.surface}.`,
+    `You are helping an Genesis realtime voice agent during ${params.surface}.`,
     `Answer the ${questionSourceLabel}'s question with the strongest useful reasoning and available tools.`,
     "Return only the concise answer the realtime voice agent should speak next.",
     "Do not include markdown, citations unless needed, tool logs, or private reasoning.",

@@ -2,7 +2,7 @@ import type {
   ChannelApprovalCapability,
   ChannelApprovalNativeAdapter,
 } from "../channels/plugins/types.adapters.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveApprovalOverGateway } from "./approval-gateway-resolver.js";
 import {
@@ -308,7 +308,7 @@ export function createChannelApprovalNativeRuntimeAdapter<
 export type ChannelApprovalHandlerRuntimeSpec<TRequest extends ApprovalRequest> = {
   label: string;
   clientDisplayName: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   gatewayUrl?: string;
   eventKinds?: readonly ExecApprovalChannelRuntimeEventKind[];
   channel?: string;
@@ -437,7 +437,7 @@ export async function createChannelApprovalHandlerFromCapability(params: {
   clientDisplayName: string;
   channel: string;
   channelLabel: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   gatewayUrl?: string;
   context?: unknown;

@@ -77,7 +77,7 @@ vi.mock("../../utils/message-channel.js", () => ({
   normalizeMessageChannel: (value: string) => value.trim().toLowerCase(),
 }));
 
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 let resolveAgentDeliveryPlan: typeof import("./agent-delivery.js").resolveAgentDeliveryPlan;
 let resolveAgentOutboundTarget: typeof import("./agent-delivery.js").resolveAgentOutboundTarget;
 
@@ -184,7 +184,7 @@ describe("agent delivery helpers", () => {
     });
 
     const resolved = resolveAgentOutboundTarget({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       plan,
       targetMode: "implicit",
     });
@@ -209,7 +209,7 @@ describe("agent delivery helpers", () => {
 
     mocks.resolveOutboundTarget.mockClear();
     const resolved = resolveAgentOutboundTarget({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       plan,
       targetMode: "explicit",
       validateExplicitTarget: false,

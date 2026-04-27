@@ -1,8 +1,8 @@
 import type { AgentToolResult, AgentToolUpdateCallback } from "@mariozechner/pi-agent-core";
 import { resolveAgentWorkspaceDir, resolveSessionAgentIds } from "../../agents/agent-scope.js";
-import { createOpenClawCodingTools } from "../../agents/pi-tools.js";
+import { createGenesisCodingTools } from "../../agents/pi-tools.js";
 import type { AnyAgentTool } from "../../agents/tools/common.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   buildAsyncToolAck,
   buildToolErrorContext,
@@ -42,11 +42,11 @@ type InFlightTool = {
 };
 
 type ToolRuntimeDeps = {
-  createTools?: typeof createOpenClawCodingTools;
+  createTools?: typeof createGenesisCodingTools;
 };
 
 export type VoiceClawRealtimeToolRuntimeOptions = {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   sessionId: string;
   sessionKey: string;
   senderIsOwner: boolean;
@@ -85,7 +85,7 @@ export class VoiceClawRealtimeToolRuntime {
         JSON.stringify({
           status: "busy",
           tool: event.name,
-          error: "Too many OpenClaw tools are already running.",
+          error: "Too many Genesis tools are already running.",
         }),
       );
       return true;
@@ -121,7 +121,7 @@ export class VoiceClawRealtimeToolRuntime {
       return;
     }
     inFlight.abortReason = "cancelled";
-    inFlight.controller.abort(new Error("OpenClaw tool cancelled"));
+    inFlight.controller.abort(new Error("Genesis tool cancelled"));
   }
 
   abortAll(): void {
@@ -173,7 +173,7 @@ export class VoiceClawRealtimeToolRuntime {
       }
       const message =
         inFlight.abortReason === "timeout"
-          ? `OpenClaw tool timed out after ${this.timeoutMs}ms`
+          ? `Genesis tool timed out after ${this.timeoutMs}ms`
           : err instanceof Error
             ? err.message
             : String(err);
@@ -209,12 +209,12 @@ export class VoiceClawRealtimeToolRuntime {
     const timeout = new Promise<never>((_, reject) => {
       inFlight.timeout = setTimeout(() => {
         if (inFlight.abortReason === "cancelled") {
-          reject(new Error("OpenClaw tool cancelled"));
+          reject(new Error("Genesis tool cancelled"));
           return;
         }
         inFlight.abortReason = "timeout";
-        inFlight.controller.abort(new Error(`OpenClaw tool timed out after ${this.timeoutMs}ms`));
-        reject(new Error(`OpenClaw tool timed out after ${this.timeoutMs}ms`));
+        inFlight.controller.abort(new Error(`Genesis tool timed out after ${this.timeoutMs}ms`));
+        reject(new Error(`Genesis tool timed out after ${this.timeoutMs}ms`));
       }, this.timeoutMs);
     });
 
@@ -230,7 +230,7 @@ export function createVoiceClawRealtimeToolRuntime(
     config: options.config,
   });
   const workspaceDir = resolveAgentWorkspaceDir(options.config, sessionAgentId);
-  const createTools = options.deps?.createTools ?? createOpenClawCodingTools;
+  const createTools = options.deps?.createTools ?? createGenesisCodingTools;
   return new VoiceClawRealtimeToolRuntime(
     createTools({
       config: options.config,
@@ -252,13 +252,13 @@ function isRealtimeDirectToolAllowed(tool: AnyAgentTool): boolean {
 }
 
 function resolveToolTimeoutMs(): number {
-  const value = Number.parseInt(process.env.OPENCLAW_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS ?? "", 10);
+  const value = Number.parseInt(process.env.GENESIS_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS ?? "", 10);
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_TOOL_TIMEOUT_MS;
 }
 
 function resolveMaxConcurrentTools(): number {
   const value = Number.parseInt(
-    process.env.OPENCLAW_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS ?? "",
+    process.env.GENESIS_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS ?? "",
     10,
   );
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_MAX_CONCURRENT_TOOLS;

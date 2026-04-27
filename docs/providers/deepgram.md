@@ -7,13 +7,13 @@ read_when:
 title: "Deepgram"
 ---
 
-Deepgram is a speech-to-text API. In OpenClaw it is used for inbound
+Deepgram is a speech-to-text API. In Genesis it is used for inbound
 audio/voice-note transcription through `tools.media.audio` and for Voice Call
 streaming STT through `plugins.entries.voice-call.config.streaming`.
 
-For batch transcription, OpenClaw uploads the complete audio file to Deepgram
+For batch transcription, Genesis uploads the complete audio file to Deepgram
 and injects the transcript into the reply pipeline (`{{Transcript}}` +
-`[Audio]` block). For Voice Call streaming, OpenClaw forwards live G.711
+`[Audio]` block). For Voice Call streaming, Genesis forwards live G.711
 u-law frames over Deepgram's WebSocket `listen` endpoint and emits partial or
 final transcripts as Deepgram returns them.
 
@@ -50,7 +50,7 @@ final transcripts as Deepgram returns them.
     ```
   </Step>
   <Step title="Send a voice note">
-    Send an audio message through any connected channel. OpenClaw transcribes it
+    Send an audio message through any connected channel. Genesis transcribes it
     via Deepgram and injects the transcript into the reply pipeline.
   </Step>
 </Steps>
@@ -179,6 +179,6 @@ Twilio media frames can be forwarded directly.
     Common issues and debugging steps.
   </Card>
   <Card title="FAQ" href="/help/faq" icon="circle-question">
-    Frequently asked questions about OpenClaw setup.
+    Frequently asked questions about Genesis setup.
   </Card>
 </CardGroup>

@@ -2,7 +2,7 @@ import {
   ensureMemoryIndexSchema,
   loadSqliteVecExtension,
   requireNodeSqlite,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
 import { describe, expect, it } from "vitest";
 import { bm25RankToScore, buildFtsQuery } from "./hybrid.js";
 import { searchKeyword, searchVector } from "./manager-search.js";

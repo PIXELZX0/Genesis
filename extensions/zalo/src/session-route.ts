@@ -3,8 +3,8 @@ import {
   stripChannelTargetPrefix,
   stripTargetKindPrefix,
   type ChannelOutboundSessionRouteParams,
-} from "openclaw/plugin-sdk/core";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/core";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 export function resolveZaloOutboundSessionRoute(params: ChannelOutboundSessionRouteParams) {
   const trimmed = stripChannelTargetPrefix(params.target, "zalo", "zl");

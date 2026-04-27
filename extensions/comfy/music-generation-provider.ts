@@ -2,7 +2,7 @@ import type {
   GeneratedMusicAsset,
   MusicGenerationProvider,
   MusicGenerationSourceImage,
-} from "openclaw/plugin-sdk/music-generation";
+} from "genesis/plugin-sdk/music-generation";
 import {
   DEFAULT_COMFY_MODEL,
   isComfyCapabilityConfigured,

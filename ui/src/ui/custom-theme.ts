@@ -3,7 +3,7 @@ import { normalizeOptionalString } from "./string-coerce.ts";
 
 const TWEAKCN_HOSTS = new Set(["tweakcn.com", "www.tweakcn.com"]);
 const THEME_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
-const CUSTOM_THEME_STYLE_ID = "openclaw-custom-theme";
+const CUSTOM_THEME_STYLE_ID = "genesis-custom-theme";
 const MAX_TWEAKCN_THEME_BYTES = 200_000;
 const MAX_CSS_TOKEN_LENGTH = 240;
 const TWEAKCN_FETCH_TIMEOUT_MS = 10_000;

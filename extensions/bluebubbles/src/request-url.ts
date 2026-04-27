@@ -1,1 +1,1 @@
-export { resolveRequestUrl } from "openclaw/plugin-sdk/request-url";
+export { resolveRequestUrl } from "genesis/plugin-sdk/request-url";

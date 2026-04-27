@@ -38,9 +38,9 @@ export type SessionLockInspection = {
 
 const CLEANUP_SIGNALS = ["SIGINT", "SIGTERM", "SIGQUIT", "SIGABRT"] as const;
 type CleanupSignal = (typeof CLEANUP_SIGNALS)[number];
-const CLEANUP_STATE_KEY = Symbol.for("openclaw.sessionWriteLockCleanupState");
-const HELD_LOCKS_KEY = Symbol.for("openclaw.sessionWriteLockHeldLocks");
-const WATCHDOG_STATE_KEY = Symbol.for("openclaw.sessionWriteLockWatchdogState");
+const CLEANUP_STATE_KEY = Symbol.for("genesis.sessionWriteLockCleanupState");
+const HELD_LOCKS_KEY = Symbol.for("genesis.sessionWriteLockHeldLocks");
+const WATCHDOG_STATE_KEY = Symbol.for("genesis.sessionWriteLockWatchdogState");
 
 const DEFAULT_STALE_MS = 30 * 60 * 1000;
 const DEFAULT_MAX_HOLD_MS = 5 * 60 * 1000;
@@ -223,7 +223,7 @@ function stopWatchdogTimer(): void {
 }
 
 function shouldStartBackgroundWatchdog(): boolean {
-  return process.env.VITEST !== "true" || process.env.OPENCLAW_TEST_SESSION_LOCK_WATCHDOG === "1";
+  return process.env.VITEST !== "true" || process.env.GENESIS_TEST_SESSION_LOCK_WATCHDOG === "1";
 }
 
 function ensureWatchdogStarted(intervalMs: number): void {

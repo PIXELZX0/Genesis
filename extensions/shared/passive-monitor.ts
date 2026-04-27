@@ -1,1 +1,1 @@
-export { runStoppablePassiveMonitor } from "openclaw/plugin-sdk/extension-shared";
+export { runStoppablePassiveMonitor } from "genesis/plugin-sdk/extension-shared";

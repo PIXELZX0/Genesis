@@ -11,7 +11,7 @@ import {
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-codex-trajectory-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-codex-trajectory-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -79,7 +79,7 @@ describe("Codex trajectory recorder", () => {
         sessionId: "../evil/session",
         model: { api: "responses" },
       } as never,
-      env: { OPENCLAW_TRAJECTORY_DIR: tmpDir },
+      env: { GENESIS_TRAJECTORY_DIR: tmpDir },
     });
 
     recorder?.recordEvent("session.started");
@@ -97,7 +97,7 @@ describe("Codex trajectory recorder", () => {
         sessionId: "session-1",
         model: { api: "responses" },
       } as never,
-      env: { OPENCLAW_TRAJECTORY: "0" },
+      env: { GENESIS_TRAJECTORY: "0" },
     });
 
     expect(recorder).toBeNull();

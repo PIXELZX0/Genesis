@@ -1,12 +1,12 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { DEFAULT_PROVIDER } from "./defaults.js";
 import { resolveStaticAllowlistModelKey } from "./model-ref-shared.js";
 
 export function ensureStaticModelAllowlistEntry(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   modelRef: string;
   defaultProvider?: string;
-}): OpenClawConfig {
+}): GenesisConfig {
   const rawModelRef = params.modelRef.trim();
   if (!rawModelRef) {
     return params.cfg;

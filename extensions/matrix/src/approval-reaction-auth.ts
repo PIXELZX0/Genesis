@@ -1,4 +1,4 @@
-import { resolveApprovalApprovers } from "openclaw/plugin-sdk/approval-auth-runtime";
+import { resolveApprovalApprovers } from "genesis/plugin-sdk/approval-auth-runtime";
 import { normalizeMatrixApproverId } from "./approval-ids.js";
 import { resolveMatrixAccount } from "./matrix/accounts.js";
 import type { CoreConfig } from "./types.js";

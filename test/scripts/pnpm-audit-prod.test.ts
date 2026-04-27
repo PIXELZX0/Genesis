@@ -167,7 +167,7 @@ snapshots:
   });
 
   it("returns a failing exit code when bulk advisories include high severity findings", async () => {
-    const tempDir = await mkdtemp(path.join(tmpdir(), "openclaw-audit-prod-"));
+    const tempDir = await mkdtemp(path.join(tmpdir(), "genesis-audit-prod-"));
     await writeFile(
       path.join(tempDir, "pnpm-lock.yaml"),
       `lockfileVersion: '9.0'

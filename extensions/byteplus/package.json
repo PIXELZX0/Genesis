@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/byteplus-provider",
+  "name": "@genesis/byteplus-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw BytePlus provider plugin",
+  "description": "Genesis BytePlus provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

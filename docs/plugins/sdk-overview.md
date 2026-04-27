@@ -4,7 +4,7 @@ title: "Plugin SDK overview"
 sidebarTitle: "SDK overview"
 read_when:
   - You need to know which SDK subpath to import from
-  - You want a reference for all registration methods on OpenClawPluginApi
+  - You want a reference for all registration methods on GenesisPluginApi
   - You are looking up a specific SDK export
 ---
 
@@ -25,25 +25,25 @@ reference for **what to import** and **what you can register**.
 Always import from a specific subpath:
 
 ```typescript
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { defineChannelPluginEntry } from "openclaw/plugin-sdk/channel-core";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { defineChannelPluginEntry } from "genesis/plugin-sdk/channel-core";
 ```
 
 Each subpath is a small, self-contained module. This keeps startup fast and
 prevents circular dependency issues. For channel-specific entry/build helpers,
-prefer `openclaw/plugin-sdk/channel-core`; keep `openclaw/plugin-sdk/core` for
+prefer `genesis/plugin-sdk/channel-core`; keep `genesis/plugin-sdk/core` for
 the broader umbrella surface and shared helpers such as
 `buildChannelConfigSchema`.
 
 For channel config, publish the channel-owned JSON Schema through
-`openclaw.plugin.json#channelConfigs`. The `plugin-sdk/channel-config-schema`
+`genesis.plugin.json#channelConfigs`. The `plugin-sdk/channel-config-schema`
 subpath is for shared schema primitives and the generic builder. Any
 bundled-channel-named schema exports on that subpath are legacy compatibility
 exports, not a pattern for new plugins.
 
 <Warning>
   Do not import provider- or channel-branded convenience seams (for example
-  `openclaw/plugin-sdk/slack`, `.../discord`, `.../signal`, `.../whatsapp`).
+  `genesis/plugin-sdk/slack`, `.../discord`, `.../signal`, `.../whatsapp`).
   Bundled plugins compose generic SDK subpaths inside their own `api.ts` /
   `runtime-api.ts` barrels; core consumers should either use those plugin-local
   barrels or add a narrow generic SDK contract when a need is truly
@@ -66,7 +66,7 @@ The generated list of 200+ subpaths lives in `scripts/lib/plugin-sdk-entrypoints
 
 ## Registration API
 
-The `register(api)` callback receives an `OpenClawPluginApi` object with these
+The `register(api)` callback receives an `GenesisPluginApi` object with these
 methods:
 
 ### Capability registration
@@ -124,7 +124,7 @@ methods:
 
 Bundled plugins must declare `contracts.agentToolResultMiddleware` for each
 targeted runtime, for example `["pi", "codex"]`. External plugins
-cannot register this middleware; keep normal OpenClaw plugin hooks for work
+cannot register this middleware; keep normal Genesis plugin hooks for work
 that does not need pre-model tool-result timing. The old Pi-only embedded
 extension factory registration path has been removed.
 </Accordion>
@@ -132,7 +132,7 @@ extension factory registration path has been removed.
 ### Gateway discovery registration
 
 `api.registerGatewayDiscoveryService(...)` lets a plugin advertise the active
-Gateway on a local discovery transport such as mDNS/Bonjour. OpenClaw calls the
+Gateway on a local discovery transport such as mDNS/Bonjour. Genesis calls the
 service during Gateway startup when local discovery is enabled, passes the
 current Gateway ports and non-secret TXT hint data, and calls the returned
 `stop` handler during Gateway shutdown.
@@ -196,7 +196,7 @@ AI CLI backend such as `codex-cli`.
 
 - The backend `id` becomes the provider prefix in model refs like `codex-cli/gpt-5`.
 - The backend `config` uses the same shape as `agents.defaults.cliBackends.<id>`.
-- User config still wins. OpenClaw merges `agents.defaults.cliBackends.<id>` over the
+- User config still wins. Genesis merges `agents.defaults.cliBackends.<id>` over the
   plugin default before running the CLI.
 - Use `normalizeConfig` when a backend needs compatibility rewrites after merge
   (for example normalizing old flag shapes).
@@ -220,7 +220,7 @@ AI CLI backend such as `codex-cli`.
 - `registerMemoryCapability` is the preferred exclusive memory-plugin API.
 - `registerMemoryCapability` may also expose `publicArtifacts.listArtifacts(...)`
   so companion plugins can consume exported memory artifacts through
-  `openclaw/plugin-sdk/memory-host-core` instead of reaching into a specific
+  `genesis/plugin-sdk/memory-host-core` instead of reaching into a specific
   memory plugin's private layout.
 - `registerMemoryPromptSection`, `registerMemoryFlushPlan`, and
   `registerMemoryRuntime` are legacy-compatible exclusive memory-plugin APIs.
@@ -264,7 +264,7 @@ semantics.
 | `api.description`        | `string?`                 | Plugin description (optional)                                                               |
 | `api.source`             | `string`                  | Plugin source path                                                                          |
 | `api.rootDir`            | `string?`                 | Plugin root directory (optional)                                                            |
-| `api.config`             | `OpenClawConfig`          | Current config snapshot (active in-memory runtime snapshot when available)                  |
+| `api.config`             | `GenesisConfig`           | Current config snapshot (active in-memory runtime snapshot when available)                  |
 | `api.pluginConfig`       | `Record<string, unknown>` | Plugin-specific config from `plugins.entries.<id>.config`                                   |
 | `api.runtime`            | `PluginRuntime`           | [Runtime helpers](/plugins/sdk-runtime)                                                     |
 | `api.logger`             | `PluginLogger`            | Scoped logger (`debug`, `info`, `warn`, `error`)                                            |
@@ -284,14 +284,14 @@ my-plugin/
 ```
 
 <Warning>
-  Never import your own plugin through `openclaw/plugin-sdk/<your-plugin>`
+  Never import your own plugin through `genesis/plugin-sdk/<your-plugin>`
   from production code. Route internal imports through `./api.ts` or
   `./runtime-api.ts`. The SDK path is the external contract only.
 </Warning>
 
 Facade-loaded bundled plugin public surfaces (`api.ts`, `runtime-api.ts`,
 `index.ts`, `setup-entry.ts`, and similar public entry files) prefer the
-active runtime config snapshot when OpenClaw is already running. If no runtime
+active runtime config snapshot when Genesis is already running. If no runtime
 snapshot exists yet, they fall back to the resolved config file on disk.
 
 Provider plugins can expose a narrow plugin-local contract barrel when a
@@ -300,15 +300,15 @@ subpath yet. Bundled examples:
 
 - **Anthropic**: public `api.ts` / `contract-api.ts` seam for Claude
   beta-header and `service_tier` stream helpers.
-- **`@openclaw/openai-provider`**: `api.ts` exports provider builders,
+- **`@genesis/openai-provider`**: `api.ts` exports provider builders,
   default-model helpers, and realtime provider builders.
-- **`@openclaw/openrouter-provider`**: `api.ts` exports the provider builder
+- **`@genesis/openrouter-provider`**: `api.ts` exports the provider builder
   plus onboarding/config helpers.
 
 <Warning>
-  Extension production code should also avoid `openclaw/plugin-sdk/<other-plugin>`
+  Extension production code should also avoid `genesis/plugin-sdk/<other-plugin>`
   imports. If a helper is truly shared, promote it to a neutral SDK subpath
-  such as `openclaw/plugin-sdk/speech`, `.../provider-model-shared`, or another
+  such as `genesis/plugin-sdk/speech`, `.../provider-model-shared`, or another
   capability-oriented surface instead of coupling two plugins together.
 </Warning>
 

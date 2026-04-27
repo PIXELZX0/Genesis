@@ -1,7 +1,7 @@
 import {
   createResolvedApproverActionAuthAdapter,
   resolveApprovalApprovers,
-} from "openclaw/plugin-sdk/approval-auth-runtime";
+} from "genesis/plugin-sdk/approval-auth-runtime";
 import { resolveAccount } from "./accounts.js";
 
 function normalizeSynologyChatApproverId(value: string | number): string | undefined {

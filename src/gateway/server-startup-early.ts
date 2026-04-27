@@ -1,6 +1,6 @@
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
 import type { GatewayTailscaleMode } from "../config/types.gateway.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
 import {
   primeRemoteSkillsCache,
@@ -14,7 +14,7 @@ import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
 
 export async function startGatewayEarlyRuntime(params: {
   minimalTestGateway: boolean;
-  cfgAtStart: OpenClawConfig;
+  cfgAtStart: GenesisConfig;
   port: number;
   gatewayTls: { enabled: boolean; fingerprintSha256?: string };
   tailscaleMode: GatewayTailscaleMode;
@@ -53,7 +53,7 @@ export async function startGatewayEarlyRuntime(params: {
   skillsRefreshDelayMs: number;
   getSkillsRefreshTimer: () => ReturnType<typeof setTimeout> | null;
   setSkillsRefreshTimer: (timer: ReturnType<typeof setTimeout> | null) => void;
-  loadConfig: () => OpenClawConfig;
+  loadConfig: () => GenesisConfig;
 }) {
   let bonjourStop: (() => Promise<void>) | null = null;
   if (!params.minimalTestGateway) {

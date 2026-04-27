@@ -2,7 +2,7 @@ import path from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { chunkText } from "../../auto-reply/chunk.js";
 import type { ChannelOutboundAdapter } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import * as mediaCapabilityModule from "../../media/read-capability.js";
 import { createHookRunner } from "../../plugins/hooks.js";
 import { addTestHook } from "../../plugins/hooks.test-helpers.js";
@@ -14,7 +14,7 @@ import {
 import type { PluginHookRegistration } from "../../plugins/types.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
 import { createInternalHookEventPayload } from "../../test-utils/internal-hook-event-payload.js";
-import { resolvePreferredOpenClawTmpDir } from "../tmp-openclaw-dir.js";
+import { resolvePreferredGenesisTmpDir } from "../tmp-genesis-dir.js";
 
 const mocks = vi.hoisted(() => ({
   appendAssistantMessageToSessionTranscript: vi.fn(async () => ({ ok: true, sessionFile: "x" })),
@@ -96,11 +96,11 @@ type DeliverModule = typeof import("./deliver.js");
 let deliverOutboundPayloads: DeliverModule["deliverOutboundPayloads"];
 let normalizeOutboundPayloads: DeliverModule["normalizeOutboundPayloads"];
 
-const matrixChunkConfig: OpenClawConfig = {
-  channels: { matrix: { textChunkLimit: 4000 } } as OpenClawConfig["channels"],
+const matrixChunkConfig: GenesisConfig = {
+  channels: { matrix: { textChunkLimit: 4000 } } as GenesisConfig["channels"],
 };
 
-const expectedPreferredTmpRoot = resolvePreferredOpenClawTmpDir();
+const expectedPreferredTmpRoot = resolvePreferredGenesisTmpDir();
 
 type DeliverOutboundArgs = Parameters<DeliverModule["deliverOutboundPayloads"]>[0];
 type DeliverOutboundPayload = DeliverOutboundArgs["payloads"][number];
@@ -165,7 +165,7 @@ const matrixOutboundForTest: ChannelOutboundAdapter = {
 async function deliverMatrixPayload(params: {
   sendMatrix: MatrixSendFn;
   payload: DeliverOutboundPayload;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }) {
   return deliverOutboundPayloads({
     cfg: params.cfg ?? matrixChunkConfig,
@@ -183,8 +183,8 @@ async function runChunkedMatrixDelivery(params?: {
     .fn()
     .mockResolvedValueOnce({ messageId: "m1", roomId: "!room:example" })
     .mockResolvedValueOnce({ messageId: "m2", roomId: "!room:example" });
-  const cfg: OpenClawConfig = {
-    channels: { matrix: { textChunkLimit: 2 } } as OpenClawConfig["channels"],
+  const cfg: GenesisConfig = {
+    channels: { matrix: { textChunkLimit: 2 } } as GenesisConfig["channels"],
   };
   const results = await deliverOutboundPayloads({
     cfg,
@@ -215,7 +215,7 @@ async function runBestEffortPartialFailureDelivery() {
     .mockRejectedValueOnce(new Error("fail"))
     .mockResolvedValueOnce({ messageId: "m2", roomId: "!room:example" });
   const onError = vi.fn();
-  const cfg: OpenClawConfig = {};
+  const cfg: GenesisConfig = {};
   const results = await deliverOutboundPayloads({
     cfg,
     channel: "matrix",
@@ -429,7 +429,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     const results = await deliverOutboundPayloads({
-      cfg: { channels: { matrix: { textChunkLimit: 2 } } } as OpenClawConfig,
+      cfg: { channels: { matrix: { textChunkLimit: 2 } } } as GenesisConfig,
       channel: "matrix",
       to: "!room",
       accountId: "default",
@@ -479,7 +479,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: { textChunkLimit: 2 } } } as OpenClawConfig,
+      cfg: { channels: { matrix: { textChunkLimit: 2 } } } as GenesisConfig,
       channel: "matrix",
       to: "!room",
       payloads: [{ text: "abcd" }],
@@ -694,7 +694,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     const textResults = await deliverOutboundPayloads({
-      cfg: { channels: { line: {} } } as OpenClawConfig,
+      cfg: { channels: { line: {} } } as GenesisConfig,
       channel: "line",
       to: "U123",
       accountId: "default",
@@ -716,7 +716,7 @@ describe("deliverOutboundPayloads", () => {
     ]);
 
     await deliverOutboundPayloads({
-      cfg: { channels: { line: {} } } as OpenClawConfig,
+      cfg: { channels: { line: {} } } as GenesisConfig,
       channel: "line",
       to: "U123",
       payloads: [{ text: "photo", mediaUrl: "file:///tmp/f.png" }],
@@ -737,17 +737,17 @@ describe("deliverOutboundPayloads", () => {
       | undefined;
     expect(
       sendFormattedMediaCall?.mediaLocalRoots?.some((root) =>
-        root.endsWith(path.join(".openclaw", "workspace-work")),
+        root.endsWith(path.join(".genesis", "workspace-work")),
       ),
     ).toBe(true);
     expect(sendMedia).not.toHaveBeenCalled();
   });
 
-  it("includes OpenClaw tmp root in plugin mediaLocalRoots", async () => {
+  it("includes Genesis tmp root in plugin mediaLocalRoots", async () => {
     const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m-media", roomId: "!room" });
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: {} } } as OpenClawConfig,
+      cfg: { channels: { matrix: {} } } as GenesisConfig,
       channel: "matrix",
       to: "!room:example",
       payloads: [{ text: "hi", mediaUrl: "https://example.com/x.png" }],
@@ -788,7 +788,7 @@ describe("deliverOutboundPayloads", () => {
           matrix: {
             allowFrom: ["111", "222", "333"],
           },
-        } as OpenClawConfig["channels"],
+        } as GenesisConfig["channels"],
       },
       channel: "matrix",
       to: "!explicit:example",
@@ -834,7 +834,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: {} } } as OpenClawConfig,
+      cfg: { channels: { matrix: {} } } as GenesisConfig,
       channel: "matrix",
       to: "room:!room:example",
       payloads: [{ text: "voice caption", mediaUrl: "file:///tmp/clip.mp3", audioAsVoice: true }],
@@ -878,7 +878,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: {} } } as OpenClawConfig,
+      cfg: { channels: { matrix: {} } } as GenesisConfig,
       channel: "matrix",
       to: "room:!room:example",
       payloads: [
@@ -921,10 +921,10 @@ describe("deliverOutboundPayloads", () => {
 
   it("respects newline chunk mode for plugin text", async () => {
     const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m1", roomId: "!room:example" });
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         matrix: { textChunkLimit: 4000, chunkMode: "newline" },
-      } as OpenClawConfig["channels"],
+      } as GenesisConfig["channels"],
     };
 
     await deliverOutboundPayloads({
@@ -981,7 +981,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: { textChunkLimit: 4000 } } } as OpenClawConfig,
+      cfg: { channels: { matrix: { textChunkLimit: 4000 } } } as GenesisConfig,
       channel: "matrix",
       to: "!room",
       payloads: [{ text: "abcd" }],
@@ -1027,7 +1027,7 @@ describe("deliverOutboundPayloads", () => {
     );
 
     await deliverOutboundPayloads({
-      cfg: { channels: { matrix: { textChunkLimit: 4000 } } } as OpenClawConfig,
+      cfg: { channels: { matrix: { textChunkLimit: 4000 } } } as GenesisConfig,
       channel: "matrix",
       to: "!room",
       payloads: [{ text: "line one\nline two" }],
@@ -1097,7 +1097,7 @@ describe("deliverOutboundPayloads", () => {
       ]),
     );
 
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: { matrix: { textChunkLimit: 4000, chunkMode: "newline" } },
     };
     const text = "```js\nconst a = 1;\nconst b = 2;\n```\nAfter";
@@ -1124,7 +1124,7 @@ describe("deliverOutboundPayloads", () => {
         },
       ]),
     );
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: { defaults: { mediaMaxMb: 3 } },
     };
 
@@ -1276,7 +1276,7 @@ describe("deliverOutboundPayloads", () => {
 
   it("applies silent-reply rewrite policy from the outbound session", async () => {
     const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m-silent", roomId: "!room" });
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: {
         defaults: {
           silentReply: {
@@ -1323,7 +1323,7 @@ describe("deliverOutboundPayloads", () => {
   });
 
   it("bails out without sending when a concurrent drain already claimed the queue entry", async () => {
-    // Regression for openclaw/openclaw#70386: if a reconnect or startup drain
+    // Regression for PIXELZX0/Genesis#70386: if a reconnect or startup drain
     // observes the newly enqueued entry and claims it before the live send
     // path claims it, the live path must not send. The drain already owns
     // ack/fail for that id; sending here would duplicate the outbound and
@@ -1351,7 +1351,7 @@ describe("deliverOutboundPayloads", () => {
     const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m1", roomId: "!room:example" });
     const abortController = new AbortController();
     abortController.abort();
-    const cfg: OpenClawConfig = {};
+    const cfg: GenesisConfig = {};
 
     await expect(
       deliverOutboundPayloads({
@@ -1372,7 +1372,7 @@ describe("deliverOutboundPayloads", () => {
   it("passes normalized payload to onError", async () => {
     const sendMatrix = vi.fn().mockRejectedValue(new Error("boom"));
     const onError = vi.fn();
-    const cfg: OpenClawConfig = {};
+    const cfg: GenesisConfig = {};
 
     await deliverOutboundPayloads({
       cfg,
@@ -1411,7 +1411,7 @@ describe("deliverOutboundPayloads", () => {
     mocks.appendAssistantMessageToSessionTranscript.mockClear();
 
     await deliverOutboundPayloads({
-      cfg: { channels: { line: {} } } as OpenClawConfig,
+      cfg: { channels: { line: {} } } as GenesisConfig,
       channel: "line",
       to: "U123",
       payloads: [{ text: "caption", mediaUrl: "https://example.com/files/report.pdf?sig=1" }],

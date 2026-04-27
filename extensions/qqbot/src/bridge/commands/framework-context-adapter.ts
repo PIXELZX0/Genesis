@@ -9,7 +9,7 @@
  * registry can be reused unchanged on the framework command surface.
  */
 
-import type { PluginCommandContext } from "openclaw/plugin-sdk/plugin-entry";
+import type { PluginCommandContext } from "genesis/plugin-sdk/plugin-entry";
 import type { SlashCommandContext } from "../../engine/commands/slash-commands.js";
 import type { ResolvedQQBotAccount } from "../../types.js";
 import type { QQBotFromParseResult } from "./from-parser.js";

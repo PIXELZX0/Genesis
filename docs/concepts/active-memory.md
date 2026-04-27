@@ -20,7 +20,7 @@ before the main reply is generated.
 
 ## Quick start
 
-Paste this into `openclaw.json` for a safe-default setup — plugin on, scoped to
+Paste this into `genesis.json` for a safe-default setup — plugin on, scoped to
 the `main` agent, direct-message sessions only, inherits the session model
 when available:
 
@@ -51,7 +51,7 @@ when available:
 Then restart the gateway:
 
 ```bash
-openclaw gateway
+genesis gateway
 ```
 
 To inspect it live in a conversation:
@@ -160,7 +160,7 @@ session toggles that match the output you want:
 /trace on
 ```
 
-With those enabled, OpenClaw can show:
+With those enabled, Genesis can show:
 
 - an active memory status line such as `Active Memory: status=ok elapsed=842ms query=recent summary=34 chars` when `/verbose on`
 - a readable debug summary such as `Active Memory Debug: Lemon pepper wings with blue cheese.` when `/trace on`
@@ -459,7 +459,7 @@ Memory prompt and before the conversation context:
 promptAppend: "Prefer stable long-term preferences over one-off events."
 ```
 
-`config.promptOverride` replaces the default Active Memory prompt. OpenClaw
+`config.promptOverride` replaces the default Active Memory prompt. Genesis
 still appends the conversation context afterward:
 
 ```json5
@@ -598,7 +598,7 @@ If active memory is not showing up where you expect:
 2. Confirm the current agent id is listed in `config.agents`.
 3. Confirm you are testing through an interactive persistent chat session.
 4. Turn on `config.logging: true` and watch the gateway logs.
-5. Verify memory search itself works with `openclaw memory status --deep`.
+5. Verify memory search itself works with `genesis memory status --deep`.
 
 If memory hits are noisy, tighten:
 
@@ -619,7 +619,7 @@ problems, not Active Memory bugs.
 
 <AccordionGroup>
   <Accordion title="Embedding provider switched or stopped working">
-    If `memorySearch.provider` is unset, OpenClaw auto-detects the first
+    If `memorySearch.provider` is unset, Genesis auto-detects the first
     available embedding provider. A new API key, quota exhaustion, or a
     rate-limited hosted provider can change which provider resolves between
     runs. If no provider resolves, `memory_search` may degrade to lexical-only
@@ -639,7 +639,7 @@ problems, not Active Memory bugs.
       after each reply.
     - Watch gateway logs for `active-memory: ... start|done`,
       `memory sync failed (search-bootstrap)`, or provider embedding errors.
-    - Run `openclaw memory status --deep` to inspect the memory-search backend
+    - Run `genesis memory status --deep` to inspect the memory-search backend
       and index health.
     - If you use `ollama`, confirm the embedding model is installed
       (`ollama list`).

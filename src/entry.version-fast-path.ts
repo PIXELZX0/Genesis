@@ -27,7 +27,7 @@ export function tryHandleRootVersionFastPath(
     deps.onError ??
     ((error: unknown) => {
       console.error(
-        "[openclaw] Failed to resolve version:",
+        "[genesis] Failed to resolve version:",
         error instanceof Error ? (error.stack ?? error.message) : error,
       );
       process.exitCode = 1;
@@ -45,7 +45,7 @@ export function tryHandleRootVersionFastPath(
   resolveVersion()
     .then(({ VERSION, resolveCommitHash }) => {
       const commit = resolveCommitHash({ moduleUrl: deps.moduleUrl ?? import.meta.url });
-      output(commit ? `OpenClaw ${VERSION} (${commit})` : `OpenClaw ${VERSION}`);
+      output(commit ? `Genesis ${VERSION} (${commit})` : `Genesis ${VERSION}`);
       exit(0);
     })
     .catch(onError);

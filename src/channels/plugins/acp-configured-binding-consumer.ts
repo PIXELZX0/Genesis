@@ -12,7 +12,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -24,7 +24,7 @@ import type {
 import type { ConfiguredBindingConsumer } from "./configured-binding-consumers.js";
 import type { ChannelConfiguredBindingConversationRef } from "./types.adapters.js";
 
-function resolveAgentRuntimeAcpDefaults(params: { cfg: OpenClawConfig; ownerAgentId: string }): {
+function resolveAgentRuntimeAcpDefaults(params: { cfg: GenesisConfig; ownerAgentId: string }): {
   acpAgentId?: string;
   mode?: string;
   cwd?: string;
@@ -46,7 +46,7 @@ function resolveAgentRuntimeAcpDefaults(params: { cfg: OpenClawConfig; ownerAgen
 }
 
 function resolveConfiguredBindingWorkspaceCwd(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
 }): string | undefined {
   const explicitAgentWorkspace = normalizeText(
@@ -90,7 +90,7 @@ function buildConfiguredAcpSpec(params: {
 }
 
 function buildAcpTargetFactory(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   binding: ConfiguredBindingRuleConfig;
   channel: string;
   agentId: string;

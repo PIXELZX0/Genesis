@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { resolveStateDir } from "genesis/plugin-sdk/state-paths";
 import {
   resolveMatrixCredentialsDir,
   resolveMatrixCredentialsFilename,
@@ -10,13 +10,13 @@ import {
 
 type MatrixAuthPresenceParams =
   | {
-      cfg: OpenClawConfig;
+      cfg: GenesisConfig;
       env?: NodeJS.ProcessEnv;
     }
-  | OpenClawConfig;
+  | GenesisConfig;
 
 function listMatrixCredentialPaths(
-  _cfg: OpenClawConfig,
+  _cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): readonly string[] {
   const credentialsDir = resolveMatrixCredentialsDir(resolveStateDir(env, os.homedir));

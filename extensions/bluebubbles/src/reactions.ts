@@ -1,14 +1,14 @@
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { createBlueBubblesClient } from "./client.js";
 import { getCachedBlueBubblesPrivateApiStatus } from "./probe.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 
 export type BlueBubblesReactionOpts = {
   serverUrl?: string;
   password?: string;
   accountId?: string;
   timeoutMs?: number;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 };
 
 const REACTION_TYPES = new Set(["love", "like", "dislike", "laugh", "emphasize", "question"]);

@@ -1,5 +1,5 @@
 import { resolveAgentDir, resolveSessionAgentId } from "../../agents/agent-scope.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { logVerbose } from "../../globals.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -19,7 +19,7 @@ function loadCompactRuntime(): Promise<typeof import("./commands-compact.runtime
 function extractCompactInstructions(params: {
   rawBody?: string;
   ctx: import("../templating.js").MsgContext;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
   isGroup: boolean;
 }): string | undefined {

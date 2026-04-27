@@ -6,7 +6,7 @@ read_when:
 title: "Platforms"
 ---
 
-OpenClaw core is written in TypeScript. **Node is the recommended runtime**.
+Genesis core is written in TypeScript. **Node is the recommended runtime**.
 Bun is not recommended for the Gateway — known issues with WhatsApp and
 Telegram channels; see [Bun (experimental)](/install/bun) for details.
 
@@ -36,22 +36,22 @@ Native companion apps for Windows are also planned; the Gateway is recommended v
 - Install guide: [Getting Started](/start/getting-started)
 - Gateway runbook: [Gateway](/gateway)
 - Gateway configuration: [Configuration](/gateway/configuration)
-- Service status: `openclaw gateway status`
+- Service status: `genesis gateway status`
 
 ## Gateway service install (CLI)
 
 Use one of these (all supported):
 
-- Wizard (recommended): `openclaw onboard --install-daemon`
-- Direct: `openclaw gateway install`
-- Configure flow: `openclaw configure` → select **Gateway service**
-- Repair/migrate: `openclaw doctor` (offers to install or fix the service)
+- Wizard (recommended): `genesis onboard --install-daemon`
+- Direct: `genesis gateway install`
+- Configure flow: `genesis configure` → select **Gateway service**
+- Repair/migrate: `genesis doctor` (offers to install or fix the service)
 
 The service target depends on OS:
 
-- macOS: LaunchAgent (`ai.openclaw.gateway` or `ai.openclaw.<profile>`; legacy `com.openclaw.*`)
-- Linux/WSL2: systemd user service (`openclaw-gateway[-<profile>].service`)
-- Native Windows: Scheduled Task (`OpenClaw Gateway` or `OpenClaw Gateway (<profile>)`), with a per-user Startup-folder login item fallback if task creation is denied
+- macOS: LaunchAgent (`ai.genesis.gateway` or `ai.genesis.<profile>`; legacy `com.genesis.*`)
+- Linux/WSL2: systemd user service (`genesis-gateway[-<profile>].service`)
+- Native Windows: Scheduled Task (`Genesis Gateway` or `Genesis Gateway (<profile>)`), with a per-user Startup-folder login item fallback if task creation is denied
 
 ## Related
 

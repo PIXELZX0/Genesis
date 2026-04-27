@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   collectGatewayHttpNoAuthFindings,
   collectGatewayHttpSessionKeyOverrideFindings,
@@ -15,7 +15,7 @@ describe("security audit gateway HTTP auth findings", () => {
           auth: { mode: "none" },
           http: { endpoints: { chatCompletions: { enabled: true } } },
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       expectedFinding: { checkId: "gateway.http.no_auth", severity: "warn" as const },
       detailIncludes: ["/tools/invoke", "/v1/chat/completions"],
       env: {} as NodeJS.ProcessEnv,
@@ -28,7 +28,7 @@ describe("security audit gateway HTTP auth findings", () => {
           auth: { mode: "none" },
           http: { endpoints: { responses: { enabled: true } } },
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       expectedFinding: { checkId: "gateway.http.no_auth", severity: "critical" as const },
       env: {} as NodeJS.ProcessEnv,
     },
@@ -45,7 +45,7 @@ describe("security audit gateway HTTP auth findings", () => {
             },
           },
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       expectedNoFinding: "gateway.http.no_auth",
       env: {} as NodeJS.ProcessEnv,
     },
@@ -60,7 +60,7 @@ describe("security audit gateway HTTP auth findings", () => {
             },
           },
         },
-      } satisfies OpenClawConfig,
+      } satisfies GenesisConfig,
       expectedFinding: {
         checkId: "gateway.http.session_key_override_enabled",
         severity: "info" as const,

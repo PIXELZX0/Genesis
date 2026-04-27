@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import { SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
 import { loadConfig } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { textToSpeech } from "../../tts/tts.js";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 import type { AnyAgentTool } from "./common.js";
@@ -55,7 +55,7 @@ function sanitizeTranscriptForToolContent(text: string): string {
 }
 
 export function createTtsTool(opts?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentChannel?: GatewayMessageChannel;
 }): AnyAgentTool {
   return {

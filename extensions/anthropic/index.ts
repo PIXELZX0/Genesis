@@ -1,4 +1,4 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
 import { registerAnthropicPlugin } from "./register.runtime.js";
 
 export default definePluginEntry({

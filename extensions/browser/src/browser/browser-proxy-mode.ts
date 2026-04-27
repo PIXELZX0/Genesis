@@ -42,10 +42,17 @@ export function omitChromeProxyEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 
 export function resolveBrowserNavigationProxyMode(params: {
   resolved: Pick<ResolvedBrowserConfig, "extraArgs">;
-  profile: Pick<ResolvedBrowserProfile, "cdpIsLoopback" | "driver">;
+  profile: Pick<ResolvedBrowserProfile, "cdpIsLoopback" | "driver" | "tor">;
 }): BrowserNavigationProxyMode {
   if (
-    params.profile.driver === "openclaw" &&
+    params.profile.driver === "genesis" &&
+    params.profile.cdpIsLoopback &&
+    params.profile.tor?.enabled
+  ) {
+    return "tor";
+  }
+  if (
+    params.profile.driver === "genesis" &&
     params.profile.cdpIsLoopback &&
     hasExplicitChromeProxyRoutingArg(params.resolved.extraArgs)
   ) {

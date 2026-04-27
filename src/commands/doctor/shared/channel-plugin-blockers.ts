@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { listExplicitConfiguredChannelIdsForConfig } from "../../../plugins/channel-plugin-ids.js";
 import {
   normalizePluginsConfig,
@@ -13,7 +13,7 @@ export type ChannelPluginBlockerHit = {
   reason: "disabled in config" | "plugins disabled";
 };
 
-function hasExplicitChannelPluginBlockerConfig(cfg: OpenClawConfig): boolean {
+function hasExplicitChannelPluginBlockerConfig(cfg: GenesisConfig): boolean {
   if (cfg.plugins?.enabled === false) {
     return true;
   }
@@ -33,7 +33,7 @@ function hasExplicitChannelPluginBlockerConfig(cfg: OpenClawConfig): boolean {
 }
 
 export function scanConfiguredChannelPluginBlockers(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): ChannelPluginBlockerHit[] {
   if (!hasExplicitChannelPluginBlockerConfig(cfg)) {

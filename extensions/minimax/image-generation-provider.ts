@@ -1,11 +1,11 @@
-import type { ImageGenerationProvider } from "openclaw/plugin-sdk/image-generation";
-import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+import type { ImageGenerationProvider } from "genesis/plugin-sdk/image-generation";
+import { isProviderApiKeyConfigured } from "genesis/plugin-sdk/provider-auth";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
+} from "genesis/plugin-sdk/provider-http";
 
 const DEFAULT_MINIMAX_IMAGE_BASE_URL = "https://api.minimax.io";
 const DEFAULT_MODEL = "image-01";

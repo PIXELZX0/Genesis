@@ -294,7 +294,7 @@ describe("TelnyxProvider answer control", () => {
         policy: { allowedHostnames: ["api.telnyx.com"] },
         init: expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ command_id: "openclaw-answer-call-1" }),
+          body: JSON.stringify({ command_id: "genesis-answer-call-1" }),
         }),
       }),
     );

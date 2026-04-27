@@ -1,13 +1,12 @@
 import { createServer } from "node:http";
 import type { IncomingMessage } from "node:http";
 import net from "node:net";
-import * as grammy from "grammy";
-import { safeEqualSecret } from "openclaw/plugin-sdk/browser-security-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { isDiagnosticsEnabled } from "openclaw/plugin-sdk/diagnostic-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { defaultRuntime } from "openclaw/plugin-sdk/runtime-env";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
+import { safeEqualSecret } from "genesis/plugin-sdk/browser-security-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { isDiagnosticsEnabled } from "genesis/plugin-sdk/diagnostic-runtime";
+import type { RuntimeEnv } from "genesis/plugin-sdk/runtime-env";
+import { defaultRuntime } from "genesis/plugin-sdk/runtime-env";
+import { formatErrorMessage } from "genesis/plugin-sdk/ssrf-runtime";
 import {
   logWebhookError,
   logWebhookProcessed,
@@ -15,13 +14,14 @@ import {
   normalizeOptionalString,
   startDiagnosticHeartbeat,
   stopDiagnosticHeartbeat,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   applyBasicWebhookRequestGuards,
   createFixedWindowRateLimiter,
   WEBHOOK_RATE_LIMIT_DEFAULTS,
-} from "openclaw/plugin-sdk/webhook-ingress";
-import { readJsonBodyWithLimit } from "openclaw/plugin-sdk/webhook-request-guards";
+} from "genesis/plugin-sdk/webhook-ingress";
+import { readJsonBodyWithLimit } from "genesis/plugin-sdk/webhook-request-guards";
+import * as grammy from "grammy";
 import { resolveTelegramAllowedUpdates } from "./allowed-updates.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import { createTelegramBot } from "./bot.js";
@@ -200,7 +200,7 @@ function resolveForwardedClientIp(
   return undefined;
 }
 
-function resolveTelegramWebhookClientIp(req: IncomingMessage, config?: OpenClawConfig): string {
+function resolveTelegramWebhookClientIp(req: IncomingMessage, config?: GenesisConfig): string {
   const remoteAddress = parseIpLiteral(req.socket.remoteAddress);
   const trustedProxies = config?.gateway?.trustedProxies;
   if (!remoteAddress) {
@@ -228,7 +228,7 @@ function resolveTelegramWebhookClientIp(req: IncomingMessage, config?: OpenClawC
 function resolveTelegramWebhookRateLimitKey(
   req: IncomingMessage,
   path: string,
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): string {
   return `${path}:${resolveTelegramWebhookClientIp(req, config)}`;
 }
@@ -236,7 +236,7 @@ function resolveTelegramWebhookRateLimitKey(
 export async function startTelegramWebhook(opts: {
   token: string;
   accountId?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   path?: string;
   port?: number;
   host?: string;

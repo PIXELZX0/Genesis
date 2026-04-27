@@ -5,7 +5,7 @@ import { __testing } from "../test-api.js";
 import { createBraveWebSearchProvider } from "./brave-web-search-provider.js";
 
 const braveManifest = JSON.parse(
-  fs.readFileSync(new URL("../openclaw.plugin.json", import.meta.url), "utf-8"),
+  fs.readFileSync(new URL("../genesis.plugin.json", import.meta.url), "utf-8"),
 ) as {
   configSchema?: Record<string, unknown>;
 };

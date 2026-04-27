@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/lmstudio-provider",
+  "name": "@genesis/lmstudio-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw LM Studio provider plugin",
+  "description": "Genesis LM Studio provider plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

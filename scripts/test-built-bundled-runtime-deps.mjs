@@ -11,7 +11,7 @@ import { parsePackageRootArg } from "./lib/package-root-args.mjs";
 
 const { packageRoot } = parsePackageRootArg(
   process.argv.slice(2),
-  "OPENCLAW_BUNDLED_RUNTIME_DEPS_ROOT",
+  "GENESIS_BUNDLED_RUNTIME_DEPS_ROOT",
 );
 const rootPackageJsonPath = path.join(packageRoot, "package.json");
 const builtPluginsDir = path.join(packageRoot, "dist", "extensions");

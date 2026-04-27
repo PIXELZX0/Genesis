@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createWebhookInFlightLimiter } from "openclaw/plugin-sdk/webhook-request-guards";
-import { registerWebhookTargetWithPluginRoute } from "openclaw/plugin-sdk/webhook-targets";
+import { createWebhookInFlightLimiter } from "genesis/plugin-sdk/webhook-request-guards";
+import { registerWebhookTargetWithPluginRoute } from "genesis/plugin-sdk/webhook-targets";
 import type { WebhookTarget } from "./monitor-types.js";
 import { createGoogleChatWebhookRequestHandler } from "./monitor-webhook.js";
 import type { GoogleChatEvent } from "./types.js";

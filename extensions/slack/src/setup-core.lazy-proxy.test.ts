@@ -6,7 +6,7 @@
 // against the wider ChannelSetupWizard contract, without going through the
 // (narrower) ChannelPluginSetupWizard surface exposed on slackPlugin.
 
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup-runtime";
+import type { ChannelSetupWizard } from "genesis/plugin-sdk/setup-runtime";
 import { describe, expect, it, vi } from "vitest";
 import { createSlackSetupWizardProxy } from "./setup-core.js";
 

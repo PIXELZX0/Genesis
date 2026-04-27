@@ -3,9 +3,9 @@ import {
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
   resolveMergedAccountConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/account-resolution";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/account-resolution";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { SlackAccountSurfaceFields } from "./account-surface-fields.js";
 import type { SlackAccountConfig } from "./runtime-api.js";
 import { resolveSlackAppToken, resolveSlackBotToken, resolveSlackUserToken } from "./token.js";
@@ -31,10 +31,7 @@ const { listAccountIds, resolveDefaultAccountId } = createAccountListHelpers("sl
 export const listSlackAccountIds = listAccountIds;
 export const resolveDefaultSlackAccountId = resolveDefaultAccountId;
 
-export function mergeSlackAccountConfig(
-  cfg: OpenClawConfig,
-  accountId: string,
-): SlackAccountConfig {
+export function mergeSlackAccountConfig(cfg: GenesisConfig, accountId: string): SlackAccountConfig {
   return resolveMergedAccountConfig<SlackAccountConfig>({
     channelConfig: cfg.channels?.slack as SlackAccountConfig,
     accounts: cfg.channels?.slack?.accounts as Record<string, Partial<SlackAccountConfig>>,
@@ -43,7 +40,7 @@ export function mergeSlackAccountConfig(
 }
 
 export function resolveSlackAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): ResolvedSlackAccount {
   const accountId = normalizeAccountId(
@@ -105,7 +102,7 @@ export function resolveSlackAccount(params: {
   };
 }
 
-export function listEnabledSlackAccounts(cfg: OpenClawConfig): ResolvedSlackAccount[] {
+export function listEnabledSlackAccounts(cfg: GenesisConfig): ResolvedSlackAccount[] {
   return listSlackAccountIds(cfg)
     .map((accountId) => resolveSlackAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

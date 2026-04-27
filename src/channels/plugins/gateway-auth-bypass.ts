@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { loadBundledPluginPublicArtifactModuleSync } from "../../plugins/public-surface-loader.js";
 
 type GatewayAuthBypassApi = {
-  resolveGatewayAuthBypassPaths?: (params: { cfg: OpenClawConfig }) => readonly unknown[];
+  resolveGatewayAuthBypassPaths?: (params: { cfg: GenesisConfig }) => readonly unknown[];
 };
 
 const GATEWAY_AUTH_API_ARTIFACT_BASENAME = "gateway-auth-api.js";
@@ -24,7 +24,7 @@ function loadBundledChannelGatewayAuthApi(channelId: string): GatewayAuthBypassA
 
 export function resolveBundledChannelGatewayAuthBypassPaths(params: {
   channelId: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
 }): string[] {
   const api = loadBundledChannelGatewayAuthApi(params.channelId);
   const paths = api?.resolveGatewayAuthBypassPaths?.({ cfg: params.cfg }) ?? [];

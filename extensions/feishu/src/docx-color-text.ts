@@ -12,7 +12,7 @@
  */
 
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 // Feishu text_color values (1-7)
 const TEXT_COLOR: Record<string, number> = {

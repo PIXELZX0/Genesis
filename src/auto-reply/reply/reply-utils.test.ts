@@ -19,13 +19,13 @@ import { createTypingSignaler, resolveTypingMode } from "./typing-mode.js";
 import { createTypingController } from "./typing.js";
 
 describe("matchesMentionWithExplicit", () => {
-  const mentionRegexes = [/\bopenclaw\b/i];
+  const mentionRegexes = [/\bgenesis\b/i];
 
   it("combines explicit-mention state with regex fallback rules", () => {
     const cases = [
       {
         name: "regex match with explicit resolver available",
-        text: "@openclaw hello",
+        text: "@genesis hello",
         mentionRegexes,
         explicit: {
           hasAnyMention: true,
@@ -58,7 +58,7 @@ describe("matchesMentionWithExplicit", () => {
       },
       {
         name: "falls back to regex when explicit cannot resolve",
-        text: "openclaw please",
+        text: "genesis please",
         mentionRegexes,
         explicit: {
           hasAnyMention: true,
@@ -520,14 +520,14 @@ describe("resolveResponsePrefixTemplate", () => {
       {
         name: "identity.name",
         template: "[{identity.name}]",
-        values: { identityName: "OpenClaw" },
-        expected: "[OpenClaw]",
+        values: { identityName: "Genesis" },
+        expected: "[Genesis]",
       },
       {
         name: "identityName alias",
         template: "[{identityName}]",
-        values: { identityName: "OpenClaw" },
-        expected: "[OpenClaw]",
+        values: { identityName: "Genesis" },
+        expected: "[Genesis]",
       },
       {
         name: "case-insensitive variables",
@@ -539,12 +539,12 @@ describe("resolveResponsePrefixTemplate", () => {
         name: "all variables",
         template: "[{identity.name}] {provider}/{model} (think:{thinkingLevel})",
         values: {
-          identityName: "OpenClaw",
+          identityName: "Genesis",
           provider: "anthropic",
           model: "claude-opus-4-6",
           thinkingLevel: "high",
         },
-        expected: "[OpenClaw] anthropic/claude-opus-4-6 (think:high)",
+        expected: "[Genesis] anthropic/claude-opus-4-6 (think:high)",
       },
     ] as const;
     expectResolvedTemplateCases(cases);

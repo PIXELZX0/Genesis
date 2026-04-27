@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 
 const MAX_ENTRIES = 2_048;
-const TOPIC_NAME_CACHE_STATE_KEY = Symbol.for("openclaw.telegramTopicNameCacheState");
+const TOPIC_NAME_CACHE_STATE_KEY = Symbol.for("genesis.telegramTopicNameCacheState");
 const DEFAULT_TOPIC_NAME_CACHE_KEY = "__default__";
 
 export type TopicEntry = {

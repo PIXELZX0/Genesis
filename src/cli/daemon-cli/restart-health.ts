@@ -70,8 +70,8 @@ function looksLikeAuthClose(code: number | undefined, reason: string | undefined
 }
 
 async function confirmGatewayReachable(port: number): Promise<boolean> {
-  const token = normalizeOptionalString(process.env.OPENCLAW_GATEWAY_TOKEN);
-  const password = normalizeOptionalString(process.env.OPENCLAW_GATEWAY_PASSWORD);
+  const token = normalizeOptionalString(process.env.GENESIS_GATEWAY_TOKEN);
+  const password = normalizeOptionalString(process.env.GENESIS_GATEWAY_PASSWORD);
   const probe = await probeGateway({
     url: `ws://127.0.0.1:${port}`,
     auth: token || password ? { token, password } : undefined,

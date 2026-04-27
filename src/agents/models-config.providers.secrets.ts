@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveProviderSyntheticAuthWithPlugin } from "../plugins/provider-runtime.js";
 import type { AuthProfileStore } from "./auth-profiles/types.js";
 import {
@@ -47,7 +47,7 @@ function resolveAuthProfileStoreInput(input: AuthProfileStoreInput) {
 export function createProviderApiKeyResolver(
   env: NodeJS.ProcessEnv,
   authStoreInput: AuthProfileStoreInput,
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): ProviderApiKeyResolver {
   return (provider: string): { apiKey: string | undefined; discoveryApiKey?: string } => {
     const authProvider = resolveProviderIdForAuth(provider, { config, env });
@@ -85,7 +85,7 @@ export function createProviderApiKeyResolver(
 export function createProviderAuthResolver(
   env: NodeJS.ProcessEnv,
   authStoreInput: AuthProfileStoreInput,
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
 ): ProviderAuthResolver {
   return (provider: string, options?: { oauthMarker?: string }) => {
     const authProvider = resolveProviderIdForAuth(provider, { config, env });
@@ -163,7 +163,7 @@ export function createProviderAuthResolver(
   };
 }
 
-function resolveConfigBackedProviderAuth(params: { provider: string; config?: OpenClawConfig }):
+function resolveConfigBackedProviderAuth(params: { provider: string; config?: GenesisConfig }):
   | {
       apiKey: string;
       discoveryApiKey?: string;

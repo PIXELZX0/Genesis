@@ -1,11 +1,11 @@
-import { describeAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
+import { describeAccountSnapshot } from "genesis/plugin-sdk/account-helpers";
 import {
   adaptScopedAccountAccessor,
   createScopedChannelConfigAdapter,
   formatTrimmedAllowFromEntries,
-} from "openclaw/plugin-sdk/channel-config-helpers";
-import { createRestrictSendersChannelSecurity } from "openclaw/plugin-sdk/channel-policy";
-import { createChannelPluginBase } from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/channel-config-helpers";
+import { createRestrictSendersChannelSecurity } from "genesis/plugin-sdk/channel-policy";
+import { createChannelPluginBase } from "genesis/plugin-sdk/core";
 import {
   listIMessageAccountIds,
   resolveDefaultIMessageAccountId,

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   createBundleMcpTempHarness,
   createBundleProbePlugin,
@@ -17,11 +17,11 @@ let bundleProbeServerPath = "";
 let envSnapshot: ReturnType<typeof captureEnv> | undefined;
 
 beforeAll(async () => {
-  envSnapshot = captureEnv(["OPENCLAW_BUNDLED_PLUGINS_DIR"]);
-  bundleProbeHomeDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-home-");
-  bundleProbeWorkspaceDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-workspace-");
-  const emptyBundledDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-bundled-");
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = emptyBundledDir;
+  envSnapshot = captureEnv(["GENESIS_BUNDLED_PLUGINS_DIR"]);
+  bundleProbeHomeDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-home-");
+  bundleProbeWorkspaceDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-workspace-");
+  const emptyBundledDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-bundled-");
+  process.env.GENESIS_BUNDLED_PLUGINS_DIR = emptyBundledDir;
   ({ serverPath: bundleProbeServerPath } = await createBundleProbePlugin(bundleProbeHomeDir));
 });
 
@@ -30,7 +30,7 @@ afterAll(async () => {
   await tempHarness.cleanup();
 });
 
-function createEnabledBundleProbeConfig(): OpenClawConfig {
+function createEnabledBundleProbeConfig(): GenesisConfig {
   return {
     plugins: {
       entries: {
@@ -64,7 +64,7 @@ async function prepareBundleProbeCliConfig(params?: {
 
 describe("prepareCliBundleMcpConfig", () => {
   it("injects a strict empty --mcp-config overlay for bundle-MCP-enabled backends without servers", async () => {
-    const workspaceDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-empty-");
+    const workspaceDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-empty-");
 
     const prepared = await prepareCliBundleMcpConfig({
       enabled: true,
@@ -109,8 +109,8 @@ describe("prepareCliBundleMcpConfig", () => {
   });
 
   it("loads workspace bundle MCP plugins from the configured workspace root", async () => {
-    const workspaceDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-workspace-root-");
-    const pluginRoot = path.join(workspaceDir, ".openclaw", "extensions", "workspace-probe");
+    const workspaceDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-workspace-root-");
+    const pluginRoot = path.join(workspaceDir, ".genesis", "extensions", "workspace-probe");
     const serverPath = path.join(pluginRoot, "servers", "probe.mjs");
     await fs.mkdir(path.dirname(serverPath), { recursive: true });
     await fs.writeFile(serverPath, "export {};\n", "utf-8");
@@ -167,11 +167,11 @@ describe("prepareCliBundleMcpConfig", () => {
     const prepared = await prepareBundleProbeCliConfig({
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
@@ -183,15 +183,15 @@ describe("prepareCliBundleMcpConfig", () => {
     const raw = JSON.parse(await fs.readFile(generatedConfigPath as string, "utf-8")) as {
       mcpServers?: Record<string, { url?: string; headers?: Record<string, string> }>;
     };
-    expect(Object.keys(raw.mcpServers ?? {}).toSorted()).toEqual(["bundleProbe", "openclaw"]);
-    expect(raw.mcpServers?.openclaw?.url).toBe("http://127.0.0.1:23119/mcp");
-    expect(raw.mcpServers?.openclaw?.headers?.Authorization).toBe("Bearer ${OPENCLAW_MCP_TOKEN}");
+    expect(Object.keys(raw.mcpServers ?? {}).toSorted()).toEqual(["bundleProbe", "genesis"]);
+    expect(raw.mcpServers?.genesis?.url).toBe("http://127.0.0.1:23119/mcp");
+    expect(raw.mcpServers?.genesis?.headers?.Authorization).toBe("Bearer ${GENESIS_MCP_TOKEN}");
 
     await prepared.cleanup?.();
   });
 
-  it("merges user-configured mcp.servers from OpenClaw config", async () => {
-    const workspaceDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-user-servers-");
+  it("merges user-configured mcp.servers from Genesis config", async () => {
+    const workspaceDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-user-servers-");
 
     const prepared = await prepareCliBundleMcpConfig({
       enabled: true,
@@ -229,7 +229,7 @@ describe("prepareCliBundleMcpConfig", () => {
 
   it("user mcp.servers do not override the loopback additionalConfig", async () => {
     const workspaceDir = await tempHarness.createTempDir(
-      "openclaw-cli-bundle-mcp-user-servers-loopback-",
+      "genesis-cli-bundle-mcp-user-servers-loopback-",
     );
 
     const prepared = await prepareCliBundleMcpConfig({
@@ -244,7 +244,7 @@ describe("prepareCliBundleMcpConfig", () => {
         plugins: { enabled: false },
         mcp: {
           servers: {
-            openclaw: {
+            genesis: {
               type: "http",
               url: "https://example.com/malicious",
             },
@@ -253,10 +253,10 @@ describe("prepareCliBundleMcpConfig", () => {
       },
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
-            headers: { Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}" },
+            headers: { Authorization: "Bearer ${GENESIS_MCP_TOKEN}" },
           },
         },
       },
@@ -268,21 +268,21 @@ describe("prepareCliBundleMcpConfig", () => {
     const raw = JSON.parse(await fs.readFile(generatedConfigPath as string, "utf-8")) as {
       mcpServers?: Record<string, { url?: string }>;
     };
-    expect(raw.mcpServers?.openclaw?.url).toBe("http://127.0.0.1:23119/mcp");
+    expect(raw.mcpServers?.genesis?.url).toBe("http://127.0.0.1:23119/mcp");
 
     await prepared.cleanup?.();
   });
 
   it("replaces overlapping bundle server entries with user-configured mcp.servers", async () => {
     const workspaceDir = await tempHarness.createTempDir(
-      "openclaw-cli-bundle-mcp-user-servers-replace-",
+      "genesis-cli-bundle-mcp-user-servers-replace-",
     );
     await writeClaudeBundleManifest({
       homeDir: bundleProbeHomeDir,
       pluginId: "omi",
       manifest: { name: "omi" },
     });
-    const pluginDir = path.join(bundleProbeHomeDir, ".openclaw", "extensions", "omi");
+    const pluginDir = path.join(bundleProbeHomeDir, ".genesis", "extensions", "omi");
     await fs.writeFile(
       path.join(pluginDir, ".mcp.json"),
       `${JSON.stringify(
@@ -357,15 +357,15 @@ describe("prepareCliBundleMcpConfig", () => {
     }
   });
 
-  it("stabilizes the resume hash when only the OpenClaw loopback port changes", async () => {
+  it("stabilizes the resume hash when only the Genesis loopback port changes", async () => {
     const first = await prepareBundleProbeCliConfig({
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
@@ -374,11 +374,11 @@ describe("prepareCliBundleMcpConfig", () => {
     const second = await prepareBundleProbeCliConfig({
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:24567/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
@@ -396,11 +396,11 @@ describe("prepareCliBundleMcpConfig", () => {
     const first = await prepareBundleProbeCliConfig({
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
@@ -409,11 +409,11 @@ describe("prepareCliBundleMcpConfig", () => {
     const second = await prepareBundleProbeCliConfig({
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/other",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
@@ -427,7 +427,7 @@ describe("prepareCliBundleMcpConfig", () => {
   });
 
   it("preserves extra env values alongside generated MCP config", async () => {
-    const workspaceDir = await tempHarness.createTempDir("openclaw-cli-bundle-mcp-env-");
+    const workspaceDir = await tempHarness.createTempDir("genesis-cli-bundle-mcp-env-");
 
     const prepared = await prepareCliBundleMcpConfig({
       enabled: true,
@@ -439,14 +439,14 @@ describe("prepareCliBundleMcpConfig", () => {
       workspaceDir,
       config: { plugins: { enabled: false } },
       env: {
-        OPENCLAW_MCP_TOKEN: "loopback-token-123",
-        OPENCLAW_MCP_SESSION_KEY: "agent:main:telegram:group:chat123",
+        GENESIS_MCP_TOKEN: "loopback-token-123",
+        GENESIS_MCP_SESSION_KEY: "agent:main:telegram:group:chat123",
       },
     });
 
     expect(prepared.env).toEqual({
-      OPENCLAW_MCP_TOKEN: "loopback-token-123",
-      OPENCLAW_MCP_SESSION_KEY: "agent:main:telegram:group:chat123",
+      GENESIS_MCP_TOKEN: "loopback-token-123",
+      GENESIS_MCP_SESSION_KEY: "agent:main:telegram:group:chat123",
     });
 
     await prepared.cleanup?.();
@@ -459,7 +459,7 @@ describe("prepareCliBundleMcpConfig", () => {
         command: "node",
         args: ["./fake-cli.mjs"],
       },
-      workspaceDir: "/tmp/openclaw-bundle-mcp-disabled",
+      workspaceDir: "/tmp/genesis-bundle-mcp-disabled",
     });
 
     expect(prepared.backend.args).toEqual(["./fake-cli.mjs"]);
@@ -475,16 +475,16 @@ describe("prepareCliBundleMcpConfig", () => {
         args: ["exec", "--json"],
         resumeArgs: ["exec", "resume", "{sessionId}"],
       },
-      workspaceDir: "/tmp/openclaw-bundle-mcp-codex",
+      workspaceDir: "/tmp/genesis-bundle-mcp-codex",
       config: { plugins: { enabled: false } },
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
-              "x-session-key": "${OPENCLAW_MCP_SESSION_KEY}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
+              "x-session-key": "${GENESIS_MCP_SESSION_KEY}",
             },
           },
         },
@@ -495,14 +495,14 @@ describe("prepareCliBundleMcpConfig", () => {
       "exec",
       "--json",
       "-c",
-      'mcp_servers={ openclaw = { url = "http://127.0.0.1:23119/mcp", default_tools_approval_mode = "approve", bearer_token_env_var = "OPENCLAW_MCP_TOKEN", env_http_headers = { x-session-key = "OPENCLAW_MCP_SESSION_KEY" } } }',
+      'mcp_servers={ genesis = { url = "http://127.0.0.1:23119/mcp", default_tools_approval_mode = "approve", bearer_token_env_var = "GENESIS_MCP_TOKEN", env_http_headers = { x-session-key = "GENESIS_MCP_SESSION_KEY" } } }',
     ]);
     expect(prepared.backend.resumeArgs).toEqual([
       "exec",
       "resume",
       "{sessionId}",
       "-c",
-      'mcp_servers={ openclaw = { url = "http://127.0.0.1:23119/mcp", default_tools_approval_mode = "approve", bearer_token_env_var = "OPENCLAW_MCP_TOKEN", env_http_headers = { x-session-key = "OPENCLAW_MCP_SESSION_KEY" } } }',
+      'mcp_servers={ genesis = { url = "http://127.0.0.1:23119/mcp", default_tools_approval_mode = "approve", bearer_token_env_var = "GENESIS_MCP_TOKEN", env_http_headers = { x-session-key = "GENESIS_MCP_SESSION_KEY" } } }',
     ]);
     expect(prepared.cleanup).toBeUndefined();
   });
@@ -515,26 +515,26 @@ describe("prepareCliBundleMcpConfig", () => {
         command: "gemini",
         args: ["--prompt", "{prompt}"],
       },
-      workspaceDir: "/tmp/openclaw-bundle-mcp-gemini",
+      workspaceDir: "/tmp/genesis-bundle-mcp-gemini",
       config: { plugins: { enabled: false } },
       additionalConfig: {
         mcpServers: {
-          openclaw: {
+          genesis: {
             type: "http",
             url: "http://127.0.0.1:23119/mcp",
             headers: {
-              Authorization: "Bearer ${OPENCLAW_MCP_TOKEN}",
+              Authorization: "Bearer ${GENESIS_MCP_TOKEN}",
             },
           },
         },
       },
       env: {
-        OPENCLAW_MCP_TOKEN: "loopback-token-123",
+        GENESIS_MCP_TOKEN: "loopback-token-123",
       },
     });
 
     expect(prepared.backend.args).toEqual(["--prompt", "{prompt}"]);
-    expect(prepared.env?.OPENCLAW_MCP_TOKEN).toBe("loopback-token-123");
+    expect(prepared.env?.GENESIS_MCP_TOKEN).toBe("loopback-token-123");
     expect(typeof prepared.env?.GEMINI_CLI_SYSTEM_SETTINGS_PATH).toBe("string");
     const raw = JSON.parse(
       await fs.readFile(prepared.env?.GEMINI_CLI_SYSTEM_SETTINGS_PATH as string, "utf-8"),
@@ -542,9 +542,9 @@ describe("prepareCliBundleMcpConfig", () => {
       mcp?: { allowed?: string[] };
       mcpServers?: Record<string, { url?: string; headers?: Record<string, string> }>;
     };
-    expect(raw.mcp?.allowed).toEqual(["openclaw"]);
-    expect(raw.mcpServers?.openclaw?.url).toBe("http://127.0.0.1:23119/mcp");
-    expect(raw.mcpServers?.openclaw?.headers?.Authorization).toBe("Bearer loopback-token-123");
+    expect(raw.mcp?.allowed).toEqual(["genesis"]);
+    expect(raw.mcpServers?.genesis?.url).toBe("http://127.0.0.1:23119/mcp");
+    expect(raw.mcpServers?.genesis?.headers?.Authorization).toBe("Bearer loopback-token-123");
 
     await prepared.cleanup?.();
   });

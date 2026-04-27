@@ -1,10 +1,10 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { Type } from "typebox";
 import {
   definePluginEntry,
   type GatewayRequestHandlerOptions,
-  type OpenClawPluginApi,
+  type GenesisPluginApi,
 } from "./api.js";
 import { createVoiceCallRuntime, type VoiceCallRuntime } from "./runtime-entry.js";
 import { registerVoiceCallCli } from "./src/cli.js";
@@ -84,7 +84,7 @@ const voiceCallConfigSchema = {
     "realtime.instructions": { label: "Realtime Instructions", advanced: true },
     "realtime.toolPolicy": {
       label: "Realtime Tool Policy",
-      help: "Controls the shared openclaw_agent_consult tool.",
+      help: "Controls the shared genesis_agent_consult tool.",
       advanced: true,
     },
     "realtime.providers": { label: "Realtime Provider Config", advanced: true },
@@ -159,9 +159,9 @@ function asParamRecord(params: unknown): Record<string, unknown> {
     : {};
 }
 
-const VOICE_CALL_RUNTIME_KEY = Symbol.for("openclaw.voice-call.runtime");
-const VOICE_CALL_RUNTIME_PROMISE_KEY = Symbol.for("openclaw.voice-call.runtimePromise");
-const VOICE_CALL_RUNTIME_STOP_PROMISE_KEY = Symbol.for("openclaw.voice-call.runtimeStopPromise");
+const VOICE_CALL_RUNTIME_KEY = Symbol.for("genesis.voice-call.runtime");
+const VOICE_CALL_RUNTIME_PROMISE_KEY = Symbol.for("genesis.voice-call.runtimePromise");
+const VOICE_CALL_RUNTIME_STOP_PROMISE_KEY = Symbol.for("genesis.voice-call.runtimeStopPromise");
 
 type VoiceCallRuntimeGlobalState = typeof globalThis & {
   [VOICE_CALL_RUNTIME_KEY]?: VoiceCallRuntime | null;
@@ -182,7 +182,7 @@ export default definePluginEntry({
   name: "Voice Call",
   description: "Voice-call plugin with Telnyx/Twilio/Plivo providers",
   configSchema: voiceCallConfigSchema,
-  register(api: OpenClawPluginApi) {
+  register(api: GenesisPluginApi) {
     const config = resolveVoiceCallConfig(voiceCallConfigSchema.parse(api.pluginConfig));
     const validation = validateProviderConfig(config);
 
@@ -190,7 +190,7 @@ export default definePluginEntry({
       for (const warning of formatVoiceCallLegacyConfigWarnings({
         value: api.pluginConfig,
         configPathPrefix: "plugins.entries.voice-call.config",
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "genesis doctor --fix",
       })) {
         api.logger.warn(warning);
       }

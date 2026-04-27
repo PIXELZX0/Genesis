@@ -5,7 +5,7 @@ import { withTempDir } from "../test-helpers/temp-dir.js";
 
 describe("build-stamp script", () => {
   it("writes dist/.buildstamp with the current git head", async () => {
-    await withTempDir({ prefix: "openclaw-build-stamp-" }, async (tmp) => {
+    await withTempDir({ prefix: "genesis-build-stamp-" }, async (tmp) => {
       const stampPath = writeBuildStamp({
         cwd: tmp,
         now: () => 1_700_000_000_000,

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { buildMediaUnderstandingManifestMetadataRegistry } from "./manifest-metadata.js";
 import { normalizeMediaProviderId } from "./provider-registry.js";
@@ -36,9 +36,9 @@ export const CLI_OUTPUT_MAX_BUFFER = 5 * MB;
 export const DEFAULT_MEDIA_CONCURRENCY = 2;
 
 let defaultRegistryCache: Map<string, MediaUnderstandingProvider> | null = null;
-const configRegistryCache = new WeakMap<OpenClawConfig, Map<string, MediaUnderstandingProvider>>();
+const configRegistryCache = new WeakMap<GenesisConfig, Map<string, MediaUnderstandingProvider>>();
 
-function resolveDefaultRegistry(cfg?: OpenClawConfig) {
+function resolveDefaultRegistry(cfg?: GenesisConfig) {
   if (!cfg) {
     defaultRegistryCache ??= buildMediaUnderstandingManifestMetadataRegistry();
     return defaultRegistryCache;
@@ -62,7 +62,7 @@ function providerHasDeclaredCapability(
 }
 
 function resolveConfiguredImageProviderModel(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerId: string;
 }): string | undefined {
   const providers = params.cfg?.models?.providers;
@@ -86,7 +86,7 @@ function resolveConfiguredImageProviderModel(params: {
   return undefined;
 }
 
-function resolveConfiguredImageProviderIds(cfg?: OpenClawConfig): string[] {
+function resolveConfiguredImageProviderIds(cfg?: GenesisConfig): string[] {
   const providers = cfg?.models?.providers;
   if (!providers || typeof providers !== "object") {
     return [];
@@ -111,7 +111,7 @@ function resolveConfiguredImageProviderIds(cfg?: OpenClawConfig): string[] {
 export function resolveDefaultMediaModel(params: {
   providerId: string;
   capability: MediaUnderstandingCapability;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): string | undefined {
   if (!params.providerRegistry) {
@@ -133,7 +133,7 @@ export function resolveDefaultMediaModel(params: {
 
 export function resolveAutoMediaKeyProviders(params: {
   capability: MediaUnderstandingCapability;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): string[] {
   const registry = params.providerRegistry ?? resolveDefaultRegistry(params.cfg);
@@ -166,7 +166,7 @@ export function resolveAutoMediaKeyProviders(params: {
 
 export function providerSupportsNativePdfDocument(params: {
   providerId: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): boolean {
   const registry = params.providerRegistry ?? resolveDefaultRegistry(params.cfg);

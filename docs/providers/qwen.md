@@ -1,7 +1,7 @@
 ---
-summary: "Use Qwen Cloud via OpenClaw's bundled qwen provider"
+summary: "Use Qwen Cloud via Genesis's bundled qwen provider"
 read_when:
-  - You want to use Qwen with OpenClaw
+  - You want to use Qwen with Genesis
   - You previously used Qwen OAuth
 title: "Qwen"
 ---
@@ -10,12 +10,12 @@ title: "Qwen"
 
 **Qwen OAuth has been removed.** The free-tier OAuth integration
 (`qwen-portal`) that used `portal.qwen.ai` endpoints is no longer available.
-See [Issue #49557](https://github.com/openclaw/openclaw/issues/49557) for
+See [Issue #49557](https://github.com/PIXELZX0/Genesis/issues/49557) for
 background.
 
 </Warning>
 
-OpenClaw now treats Qwen as a first-class bundled provider with canonical id
+Genesis now treats Qwen as a first-class bundled provider with canonical id
 `qwen`. The bundled provider targets the Qwen Cloud / Alibaba DashScope and
 Coding Plan endpoints and keeps legacy `modelstudio` ids working as a
 compatibility alias.
@@ -46,13 +46,13 @@ Choose your plan type and follow the setup steps.
         For the **Global** endpoint:
 
         ```bash
-        openclaw onboard --auth-choice qwen-api-key
+        genesis onboard --auth-choice qwen-api-key
         ```
 
         For the **China** endpoint:
 
         ```bash
-        openclaw onboard --auth-choice qwen-api-key-cn
+        genesis onboard --auth-choice qwen-api-key-cn
         ```
       </Step>
       <Step title="Set a default model">
@@ -68,7 +68,7 @@ Choose your plan type and follow the setup steps.
       </Step>
       <Step title="Verify the model is available">
         ```bash
-        openclaw models list --provider qwen
+        genesis models list --provider qwen
         ```
       </Step>
     </Steps>
@@ -92,13 +92,13 @@ Choose your plan type and follow the setup steps.
         For the **Global** endpoint:
 
         ```bash
-        openclaw onboard --auth-choice qwen-standard-api-key
+        genesis onboard --auth-choice qwen-standard-api-key
         ```
 
         For the **China** endpoint:
 
         ```bash
-        openclaw onboard --auth-choice qwen-standard-api-key-cn
+        genesis onboard --auth-choice qwen-standard-api-key-cn
         ```
       </Step>
       <Step title="Set a default model">
@@ -114,7 +114,7 @@ Choose your plan type and follow the setup steps.
       </Step>
       <Step title="Verify the model is available">
         ```bash
-        openclaw models list --provider qwen
+        genesis models list --provider qwen
         ```
       </Step>
     </Steps>
@@ -148,7 +148,7 @@ You can override with a custom `baseUrl` in config.
 
 ## Built-in catalog
 
-OpenClaw currently ships this bundled Qwen catalog. The configured catalog is
+Genesis currently ships this bundled Qwen catalog. The configured catalog is
 endpoint-aware: Coding Plan configs omit models that are only known to work on
 the Standard endpoint.
 
@@ -239,7 +239,7 @@ See [Video Generation](/tools/video-generation) for shared tool parameters, prov
   </Accordion>
 
   <Accordion title="Video generation details">
-    For video generation, OpenClaw maps the configured Qwen region to the matching
+    For video generation, Genesis maps the configured Qwen region to the matching
     DashScope AIGC host before submitting the job:
 
     - Global/Intl: `https://dashscope-intl.aliyuncs.com`
@@ -264,7 +264,7 @@ See [Video Generation](/tools/video-generation) for shared tool parameters, prov
 
   <Accordion title="Streaming usage compatibility">
     Native Model Studio endpoints advertise streaming usage compatibility on the
-    shared `openai-completions` transport. OpenClaw keys that off endpoint
+    shared `openai-completions` transport. Genesis keys that off endpoint
     capabilities now, so DashScope-compatible custom provider ids targeting the
     same native hosts inherit the same streaming-usage behavior instead of
     requiring the built-in `qwen` provider id specifically.
@@ -290,7 +290,7 @@ See [Video Generation](/tools/video-generation) for shared tool parameters, prov
 
   <Accordion title="Environment and daemon setup">
     If the Gateway runs as a daemon (launchd/systemd), make sure `QWEN_API_KEY` is
-    available to that process (for example, in `~/.openclaw/.env` or via
+    available to that process (for example, in `~/.genesis/.env` or via
     `env.shellEnv`).
   </Accordion>
 </AccordionGroup>

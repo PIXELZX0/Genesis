@@ -17,9 +17,7 @@ describe("check-gateway-watch-regression", () => {
   it("keeps plugin runtime graph paths counted", () => {
     expect(isIgnoredDistRuntimeWatchPath("dist-runtime/extensions/openai/index.js")).toBe(false);
     expect(
-      isIgnoredDistRuntimeWatchPath(
-        "dist-runtime/extensions/openai/node_modules/openclaw/index.js",
-      ),
+      isIgnoredDistRuntimeWatchPath("dist-runtime/extensions/openai/node_modules/genesis/index.js"),
     ).toBe(false);
   });
 

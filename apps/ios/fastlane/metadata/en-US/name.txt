@@ -1,1 +1,1 @@
-OpenClaw - iOS Client
+Genesis - iOS Client

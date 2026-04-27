@@ -1,9 +1,9 @@
-export { getAcpSessionManager, isAcpRuntimeError } from "openclaw/plugin-sdk/acp-runtime";
+export { getAcpSessionManager, isAcpRuntimeError } from "genesis/plugin-sdk/acp-runtime";
 export {
   resolveThreadBindingIdleTimeoutMs,
   resolveThreadBindingMaxAgeMs,
   resolveThreadBindingsEnabled,
-} from "openclaw/plugin-sdk/conversation-runtime";
+} from "genesis/plugin-sdk/conversation-runtime";
 export { createDiscordMessageHandler } from "./message-handler.js";
 export {
   createNoopThreadBindingManager,

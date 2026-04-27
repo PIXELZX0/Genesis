@@ -1,22 +1,22 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../../../test/helpers/plugins/plugin-api.js";
-import type { OpenClawConfig, OpenClawPluginApi } from "../runtime-api.js";
+import type { GenesisConfig, GenesisPluginApi } from "../runtime-api.js";
 import { registerSlackPluginHttpRoutes } from "./plugin-routes.js";
 import { registerSlackHttpHandler } from "./registry.js";
 
-function createApi(config: OpenClawConfig, registerHttpRoute = vi.fn()): OpenClawPluginApi {
+function createApi(config: GenesisConfig, registerHttpRoute = vi.fn()): GenesisPluginApi {
   return createTestPluginApi({
     id: "slack",
     config,
     registerHttpRoute,
-  }) as OpenClawPluginApi;
+  }) as GenesisPluginApi;
 }
 
 describe("registerSlackPluginHttpRoutes", () => {
   it("registers account webhook paths without resolving unresolved token refs", () => {
     const registerHttpRoute = vi.fn();
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         slack: {
           accounts: {

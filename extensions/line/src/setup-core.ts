@@ -1,5 +1,5 @@
-import type { ChannelSetupAdapter, OpenClawConfig } from "openclaw/plugin-sdk/setup";
-import { createSetupInputPresenceValidator } from "openclaw/plugin-sdk/setup";
+import type { ChannelSetupAdapter, GenesisConfig } from "genesis/plugin-sdk/setup";
+import { createSetupInputPresenceValidator } from "genesis/plugin-sdk/setup";
 import { hasLineCredentials, parseLineAllowFromId } from "./account-helpers.js";
 import {
   DEFAULT_ACCOUNT_ID,
@@ -10,12 +10,12 @@ import {
 } from "./setup-runtime-api.js";
 
 export function patchLineAccountConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   patch: Record<string, unknown>;
   clearFields?: string[];
   enabled?: boolean;
-}): OpenClawConfig {
+}): GenesisConfig {
   const accountId = normalizeAccountId(params.accountId);
   const lineConfig = (params.cfg.channels?.line ?? {}) as LineConfig;
   const clearFields = params.clearFields ?? [];
@@ -65,7 +65,7 @@ export function patchLineAccountConfig(params: {
   };
 }
 
-export function isLineConfigured(cfg: OpenClawConfig, accountId: string): boolean {
+export function isLineConfigured(cfg: GenesisConfig, accountId: string): boolean {
   return hasLineCredentials(resolveLineAccount({ cfg, accountId }));
 }
 

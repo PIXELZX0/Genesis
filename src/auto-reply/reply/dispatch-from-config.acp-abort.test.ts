@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type {
   AcpRuntime,
   AcpRuntimeEnsureInput,
@@ -55,7 +55,7 @@ function setNoAbort() {
 
 function createMockAcpSessionManager() {
   return {
-    resolveSession: (params: { cfg: OpenClawConfig; sessionKey: string }) => {
+    resolveSession: (params: { cfg: GenesisConfig; sessionKey: string }) => {
       const entry = acpMocks.readAcpSessionEntry({
         cfg: params.cfg,
         sessionKey: params.sessionKey,
@@ -83,7 +83,7 @@ function createMockAcpSessionManager() {
     }),
     runTurn: vi.fn(
       async (params: {
-        cfg: OpenClawConfig;
+        cfg: GenesisConfig;
         sessionKey: string;
         text?: string;
         attachments?: unknown[];
@@ -250,7 +250,7 @@ describe("dispatchReplyFromConfig ACP abort", () => {
         session: {
           sendPolicy: { default: "allow" },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       dispatcher,
       replyOptions: { abortSignal: abortController.signal },
     });

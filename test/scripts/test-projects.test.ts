@@ -173,7 +173,7 @@ describe("scripts/test-projects changed-target routing", () => {
   it("skips app-only changes because app tests are separate from Vitest lanes", () => {
     expect(
       buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
-        "apps/macos/OpenClaw/AppDelegate.swift",
+        "apps/macos/Genesis/AppDelegate.swift",
       ]),
     ).toEqual([]);
   });
@@ -503,7 +503,7 @@ describe("scripts/test-projects local heavy-check lock", () => {
         ],
         {
           ...process.env,
-          OPENCLAW_TEST_PROJECTS_FORCE_LOCK: "1",
+          GENESIS_TEST_PROJECTS_FORCE_LOCK: "1",
         },
       ),
     ).toBe(true);
@@ -546,7 +546,7 @@ describe("scripts/test-projects full-suite sharding", () => {
       resolveParallelFullSuiteConcurrency(
         61,
         {
-          OPENCLAW_TEST_PROJECTS_PARALLEL: "3",
+          GENESIS_TEST_PROJECTS_PARALLEL: "3",
         },
         {
           cpuCount: 14,
@@ -558,12 +558,12 @@ describe("scripts/test-projects full-suite sharding", () => {
   });
 
   it("splits untargeted runs into fixed core shards and per-extension configs", () => {
-    const previousParallel = process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    const previousSerial = process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
-    delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    delete process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD;
-    delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    process.env.OPENCLAW_TEST_PROJECTS_SERIAL = "1";
+    const previousParallel = process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    const previousSerial = process.env.GENESIS_TEST_PROJECTS_SERIAL;
+    delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    delete process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD;
+    delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    process.env.GENESIS_TEST_PROJECTS_SERIAL = "1";
     try {
       expect(buildFullSuiteVitestRunPlans([], process.cwd()).map((plan) => plan.config)).toEqual([
         "test/vitest/vitest.full-core-unit-fast.config.ts",
@@ -605,33 +605,33 @@ describe("scripts/test-projects full-suite sharding", () => {
       ]);
     } finally {
       if (previousParallel === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
+        delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_PARALLEL = previousParallel;
+        process.env.GENESIS_TEST_PROJECTS_PARALLEL = previousParallel;
       }
       if (previousSerial === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
+        delete process.env.GENESIS_TEST_PROJECTS_SERIAL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_SERIAL = previousSerial;
+        process.env.GENESIS_TEST_PROJECTS_SERIAL = previousSerial;
       }
     }
   });
 
   it("expands untargeted local runs to leaf project configs by default", () => {
-    const previousLeafShards = process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    const previousParallel = process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    const previousSerial = process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
+    const previousLeafShards = process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    const previousParallel = process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    const previousSerial = process.env.GENESIS_TEST_PROJECTS_SERIAL;
     const previousCi = process.env.CI;
     const previousActions = process.env.GITHUB_ACTIONS;
-    const previousVitestMaxWorkers = process.env.OPENCLAW_VITEST_MAX_WORKERS;
-    const previousTestWorkers = process.env.OPENCLAW_TEST_WORKERS;
-    delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    delete process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
+    const previousVitestMaxWorkers = process.env.GENESIS_VITEST_MAX_WORKERS;
+    const previousTestWorkers = process.env.GENESIS_TEST_WORKERS;
+    delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    delete process.env.GENESIS_TEST_PROJECTS_SERIAL;
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
-    delete process.env.OPENCLAW_VITEST_MAX_WORKERS;
-    delete process.env.OPENCLAW_TEST_WORKERS;
+    delete process.env.GENESIS_VITEST_MAX_WORKERS;
+    delete process.env.GENESIS_TEST_WORKERS;
     try {
       const configs = buildFullSuiteVitestRunPlans([], process.cwd()).map((plan) => plan.config);
 
@@ -641,19 +641,19 @@ describe("scripts/test-projects full-suite sharding", () => {
       expect(configs).not.toContain("test/vitest/vitest.full-core-unit-fast.config.ts");
     } finally {
       if (previousLeafShards === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
+        delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
+        process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
       }
       if (previousParallel === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
+        delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_PARALLEL = previousParallel;
+        process.env.GENESIS_TEST_PROJECTS_PARALLEL = previousParallel;
       }
       if (previousSerial === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
+        delete process.env.GENESIS_TEST_PROJECTS_SERIAL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_SERIAL = previousSerial;
+        process.env.GENESIS_TEST_PROJECTS_SERIAL = previousSerial;
       }
       if (previousCi === undefined) {
         delete process.env.CI;
@@ -666,25 +666,25 @@ describe("scripts/test-projects full-suite sharding", () => {
         process.env.GITHUB_ACTIONS = previousActions;
       }
       if (previousVitestMaxWorkers === undefined) {
-        delete process.env.OPENCLAW_VITEST_MAX_WORKERS;
+        delete process.env.GENESIS_VITEST_MAX_WORKERS;
       } else {
-        process.env.OPENCLAW_VITEST_MAX_WORKERS = previousVitestMaxWorkers;
+        process.env.GENESIS_VITEST_MAX_WORKERS = previousVitestMaxWorkers;
       }
       if (previousTestWorkers === undefined) {
-        delete process.env.OPENCLAW_TEST_WORKERS;
+        delete process.env.GENESIS_TEST_WORKERS;
       } else {
-        process.env.OPENCLAW_TEST_WORKERS = previousTestWorkers;
+        process.env.GENESIS_TEST_WORKERS = previousTestWorkers;
       }
     }
   });
 
   it("can skip the aggregate extension shard when CI runs dedicated extension shards", () => {
-    const previous = process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD;
-    const previousParallel = process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    const previousSerial = process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
-    delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    process.env.OPENCLAW_TEST_PROJECTS_SERIAL = "1";
-    process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD = "1";
+    const previous = process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD;
+    const previousParallel = process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    const previousSerial = process.env.GENESIS_TEST_PROJECTS_SERIAL;
+    delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    process.env.GENESIS_TEST_PROJECTS_SERIAL = "1";
+    process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD = "1";
     try {
       const configs = buildFullSuiteVitestRunPlans([], process.cwd()).map((plan) => plan.config);
 
@@ -692,34 +692,34 @@ describe("scripts/test-projects full-suite sharding", () => {
       expect(configs).toContain("test/vitest/vitest.full-auto-reply.config.ts");
     } finally {
       if (previous === undefined) {
-        delete process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD;
+        delete process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD;
       } else {
-        process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD = previous;
+        process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD = previous;
       }
       if (previousParallel === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
+        delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_PARALLEL = previousParallel;
+        process.env.GENESIS_TEST_PROJECTS_PARALLEL = previousParallel;
       }
       if (previousSerial === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_SERIAL;
+        delete process.env.GENESIS_TEST_PROJECTS_SERIAL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_SERIAL = previousSerial;
+        process.env.GENESIS_TEST_PROJECTS_SERIAL = previousSerial;
       }
     }
   });
 
   it("can expand full-suite shards to project configs for perf experiments", () => {
-    const previous = process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = "1";
+    const previous = process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = "1";
     let plans: ReturnType<typeof buildFullSuiteVitestRunPlans>;
     try {
       plans = buildFullSuiteVitestRunPlans([], process.cwd());
     } finally {
       if (previous === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
+        delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = previous;
+        process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = previous;
       }
     }
 
@@ -806,10 +806,10 @@ describe("scripts/test-projects full-suite sharding", () => {
   });
 
   it("skips extension project configs when leaf sharding and the aggregate extension shard is disabled", () => {
-    const previousLeafShards = process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    const previousSkipExtensions = process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD;
-    process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = "1";
-    process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD = "1";
+    const previousLeafShards = process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    const previousSkipExtensions = process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD;
+    process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = "1";
+    process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD = "1";
     try {
       const configs = buildFullSuiteVitestRunPlans([], process.cwd()).map((plan) => plan.config);
 
@@ -818,23 +818,23 @@ describe("scripts/test-projects full-suite sharding", () => {
       expect(configs).toContain("test/vitest/vitest.auto-reply-reply.config.ts");
     } finally {
       if (previousLeafShards === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
+        delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
+        process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
       }
       if (previousSkipExtensions === undefined) {
-        delete process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD;
+        delete process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD;
       } else {
-        process.env.OPENCLAW_TEST_SKIP_FULL_EXTENSIONS_SHARD = previousSkipExtensions;
+        process.env.GENESIS_TEST_SKIP_FULL_EXTENSIONS_SHARD = previousSkipExtensions;
       }
     }
   });
 
   it("expands full-suite shards before running them in parallel", () => {
-    const previousLeafShards = process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    const previousParallel = process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
-    delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
-    process.env.OPENCLAW_TEST_PROJECTS_PARALLEL = "6";
+    const previousLeafShards = process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    const previousParallel = process.env.GENESIS_TEST_PROJECTS_PARALLEL;
+    delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
+    process.env.GENESIS_TEST_PROJECTS_PARALLEL = "6";
     try {
       const configs = buildFullSuiteVitestRunPlans([], process.cwd()).map((plan) => plan.config);
 
@@ -842,14 +842,14 @@ describe("scripts/test-projects full-suite sharding", () => {
       expect(configs).not.toContain("test/vitest/vitest.full-extensions.config.ts");
     } finally {
       if (previousLeafShards === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS;
+        delete process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
+        process.env.GENESIS_TEST_PROJECTS_LEAF_SHARDS = previousLeafShards;
       }
       if (previousParallel === undefined) {
-        delete process.env.OPENCLAW_TEST_PROJECTS_PARALLEL;
+        delete process.env.GENESIS_TEST_PROJECTS_PARALLEL;
       } else {
-        process.env.OPENCLAW_TEST_PROJECTS_PARALLEL = previousParallel;
+        process.env.GENESIS_TEST_PROJECTS_PARALLEL = previousParallel;
       }
     }
   });
@@ -878,7 +878,7 @@ describe("scripts/test-projects parallel cache paths", () => {
 
     expect(specs.map((spec) => spec.env)).toEqual([
       {
-        OPENCLAW_VITEST_FS_MODULE_CACHE_PATH: path.join(
+        GENESIS_VITEST_FS_MODULE_CACHE_PATH: path.join(
           "/repo",
           "node_modules",
           ".experimental-vitest-cache",
@@ -886,7 +886,7 @@ describe("scripts/test-projects parallel cache paths", () => {
         ),
       },
       {
-        OPENCLAW_VITEST_FS_MODULE_CACHE_PATH: path.join(
+        GENESIS_VITEST_FS_MODULE_CACHE_PATH: path.join(
           "/repo",
           "node_modules",
           ".experimental-vitest-cache",
@@ -899,10 +899,10 @@ describe("scripts/test-projects parallel cache paths", () => {
   it("keeps an explicit global cache path", () => {
     const [spec] = applyParallelVitestCachePaths(
       [{ config: "test/vitest/vitest.gateway.config.ts", env: {}, pnpmArgs: [] }],
-      { cwd: "/repo", env: { OPENCLAW_VITEST_FS_MODULE_CACHE_PATH: "/tmp/cache" } },
+      { cwd: "/repo", env: { GENESIS_VITEST_FS_MODULE_CACHE_PATH: "/tmp/cache" } },
     );
 
-    expect(spec?.env.OPENCLAW_VITEST_FS_MODULE_CACHE_PATH).toBeUndefined();
+    expect(spec?.env.GENESIS_VITEST_FS_MODULE_CACHE_PATH).toBeUndefined();
   });
 });
 
@@ -922,7 +922,7 @@ describe("scripts/test-projects Vitest stall watchdog", () => {
       { env: { PATH: "/usr/bin" } },
     );
 
-    expect(spec?.env.OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS).toBe(
+    expect(spec?.env.GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS).toBe(
       DEFAULT_TEST_PROJECTS_VITEST_NO_OUTPUT_TIMEOUT_MS,
     );
   });
@@ -940,7 +940,7 @@ describe("scripts/test-projects Vitest stall watchdog", () => {
         },
         {
           config: "test/vitest/vitest.extension-memory.config.ts",
-          env: { OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS: "0", PATH: "/usr/bin" },
+          env: { GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS: "0", PATH: "/usr/bin" },
           includeFilePath: null,
           includePatterns: null,
           pnpmArgs: [],
@@ -950,15 +950,15 @@ describe("scripts/test-projects Vitest stall watchdog", () => {
       { env: { PATH: "/usr/bin" } },
     );
 
-    expect(specs[0]?.env.OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS).toBeUndefined();
-    expect(specs[1]?.env.OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS).toBe("0");
+    expect(specs[0]?.env.GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS).toBeUndefined();
+    expect(specs[1]?.env.GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS).toBe("0");
   });
 
   it("allows changed checks to disable automatic silent-run retries", () => {
     expect(shouldRetryVitestNoOutputTimeout({})).toBe(true);
-    expect(shouldRetryVitestNoOutputTimeout({ OPENCLAW_VITEST_NO_OUTPUT_RETRY: "1" })).toBe(true);
-    expect(shouldRetryVitestNoOutputTimeout({ OPENCLAW_VITEST_NO_OUTPUT_RETRY: "0" })).toBe(false);
-    expect(shouldRetryVitestNoOutputTimeout({ OPENCLAW_VITEST_NO_OUTPUT_RETRY: "false" })).toBe(
+    expect(shouldRetryVitestNoOutputTimeout({ GENESIS_VITEST_NO_OUTPUT_RETRY: "1" })).toBe(true);
+    expect(shouldRetryVitestNoOutputTimeout({ GENESIS_VITEST_NO_OUTPUT_RETRY: "0" })).toBe(false);
+    expect(shouldRetryVitestNoOutputTimeout({ GENESIS_VITEST_NO_OUTPUT_RETRY: "false" })).toBe(
       false,
     );
   });
@@ -988,7 +988,7 @@ describe("scripts/test-projects Vitest cache isolation", () => {
       { cwd: "/repo", env: {} },
     );
 
-    expect(specs.map((spec) => spec.env.OPENCLAW_VITEST_FS_MODULE_CACHE_PATH)).toEqual([
+    expect(specs.map((spec) => spec.env.GENESIS_VITEST_FS_MODULE_CACHE_PATH)).toEqual([
       path.join(
         "/repo",
         "node_modules",

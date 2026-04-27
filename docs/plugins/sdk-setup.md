@@ -5,11 +5,11 @@ sidebarTitle: "Setup and Config"
 read_when:
   - You are adding a setup wizard to a plugin
   - You need to understand setup-entry.ts vs index.ts
-  - You are defining plugin config schemas or package.json openclaw metadata
+  - You are defining plugin config schemas or package.json genesis metadata
 ---
 
 Reference for plugin packaging (`package.json` metadata), manifests
-(`openclaw.plugin.json`), setup entries, and config schemas.
+(`genesis.plugin.json`), setup entries, and config schemas.
 
 <Tip>
   **Looking for a walkthrough?** The how-to guides cover packaging in context:
@@ -19,17 +19,17 @@ Reference for plugin packaging (`package.json` metadata), manifests
 
 ## Package metadata
 
-Your `package.json` needs an `openclaw` field that tells the plugin system what
+Your `package.json` needs an `genesis` field that tells the plugin system what
 your plugin provides:
 
 **Channel plugin:**
 
 ```json
 {
-  "name": "@myorg/openclaw-my-channel",
+  "name": "@myorg/genesis-my-channel",
   "version": "1.0.0",
   "type": "module",
-  "openclaw": {
+  "genesis": {
     "extensions": ["./index.ts"],
     "setupEntry": "./setup-entry.ts",
     "channel": {
@@ -43,19 +43,19 @@ your plugin provides:
 
 **Provider plugin / ClawHub publish baseline:**
 
-```json openclaw-clawhub-package.json
+```json genesis-clawhub-package.json
 {
-  "name": "@myorg/openclaw-my-plugin",
+  "name": "@myorg/genesis-my-plugin",
   "version": "1.0.0",
   "type": "module",
-  "openclaw": {
+  "genesis": {
     "extensions": ["./index.ts"],
     "compat": {
       "pluginApi": ">=2026.3.24-beta.2",
       "minGatewayVersion": "2026.3.24-beta.2"
     },
     "build": {
-      "openclawVersion": "2026.3.24-beta.2",
+      "genesisVersion": "2026.3.24-beta.2",
       "pluginSdkVersion": "2026.3.24-beta.2"
     }
   }
@@ -66,7 +66,7 @@ If you publish the plugin externally on ClawHub, those `compat` and `build`
 fields are required. The canonical publish snippets live in
 `docs/snippets/plugin-publish/`.
 
-### `openclaw` fields
+### `genesis` fields
 
 | Field        | Type       | Description                                                                                                                 |
 | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -77,9 +77,9 @@ fields are required. The canonical publish snippets live in
 | `install`    | `object`   | Install hints: `npmSpec`, `localPath`, `defaultChoice`, `minHostVersion`, `expectedIntegrity`, `allowInvalidConfigRecovery` |
 | `startup`    | `object`   | Startup behavior flags                                                                                                      |
 
-### `openclaw.channel`
+### `genesis.channel`
 
-`openclaw.channel` is cheap package metadata for channel discovery and setup
+`genesis.channel` is cheap package metadata for channel discovery and setup
 surfaces before runtime loads.
 
 | Field                                  | Type       | What it means                                                                 |
@@ -108,7 +108,7 @@ Example:
 
 ```json
 {
-  "openclaw": {
+  "genesis": {
     "channel": {
       "id": "my-channel",
       "label": "My Channel",
@@ -143,27 +143,27 @@ Example:
 `showConfigured` and `showInSetup` remain supported as legacy aliases. Prefer
 `exposure`.
 
-### `openclaw.install`
+### `genesis.install`
 
-`openclaw.install` is package metadata, not manifest metadata.
+`genesis.install` is package metadata, not manifest metadata.
 
 | Field                        | Type                 | What it means                                                                    |
 | ---------------------------- | -------------------- | -------------------------------------------------------------------------------- |
 | `npmSpec`                    | `string`             | Canonical npm spec for install/update flows.                                     |
 | `localPath`                  | `string`             | Local development or bundled install path.                                       |
 | `defaultChoice`              | `"npm"` \| `"local"` | Preferred install source when both are available.                                |
-| `minHostVersion`             | `string`             | Minimum supported OpenClaw version in the form `>=x.y.z`.                        |
+| `minHostVersion`             | `string`             | Minimum supported Genesis version in the form `>=x.y.z`.                         |
 | `expectedIntegrity`          | `string`             | Expected npm dist integrity string, usually `sha512-...`, for pinned installs.   |
 | `allowInvalidConfigRecovery` | `boolean`            | Lets bundled-plugin reinstall flows recover from specific stale-config failures. |
 
-Interactive onboarding also uses `openclaw.install` for install-on-demand
+Interactive onboarding also uses `genesis.install` for install-on-demand
 surfaces. If your plugin exposes provider auth choices or channel setup/catalog
 metadata before runtime loads, onboarding can show that choice, prompt for npm
 vs local install, install or enable the plugin, then continue the selected
 flow. Npm onboarding choices require trusted catalog metadata with a registry
 `npmSpec`; exact versions and `expectedIntegrity` are optional pins. If
 `expectedIntegrity` is present, install/update flows enforce it. Keep the "what
-to show" metadata in `openclaw.plugin.json` and the "how to install it"
+to show" metadata in `genesis.plugin.json` and the "how to install it"
 metadata in `package.json`.
 
 If `minHostVersion` is set, install and manifest-registry loading both enforce
@@ -174,9 +174,9 @@ expected artifact integrity:
 
 ```json
 {
-  "openclaw": {
+  "genesis": {
     "install": {
-      "npmSpec": "@wecom/wecom-openclaw-plugin@1.2.3",
+      "npmSpec": "@wecom/wecom-genesis-plugin@1.2.3",
       "expectedIntegrity": "sha512-REPLACE_WITH_NPM_DIST_INTEGRITY",
       "defaultChoice": "npm"
     }
@@ -188,7 +188,7 @@ expected artifact integrity:
 for narrow bundled-plugin recovery only, so reinstall/setup can repair known
 upgrade leftovers like a missing bundled plugin path or stale `channels.<id>`
 entry for that same plugin. If config is broken for unrelated reasons, install
-still fails closed and tells the operator to run `openclaw doctor --fix`.
+still fails closed and tells the operator to run `genesis doctor --fix`.
 
 ### Deferred full load
 
@@ -196,7 +196,7 @@ Channel plugins can opt into deferred loading with:
 
 ```json
 {
-  "openclaw": {
+  "genesis": {
     "extensions": ["./index.ts"],
     "setupEntry": "./setup-entry.ts",
     "startup": {
@@ -206,7 +206,7 @@ Channel plugins can opt into deferred loading with:
 }
 ```
 
-When enabled, OpenClaw loads only `setupEntry` during the pre-listen startup
+When enabled, Genesis loads only `setupEntry` during the pre-listen startup
 phase, even for already-configured channels. The full entry loads after the
 gateway starts listening.
 
@@ -224,14 +224,14 @@ to `operator.admin`.
 
 ## Plugin manifest
 
-Every native plugin must ship an `openclaw.plugin.json` in the package root.
-OpenClaw uses this to validate config without executing plugin code.
+Every native plugin must ship an `genesis.plugin.json` in the package root.
+Genesis uses this to validate config without executing plugin code.
 
 ```json
 {
   "id": "my-plugin",
   "name": "My Plugin",
-  "description": "Adds My Plugin capabilities to OpenClaw",
+  "description": "Adds My Plugin capabilities to Genesis",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -289,12 +289,12 @@ always use `clawhub package publish`.
 ## Setup entry
 
 The `setup-entry.ts` file is a lightweight alternative to `index.ts` that
-OpenClaw loads when it only needs setup surfaces (onboarding, config repair,
+Genesis loads when it only needs setup surfaces (onboarding, config repair,
 disabled channel inspection).
 
 ```typescript
 // setup-entry.ts
-import { defineSetupPluginEntry } from "openclaw/plugin-sdk/channel-core";
+import { defineSetupPluginEntry } from "genesis/plugin-sdk/channel-core";
 import { myChannelPlugin } from "./src/channel.js";
 
 export default defineSetupPluginEntry(myChannelPlugin);
@@ -305,11 +305,11 @@ background services) during setup flows.
 
 Bundled workspace channels that keep setup-safe exports in sidecar modules can
 use `defineBundledChannelSetupEntry(...)` from
-`openclaw/plugin-sdk/channel-entry-contract` instead of
+`genesis/plugin-sdk/channel-entry-contract` instead of
 `defineSetupPluginEntry(...)`. That bundled contract also supports an optional
 `runtime` export so setup-time runtime wiring can stay lightweight and explicit.
 
-**When OpenClaw uses `setupEntry` instead of the full entry:**
+**When Genesis uses `setupEntry` instead of the full entry:**
 
 - The channel is disabled but needs setup/onboarding surfaces
 - The channel is enabled but unconfigured
@@ -414,7 +414,7 @@ Use `buildChannelConfigSchema` to convert a Zod schema into the
 
 ```typescript
 import { z } from "zod";
-import { buildChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-schema";
+import { buildChannelConfigSchema } from "genesis/plugin-sdk/channel-config-schema";
 
 const accountSchema = z.object({
   token: z.string().optional(),
@@ -427,17 +427,17 @@ const configSchema = buildChannelConfigSchema(accountSchema);
 ```
 
 For third-party plugins, the cold-path contract is still the plugin manifest:
-mirror the generated JSON Schema into `openclaw.plugin.json#channelConfigs` so
+mirror the generated JSON Schema into `genesis.plugin.json#channelConfigs` so
 config schema, setup, and UI surfaces can inspect `channels.<id>` without
 loading runtime code.
 
 ## Setup wizards
 
-Channel plugins can provide interactive setup wizards for `openclaw onboard`.
+Channel plugins can provide interactive setup wizards for `genesis onboard`.
 The wizard is a `ChannelSetupWizard` object on the `ChannelPlugin`:
 
 ```typescript
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/channel-setup";
+import type { ChannelSetupWizard } from "genesis/plugin-sdk/channel-setup";
 
 const setupWizard: ChannelSetupWizard = {
   channel: "my-channel",
@@ -474,25 +474,25 @@ full examples.
 
 For DM allowlist prompts that only need the standard
 `note -> prompt -> parse -> merge -> patch` flow, prefer the shared setup
-helpers from `openclaw/plugin-sdk/setup`: `createPromptParsedAllowFromForAccount(...)`,
+helpers from `genesis/plugin-sdk/setup`: `createPromptParsedAllowFromForAccount(...)`,
 `createTopLevelChannelParsedAllowFromPrompt(...)`, and
 `createNestedChannelParsedAllowFromPrompt(...)`.
 
 For channel setup status blocks that only vary by labels, scores, and optional
 extra lines, prefer `createStandardChannelSetupStatus(...)` from
-`openclaw/plugin-sdk/setup` instead of hand-rolling the same `status` object in
+`genesis/plugin-sdk/setup` instead of hand-rolling the same `status` object in
 each plugin.
 
 For optional setup surfaces that should only appear in certain contexts, use
-`createOptionalChannelSetupSurface` from `openclaw/plugin-sdk/channel-setup`:
+`createOptionalChannelSetupSurface` from `genesis/plugin-sdk/channel-setup`:
 
 ```typescript
-import { createOptionalChannelSetupSurface } from "openclaw/plugin-sdk/channel-setup";
+import { createOptionalChannelSetupSurface } from "genesis/plugin-sdk/channel-setup";
 
 const setupSurface = createOptionalChannelSetupSurface({
   channel: "my-channel",
   label: "My Channel",
-  npmSpec: "@myorg/openclaw-my-channel",
+  npmSpec: "@myorg/genesis-my-channel",
   docsPath: "/channels/my-channel",
 });
 // Returns { setupAdapter, setupWizard }
@@ -526,21 +526,21 @@ copying the same binary/status glue into every channel:
 **External plugins:** publish to [ClawHub](/tools/clawhub) or npm, then install:
 
 ```bash
-openclaw plugins install @myorg/openclaw-my-plugin
+genesis plugins install @myorg/genesis-my-plugin
 ```
 
-OpenClaw tries ClawHub first and falls back to npm automatically. You can also
+Genesis tries ClawHub first and falls back to npm automatically. You can also
 force ClawHub explicitly:
 
 ```bash
-openclaw plugins install clawhub:@myorg/openclaw-my-plugin   # ClawHub only
+genesis plugins install clawhub:@myorg/genesis-my-plugin   # ClawHub only
 ```
 
 There is no matching `npm:` override. Use the normal npm package spec when you
 want the npm path after ClawHub fallback:
 
 ```bash
-openclaw plugins install @myorg/openclaw-my-plugin
+genesis plugins install @myorg/genesis-my-plugin
 ```
 
 **In-repo plugins:** place under the bundled plugin workspace tree and they are automatically
@@ -549,16 +549,16 @@ discovered during build.
 **Users can install:**
 
 ```bash
-openclaw plugins install <package-name>
+genesis plugins install <package-name>
 ```
 
 <Info>
-  For npm-sourced installs, `openclaw plugins install` runs
+  For npm-sourced installs, `genesis plugins install` runs
   `npm install --ignore-scripts` (no lifecycle scripts). Keep plugin dependency
   trees pure JS/TS and avoid packages that require `postinstall` builds.
 </Info>
 
-Bundled OpenClaw-owned plugins are the only startup repair exception: when a
+Bundled Genesis-owned plugins are the only startup repair exception: when a
 packaged install sees one enabled by plugin config, legacy channel config, or
 its bundled default-enabled manifest, startup installs that plugin's missing
 runtime dependencies before import. Third-party plugins should not rely on

@@ -27,11 +27,11 @@ const {
   ),
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-auth-runtime", () => ({
+vi.mock("genesis/plugin-sdk/provider-auth-runtime", () => ({
   resolveApiKeyForProvider: resolveApiKeyForProviderMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-http", () => ({
+vi.mock("genesis/plugin-sdk/provider-http", () => ({
   assertOkOrThrowHttpError: assertOkOrThrowHttpErrorMock,
   createProviderOperationDeadline: createProviderOperationDeadlineMock,
   postJsonRequest: postJsonRequestMock,
@@ -39,7 +39,7 @@ vi.mock("openclaw/plugin-sdk/provider-http", () => ({
   resolveProviderOperationTimeoutMs: resolveProviderOperationTimeoutMsMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/text-runtime", () => ({
+vi.mock("genesis/plugin-sdk/text-runtime", () => ({
   normalizeOptionalString: (v: unknown) => (typeof v === "string" ? v.trim() : undefined),
   normalizeOptionalLowercaseString: (v: unknown) =>
     typeof v === "string" ? v.trim().toLowerCase() : undefined,

@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import {
   applyInputProvenanceToUserMessage,
@@ -25,7 +25,7 @@ export function guardSessionManager(
   opts?: {
     agentId?: string;
     sessionKey?: string;
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     contextWindowTokens?: number;
     inputProvenance?: InputProvenance;
     allowSyntheticToolResults?: boolean;

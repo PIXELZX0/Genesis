@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect } from "vitest";
 import {
   installChannelSetupContractSuite,
@@ -12,7 +12,7 @@ describe("line setup contract", () => {
     cases: [
       {
         name: "default account stores token and secret",
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         input: {
           channelAccessToken: "line-token",
           channelSecret: "line-secret",
@@ -26,7 +26,7 @@ describe("line setup contract", () => {
       },
       {
         name: "non-default env setup is rejected",
-        cfg: {} as OpenClawConfig,
+        cfg: {} as GenesisConfig,
         accountId: "ops",
         input: {
           useEnv: true,
@@ -52,7 +52,7 @@ describe("line status contract", () => {
               channelSecret: "line-secret",
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         runtime: {
           accountId: "default",
           running: true,

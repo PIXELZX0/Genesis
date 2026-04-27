@@ -3,7 +3,7 @@ import { logWarn } from "../../logger.js";
 import { formatErrorMessage } from "../errors.js";
 import { hasEnvHttpProxyConfigured } from "./proxy-env.js";
 
-export const PROXY_FETCH_PROXY_URL = Symbol.for("openclaw.proxyFetch.proxyUrl");
+export const PROXY_FETCH_PROXY_URL = Symbol.for("genesis.proxyFetch.proxyUrl");
 type ProxyFetchWithMetadata = typeof fetch & {
   [PROXY_FETCH_PROXY_URL]?: string;
 };

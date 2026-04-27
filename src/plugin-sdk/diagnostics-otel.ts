@@ -20,7 +20,7 @@ export {
 export { redactSensitiveText } from "../logging/redact.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export type {
-  OpenClawPluginApi,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  GenesisPluginApi,
+  GenesisPluginService,
+  GenesisPluginServiceContext,
 } from "../plugins/types.js";

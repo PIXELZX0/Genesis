@@ -92,13 +92,13 @@ const GATEWAY_CASES: readonly GatewayBenchCase[] = [
   {
     id: "skipChannels",
     name: "gateway, skip channels",
-    env: { OPENCLAW_SKIP_CHANNELS: "1" },
+    env: { GENESIS_SKIP_CHANNELS: "1" },
     config: BASE_CONFIG,
   },
   {
     id: "oneInternalHook",
     name: "gateway, one configured internal hook",
-    env: { OPENCLAW_SKIP_CHANNELS: "1" },
+    env: { GENESIS_SKIP_CHANNELS: "1" },
     config: {
       ...BASE_CONFIG,
       hooks: {
@@ -113,7 +113,7 @@ const GATEWAY_CASES: readonly GatewayBenchCase[] = [
   {
     id: "allInternalHooks",
     name: "gateway, all internal hooks",
-    env: { OPENCLAW_SKIP_CHANNELS: "1" },
+    env: { GENESIS_SKIP_CHANNELS: "1" },
     config: {
       ...BASE_CONFIG,
       hooks: {
@@ -126,7 +126,7 @@ const GATEWAY_CASES: readonly GatewayBenchCase[] = [
   {
     id: "fiftyPlugins",
     name: "gateway, 50 manifest plugins",
-    env: { OPENCLAW_SKIP_CHANNELS: "1" },
+    env: { GENESIS_SKIP_CHANNELS: "1" },
     pluginCount: 50,
     config: BASE_CONFIG,
   },
@@ -352,7 +352,7 @@ function writePluginFixtures(root: string, count: number): string[] {
     const entry = path.join(pluginDir, "index.cjs");
     writeFileSync(entry, `module.exports = { id: ${JSON.stringify(id)}, register() {} };\n`);
     writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "genesis.plugin.json"),
       `${JSON.stringify({ id, configSchema: { type: "object", additionalProperties: false } }, null, 2)}\n`,
     );
     files.push(entry);
@@ -374,7 +374,7 @@ function writeConfig(root: string, benchCase: GatewayBenchCase): string {
         : {}),
     },
   };
-  const configPath = path.join(root, "openclaw.json");
+  const configPath = path.join(root, "genesis.json");
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
   return configPath;
 }
@@ -388,20 +388,20 @@ function sanitizedEnv(
     CI: process.env.CI ?? "1",
     HOME: root,
     LANG: process.env.LANG ?? "en_US.UTF-8",
-    LOGNAME: process.env.LOGNAME ?? "openclaw-bench",
+    LOGNAME: process.env.LOGNAME ?? "genesis-bench",
     NO_COLOR: "1",
     PATH: process.env.PATH,
     SHELL: process.env.SHELL,
     TMPDIR: process.env.TMPDIR,
-    USER: process.env.USER ?? "openclaw-bench",
+    USER: process.env.USER ?? "genesis-bench",
     npm_config_update_notifier: "false",
-    OPENCLAW_CONFIG: configPath,
-    OPENCLAW_CONFIG_PATH: configPath,
-    OPENCLAW_GATEWAY_STARTUP_TRACE: "1",
-    OPENCLAW_HOME: root,
-    OPENCLAW_LOCAL_CHECK: "0",
-    OPENCLAW_STATE_DIR: path.join(root, "state"),
-    OPENCLAW_TEST_DISABLE_UPDATE_CHECK: "1",
+    GENESIS_CONFIG: configPath,
+    GENESIS_CONFIG_PATH: configPath,
+    GENESIS_GATEWAY_STARTUP_TRACE: "1",
+    GENESIS_HOME: root,
+    GENESIS_LOCAL_CHECK: "0",
+    GENESIS_STATE_DIR: path.join(root, "state"),
+    GENESIS_TEST_DISABLE_UPDATE_CHECK: "1",
     ...benchCase.env,
   };
   return env;
@@ -453,7 +453,7 @@ async function runGatewaySample(options: {
   entry: string;
   timeoutMs: number;
 }): Promise<GatewaySample> {
-  const root = mkdtempSync(path.join(tmpdir(), "openclaw-gateway-bench-"));
+  const root = mkdtempSync(path.join(tmpdir(), "genesis-gateway-bench-"));
   const port = await getFreePort();
   const configPath = writeConfig(root, options.benchCase);
   const env = sanitizedEnv(root, configPath, options.benchCase);

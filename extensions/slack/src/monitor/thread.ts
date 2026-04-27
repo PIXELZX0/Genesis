@@ -1,6 +1,6 @@
 import type { WebClient as SlackWebClient } from "@slack/web-api";
-import { pruneMapToMaxSize } from "openclaw/plugin-sdk/collection-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { pruneMapToMaxSize } from "genesis/plugin-sdk/collection-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { formatSlackFileReferenceList } from "../file-reference.js";
 import type { SlackFile } from "../types.js";
 import { logVerbose } from "./thread.runtime.js";

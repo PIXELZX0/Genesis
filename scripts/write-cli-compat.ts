@@ -162,7 +162,7 @@ if (resolved?.accessors) {
 }
 
 const missingExportError = (name: string) =>
-  `Legacy daemon CLI export "${name}" is unavailable in this build. Please upgrade OpenClaw.`;
+  `Legacy daemon CLI export "${name}" is unavailable in this build. Please upgrade Genesis.`;
 const buildExportLine = (name: (typeof LEGACY_DAEMON_CLI_EXPORTS)[number]) => {
   const accessor = accessors[name];
   if (accessor) {

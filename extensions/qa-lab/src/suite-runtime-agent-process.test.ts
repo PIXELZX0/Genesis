@@ -229,7 +229,7 @@ describe("qa suite runtime agent process helpers", () => {
       name: "Memory Dreaming Promotion",
       payload: {
         kind: "systemEvent",
-        text: "__openclaw_memory_core_short_term_promotion_dream__",
+        text: "__genesis_memory_core_short_term_promotion_dream__",
       },
     };
     const current = {
@@ -237,7 +237,7 @@ describe("qa suite runtime agent process helpers", () => {
       name: "Memory Dreaming Promotion",
       payload: {
         kind: "agentTurn",
-        message: "__openclaw_memory_core_short_term_promotion_dream__",
+        message: "__genesis_memory_core_short_term_promotion_dream__",
         lightContext: true,
       },
       sessionTarget: "isolated",

@@ -1,5 +1,5 @@
 import type { webhook } from "@line/bot-sdk";
-import type { HistoryEntry } from "openclaw/plugin-sdk/reply-history";
+import type { HistoryEntry } from "genesis/plugin-sdk/reply-history";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LineAccountConfig } from "./types.js";
 
@@ -8,7 +8,7 @@ type PostbackEvent = webhook.PostbackEvent;
 
 // Avoid pulling in globals/pairing/media dependencies; this suite only asserts
 // allowlist/groupPolicy gating and message-context wiring.
-vi.mock("openclaw/plugin-sdk/channel-inbound", () => ({
+vi.mock("genesis/plugin-sdk/channel-inbound", () => ({
   buildMentionRegexes: () => [],
   matchesMentionPatterns: () => false,
   resolveInboundMentionDecision: (params: {
@@ -82,7 +82,7 @@ vi.mock("openclaw/plugin-sdk/channel-inbound", () => ({
     };
   },
 }));
-vi.mock("openclaw/plugin-sdk/channel-pairing", () => ({
+vi.mock("genesis/plugin-sdk/channel-pairing", () => ({
   createChannelPairingChallengeIssuer:
     ({ upsertPairingRequest }: { upsertPairingRequest: (args: unknown) => Promise<unknown> }) =>
     async ({ senderId, onCreated }: { senderId: string; onCreated?: () => void }) => {
@@ -90,7 +90,7 @@ vi.mock("openclaw/plugin-sdk/channel-pairing", () => ({
       onCreated?.();
     },
 }));
-vi.mock("openclaw/plugin-sdk/command-auth", () => ({
+vi.mock("genesis/plugin-sdk/command-auth", () => ({
   hasControlCommand: (text: string) => text.trim().startsWith("!"),
   resolveControlCommandGate: ({
     hasControlCommand,
@@ -103,7 +103,7 @@ vi.mock("openclaw/plugin-sdk/command-auth", () => ({
       hasControlCommand && authorizers.some((entry) => entry.allowed || !entry.configured),
   }),
 }));
-vi.mock("openclaw/plugin-sdk/config-runtime", () => ({
+vi.mock("genesis/plugin-sdk/config-runtime", () => ({
   resolveAllowlistProviderRuntimeGroupPolicy: ({
     groupPolicy,
     defaultGroupPolicy,
@@ -118,11 +118,11 @@ vi.mock("openclaw/plugin-sdk/config-runtime", () => ({
     cfg.channels?.line?.groupPolicy ?? "open",
   warnMissingProviderGroupPolicyFallbackOnce: () => {},
 }));
-vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
+vi.mock("genesis/plugin-sdk/runtime-env", () => ({
   danger: (text: string) => text,
   logVerbose: () => {},
 }));
-vi.mock("openclaw/plugin-sdk/group-access", () => ({
+vi.mock("genesis/plugin-sdk/group-access", () => ({
   evaluateMatchedGroupAccessForPolicy: ({
     groupPolicy,
     hasMatchInput,
@@ -152,7 +152,7 @@ vi.mock("openclaw/plugin-sdk/group-access", () => ({
     return { allowed: true, reason: null };
   },
 }));
-vi.mock("openclaw/plugin-sdk/reply-history", () => ({
+vi.mock("genesis/plugin-sdk/reply-history", () => ({
   DEFAULT_GROUP_HISTORY_LIMIT: 20,
   clearHistoryEntriesIfEnabled: ({
     historyMap,
@@ -178,7 +178,7 @@ vi.mock("openclaw/plugin-sdk/reply-history", () => ({
     historyMap.set(historyKey, [...existing, entry].slice(-limit));
   },
 }));
-vi.mock("openclaw/plugin-sdk/routing", () => ({
+vi.mock("genesis/plugin-sdk/routing", () => ({
   resolveAgentRoute: () => ({ agentId: "default" }),
 }));
 
@@ -187,7 +187,7 @@ const { readAllowFromStoreMock, upsertPairingRequestMock } = vi.hoisted(() => ({
   upsertPairingRequestMock: vi.fn(async () => ({ code: "CODE", created: true })),
 }));
 
-vi.mock("openclaw/plugin-sdk/conversation-runtime", () => ({
+vi.mock("genesis/plugin-sdk/conversation-runtime", () => ({
   resolvePairingIdLabel: () => "lineUserId",
   readChannelAllowFromStore: readAllowFromStoreMock,
   upsertChannelPairingRequest: upsertPairingRequestMock,

@@ -10,18 +10,18 @@ import {
   type TopLevelComponents,
 } from "@buape/carbon";
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
-import { resolveHumanDelayConfig } from "openclaw/plugin-sdk/agent-runtime";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-import { resolveChannelStreamingBlockEnabled } from "openclaw/plugin-sdk/channel-streaming";
+import { resolveHumanDelayConfig } from "genesis/plugin-sdk/agent-runtime";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
+import { resolveChannelStreamingBlockEnabled } from "genesis/plugin-sdk/channel-streaming";
 import {
   resolveCommandAuthorizedFromAuthorizers,
   resolveNativeCommandSessionTargets,
-} from "openclaw/plugin-sdk/command-auth-native";
-import { resolveDirectStatusReplyForSession } from "openclaw/plugin-sdk/command-status-runtime";
-import type { OpenClawConfig, loadConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildPairingReply } from "openclaw/plugin-sdk/conversation-runtime";
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/dangerous-name-runtime";
-import { getAgentScopedMediaLocalRoots } from "openclaw/plugin-sdk/media-runtime";
+} from "genesis/plugin-sdk/command-auth-native";
+import { resolveDirectStatusReplyForSession } from "genesis/plugin-sdk/command-status-runtime";
+import type { GenesisConfig, loadConfig } from "genesis/plugin-sdk/config-runtime";
+import { buildPairingReply } from "genesis/plugin-sdk/conversation-runtime";
+import { isDangerousNameMatchingEnabled } from "genesis/plugin-sdk/dangerous-name-runtime";
+import { getAgentScopedMediaLocalRoots } from "genesis/plugin-sdk/media-runtime";
 import {
   buildCommandTextFromArgs,
   findCommandByNativeName,
@@ -33,24 +33,24 @@ import {
   type CommandArgDefinition,
   type CommandArgValues,
   type NativeCommandSpec,
-} from "openclaw/plugin-sdk/native-command-registry";
-import * as pluginRuntime from "openclaw/plugin-sdk/plugin-runtime";
-import { resolveChunkMode, resolveTextChunkLimit } from "openclaw/plugin-sdk/reply-chunking";
+} from "genesis/plugin-sdk/native-command-registry";
+import * as pluginRuntime from "genesis/plugin-sdk/plugin-runtime";
+import { resolveChunkMode, resolveTextChunkLimit } from "genesis/plugin-sdk/reply-chunking";
 import {
   dispatchReplyWithDispatcher,
   type ReplyPayload,
-} from "openclaw/plugin-sdk/reply-dispatch-runtime";
+} from "genesis/plugin-sdk/reply-dispatch-runtime";
 import {
   resolveSendableOutboundReplyParts,
   resolveTextChunksWithFallback,
-} from "openclaw/plugin-sdk/reply-payload";
-import { createSubsystemLogger, logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { resolveOpenProviderRuntimeGroupPolicy } from "openclaw/plugin-sdk/runtime-group-policy";
+} from "genesis/plugin-sdk/reply-payload";
+import { createSubsystemLogger, logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { resolveOpenProviderRuntimeGroupPolicy } from "genesis/plugin-sdk/runtime-group-policy";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
-import { loadWebMedia } from "openclaw/plugin-sdk/web-media";
+} from "genesis/plugin-sdk/text-runtime";
+import { loadWebMedia } from "genesis/plugin-sdk/web-media";
 import { resolveDiscordMaxLinesPerMessage } from "../accounts.js";
 import { chunkDiscordTextWithMode } from "../chunk.js";
 import {
@@ -83,7 +83,7 @@ import { resolveDiscordNativeInteractionChannelContext } from "./native-interact
 import { resolveDiscordSenderIdentity } from "./sender-identity.js";
 import type { ThreadBindingManager } from "./thread-bindings.js";
 
-type DiscordConfig = NonNullable<OpenClawConfig["channels"]>["discord"];
+type DiscordConfig = NonNullable<GenesisConfig["channels"]>["discord"];
 type DiscordCommandArgs = {
   raw?: string;
   values?: CommandArgValues;
@@ -155,7 +155,7 @@ function resolveDiscordCommandLogLabel(command: ChatCommandDefinition): string {
 }
 
 function resolveDiscordNativeCommandAllowlistAccess(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   sender: { id: string; name?: string; tag?: string };
   chatType: "direct" | "group" | "thread" | "channel";

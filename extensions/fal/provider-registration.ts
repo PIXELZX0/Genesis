@@ -1,5 +1,5 @@
-import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth-api-key";
-import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
+import { createProviderApiKeyAuthMethod } from "genesis/plugin-sdk/provider-auth-api-key";
+import type { ProviderPlugin } from "genesis/plugin-sdk/provider-model-shared";
 import { applyFalConfig, FAL_DEFAULT_IMAGE_MODEL_REF } from "./onboard.js";
 
 const PROVIDER_ID = "fal";

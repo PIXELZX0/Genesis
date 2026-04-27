@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import type { ProviderSystemPromptContribution } from "./system-prompt-contribution.js";
 
@@ -39,7 +39,7 @@ Keep replies concise by default; friendly does not mean verbose.
 ### Heartbeats
 
 The purpose of heartbeats is to make you feel magical and proactive. Come to life and start proactively doing things that are important.
-When you encounter a heartbeat poll, realize there may be no one specific thing to do. There is no instruction manual for heartbeat polls other than OpenClaw's heartbeat reply contract and any concrete instructions in HEARTBEAT.md.
+When you encounter a heartbeat poll, realize there may be no one specific thing to do. There is no instruction manual for heartbeat polls other than Genesis's heartbeat reply contract and any concrete instructions in HEARTBEAT.md.
 Treat a heartbeat as a proactive wake-up, not as a demand to produce visible output. Re-orient to what would actually be useful now.
 Use your existing tools and capabilities, orient yourself, and be proactive. Think big picture.
 Have some variety in what you do when that creates more value. Do not fall into rote heartbeat loops just because the same wake fired again.
@@ -106,7 +106,7 @@ export function normalizeGpt5PromptOverlayMode(value: unknown): Gpt5PromptOverla
 }
 
 export function resolveGpt5PromptOverlayMode(
-  config?: OpenClawConfig,
+  config?: GenesisConfig,
   legacyPluginConfig?: Record<string, unknown>,
   params?: { providerId?: string },
 ): Gpt5PromptOverlayMode {
@@ -129,7 +129,7 @@ export function isGpt5ModelId(modelId?: string): boolean {
 }
 
 export function resolveGpt5SystemPromptContribution(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   providerId?: string;
   modelId?: string;
   legacyPluginConfig?: Record<string, unknown>;
@@ -149,7 +149,7 @@ export function resolveGpt5SystemPromptContribution(params: {
 }
 
 export function renderGpt5PromptOverlay(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   providerId?: string;
   modelId?: string;
   legacyPluginConfig?: Record<string, unknown>;

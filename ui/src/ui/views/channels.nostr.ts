@@ -150,7 +150,7 @@ export function renderNostrCard(params: {
                         <img
                           src=${picture}
                           alt=${t("channels.nostr.profilePicture")}
-                          style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);"
+                          style="width: 48px; height: 48px; border-radius: var(--radius-full); object-fit: cover; border: 2px solid var(--border-color);"
                           @error=${(e: Event) => {
                             (e.target as HTMLImageElement).style.display = "none";
                           }}

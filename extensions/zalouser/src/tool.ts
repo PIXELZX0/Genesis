@@ -1,5 +1,5 @@
-import type { AnyAgentTool, OpenClawPluginToolContext } from "openclaw/plugin-sdk/core";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import type { AnyAgentTool, GenesisPluginToolContext } from "genesis/plugin-sdk/core";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { Type } from "typebox";
 import { sendImageZalouser, sendLinkZalouser, sendMessageZalouser } from "./send.js";
 import { parseZalouserOutboundTarget } from "./session-route.js";
@@ -51,7 +51,7 @@ type ToolParams = {
   url?: string;
 };
 
-type ZalouserToolContext = Pick<OpenClawPluginToolContext, "deliveryContext">;
+type ZalouserToolContext = Pick<GenesisPluginToolContext, "deliveryContext">;
 
 function json(payload: unknown): AgentToolResult {
   return {

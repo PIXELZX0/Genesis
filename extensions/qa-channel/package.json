@@ -1,25 +1,25 @@
 {
-  "name": "@openclaw/qa-channel",
+  "name": "@genesis/qa-channel",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw QA synthetic channel plugin",
+  "description": "Genesis QA synthetic channel plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.31"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -31,7 +31,7 @@
       "detailLabel": "QA Channel",
       "docsPath": "/channels/qa-channel",
       "docsLabel": "qa-channel",
-      "blurb": "Synthetic Slack-class transport for automated OpenClaw QA scenarios.",
+      "blurb": "Synthetic Slack-class transport for automated Genesis QA scenarios.",
       "systemImage": "checklist",
       "order": 999,
       "exposure": {

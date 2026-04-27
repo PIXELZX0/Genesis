@@ -7,14 +7,14 @@ read_when:
 title: "Ollama web search"
 ---
 
-OpenClaw supports **Ollama Web Search** as a bundled `web_search` provider.
+Genesis supports **Ollama Web Search** as a bundled `web_search` provider.
 It uses Ollama's experimental web-search API and returns structured results
 with titles, URLs, and snippets.
 
 Unlike the Ollama model provider, this setup does not need an API key by
 default. It does require:
 
-- an Ollama host that is reachable from OpenClaw
+- an Ollama host that is reachable from Genesis
 - `ollama signin`
 
 ## Setup
@@ -35,7 +35,7 @@ default. It does require:
     Run:
 
     ```bash
-    openclaw configure --section web
+    genesis configure --section web
     ```
 
     Then select **Ollama Web Search** as the provider.
@@ -74,18 +74,18 @@ Optional Ollama host override:
 }
 ```
 
-If no explicit Ollama base URL is set, OpenClaw uses `http://127.0.0.1:11434`.
+If no explicit Ollama base URL is set, Genesis uses `http://127.0.0.1:11434`.
 
-If your Ollama host expects bearer auth, OpenClaw reuses
+If your Ollama host expects bearer auth, Genesis reuses
 `models.providers.ollama.apiKey` (or the matching env-backed provider auth)
 for web-search requests too.
 
 ## Notes
 
 - No web-search-specific API key field is required for this provider.
-- If the Ollama host is auth-protected, OpenClaw reuses the normal Ollama
+- If the Ollama host is auth-protected, Genesis reuses the normal Ollama
   provider API key when present.
-- OpenClaw warns during setup if Ollama is unreachable or not signed in, but
+- Genesis warns during setup if Ollama is unreachable or not signed in, but
   it does not block selection.
 - Runtime auto-detect can fall back to Ollama Web Search when no higher-priority
   credentialed provider is configured.

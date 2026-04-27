@@ -2,9 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { webhook } from "@line/bot-sdk";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { getSessionBindingService } from "openclaw/plugin-sdk/conversation-runtime";
-import { __testing as sessionBindingTesting } from "openclaw/plugin-sdk/conversation-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { getSessionBindingService } from "genesis/plugin-sdk/conversation-runtime";
+import { __testing as sessionBindingTesting } from "genesis/plugin-sdk/conversation-runtime";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createTestRegistry,
@@ -29,7 +29,7 @@ const lineBindingsPlugin = {
 describe("buildLineMessageContext", () => {
   let tmpDir: string;
   let storePath: string;
-  let cfg: OpenClawConfig;
+  let cfg: GenesisConfig;
   const account: ResolvedLineAccount = {
     accountId: "default",
     enabled: true,
@@ -82,7 +82,7 @@ describe("buildLineMessageContext", () => {
       ]),
     );
     sessionBindingTesting.resetSessionBindingAdaptersForTests();
-    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-line-context-"));
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-line-context-"));
     storePath = path.join(tmpDir, "sessions.json");
     cfg = { session: { store: storePath } };
   });
@@ -253,7 +253,7 @@ describe("buildLineMessageContext", () => {
 
   it("group peer binding matches raw groupId without prefix (#21907)", async () => {
     const groupId = "Cc7e3bece1234567890abcdef"; // pragma: allowlist secret
-    const bindingCfg: OpenClawConfig = {
+    const bindingCfg: GenesisConfig = {
       session: { store: storePath },
       agents: {
         list: [{ id: "main" }, { id: "line-group-agent" }],
@@ -291,7 +291,7 @@ describe("buildLineMessageContext", () => {
 
   it("room peer binding matches raw roomId without prefix (#21907)", async () => {
     const roomId = "Rr1234567890abcdef";
-    const bindingCfg: OpenClawConfig = {
+    const bindingCfg: GenesisConfig = {
       session: { store: storePath },
       agents: {
         list: [{ id: "main" }, { id: "line-room-agent" }],

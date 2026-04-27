@@ -1,7 +1,7 @@
 /**
  * Voice mapping and XML utilities for voice call providers.
  */
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 /**
  * Escape XML special characters for TwiML and other XML responses.

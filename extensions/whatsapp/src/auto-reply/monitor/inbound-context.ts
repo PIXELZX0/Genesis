@@ -1,7 +1,7 @@
 import {
   evaluateSupplementalContextVisibility,
   filterSupplementalContextItems,
-} from "openclaw/plugin-sdk/security-runtime";
+} from "genesis/plugin-sdk/security-runtime";
 import {
   getComparableIdentityValues,
   getReplyContext,

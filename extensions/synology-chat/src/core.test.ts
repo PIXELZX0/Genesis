@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createPluginSetupWizardConfigure,
@@ -25,7 +25,7 @@ const synologyChatSetupPlugin = {
   config: {
     listAccountIds,
     defaultAccountId: () => "default",
-    resolveAllowFrom: ({ cfg, accountId }: { cfg: OpenClawConfig; accountId?: string }) =>
+    resolveAllowFrom: ({ cfg, accountId }: { cfg: GenesisConfig; accountId?: string }) =>
       resolveAccount(cfg, accountId).allowedUserIds,
   },
 };
@@ -62,7 +62,7 @@ describe("synology-chat core", () => {
     delete process.env.SYNOLOGY_NAS_HOST;
     delete process.env.SYNOLOGY_ALLOWED_USER_IDS;
     delete process.env.SYNOLOGY_RATE_LIMIT;
-    delete process.env.OPENCLAW_BOT_NAME;
+    delete process.env.GENESIS_BOT_NAME;
   });
 
   it("exports dangerouslyAllowNameMatching in the JSON schema", () => {
@@ -107,7 +107,7 @@ describe("synology-chat core", () => {
 
     const result = await runSetupWizardConfigure({
       configure: synologyChatConfigure,
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompter,
       options: {},
     });
@@ -127,7 +127,7 @@ describe("synology-chat core", () => {
 
     const result = await runSetupWizardConfigure({
       configure: synologyChatConfigure,
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompter,
       options: {},
       forceAllowFrom: true,
@@ -182,14 +182,14 @@ describe("synology-chat account resolution", () => {
     expect(account.dangerouslyAllowInheritedWebhookPath).toBe(false);
     expect(account.dmPolicy).toBe("allowlist");
     expect(account.rateLimitPerMinute).toBe(30);
-    expect(account.botName).toBe("OpenClaw");
+    expect(account.botName).toBe("Genesis");
   });
 
   it("uses env var fallbacks", () => {
     process.env.SYNOLOGY_CHAT_TOKEN = "env-tok";
     process.env.SYNOLOGY_CHAT_INCOMING_URL = "https://nas/incoming";
     process.env.SYNOLOGY_NAS_HOST = "192.0.2.1";
-    process.env.OPENCLAW_BOT_NAME = "TestBot";
+    process.env.GENESIS_BOT_NAME = "TestBot";
 
     const cfg = { channels: { "synology-chat": {} } };
     const account = resolveAccount(cfg);

@@ -4,12 +4,12 @@ import { VoiceClawRealtimeToolRuntime } from "./tool-runtime.js";
 import { buildToolResultContext } from "./tools.js";
 import type { VoiceClawToolCallEvent } from "./types.js";
 
-const previousToolTimeoutMs = process.env.OPENCLAW_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS;
-const previousMaxConcurrentTools = process.env.OPENCLAW_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS;
+const previousToolTimeoutMs = process.env.GENESIS_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS;
+const previousMaxConcurrentTools = process.env.GENESIS_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS;
 
 afterEach(() => {
-  restoreEnv("OPENCLAW_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS", previousToolTimeoutMs);
-  restoreEnv("OPENCLAW_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS", previousMaxConcurrentTools);
+  restoreEnv("GENESIS_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS", previousToolTimeoutMs);
+  restoreEnv("GENESIS_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS", previousMaxConcurrentTools);
 });
 
 describe("VoiceClawRealtimeToolRuntime", () => {
@@ -86,7 +86,7 @@ describe("VoiceClawRealtimeToolRuntime", () => {
   });
 
   it("does not turn non-cooperative cancellations into timeout injections", async () => {
-    process.env.OPENCLAW_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS = "10";
+    process.env.GENESIS_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS = "10";
     const runtime = new VoiceClawRealtimeToolRuntime([
       makeTool("stuck", async () => await new Promise<never>(() => {})),
     ]);
@@ -103,8 +103,8 @@ describe("VoiceClawRealtimeToolRuntime", () => {
   });
 
   it("frees the concurrency slot after a non-cooperative tool times out", async () => {
-    process.env.OPENCLAW_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS = "10";
-    process.env.OPENCLAW_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS = "1";
+    process.env.GENESIS_VOICECLAW_REALTIME_TOOL_TIMEOUT_MS = "10";
+    process.env.GENESIS_VOICECLAW_REALTIME_MAX_CONCURRENT_TOOLS = "1";
     const runtime = new VoiceClawRealtimeToolRuntime([
       makeTool("stuck", async () => await new Promise<never>(() => {})),
       makeTool("quick", async () => ({
@@ -118,7 +118,7 @@ describe("VoiceClawRealtimeToolRuntime", () => {
 
     await vi.waitFor(() => expect(callbacks.injected[0]).toContain("timed out after 10ms"));
     expect(callbacks.progress.map((entry) => entry.summary)).toContain(
-      "stuck failed: OpenClaw tool timed out after 10ms",
+      "stuck failed: Genesis tool timed out after 10ms",
     );
 
     const handled = runtime.handleToolCall(makeToolCall("quick", {}, "call-2"), callbacks);

@@ -1,7 +1,7 @@
 import {
   createDefaultModelPresetAppliers,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/provider-onboard";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/provider-onboard";
 import {
   buildKimiCodingProvider,
   KIMI_CODING_BASE_URL,
@@ -17,7 +17,7 @@ function resolveKimiCodingDefaultModel() {
 
 const kimiCodingPresetAppliers = createDefaultModelPresetAppliers({
   primaryModelRef: KIMI_MODEL_REF,
-  resolveParams: (_cfg: OpenClawConfig) => {
+  resolveParams: (_cfg: GenesisConfig) => {
     const defaultModel = resolveKimiCodingDefaultModel();
     if (!defaultModel) {
       return null;
@@ -33,10 +33,10 @@ const kimiCodingPresetAppliers = createDefaultModelPresetAppliers({
   },
 });
 
-export function applyKimiCodeProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyKimiCodeProviderConfig(cfg: GenesisConfig): GenesisConfig {
   return kimiCodingPresetAppliers.applyProviderConfig(cfg);
 }
 
-export function applyKimiCodeConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyKimiCodeConfig(cfg: GenesisConfig): GenesisConfig {
   return kimiCodingPresetAppliers.applyConfig(cfg);
 }

@@ -2,7 +2,7 @@ import {
   installChannelOutboundPayloadContractSuite,
   primeChannelOutboundSendMock,
   type OutboundPayloadHarnessParams,
-} from "openclaw/plugin-sdk/testing";
+} from "genesis/plugin-sdk/testing";
 import { describe, vi } from "vitest";
 import { discordOutbound } from "./outbound-adapter.js";
 

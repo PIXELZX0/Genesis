@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { coerceSecretRef, resolveSecretInputRef } from "../config/types.secrets.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { normalizeOptionalSecretInput } from "../utils/normalize-secret-input.js";
@@ -13,7 +13,7 @@ import {
 import { resolveAwsSdkEnvVarName } from "./model-auth-runtime-shared.js";
 import { resolveProviderIdForAuth } from "./provider-auth-aliases.js";
 
-type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
+type ModelsConfig = NonNullable<GenesisConfig["models"]>;
 export type ProviderConfig = NonNullable<ModelsConfig["providers"]>[string];
 
 export type SecretDefaults = {

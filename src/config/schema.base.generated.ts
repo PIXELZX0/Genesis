@@ -13,7 +13,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
           lastTouchedVersion: {
             type: "string",
             title: "Config Last Touched Version",
-            description: "Auto-set when OpenClaw writes the config.",
+            description: "Auto-set when Genesis writes the config.",
           },
           lastTouchedAt: {
             anyOf: [
@@ -29,7 +29,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "Metadata",
         description:
-          "Metadata fields automatically maintained by OpenClaw to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
+          "Metadata fields automatically maintained by Genesis to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
       },
       env: {
         type: "object",
@@ -67,7 +67,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             },
             title: "Environment Variable Overrides",
             description:
-              "Explicit key/value environment variable overrides merged into runtime process environment for OpenClaw. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
+              "Explicit key/value environment variable overrides merged into runtime process environment for Genesis. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
           },
         },
         additionalProperties: {
@@ -90,7 +90,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             type: "string",
             title: "Wizard Last Run Version",
             description:
-              "OpenClaw version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
+              "Genesis version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
           },
           lastRunCommit: {
             type: "string",
@@ -303,7 +303,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "string",
                 title: "Cache Trace File Path",
                 description:
-                  "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+                  "JSONL output path for cache trace logs (default: $GENESIS_STATE_DIR/logs/cache-trace.jsonl).",
               },
               includeMessages: {
                 type: "boolean",
@@ -564,7 +564,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "Updates",
         description:
-          "Update-channel and startup-check behavior for keeping OpenClaw runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
+          "Update-channel and startup-check behavior for keeping Genesis runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
       },
       browser: {
         type: "object",
@@ -655,6 +655,71 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             description:
               "Default browser profile name selected when callers do not explicitly choose a profile. Use a stable low-privilege profile as the default to reduce accidental cross-context state use.",
           },
+          tor: {
+            type: "object",
+            properties: {
+              enabled: {
+                type: "boolean",
+                title: "Browser Tor Enabled",
+                description:
+                  "Enables Tor SOCKS routing for locally launched managed browser profiles that inherit the default Tor settings. Default is true for local managed profiles.",
+              },
+              mode: {
+                anyOf: [
+                  {
+                    type: "string",
+                    const: "managed",
+                  },
+                  {
+                    type: "string",
+                    const: "external",
+                  },
+                ],
+                title: "Browser Tor Mode",
+                description:
+                  'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
+              },
+              executablePath: {
+                type: "string",
+                title: "Browser Tor Executable Path",
+                description:
+                  'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+              },
+              socksHost: {
+                type: "string",
+                title: "Browser Tor SOCKS Host",
+                description:
+                  "Tor SOCKS host used by Chromium proxy routing. Keep this on loopback unless you explicitly operate a trusted remote Tor endpoint.",
+              },
+              socksPort: {
+                type: "integer",
+                minimum: 1,
+                maximum: 65535,
+                title: "Browser Tor SOCKS Port",
+                description:
+                  "Tor SOCKS port used by Chromium proxy routing. Managed per-profile defaults derive from the profile CDP port.",
+              },
+              dataDir: {
+                type: "string",
+                title: "Browser Tor Data Dir",
+                description:
+                  "Tor data directory for managed mode. Leave unset to store Tor state under the browser profile directory.",
+              },
+              extraArgs: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+                title: "Browser Tor Extra Args",
+                description:
+                  "Additional Tor process arguments for managed mode. Use sparingly and keep values host-local.",
+              },
+            },
+            additionalProperties: false,
+            title: "Browser Tor Routing",
+            description:
+              "Default Tor routing settings inherited by locally launched managed browser profiles. Tor routing is enabled by default for managed local browser profiles; set enabled=false to opt out.",
+          },
           snapshotDefaults: {
             type: "object",
             properties: {
@@ -737,7 +802,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   anyOf: [
                     {
                       type: "string",
-                      const: "openclaw",
+                      const: "genesis",
                     },
                     {
                       type: "string",
@@ -750,7 +815,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   ],
                   title: "Browser Profile Driver",
                   description:
-                    'Per-profile browser driver mode. Use "openclaw" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
+                    'Per-profile browser driver mode. Use "genesis" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
                 },
                 headless: {
                   type: "boolean",
@@ -766,6 +831,67 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   title: "Browser Profile Attach-only Mode",
                   description:
                     "Per-profile attach-only override that skips local browser launch and only attaches to an existing CDP endpoint. Useful when one profile is externally managed but others are locally launched.",
+                },
+                tor: {
+                  type: "object",
+                  properties: {
+                    enabled: {
+                      type: "boolean",
+                      title: "Browser Profile Tor Enabled",
+                      description:
+                        "Enables Tor SOCKS routing for this locally launched managed browser profile. Defaults to the global browser.tor setting, which is enabled by default.",
+                    },
+                    mode: {
+                      anyOf: [
+                        {
+                          type: "string",
+                          const: "managed",
+                        },
+                        {
+                          type: "string",
+                          const: "external",
+                        },
+                      ],
+                      title: "Browser Profile Tor Mode",
+                      description:
+                        'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+                    },
+                    executablePath: {
+                      type: "string",
+                      title: "Browser Profile Tor Executable Path",
+                      description:
+                        'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+                    },
+                    socksHost: {
+                      type: "string",
+                      title: "Browser Profile Tor SOCKS Host",
+                      description: "Per-profile Tor SOCKS host used by Chromium proxy routing.",
+                    },
+                    socksPort: {
+                      type: "integer",
+                      minimum: 1,
+                      maximum: 65535,
+                      title: "Browser Profile Tor SOCKS Port",
+                      description: "Per-profile Tor SOCKS port used by Chromium proxy routing.",
+                    },
+                    dataDir: {
+                      type: "string",
+                      title: "Browser Profile Tor Data Dir",
+                      description: "Per-profile Tor data directory for managed mode.",
+                    },
+                    extraArgs: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                      },
+                      title: "Browser Profile Tor Extra Args",
+                      description: "Per-profile extra Tor process arguments for managed mode.",
+                    },
+                  },
+                  additionalProperties: false,
+                  title: "Browser Profile Tor Routing",
+                  description:
+                    "Per-profile Tor routing settings for a locally launched managed browser. Use enabled=false to opt a profile out of the default Tor routing.",
                 },
                 color: {
                   type: "string",
@@ -1475,7 +1601,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   type: "boolean",
                   title: "Model Provider Inject num_ctx (OpenAI Compat)",
                   description:
-                    "Controls whether OpenClaw injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
+                    "Controls whether Genesis injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
                 },
                 headers: {
                   type: "object",
@@ -3066,7 +3192,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 title: "Node Browser Proxy Allowed Profiles",
                 description:
-                  "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, OpenClaw enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
+                  "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, Genesis enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
               },
             },
             additionalProperties: false,
@@ -3100,7 +3226,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     type: "string",
                     title: "Default Agent Runtime",
                     description:
-                      "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in OpenClaw Pi.",
+                      "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in Genesis Pi.",
                   },
                   fallback: {
                     type: "string",
@@ -3113,7 +3239,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 additionalProperties: false,
                 title: "Default Agent Runtime Settings",
                 description:
-                  "Default embedded agent harness policy. Omitted runtime uses built-in OpenClaw Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
+                  "Default embedded agent harness policy. Omitted runtime uses built-in Genesis Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
               },
               model: {
                 anyOf: [
@@ -3487,7 +3613,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     type: "boolean",
                     title: "Enable Lean Local Model Mode (Experimental)",
                     description:
-                      "Experimental local-model prompt trim. When enabled, OpenClaw drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
+                      "Experimental local-model prompt trim. When enabled, Genesis drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
                   },
                 },
                 additionalProperties: false,
@@ -4281,7 +4407,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         type: "string",
                         title: "Memory Search Index Path",
                         description:
-                          "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+                          "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.genesis/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
                       },
                       fts: {
                         type: "object",
@@ -4892,7 +5018,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 additionalProperties: false,
                 title: "Embedded Pi",
                 description:
-                  "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in OpenClaw sessions.",
+                  "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in Genesis sessions.",
               },
               thinkingDefault: {
                 anyOf: [
@@ -5755,7 +5881,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         type: "string",
                         title: "Sandbox Browser Network",
                         description:
-                          "Docker network for sandbox browser containers (default: openclaw-sandbox-browser). Avoid bridge if you need stricter isolation.",
+                          "Docker network for sandbox browser containers (default: genesis-sandbox-browser). Avoid bridge if you need stricter isolation.",
                       },
                       cdpPort: {
                         type: "integer",
@@ -5859,7 +5985,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       type: "string",
                       title: "Agent Runtime",
                       description:
-                        "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default OpenClaw Pi behavior.",
+                        "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default Genesis Pi behavior.",
                     },
                     fallback: {
                       type: "string",
@@ -7529,7 +7655,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           const: "embedded",
                           title: "Agent Runtime Type",
                           description:
-                            'Runtime type for this agent: "embedded" (default OpenClaw runtime) or "acp" (ACP harness defaults).',
+                            'Runtime type for this agent: "embedded" (default Genesis runtime) or "acp" (ACP harness defaults).',
                         },
                       },
                       required: ["type"],
@@ -7543,7 +7669,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           const: "acp",
                           title: "Agent Runtime Type",
                           description:
-                            'Runtime type for this agent: "embedded" (default OpenClaw runtime) or "acp" (ACP harness defaults).',
+                            'Runtime type for this agent: "embedded" (default Genesis runtime) or "acp" (ACP harness defaults).',
                         },
                         acp: {
                           type: "object",
@@ -7552,7 +7678,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                               type: "string",
                               title: "Agent ACP Harness Agent",
                               description:
-                                "Optional ACP harness agent id to use for this OpenClaw agent (for example codex, claude, cursor, gemini, openclaw).",
+                                "Optional ACP harness agent id to use for this Genesis agent (for example codex, claude, cursor, gemini, genesis).",
                             },
                             backend: {
                               type: "string",
@@ -7586,7 +7712,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   ],
                   title: "Agent Runtime",
                   description:
-                    "Optional runtime descriptor for this agent. Use embedded for default OpenClaw execution or acp for external ACP harness defaults.",
+                    "Optional runtime descriptor for this agent. Use embedded for default Genesis execution or acp for external ACP harness defaults.",
                 },
               },
               required: ["id"],
@@ -17813,6 +17939,760 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         description:
           "Global tool access policy and capability configuration across web, exec, media, messaging, and elevated surfaces. Use this section to constrain risky capabilities before broad rollout.",
       },
+      wallet: {
+        type: "object",
+        properties: {
+          enabled: {
+            type: "boolean",
+            title: "Wallet Enabled",
+            description:
+              "Enables wallet summary and CLI wallet commands. Disabling hides wallet state from the Control UI and blocks wallet operations without deleting the encrypted keystore.",
+          },
+          primaryAccount: {
+            type: "string",
+            minLength: 1,
+            title: "Primary Wallet Account",
+            description:
+              "Public account id used as the default when wallet commands omit --account.",
+          },
+          networks: {
+            type: "object",
+            properties: {
+              btc: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Bitcoin Wallet Enabled",
+                  },
+                  network: {
+                    type: "string",
+                    enum: ["mainnet", "testnet", "regtest"],
+                    title: "Bitcoin Network",
+                  },
+                  esploraUrl: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "Bitcoin Esplora URL",
+                    description:
+                      "Base URL for an Esplora-compatible Bitcoin API used for UTXO lookup and transaction broadcast.",
+                  },
+                  feeRateSatPerVbyte: {
+                    type: "number",
+                    exclusiveMinimum: 0,
+                    title: "Bitcoin Fee Rate",
+                  },
+                  derivationPath: {
+                    type: "string",
+                    pattern: "^m(\\/[0-9]+'?)+$",
+                    title: "Bitcoin Derivation Path",
+                  },
+                },
+                additionalProperties: false,
+                title: "Bitcoin Wallet Network",
+                description:
+                  "Bitcoin wallet settings for native SegWit address derivation, Esplora balance lookup, and PSBT broadcast.",
+              },
+              evm: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "EVM Wallet Enabled",
+                  },
+                  chainId: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                    title: "EVM Chain ID",
+                  },
+                  name: {
+                    type: "string",
+                    minLength: 1,
+                    title: "EVM Network Name",
+                  },
+                  rpcUrl: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "EVM RPC URL",
+                    description:
+                      "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
+                  },
+                  currencySymbol: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 16,
+                    title: "EVM Currency Symbol",
+                  },
+                  derivationPath: {
+                    type: "string",
+                    pattern: "^m(\\/[0-9]+'?)+$",
+                    title: "EVM Derivation Path",
+                  },
+                  explorerTxUrl: {
+                    type: "string",
+                    format: "uri",
+                    title: "EVM Explorer Transaction URL",
+                  },
+                },
+                additionalProperties: false,
+                title: "EVM Wallet Network",
+                description:
+                  "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+              },
+              sol: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Solana Wallet Enabled",
+                  },
+                  network: {
+                    type: "string",
+                    enum: ["mainnet-beta", "testnet", "devnet"],
+                    title: "Solana Network",
+                  },
+                  rpcUrl: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "Solana RPC URL",
+                    description:
+                      "Solana JSON-RPC endpoint. Defaults to the configured cluster public endpoint when omitted.",
+                  },
+                  derivationPath: {
+                    type: "string",
+                    pattern: "^m(\\/[0-9]+'?)+$",
+                    title: "Solana Derivation Path",
+                  },
+                  explorerTxUrl: {
+                    type: "string",
+                    format: "uri",
+                    title: "Solana Explorer Transaction URL",
+                  },
+                },
+                additionalProperties: false,
+                title: "Solana Wallet Network",
+                description:
+                  "Solana wallet settings for RPC balance lookup and native SOL transfers.",
+              },
+              trx: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "TRON Wallet Enabled",
+                  },
+                  fullHost: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "TRON Full Host",
+                    description:
+                      "TRON full host endpoint used by TronWeb. Use apiKey for providers such as TronGrid when required.",
+                  },
+                  apiKey: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "TRON API Key",
+                  },
+                  derivationPath: {
+                    type: "string",
+                    pattern: "^m(\\/[0-9]+'?)+$",
+                    title: "TRON Derivation Path",
+                  },
+                  explorerTxUrl: {
+                    type: "string",
+                    format: "uri",
+                    title: "TRON Explorer Transaction URL",
+                  },
+                },
+                additionalProperties: false,
+                title: "TRON Wallet Network",
+                description:
+                  "TRON wallet settings for TronWeb balance lookup and native TRX transfers.",
+              },
+              xmr: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Monero Wallet Enabled",
+                  },
+                  walletRpcUrl: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "Monero Wallet RPC URL",
+                    description:
+                      "monero-wallet-rpc JSON-RPC URL. Keep it on loopback or behind strong transport and auth controls.",
+                  },
+                  username: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "Monero Wallet RPC Username",
+                  },
+                  password: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "Monero Wallet RPC Password",
+                  },
+                  accountIndex: {
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 9007199254740991,
+                    title: "Monero Account Index",
+                  },
+                  addressIndex: {
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 9007199254740991,
+                    title: "Monero Address Index",
+                  },
+                  explorerTxUrl: {
+                    type: "string",
+                    format: "uri",
+                    title: "Monero Explorer Transaction URL",
+                  },
+                },
+                additionalProperties: false,
+                title: "Monero Wallet RPC",
+                description:
+                  "Monero wallet RPC settings. Genesis does not derive or store Monero private keys; it calls monero-wallet-rpc for address, balance, and transfer.",
+              },
+            },
+            additionalProperties: false,
+            title: "Wallet Networks",
+            description:
+              "Per-chain RPC and network settings. Store API keys and protected RPC credentials through SecretRef or environment-backed secrets.",
+          },
+          spending: {
+            type: "object",
+            properties: {
+              enabled: {
+                type: "boolean",
+                title: "Wallet Spending Enabled",
+                description:
+                  "Allows wallet send commands to broadcast transactions when all other guards pass. Keep false for address-only setups.",
+              },
+              requireAllowEnv: {
+                type: "boolean",
+                title: "Require Spending Env Guard",
+                description:
+                  "Requires GENESIS_WALLET_ALLOW_SPEND=1 for send commands. Keep enabled when AI agents can run shell commands.",
+              },
+              maxNativeAmount: {
+                type: "string",
+                pattern: "^\\d+(?:\\.\\d+)?$",
+                title: "Max Native Amount per Send",
+                description:
+                  "Maximum native currency amount allowed per send command. The unit is the selected chain native asset.",
+              },
+            },
+            additionalProperties: false,
+            title: "Wallet Spending",
+            description:
+              "Guardrails for CLI send commands. These controls are independent of exec approvals and are checked before any broadcast.",
+          },
+        },
+        additionalProperties: false,
+        title: "Wallet",
+        description:
+          "Local wallet controls for public address display, encrypted local key storage, chain RPC endpoints, and guarded send behavior. Keep spending disabled until the operator has reviewed exec approval policy and wallet limits.",
+      },
       bindings: {
         type: "array",
         items: {
@@ -19011,7 +19891,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             type: "boolean",
             title: "Allow /mcp",
             description:
-              "Allow /mcp chat command to manage OpenClaw MCP server config under mcp.servers (default: false).",
+              "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
           },
           plugins: {
             type: "boolean",
@@ -19625,7 +20505,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             maximum: 9007199254740991,
             title: "Session Parent Fork Max Tokens",
             description:
-              "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, OpenClaw starts a fresh thread session instead of forking; set 0 to disable this protection.",
+              "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, Genesis starts a fresh thread session instead of forking; set 0 to disable this protection.",
           },
           mainKey: {
             type: "string",
@@ -20711,7 +21591,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "Hooks",
         description:
-          "Inbound webhook automation surface for mapping external events into wake or agent actions in OpenClaw. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
+          "Inbound webhook automation surface for mapping external events into wake or agent actions in Genesis. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
       },
       web: {
         type: "object",
@@ -20806,7 +21686,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "string",
                 title: "Wide-area Discovery Domain",
                 description:
-                  "Optional unicast DNS-SD domain for wide-area discovery, such as openclaw.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
+                  "Optional unicast DNS-SD domain for wide-area discovery, such as genesis.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
               },
             },
             additionalProperties: false,
@@ -21055,7 +21935,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
               basePath: {
                 type: "string",
                 title: "Control UI Base Path",
-                description: "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
+                description: "Optional URL prefix where the Control UI is served (e.g. /genesis).",
               },
               root: {
                 type: "string",
@@ -21086,7 +21966,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "boolean",
                 title: "Allow External Control UI Embed URLs",
                 description:
-                  "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__openclaw__/canvas and /__openclaw__/a2ui documents do not need it.",
+                  "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__genesis__/canvas and /__genesis__/a2ui documents do not need it.",
               },
               allowedOrigins: {
                 type: "array",
@@ -22077,7 +22957,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 title: "Gateway Node Allowlist (Extra Commands)",
                 description:
-                  "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+                  "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `genesis security audit`.",
               },
               denyCommands: {
                 type: "array",
@@ -22113,7 +22993,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             ],
             title: "Memory Backend",
             description:
-              'Selects the global memory engine: "builtin" uses OpenClaw memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
+              'Selects the global memory engine: "builtin" uses Genesis memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
           },
           citations: {
             anyOf: [
@@ -22509,7 +23389,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             },
             title: "MCP Servers",
             description:
-              "Named MCP server definitions. OpenClaw stores them in its own config and runtime adapters decide which transports are supported at execution time.",
+              "Named MCP server definitions. Genesis stores them in its own config and runtime adapters decide which transports are supported at execution time.",
           },
           sessionIdleTtlMs: {
             type: "number",
@@ -22522,7 +23402,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "MCP",
         description:
-          "Global MCP server definitions managed by OpenClaw. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
+          "Global MCP server definitions managed by Genesis. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
       },
       skills: {
         type: "object",
@@ -23017,7 +23897,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             },
             title: "Plugin Install Records",
             description:
-              "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
+              "CLI-managed install metadata (used by `genesis plugins update` to locate install sources).",
           },
         },
         additionalProperties: false,
@@ -23097,7 +23977,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     required: ["commands"],
     additionalProperties: false,
-    title: "OpenClawConfig",
+    title: "GenesisConfig",
   },
   uiHints: {
     wizard: {
@@ -23111,7 +23991,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Updates",
       group: "Update",
       order: 25,
-      help: "Update-channel and startup-check behavior for keeping OpenClaw runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
+      help: "Update-channel and startup-check behavior for keeping Genesis runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
       tags: ["advanced"],
     },
     cli: {
@@ -23161,6 +24041,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       group: "Tools",
       order: 50,
       help: "Global tool access policy and capability configuration across web, exec, media, messaging, and elevated surfaces. Use this section to constrain risky capabilities before broad rollout.",
+      tags: ["advanced"],
+    },
+    wallet: {
+      label: "Wallet",
+      group: "Wallet",
+      order: 52,
+      help: "Local wallet controls for public address display, encrypted local key storage, chain RPC endpoints, and guarded send behavior. Keep spending disabled until the operator has reviewed exec approval policy and wallet limits.",
       tags: ["advanced"],
     },
     bindings: {
@@ -23216,7 +24103,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Hooks",
       group: "Hooks",
       order: 110,
-      help: "Inbound webhook automation surface for mapping external events into wake or agent actions in OpenClaw. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
+      help: "Inbound webhook automation surface for mapping external events into wake or agent actions in Genesis. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
       tags: ["advanced"],
     },
     ui: {
@@ -23281,12 +24168,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     meta: {
       label: "Metadata",
-      help: "Metadata fields automatically maintained by OpenClaw to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
+      help: "Metadata fields automatically maintained by Genesis to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
       tags: ["advanced"],
     },
     "meta.lastTouchedVersion": {
       label: "Config Last Touched Version",
-      help: "Auto-set when OpenClaw writes the config.",
+      help: "Auto-set when Genesis writes the config.",
       tags: ["media"],
     },
     "meta.lastTouchedAt": {
@@ -23316,7 +24203,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "env.vars": {
       label: "Environment Variable Overrides",
-      help: "Explicit key/value environment variable overrides merged into runtime process environment for OpenClaw. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
+      help: "Explicit key/value environment variable overrides merged into runtime process environment for Genesis. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
       tags: ["advanced"],
     },
     "wizard.lastRunAt": {
@@ -23326,7 +24213,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wizard.lastRunVersion": {
       label: "Wizard Last Run Version",
-      help: "OpenClaw version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
+      help: "Genesis version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
       tags: ["advanced"],
     },
     "wizard.lastRunCommit": {
@@ -23531,7 +24418,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "diagnostics.cacheTrace.filePath": {
       label: "Cache Trace File Path",
-      help: "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+      help: "JSONL output path for cache trace logs (default: $GENESIS_STATE_DIR/logs/cache-trace.jsonl).",
       tags: ["observability", "storage"],
     },
     "diagnostics.cacheTrace.includeMessages": {
@@ -23561,12 +24448,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.list[].runtime": {
       label: "Agent Runtime",
-      help: "Optional runtime descriptor for this agent. Use embedded for default OpenClaw execution or acp for external ACP harness defaults.",
+      help: "Optional runtime descriptor for this agent. Use embedded for default Genesis execution or acp for external ACP harness defaults.",
       tags: ["advanced"],
     },
     "agents.list[].runtime.type": {
       label: "Agent Runtime Type",
-      help: 'Runtime type for this agent: "embedded" (default OpenClaw runtime) or "acp" (ACP harness defaults).',
+      help: 'Runtime type for this agent: "embedded" (default Genesis runtime) or "acp" (ACP harness defaults).',
       tags: ["advanced"],
     },
     "agents.list[].runtime.acp": {
@@ -23576,7 +24463,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.list[].runtime.acp.agent": {
       label: "Agent ACP Harness Agent",
-      help: "Optional ACP harness agent id to use for this OpenClaw agent (for example codex, claude, cursor, gemini, openclaw).",
+      help: "Optional ACP harness agent id to use for this Genesis agent (for example codex, claude, cursor, gemini, genesis).",
       tags: ["advanced"],
     },
     "agents.list[].runtime.acp.backend": {
@@ -23641,12 +24528,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.embeddedHarness": {
       label: "Default Agent Runtime Settings",
-      help: "Default embedded agent harness policy. Omitted runtime uses built-in OpenClaw Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
+      help: "Default embedded agent harness policy. Omitted runtime uses built-in Genesis Pi. Use runtime=auto for plugin harness selection, or a registered harness id such as codex.",
       tags: ["advanced"],
     },
     "agents.defaults.embeddedHarness.runtime": {
       label: "Default Agent Runtime",
-      help: "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in OpenClaw Pi.",
+      help: "Embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime uses built-in Genesis Pi.",
       tags: ["advanced"],
     },
     "agents.defaults.embeddedHarness.fallback": {
@@ -23701,7 +24588,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.list.*.embeddedHarness.runtime": {
       label: "Agent Runtime",
-      help: "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default OpenClaw Pi behavior.",
+      help: "Per-agent embedded harness runtime: pi, auto, or a registered plugin harness id such as codex. Omitted runtime inherits the default Genesis Pi behavior.",
       tags: ["advanced"],
     },
     "agents.list.*.embeddedHarness.fallback": {
@@ -23981,6 +24868,46 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: "Default browser profile name selected when callers do not explicitly choose a profile. Use a stable low-privilege profile as the default to reduce accidental cross-context state use.",
       tags: ["storage"],
     },
+    "browser.tor": {
+      label: "Browser Tor Routing",
+      help: "Default Tor routing settings inherited by locally launched managed browser profiles. Tor routing is enabled by default for managed local browser profiles; set enabled=false to opt out.",
+      tags: ["advanced"],
+    },
+    "browser.tor.enabled": {
+      label: "Browser Tor Enabled",
+      help: "Enables Tor SOCKS routing for locally launched managed browser profiles that inherit the default Tor settings. Default is true for local managed profiles.",
+      tags: ["advanced"],
+    },
+    "browser.tor.mode": {
+      label: "Browser Tor Mode",
+      help: 'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
+      tags: ["advanced"],
+    },
+    "browser.tor.executablePath": {
+      label: "Browser Tor Executable Path",
+      help: 'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+      tags: ["storage"],
+    },
+    "browser.tor.socksHost": {
+      label: "Browser Tor SOCKS Host",
+      help: "Tor SOCKS host used by Chromium proxy routing. Keep this on loopback unless you explicitly operate a trusted remote Tor endpoint.",
+      tags: ["advanced"],
+    },
+    "browser.tor.socksPort": {
+      label: "Browser Tor SOCKS Port",
+      help: "Tor SOCKS port used by Chromium proxy routing. Managed per-profile defaults derive from the profile CDP port.",
+      tags: ["advanced"],
+    },
+    "browser.tor.dataDir": {
+      label: "Browser Tor Data Dir",
+      help: "Tor data directory for managed mode. Leave unset to store Tor state under the browser profile directory.",
+      tags: ["storage"],
+    },
+    "browser.tor.extraArgs": {
+      label: "Browser Tor Extra Args",
+      help: "Additional Tor process arguments for managed mode. Use sparingly and keep values host-local.",
+      tags: ["advanced"],
+    },
     "browser.profiles": {
       label: "Browser Profiles",
       help: "Named browser profile connection map used for explicit routing to CDP ports or URLs with optional metadata. Keep profile names consistent and avoid overlapping endpoint definitions.",
@@ -24003,7 +24930,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.profiles.*.driver": {
       label: "Browser Profile Driver",
-      help: 'Per-profile browser driver mode. Use "openclaw" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
+      help: 'Per-profile browser driver mode. Use "genesis" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
       tags: ["storage"],
     },
     "browser.profiles.*.headless": {
@@ -24014,6 +24941,46 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "browser.profiles.*.attachOnly": {
       label: "Browser Profile Attach-only Mode",
       help: "Per-profile attach-only override that skips local browser launch and only attaches to an existing CDP endpoint. Useful when one profile is externally managed but others are locally launched.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor": {
+      label: "Browser Profile Tor Routing",
+      help: "Per-profile Tor routing settings for a locally launched managed browser. Use enabled=false to opt a profile out of the default Tor routing.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.enabled": {
+      label: "Browser Profile Tor Enabled",
+      help: "Enables Tor SOCKS routing for this locally launched managed browser profile. Defaults to the global browser.tor setting, which is enabled by default.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.mode": {
+      label: "Browser Profile Tor Mode",
+      help: 'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.executablePath": {
+      label: "Browser Profile Tor Executable Path",
+      help: 'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.socksHost": {
+      label: "Browser Profile Tor SOCKS Host",
+      help: "Per-profile Tor SOCKS host used by Chromium proxy routing.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.socksPort": {
+      label: "Browser Profile Tor SOCKS Port",
+      help: "Per-profile Tor SOCKS port used by Chromium proxy routing.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.dataDir": {
+      label: "Browser Profile Tor Data Dir",
+      help: "Per-profile Tor data directory for managed mode.",
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.extraArgs": {
+      label: "Browser Profile Tor Extra Args",
+      help: "Per-profile extra Tor process arguments for managed mode.",
       tags: ["storage"],
     },
     "browser.profiles.*.color": {
@@ -24312,6 +25279,200 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Agent Tool Policy by Provider",
       help: "Per-agent provider-specific tool policy overrides for channel-scoped capability control. Use this when a single agent needs tighter restrictions on one provider than others.",
       tags: ["advanced"],
+    },
+    "wallet.enabled": {
+      label: "Wallet Enabled",
+      help: "Enables wallet summary and CLI wallet commands. Disabling hides wallet state from the Control UI and blocks wallet operations without deleting the encrypted keystore.",
+      tags: ["advanced"],
+    },
+    "wallet.primaryAccount": {
+      label: "Primary Wallet Account",
+      help: "Public account id used as the default when wallet commands omit --account.",
+      tags: ["advanced"],
+    },
+    "wallet.networks": {
+      label: "Wallet Networks",
+      help: "Per-chain RPC and network settings. Store API keys and protected RPC credentials through SecretRef or environment-backed secrets.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.btc": {
+      label: "Bitcoin Wallet Network",
+      help: "Bitcoin wallet settings for native SegWit address derivation, Esplora balance lookup, and PSBT broadcast.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.btc.enabled": {
+      label: "Bitcoin Wallet Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.btc.network": {
+      label: "Bitcoin Network",
+      tags: ["advanced"],
+    },
+    "wallet.networks.btc.esploraUrl": {
+      label: "Bitcoin Esplora URL",
+      help: "Base URL for an Esplora-compatible Bitcoin API used for UTXO lookup and transaction broadcast.",
+      placeholder: "https://blockstream.info/api",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.btc.feeRateSatPerVbyte": {
+      label: "Bitcoin Fee Rate",
+      tags: ["advanced"],
+    },
+    "wallet.networks.btc.derivationPath": {
+      label: "Bitcoin Derivation Path",
+      tags: ["storage"],
+    },
+    "wallet.networks.evm": {
+      label: "EVM Wallet Network",
+      help: "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.enabled": {
+      label: "EVM Wallet Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chainId": {
+      label: "EVM Chain ID",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.name": {
+      label: "EVM Network Name",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.rpcUrl": {
+      label: "EVM RPC URL",
+      help: "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
+      placeholder: "https://rpc.example.com",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.evm.currencySymbol": {
+      label: "EVM Currency Symbol",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.derivationPath": {
+      label: "EVM Derivation Path",
+      tags: ["storage"],
+    },
+    "wallet.networks.evm.explorerTxUrl": {
+      label: "EVM Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.networks.sol": {
+      label: "Solana Wallet Network",
+      help: "Solana wallet settings for RPC balance lookup and native SOL transfers.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.sol.enabled": {
+      label: "Solana Wallet Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.sol.network": {
+      label: "Solana Network",
+      tags: ["advanced"],
+    },
+    "wallet.networks.sol.rpcUrl": {
+      label: "Solana RPC URL",
+      help: "Solana JSON-RPC endpoint. Defaults to the configured cluster public endpoint when omitted.",
+      placeholder: "https://api.mainnet-beta.solana.com",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.sol.derivationPath": {
+      label: "Solana Derivation Path",
+      tags: ["storage"],
+    },
+    "wallet.networks.sol.explorerTxUrl": {
+      label: "Solana Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.networks.trx": {
+      label: "TRON Wallet Network",
+      help: "TRON wallet settings for TronWeb balance lookup and native TRX transfers.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.trx.enabled": {
+      label: "TRON Wallet Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.trx.fullHost": {
+      label: "TRON Full Host",
+      help: "TRON full host endpoint used by TronWeb. Use apiKey for providers such as TronGrid when required.",
+      placeholder: "https://api.trongrid.io",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.trx.apiKey": {
+      label: "TRON API Key",
+      tags: ["security", "auth"],
+      sensitive: true,
+    },
+    "wallet.networks.trx.derivationPath": {
+      label: "TRON Derivation Path",
+      tags: ["storage"],
+    },
+    "wallet.networks.trx.explorerTxUrl": {
+      label: "TRON Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.networks.xmr": {
+      label: "Monero Wallet RPC",
+      help: "Monero wallet RPC settings. Genesis does not derive or store Monero private keys; it calls monero-wallet-rpc for address, balance, and transfer.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.xmr.enabled": {
+      label: "Monero Wallet Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.xmr.walletRpcUrl": {
+      label: "Monero Wallet RPC URL",
+      help: "monero-wallet-rpc JSON-RPC URL. Keep it on loopback or behind strong transport and auth controls.",
+      placeholder: "http://127.0.0.1:18083/json_rpc",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.xmr.username": {
+      label: "Monero Wallet RPC Username",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.xmr.password": {
+      label: "Monero Wallet RPC Password",
+      tags: ["security", "auth"],
+      sensitive: true,
+    },
+    "wallet.networks.xmr.accountIndex": {
+      label: "Monero Account Index",
+      tags: ["advanced"],
+    },
+    "wallet.networks.xmr.addressIndex": {
+      label: "Monero Address Index",
+      tags: ["advanced"],
+    },
+    "wallet.networks.xmr.explorerTxUrl": {
+      label: "Monero Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.spending": {
+      label: "Wallet Spending",
+      help: "Guardrails for CLI send commands. These controls are independent of exec approvals and are checked before any broadcast.",
+      tags: ["advanced"],
+    },
+    "wallet.spending.enabled": {
+      label: "Wallet Spending Enabled",
+      help: "Allows wallet send commands to broadcast transactions when all other guards pass. Keep false for address-only setups.",
+      tags: ["advanced"],
+    },
+    "wallet.spending.requireAllowEnv": {
+      label: "Require Spending Env Guard",
+      help: "Requires GENESIS_WALLET_ALLOW_SPEND=1 for send commands. Keep enabled when AI agents can run shell commands.",
+      tags: ["access"],
+    },
+    "wallet.spending.maxNativeAmount": {
+      label: "Max Native Amount per Send",
+      help: "Maximum native currency amount allowed per send command. The unit is the selected chain native asset.",
+      tags: ["performance"],
     },
     "tools.exec.applyPatch.enabled": {
       label: "Enable apply_patch",
@@ -24775,8 +25936,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.controlUi.basePath": {
       label: "Control UI Base Path",
-      help: "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
-      placeholder: "/openclaw",
+      help: "Optional URL prefix where the Control UI is served (e.g. /genesis).",
+      placeholder: "/genesis",
       tags: ["network", "storage"],
     },
     "gateway.controlUi.root": {
@@ -24792,7 +25953,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.controlUi.allowExternalEmbedUrls": {
       label: "Allow External Control UI Embed URLs",
-      help: "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__openclaw__/canvas and /__openclaw__/a2ui documents do not need it.",
+      help: "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__genesis__/canvas and /__genesis__/a2ui documents do not need it.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.controlUi.allowedOrigins": {
@@ -24934,7 +26095,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.nodes.allowCommands": {
       label: "Gateway Node Allowlist (Extra Commands)",
-      help: "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+      help: "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `genesis security audit`.",
       tags: ["access", "network"],
     },
     "gateway.nodes.denyCommands": {
@@ -24959,7 +26120,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "nodeHost.browserProxy.allowProfiles": {
       label: "Node Browser Proxy Allowed Profiles",
-      help: "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, OpenClaw enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
+      help: "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to preserve the default full profile surface, including profile create/delete routes. When set, Genesis enforces least-privilege profile access and blocks persistent profile create/delete through the proxy.",
       tags: ["access", "network", "storage"],
     },
     media: {
@@ -25149,7 +26310,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.experimental.localModelLean": {
       label: "Enable Lean Local Model Mode (Experimental)",
-      help: "Experimental local-model prompt trim. When enabled, OpenClaw drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
+      help: "Experimental local-model prompt trim. When enabled, Genesis drops heavyweight default tools like browser, cron, and message for weaker or smaller local-model backends.",
       tags: ["security", "advanced"],
     },
     "agents.defaults.bootstrapPromptTruncationWarning": {
@@ -25350,7 +26511,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.memorySearch.store.path": {
       label: "Memory Search Index Path",
-      help: "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+      help: "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.genesis/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
       tags: ["storage"],
     },
     "agents.defaults.memorySearch.store.vector.enabled": {
@@ -25475,7 +26636,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "memory.backend": {
       label: "Memory Backend",
-      help: 'Selects the global memory engine: "builtin" uses OpenClaw memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
+      help: 'Selects the global memory engine: "builtin" uses Genesis memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
       tags: ["storage"],
     },
     "memory.citations": {
@@ -25766,7 +26927,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "models.providers.*.injectNumCtxForOpenAICompat": {
       label: "Model Provider Inject num_ctx (OpenAI Compat)",
-      help: "Controls whether OpenClaw injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
+      help: "Controls whether Genesis injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
       tags: ["models"],
     },
     "models.providers.*.headers": {
@@ -26201,7 +27362,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.embeddedPi": {
       label: "Embedded Pi",
-      help: "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in OpenClaw sessions.",
+      help: "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in Genesis sessions.",
       tags: ["advanced"],
     },
     "agents.defaults.embeddedPi.projectSettingsPolicy": {
@@ -26264,7 +27425,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.sandbox.browser.network": {
       label: "Sandbox Browser Network",
-      help: "Docker network for sandbox browser containers (default: openclaw-sandbox-browser). Avoid bridge if you need stricter isolation.",
+      help: "Docker network for sandbox browser containers (default: genesis-sandbox-browser). Avoid bridge if you need stricter isolation.",
       tags: ["storage"],
     },
     "agents.defaults.sandbox.browser.cdpSourceRange": {
@@ -26309,7 +27470,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "commands.mcp": {
       label: "Allow /mcp",
-      help: "Allow /mcp chat command to manage OpenClaw MCP server config under mcp.servers (default: false).",
+      help: "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
       tags: ["advanced"],
     },
     "commands.plugins": {
@@ -26355,12 +27516,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     mcp: {
       label: "MCP",
-      help: "Global MCP server definitions managed by OpenClaw. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
+      help: "Global MCP server definitions managed by Genesis. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
       tags: ["advanced"],
     },
     "mcp.servers": {
       label: "MCP Servers",
-      help: "Named MCP server definitions. OpenClaw stores them in its own config and runtime adapters decide which transports are supported at execution time.",
+      help: "Named MCP server definitions. Genesis stores them in its own config and runtime adapters decide which transports are supported at execution time.",
       tags: ["advanced"],
     },
     "mcp.sessionIdleTtlMs": {
@@ -26550,7 +27711,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "session.parentForkMaxTokens": {
       label: "Session Parent Fork Max Tokens",
-      help: "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, OpenClaw starts a fresh thread session instead of forking; set 0 to disable this protection.",
+      help: "Maximum parent-session token count allowed for thread/session inheritance forking. If the parent exceeds this, Genesis starts a fresh thread session instead of forking; set 0 to disable this protection.",
       tags: ["security", "auth", "performance", "storage"],
     },
     "session.mainKey": {
@@ -27099,7 +28260,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "discovery.wideArea.domain": {
       label: "Wide-area Discovery Domain",
-      help: "Optional unicast DNS-SD domain for wide-area discovery, such as openclaw.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
+      help: "Optional unicast DNS-SD domain for wide-area discovery, such as genesis.internal. Use this when you intentionally publish gateway discovery beyond local mDNS scopes.",
       tags: ["network"],
     },
     "discovery.mdns": {
@@ -27347,7 +28508,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "agents.list[].identity.avatar": {
       label: "Agent Avatar",
       help: "Avatar image path (relative to the agent workspace only) or a remote URL/data URL.",
-      placeholder: "avatars/openclaw.png",
+      placeholder: "avatars/genesis.png",
       tags: ["advanced"],
     },
     "agents.list[].heartbeat.suppressToolErrorWarnings": {
@@ -27477,7 +28638,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "plugins.installs": {
       label: "Plugin Install Records",
-      help: "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
+      help: "CLI-managed install metadata (used by `genesis plugins update` to locate install sources).",
       tags: ["advanced"],
     },
     "plugins.installs.*.source": {

@@ -3,7 +3,7 @@
  */
 
 import type { Client } from "@larksuiteoapi/node-sdk";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
 import { getFeishuUserAgent } from "./client.js";
 import { resolveFeishuCardTemplate, type CardHeaderConfig } from "./send.js";
 import type { FeishuDomain } from "./types.js";

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   DEFAULT_OAUTH_REFRESH_MARGIN_MS,
   type AuthCredentialReasonCode,
@@ -105,7 +105,7 @@ function buildProfileHealth(params: {
   profileId: string;
   credential: AuthProfileCredential;
   store: AuthProfileStore;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   now: number;
   warnAfterMs: number;
 }): AuthProfileHealth {
@@ -193,7 +193,7 @@ function buildProfileHealth(params: {
 
 export function buildAuthHealthSummary(params: {
   store: AuthProfileStore;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   warnAfterMs?: number;
   providers?: string[];
 }): AuthHealthSummary {

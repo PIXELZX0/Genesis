@@ -4,13 +4,13 @@ import path from "node:path";
 import { resetDiagnosticEventsForTest } from "../infra/diagnostic-events.js";
 import { withEnv } from "../test-utils/env.js";
 import { clearPluginDiscoveryCache } from "./discovery.js";
-import { clearPluginLoaderCache, loadOpenClawPlugins } from "./loader.js";
+import { clearPluginLoaderCache, loadGenesisPlugins } from "./loader.js";
 import { clearPluginManifestRegistryCache } from "./manifest-registry.js";
 import { resetPluginRuntimeStateForTest } from "./runtime.js";
 
 export type TempPlugin = { dir: string; file: string; id: string };
-export type PluginLoadConfig = NonNullable<Parameters<typeof loadOpenClawPlugins>[0]>["config"];
-export type PluginRegistry = ReturnType<typeof loadOpenClawPlugins>;
+export type PluginLoadConfig = NonNullable<Parameters<typeof loadGenesisPlugins>[0]>["config"];
+export type PluginRegistry = ReturnType<typeof loadGenesisPlugins>;
 
 function chmodSafeDir(dir: string) {
   if (process.platform === "win32") {
@@ -30,10 +30,10 @@ export function mkdirSafe(dir: string) {
   chmodSafeDir(dir);
 }
 
-const fixtureRoot = mkdtempSafe(path.join(os.tmpdir(), "openclaw-plugin-"));
+const fixtureRoot = mkdtempSafe(path.join(os.tmpdir(), "genesis-plugin-"));
 let tempDirIndex = 0;
-const prevBundledDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
-const prevPluginStageDir = process.env.OPENCLAW_PLUGIN_STAGE_DIR;
+const prevBundledDir = process.env.GENESIS_BUNDLED_PLUGINS_DIR;
+const prevPluginStageDir = process.env.GENESIS_PLUGIN_STAGE_DIR;
 
 export const EMPTY_PLUGIN_SCHEMA = {
   type: "object",
@@ -90,7 +90,7 @@ export function writePlugin(params: {
   const file = path.join(dir, filename);
   fs.writeFileSync(file, params.body, "utf-8");
   fs.writeFileSync(
-    path.join(dir, "openclaw.plugin.json"),
+    path.join(dir, "genesis.plugin.json"),
     JSON.stringify(
       {
         id: params.id,
@@ -105,7 +105,7 @@ export function writePlugin(params: {
 }
 
 export function useNoBundledPlugins() {
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+  process.env.GENESIS_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
 }
 
 export function loadBundleFixture(params: {
@@ -117,10 +117,10 @@ export function loadBundleFixture(params: {
   useNoBundledPlugins();
   const workspaceDir = makeTempDir();
   const stateDir = makeTempDir();
-  const bundleRoot = path.join(workspaceDir, ".openclaw", "extensions", params.pluginId);
+  const bundleRoot = path.join(workspaceDir, ".genesis", "extensions", params.pluginId);
   params.build(bundleRoot);
-  return withEnv({ OPENCLAW_STATE_DIR: stateDir, ...params.env }, () =>
-    loadOpenClawPlugins({
+  return withEnv({ GENESIS_STATE_DIR: stateDir, ...params.env }, () =>
+    loadGenesisPlugins({
       workspaceDir,
       onlyPluginIds: params.onlyPluginIds ?? [params.pluginId],
       config: {
@@ -144,14 +144,14 @@ export function resetPluginLoaderTestStateForTest() {
   resetPluginRuntimeStateForTest();
   resetDiagnosticEventsForTest();
   if (prevBundledDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = prevBundledDir;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = prevBundledDir;
   }
   if (prevPluginStageDir === undefined) {
-    delete process.env.OPENCLAW_PLUGIN_STAGE_DIR;
+    delete process.env.GENESIS_PLUGIN_STAGE_DIR;
   } else {
-    process.env.OPENCLAW_PLUGIN_STAGE_DIR = prevPluginStageDir;
+    process.env.GENESIS_PLUGIN_STAGE_DIR = prevPluginStageDir;
   }
 }
 

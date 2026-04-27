@@ -7,7 +7,7 @@ import { importFreshModule } from "../../test/helpers/import-fresh.ts";
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-loader-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-plugin-loader-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -15,7 +15,7 @@ function makeTempDir() {
 function writeBundledPluginFixture(id: string) {
   const pluginRoot = makeTempDir();
   fs.writeFileSync(
-    path.join(pluginRoot, "openclaw.plugin.json"),
+    path.join(pluginRoot, "genesis.plugin.json"),
     JSON.stringify(
       {
         id,
@@ -41,7 +41,7 @@ function writeBundledPluginFixture(id: string) {
 afterEach(() => {
   vi.resetModules();
   vi.doUnmock("./jiti-loader-cache.js");
-  delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+  delete process.env.GENESIS_BUNDLED_PLUGINS_DIR;
   for (const dir of tempDirs.splice(0)) {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -69,15 +69,15 @@ describe("createPluginJitiLoader", () => {
       };
     });
 
-    const { loadOpenClawPlugins } = await importFreshModule<typeof import("./loader.js")>(
+    const { loadGenesisPlugins } = await importFreshModule<typeof import("./loader.js")>(
       import.meta.url,
       "./loader.js?scope=jiti-filename",
     );
 
     const pluginRoot = writeBundledPluginFixture("demo");
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = pluginRoot;
+    process.env.GENESIS_BUNDLED_PLUGINS_DIR = pluginRoot;
 
-    loadOpenClawPlugins({
+    loadGenesisPlugins({
       cache: false,
       workspaceDir: pluginRoot,
       onlyPluginIds: ["demo"],

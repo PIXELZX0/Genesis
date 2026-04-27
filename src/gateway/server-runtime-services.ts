@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { isVitestRuntimeEnv } from "../infra/env.js";
 import { startHeartbeatRunner, type HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { ChannelHealthMonitor } from "./channel-health-monitor.js";
@@ -21,12 +21,12 @@ export type GatewayChannelManager = Parameters<
 function createNoopHeartbeatRunner(): HeartbeatRunner {
   return {
     stop: () => {},
-    updateConfig: (_cfg: OpenClawConfig) => {},
+    updateConfig: (_cfg: GenesisConfig) => {},
   };
 }
 
 export function startGatewayChannelHealthMonitor(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelManager: GatewayChannelManager;
 }): ChannelHealthMonitor | null {
   const healthCheckMinutes = params.cfg.gateway?.channelHealthCheckMinutes;
@@ -53,7 +53,7 @@ export function startGatewayCronWithLogging(params: {
 }
 
 function recoverPendingOutboundDeliveries(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   log: GatewayRuntimeServiceLogger;
 }): void {
   void (async () => {
@@ -90,7 +90,7 @@ function recoverPendingSessionDeliveries(params: {
 
 export function startGatewayRuntimeServices(params: {
   minimalTestGateway: boolean;
-  cfgAtStart: OpenClawConfig;
+  cfgAtStart: GenesisConfig;
   channelManager: GatewayChannelManager;
   log: GatewayRuntimeServiceLogger;
 }): {
@@ -115,7 +115,7 @@ export function startGatewayRuntimeServices(params: {
 
 export function activateGatewayScheduledServices(params: {
   minimalTestGateway: boolean;
-  cfgAtStart: OpenClawConfig;
+  cfgAtStart: GenesisConfig;
   deps: import("../cli/deps.types.js").CliDeps;
   sessionDeliveryRecoveryMaxEnqueuedAt: number;
   cron: { start: () => Promise<void> };

@@ -30,7 +30,7 @@ describeLive("elevenlabs plugin live", () => {
     const provider = requireRegisteredProvider(speechProviders, "elevenlabs");
 
     const audioFile = await provider.synthesize({
-      text: "OpenClaw ElevenLabs text to speech integration test OK.",
+      text: "Genesis ElevenLabs text to speech integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig: { apiKey: ELEVENLABS_KEY },
       target: "audio-file",
@@ -43,7 +43,7 @@ describeLive("elevenlabs plugin live", () => {
   }, 60_000);
 
   it("transcribes synthesized speech through the media provider", async () => {
-    const phrase = "Testing OpenClaw ElevenLabs speech to text integration OK.";
+    const phrase = "Testing Genesis ElevenLabs speech to text integration OK.";
     const audio = await synthesizeElevenLabsLiveSpeech({
       text: phrase,
       apiKey: ELEVENLABS_KEY,
@@ -60,13 +60,13 @@ describeLive("elevenlabs plugin live", () => {
     });
 
     const normalized = normalizeTranscriptForMatch(transcript?.text ?? "");
-    expect(normalized).toContain("openclaw");
+    expect(normalized).toContain("genesis");
     expect(normalized).toContain("elevenlabs");
   }, 90_000);
 
   it("streams realtime STT through the registered transcription provider", async () => {
     const provider = buildElevenLabsRealtimeTranscriptionProvider();
-    const phrase = "Testing OpenClaw ElevenLabs realtime transcription integration OK.";
+    const phrase = "Testing Genesis ElevenLabs realtime transcription integration OK.";
     const speech = await synthesizeElevenLabsLiveSpeech({
       text: phrase,
       apiKey: ELEVENLABS_KEY,

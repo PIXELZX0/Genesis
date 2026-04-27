@@ -16,7 +16,7 @@ import {
   resolveSessionFilePathOptions,
   type SessionEntry,
 } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { diagnosticLogger as diag } from "../logging/diagnostic.js";
 import { prepareProviderRuntimeAuth } from "../plugins/provider-runtime.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
@@ -27,7 +27,7 @@ import {
   type ImageSanitizationLimits,
 } from "./image-sanitization.js";
 import { getApiKeyForModel, requireApiKey } from "./model-auth.js";
-import { ensureOpenClawModelsJson } from "./models-config.js";
+import { ensureGenesisModelsJson } from "./models-config.js";
 import { EmbeddedBlockChunker, type BlockReplyChunking } from "./pi-embedded-block-chunker.js";
 import { resolveModelWithRegistry } from "./pi-embedded-runner/model.js";
 import { getActiveEmbeddedRunSnapshot } from "./pi-embedded-runner/runs.js";
@@ -250,7 +250,7 @@ function resolveSessionTranscriptPath(params: {
 }
 
 async function resolveRuntimeModel(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   provider: string;
   model: string;
   agentDir: string;
@@ -264,7 +264,7 @@ async function resolveRuntimeModel(params: {
   authProfileId?: string;
   authProfileIdSource?: "auto" | "user";
 }> {
-  await ensureOpenClawModelsJson(params.cfg, params.agentDir);
+  await ensureGenesisModelsJson(params.cfg, params.agentDir);
   const authStorage = discoverAuthStorage(params.agentDir);
   const modelRegistry = discoverModels(authStorage, params.agentDir);
   const model = resolveModelWithRegistry({
@@ -295,7 +295,7 @@ async function resolveRuntimeModel(params: {
 }
 
 type RunBtwSideQuestionParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir: string;
   provider: string;
   model: string;

@@ -1,7 +1,7 @@
-import { mapPluginConfigIssues } from "openclaw/plugin-sdk/extension-shared";
-import { buildPluginConfigSchema } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "openclaw/plugin-sdk/zod";
-import type { OpenClawPluginConfigSchema } from "../api.js";
+import { mapPluginConfigIssues } from "genesis/plugin-sdk/extension-shared";
+import { buildPluginConfigSchema } from "genesis/plugin-sdk/plugin-entry";
+import { z } from "genesis/plugin-sdk/zod";
+import type { GenesisPluginConfigSchema } from "../api.js";
 import {
   DIFF_IMAGE_QUALITY_PRESETS,
   DIFF_INDICATORS,
@@ -187,7 +187,7 @@ const diffsPluginConfigSchemaBase = buildPluginConfigSchema(DiffsPluginJsonSchem
   },
 });
 
-export const diffsPluginConfigSchema: OpenClawPluginConfigSchema = {
+export const diffsPluginConfigSchema: GenesisPluginConfigSchema = {
   ...diffsPluginConfigSchemaBase,
   jsonSchema: {
     ...diffsPluginConfigSchemaBase.jsonSchema,

@@ -3,7 +3,7 @@ name: clawhub
 description: Search, install, update, sync, or publish agent skills with the ClawHub CLI and registry.
 metadata:
   {
-    "openclaw":
+    "genesis":
       {
         "requires": { "bins": ["clawhub"] },
         "install":
@@ -73,5 +73,5 @@ clawhub publish ./my-skill --slug my-skill --name "My Skill" --version 1.2.0 --c
 Notes
 
 - Default registry: https://clawhub.com (override with CLAWHUB_REGISTRY or --registry)
-- Default workdir: cwd (falls back to OpenClaw workspace); install dir: ./skills (override with --workdir / --dir / CLAWHUB_WORKDIR)
+- Default workdir: cwd (falls back to Genesis workspace); install dir: ./skills (override with --workdir / --dir / CLAWHUB_WORKDIR)
 - Update command hashes local files, resolves matching version, and upgrades to latest unless --version is set

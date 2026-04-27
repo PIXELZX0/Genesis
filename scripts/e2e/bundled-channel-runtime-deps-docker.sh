@@ -4,26 +4,26 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-bundled-channel-deps-e2e" OPENCLAW_BUNDLED_CHANNEL_DEPS_E2E_IMAGE)"
-UPDATE_BASELINE_VERSION="${OPENCLAW_BUNDLED_CHANNEL_UPDATE_BASELINE_VERSION:-2026.4.20}"
-DOCKER_TARGET="${OPENCLAW_BUNDLED_CHANNEL_DOCKER_TARGET:-e2e-runner}"
-HOST_BUILD="${OPENCLAW_BUNDLED_CHANNEL_HOST_BUILD:-1}"
-PACKAGE_TGZ="${OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ:-}"
-RUN_CHANNEL_SCENARIOS="${OPENCLAW_BUNDLED_CHANNEL_SCENARIOS:-1}"
-RUN_UPDATE_SCENARIO="${OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO:-1}"
-RUN_ROOT_OWNED_SCENARIO="${OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO:-1}"
-RUN_SETUP_ENTRY_SCENARIO="${OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO:-1}"
-RUN_LOAD_FAILURE_SCENARIO="${OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO:-1}"
-RUN_DISABLED_CONFIG_SCENARIO="${OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO:-1}"
-CHANNEL_ONLY="${OPENCLAW_BUNDLED_CHANNEL_ONLY:-}"
-DOCKER_RUN_TIMEOUT="${OPENCLAW_BUNDLED_CHANNEL_DOCKER_RUN_TIMEOUT:-900s}"
+IMAGE_NAME="$(docker_e2e_resolve_image "genesis-bundled-channel-deps-e2e" GENESIS_BUNDLED_CHANNEL_DEPS_E2E_IMAGE)"
+UPDATE_BASELINE_VERSION="${GENESIS_BUNDLED_CHANNEL_UPDATE_BASELINE_VERSION:-2026.4.20}"
+DOCKER_TARGET="${GENESIS_BUNDLED_CHANNEL_DOCKER_TARGET:-e2e-runner}"
+HOST_BUILD="${GENESIS_BUNDLED_CHANNEL_HOST_BUILD:-1}"
+PACKAGE_TGZ="${GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ:-}"
+RUN_CHANNEL_SCENARIOS="${GENESIS_BUNDLED_CHANNEL_SCENARIOS:-1}"
+RUN_UPDATE_SCENARIO="${GENESIS_BUNDLED_CHANNEL_UPDATE_SCENARIO:-1}"
+RUN_ROOT_OWNED_SCENARIO="${GENESIS_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO:-1}"
+RUN_SETUP_ENTRY_SCENARIO="${GENESIS_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO:-1}"
+RUN_LOAD_FAILURE_SCENARIO="${GENESIS_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO:-1}"
+RUN_DISABLED_CONFIG_SCENARIO="${GENESIS_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO:-1}"
+CHANNEL_ONLY="${GENESIS_BUNDLED_CHANNEL_ONLY:-}"
+DOCKER_RUN_TIMEOUT="${GENESIS_BUNDLED_CHANNEL_DOCKER_RUN_TIMEOUT:-900s}"
 
 docker_e2e_build_or_reuse "$IMAGE_NAME" bundled-channel-deps "$ROOT_DIR/scripts/e2e/Dockerfile" "$ROOT_DIR" "$DOCKER_TARGET"
 
 prepare_package_tgz() {
   if [ -n "$PACKAGE_TGZ" ]; then
     if [ ! -f "$PACKAGE_TGZ" ]; then
-      echo "OPENCLAW_BUNDLED_CHANNEL_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
+      echo "GENESIS_BUNDLED_CHANNEL_PACKAGE_TGZ does not exist: $PACKAGE_TGZ" >&2
       exit 1
     fi
     PACKAGE_TGZ="$(cd "$(dirname "$PACKAGE_TGZ")" && pwd)/$(basename "$PACKAGE_TGZ")"
@@ -34,51 +34,51 @@ prepare_package_tgz() {
     echo "Building host package artifacts..."
     run_logged bundled-channel-deps-host-build pnpm build
   else
-    echo "Skipping host build (OPENCLAW_BUNDLED_CHANNEL_HOST_BUILD=0)"
+    echo "Skipping host build (GENESIS_BUNDLED_CHANNEL_HOST_BUILD=0)"
   fi
 
   echo "Writing package inventory and packing once..."
   run_logged bundled-channel-deps-inventory node --import tsx --input-type=module -e 'const { writePackageDistInventory } = await import("./src/infra/package-dist-inventory.ts"); await writePackageDistInventory(process.cwd());'
   local pack_dir
-  pack_dir="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-bundled-channel-pack.XXXXXX")"
+  pack_dir="$(mktemp -d "${TMPDIR:-/tmp}/genesis-bundled-channel-pack.XXXXXX")"
   run_logged bundled-channel-deps-pack npm pack --ignore-scripts --pack-destination "$pack_dir"
-  PACKAGE_TGZ="$(find "$pack_dir" -maxdepth 1 -name 'openclaw-*.tgz' -print -quit)"
+  PACKAGE_TGZ="$(find "$pack_dir" -maxdepth 1 -name 'genesis-*.tgz' -print -quit)"
   if [ -z "$PACKAGE_TGZ" ]; then
-    echo "missing packed OpenClaw tarball" >&2
+    echo "missing packed Genesis tarball" >&2
     exit 1
   fi
   PACKAGE_TGZ="$(cd "$(dirname "$PACKAGE_TGZ")" && pwd)/$(basename "$PACKAGE_TGZ")"
 }
 
 prepare_package_tgz
-DOCKER_PACKAGE_TGZ="/tmp/openclaw-current.tgz"
-PACKAGE_DOCKER_ARGS=(-v "$PACKAGE_TGZ:$DOCKER_PACKAGE_TGZ:ro" -e "OPENCLAW_CURRENT_PACKAGE_TGZ=$DOCKER_PACKAGE_TGZ")
+DOCKER_PACKAGE_TGZ="/tmp/genesis-current.tgz"
+PACKAGE_DOCKER_ARGS=(-v "$PACKAGE_TGZ:$DOCKER_PACKAGE_TGZ:ro" -e "GENESIS_CURRENT_PACKAGE_TGZ=$DOCKER_PACKAGE_TGZ")
 
 run_channel_scenario() {
   local channel="$1"
   local dep_sentinel="$2"
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-deps-$channel.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-deps-$channel.XXXXXX")"
 
   echo "Running bundled $channel runtime deps Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
     -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-    -e OPENCLAW_CHANNEL_UNDER_TEST="$channel" \
-    -e OPENCLAW_DEP_SENTINEL="$dep_sentinel" \
+    -e GENESIS_CHANNEL_UNDER_TEST="$channel" \
+    -e GENESIS_DEP_SENTINEL="$dep_sentinel" \
     "${PACKAGE_DOCKER_ARGS[@]}" \
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-deps.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-bundled-channel-deps.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENAI_API_KEY="sk-openclaw-bundled-channel-deps-e2e"
-export OPENCLAW_NO_ONBOARD=1
+export OPENAI_API_KEY="sk-genesis-bundled-channel-deps-e2e"
+export GENESIS_NO_ONBOARD=1
 
 TOKEN="bundled-channel-deps-token"
 PORT="18789"
-CHANNEL="${OPENCLAW_CHANNEL_UNDER_TEST:?missing OPENCLAW_CHANNEL_UNDER_TEST}"
-DEP_SENTINEL="${OPENCLAW_DEP_SENTINEL:?missing OPENCLAW_DEP_SENTINEL}"
+CHANNEL="${GENESIS_CHANNEL_UNDER_TEST:?missing GENESIS_CHANNEL_UNDER_TEST}"
+DEP_SENTINEL="${GENESIS_DEP_SENTINEL:?missing GENESIS_DEP_SENTINEL}"
 gateway_pid=""
 
 terminate_gateways() {
@@ -115,12 +115,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-install.log 2>&1
+echo "Installing mounted Genesis package..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-install.log 2>&1
 
-command -v openclaw >/dev/null
-package_root="$(npm root -g)/openclaw"
+command -v genesis >/dev/null
+package_root="$(npm root -g)/genesis"
 test -d "$package_root/dist/extensions/telegram"
 test -d "$package_root/dist/extensions/discord"
 test -d "$package_root/dist/extensions/slack"
@@ -128,7 +128,7 @@ test -d "$package_root/dist/extensions/feishu"
 test -d "$package_root/dist/extensions/memory-lancedb"
 
 stage_root() {
-  printf "%s/.openclaw/plugin-runtime-deps" "$HOME"
+  printf "%s/.genesis/plugin-runtime-deps" "$HOME"
 }
 
 find_external_dep_package() {
@@ -165,7 +165,7 @@ const path = require("node:path");
 const mode = process.argv[2];
 const token = process.argv[3];
 const port = Number(process.argv[4]);
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".genesis", "genesis.json");
 const config = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
   : {};
@@ -261,7 +261,7 @@ if (mode === "memory-lancedb") {
             apiKey: process.env.OPENAI_API_KEY,
             model: "text-embedding-3-small",
           },
-          dbPath: "~/.openclaw/memory/lancedb-e2e",
+          dbPath: "~/.genesis/memory/lancedb-e2e",
           autoCapture: false,
           autoRecall: false,
         },
@@ -280,10 +280,10 @@ start_gateway() {
   local skip_sidecars="${2:-0}"
   : >"$log_file"
   if [ "$skip_sidecars" = "1" ]; then
-    OPENCLAW_SKIP_CHANNELS=1 OPENCLAW_SKIP_PROVIDERS=1 \
-      openclaw gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
+    GENESIS_SKIP_CHANNELS=1 GENESIS_SKIP_PROVIDERS=1 \
+      genesis gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
   else
-    openclaw gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
+    genesis gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
   fi
   gateway_pid="$!"
 
@@ -328,10 +328,10 @@ assert_channel_status() {
     echo "memory-lancedb plugin activation verified by dependency sentinel"
     return 0
   fi
-  local out="/tmp/openclaw-channel-status-$channel.json"
-  local err="/tmp/openclaw-channel-status-$channel.err"
+  local out="/tmp/genesis-channel-status-$channel.json"
+  local err="/tmp/genesis-channel-status-$channel.err"
   for _ in $(seq 1 12); do
-    if openclaw gateway call channels.status \
+    if genesis gateway call channels.status \
       --url "ws://127.0.0.1:$PORT" \
       --token "$TOKEN" \
       --timeout 10000 \
@@ -342,7 +342,7 @@ assert_channel_status() {
     sleep 2
   done
   if [ ! -s "$out" ]; then
-    if grep -Eq "\\[gateway\\] ready \\(.*\\b$channel\\b" /tmp/openclaw-"$channel"-*.log 2>/dev/null; then
+    if grep -Eq "\\[gateway\\] ready \\(.*\\b$channel\\b" /tmp/genesis-"$channel"-*.log 2>/dev/null; then
       echo "$channel channel plugin visible in gateway ready log"
       return 0
     fi
@@ -425,7 +425,7 @@ assert_no_dep_sentinel() {
 
 assert_no_install_stage() {
   local channel="$1"
-  local stage="$package_root/dist/extensions/$channel/.openclaw-install-stage"
+  local stage="$package_root/dist/extensions/$channel/.genesis-install-stage"
   if [ -e "$stage" ]; then
     echo "install stage should be cleaned after activation for $channel" >&2
     find "$stage" -maxdepth 4 -type f | sort | head -80 >&2 || true
@@ -435,25 +435,25 @@ assert_no_install_stage() {
 
 echo "Starting baseline gateway with OpenAI configured..."
 write_config baseline
-start_gateway "/tmp/openclaw-$CHANNEL-baseline.log" 1
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-baseline.log"
+start_gateway "/tmp/genesis-$CHANNEL-baseline.log" 1
+wait_for_gateway_health "/tmp/genesis-$CHANNEL-baseline.log"
 stop_gateway
 assert_no_dep_sentinel "$CHANNEL" "$DEP_SENTINEL"
 
 echo "Enabling $CHANNEL by config edit, then restarting gateway..."
 write_config "$CHANNEL"
-start_gateway "/tmp/openclaw-$CHANNEL-first.log"
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-first.log"
-assert_installed_once "/tmp/openclaw-$CHANNEL-first.log" "$CHANNEL" "$DEP_SENTINEL"
+start_gateway "/tmp/genesis-$CHANNEL-first.log"
+wait_for_gateway_health "/tmp/genesis-$CHANNEL-first.log"
+assert_installed_once "/tmp/genesis-$CHANNEL-first.log" "$CHANNEL" "$DEP_SENTINEL"
 assert_dep_sentinel "$CHANNEL" "$DEP_SENTINEL"
 assert_no_install_stage "$CHANNEL"
 assert_channel_status "$CHANNEL"
 stop_gateway
 
 echo "Restarting gateway again; $CHANNEL deps must stay installed..."
-start_gateway "/tmp/openclaw-$CHANNEL-second.log"
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-second.log"
-assert_not_installed "/tmp/openclaw-$CHANNEL-second.log" "$CHANNEL"
+start_gateway "/tmp/genesis-$CHANNEL-second.log"
+wait_for_gateway_health "/tmp/genesis-$CHANNEL-second.log"
+assert_not_installed "/tmp/genesis-$CHANNEL-second.log" "$CHANNEL"
 assert_no_install_stage "$CHANNEL"
 assert_channel_status "$CHANNEL"
 stop_gateway
@@ -472,7 +472,7 @@ EOF
 
 run_root_owned_global_scenario() {
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-root-owned.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-root-owned.XXXXXX")"
 
   echo "Running bundled channel root-owned global install Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm --user root \
@@ -482,9 +482,9 @@ run_root_owned_global_scenario() {
 set -euo pipefail
 
 export HOME="/root"
-export OPENAI_API_KEY="sk-openclaw-bundled-channel-root-owned-e2e"
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_PLUGIN_STAGE_DIR="/var/lib/openclaw/plugin-runtime-deps"
+export OPENAI_API_KEY="sk-genesis-bundled-channel-root-owned-e2e"
+export GENESIS_NO_ONBOARD=1
+export GENESIS_PLUGIN_STAGE_DIR="/var/lib/genesis/plugin-runtime-deps"
 
 TOKEN="bundled-channel-root-owned-token"
 PORT="18791"
@@ -493,7 +493,7 @@ DEP_SENTINEL="@slack/web-api"
 gateway_pid=""
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/genesis" "$(npm root -g)"
 }
 
 cleanup() {
@@ -504,16 +504,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Installing mounted OpenClaw package into root-owned global npm..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-root-owned-install.log 2>&1
+echo "Installing mounted Genesis package into root-owned global npm..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-root-owned-install.log 2>&1
 
 root="$(package_root)"
 test -d "$root/dist/extensions/$CHANNEL"
 rm -rf "$root/dist/extensions/$CHANNEL/node_modules"
 chmod -R a-w "$root"
-mkdir -p "$OPENCLAW_PLUGIN_STAGE_DIR" /home/appuser/.openclaw
-chown -R appuser:appuser /home/appuser/.openclaw /var/lib/openclaw
+mkdir -p "$GENESIS_PLUGIN_STAGE_DIR" /home/appuser/.genesis
+chown -R appuser:appuser /home/appuser/.genesis /var/lib/genesis
 
 if runuser -u appuser -- test -w "$root"; then
   echo "expected package root to be unwritable for appuser" >&2
@@ -525,7 +525,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const token = process.argv[2];
 const port = Number(process.argv[3]);
-const configPath = "/home/appuser/.openclaw/openclaw.json";
+const configPath = "/home/appuser/.genesis/genesis.json";
 const config = {
   gateway: {
     port,
@@ -558,7 +558,7 @@ const config = {
 fs.mkdirSync(path.dirname(configPath), { recursive: true });
 fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 NODE
-chown appuser:appuser /home/appuser/.openclaw/openclaw.json
+chown appuser:appuser /home/appuser/.genesis/genesis.json
 
 start_gateway() {
   local log_file="$1"
@@ -567,10 +567,10 @@ start_gateway() {
   runuser -u appuser -- env \
     HOME=/home/appuser \
     OPENAI_API_KEY="$OPENAI_API_KEY" \
-    OPENCLAW_NO_ONBOARD=1 \
-    OPENCLAW_PLUGIN_STAGE_DIR="$OPENCLAW_PLUGIN_STAGE_DIR" \
-    npm_config_cache=/tmp/openclaw-root-owned-npm-cache \
-    bash -c 'openclaw gateway --port "$1" --bind loopback --allow-unconfigured >"$2" 2>&1' \
+    GENESIS_NO_ONBOARD=1 \
+    GENESIS_PLUGIN_STAGE_DIR="$GENESIS_PLUGIN_STAGE_DIR" \
+    npm_config_cache=/tmp/genesis-root-owned-npm-cache \
+    bash -c 'genesis gateway --port "$1" --bind loopback --allow-unconfigured >"$2" 2>&1' \
     bash "$PORT" "$log_file" &
   gateway_pid="$!"
 
@@ -594,17 +594,17 @@ start_gateway() {
 
 wait_for_slack_provider_start() {
   for _ in $(seq 1 180); do
-    if grep -Eq "\\[slack\\] \\[default\\] starting provider|An API error occurred: invalid_auth|\\[plugins\\] slack installed bundled runtime deps|\\[gateway\\] ready \\(.*\\bslack\\b" /tmp/openclaw-root-owned-gateway.log; then
+    if grep -Eq "\\[slack\\] \\[default\\] starting provider|An API error occurred: invalid_auth|\\[plugins\\] slack installed bundled runtime deps|\\[gateway\\] ready \\(.*\\bslack\\b" /tmp/genesis-root-owned-gateway.log; then
       return 0
     fi
     sleep 1
   done
   echo "timed out waiting for slack provider startup" >&2
-  cat /tmp/openclaw-root-owned-gateway.log >&2
+  cat /tmp/genesis-root-owned-gateway.log >&2
   exit 1
 }
 
-start_gateway /tmp/openclaw-root-owned-gateway.log
+start_gateway /tmp/genesis-root-owned-gateway.log
 wait_for_slack_provider_start
 
 if [ -e "$root/dist/extensions/$CHANNEL/node_modules/$DEP_SENTINEL/package.json" ]; then
@@ -612,26 +612,26 @@ if [ -e "$root/dist/extensions/$CHANNEL/node_modules/$DEP_SENTINEL/package.json"
   find "$root/dist/extensions/$CHANNEL/node_modules" -maxdepth 4 -type f | sort | head -80 >&2 || true
   exit 1
 fi
-if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$DEP_SENTINEL/package.json" -type f | grep -q .; then
+if ! find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$DEP_SENTINEL/package.json" -type f | grep -q .; then
   echo "missing external staged dependency sentinel for $DEP_SENTINEL" >&2
-  find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -120 >&2 || true
-  cat /tmp/openclaw-root-owned-gateway.log >&2
+  find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -120 >&2 || true
+  cat /tmp/genesis-root-owned-gateway.log >&2
   exit 1
 fi
-if [ -e "$root/dist/extensions/node_modules/openclaw/package.json" ]; then
+if [ -e "$root/dist/extensions/node_modules/genesis/package.json" ]; then
   echo "root-owned package tree was mutated with SDK alias" >&2
-  find "$root/dist/extensions/node_modules/openclaw" -maxdepth 4 -type f | sort | head -80 >&2 || true
+  find "$root/dist/extensions/node_modules/genesis" -maxdepth 4 -type f | sort | head -80 >&2 || true
   exit 1
 fi
-if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/dist/extensions/node_modules/openclaw/package.json" -type f | grep -q .; then
-  echo "missing external staged openclaw/plugin-sdk alias" >&2
-  find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -120 >&2 || true
-  cat /tmp/openclaw-root-owned-gateway.log >&2
+if ! find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/dist/extensions/node_modules/genesis/package.json" -type f | grep -q .; then
+  echo "missing external staged genesis/plugin-sdk alias" >&2
+  find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -120 >&2 || true
+  cat /tmp/genesis-root-owned-gateway.log >&2
   exit 1
 fi
-if grep -Eq "failed to install bundled runtime deps|Cannot find package 'openclaw'|Cannot find module 'openclaw/plugin-sdk'" /tmp/openclaw-root-owned-gateway.log; then
+if grep -Eq "failed to install bundled runtime deps|Cannot find package 'genesis'|Cannot find module 'genesis/plugin-sdk'" /tmp/genesis-root-owned-gateway.log; then
   echo "root-owned gateway hit bundled runtime dependency errors" >&2
-  cat /tmp/openclaw-root-owned-gateway.log >&2
+  cat /tmp/genesis-root-owned-gateway.log >&2
   exit 1
 fi
 
@@ -649,7 +649,7 @@ EOF
 
 run_setup_entry_scenario() {
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-setup-entry.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-setup-entry.XXXXXX")"
 
   echo "Running bundled channel setup-entry runtime deps Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
@@ -658,12 +658,12 @@ run_setup_entry_scenario() {
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-setup-entry.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-bundled-channel-setup-entry.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_PLUGIN_STAGE_DIR="$HOME/.openclaw/plugin-runtime-deps"
-mkdir -p "$OPENCLAW_PLUGIN_STAGE_DIR"
+export GENESIS_NO_ONBOARD=1
+export GENESIS_PLUGIN_STAGE_DIR="$HOME/.genesis/plugin-runtime-deps"
+mkdir -p "$GENESIS_PLUGIN_STAGE_DIR"
 
 declare -A SETUP_ENTRY_DEP_SENTINELS=(
   [feishu]="@larksuiteoapi/node-sdk"
@@ -671,12 +671,12 @@ declare -A SETUP_ENTRY_DEP_SENTINELS=(
 )
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/genesis" "$(npm root -g)"
 }
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-setup-entry-install.log 2>&1
+echo "Installing mounted Genesis package..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-setup-entry-install.log 2>&1
 
 root="$(package_root)"
 for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
@@ -737,22 +737,22 @@ for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
     echo "setup-entry discovery installed $channel deps into bundled plugin tree before channel configuration" >&2
     exit 1
   fi
-  if find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
+  if find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
     echo "setup-entry discovery installed $channel external staged deps before channel configuration" >&2
-    find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+    find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
     exit 1
   fi
 done
 
 echo "Running packaged guided WhatsApp setup; runtime deps should be staged before finalize..."
-OPENCLAW_PACKAGE_ROOT="$root" node --input-type=module - <<'NODE'
+GENESIS_PACKAGE_ROOT="$root" node --input-type=module - <<'NODE'
 import path from "node:path";
 import { readdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-const root = process.env.OPENCLAW_PACKAGE_ROOT;
+const root = process.env.GENESIS_PACKAGE_ROOT;
 if (!root) {
-  throw new Error("missing OPENCLAW_PACKAGE_ROOT");
+  throw new Error("missing GENESIS_PACKAGE_ROOT");
 }
 const distDir = path.join(root, "dist");
 const onboardChannelFiles = (await readdir(distDir))
@@ -834,9 +834,9 @@ if [ -e "$root/dist/extensions/whatsapp/node_modules/@whiskeysockets/baileys/pac
   echo "expected guided WhatsApp setup deps to be installed externally, not into bundled plugin tree" >&2
   exit 1
 fi
-if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/@whiskeysockets/baileys/package.json" -type f | grep -q .; then
+if ! find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/@whiskeysockets/baileys/package.json" -type f | grep -q .; then
   echo "guided WhatsApp setup did not stage @whiskeysockets/baileys before finalize" >&2
-  find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+  find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
   exit 1
 fi
 
@@ -845,7 +845,7 @@ node - <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".genesis", "genesis.json");
 fs.mkdirSync(path.dirname(configPath), { recursive: true });
 const config = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
@@ -870,7 +870,7 @@ config.channels = {
 fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 NODE
 
-openclaw doctor --non-interactive >/tmp/openclaw-setup-entry-doctor.log 2>&1
+genesis doctor --non-interactive >/tmp/genesis-setup-entry-doctor.log 2>&1
 
 for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
   dep_sentinel="${SETUP_ENTRY_DEP_SENTINELS[$channel]}"
@@ -878,10 +878,10 @@ for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
     echo "expected configured $channel deps to be installed externally, not into bundled plugin tree" >&2
     exit 1
   fi
-  if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
+  if ! find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
     echo "missing external staged dependency sentinel for configured $channel: $dep_sentinel" >&2
-    cat /tmp/openclaw-setup-entry-doctor.log >&2
-    find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+    cat /tmp/genesis-setup-entry-doctor.log >&2
+    find "$GENESIS_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
     exit 1
   fi
 done
@@ -900,7 +900,7 @@ EOF
 
 run_disabled_config_scenario() {
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-disabled-config.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-disabled-config.XXXXXX")"
 
   echo "Running bundled channel disabled-config runtime deps Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
@@ -909,15 +909,15 @@ run_disabled_config_scenario() {
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-disabled-config.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-bundled-channel-disabled-config.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_PLUGIN_STAGE_DIR="$HOME/.openclaw/plugin-runtime-deps"
-mkdir -p "$OPENCLAW_PLUGIN_STAGE_DIR"
+export GENESIS_NO_ONBOARD=1
+export GENESIS_PLUGIN_STAGE_DIR="$HOME/.genesis/plugin-runtime-deps"
+mkdir -p "$GENESIS_PLUGIN_STAGE_DIR"
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/genesis" "$(npm root -g)"
 }
 
 assert_dep_absent_everywhere() {
@@ -934,13 +934,13 @@ assert_dep_absent_everywhere() {
     fi
   done
 
-  if ! node - <<'NODE' "$OPENCLAW_PLUGIN_STAGE_DIR" "$dep_path"
+  if ! node - <<'NODE' "$GENESIS_PLUGIN_STAGE_DIR" "$dep_path"
 const fs = require("node:fs");
 const path = require("node:path");
 
 const stageDir = process.argv[2];
 const depName = process.argv[3];
-const manifestName = ".openclaw-runtime-deps.json";
+const manifestName = ".genesis-runtime-deps.json";
 const matches = [];
 
 function visit(dir) {
@@ -982,14 +982,14 @@ if (matches.length > 0) {
 NODE
   then
     echo "disabled $channel unexpectedly selected $dep_path for external runtime deps" >&2
-    cat /tmp/openclaw-disabled-config-doctor.log >&2
+    cat /tmp/genesis-disabled-config-doctor.log >&2
     exit 1
   fi
 }
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-disabled-config-install.log 2>&1
+echo "Installing mounted Genesis package..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-disabled-config-install.log 2>&1
 
 root="$(package_root)"
 test -d "$root/dist/extensions/telegram"
@@ -1003,7 +1003,7 @@ node - <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".genesis", "genesis.json");
 const config = {
   plugins: {
     enabled: true,
@@ -1035,9 +1035,9 @@ fs.mkdirSync(path.dirname(configPath), { recursive: true });
 fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 NODE
 
-if ! openclaw doctor --non-interactive >/tmp/openclaw-disabled-config-doctor.log 2>&1; then
+if ! genesis doctor --non-interactive >/tmp/genesis-disabled-config-doctor.log 2>&1; then
   echo "doctor failed for disabled-config runtime deps smoke" >&2
-  cat /tmp/openclaw-disabled-config-doctor.log >&2
+  cat /tmp/genesis-disabled-config-doctor.log >&2
   exit 1
 fi
 
@@ -1045,9 +1045,9 @@ assert_dep_absent_everywhere telegram grammy "$root"
 assert_dep_absent_everywhere slack @slack/web-api "$root"
 assert_dep_absent_everywhere discord discord-api-types "$root"
 
-if grep -Eq "(used by .*\\b(telegram|slack|discord)\\b|\\[plugins\\] (telegram|slack|discord) installed bundled runtime deps( in [0-9]+ms)?:)" /tmp/openclaw-disabled-config-doctor.log; then
+if grep -Eq "(used by .*\\b(telegram|slack|discord)\\b|\\[plugins\\] (telegram|slack|discord) installed bundled runtime deps( in [0-9]+ms)?:)" /tmp/genesis-disabled-config-doctor.log; then
   echo "doctor installed runtime deps for an explicitly disabled channel/plugin" >&2
-  cat /tmp/openclaw-disabled-config-doctor.log >&2
+  cat /tmp/genesis-disabled-config-doctor.log >&2
   exit 1
 fi
 
@@ -1065,34 +1065,34 @@ EOF
 
 run_update_scenario() {
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-update.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-update.XXXXXX")"
 
   echo "Running bundled channel runtime deps Docker update E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
     -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-    -e OPENCLAW_BUNDLED_CHANNEL_UPDATE_BASELINE_VERSION="$UPDATE_BASELINE_VERSION" \
-    -e "OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=${OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS:-telegram,discord,slack,feishu,memory-lancedb,acpx}" \
+    -e GENESIS_BUNDLED_CHANNEL_UPDATE_BASELINE_VERSION="$UPDATE_BASELINE_VERSION" \
+    -e "GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS=${GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS:-telegram,discord,slack,feishu,memory-lancedb,acpx}" \
     "${PACKAGE_DOCKER_ARGS[@]}" \
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-update.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-bundled-channel-update.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENAI_API_KEY="sk-openclaw-bundled-channel-update-e2e"
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_UPDATE_PACKAGE_SPEC=""
+export OPENAI_API_KEY="sk-genesis-bundled-channel-update-e2e"
+export GENESIS_NO_ONBOARD=1
+export GENESIS_UPDATE_PACKAGE_SPEC=""
 
 TOKEN="bundled-channel-update-token"
 PORT="18790"
-UPDATE_TARGETS="${OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS:-telegram,discord,slack,feishu,memory-lancedb,acpx}"
+UPDATE_TARGETS="${GENESIS_BUNDLED_CHANNEL_UPDATE_TARGETS:-telegram,discord,slack,feishu,memory-lancedb,acpx}"
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/genesis" "$(npm root -g)"
 }
 
 stage_root() {
-  printf "%s/.openclaw/plugin-runtime-deps" "$HOME"
+  printf "%s/.genesis/plugin-runtime-deps" "$HOME"
 }
 
 find_external_dep_package() {
@@ -1100,7 +1100,7 @@ find_external_dep_package() {
   find "$(stage_root)" -maxdepth 12 -path "*/node_modules/$dep_path/package.json" -type f -print -quit 2>/dev/null || true
 }
 
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
 update_target="file:$package_tgz"
 candidate_version="$(node - <<'NODE' "$package_tgz"
 const { execFileSync } = require("node:child_process");
@@ -1120,7 +1120,7 @@ const path = require("node:path");
 const mode = process.argv[2];
 const token = process.argv[3];
 const port = Number(process.argv[4]);
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".genesis", "genesis.json");
 const config = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
   : {};
@@ -1201,7 +1201,7 @@ if (mode === "memory-lancedb") {
             apiKey: process.env.OPENAI_API_KEY,
             model: "text-embedding-3-small",
           },
-          dbPath: "~/.openclaw/memory/lancedb-update-e2e",
+          dbPath: "~/.genesis/memory/lancedb-update-e2e",
           autoCapture: false,
           autoRecall: false,
         },
@@ -1320,12 +1320,12 @@ if ((payload.after?.version ?? null) !== expectedAfter) {
   );
 }
 const steps = Array.isArray(payload.steps) ? payload.steps : [];
-const doctor = steps.find((step) => step?.name === "openclaw doctor");
+const doctor = steps.find((step) => step?.name === "genesis doctor");
 if (!doctor) {
-  throw new Error("missing openclaw doctor step");
+  throw new Error("missing genesis doctor step");
 }
 if (Number(doctor.exitCode ?? 1) !== 0) {
-  throw new Error(`openclaw doctor step failed: ${JSON.stringify(doctor)}`);
+  throw new Error(`genesis doctor step failed: ${JSON.stringify(doctor)}`);
 }
 NODE
 }
@@ -1334,13 +1334,13 @@ run_update_and_capture() {
   local label="$1"
   local out_file="$2"
   set +e
-  openclaw update --tag "$update_target" --yes --json >"$out_file" 2>"/tmp/openclaw-$label-update.stderr"
+  genesis update --tag "$update_target" --yes --json >"$out_file" 2>"/tmp/genesis-$label-update.stderr"
   local status=$?
   set -e
   if [ "$status" -ne 0 ]; then
-    echo "openclaw update failed for $label with exit code $status" >&2
+    echo "genesis update failed for $label with exit code $status" >&2
     cat "$out_file" >&2 || true
-    cat "/tmp/openclaw-$label-update.stderr" >&2 || true
+    cat "/tmp/genesis-$label-update.stderr" >&2 || true
     exit "$status"
   fi
 }
@@ -1355,8 +1355,8 @@ should_run_update_target() {
 
 echo "Installing current candidate as update baseline..."
 echo "Update targets: $UPDATE_TARGETS"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-update-baseline-install.log 2>&1
-command -v openclaw >/dev/null
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-update-baseline-install.log 2>&1
+command -v genesis >/dev/null
 baseline_root="$(package_root)"
 test -d "$baseline_root/dist/extensions/telegram"
 test -d "$baseline_root/dist/extensions/feishu"
@@ -1367,7 +1367,7 @@ if should_run_update_target telegram; then
   write_config telegram
   assert_no_dep_available telegram grammy
   set +e
-  openclaw doctor --non-interactive >/tmp/openclaw-baseline-doctor.log 2>&1
+  genesis doctor --non-interactive >/tmp/genesis-baseline-doctor.log 2>&1
   baseline_doctor_status=$?
   set -e
   echo "baseline doctor exited with $baseline_doctor_status"
@@ -1375,17 +1375,17 @@ if should_run_update_target telegram; then
   assert_no_dep_available telegram grammy
 
   echo "Updating from baseline to current candidate; candidate doctor must repair Telegram deps..."
-  run_update_and_capture telegram /tmp/openclaw-update-telegram.json
-  cat /tmp/openclaw-update-telegram.json
-  assert_update_ok /tmp/openclaw-update-telegram.json "$candidate_version"
+  run_update_and_capture telegram /tmp/genesis-update-telegram.json
+  cat /tmp/genesis-update-telegram.json
+  assert_update_ok /tmp/genesis-update-telegram.json "$candidate_version"
   assert_dep_available telegram grammy
 
   echo "Mutating installed package: remove Telegram deps, then update-mode doctor repairs them..."
   remove_runtime_dep telegram grammy
   assert_no_dep_available telegram grammy
-  if ! OPENCLAW_UPDATE_IN_PROGRESS=1 openclaw doctor --non-interactive >/tmp/openclaw-update-mode-doctor.log 2>&1; then
+  if ! GENESIS_UPDATE_IN_PROGRESS=1 genesis doctor --non-interactive >/tmp/genesis-update-mode-doctor.log 2>&1; then
     echo "update-mode doctor failed while repairing Telegram deps" >&2
-    cat /tmp/openclaw-update-mode-doctor.log >&2
+    cat /tmp/genesis-update-mode-doctor.log >&2
     exit 1
   fi
   assert_dep_available telegram grammy
@@ -1396,9 +1396,9 @@ if should_run_update_target discord; then
   write_config discord
   remove_runtime_dep discord discord-api-types
   assert_no_dep_available discord discord-api-types
-  run_update_and_capture discord /tmp/openclaw-update-discord.json
-  cat /tmp/openclaw-update-discord.json
-  assert_update_ok /tmp/openclaw-update-discord.json "$candidate_version"
+  run_update_and_capture discord /tmp/genesis-update-discord.json
+  cat /tmp/genesis-update-discord.json
+  assert_update_ok /tmp/genesis-update-discord.json "$candidate_version"
   assert_dep_available discord discord-api-types
 fi
 
@@ -1407,9 +1407,9 @@ if should_run_update_target slack; then
   write_config slack
   remove_runtime_dep slack @slack/web-api
   assert_no_dep_available slack @slack/web-api
-  run_update_and_capture slack /tmp/openclaw-update-slack.json
-  cat /tmp/openclaw-update-slack.json
-  assert_update_ok /tmp/openclaw-update-slack.json "$candidate_version"
+  run_update_and_capture slack /tmp/genesis-update-slack.json
+  cat /tmp/genesis-update-slack.json
+  assert_update_ok /tmp/genesis-update-slack.json "$candidate_version"
   assert_dep_available slack @slack/web-api
 fi
 
@@ -1418,9 +1418,9 @@ if should_run_update_target feishu; then
   write_config feishu
   remove_runtime_dep feishu @larksuiteoapi/node-sdk
   assert_no_dep_available feishu @larksuiteoapi/node-sdk
-  run_update_and_capture feishu /tmp/openclaw-update-feishu.json
-  cat /tmp/openclaw-update-feishu.json
-  assert_update_ok /tmp/openclaw-update-feishu.json "$candidate_version"
+  run_update_and_capture feishu /tmp/genesis-update-feishu.json
+  cat /tmp/genesis-update-feishu.json
+  assert_update_ok /tmp/genesis-update-feishu.json "$candidate_version"
   assert_dep_available feishu @larksuiteoapi/node-sdk
 fi
 
@@ -1429,9 +1429,9 @@ if should_run_update_target memory-lancedb; then
   write_config memory-lancedb
   remove_runtime_dep memory-lancedb @lancedb/lancedb
   assert_no_dep_available memory-lancedb @lancedb/lancedb
-  run_update_and_capture memory-lancedb /tmp/openclaw-update-memory-lancedb.json
-  cat /tmp/openclaw-update-memory-lancedb.json
-  assert_update_ok /tmp/openclaw-update-memory-lancedb.json "$candidate_version"
+  run_update_and_capture memory-lancedb /tmp/genesis-update-memory-lancedb.json
+  cat /tmp/genesis-update-memory-lancedb.json
+  assert_update_ok /tmp/genesis-update-memory-lancedb.json "$candidate_version"
   assert_dep_available memory-lancedb @lancedb/lancedb
 fi
 
@@ -1439,9 +1439,9 @@ if should_run_update_target acpx; then
   echo "Removing ACPX runtime package and rerunning same-version update path..."
   remove_runtime_dep acpx acpx
   assert_no_dep_available acpx acpx
-  run_update_and_capture acpx /tmp/openclaw-update-acpx.json
-  cat /tmp/openclaw-update-acpx.json
-  assert_update_ok /tmp/openclaw-update-acpx.json "$candidate_version"
+  run_update_and_capture acpx /tmp/genesis-update-acpx.json
+  cat /tmp/genesis-update-acpx.json
+  assert_update_ok /tmp/genesis-update-acpx.json "$candidate_version"
   assert_dep_available acpx acpx
 fi
 
@@ -1459,7 +1459,7 @@ EOF
 
 run_load_failure_scenario() {
   local run_log
-  run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-bundled-channel-load-failure.XXXXXX")"
+  run_log="$(mktemp "${TMPDIR:-/tmp}/genesis-bundled-channel-load-failure.XXXXXX")"
 
   echo "Running bundled channel load-failure isolation Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
@@ -1468,35 +1468,35 @@ run_load_failure_scenario() {
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-load-failure.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/genesis-bundled-channel-load-failure.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENCLAW_NO_ONBOARD=1
+export GENESIS_NO_ONBOARD=1
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/genesis" "$(npm root -g)"
 }
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-load-failure-install.log 2>&1
+echo "Installing mounted Genesis package..."
+package_tgz="${GENESIS_CURRENT_PACKAGE_TGZ:?missing GENESIS_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/genesis-load-failure-install.log 2>&1
 
 root="$(package_root)"
 plugin_dir="$root/dist/extensions/load-failure-alpha"
 mkdir -p "$plugin_dir"
 cat >"$plugin_dir/package.json" <<'JSON'
 {
-  "name": "@openclaw/load-failure-alpha",
+  "name": "@genesis/load-failure-alpha",
   "version": "2026.4.21",
   "private": true,
   "type": "module",
-  "openclaw": {
+  "genesis": {
     "extensions": ["./index.js"],
     "setupEntry": "./setup-entry.js"
   }
 }
 JSON
-cat >"$plugin_dir/openclaw.plugin.json" <<'JSON'
+cat >"$plugin_dir/genesis.plugin.json" <<'JSON'
 {
   "id": "load-failure-alpha",
   "channels": ["load-failure-alpha"],
@@ -1541,7 +1541,7 @@ JS
 echo "Loading synthetic failing bundled channel through packaged loader..."
 (
   cd "$root"
-  OPENCLAW_BUNDLED_PLUGINS_DIR="$root/dist/extensions" node --input-type=module - <<'NODE'
+  GENESIS_BUNDLED_PLUGINS_DIR="$root/dist/extensions" node --input-type=module - <<'NODE'
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -1613,7 +1613,7 @@ EOF
 }
 
 if [ "$RUN_CHANNEL_SCENARIOS" != "0" ]; then
-  IFS=',' read -r -a CHANNEL_SCENARIOS <<<"${OPENCLAW_BUNDLED_CHANNELS:-${CHANNEL_ONLY:-telegram,discord,slack,feishu,memory-lancedb}}"
+  IFS=',' read -r -a CHANNEL_SCENARIOS <<<"${GENESIS_BUNDLED_CHANNELS:-${CHANNEL_ONLY:-telegram,discord,slack,feishu,memory-lancedb}}"
   for channel_scenario in "${CHANNEL_SCENARIOS[@]}"; do
     channel_scenario="${channel_scenario//[[:space:]]/}"
     [ -n "$channel_scenario" ] || continue
@@ -1624,7 +1624,7 @@ if [ "$RUN_CHANNEL_SCENARIOS" != "0" ]; then
       feishu) run_channel_scenario feishu @larksuiteoapi/node-sdk ;;
       memory-lancedb) run_channel_scenario memory-lancedb @lancedb/lancedb ;;
       *)
-        echo "Unsupported OPENCLAW_BUNDLED_CHANNELS entry: $channel_scenario" >&2
+        echo "Unsupported GENESIS_BUNDLED_CHANNELS entry: $channel_scenario" >&2
         exit 1
         ;;
     esac

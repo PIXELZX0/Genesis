@@ -187,6 +187,12 @@ import {
 } from "./sessions.js";
 import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import {
+  WalletBalanceSchema,
+  WalletPublicAccountSchema,
+  WalletSummaryParamsSchema,
+  WalletSummaryResultSchema,
+} from "./wallet.js";
+import {
   WizardCancelParamsSchema,
   WizardNextParamsSchema,
   WizardNextResultSchema,
@@ -278,6 +284,10 @@ export const ProtocolSchemas = {
   WizardNextResult: WizardNextResultSchema,
   WizardStartResult: WizardStartResultSchema,
   WizardStatusResult: WizardStatusResultSchema,
+  WalletPublicAccount: WalletPublicAccountSchema,
+  WalletBalance: WalletBalanceSchema,
+  WalletSummaryParams: WalletSummaryParamsSchema,
+  WalletSummaryResult: WalletSummaryResultSchema,
   TalkModeParams: TalkModeParamsSchema,
   TalkConfigParams: TalkConfigParamsSchema,
   TalkConfigResult: TalkConfigResultSchema,
@@ -370,4 +380,4 @@ export const ProtocolSchemas = {
   ShutdownEvent: ShutdownEventSchema,
 } satisfies Record<string, TSchema>;
 
-export const PROTOCOL_VERSION = 3 as const;
+export const PROTOCOL_VERSION = 4 as const;

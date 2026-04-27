@@ -14,7 +14,7 @@ import {
   resolveThinkingDefault,
 } from "../../agents/model-selection.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { applyModelOverrideToSessionEntry } from "../../sessions/model-overrides.js";
 import type { ThinkLevel } from "./directives.js";
 export {
@@ -38,7 +38,7 @@ type ModelSelectionState = {
 };
 
 export function createFastTestModelSelectionState(params: {
-  agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+  agentCfg: NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]> | undefined;
   provider: string;
   model: string;
 }): ModelSelectionState {
@@ -55,7 +55,7 @@ export function createFastTestModelSelectionState(params: {
 }
 
 function shouldLogModelSelectionTiming(): boolean {
-  return process.env.OPENCLAW_DEBUG_INGRESS_TIMING === "1";
+  return process.env.GENESIS_DEBUG_INGRESS_TIMING === "1";
 }
 
 let modelCatalogRuntimePromise:
@@ -76,9 +76,9 @@ function loadSessionStoreRuntime() {
 }
 
 export async function createModelSelectionState(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId?: string;
-  agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+  agentCfg: NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]> | undefined;
   sessionEntry?: SessionEntry;
   sessionStore?: Record<string, SessionEntry>;
   sessionKey?: string;
@@ -343,8 +343,8 @@ export async function createModelSelectionState(params: {
 }
 
 export function resolveContextTokens(params: {
-  cfg: OpenClawConfig;
-  agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+  cfg: GenesisConfig;
+  agentCfg: NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]> | undefined;
   provider: string;
   model: string;
 }): number {

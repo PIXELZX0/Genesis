@@ -162,7 +162,7 @@ describe("nextcloud-talk inbound behavior", () => {
 
   it("drops unmentioned group traffic before dispatch", async () => {
     installRuntime({
-      buildMentionRegexes: vi.fn(() => [/@openclaw/i]),
+      buildMentionRegexes: vi.fn(() => [/@genesis/i]),
       matchesMentionPatterns: vi.fn(() => false),
     });
     createChannelPairingControllerMock.mockReturnValue({

@@ -1,7 +1,7 @@
-import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
-import { OPENAI_COMPATIBLE_REPLAY_HOOKS } from "openclaw/plugin-sdk/provider-model-shared";
-import { defaultToolStreamExtraParams } from "openclaw/plugin-sdk/provider-stream-shared";
-import { jsonResult, readProviderEnvValue } from "openclaw/plugin-sdk/provider-web-search";
+import { defineSingleProviderPluginEntry } from "genesis/plugin-sdk/provider-entry";
+import { OPENAI_COMPATIBLE_REPLAY_HOOKS } from "genesis/plugin-sdk/provider-model-shared";
+import { defaultToolStreamExtraParams } from "genesis/plugin-sdk/provider-stream-shared";
+import { jsonResult, readProviderEnvValue } from "genesis/plugin-sdk/provider-web-search";
 import { Type } from "typebox";
 import {
   applyXaiModelCompat,
@@ -119,7 +119,7 @@ function createLazyCodeExecutionTool(ctx: {
           error: "missing_xai_api_key",
           message:
             "code_execution needs an xAI API key. Set XAI_API_KEY in the Gateway environment, or configure plugins.entries.xai.config.webSearch.apiKey.",
-          docs: "https://docs.openclaw.ai/tools/code-execution",
+          docs: "https://docs.genesis.ai/tools/code-execution",
         });
       }
       return await tool.execute(toolCallId, args);

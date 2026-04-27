@@ -1,3 +1,3 @@
-export { createDedupeCache } from "openclaw/plugin-sdk/core";
-export { createPersistentDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
-export { readJsonFileWithFallback } from "openclaw/plugin-sdk/json-store";
+export { createDedupeCache } from "genesis/plugin-sdk/core";
+export { createPersistentDedupe } from "genesis/plugin-sdk/persistent-dedupe";
+export { readJsonFileWithFallback } from "genesis/plugin-sdk/json-store";

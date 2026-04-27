@@ -7,7 +7,7 @@ read_when:
 title: "Messages"
 ---
 
-This page ties together how OpenClaw handles inbound messages, sessions, queueing,
+This page ties together how Genesis handles inbound messages, sessions, queueing,
 streaming, and reasoning visibility.
 
 ## Message flow (high level)
@@ -30,7 +30,7 @@ See [Configuration](/gateway/configuration) for full schema.
 
 ## Inbound dedupe
 
-Channels can redeliver the same message after reconnects. OpenClaw keeps a
+Channels can redeliver the same message after reconnects. Genesis keeps a
 short-lived cache keyed by channel/account/peer/session/message id so duplicate
 deliveries do not trigger another agent run.
 
@@ -79,7 +79,7 @@ Details: [Session management](/concepts/session).
 
 ## Inbound bodies and history context
 
-OpenClaw separates the **prompt body** from the **command body**:
+Genesis separates the **prompt body** from the **command body**:
 
 - `Body`: prompt text sent to the agent. This may include channel envelopes and
   optional history wrappers.
@@ -134,7 +134,7 @@ Details: [Streaming + chunking](/concepts/streaming).
 
 ## Reasoning visibility and tokens
 
-OpenClaw can expose or hide model reasoning:
+Genesis can expose or hide model reasoning:
 
 - `/reasoning on|off|stream` controls visibility.
 - Reasoning content still counts toward token usage when produced by the model.
@@ -154,7 +154,7 @@ Details: [Configuration](/gateway/config-agents#messages) and channel docs.
 ## Silent replies
 
 The exact silent token `NO_REPLY` / `no_reply` means “do not deliver a user-visible reply”.
-OpenClaw resolves that behavior by conversation type:
+Genesis resolves that behavior by conversation type:
 
 - Direct conversations disallow silence by default and rewrite a bare silent
   reply to a short visible fallback.

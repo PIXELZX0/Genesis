@@ -8,7 +8,7 @@ import {
 } from "../agents/harness/registry.js";
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import { isChannelConfigured } from "../config/channel-configured.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
@@ -61,7 +61,7 @@ import {
   type NormalizedPluginsConfig,
   type PluginActivationState,
 } from "./config-state.js";
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverGenesisPlugins } from "./discovery.js";
 import { getGlobalHookRunner, initializeGlobalHookRunner } from "./hook-runner-global.js";
 import {
   clearPluginInteractiveHandlers,
@@ -124,9 +124,9 @@ import {
 } from "./sdk-alias.js";
 import { hasKind, kindsEqual } from "./slots.js";
 import type {
-  OpenClawPluginApi,
-  OpenClawPluginDefinition,
-  OpenClawPluginModule,
+  GenesisPluginApi,
+  GenesisPluginDefinition,
+  GenesisPluginModule,
   PluginLogger,
   PluginRegistrationMode,
 } from "./types.js";
@@ -134,8 +134,8 @@ import type {
 export type PluginLoadResult = PluginRegistry;
 
 export type PluginLoadOptions = {
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config?: GenesisConfig;
+  activationSourceConfig?: GenesisConfig;
   autoEnabledReasons?: Readonly<Record<string, string[]>>;
   workspaceDir?: string;
   // Allows callers to resolve plugin roots and load paths against an explicit env
@@ -171,7 +171,7 @@ const CLI_METADATA_ENTRY_BASENAMES = [
 ] as const;
 
 function resolveDreamingSidecarEngineId(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   memorySlot: string | null | undefined;
 }): string | null {
   const normalizedMemorySlot = normalizeLowercaseStringOrEmpty(params.memorySlot);
@@ -389,8 +389,8 @@ function restorePluginRegistry(registry: PluginRegistry, snapshot: PluginRegistr
   registry.gatewayMethodScopes = snapshot.gatewayMethodScopes;
 }
 
-function createGuardedPluginRegistrationApi(api: OpenClawPluginApi): {
-  api: OpenClawPluginApi;
+function createGuardedPluginRegistrationApi(api: GenesisPluginApi): {
+  api: GenesisPluginApi;
   close: () => void;
 } {
   let closed = false;
@@ -416,8 +416,8 @@ function createGuardedPluginRegistrationApi(api: OpenClawPluginApi): {
 }
 
 function runPluginRegisterSync(
-  register: NonNullable<OpenClawPluginDefinition["register"]>,
-  api: Parameters<NonNullable<OpenClawPluginDefinition["register"]>>[0],
+  register: NonNullable<GenesisPluginDefinition["register"]>,
+  api: Parameters<NonNullable<GenesisPluginDefinition["register"]>>[0],
 ): void {
   const guarded = createGuardedPluginRegistrationApi(api);
   try {
@@ -783,7 +783,7 @@ function prepareBundledPluginRuntimeDistMirror(params: {
       }
     }
   }
-  ensureOpenClawPluginSdkAlias(mirrorDistRoot);
+  ensureGenesisPluginSdkAlias(mirrorDistRoot);
   return mirrorExtensionsRoot;
 }
 
@@ -865,16 +865,16 @@ function writeRuntimeModuleWrapper(sourcePath: string, targetPath: string): void
   );
 }
 
-function ensureOpenClawPluginSdkAlias(distRoot: string): void {
+function ensureGenesisPluginSdkAlias(distRoot: string): void {
   const pluginSdkDir = path.join(distRoot, "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(distRoot, "extensions", "node_modules", "openclaw");
+  const aliasDir = path.join(distRoot, "extensions", "node_modules", "genesis");
   const pluginSdkAliasDir = path.join(aliasDir, "plugin-sdk");
   writeRuntimeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "openclaw",
+    name: "genesis",
     type: "module",
     exports: {
       "./plugin-sdk": "./plugin-sdk/index.js",
@@ -926,7 +926,7 @@ export const __testing = {
   resolvePluginSdkAliasCandidateOrder,
   resolvePluginSdkAliasFile,
   resolvePluginRuntimeModulePath,
-  ensureOpenClawPluginSdkAlias,
+  ensureGenesisPluginSdkAlias,
   shouldLoadChannelPluginInSetupRuntime,
   shouldPreferNativeJiti,
   toSafeImportPath,
@@ -1139,7 +1139,7 @@ function resolvePluginRegistrationPlan(params: {
   validateOnly: boolean;
   shouldActivate: boolean;
   manifestRecord: PluginManifestRecord;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   preferSetupRuntimeForChannelPlugins: boolean;
 }): PluginRegistrationPlan | null {
@@ -1364,12 +1364,12 @@ export function resolveRuntimePluginRegistry(
     return compatible;
   }
   // Helper/runtime callers should not recurse into the same snapshot load while
-  // plugin registration is still in flight. Let direct loadOpenClawPlugins(...)
+  // plugin registration is still in flight. Let direct loadGenesisPlugins(...)
   // callers surface the hard error instead.
   if (isPluginRegistryLoadInFlight(options)) {
     return undefined;
   }
-  return loadOpenClawPlugins(options);
+  return loadGenesisPlugins(options);
 }
 
 export function resolvePluginRegistryLoadCacheKey(options: PluginLoadOptions = {}): string {
@@ -1412,8 +1412,8 @@ function validatePluginConfig(params: {
 }
 
 function resolvePluginModuleExport(moduleExport: unknown): {
-  definition?: OpenClawPluginDefinition;
-  register?: OpenClawPluginDefinition["register"];
+  definition?: GenesisPluginDefinition;
+  register?: GenesisPluginDefinition["register"];
 } {
   const seen = new Set<unknown>();
   const candidates: unknown[] = [unwrapDefaultModuleExport(moduleExport), moduleExport];
@@ -1425,11 +1425,11 @@ function resolvePluginModuleExport(moduleExport: unknown): {
     seen.add(resolved);
     if (typeof resolved === "function") {
       return {
-        register: resolved as OpenClawPluginDefinition["register"],
+        register: resolved as GenesisPluginDefinition["register"],
       };
     }
     if (resolved && typeof resolved === "object") {
-      const def = resolved as OpenClawPluginDefinition;
+      const def = resolved as GenesisPluginDefinition;
       const register = def.register ?? def.activate;
       if (typeof register === "function") {
         return { definition: def, register };
@@ -1444,11 +1444,11 @@ function resolvePluginModuleExport(moduleExport: unknown): {
   const resolved = candidates[0];
   if (typeof resolved === "function") {
     return {
-      register: resolved as OpenClawPluginDefinition["register"],
+      register: resolved as GenesisPluginDefinition["register"],
     };
   }
   if (resolved && typeof resolved === "object") {
-    const def = resolved as OpenClawPluginDefinition;
+    const def = resolved as GenesisPluginDefinition;
     const register = def.register ?? def.activate;
     return { definition: def, register };
   }
@@ -1456,7 +1456,7 @@ function resolvePluginModuleExport(moduleExport: unknown): {
 }
 
 function isPluginLoadDebugEnabled(env: NodeJS.ProcessEnv): boolean {
-  const normalized = normalizeLowercaseStringOrEmpty(env.OPENCLAW_PLUGIN_LOAD_DEBUG);
+  const normalized = normalizeLowercaseStringOrEmpty(env.GENESIS_PLUGIN_LOAD_DEBUG);
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
@@ -1688,7 +1688,7 @@ function shouldLoadChannelPluginInSetupRuntime(params: {
   manifestChannels: string[];
   setupSource?: string;
   startupDeferConfiguredChannelFullLoadUntilAfterListen?: boolean;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   preferSetupRuntimeForChannelPlugins?: boolean;
 }): boolean {
@@ -1739,7 +1739,7 @@ function createPluginRecord(params: {
     name: params.name ?? params.id,
     description: params.description,
     version: params.version,
-    format: params.format ?? "openclaw",
+    format: params.format ?? "genesis",
     bundleFormat: params.bundleFormat,
     bundleCapabilities: params.bundleCapabilities,
     source: params.source,
@@ -1811,7 +1811,7 @@ function recordPluginError(params: {
   diagnosticMessagePrefix: string;
 }) {
   const errorText =
-    process.env.OPENCLAW_PLUGIN_LOADER_DEBUG_STACKS === "1" &&
+    process.env.GENESIS_PLUGIN_LOADER_DEBUG_STACKS === "1" &&
     params.error instanceof Error &&
     typeof params.error.stack === "string"
       ? params.error.stack
@@ -1918,7 +1918,7 @@ function matchesPathMatcher(matcher: PathMatcher, sourcePath: string): boolean {
 }
 
 function buildProvenanceIndex(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   normalizedLoadPaths: string[];
   env: NodeJS.ProcessEnv;
 }): PluginProvenanceIndex {
@@ -1984,7 +1984,7 @@ function matchesExplicitInstallRule(params: {
 }
 
 function resolveCandidateDuplicateRank(params: {
-  candidate: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
+  candidate: ReturnType<typeof discoverGenesisPlugins>["candidates"][number];
   manifestByRoot: Map<string, ReturnType<typeof loadPluginManifestRegistry>["plugins"][number]>;
   provenance: PluginProvenanceIndex;
   env: NodeJS.ProcessEnv;
@@ -2018,8 +2018,8 @@ function resolveCandidateDuplicateRank(params: {
 }
 
 function compareDuplicateCandidateOrder(params: {
-  left: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
-  right: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
+  left: ReturnType<typeof discoverGenesisPlugins>["candidates"][number];
+  right: ReturnType<typeof discoverGenesisPlugins>["candidates"][number];
   manifestByRoot: Map<string, ReturnType<typeof loadPluginManifestRegistry>["plugins"][number]>;
   provenance: PluginProvenanceIndex;
   env: NodeJS.ProcessEnv;
@@ -2138,7 +2138,7 @@ function activatePluginRegistry(
   }
 }
 
-export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegistry {
+export function loadGenesisPlugins(options: PluginLoadOptions = {}): PluginRegistry {
   const {
     env,
     cfg,
@@ -2301,7 +2301,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       activateGlobalSideEffects: shouldActivate,
     });
 
-    const discovery = discoverOpenClawPlugins({
+    const discovery = discoverGenesisPlugins({
       workspaceDir: options.workspaceDir,
       extraPaths: normalized.loadPaths,
       cache: options.cache,
@@ -2578,7 +2578,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
               mirroredRoot: runtimePluginRoot,
             });
           } else {
-            ensureOpenClawPluginSdkAlias(path.dirname(path.dirname(pluginRoot)));
+            ensureGenesisPluginSdkAlias(path.dirname(path.dirname(pluginRoot)));
           }
         } catch (error) {
           if (shouldActivate && runtimeDepsInstallStartedAt !== null) {
@@ -2614,7 +2614,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
             level: "warn",
             pluginId: record.id,
             source: record.source,
-            message: `bundle capability detected but not wired into OpenClaw yet: ${capability}`,
+            message: `bundle capability detected but not wired into Genesis yet: ${capability}`,
           });
         }
         if (
@@ -2750,7 +2750,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       fs.closeSync(opened.fd);
       const safeImportSource = toSafeImportPath(safeSource);
 
-      let mod: OpenClawPluginModule | null = null;
+      let mod: GenesisPluginModule | null = null;
       try {
         // Track the plugin as imported once module evaluation begins. Top-level
         // code may have already executed even if evaluation later throws.
@@ -2758,7 +2758,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
         mod = withProfile(
           { pluginId: record.id, source: safeSource },
           registrationMode,
-          () => getJiti(safeSource)(safeImportSource) as OpenClawPluginModule,
+          () => getJiti(safeSource)(safeImportSource) as GenesisPluginModule,
         );
       } catch (err) {
         recordPluginError({
@@ -2837,12 +2837,12 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
             const safeRuntimeSource = runtimeOpened.path;
             fs.closeSync(runtimeOpened.fd);
             const safeRuntimeImportSource = toSafeImportPath(safeRuntimeSource);
-            let runtimeMod: OpenClawPluginModule | null = null;
+            let runtimeMod: GenesisPluginModule | null = null;
             try {
               runtimeMod = withProfile(
                 { pluginId: record.id, source: safeRuntimeSource },
                 "load-setup-runtime-entry",
-                () => getJiti(safeRuntimeSource)(safeRuntimeImportSource) as OpenClawPluginModule,
+                () => getJiti(safeRuntimeSource)(safeRuntimeImportSource) as GenesisPluginModule,
               );
             } catch (err) {
               recordPluginError({
@@ -3144,7 +3144,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
         logger.warn(
           `[plugins] ${failedPlugins.length} plugin(s) failed to initialize (${formatPluginFailureSummary(
             failedPlugins,
-          )}). Run 'openclaw plugins list' for details.`,
+          )}). Run 'genesis plugins list' for details.`,
         );
       }
     }
@@ -3175,7 +3175,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
   }
 }
 
-export async function loadOpenClawPluginCliRegistry(
+export async function loadGenesisPluginCliRegistry(
   options: PluginLoadOptions = {},
 ): Promise<PluginRegistry> {
   const { env, cfg, normalized, activationSource, autoEnabledReasons, onlyPluginIds, cacheKey } =
@@ -3194,7 +3194,7 @@ export async function loadOpenClawPluginCliRegistry(
     activateGlobalSideEffects: false,
   });
 
-  const discovery = discoverOpenClawPlugins({
+  const discovery = discoverGenesisPlugins({
     workspaceDir: options.workspaceDir,
     extraPaths: normalized.loadPaths,
     cache: false,
@@ -3399,12 +3399,12 @@ export async function loadOpenClawPluginCliRegistry(
     fs.closeSync(opened.fd);
     const safeImportSource = toSafeImportPath(safeSource);
 
-    let mod: OpenClawPluginModule | null = null;
+    let mod: GenesisPluginModule | null = null;
     try {
       mod = withProfile(
         { pluginId: record.id, source: safeSource },
         "cli-metadata",
-        () => getJiti(safeSource)(safeImportSource) as OpenClawPluginModule,
+        () => getJiti(safeSource)(safeImportSource) as GenesisPluginModule,
       );
     } catch (err) {
       recordPluginError({

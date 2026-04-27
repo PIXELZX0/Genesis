@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import {
   sanitizeProviderReplayHistoryWithPlugin,
@@ -53,7 +53,7 @@ type ModelSnapshotEntry = {
 };
 
 type ProviderReplayHookParams = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   provider: string;
@@ -432,7 +432,7 @@ export async function sanitizeSessionHistory(params: {
   modelId?: string;
   provider?: string;
   allowedToolNames?: Iterable<string>;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   model?: ProviderRuntimeModel;
@@ -583,7 +583,7 @@ export async function validateReplayTurns(params: {
   modelApi?: string | null;
   modelId?: string;
   provider?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   model?: ProviderRuntimeModel;

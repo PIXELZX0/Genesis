@@ -1,17 +1,17 @@
 {
-  "name": "@openclaw/llm-task",
+  "name": "@genesis/llm-task",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw JSON-only LLM task plugin",
+  "description": "Genesis JSON-only LLM task plugin",
   "type": "module",
   "dependencies": {
     "ajv": "^8.18.0",
     "typebox": "1.1.31"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

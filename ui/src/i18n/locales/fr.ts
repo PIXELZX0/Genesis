@@ -180,7 +180,7 @@ export const fr: TranslationMap = {
     skills: "Skills et clés API.",
     nodes: "Appareils appairés et commandes.",
     chat: "Chat Gateway pour les interventions rapides.",
-    config: "Modifier openclaw.json.",
+    config: "Modifier genesis.json.",
     communications: "Canaux, messages et paramètres audio.",
     appearance: "Thème, UI et paramètres de l’assistant de configuration.",
     automation: "Commandes, hooks, cron et plugins.",
@@ -217,6 +217,13 @@ export const fr: TranslationMap = {
       tickInterval: "Intervalle de tick",
       lastChannelsRefresh: "Dernière actualisation des canaux",
       channelsHint: "Utilisez Channels pour lier WhatsApp, Telegram, Discord, Signal ou iMessage.",
+    },
+    wallet: {
+      title: "Wallet",
+      subtitle: "Public addresses from the local encrypted wallet.",
+      empty: "No wallet keystore found. Run genesis wallet init or genesis wallet import.",
+      noAccounts: "Wallet keystore exists, but no public accounts were found.",
+      copyAddress: "Copy address",
     },
     stats: {
       instances: "Instances",
@@ -255,7 +262,7 @@ export const fr: TranslationMap = {
       metadataUpgradeSummary:
         "Cet appareil est déjà appairé, mais la modification des métadonnées est en attente d’approbation.",
       mobileHint:
-        "Sur mobile ? Copiez l’URL complète (y compris #token=...) depuis openclaw dashboard --no-open sur votre ordinateur.",
+        "Sur mobile ? Copiez l’URL complète (y compris #token=...) depuis genesis dashboard --no-open sur votre ordinateur.",
       docsTitle: "Documentation sur l’appairage des appareils (s’ouvre dans un nouvel onglet)",
       docsLink: "Documentation : Appairage des appareils",
     },
@@ -293,7 +300,7 @@ export const fr: TranslationMap = {
       modelAuthExpiresIn: "expire {when}",
       modelAuthAttentionExpiredTitle: "Authentification des modèles expirée",
       modelAuthAttentionExpiringTitle: "L'authentification des modèles expire bientôt",
-      modelAuthAttentionExpiredDesc: "{providers} — réauthentifiez-vous avec openclaw models auth",
+      modelAuthAttentionExpiredDesc: "{providers} — réauthentifiez-vous avec genesis models auth",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

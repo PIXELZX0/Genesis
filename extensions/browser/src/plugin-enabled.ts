@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/browser-config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/browser-config-runtime";
 import {
   normalizePluginsConfig,
   resolveEffectiveEnableState,
-} from "openclaw/plugin-sdk/browser-config-runtime";
+} from "genesis/plugin-sdk/browser-config-runtime";
 
-export function isDefaultBrowserPluginEnabled(cfg: OpenClawConfig): boolean {
+export function isDefaultBrowserPluginEnabled(cfg: GenesisConfig): boolean {
   return resolveEffectiveEnableState({
     id: "browser",
     origin: "bundled",

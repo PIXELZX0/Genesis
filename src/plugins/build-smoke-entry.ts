@@ -4,4 +4,4 @@ export {
   getPluginCommandSpecs,
   matchPluginCommand,
 } from "./commands.js";
-export { loadOpenClawPlugins } from "./loader.js";
+export { loadGenesisPlugins } from "./loader.js";

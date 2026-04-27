@@ -1,9 +1,9 @@
 import type {
-  OpenClawPluginApi,
-  OpenClawPluginNodeHostCommand,
-  OpenClawPluginToolContext,
-  OpenClawPluginToolFactory,
-} from "openclaw/plugin-sdk/plugin-entry";
+  GenesisPluginApi,
+  GenesisPluginNodeHostCommand,
+  GenesisPluginToolContext,
+  GenesisPluginToolFactory,
+} from "genesis/plugin-sdk/plugin-entry";
 import {
   collectBrowserSecurityAuditFindings,
   createBrowserPluginService,
@@ -15,7 +15,7 @@ import {
 
 export const browserPluginReload = { restartPrefixes: ["browser"] };
 
-export const browserPluginNodeHostCommands: OpenClawPluginNodeHostCommand[] = [
+export const browserPluginNodeHostCommands: GenesisPluginNodeHostCommand[] = [
   {
     command: "browser.proxy",
     cap: "browser",
@@ -25,13 +25,13 @@ export const browserPluginNodeHostCommands: OpenClawPluginNodeHostCommand[] = [
 
 export const browserSecurityAuditCollectors = [collectBrowserSecurityAuditFindings];
 
-export function registerBrowserPlugin(api: OpenClawPluginApi) {
-  api.registerTool(((ctx: OpenClawPluginToolContext) =>
+export function registerBrowserPlugin(api: GenesisPluginApi) {
+  api.registerTool(((ctx: GenesisPluginToolContext) =>
     createBrowserTool({
       sandboxBridgeUrl: ctx.browser?.sandboxBridgeUrl,
       allowHostControl: ctx.browser?.allowHostControl,
       agentSessionKey: ctx.sessionKey,
-    })) as OpenClawPluginToolFactory);
+    })) as GenesisPluginToolFactory);
   api.registerCli(({ program }) => registerBrowserCli(program), { commands: ["browser"] });
   api.registerGatewayMethod("browser.request", handleBrowserGatewayRequest, {
     scope: "operator.admin",

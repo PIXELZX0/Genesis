@@ -2,9 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import { mediaKindFromMime } from "openclaw/plugin-sdk/media-mime";
-import { withTempDownloadPath } from "openclaw/plugin-sdk/temp-path";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { mediaKindFromMime } from "genesis/plugin-sdk/media-mime";
+import { withTempDownloadPath } from "genesis/plugin-sdk/temp-path";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import type { ClawdbotConfig } from "../runtime-api.js";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
@@ -262,7 +262,7 @@ export async function downloadImageFeishu(params: {
 
   const buffer = await readFeishuResponseBuffer({
     response,
-    tmpDirPrefix: "openclaw-feishu-img-",
+    tmpDirPrefix: "genesis-feishu-img-",
     errorPrefix: "Feishu image download failed",
   });
   const meta = extractFeishuDownloadMetadata(response);
@@ -294,7 +294,7 @@ export async function downloadMessageResourceFeishu(params: {
 
   const buffer = await readFeishuResponseBuffer({
     response,
-    tmpDirPrefix: "openclaw-feishu-resource-",
+    tmpDirPrefix: "genesis-feishu-resource-",
     errorPrefix: "Feishu message resource download failed",
   });
   return { buffer, ...extractFeishuDownloadMetadata(response) };

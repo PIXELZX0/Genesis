@@ -12,7 +12,7 @@ import {
 } from "../agents/identity-file.js";
 import { listRouteBindings } from "../config/bindings.js";
 import type { IdentityConfig } from "../config/types.base.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { normalizeOptionalString, resolvePrimaryStringValue } from "../shared/string-coerce.js";
 
@@ -32,7 +32,7 @@ export type AgentSummary = {
   isDefault: boolean;
 };
 
-type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
+type AgentEntry = NonNullable<NonNullable<GenesisConfig["agents"]>["list"]>[number];
 
 export type AgentIdentity = AgentIdentityFile;
 export { listAgentEntries };
@@ -42,7 +42,7 @@ export function findAgentEntryIndex(list: AgentEntry[], agentId: string): number
   return list.findIndex((entry) => normalizeAgentId(entry.id) === id);
 }
 
-function resolveAgentModel(cfg: OpenClawConfig, agentId: string) {
+function resolveAgentModel(cfg: GenesisConfig, agentId: string) {
   const entry = listAgentEntries(cfg).find(
     (agent) => normalizeAgentId(agent.id) === normalizeAgentId(agentId),
   );
@@ -65,7 +65,7 @@ export function loadAgentIdentity(workspace: string): AgentIdentity | null {
   return identityHasValues(parsed) ? parsed : null;
 }
 
-export function buildAgentSummaries(cfg: OpenClawConfig): AgentSummary[] {
+export function buildAgentSummaries(cfg: GenesisConfig): AgentSummary[] {
   const defaultAgentId = normalizeAgentId(resolveDefaultAgentId(cfg));
   const configuredAgents = listAgentEntries(cfg);
   const orderedIds =
@@ -111,7 +111,7 @@ export function buildAgentSummaries(cfg: OpenClawConfig): AgentSummary[] {
 }
 
 export function applyAgentConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   params: {
     agentId: string;
     name?: string;
@@ -120,7 +120,7 @@ export function applyAgentConfig(
     model?: string;
     identity?: IdentityConfig;
   },
-): OpenClawConfig {
+): GenesisConfig {
   const agentId = normalizeAgentId(params.agentId);
   const name = params.name?.trim();
   const list = listAgentEntries(cfg);
@@ -154,10 +154,10 @@ export function applyAgentConfig(
 }
 
 export function pruneAgentConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
 ): {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   removedBindings: number;
   removedAllow: number;
 } {

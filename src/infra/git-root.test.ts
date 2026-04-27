@@ -10,7 +10,7 @@ async function expectGitRootResolution(params: {
     temp: string,
   ) => Promise<{ startPath: string; expectedRoot: string | null; expectedHead: string | null }>;
 }): Promise<void> {
-  await withTempDir({ prefix: `openclaw-${params.label}-` }, async (temp) => {
+  await withTempDir({ prefix: `genesis-${params.label}-` }, async (temp) => {
     const { startPath, expectedRoot, expectedHead } = await params.setup(temp);
     expect(findGitRoot(startPath)).toBe(expectedRoot);
     expect(resolveGitHeadPath(startPath)).toBe(expectedHead);
@@ -101,7 +101,7 @@ describe("git-root", () => {
   });
 
   it("respects maxDepth traversal limit", async () => {
-    await withTempDir({ prefix: "openclaw-git-root-depth-" }, async (temp) => {
+    await withTempDir({ prefix: "genesis-git-root-depth-" }, async (temp) => {
       const repoRoot = path.join(temp, "repo");
       const nested = path.join(repoRoot, "a", "b", "c");
       await fs.mkdir(path.join(repoRoot, ".git"), { recursive: true });

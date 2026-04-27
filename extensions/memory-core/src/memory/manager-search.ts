@@ -1,9 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
-import { truncateUtf16Safe } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import { truncateUtf16Safe } from "genesis/plugin-sdk/memory-core-host-engine-foundation";
 import {
   cosineSimilarity,
   parseEmbedding,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
 
 const vectorToBlob = (embedding: number[]): Buffer =>
   Buffer.from(new Float32Array(embedding).buffer);

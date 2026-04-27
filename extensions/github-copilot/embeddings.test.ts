@@ -9,16 +9,16 @@ vi.mock("./auth.js", () => ({
   resolveFirstGithubToken: resolveFirstGithubTokenMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", () => ({
+vi.mock("genesis/plugin-sdk/config-runtime", () => ({
   resolveConfiguredSecretInputString: resolveConfiguredSecretInputStringMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/github-copilot-token", () => ({
+vi.mock("genesis/plugin-sdk/github-copilot-token", () => ({
   DEFAULT_COPILOT_API_BASE_URL: "https://api.githubcopilot.test",
   resolveCopilotApiToken: resolveCopilotApiTokenMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("genesis/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchWithSsrFGuardMock,
 }));
 

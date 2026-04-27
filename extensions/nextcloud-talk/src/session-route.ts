@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildOutboundBaseSessionKey } from "openclaw/plugin-sdk/routing";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { buildOutboundBaseSessionKey } from "genesis/plugin-sdk/routing";
 import { stripNextcloudTalkTargetPrefix } from "./normalize.js";
 
 type NextcloudTalkOutboundSessionRouteParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   accountId?: string | null;
   target: string;

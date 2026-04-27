@@ -1,5 +1,5 @@
-import { DEFAULT_EMOJIS } from "openclaw/plugin-sdk/channel-feedback";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-dispatch-runtime";
+import { DEFAULT_EMOJIS } from "genesis/plugin-sdk/channel-feedback";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-dispatch-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendMocks = vi.hoisted(() => ({
@@ -96,7 +96,7 @@ const recordInboundSession = vi.hoisted(() =>
 const configSessionsMocks = vi.hoisted(() => ({
   readSessionUpdatedAt: vi.fn<(params?: unknown) => number | undefined>(() => undefined),
   resolveStorePath: vi.fn<(path?: unknown, opts?: unknown) => string>(
-    () => "/tmp/openclaw-discord-process-test-sessions.json",
+    () => "/tmp/genesis-discord-process-test-sessions.json",
   ),
 }));
 const readSessionUpdatedAt = configSessionsMocks.readSessionUpdatedAt;
@@ -142,7 +142,7 @@ vi.spyOn(replyDeliveryModule, "deliverDiscordReply").mockImplementation(
     deliveryMocks.deliverDiscordReply(params) as never) as never,
 );
 
-const replyRuntimeModule = await import("openclaw/plugin-sdk/reply-runtime");
+const replyRuntimeModule = await import("genesis/plugin-sdk/reply-runtime");
 vi.spyOn(replyRuntimeModule, "dispatchInboundMessage").mockImplementation(
   ((params: Parameters<typeof replyRuntimeModule.dispatchInboundMessage>[0]) =>
     dispatchInboundMessage(params as DispatchInboundParams) as never) as never,
@@ -169,13 +169,13 @@ vi.spyOn(replyRuntimeModule, "createReplyDispatcherWithTyping").mockImplementati
   markRunComplete: vi.fn(),
 })) as never);
 
-const conversationRuntimeModule = await import("openclaw/plugin-sdk/conversation-runtime");
+const conversationRuntimeModule = await import("genesis/plugin-sdk/conversation-runtime");
 vi.spyOn(conversationRuntimeModule, "recordInboundSession").mockImplementation(
   ((params: Parameters<typeof conversationRuntimeModule.recordInboundSession>[0]) =>
     recordInboundSession(params) as never) as never,
 );
 
-const sessionStoreRuntimeModule = await import("openclaw/plugin-sdk/session-store-runtime");
+const sessionStoreRuntimeModule = await import("genesis/plugin-sdk/session-store-runtime");
 vi.spyOn(sessionStoreRuntimeModule, "readSessionUpdatedAt").mockImplementation(
   ((params: Parameters<typeof sessionStoreRuntimeModule.readSessionUpdatedAt>[0]) =>
     configSessionsMocks.readSessionUpdatedAt(params) as never) as never,
@@ -250,7 +250,7 @@ beforeEach(() => {
   dispatchInboundMessage.mockResolvedValue(createNoQueuedDispatchResult());
   recordInboundSession.mockResolvedValue(undefined);
   readSessionUpdatedAt.mockReturnValue(undefined);
-  resolveStorePath.mockReturnValue("/tmp/openclaw-discord-process-test-sessions.json");
+  resolveStorePath.mockReturnValue("/tmp/genesis-discord-process-test-sessions.json");
   threadBindingTesting.resetThreadBindingsForTests();
 });
 
@@ -523,7 +523,7 @@ describe("processDiscordMessage ack reactions", () => {
             timing: { debounceMs: 0 },
           },
         },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
       },
     });
 
@@ -549,7 +549,7 @@ describe("processDiscordMessage ack reactions", () => {
             timing: { debounceMs: 0 },
           },
         },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
       },
     });
 
@@ -576,7 +576,7 @@ describe("processDiscordMessage ack reactions", () => {
             timing: { debounceMs: 0 },
           },
         },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
       },
     });
 
@@ -604,7 +604,7 @@ describe("processDiscordMessage ack reactions", () => {
           ackReaction: "👀",
           removeAckAfterReply: true,
         },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
       },
     });
 
@@ -627,7 +627,7 @@ describe("processDiscordMessage ack reactions", () => {
             enabled: false,
           },
         },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
       },
     });
 
@@ -683,7 +683,7 @@ describe("processDiscordMessage session routing", () => {
 
   it("prefers bound session keys and sets MessageThreadId for bound thread messages", async () => {
     const threadBindings = createThreadBindingManager({
-      cfg: {} as import("openclaw/plugin-sdk/config-runtime").OpenClawConfig,
+      cfg: {} as import("genesis/plugin-sdk/config-runtime").GenesisConfig,
       accountId: "default",
       persist: false,
       enableSweeper: false,
@@ -740,7 +740,7 @@ describe("processDiscordMessage draft streaming", () => {
     return await createBaseContext({
       cfg: {
         messages: { ackReaction: "👀" },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
         channels: {
           discord: {
             draftChunk: { minChars: 1, maxChars: 5, breakPreference: "newline" },
@@ -784,7 +784,7 @@ describe("processDiscordMessage draft streaming", () => {
     const ctx = await createBaseContext({
       cfg: {
         messages: { ackReaction: "👀" },
-        session: { store: "/tmp/openclaw-discord-process-test-sessions.json" },
+        session: { store: "/tmp/genesis-discord-process-test-sessions.json" },
         channels: {
           discord: {
             maxLinesPerMessage: 120,

@@ -6,9 +6,9 @@ import {
   formatDocsLink,
   type ChannelSetupDmPolicy,
   type ChannelSetupWizard,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/setup";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/setup";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveBlueBubblesAccount, resolveDefaultBlueBubblesAccountId } from "./accounts.js";
 import { applyBlueBubblesConnectionConfig } from "./config-apply.js";
 import { hasConfiguredSecretInput, normalizeSecretInputString } from "./secret-input.js";
@@ -93,14 +93,14 @@ function validateBlueBubblesServerUrlInput(value: unknown): string | undefined {
 }
 
 function applyBlueBubblesSetupPatch(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
   patch: {
     serverUrl?: string;
     password?: unknown;
     webhookPath?: string;
   },
-): OpenClawConfig {
+): GenesisConfig {
   return applyBlueBubblesConnectionConfig({
     cfg,
     accountId,
@@ -255,7 +255,7 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
     lines: [
       "Configure the webhook URL in BlueBubbles Server:",
       "1. Open BlueBubbles Server -> Settings -> Webhooks",
-      "2. Add your OpenClaw gateway URL + webhook path",
+      "2. Add your Genesis gateway URL + webhook path",
       `   Example: https://your-gateway-host:3000${DEFAULT_WEBHOOK_PATH}`,
       "3. Enable the webhook and save",
       "",

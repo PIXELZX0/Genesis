@@ -3,7 +3,7 @@
  * @see https://bot.zaloplatforms.com/docs
  */
 
-import { resolvePinnedHostnameWithPolicy, type SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
+import { resolvePinnedHostnameWithPolicy, type SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
 
 const ZALO_API_BASE = "https://bot-api.zaloplatforms.com";
 const ZALO_MEDIA_SSRF_POLICY: SsrFPolicy = {};

@@ -1,12 +1,12 @@
 ---
 summary: "Hugging Face Inference setup (auth + model selection)"
 read_when:
-  - You want to use Hugging Face Inference with OpenClaw
+  - You want to use Hugging Face Inference with Genesis
   - You need the HF token env var or CLI auth choice
 title: "Hugging Face (inference)"
 ---
 
-[Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) offer OpenAI-compatible chat completions through a single router API. You get access to many models (DeepSeek, Llama, and more) with one token. OpenClaw uses the **OpenAI-compatible endpoint** (chat completions only); for text-to-image, embeddings, or speech use the [HF inference clients](https://huggingface.co/docs/api-inference/quicktour) directly.
+[Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) offer OpenAI-compatible chat completions through a single router API. You get access to many models (DeepSeek, Llama, and more) with one token. Genesis uses the **OpenAI-compatible endpoint** (chat completions only); for text-to-image, embeddings, or speech use the [HF inference clients](https://huggingface.co/docs/api-inference/quicktour) directly.
 
 - Provider: `huggingface`
 - Auth: `HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN` (fine-grained token with **Make calls to Inference Providers**)
@@ -28,7 +28,7 @@ title: "Hugging Face (inference)"
     Choose **Hugging Face** in the provider dropdown, then enter your API key when prompted:
 
     ```bash
-    openclaw onboard --auth-choice huggingface-api-key
+    genesis onboard --auth-choice huggingface-api-key
     ```
 
   </Step>
@@ -50,7 +50,7 @@ title: "Hugging Face (inference)"
   </Step>
   <Step title="Verify the model is available">
     ```bash
-    openclaw models list --provider huggingface
+    genesis models list --provider huggingface
     ```
   </Step>
 </Steps>
@@ -58,7 +58,7 @@ title: "Hugging Face (inference)"
 ### Non-interactive setup
 
 ```bash
-openclaw onboard --non-interactive \
+genesis onboard --non-interactive \
   --mode local \
   --auth-choice huggingface-api-key \
   --huggingface-api-key "$HF_TOKEN"
@@ -91,7 +91,7 @@ You can append `:fastest` or `:cheapest` to any model id. Set your default order
 
 <AccordionGroup>
   <Accordion title="Model discovery and onboarding dropdown">
-    OpenClaw discovers models by calling the **Inference endpoint directly**:
+    Genesis discovers models by calling the **Inference endpoint directly**:
 
     ```bash
     GET https://router.huggingface.co/v1/models
@@ -99,7 +99,7 @@ You can append `:fastest` or `:cheapest` to any model id. Set your default order
 
     (Optional: send `Authorization: Bearer $HUGGINGFACE_HUB_TOKEN` or `$HF_TOKEN` for the full list; some endpoints return a subset without auth.) The response is OpenAI-style `{ "object": "list", "data": [ { "id": "Qwen/Qwen3-8B", "owned_by": "Qwen", ... }, ... ] }`.
 
-    When you configure a Hugging Face API key (via onboarding, `HUGGINGFACE_HUB_TOKEN`, or `HF_TOKEN`), OpenClaw uses this GET to discover available chat-completion models. During **interactive setup**, after you enter your token you see a **Default Hugging Face model** dropdown populated from that list (or the built-in catalog if the request fails). At runtime (e.g. Gateway startup), when a key is present, OpenClaw again calls **GET** `https://router.huggingface.co/v1/models` to refresh the catalog. The list is merged with a built-in catalog (for metadata like context window and cost). If the request fails or no key is set, only the built-in catalog is used.
+    When you configure a Hugging Face API key (via onboarding, `HUGGINGFACE_HUB_TOKEN`, or `HF_TOKEN`), Genesis uses this GET to discover available chat-completion models. During **interactive setup**, after you enter your token you see a **Default Hugging Face model** dropdown populated from that list (or the built-in catalog if the request fails). At runtime (e.g. Gateway startup), when a key is present, Genesis again calls **GET** `https://router.huggingface.co/v1/models` to refresh the catalog. The list is merged with a built-in catalog (for metadata like context window and cost). If the request fails or no key is set, only the built-in catalog is used.
 
   </Accordion>
 
@@ -120,7 +120,7 @@ You can append `:fastest` or `:cheapest` to any model id. Set your default order
     }
     ```
 
-    - **Policy suffixes:** OpenClaw's bundled Hugging Face docs and helpers currently treat these two suffixes as the built-in policy variants:
+    - **Policy suffixes:** Genesis's bundled Hugging Face docs and helpers currently treat these two suffixes as the built-in policy variants:
       - **`:fastest`** — highest throughput.
       - **`:cheapest`** — lowest cost per output token.
 
@@ -131,10 +131,10 @@ You can append `:fastest` or `:cheapest` to any model id. Set your default order
   </Accordion>
 
   <Accordion title="Environment and daemon setup">
-    If the Gateway runs as a daemon (launchd/systemd), make sure `HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN` is available to that process (for example, in `~/.openclaw/.env` or via `env.shellEnv`).
+    If the Gateway runs as a daemon (launchd/systemd), make sure `HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN` is available to that process (for example, in `~/.genesis/.env` or via `env.shellEnv`).
 
     <Note>
-    OpenClaw accepts both `HUGGINGFACE_HUB_TOKEN` and `HF_TOKEN` as env var aliases. Either one works; if both are set, `HUGGINGFACE_HUB_TOKEN` takes precedence.
+    Genesis accepts both `HUGGINGFACE_HUB_TOKEN` and `HF_TOKEN` as env var aliases. Either one works; if both are set, `HUGGINGFACE_HUB_TOKEN` takes precedence.
     </Note>
 
   </Accordion>

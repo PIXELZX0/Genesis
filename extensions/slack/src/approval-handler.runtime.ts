@@ -5,15 +5,15 @@ import type {
   ExecApprovalExpiredView,
   ExecApprovalPendingView,
   ExecApprovalResolvedView,
-} from "openclaw/plugin-sdk/approval-handler-runtime";
-import { createChannelApprovalNativeRuntimeAdapter } from "openclaw/plugin-sdk/approval-handler-runtime";
-import { buildChannelApprovalNativeTargetKey } from "openclaw/plugin-sdk/approval-native-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/approval-handler-runtime";
+import { createChannelApprovalNativeRuntimeAdapter } from "genesis/plugin-sdk/approval-handler-runtime";
+import { buildChannelApprovalNativeTargetKey } from "genesis/plugin-sdk/approval-native-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   buildApprovalInteractiveReplyFromActionDescriptors,
   type ExecApprovalRequest,
-} from "openclaw/plugin-sdk/infra-runtime";
-import { logError, normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/infra-runtime";
+import { logError, normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   isSlackExecApprovalClientEnabled,
   shouldHandleSlackExecApprovalRequest,
@@ -33,7 +33,7 @@ type SlackPendingDelivery = {
 };
 
 type SlackExecApprovalConfig = NonNullable<
-  NonNullable<NonNullable<OpenClawConfig["channels"]>["slack"]>["execApprovals"]
+  NonNullable<NonNullable<GenesisConfig["channels"]>["slack"]>["execApprovals"]
 >;
 
 export type SlackApprovalHandlerContext = {

@@ -64,7 +64,7 @@ export function rewriteSubmittedPromptTranscript(params: {
   if (transcriptPrompt === undefined || transcriptPrompt === params.submittedPrompt) {
     return;
   }
-  const replacementText = transcriptPrompt.trim() || "[OpenClaw runtime event]";
+  const replacementText = transcriptPrompt.trim() || "[Genesis runtime event]";
   const branch = params.sessionManager.getBranch();
   const startIndex = params.previousLeafId
     ? Math.max(0, branch.findIndex((entry) => entry.id === params.previousLeafId) + 1)

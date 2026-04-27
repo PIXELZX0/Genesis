@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { inspectDiscordAccount } from "./account-inspect.js";
 import {
   auditDiscordChannelPermissionsWithFetcher,
@@ -8,7 +8,7 @@ import {
 import { fetchChannelPermissionsDiscord } from "./send.js";
 
 export function collectDiscordAuditChannelIds(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }) {
   const account = inspectDiscordAccount({
@@ -19,7 +19,7 @@ export function collectDiscordAuditChannelIds(params: {
 }
 
 export async function auditDiscordChannelPermissions(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   token: string;
   accountId?: string | null;
   channelIds: string[];

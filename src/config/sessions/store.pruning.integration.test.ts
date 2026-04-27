@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { createSuiteTempRootTracker } from "../../test-helpers/temp-dir.js";
 import type { SessionEntry } from "./types.js";
 
-// Keep integration tests deterministic: never read a real openclaw.json.
+// Keep integration tests deterministic: never read a real genesis.json.
 vi.mock("../config.js", async () => ({
   ...(await vi.importActual<typeof import("../config.js")>("../config.js")),
   loadConfig: vi.fn().mockReturnValue({}),
@@ -29,7 +29,7 @@ const ENFORCED_MAINTENANCE_OVERRIDE = {
 
 const archiveTimestamp = (ms: number) => new Date(ms).toISOString().replaceAll(":", "-");
 
-const suiteRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-pruning-integ-" });
+const suiteRootTracker = createSuiteTempRootTracker({ prefix: "genesis-pruning-integ-" });
 
 function makeEntry(updatedAt: number): SessionEntry {
   return { sessionId: crypto.randomUUID(), updatedAt };
@@ -90,8 +90,8 @@ describe("Integration: saveSessionStore with pruning", () => {
     mockLoadConfig.mockReset();
     testDir = await createCaseDir("pruning-integ");
     storePath = path.join(testDir, "sessions.json");
-    savedCacheTtl = process.env.OPENCLAW_SESSION_CACHE_TTL_MS;
-    process.env.OPENCLAW_SESSION_CACHE_TTL_MS = "0";
+    savedCacheTtl = process.env.GENESIS_SESSION_CACHE_TTL_MS;
+    process.env.GENESIS_SESSION_CACHE_TTL_MS = "0";
     clearSessionStoreCacheForTest();
   });
 
@@ -99,9 +99,9 @@ describe("Integration: saveSessionStore with pruning", () => {
     mockLoadConfig.mockReset();
     clearSessionStoreCacheForTest();
     if (savedCacheTtl === undefined) {
-      delete process.env.OPENCLAW_SESSION_CACHE_TTL_MS;
+      delete process.env.GENESIS_SESSION_CACHE_TTL_MS;
     } else {
-      process.env.OPENCLAW_SESSION_CACHE_TTL_MS = savedCacheTtl;
+      process.env.GENESIS_SESSION_CACHE_TTL_MS = savedCacheTtl;
     }
   });
 

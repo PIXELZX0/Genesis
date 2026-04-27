@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   abortAgentHarnessRun,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness";
+} from "genesis/plugin-sdk/agent-harness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AUTH_PROFILE_RUNTIME_CONTRACT } from "../../../../test/helpers/agents/auth-profile-runtime-contract.js";
 import { runCodexAppServerAttempt, __testing } from "./run-attempt.js";
@@ -126,7 +126,7 @@ describe("Auth profile runtime contract - Codex app-server adapter", () => {
   let tmpDir: string;
 
   beforeEach(async () => {
-    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-auth-contract-"));
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-auth-contract-"));
   });
 
   afterEach(async () => {

@@ -22,9 +22,9 @@ afterEach(async () => {
 
 describe("canvas documents", () => {
   it("builds entry urls for materialized path documents under managed storage", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
-    const workspaceDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-workspace-"));
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-workspace-"));
     tempDirs.push(workspaceDir);
     await mkdir(path.join(workspaceDir, "player"), { recursive: true });
     await writeFile(path.join(workspaceDir, "player/index.html"), "<div>ok</div>", "utf8");
@@ -40,25 +40,23 @@ describe("canvas documents", () => {
       { stateDir, workspaceDir },
     );
 
-    expect(document.entryUrl).toContain("/__openclaw__/canvas/documents/");
+    expect(document.entryUrl).toContain("/__genesis__/canvas/documents/");
     expect(document.localEntrypoint).toBe("index.html");
     expect(resolveCanvasDocumentDir(document.id, { stateDir })).toContain(stateDir);
   });
 
   it("normalizes nested local entrypoint urls", () => {
     const url = buildCanvasDocumentEntryUrl("cv_example", "collection.media/index.html");
-    expect(url).toBe("/__openclaw__/canvas/documents/cv_example/collection.media/index.html");
+    expect(url).toBe("/__genesis__/canvas/documents/cv_example/collection.media/index.html");
   });
 
   it("encodes special characters in hosted entrypoint path segments", () => {
     const url = buildCanvasDocumentEntryUrl("cv_example", "bundle#1/entry%20point?.html");
-    expect(url).toBe(
-      "/__openclaw__/canvas/documents/cv_example/bundle%231/entry%2520point%3F.html",
-    );
+    expect(url).toBe("/__genesis__/canvas/documents/cv_example/bundle%231/entry%2520point%3F.html");
   });
 
   it("materializes inline html bundles as index documents", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
 
     const document = await createCanvasDocument(
@@ -84,11 +82,11 @@ describe("canvas documents", () => {
     expect(indexHtml).toContain("<div class='demo'>Front</div>");
     expect(indexHtml).toContain("<style>.demo{color:red}</style>");
     expect(document.title).toBe("Preview");
-    expect(document.entryUrl).toBe(`/__openclaw__/canvas/documents/${document.id}/index.html`);
+    expect(document.entryUrl).toBe(`/__genesis__/canvas/documents/${document.id}/index.html`);
   });
 
   it("reuses a supplied stable document id by replacing the prior materialized view", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
 
     const first = await createCanvasDocument(
@@ -122,9 +120,9 @@ describe("canvas documents", () => {
   });
 
   it("exposes stable managed asset urls for copied canvas assets", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
-    const workspaceDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-workspace-"));
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-workspace-"));
     tempDirs.push(workspaceDir);
     await mkdir(path.join(workspaceDir, "collection.media"), { recursive: true });
     await writeFile(path.join(workspaceDir, "collection.media/audio.mp3"), "audio", "utf8");
@@ -156,7 +154,7 @@ describe("canvas documents", () => {
           resolveCanvasDocumentDir(document.id, { stateDir }),
           "collection.media/audio.mp3",
         ),
-        url: `/__openclaw__/canvas/documents/${document.id}/collection.media/audio.mp3`,
+        url: `/__genesis__/canvas/documents/${document.id}/collection.media/audio.mp3`,
       },
     ]);
     expect(
@@ -172,15 +170,15 @@ describe("canvas documents", () => {
           resolveCanvasDocumentDir(document.id, { stateDir }),
           "collection.media/audio.mp3",
         ),
-        url: `http://127.0.0.1:19003/__openclaw__/canvas/documents/${document.id}/collection.media/audio.mp3`,
+        url: `http://127.0.0.1:19003/__genesis__/canvas/documents/${document.id}/collection.media/audio.mp3`,
       },
     ]);
   });
 
   it("wraps local pdf documents in an index viewer page", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
-    const workspaceDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-workspace-"));
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-workspace-"));
     tempDirs.push(workspaceDir);
     await writeFile(path.join(workspaceDir, "demo.pdf"), "%PDF-1.4", "utf8");
 
@@ -195,7 +193,7 @@ describe("canvas documents", () => {
       { stateDir, workspaceDir },
     );
 
-    expect(document.entryUrl).toBe(`/__openclaw__/canvas/documents/${document.id}/index.html`);
+    expect(document.entryUrl).toBe(`/__genesis__/canvas/documents/${document.id}/index.html`);
     const indexHtml = await readFile(
       path.join(resolveCanvasDocumentDir(document.id, { stateDir }), "index.html"),
       "utf8",
@@ -205,7 +203,7 @@ describe("canvas documents", () => {
   });
 
   it("wraps remote pdf urls in an index viewer page", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
 
     const document = await createCanvasDocument(
@@ -219,7 +217,7 @@ describe("canvas documents", () => {
       { stateDir },
     );
 
-    expect(document.entryUrl).toBe(`/__openclaw__/canvas/documents/${document.id}/index.html`);
+    expect(document.entryUrl).toBe(`/__genesis__/canvas/documents/${document.id}/index.html`);
     const indexHtml = await readFile(
       path.join(resolveCanvasDocumentDir(document.id, { stateDir }), "index.html"),
       "utf8",
@@ -229,12 +227,12 @@ describe("canvas documents", () => {
   });
 
   it("rejects traversal-style document ids in hosted canvas paths", async () => {
-    const stateDir = await mkdtemp(path.join(tmpdir(), "openclaw-canvas-documents-"));
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
     tempDirs.push(stateDir);
 
     expect(
       resolveCanvasHttpPathToLocalPath(
-        "/__openclaw__/canvas/documents/../collection.media/index.html",
+        "/__genesis__/canvas/documents/../collection.media/index.html",
         { stateDir },
       ),
     ).toBeNull();

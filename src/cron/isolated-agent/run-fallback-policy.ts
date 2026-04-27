@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { CronJob } from "../types.js";
 import { resolveEffectiveModelFallbacks } from "./run-execution.runtime.js";
 
 export function resolveCronFallbacksOverride(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   job: CronJob;
   agentId: string;
 }): string[] | undefined {

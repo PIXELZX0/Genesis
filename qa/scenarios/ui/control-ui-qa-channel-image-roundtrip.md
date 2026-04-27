@@ -80,7 +80,7 @@ steps:
         args:
           - pageId:
               ref: uiPageId
-            selector: openclaw-app
+            selector: genesis-app
             timeoutMs:
               expr: liveTurnTimeoutMs(env, 45000)
       - try:
@@ -107,7 +107,7 @@ steps:
               args:
                 - pageId:
                     ref: uiPageId
-                  expression: "(() => { const app = document.querySelector('openclaw-app'); const resources = performance.getEntriesByType('resource').map((entry) => ({ name: entry.name, type: entry.initiatorType, duration: Math.round(entry.duration), transferSize: entry.transferSize, decodedBodySize: entry.decodedBodySize })); return { url: location.href, readyState: document.readyState, appDefined: Boolean(customElements.get('openclaw-app')), appState: app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected, tab: app.tab } : null, scripts: Array.from(document.scripts).map((script) => script.src || script.textContent?.slice(0, 80)), links: Array.from(document.querySelectorAll('link')).map((link) => link.href), resources, bodyHtml: document.body.innerHTML.slice(0, 400) }; })()"
+                  expression: "(() => { const app = document.querySelector('genesis-app'); const resources = performance.getEntriesByType('resource').map((entry) => ({ name: entry.name, type: entry.initiatorType, duration: Math.round(entry.duration), transferSize: entry.transferSize, decodedBodySize: entry.decodedBodySize })); return { url: location.href, readyState: document.readyState, appDefined: Boolean(customElements.get('genesis-app')), appState: app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected, tab: app.tab } : null, scripts: Array.from(document.scripts).map((script) => script.src || script.textContent?.slice(0, 80)), links: Array.from(document.querySelectorAll('link')).map((link) => link.href), resources, bodyHtml: document.body.innerHTML.slice(0, 400) }; })()"
                   timeoutMs:
                     expr: liveTurnTimeoutMs(env, 15000)
             - throw:
@@ -170,7 +170,7 @@ steps:
         args:
           - pageId:
               ref: uiAckPageId
-            selector: openclaw-app
+            selector: genesis-app
             timeoutMs:
               expr: liveTurnTimeoutMs(env, 45000)
       - try:
@@ -197,7 +197,7 @@ steps:
               args:
                 - pageId:
                     ref: uiAckPageId
-                  expression: "(() => { const app = document.querySelector('openclaw-app'); return app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected } : null; })()"
+                  expression: "(() => { const app = document.querySelector('genesis-app'); return app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected } : null; })()"
                   timeoutMs:
                     expr: liveTurnTimeoutMs(env, 15000)
             - throw:
@@ -261,7 +261,7 @@ steps:
         args:
           - pageId:
               ref: uiImagePageId
-            selector: openclaw-app
+            selector: genesis-app
             timeoutMs:
               expr: liveTurnTimeoutMs(env, 45000)
       - try:
@@ -288,7 +288,7 @@ steps:
               args:
                 - pageId:
                     ref: uiImagePageId
-                  expression: "(() => { const app = document.querySelector('openclaw-app'); return app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected } : null; })()"
+                  expression: "(() => { const app = document.querySelector('genesis-app'); return app ? { sessionKey: app.sessionKey, settingsSessionKey: app.settings?.sessionKey, lastActiveSessionKey: app.settings?.lastActiveSessionKey, chatMessages: Array.isArray(app.chatMessages) ? app.chatMessages.length : null, chatLoading: app.chatLoading, lastError: app.lastError, connected: app.connected } : null; })()"
                   timeoutMs:
                     expr: liveTurnTimeoutMs(env, 15000)
             - throw:

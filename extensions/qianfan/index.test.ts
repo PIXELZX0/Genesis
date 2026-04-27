@@ -1,4 +1,4 @@
-import { resolveAgentModelPrimaryValue } from "openclaw/plugin-sdk/provider-onboard";
+import { resolveAgentModelPrimaryValue } from "genesis/plugin-sdk/provider-onboard";
 import { describe, expect, it } from "vitest";
 import { resolveProviderPluginChoice } from "../../src/plugins/provider-auth-choice.runtime.js";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";

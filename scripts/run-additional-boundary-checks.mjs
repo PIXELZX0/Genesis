@@ -153,8 +153,8 @@ export async function runChecks(
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const concurrency = resolveConcurrency(
-    process.env.OPENCLAW_ADDITIONAL_BOUNDARY_CONCURRENCY ??
-      process.env.OPENCLAW_EXTENSION_BOUNDARY_CONCURRENCY,
+    process.env.GENESIS_ADDITIONAL_BOUNDARY_CONCURRENCY ??
+      process.env.GENESIS_EXTENSION_BOUNDARY_CONCURRENCY,
   );
   const failures = await runChecks(BOUNDARY_CHECKS, { concurrency });
   process.exitCode = failures === 0 ? 0 : 1;

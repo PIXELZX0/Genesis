@@ -1,10 +1,10 @@
-import { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+import { logTypingFailure } from "genesis/plugin-sdk/channel-feedback";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
 import {
   resolveSendableOutboundReplyParts,
   resolveTextChunksWithFallback,
   sendMediaWithLeadingCaption,
-} from "openclaw/plugin-sdk/reply-payload";
+} from "genesis/plugin-sdk/reply-payload";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { sendMediaFeishu } from "./media.js";

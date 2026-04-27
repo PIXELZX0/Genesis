@@ -1,8 +1,8 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   fetchWithSsrFGuard,
   ssrfPolicyFromPrivateNetworkOptIn,
-} from "openclaw/plugin-sdk/ssrf-runtime";
+} from "genesis/plugin-sdk/ssrf-runtime";
 import { normalizeMattermostBaseUrl, readMattermostError, type MattermostUser } from "./client.js";
 import type { BaseProbeResult } from "./runtime-api.js";
 

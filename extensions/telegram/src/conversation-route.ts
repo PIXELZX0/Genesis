@@ -1,18 +1,18 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   resolveConfiguredBindingRoute,
   resolveRuntimeConversationBindingRoute,
   type ConfiguredBindingRouteResult,
-} from "openclaw/plugin-sdk/conversation-runtime";
+} from "genesis/plugin-sdk/conversation-runtime";
 import {
   buildAgentSessionKey,
   deriveLastRoutePolicy,
   normalizeAccountId,
   resolveAgentRoute,
-} from "openclaw/plugin-sdk/routing";
-import { buildAgentMainSessionKey, sanitizeAgentId } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/routing";
+import { buildAgentMainSessionKey, sanitizeAgentId } from "genesis/plugin-sdk/routing";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveDefaultTelegramAccountId } from "./accounts.js";
 import {
   buildTelegramGroupPeerId,
@@ -21,7 +21,7 @@ import {
 } from "./bot/helpers.js";
 
 export function resolveTelegramConversationRoute(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId: string;
   chatId: number | string;
   isGroup: boolean;
@@ -140,7 +140,7 @@ export function resolveTelegramConversationRoute(params: {
 }
 
 export function resolveTelegramConversationBaseSessionKey(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   route: Pick<
     ReturnType<typeof resolveTelegramConversationRoute>["route"],
     "agentId" | "accountId" | "matchedBy" | "sessionKey"

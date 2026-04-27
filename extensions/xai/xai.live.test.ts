@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { loadConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { encodePngRgba, fillPixel } from "openclaw/plugin-sdk/media-runtime";
+import { loadConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { encodePngRgba, fillPixel } from "genesis/plugin-sdk/media-runtime";
 import { describe, expect, it } from "vitest";
 import {
   registerProviderPlugin,
@@ -13,12 +13,12 @@ import plugin from "./index.js";
 import { XAI_DEFAULT_STT_MODEL } from "./stt.js";
 
 const XAI_API_KEY = process.env.XAI_API_KEY ?? "";
-const LIVE_IMAGE_MODEL = process.env.OPENCLAW_LIVE_XAI_IMAGE_MODEL?.trim() || "grok-imagine-image";
-const liveEnabled = XAI_API_KEY.trim().length > 0 && process.env.OPENCLAW_LIVE_TEST === "1";
+const LIVE_IMAGE_MODEL = process.env.GENESIS_LIVE_XAI_IMAGE_MODEL?.trim() || "grok-imagine-image";
+const liveEnabled = XAI_API_KEY.trim().length > 0 && process.env.GENESIS_LIVE_TEST === "1";
 const describeLive = liveEnabled ? describe : describe.skip;
 const EMPTY_AUTH_STORE = { version: 1, profiles: {} } as const;
 
-function createLiveConfig(): OpenClawConfig {
+function createLiveConfig(): GenesisConfig {
   const cfg = loadConfig();
   return {
     ...cfg,
@@ -33,7 +33,7 @@ function createLiveConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 function createReferencePng(): Buffer {
@@ -81,7 +81,7 @@ describeLive("xai plugin live", () => {
     expect(voices).toEqual(expect.arrayContaining([expect.objectContaining({ id: "eve" })]));
 
     const audioFile = await speechProvider.synthesize({
-      text: "OpenClaw xAI text to speech integration test OK.",
+      text: "Genesis xAI text to speech integration test OK.",
       cfg,
       providerConfig: {
         apiKey: XAI_API_KEY,
@@ -98,7 +98,7 @@ describeLive("xai plugin live", () => {
     expect(audioFile.audioBuffer.byteLength).toBeGreaterThan(512);
 
     const telephony = await speechProvider.synthesizeTelephony?.({
-      text: "OpenClaw xAI telephony check OK.",
+      text: "Genesis xAI telephony check OK.",
       cfg,
       providerConfig: {
         apiKey: XAI_API_KEY,
@@ -120,7 +120,7 @@ describeLive("xai plugin live", () => {
     const mediaProvider = requireRegisteredProvider(mediaProviders, "xai");
     const speechProvider = requireRegisteredProvider(speechProviders, "xai");
     const cfg = createLiveConfig();
-    const phrase = "OpenClaw xAI speech to text integration test OK.";
+    const phrase = "Genesis xAI speech to text integration test OK.";
 
     const audioFile = await speechProvider.synthesize({
       text: phrase,
@@ -147,7 +147,7 @@ describeLive("xai plugin live", () => {
     const normalized = transcript?.text.toLowerCase() ?? "";
     const compact = normalizeTranscriptForMatch(normalized);
     expect(transcript?.model).toBe(XAI_DEFAULT_STT_MODEL);
-    expect(compact).toContain("openclaw");
+    expect(compact).toContain("genesis");
     expect(normalized).toContain("speech");
     expect(normalized).toContain("text");
     expect(normalized).toContain("integration");
@@ -184,7 +184,7 @@ describeLive("xai plugin live", () => {
     const realtimeProvider = requireRegisteredProvider(realtimeTranscriptionProviders, "xai");
     const speechProvider = requireRegisteredProvider(speechProviders, "xai");
     const cfg = createLiveConfig();
-    const phrase = "OpenClaw xAI realtime transcription integration test OK.";
+    const phrase = "Genesis xAI realtime transcription integration test OK.";
 
     const telephony = await speechProvider.synthesizeTelephony?.({
       text: phrase,
@@ -222,7 +222,7 @@ describeLive("xai plugin live", () => {
 
     const normalized = transcripts.join(" ").toLowerCase();
     const compact = normalizeTranscriptForMatch(normalized);
-    expect(compact).toContain("openclaw");
+    expect(compact).toContain("genesis");
     expect(normalized).toContain("transcription");
     expect(partials.length + transcripts.length).toBeGreaterThan(0);
   }, 180_000);

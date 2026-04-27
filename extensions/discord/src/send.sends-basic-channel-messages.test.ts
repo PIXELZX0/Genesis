@@ -2,7 +2,7 @@ import { ChannelType, PermissionFlagsBits, Routes } from "discord-api-types/v10"
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { discordWebMediaMockFactory, makeDiscordRest } from "./send.test-harness.js";
 
-vi.mock("openclaw/plugin-sdk/web-media", () => discordWebMediaMockFactory());
+vi.mock("genesis/plugin-sdk/web-media", () => discordWebMediaMockFactory());
 
 let deleteMessageDiscord: typeof import("./send.js").deleteMessageDiscord;
 let editMessageDiscord: typeof import("./send.js").editMessageDiscord;
@@ -17,7 +17,7 @@ let searchMessagesDiscord: typeof import("./send.js").searchMessagesDiscord;
 let sendMessageDiscord: typeof import("./send.js").sendMessageDiscord;
 let unpinMessageDiscord: typeof import("./send.js").unpinMessageDiscord;
 let resolveDiscordTargetChannelId: typeof import("./send.shared.js").resolveDiscordTargetChannelId;
-let loadWebMedia: typeof import("openclaw/plugin-sdk/web-media").loadWebMedia;
+let loadWebMedia: typeof import("genesis/plugin-sdk/web-media").loadWebMedia;
 let __resetDiscordDirectoryCacheForTest: typeof import("./directory-cache.js").__resetDiscordDirectoryCacheForTest;
 let rememberDiscordDirectoryUser: typeof import("./directory-cache.js").rememberDiscordDirectoryUser;
 
@@ -41,7 +41,7 @@ beforeAll(async () => {
     unpinMessageDiscord,
   } = await import("./send.js"));
   ({ resolveDiscordTargetChannelId } = await import("./send.shared.js"));
-  ({ loadWebMedia } = await import("openclaw/plugin-sdk/web-media"));
+  ({ loadWebMedia } = await import("genesis/plugin-sdk/web-media"));
   ({ __resetDiscordDirectoryCacheForTest, rememberDiscordDirectoryUser } =
     await import("./directory-cache.js"));
 });

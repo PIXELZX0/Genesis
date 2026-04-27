@@ -36,17 +36,17 @@ const writeRestartSentinel = vi.fn<(payload?: unknown) => Promise<string>>(
 );
 const writeDiagnosticStabilityBundleForFailureSync = vi.fn((_reason: string, _error: unknown) => ({
   status: "written" as const,
-  message: "wrote stability bundle: /tmp/openclaw-stability.json",
-  path: "/tmp/openclaw-stability.json",
+  message: "wrote stability bundle: /tmp/genesis-stability.json",
+  path: "/tmp/genesis-stability.json",
 }));
 const controlUiState = vi.hoisted(() => ({
-  root: "/tmp/openclaw-control-ui" as string | null,
+  root: "/tmp/genesis-control-ui" as string | null,
 }));
 
 const { runtimeErrors, defaultRuntime, resetRuntimeCapture } = createCliRuntimeCapture();
 
 vi.mock("../../config/config.js", () => ({
-  getConfigPath: () => "/tmp/openclaw-test-missing-config.json",
+  getConfigPath: () => "/tmp/genesis-test-missing-config.json",
   readBestEffortConfig: async () => configState.cfg,
   readConfigFileSnapshot: async () => configState.snapshot,
   recoverConfigFromLastKnownGood: (params: unknown) => recoverConfigFromLastKnownGood(params),
@@ -65,13 +65,13 @@ vi.mock("../../gateway/auth.js", () => ({
     const token =
       (typeof params.authOverride?.token === "string" ? params.authOverride.token : undefined) ??
       (typeof params.authConfig?.token === "string" ? params.authConfig.token : undefined) ??
-      params.env?.OPENCLAW_GATEWAY_TOKEN;
+      params.env?.GENESIS_GATEWAY_TOKEN;
     const password =
       (typeof params.authOverride?.password === "string"
         ? params.authOverride.password
         : undefined) ??
       (typeof params.authConfig?.password === "string" ? params.authConfig.password : undefined) ??
-      params.env?.OPENCLAW_GATEWAY_PASSWORD;
+      params.env?.GENESIS_GATEWAY_PASSWORD;
     return {
       mode,
       token,
@@ -169,7 +169,7 @@ describe("gateway run option collisions", () => {
     resetRuntimeCapture();
     configState.cfg = {};
     configState.snapshot = { exists: false };
-    controlUiState.root = "/tmp/openclaw-control-ui";
+    controlUiState.root = "/tmp/genesis-control-ui";
     gatewayLogMessages.length = 0;
     recoverConfigFromLastKnownGood.mockReset();
     recoverConfigFromLastKnownGood.mockResolvedValue(false);
@@ -235,12 +235,12 @@ describe("gateway run option collisions", () => {
     ["--cli-backend-logs", "generic flag"],
     ["--claude-cli-logs", "deprecated alias"],
   ])("enables CLI backend log filtering via %s (%s)", async (flag) => {
-    delete process.env.OPENCLAW_CLI_BACKEND_LOG_OUTPUT;
+    delete process.env.GENESIS_CLI_BACKEND_LOG_OUTPUT;
 
     await runGatewayCli(["gateway", "run", flag, "--allow-unconfigured"]);
 
     expect(setConsoleSubsystemFilter).toHaveBeenCalledWith(["agent/cli-backend"]);
-    expect(process.env.OPENCLAW_CLI_BACKEND_LOG_OUTPUT).toBe("1");
+    expect(process.env.GENESIS_CLI_BACKEND_LOG_OUTPUT).toBe("1");
   });
 
   it("starts gateway when token mode has no configured token (startup bootstrap path)", async () => {
@@ -297,7 +297,7 @@ describe("gateway run option collisions", () => {
     await expect(runGatewayCli(["gateway", "run"])).rejects.toThrow("__exit__:78");
 
     expect(runtimeErrors).toContain(
-      "Gateway start blocked: existing config is missing gateway.mode. Treat this as suspicious or clobbered config. Re-run `openclaw onboard --mode local` or `openclaw setup`, set gateway.mode=local manually, or pass --allow-unconfigured.",
+      "Gateway start blocked: existing config is missing gateway.mode. Treat this as suspicious or clobbered config. Re-run `genesis onboard --mode local` or `genesis setup`, set gateway.mode=local manually, or pass --allow-unconfigured.",
     );
     expect(runtimeErrors).toContain(
       `Config write audit: ${path.join("/tmp", "logs", "config-audit.jsonl")}`,
@@ -310,7 +310,7 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: false,
-      path: "/tmp/openclaw-test-missing-config.json",
+      path: "/tmp/genesis-test-missing-config.json",
       config: {},
       parsed: null,
       issues: [{ path: "<root>", message: "JSON5 parse failed" }],
@@ -320,7 +320,7 @@ describe("gateway run option collisions", () => {
       configState.snapshot = {
         exists: true,
         valid: true,
-        path: "/tmp/openclaw-test-missing-config.json",
+        path: "/tmp/genesis-test-missing-config.json",
         config: {
           gateway: {
             mode: "local",
@@ -363,7 +363,7 @@ describe("gateway run option collisions", () => {
       },
     });
     expect(gatewayLogMessages).toContain(
-      "gateway: restored invalid effective config from last-known-good backup: /tmp/openclaw-test-missing-config.json",
+      "gateway: restored invalid effective config from last-known-good backup: /tmp/genesis-test-missing-config.json",
     );
     expect(startGatewayServer).toHaveBeenCalledWith(
       19170,
@@ -379,7 +379,7 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: false,
-      path: "/tmp/openclaw-test-missing-config.json",
+      path: "/tmp/genesis-test-missing-config.json",
       config: {},
       parsed: null,
       issues: [{ path: "<root>", message: "JSON5 parse failed" }],
@@ -389,7 +389,7 @@ describe("gateway run option collisions", () => {
       configState.snapshot = {
         exists: true,
         valid: true,
-        path: "/tmp/openclaw-test-missing-config.json",
+        path: "/tmp/genesis-test-missing-config.json",
         config: {
           gateway: {
             mode: "local",
@@ -439,7 +439,7 @@ describe("gateway run option collisions", () => {
       gateway: {
         auth: {
           mode: "password",
-          password: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_PASSWORD" },
+          password: { source: "env", provider: "default", id: "GENESIS_GATEWAY_PASSWORD" },
         },
       },
       secrets: {
@@ -467,7 +467,7 @@ describe("gateway run option collisions", () => {
 
   it("reads gateway password from --password-file", async () => {
     await withTempSecretFiles(
-      "openclaw-gateway-run-",
+      "genesis-gateway-run-",
       { password: "pw_from_file\n" },
       async ({ passwordFile }) => {
         await runGatewayCli([
@@ -492,7 +492,7 @@ describe("gateway run option collisions", () => {
       }),
     );
     expect(runtimeErrors).not.toContain(
-      "Warning: --password can be exposed via process listings. Prefer --password-file or OPENCLAW_GATEWAY_PASSWORD.",
+      "Warning: --password can be exposed via process listings. Prefer --password-file or GENESIS_GATEWAY_PASSWORD.",
     );
   });
 
@@ -508,13 +508,13 @@ describe("gateway run option collisions", () => {
     ]);
 
     expect(runtimeErrors).toContain(
-      "Warning: --password can be exposed via process listings. Prefer --password-file or OPENCLAW_GATEWAY_PASSWORD.",
+      "Warning: --password can be exposed via process listings. Prefer --password-file or GENESIS_GATEWAY_PASSWORD.",
     );
   });
 
   it("rejects using both --password and --password-file", async () => {
     await withTempSecretFiles(
-      "openclaw-gateway-run-",
+      "genesis-gateway-run-",
       { password: "pw_from_file\n" },
       async ({ passwordFile }) => {
         await expect(

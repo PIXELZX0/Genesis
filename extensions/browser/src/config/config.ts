@@ -5,5 +5,5 @@ export {
   writeConfigFile,
   type BrowserConfig,
   type BrowserProfileConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/browser-config-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/browser-config-runtime";

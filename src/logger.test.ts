@@ -48,8 +48,8 @@ describe("logger helpers", () => {
   });
 
   it("writes to configured log file at configured level", () => {
-    withTempDirSync({ prefix: "openclaw-log-test-" }, (dir) => {
-      const logPath = path.join(dir, "openclaw.log");
+    withTempDirSync({ prefix: "genesis-log-test-" }, (dir) => {
+      const logPath = path.join(dir, "genesis.log");
       setLoggerOverride({ level: "info", file: logPath });
       fs.writeFileSync(logPath, "");
       logInfo("hello");
@@ -60,8 +60,8 @@ describe("logger helpers", () => {
   });
 
   it("filters messages below configured level", () => {
-    withTempDirSync({ prefix: "openclaw-log-test-" }, (dir) => {
-      const logPath = path.join(dir, "openclaw.log");
+    withTempDirSync({ prefix: "genesis-log-test-" }, (dir) => {
+      const logPath = path.join(dir, "genesis.log");
       setLoggerOverride({ level: "warn", file: logPath });
       logInfo("info-only");
       logWarn("warn-only");
@@ -74,10 +74,10 @@ describe("logger helpers", () => {
     resetLogger();
     setLoggerOverride({ level: "info" }); // force default file path with enabled file logging
     const today = localDateString(new Date());
-    const todayPath = path.join(DEFAULT_LOG_DIR, `openclaw-${today}.log`);
+    const todayPath = path.join(DEFAULT_LOG_DIR, `genesis-${today}.log`);
 
     // create an old file to be pruned
-    const oldPath = path.join(DEFAULT_LOG_DIR, "openclaw-2000-01-01.log");
+    const oldPath = path.join(DEFAULT_LOG_DIR, "genesis-2000-01-01.log");
     fs.mkdirSync(DEFAULT_LOG_DIR, { recursive: true });
     fs.writeFileSync(oldPath, "old");
     fs.utimesSync(oldPath, new Date(0), new Date(0));

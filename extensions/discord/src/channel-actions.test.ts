@@ -1,6 +1,6 @@
-import type { ChannelMessageActionContext } from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { withEnv } from "openclaw/plugin-sdk/testing";
+import type { ChannelMessageActionContext } from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { withEnv } from "genesis/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 
 const handleDiscordMessageActionMock = vi.hoisted(() =>
@@ -23,7 +23,7 @@ describe("discordMessageActions", () => {
               enabled: true,
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       });
 
       expect(discovery).toEqual({
@@ -49,7 +49,7 @@ describe("discordMessageActions", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(discovery?.capabilities).toEqual(["presentation"]);
@@ -81,7 +81,7 @@ describe("discordMessageActions", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const defaultDiscovery = discordMessageActions.describeMessageTool?.({
       cfg,
@@ -108,7 +108,7 @@ describe("discordMessageActions", () => {
             token: "Bot token-main",
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
     expect(discovery?.schema).toBeUndefined();
   });
@@ -140,7 +140,7 @@ describe("discordMessageActions", () => {
           token: "Bot token-main",
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const toolContext: ChannelMessageActionContext["toolContext"] = {
       currentChannelProvider: "discord",
     };

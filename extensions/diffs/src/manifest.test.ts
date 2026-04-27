@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 type DiffsPackageManifest = {
   dependencies?: Record<string, string>;
-  openclaw?: {
+  genesis?: {
     bundle?: {
       stageRuntimeDependencies?: boolean;
     };
@@ -17,6 +17,6 @@ describe("diffs package manifest", () => {
     ) as DiffsPackageManifest;
 
     expect(packageJson.dependencies?.["@pierre/diffs"]).toBeDefined();
-    expect(packageJson.openclaw?.bundle?.stageRuntimeDependencies).toBe(true);
+    expect(packageJson.genesis?.bundle?.stageRuntimeDependencies).toBe(true);
   });
 });

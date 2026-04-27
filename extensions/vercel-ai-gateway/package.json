@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/vercel-ai-gateway-provider",
+  "name": "@genesis/vercel-ai-gateway-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Vercel AI Gateway provider plugin",
+  "description": "Genesis Vercel AI Gateway provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

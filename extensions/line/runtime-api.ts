@@ -4,28 +4,28 @@
 export type {
   ChannelAccountSnapshot,
   ChannelPlugin,
-  OpenClawConfig,
-  OpenClawPluginApi,
+  GenesisConfig,
+  GenesisPluginApi,
   PluginRuntime,
-} from "openclaw/plugin-sdk/core";
+} from "genesis/plugin-sdk/core";
 export type {
   ChannelGatewayContext,
   ChannelStatusIssue,
-} from "openclaw/plugin-sdk/channel-contract";
-export { clearAccountEntryFields } from "openclaw/plugin-sdk/core";
-export { buildChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-schema";
-export type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-export type { ChannelSetupDmPolicy, ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
+} from "genesis/plugin-sdk/channel-contract";
+export { clearAccountEntryFields } from "genesis/plugin-sdk/core";
+export { buildChannelConfigSchema } from "genesis/plugin-sdk/channel-config-schema";
+export type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+export type { ChannelSetupDmPolicy, ChannelSetupWizard } from "genesis/plugin-sdk/setup";
 export {
   buildComputedAccountStatusSnapshot,
   buildTokenChannelStatusSummary,
-} from "openclaw/plugin-sdk/status-helpers";
+} from "genesis/plugin-sdk/status-helpers";
 export {
   DEFAULT_ACCOUNT_ID,
   formatDocsLink,
   setSetupChannelEnabled,
   splitSetupEntries,
-} from "openclaw/plugin-sdk/setup";
+} from "genesis/plugin-sdk/setup";
 export { setLineRuntime } from "./src/runtime.js";
 export {
   firstDefined,

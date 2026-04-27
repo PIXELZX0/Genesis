@@ -1,16 +1,16 @@
 ---
-summary: "OpenClaw on DigitalOcean (simple paid VPS option)"
+summary: "Genesis on DigitalOcean (simple paid VPS option)"
 read_when:
-  - Setting up OpenClaw on DigitalOcean
-  - Looking for cheap VPS hosting for OpenClaw
+  - Setting up Genesis on DigitalOcean
+  - Looking for cheap VPS hosting for Genesis
 title: "DigitalOcean (platform)"
 ---
 
-# OpenClaw on DigitalOcean
+# Genesis on DigitalOcean
 
 ## Goal
 
-Run a persistent OpenClaw Gateway on DigitalOcean for **$6/month** (or $4/mo with reserved pricing).
+Run a persistent Genesis Gateway on DigitalOcean for **$6/month** (or $4/mo with reserved pricing).
 
 If you want a $0/month option and don’t mind ARM + provider-specific setup, see the [Oracle Cloud guide](/platforms/oracle).
 
@@ -60,7 +60,7 @@ Use a clean base image (Ubuntu 24.04 LTS). Avoid third-party Marketplace 1-click
 ssh root@YOUR_DROPLET_IP
 ```
 
-## 3) Install OpenClaw
+## 3) Install Genesis
 
 ```bash
 # Update system
@@ -70,17 +70,17 @@ apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 apt install -y nodejs
 
-# Install OpenClaw
-curl -fsSL https://openclaw.ai/install.sh | bash
+# Install Genesis
+curl -fsSL https://genesis.ai/install.sh | bash
 
 # Verify
-openclaw --version
+genesis --version
 ```
 
 ## 4) Run Onboarding
 
 ```bash
-openclaw onboard --install-daemon
+genesis onboard --install-daemon
 ```
 
 The wizard will walk you through:
@@ -94,13 +94,13 @@ The wizard will walk you through:
 
 ```bash
 # Check status
-openclaw status
+genesis status
 
 # Check service
-systemctl --user status openclaw-gateway.service
+systemctl --user status genesis-gateway.service
 
 # View logs
-journalctl --user -u openclaw-gateway.service -f
+journalctl --user -u genesis-gateway.service -f
 ```
 
 ## 6) Access the Dashboard
@@ -124,8 +124,8 @@ curl -fsSL https://tailscale.com/install.sh | sh
 tailscale up
 
 # Configure Gateway to use Tailscale Serve
-openclaw config set gateway.tailscale.mode serve
-openclaw gateway restart
+genesis config set gateway.tailscale.mode serve
+genesis gateway restart
 ```
 
 Open: `https://<magicdns>/`
@@ -138,8 +138,8 @@ Notes:
 **Option C: Tailnet bind (no Serve)**
 
 ```bash
-openclaw config set gateway.bind tailnet
-openclaw gateway restart
+genesis config set gateway.bind tailnet
+genesis gateway restart
 ```
 
 Open: `http://<tailscale-ip>:18789` (token required).
@@ -149,14 +149,14 @@ Open: `http://<tailscale-ip>:18789` (token required).
 ### Telegram
 
 ```bash
-openclaw pairing list telegram
-openclaw pairing approve telegram <CODE>
+genesis pairing list telegram
+genesis pairing approve telegram <CODE>
 ```
 
 ### WhatsApp
 
 ```bash
-openclaw channels login whatsapp
+genesis channels login whatsapp
 # Scan QR code
 ```
 
@@ -198,13 +198,13 @@ htop
 
 All state lives in:
 
-- `~/.openclaw/` — `openclaw.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
-- `~/.openclaw/workspace/` — workspace (SOUL.md, memory, etc.)
+- `~/.genesis/` — `genesis.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
+- `~/.genesis/workspace/` — workspace (SOUL.md, memory, etc.)
 
 These survive reboots. Back them up periodically:
 
 ```bash
-openclaw backup create
+genesis backup create
 ```
 
 ---
@@ -234,9 +234,9 @@ For the full setup guide, see [Oracle Cloud](/platforms/oracle). For signup tips
 ### Gateway will not start
 
 ```bash
-openclaw gateway status
-openclaw doctor --non-interactive
-journalctl --user -u openclaw-gateway.service --no-pager -n 50
+genesis gateway status
+genesis doctor --non-interactive
+journalctl --user -u genesis-gateway.service --no-pager -n 50
 ```
 
 ### Port already in use

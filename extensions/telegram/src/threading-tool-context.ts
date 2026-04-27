@@ -1,9 +1,9 @@
 import type {
   ChannelThreadingContext,
   ChannelThreadingToolContext,
-} from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/channel-contract";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { parseTelegramTarget } from "./targets.js";
 
 function resolveTelegramToolContextThreadId(context: ChannelThreadingContext): string | undefined {
@@ -19,7 +19,7 @@ function resolveTelegramToolContextThreadId(context: ChannelThreadingContext): s
 }
 
 export function buildTelegramThreadingToolContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   context: ChannelThreadingContext;
   hasRepliedRef?: { value: boolean };

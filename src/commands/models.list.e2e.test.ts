@@ -10,8 +10,8 @@ const readConfigFileSnapshotForWrite = vi.fn().mockResolvedValue({
   writeOptions: {},
 });
 const setRuntimeConfigSnapshot = vi.fn();
-const ensureOpenClawModelsJson = vi.fn().mockResolvedValue(undefined);
-const resolveOpenClawAgentDir = vi.fn().mockReturnValue("/tmp/openclaw-agent");
+const ensureGenesisModelsJson = vi.fn().mockResolvedValue(undefined);
+const resolveGenesisAgentDir = vi.fn().mockReturnValue("/tmp/genesis-agent");
 const ensureAuthProfileStore = vi.fn().mockReturnValue({ version: 1, profiles: {} });
 const listProfilesForProvider = vi.fn().mockReturnValue([]);
 const resolveEnvApiKey = vi.fn().mockReturnValue(undefined);
@@ -80,8 +80,8 @@ vi.mock("./models/list.runtime.js", () => {
 
   return {
     ensureAuthProfileStore,
-    ensureOpenClawModelsJson,
-    resolveOpenClawAgentDir,
+    ensureGenesisModelsJson,
+    resolveGenesisAgentDir,
     listProfilesForProvider,
     resolveEnvApiKey,
     resolveAwsSdkEnvVarName,
@@ -157,7 +157,7 @@ beforeEach(() => {
   getRuntimeConfig.mockReset();
   getRuntimeConfig.mockReturnValue({});
   listProfilesForProvider.mockReturnValue([]);
-  ensureOpenClawModelsJson.mockClear();
+  ensureGenesisModelsJson.mockClear();
   loadModelCatalog.mockClear();
   loadModelCatalog.mockResolvedValue([]);
   loadProviderCatalogModelsForList.mockReset();
@@ -466,7 +466,7 @@ describe("models list/status", () => {
 
     await loadModelRegistry(resolvedConfig as never);
 
-    expect(ensureOpenClawModelsJson).not.toHaveBeenCalled();
+    expect(ensureGenesisModelsJson).not.toHaveBeenCalled();
   });
 
   it("filters stale spark rows from models list and registry views", async () => {
@@ -546,7 +546,7 @@ describe("models list/status", () => {
 
     await modelsListCommand({ all: true, json: true }, runtime);
 
-    expect(ensureOpenClawModelsJson).not.toHaveBeenCalled();
+    expect(ensureGenesisModelsJson).not.toHaveBeenCalled();
     const payload = parseJsonLog(runtime);
     expect(payload.models).toEqual([
       expect.objectContaining({

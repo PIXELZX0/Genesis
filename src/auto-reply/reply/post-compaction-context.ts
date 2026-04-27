@@ -3,7 +3,7 @@ import path from "node:path";
 import { resolveAgentContextLimits } from "../../agents/agent-scope.js";
 import { resolveCronStyleNow } from "../../agents/current-time.js";
 import { resolveUserTimezone } from "../../agents/date-time.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { openBoundaryFile } from "../../infra/boundary-file-read.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 
@@ -63,7 +63,7 @@ function formatDateStamp(nowMs: number, timezone: string): string {
  * daily memory files instead of guessing based on training cutoff.
  */
 export type PostCompactionContextOptions = {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   agentId?: string;
   nowMs?: number;
 };

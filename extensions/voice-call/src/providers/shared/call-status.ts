@@ -1,4 +1,4 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import type { EndReason } from "../../types.js";
 
 const TERMINAL_PROVIDER_STATUS_TO_END_REASON: Record<string, EndReason> = {

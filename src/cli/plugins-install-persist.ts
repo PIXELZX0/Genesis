@@ -1,5 +1,5 @@
 import { replaceConfigFile } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { type HookInstallUpdate, recordHookInstall } from "../hooks/installs.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { type PluginInstallUpdate, recordPluginInstall } from "../plugins/installs.js";
@@ -12,7 +12,7 @@ import {
   logSlotWarnings,
 } from "./plugins-command-helpers.js";
 
-function addInstalledPluginToAllowlist(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+function addInstalledPluginToAllowlist(cfg: GenesisConfig, pluginId: string): GenesisConfig {
   const allow = cfg.plugins?.allow;
   if (!Array.isArray(allow) || allow.length === 0 || allow.includes(pluginId)) {
     return cfg;
@@ -27,13 +27,13 @@ function addInstalledPluginToAllowlist(cfg: OpenClawConfig, pluginId: string): O
 }
 
 export async function persistPluginInstall(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   baseHash?: string;
   pluginId: string;
   install: Omit<PluginInstallUpdate, "pluginId">;
   successMessage?: string;
   warningMessage?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   let next = enablePluginInConfig(
     addInstalledPluginToAllowlist(params.config, params.pluginId),
     params.pluginId,
@@ -58,13 +58,13 @@ export async function persistPluginInstall(params: {
 }
 
 export async function persistHookPackInstall(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   baseHash?: string;
   hookPackId: string;
   hooks: string[];
   install: Omit<HookInstallUpdate, "hookId" | "hooks">;
   successMessage?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   let next = enableInternalHookEntries(params.config, params.hooks);
   next = recordHookInstall(next, {
     hookId: params.hookPackId,

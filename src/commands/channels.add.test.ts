@@ -434,7 +434,7 @@ describe("channelsAddCommand", () => {
       {
         channel: "whatsapp",
         account: "work",
-        authDir: "/tmp/openclaw-wa-auth",
+        authDir: "/tmp/genesis-wa-auth",
       },
       runtime,
       { hasFlags: true },
@@ -448,7 +448,7 @@ describe("channelsAddCommand", () => {
             accounts: {
               work: {
                 enabled: true,
-                authDir: "/tmp/openclaw-wa-auth",
+                authDir: "/tmp/genesis-wa-auth",
               },
             },
           },

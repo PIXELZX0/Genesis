@@ -13,7 +13,7 @@ vi.mock("./auth-profiles/external-auth.js", () => ({
 type AuthProfileStore = Parameters<typeof saveAuthProfileStore>[0];
 
 async function createAgentDir() {
-  return fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
+  return fs.mkdtemp(path.join(os.tmpdir(), "genesis-agent-"));
 }
 
 function writeProfiles(agentDir: string, profiles: AuthProfileStore["profiles"]) {

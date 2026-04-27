@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   __resetGatewayModelPricingCacheForTest,
   __setGatewayModelPricingForTest,
@@ -17,21 +17,21 @@ import {
 } from "./usage-format.js";
 
 describe("usage-format", () => {
-  const originalAgentDir = process.env.OPENCLAW_AGENT_DIR;
+  const originalAgentDir = process.env.GENESIS_AGENT_DIR;
   let agentDir: string;
 
   beforeEach(async () => {
-    agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-usage-format-"));
-    process.env.OPENCLAW_AGENT_DIR = agentDir;
+    agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-usage-format-"));
+    process.env.GENESIS_AGENT_DIR = agentDir;
     __resetUsageFormatCachesForTest();
     __resetGatewayModelPricingCacheForTest();
   });
 
   afterEach(async () => {
     if (originalAgentDir === undefined) {
-      delete process.env.OPENCLAW_AGENT_DIR;
+      delete process.env.GENESIS_AGENT_DIR;
     } else {
-      process.env.OPENCLAW_AGENT_DIR = originalAgentDir;
+      process.env.GENESIS_AGENT_DIR = originalAgentDir;
     }
     __resetUsageFormatCachesForTest();
     __resetGatewayModelPricingCacheForTest();
@@ -67,7 +67,7 @@ describe("usage-format", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     const cost = resolveModelCostConfig({
       provider: "test",
@@ -106,7 +106,7 @@ describe("usage-format", () => {
     ).toBeUndefined();
   });
 
-  it("prefers models.json pricing over openclaw config and cached pricing", async () => {
+  it("prefers models.json pricing over genesis config and cached pricing", async () => {
     const config = {
       models: {
         providers: {
@@ -120,7 +120,7 @@ describe("usage-format", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     await fs.writeFile(
       path.join(agentDir, "models.json"),
@@ -165,7 +165,7 @@ describe("usage-format", () => {
     });
   });
 
-  it("falls back to openclaw config pricing when models.json is absent", () => {
+  it("falls back to genesis config pricing when models.json is absent", () => {
     const config = {
       models: {
         providers: {
@@ -179,7 +179,7 @@ describe("usage-format", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     __setGatewayModelPricingForTest([
       {
@@ -239,7 +239,7 @@ describe("usage-format", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as GenesisConfig;
 
     expect(
       resolveModelCostConfig({

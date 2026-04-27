@@ -1,14 +1,14 @@
 ---
-summary: "Use Venice AI privacy-focused models in OpenClaw"
+summary: "Use Venice AI privacy-focused models in Genesis"
 read_when:
-  - You want privacy-focused inference in OpenClaw
+  - You want privacy-focused inference in Genesis
   - You want Venice AI setup guidance
 title: "Venice AI"
 ---
 
 Venice AI provides **privacy-focused AI inference** with support for uncensored models and access to major proprietary models through their anonymized proxy. All inference is private by default — no training on your data, no logging.
 
-## Why Venice in OpenClaw
+## Why Venice in Genesis
 
 - **Private inference** for open-source models (no logging).
 - **Uncensored models** when you need them.
@@ -47,13 +47,13 @@ Anonymized models are **not** fully private. Venice strips metadata before forwa
     2. Go to **Settings > API Keys > Create new key**
     3. Copy your API key (format: `vapi_xxxxxxxxxxxx`)
   </Step>
-  <Step title="Configure OpenClaw">
+  <Step title="Configure Genesis">
     Choose your preferred setup method:
 
     <Tabs>
       <Tab title="Interactive (recommended)">
         ```bash
-        openclaw onboard --auth-choice venice-api-key
+        genesis onboard --auth-choice venice-api-key
         ```
 
         This will:
@@ -69,7 +69,7 @@ Anonymized models are **not** fully private. Venice strips metadata before forwa
       </Tab>
       <Tab title="Non-interactive">
         ```bash
-        openclaw onboard --non-interactive \
+        genesis onboard --non-interactive \
           --auth-choice venice-api-key \
           --venice-api-key "vapi_xxxxxxxxxxxx"
         ```
@@ -79,14 +79,14 @@ Anonymized models are **not** fully private. Venice strips metadata before forwa
   </Step>
   <Step title="Verify setup">
     ```bash
-    openclaw agent --model venice/kimi-k2-5 --message "Hello, are you working?"
+    genesis agent --model venice/kimi-k2-5 --message "Hello, are you working?"
     ```
   </Step>
 </Steps>
 
 ## Model selection
 
-After setup, OpenClaw shows all available Venice models. Pick based on your needs:
+After setup, Genesis shows all available Venice models. Pick based on your needs:
 
 - **Default model**: `venice/kimi-k2-5` for strong private reasoning plus vision.
 - **High-capability option**: `venice/claude-opus-4-6` for the strongest anonymized Venice path.
@@ -96,17 +96,17 @@ After setup, OpenClaw shows all available Venice models. Pick based on your need
 Change your default model anytime:
 
 ```bash
-openclaw models set venice/kimi-k2-5
-openclaw models set venice/claude-opus-4-6
+genesis models set venice/kimi-k2-5
+genesis models set venice/claude-opus-4-6
 ```
 
 List all available models:
 
 ```bash
-openclaw models list | grep venice
+genesis models list | grep venice
 ```
 
-You can also run `openclaw configure`, select **Model/auth**, and choose **Venice AI**.
+You can also run `genesis configure`, select **Model/auth**, and choose **Venice AI**.
 
 <Tip>
 Use the table below to pick the right model for your use case.
@@ -180,7 +180,7 @@ Use the table below to pick the right model for your use case.
 
 ## Model discovery
 
-OpenClaw automatically discovers models from the Venice API when `VENICE_API_KEY` is set. If the API is unreachable, it falls back to a static catalog.
+Genesis automatically discovers models from the Venice API when `VENICE_API_KEY` is set. If the API is unreachable, it falls back to a static catalog.
 
 The `/models` endpoint is public (no auth needed for listing), but inference requires a valid API key.
 
@@ -213,19 +213,19 @@ Venice uses a credit-based system. Check [venice.ai/pricing](https://venice.ai/p
 
 ```bash
 # Use the default private model
-openclaw agent --model venice/kimi-k2-5 --message "Quick health check"
+genesis agent --model venice/kimi-k2-5 --message "Quick health check"
 
 # Use Claude Opus via Venice (anonymized)
-openclaw agent --model venice/claude-opus-4-6 --message "Summarize this task"
+genesis agent --model venice/claude-opus-4-6 --message "Summarize this task"
 
 # Use uncensored model
-openclaw agent --model venice/venice-uncensored --message "Draft options"
+genesis agent --model venice/venice-uncensored --message "Draft options"
 
 # Use vision model with image
-openclaw agent --model venice/qwen3-vl-235b-a22b --message "Review attached image"
+genesis agent --model venice/qwen3-vl-235b-a22b --message "Review attached image"
 
 # Use coding model
-openclaw agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor this function"
+genesis agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor this function"
 ```
 
 ## Troubleshooting
@@ -234,7 +234,7 @@ openclaw agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor
   <Accordion title="API key not recognized">
     ```bash
     echo $VENICE_API_KEY
-    openclaw models list | grep venice
+    genesis models list | grep venice
     ```
 
     Ensure the key starts with `vapi_`.
@@ -242,7 +242,7 @@ openclaw agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor
   </Accordion>
 
   <Accordion title="Model not available">
-    The Venice model catalog updates dynamically. Run `openclaw models list` to see currently available models. Some models may be temporarily offline.
+    The Venice model catalog updates dynamically. Run `genesis models list` to see currently available models. Some models may be temporarily offline.
   </Accordion>
 
   <Accordion title="Connection issues">

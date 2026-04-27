@@ -1,8 +1,8 @@
 import {
   defineBundledChannelEntry,
-  type OpenClawPluginApi,
-} from "openclaw/plugin-sdk/channel-entry-contract";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+  type GenesisPluginApi,
+} from "genesis/plugin-sdk/channel-entry-contract";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { registerMatrixCliMetadata } from "./cli-metadata.js";
 import { registerMatrixSubagentHooks } from "./subagent-hooks-api.js";
 
@@ -15,7 +15,7 @@ function loadMatrixHandlersRuntimeModule() {
   return matrixHandlersRuntimePromise;
 }
 
-export function registerMatrixFullRuntime(api: OpenClawPluginApi): void {
+export function registerMatrixFullRuntime(api: GenesisPluginApi): void {
   void loadMatrixHandlersRuntimeModule()
     .then(({ ensureMatrixCryptoRuntime }) =>
       ensureMatrixCryptoRuntime({ log: api.logger.info }).catch((err: unknown) => {

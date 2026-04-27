@@ -42,6 +42,8 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
     skillsReport: null,
     cronJobs: [],
     cronStatus: null,
+    walletSummary: null,
+    walletSummaryError: null,
     attentionItems: [],
     eventLog: [],
     overviewLogLines: [],
@@ -106,7 +108,7 @@ describe("overview view rendering", () => {
     expect(container.textContent).toContain(
       "This device is already paired, but the requested wider scope is waiting for approval.",
     );
-    expect(container.textContent).toContain("openclaw devices approve req-123");
+    expect(container.textContent).toContain("genesis devices approve req-123");
   });
 
   it("does not suggest preview-only latest approval when the request id is absent", async () => {
@@ -120,7 +122,38 @@ describe("overview view rendering", () => {
     await Promise.resolve();
 
     expect(container.textContent).toContain("Scope upgrade pending approval.");
-    expect(container.textContent).toContain("openclaw devices list");
-    expect(container.textContent).not.toContain("openclaw devices approve --latest");
+    expect(container.textContent).toContain("genesis devices list");
+    expect(container.textContent).not.toContain("genesis devices approve --latest");
+  });
+
+  it("renders wallet public addresses without secret-bearing fields", async () => {
+    const container = document.createElement("div");
+    const props = createOverviewProps({
+      walletSummary: {
+        enabled: true,
+        keystore: { exists: true, locked: true },
+        primaryAccount: "evm:default",
+        accounts: [
+          {
+            id: "evm:default",
+            chain: "evm",
+            address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+            network: "ethereum",
+            createdAt: "2026-04-27T00:00:00.000Z",
+            updatedAt: "2026-04-27T00:00:00.000Z",
+          },
+        ],
+        warnings: [],
+      },
+    });
+
+    render(renderOverview(props), container);
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Wallet");
+    expect(container.textContent).toContain("0x9858EfFD...aEda94");
+    expect(container.textContent).toContain("ethereum");
+    expect(container.textContent).not.toMatch(/mnemonic|private|passphrase|seed/i);
+    expect(container.querySelector("button[aria-label='Copy address']")).not.toBeNull();
   });
 });

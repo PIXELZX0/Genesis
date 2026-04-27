@@ -1,9 +1,9 @@
-import OpenClawKit
+import GenesisKit
 import Foundation
 import Testing
 import UIKit
 import UserNotifications
-@testable import OpenClaw
+@testable import Genesis
 
 private func makeAgentDeepLinkURL(
     message: String,
@@ -13,7 +13,7 @@ private func makeAgentDeepLinkURL(
     key: String? = nil) -> URL
 {
     var components = URLComponents()
-    components.scheme = "openclaw"
+    components.scheme = "genesis"
     components.host = "agent"
     var queryItems: [URLQueryItem] = [URLQueryItem(name: "message", value: message)]
     if deliver {
@@ -45,11 +45,11 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
         queuedForDelivery: false,
         transport: "sendMessage")
     var sendError: Error?
-    var lastSent: (id: String, params: OpenClawWatchNotifyParams)?
-    var lastSentExecApprovalPrompt: OpenClawWatchExecApprovalPromptMessage?
-    var lastSentExecApprovalResolved: OpenClawWatchExecApprovalResolvedMessage?
-    var lastSentExecApprovalExpired: OpenClawWatchExecApprovalExpiredMessage?
-    var lastSentExecApprovalSnapshot: OpenClawWatchExecApprovalSnapshotMessage?
+    var lastSent: (id: String, params: GenesisWatchNotifyParams)?
+    var lastSentExecApprovalPrompt: GenesisWatchExecApprovalPromptMessage?
+    var lastSentExecApprovalResolved: GenesisWatchExecApprovalResolvedMessage?
+    var lastSentExecApprovalExpired: GenesisWatchExecApprovalExpiredMessage?
+    var lastSentExecApprovalSnapshot: GenesisWatchExecApprovalSnapshotMessage?
     private var statusHandler: (@Sendable (WatchMessagingStatus) -> Void)?
     private var replyHandler: (@Sendable (WatchQuickReplyEvent) -> Void)?
     private var execApprovalResolveHandler: (@Sendable (WatchExecApprovalResolveEvent) -> Void)?
@@ -77,7 +77,7 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
         self.execApprovalSnapshotRequestHandler = handler
     }
 
-    func sendNotification(id: String, params: OpenClawWatchNotifyParams) async throws -> WatchNotificationSendResult {
+    func sendNotification(id: String, params: GenesisWatchNotifyParams) async throws -> WatchNotificationSendResult {
         self.lastSent = (id: id, params: params)
         if let sendError = self.sendError {
             throw sendError
@@ -86,7 +86,7 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
     }
 
     func sendExecApprovalPrompt(
-        _ message: OpenClawWatchExecApprovalPromptMessage) async throws -> WatchNotificationSendResult
+        _ message: GenesisWatchExecApprovalPromptMessage) async throws -> WatchNotificationSendResult
     {
         self.lastSentExecApprovalPrompt = message
         if let sendError = self.sendError {
@@ -96,7 +96,7 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
     }
 
     func sendExecApprovalResolved(
-        _ message: OpenClawWatchExecApprovalResolvedMessage) async throws -> WatchNotificationSendResult
+        _ message: GenesisWatchExecApprovalResolvedMessage) async throws -> WatchNotificationSendResult
     {
         self.lastSentExecApprovalResolved = message
         if let sendError = self.sendError {
@@ -106,7 +106,7 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
     }
 
     func sendExecApprovalExpired(
-        _ message: OpenClawWatchExecApprovalExpiredMessage) async throws -> WatchNotificationSendResult
+        _ message: GenesisWatchExecApprovalExpiredMessage) async throws -> WatchNotificationSendResult
     {
         self.lastSentExecApprovalExpired = message
         if let sendError = self.sendError {
@@ -116,7 +116,7 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
     }
 
     func syncExecApprovalSnapshot(
-        _ message: OpenClawWatchExecApprovalSnapshotMessage) async throws -> WatchNotificationSendResult
+        _ message: GenesisWatchExecApprovalSnapshotMessage) async throws -> WatchNotificationSendResult
     {
         self.lastSentExecApprovalSnapshot = message
         if let sendError = self.sendError {
@@ -171,7 +171,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
 @Suite(.serialized) struct NodeAppModelInvokeTests {
     @Test @MainActor func decodeParamsFailsWithoutJSON() {
         #expect(throws: Error.self) {
-            _ = try NodeAppModel._test_decodeParams(OpenClawCanvasNavigateParams.self, from: nil)
+            _ = try NodeAppModel._test_decodeParams(GenesisCanvasNavigateParams.self, from: nil)
         }
     }
 
@@ -477,7 +477,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
                 caps: [],
                 commands: [],
                 permissions: [:],
-                clientId: "openclaw-ios",
+                clientId: "genesis-ios",
                 clientMode: "node",
                 clientDisplayName: nil))
 
@@ -494,7 +494,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
         let appModel = NodeAppModel()
         appModel.setScenePhase(.background)
 
-        let req = BridgeInvokeRequest(id: "bg", command: OpenClawCanvasCommand.present.rawValue)
+        let req = BridgeInvokeRequest(id: "bg", command: GenesisCanvasCommand.present.rawValue)
         let res = await appModel._test_handleInvoke(req)
         #expect(res.ok == false)
         #expect(res.error?.code == .backgroundUnavailable)
@@ -502,7 +502,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
 
     @Test @MainActor func handleInvokeRejectsCameraWhenDisabled() async {
         let appModel = NodeAppModel()
-        let req = BridgeInvokeRequest(id: "cam", command: OpenClawCameraCommand.snap.rawValue)
+        let req = BridgeInvokeRequest(id: "cam", command: GenesisCameraCommand.snap.rawValue)
 
         let defaults = UserDefaults.standard
         let key = "camera.enabled"
@@ -524,13 +524,13 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
 
     @Test @MainActor func handleInvokeRejectsInvalidScreenFormat() async {
         let appModel = NodeAppModel()
-        let params = OpenClawScreenRecordParams(format: "gif")
+        let params = GenesisScreenRecordParams(format: "gif")
         let data = try? JSONEncoder().encode(params)
         let json = data.flatMap { String(data: $0, encoding: .utf8) }
 
         let req = BridgeInvokeRequest(
             id: "screen",
-            command: OpenClawScreenCommand.record.rawValue,
+            command: GenesisScreenCommand.record.rawValue,
             paramsJSON: json)
 
         let res = await appModel._test_handleInvoke(req)
@@ -542,29 +542,29 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
         let appModel = NodeAppModel()
         appModel.screen.navigate(to: "http://example.com")
 
-        let present = BridgeInvokeRequest(id: "present", command: OpenClawCanvasCommand.present.rawValue)
+        let present = BridgeInvokeRequest(id: "present", command: GenesisCanvasCommand.present.rawValue)
         let presentRes = await appModel._test_handleInvoke(present)
         #expect(presentRes.ok == true)
         #expect(appModel.screen.urlString.isEmpty)
 
         // Loopback URLs are rejected (they are not meaningful for a remote gateway).
-        let navigateParams = OpenClawCanvasNavigateParams(url: "http://example.com/")
+        let navigateParams = GenesisCanvasNavigateParams(url: "http://example.com/")
         let navData = try JSONEncoder().encode(navigateParams)
         let navJSON = String(decoding: navData, as: UTF8.self)
         let navigate = BridgeInvokeRequest(
             id: "nav",
-            command: OpenClawCanvasCommand.navigate.rawValue,
+            command: GenesisCanvasCommand.navigate.rawValue,
             paramsJSON: navJSON)
         let navRes = await appModel._test_handleInvoke(navigate)
         #expect(navRes.ok == true)
         #expect(appModel.screen.urlString == "http://example.com/")
 
-        let evalParams = OpenClawCanvasEvalParams(javaScript: "1+1")
+        let evalParams = GenesisCanvasEvalParams(javaScript: "1+1")
         let evalData = try JSONEncoder().encode(evalParams)
         let evalJSON = String(decoding: evalData, as: UTF8.self)
         let eval = BridgeInvokeRequest(
             id: "eval",
-            command: OpenClawCanvasCommand.evalJS.rawValue,
+            command: GenesisCanvasCommand.evalJS.rawValue,
             paramsJSON: evalJSON)
         let evalRes = await appModel._test_handleInvoke(eval)
         #expect(evalRes.ok == true)
@@ -575,14 +575,14 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
 
     @Test @MainActor func pendingForegroundActionsReplayCanvasNavigate() async throws {
         let appModel = NodeAppModel()
-        let navigateParams = OpenClawCanvasNavigateParams(url: "http://example.com/")
+        let navigateParams = GenesisCanvasNavigateParams(url: "http://example.com/")
         let navData = try JSONEncoder().encode(navigateParams)
         let navJSON = String(decoding: navData, as: UTF8.self)
 
         await appModel._test_applyPendingForegroundNodeActions([
             (
                 id: "pending-nav-1",
-                command: OpenClawCanvasCommand.navigate.rawValue,
+                command: GenesisCanvasCommand.navigate.rawValue,
                 paramsJSON: navJSON
             ),
         ])
@@ -593,14 +593,14 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func pendingForegroundActionsDoNotApplyWhileBackgrounded() async throws {
         let appModel = NodeAppModel()
         appModel.setScenePhase(.background)
-        let navigateParams = OpenClawCanvasNavigateParams(url: "http://example.com/")
+        let navigateParams = GenesisCanvasNavigateParams(url: "http://example.com/")
         let navData = try JSONEncoder().encode(navigateParams)
         let navJSON = String(decoding: navData, as: UTF8.self)
 
         await appModel._test_applyPendingForegroundNodeActions([
             (
                 id: "pending-nav-bg",
-                command: OpenClawCanvasCommand.navigate.rawValue,
+                command: GenesisCanvasCommand.navigate.rawValue,
                 paramsJSON: navJSON
             ),
         ])
@@ -611,18 +611,18 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleInvokeA2UICommandsFailWhenHostMissing() async throws {
         let appModel = NodeAppModel()
 
-        let reset = BridgeInvokeRequest(id: "reset", command: OpenClawCanvasA2UICommand.reset.rawValue)
+        let reset = BridgeInvokeRequest(id: "reset", command: GenesisCanvasA2UICommand.reset.rawValue)
         let resetRes = await appModel._test_handleInvoke(reset)
         #expect(resetRes.ok == false)
         #expect(resetRes.error?.message.contains("A2UI_HOST_NOT_CONFIGURED") == true)
 
         let jsonl = "{\"beginRendering\":{}}"
-        let pushParams = OpenClawCanvasA2UIPushJSONLParams(jsonl: jsonl)
+        let pushParams = GenesisCanvasA2UIPushJSONLParams(jsonl: jsonl)
         let pushData = try JSONEncoder().encode(pushParams)
         let pushJSON = String(decoding: pushData, as: UTF8.self)
         let push = BridgeInvokeRequest(
             id: "push",
-            command: OpenClawCanvasA2UICommand.pushJSONL.rawValue,
+            command: GenesisCanvasA2UICommand.pushJSONL.rawValue,
             paramsJSON: pushJSON)
         let pushRes = await appModel._test_handleInvoke(push)
         #expect(pushRes.ok == false)
@@ -646,13 +646,13 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
             reachable: false,
             activationState: "inactive")
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let req = BridgeInvokeRequest(id: "watch-status", command: OpenClawWatchCommand.status.rawValue)
+        let req = BridgeInvokeRequest(id: "watch-status", command: GenesisWatchCommand.status.rawValue)
 
         let res = await appModel._test_handleInvoke(req)
         #expect(res.ok == true)
 
         let payloadData = try #require(res.payloadJSON?.data(using: .utf8))
-        let payload = try JSONDecoder().decode(OpenClawWatchStatusPayload.self, from: payloadData)
+        let payload = try JSONDecoder().decode(GenesisWatchStatusPayload.self, from: payloadData)
         #expect(payload.supported == true)
         #expect(payload.reachable == false)
         #expect(payload.activationState == "inactive")
@@ -665,25 +665,25 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
             queuedForDelivery: true,
             transport: "transferUserInfo")
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(
-            title: "OpenClaw",
+        let params = GenesisWatchNotifyParams(
+            title: "Genesis",
             body: "Meeting with Peter is at 4pm",
             priority: .timeSensitive)
         let paramsData = try JSONEncoder().encode(params)
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
         #expect(res.ok == true)
-        #expect(watchService.lastSent?.params.title == "OpenClaw")
+        #expect(watchService.lastSent?.params.title == "Genesis")
         #expect(watchService.lastSent?.params.body == "Meeting with Peter is at 4pm")
         #expect(watchService.lastSent?.params.priority == .timeSensitive)
 
         let payloadData = try #require(res.payloadJSON?.data(using: .utf8))
-        let payload = try JSONDecoder().decode(OpenClawWatchNotifyPayload.self, from: payloadData)
+        let payload = try JSONDecoder().decode(GenesisWatchNotifyPayload.self, from: payloadData)
         #expect(payload.deliveredImmediately == false)
         #expect(payload.queuedForDelivery == true)
         #expect(payload.transport == "transferUserInfo")
@@ -692,12 +692,12 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleInvokeWatchNotifyRejectsEmptyMessage() async throws {
         let watchService = MockWatchMessagingService()
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(title: "   ", body: "\n")
+        let params = GenesisWatchNotifyParams(title: "   ", body: "\n")
         let paramsData = try JSONEncoder().encode(params)
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify-empty",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
@@ -709,7 +709,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleInvokeWatchNotifyAddsDefaultActionsForPrompt() async throws {
         let watchService = MockWatchMessagingService()
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(
+        let params = GenesisWatchNotifyParams(
             title: "Task",
             body: "Action needed",
             priority: .passive,
@@ -718,7 +718,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify-default-actions",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
@@ -731,7 +731,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleInvokeWatchNotifyAddsApprovalDefaults() async throws {
         let watchService = MockWatchMessagingService()
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(
+        let params = GenesisWatchNotifyParams(
             title: "Approval",
             body: "Allow command?",
             promptId: "prompt-approval",
@@ -740,7 +740,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify-approval-defaults",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
@@ -753,22 +753,22 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleInvokeWatchNotifyDerivesPriorityFromRiskAndCapsActions() async throws {
         let watchService = MockWatchMessagingService()
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(
+        let params = GenesisWatchNotifyParams(
             title: "Urgent",
             body: "Check now",
             risk: .high,
             actions: [
-                OpenClawWatchAction(id: "a1", label: "A1"),
-                OpenClawWatchAction(id: "a2", label: "A2"),
-                OpenClawWatchAction(id: "a3", label: "A3"),
-                OpenClawWatchAction(id: "a4", label: "A4"),
-                OpenClawWatchAction(id: "a5", label: "A5"),
+                GenesisWatchAction(id: "a1", label: "A1"),
+                GenesisWatchAction(id: "a2", label: "A2"),
+                GenesisWatchAction(id: "a3", label: "A3"),
+                GenesisWatchAction(id: "a4", label: "A4"),
+                GenesisWatchAction(id: "a5", label: "A5"),
             ])
         let paramsData = try JSONEncoder().encode(params)
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify-derive-priority",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
@@ -786,12 +786,12 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
             code: 1,
             userInfo: [NSLocalizedDescriptionKey: "WATCH_UNAVAILABLE: no paired Apple Watch"])
         let appModel = NodeAppModel(watchMessagingService: watchService)
-        let params = OpenClawWatchNotifyParams(title: "OpenClaw", body: "Delivery check")
+        let params = GenesisWatchNotifyParams(title: "Genesis", body: "Delivery check")
         let paramsData = try JSONEncoder().encode(params)
         let paramsJSON = String(decoding: paramsData, as: UTF8.self)
         let req = BridgeInvokeRequest(
             id: "watch-notify-fail",
-            command: OpenClawWatchCommand.notify.rawValue,
+            command: GenesisWatchCommand.notify.rawValue,
             paramsJSON: paramsJSON)
 
         let res = await appModel._test_handleInvoke(req)
@@ -819,7 +819,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
 
     @Test @MainActor func handleDeepLinkSetsErrorWhenNotConnected() async {
         let appModel = NodeAppModel()
-        let url = URL(string: "openclaw://agent?message=hello")!
+        let url = URL(string: "genesis://agent?message=hello")!
         await appModel.handleDeepLink(url: url)
         #expect(appModel.screen.errorText?.contains("Gateway not connected") == true)
     }
@@ -827,7 +827,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
     @Test @MainActor func handleDeepLinkRejectsOversizedMessage() async {
         let appModel = NodeAppModel()
         let msg = String(repeating: "a", count: 20001)
-        let url = URL(string: "openclaw://agent?message=\(msg)")!
+        let url = URL(string: "genesis://agent?message=\(msg)")!
         await appModel.handleDeepLink(url: url)
         #expect(appModel.screen.errorText?.contains("Deep link too large") == true)
     }

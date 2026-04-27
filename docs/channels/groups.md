@@ -5,19 +5,19 @@ read_when:
 title: "Groups"
 ---
 
-OpenClaw treats group chats consistently across surfaces: Discord, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo.
+Genesis treats group chats consistently across surfaces: Discord, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo.
 
 ## Beginner intro (2 minutes)
 
-OpenClaw “lives” on your own messaging accounts. There is no separate WhatsApp bot user.
-If **you** are in a group, OpenClaw can see that group and respond there.
+Genesis “lives” on your own messaging accounts. There is no separate WhatsApp bot user.
+If **you** are in a group, Genesis can see that group and respond there.
 
 Default behavior:
 
 - Groups are restricted (`groupPolicy: "allowlist"`).
 - Replies require a mention unless you explicitly disable mention gating.
 
-Translation: allowlisted senders can trigger OpenClaw by mentioning it.
+Translation: allowlisted senders can trigger Genesis by mentioning it.
 
 > TL;DR
 >
@@ -41,7 +41,7 @@ Two different controls are involved in group safety:
 - **Trigger authorization**: who can trigger the agent (`groupPolicy`, `groups`, `groupAllowFrom`, channel-specific allowlists).
 - **Context visibility**: what supplemental context is injected into the model (reply text, quotes, thread history, forwarded metadata).
 
-By default, OpenClaw prioritizes normal chat behavior and keeps context mostly as received. This means allowlists primarily decide who can trigger actions, not a universal redaction boundary for every quoted or historical snippet.
+By default, Genesis prioritizes normal chat behavior and keeps context mostly as received. This means allowlists primarily decide who can trigger actions, not a universal redaction boundary for every quoted or historical snippet.
 
 Current behavior is channel-specific:
 
@@ -257,7 +257,7 @@ Telegram, WhatsApp, Slack, Discord, Microsoft Teams, and ZaloUser.
       {
         id: "main",
         groupChat: {
-          mentionPatterns: ["@openclaw", "openclaw", "\\+15555550123"],
+          mentionPatterns: ["@genesis", "genesis", "\\+15555550123"],
           historyLimit: 50,
         },
       },

@@ -63,7 +63,7 @@ import {
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode, type ThemeName } from "./theme.ts";
-import type { AgentsListResult, AttentionItem } from "./types.ts";
+import type { AgentsListResult, AttentionItem, WalletSummaryResult } from "./types.ts";
 import { normalizeLocalUserIdentity } from "./user-identity.ts";
 import { resetChatViewState } from "./views/chat.ts";
 
@@ -128,6 +128,8 @@ type SettingsAppHost = SettingsHost &
   UsageState & {
     overviewLogCursor: number | null;
     overviewLogLines: string[];
+    walletSummary: WalletSummaryResult | null;
+    walletSummaryError: string | null;
     attentionItems: AttentionItem[];
     hello: { auth?: { role?: string; scopes?: string[] } } | null;
   };
@@ -209,7 +211,7 @@ export function applySettingsFromUrl(host: SettingsHost) {
     if (queryToken != null) {
       warnQueryToken = true;
       console.warn(
-        "[openclaw] Auth token passed as query parameter (?token=). Use URL fragment instead: #token=<token>. Query parameters may appear in server logs.",
+        "[genesis] Auth token passed as query parameter (?token=). Use URL fragment instead: #token=<token>. Query parameters may appear in server logs.",
       );
     }
     if (token && gatewayUrlChanged) {
@@ -406,7 +408,7 @@ export function inferBasePath() {
   if (typeof window === "undefined") {
     return "";
   }
-  const configured = window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
+  const configured = window.__GENESIS_CONTROL_UI_BASE_PATH__;
   const normalizedConfigured = normalizeOptionalString(configured);
   if (normalizedConfigured) {
     return normalizeBasePath(normalizedConfigured);
@@ -427,7 +429,7 @@ export function syncThemeWithSettings(host: SettingsHost) {
     saveSettings(host.settings);
   }
   applyResolvedTheme(host, resolveTheme(host.theme, host.themeMode));
-  applyBorderRadius(host.settings.borderRadius ?? 50);
+  applyBorderRadius(host.settings.borderRadius ?? 0);
   syncSystemThemeListener(host);
 }
 
@@ -611,6 +613,7 @@ export async function loadOverview(host: SettingsHost, opts?: { refresh?: boolea
     loadSkills(app),
     loadUsage(app),
     loadOverviewLogs(app),
+    loadWalletSummary(app),
     // `refresh: true` bypasses the gateway's 60s auth-status cache so a
     // user-initiated refresh surfaces post-re-auth state immediately.
     loadModelAuthStatusState(app, { refresh: opts?.refresh }),
@@ -666,6 +669,19 @@ async function loadOverviewLogs(host: SettingsAppHost) {
   }
 }
 
+async function loadWalletSummary(host: SettingsAppHost) {
+  if (!host.client || !host.connected) {
+    return;
+  }
+  try {
+    host.walletSummary = (await host.client.request("wallet.summary", {})) as WalletSummaryResult;
+    host.walletSummaryError = null;
+  } catch (error) {
+    host.walletSummary = null;
+    host.walletSummaryError = error instanceof Error ? error.message : String(error);
+  }
+}
+
 function buildAttentionItems(host: SettingsAppHost) {
   const items: AttentionItem[] = [];
 
@@ -687,7 +703,7 @@ function buildAttentionItems(host: SettingsAppHost) {
       title: "Missing operator.read scope",
       description:
         "This connection does not have the operator.read scope. Some features may be unavailable.",
-      href: "https://docs.openclaw.ai/web/dashboard",
+      href: "https://docs.genesis.ai/web/dashboard",
       external: true,
     });
   }

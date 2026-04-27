@@ -6,9 +6,9 @@ import {
   patchChannelConfigForAccount,
   setSetupChannelEnabled,
   splitSetupEntries,
-} from "openclaw/plugin-sdk/setup";
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/setup";
+import type { ChannelSetupWizard } from "genesis/plugin-sdk/setup";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { inspectTelegramAccount } from "./account-inspect.js";
 import { listTelegramAccountIds, resolveTelegramAccount } from "./accounts.js";
 import {

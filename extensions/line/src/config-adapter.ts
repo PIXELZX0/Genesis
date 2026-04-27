@@ -1,4 +1,4 @@
-import { createScopedChannelConfigAdapter } from "openclaw/plugin-sdk/channel-config-helpers";
+import { createScopedChannelConfigAdapter } from "genesis/plugin-sdk/channel-config-helpers";
 import {
   listLineAccountIds,
   resolveDefaultLineAccountId,

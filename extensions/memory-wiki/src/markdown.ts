@@ -4,12 +4,12 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
   normalizeSingleOrTrimmedStringList,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import YAML from "yaml";
 
 export const WIKI_PAGE_KINDS = ["entity", "concept", "source", "synthesis", "report"] as const;
-export const WIKI_RELATED_START_MARKER = "<!-- openclaw:wiki:related:start -->";
-export const WIKI_RELATED_END_MARKER = "<!-- openclaw:wiki:related:end -->";
+export const WIKI_RELATED_START_MARKER = "<!-- genesis:wiki:related:start -->";
+export const WIKI_RELATED_END_MARKER = "<!-- genesis:wiki:related:end -->";
 
 export type WikiPageKind = (typeof WIKI_PAGE_KINDS)[number];
 

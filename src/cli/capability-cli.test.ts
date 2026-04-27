@@ -456,7 +456,7 @@ describe("capability cli", () => {
       ],
     });
 
-    const tempOutput = path.join(os.tmpdir(), `openclaw-image-mismatch-${Date.now()}.png`);
+    const tempOutput = path.join(os.tmpdir(), `genesis-image-mismatch-${Date.now()}.png`);
     await fs.rm(tempOutput, { force: true });
     await fs.rm(tempOutput.replace(/\.png$/, ".jpg"), { force: true });
 
@@ -508,7 +508,7 @@ describe("capability cli", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-video-generate-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-video-generate-"));
     const outputBase = path.join(tempDir, "result");
 
     await runRegisteredCli({

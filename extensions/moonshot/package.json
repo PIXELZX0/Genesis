@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/moonshot-provider",
+  "name": "@genesis/moonshot-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw Moonshot provider plugin",
+  "description": "Genesis Moonshot provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

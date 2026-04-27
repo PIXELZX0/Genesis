@@ -90,13 +90,13 @@ describe("gateway auth", () => {
     expect(res.user).toBe(params.expected.user);
   }
 
-  it("resolves token/password from OPENCLAW gateway env vars", () => {
+  it("resolves token/password from GENESIS gateway env vars", () => {
     expect(
       resolveGatewayAuth({
         authConfig: {},
         env: {
-          OPENCLAW_GATEWAY_TOKEN: "env-token",
-          OPENCLAW_GATEWAY_PASSWORD: "env-password",
+          GENESIS_GATEWAY_TOKEN: "env-token",
+          GENESIS_GATEWAY_PASSWORD: "env-password",
         } as NodeJS.ProcessEnv,
       }),
     ).toMatchObject({
@@ -191,8 +191,8 @@ describe("gateway auth", () => {
           password: "config-password", // pragma: allowlist secret
         },
         env: {
-          OPENCLAW_GATEWAY_TOKEN: "env-token",
-          OPENCLAW_GATEWAY_PASSWORD: "env-password",
+          GENESIS_GATEWAY_TOKEN: "env-token",
+          GENESIS_GATEWAY_PASSWORD: "env-password",
         } as NodeJS.ProcessEnv,
       }),
     ).toMatchObject({
@@ -205,12 +205,12 @@ describe("gateway auth", () => {
     expect(
       resolveGatewayAuth({
         authConfig: {
-          token: "${OPENCLAW_GATEWAY_TOKEN}",
-          password: "${OPENCLAW_GATEWAY_PASSWORD}",
+          token: "${GENESIS_GATEWAY_TOKEN}",
+          password: "${GENESIS_GATEWAY_PASSWORD}",
         },
         env: {
-          OPENCLAW_GATEWAY_TOKEN: "env-token",
-          OPENCLAW_GATEWAY_PASSWORD: "env-password",
+          GENESIS_GATEWAY_TOKEN: "env-token",
+          GENESIS_GATEWAY_PASSWORD: "env-password",
         } as NodeJS.ProcessEnv,
       }),
     ).toMatchObject({
@@ -537,7 +537,7 @@ describe("gateway auth", () => {
     ).toThrow(/provider reference object/);
   });
 
-  it("accepts password mode when env provides OPENCLAW_GATEWAY_PASSWORD", () => {
+  it("accepts password mode when env provides GENESIS_GATEWAY_PASSWORD", () => {
     const rawPasswordRef = { source: "exec", provider: "op", id: "pw" } as never;
     const auth = resolveGatewayAuth({
       authConfig: {
@@ -545,7 +545,7 @@ describe("gateway auth", () => {
         password: rawPasswordRef,
       },
       env: {
-        OPENCLAW_GATEWAY_PASSWORD: "env-password",
+        GENESIS_GATEWAY_PASSWORD: "env-password",
       } as NodeJS.ProcessEnv,
     });
 
@@ -826,7 +826,7 @@ describe("trusted-proxy auth", () => {
         },
       },
       env: {
-        OPENCLAW_GATEWAY_TOKEN: "shared-secret",
+        GENESIS_GATEWAY_TOKEN: "shared-secret",
       } as NodeJS.ProcessEnv,
     },
   ])("rejects trusted-proxy mode when shared token comes from $name", ({ authConfig, env }) => {

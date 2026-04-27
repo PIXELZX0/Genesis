@@ -48,8 +48,8 @@ afterEach(() => {
 describe("gateway startup websocket readiness", () => {
   it("does not bind the websocket port until websocket handlers are attached", async () => {
     machineNameDelay.reset();
-    const previousMinimal = process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
-    process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = "0";
+    const previousMinimal = process.env.GENESIS_TEST_MINIMAL_GATEWAY;
+    process.env.GENESIS_TEST_MINIMAL_GATEWAY = "0";
     let server: Awaited<ReturnType<typeof startGatewayServer>> | undefined;
     try {
       const port = await getFreePort();
@@ -99,17 +99,17 @@ describe("gateway startup websocket readiness", () => {
         await server.close();
       }
       if (previousMinimal === undefined) {
-        delete process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
+        delete process.env.GENESIS_TEST_MINIMAL_GATEWAY;
       } else {
-        process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = previousMinimal;
+        process.env.GENESIS_TEST_MINIMAL_GATEWAY = previousMinimal;
       }
     }
   });
 
   it("accepts an immediate websocket connection once startup resolves", async () => {
     machineNameDelay.reset();
-    const previousMinimal = process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
-    process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = "0";
+    const previousMinimal = process.env.GENESIS_TEST_MINIMAL_GATEWAY;
+    process.env.GENESIS_TEST_MINIMAL_GATEWAY = "0";
     let server: Awaited<ReturnType<typeof startGatewayServer>> | undefined;
     let client: Awaited<ReturnType<typeof connectGatewayClient>> | undefined;
     try {
@@ -134,9 +134,9 @@ describe("gateway startup websocket readiness", () => {
         await server.close();
       }
       if (previousMinimal === undefined) {
-        delete process.env.OPENCLAW_TEST_MINIMAL_GATEWAY;
+        delete process.env.GENESIS_TEST_MINIMAL_GATEWAY;
       } else {
-        process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = previousMinimal;
+        process.env.GENESIS_TEST_MINIMAL_GATEWAY = previousMinimal;
       }
     }
   });

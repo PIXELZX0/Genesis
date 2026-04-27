@@ -28,13 +28,13 @@ describe("command-execution-startup", () => {
   it("resolves startup context from argv and mode", () => {
     expect(
       mod.resolveCliExecutionStartupContext({
-        argv: ["node", "openclaw", "status", "--json"],
+        argv: ["node", "genesis", "status", "--json"],
         jsonOutputMode: true,
         routeMode: true,
       }),
     ).toEqual({
       invocation: {
-        argv: ["node", "openclaw", "status", "--json"],
+        argv: ["node", "genesis", "status", "--json"],
         commandPath: ["status"],
         primary: "status",
         hasHelpOrVersion: false,
@@ -59,12 +59,12 @@ describe("command-execution-startup", () => {
         loadPlugins: true,
       },
       version: "1.2.3",
-      argv: ["node", "openclaw", "status"],
+      argv: ["node", "genesis", "status"],
     });
 
     expect(routeLogsToStderrMock).toHaveBeenCalledTimes(1);
     expect(emitCliBannerMock).toHaveBeenCalledWith("1.2.3", {
-      argv: ["node", "openclaw", "status"],
+      argv: ["node", "genesis", "status"],
     });
 
     await mod.applyCliExecutionStartupPresentation({

@@ -6,14 +6,14 @@ import { vi } from "vitest";
 import type { ReadConfigFileSnapshotForWriteResult } from "../config/io.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import type { AgentBinding } from "../config/types.agents.js";
-import type { ConfigFileSnapshot, OpenClawConfig } from "../config/types.js";
+import type { ConfigFileSnapshot, GenesisConfig } from "../config/types.js";
 import { buildTestConfigSnapshot } from "./test-helpers.config-snapshots.js";
 import { testConfigRoot, testIsNixMode, testState } from "./test-helpers.runtime-state.js";
 
 type GatewayConfigModule = typeof import("../config/config.js");
 
 export function createGatewayConfigModuleMock(actual: GatewayConfigModule): GatewayConfigModule {
-  const resolveConfigPath = () => path.join(testConfigRoot.value, "openclaw.json");
+  const resolveConfigPath = () => path.join(testConfigRoot.value, "genesis.json");
 
   const composeTestConfig = (baseConfig: Record<string, unknown>) => {
     const fileAgents =
@@ -30,7 +30,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
         : {};
     const defaults = {
       model: { primary: "anthropic/claude-opus-4-6" },
-      workspace: path.join(os.tmpdir(), "openclaw-gateway-test"),
+      workspace: path.join(os.tmpdir(), "genesis-gateway-test"),
       ...fileDefaults,
       ...testState.agentConfig,
     };
@@ -145,7 +145,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
       canvasHost,
       hooks,
       cron,
-    } as OpenClawConfig;
+    } as GenesisConfig;
   };
 
   const readConfigFileSnapshot = async (): Promise<ConfigFileSnapshot> => {
@@ -261,8 +261,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
     get isNixMode() {
       return testIsNixMode.value;
     },
-    applyConfigOverrides: (cfg: OpenClawConfig) =>
-      composeTestConfig(cfg as Record<string, unknown>),
+    applyConfigOverrides: (cfg: GenesisConfig) => composeTestConfig(cfg as Record<string, unknown>),
     loadConfig: loadRuntimeAwareTestConfig,
     getRuntimeConfig: loadRuntimeAwareTestConfig,
     parseConfigJson5: (raw: string) => {

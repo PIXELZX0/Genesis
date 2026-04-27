@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { resolveSessionKeyForRequest } from "./session.js";
 
 const mocks = vi.hoisted(() => ({
@@ -59,7 +59,7 @@ describe("resolveSessionKeyForRequest", () => {
     mocks.resolveExplicitAgentSessionKey.mockReturnValue(undefined);
   });
 
-  const baseCfg: OpenClawConfig = {};
+  const baseCfg: GenesisConfig = {};
 
   it("returns sessionKey when --to resolves a session key via context", async () => {
     mocks.resolveStorePath.mockReturnValue(MAIN_STORE_PATH);

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../../shared/string-coerce.js";
 import { sanitizeForLog } from "../../../terminal/ansi.js";
 import { resolveAllowFromMode, type AllowFromMode } from "./allow-from-mode.js";
@@ -21,8 +21,8 @@ export function collectOpenPolicyAllowFromWarnings(params: {
   ];
 }
 
-export function maybeRepairOpenPolicyAllowFrom(cfg: OpenClawConfig): {
-  config: OpenClawConfig;
+export function maybeRepairOpenPolicyAllowFrom(cfg: GenesisConfig): {
+  config: GenesisConfig;
   changes: string[];
 } {
   const channels = cfg.channels;

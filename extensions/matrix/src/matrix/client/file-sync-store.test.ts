@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as jsonStore from "genesis/plugin-sdk/json-store";
 import type { ISyncResponse } from "matrix-js-sdk/lib/matrix.js";
-import * as jsonStore from "openclaw/plugin-sdk/json-store";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FileBackedMatrixSyncStore } from "./file-sync-store.js";
 
@@ -44,7 +44,7 @@ function createSyncResponse(nextBatch: string): ISyncResponse {
       events: [
         {
           content: { theme: "dark" },
-          type: "com.openclaw.test",
+          type: "com.genesis.test",
         },
       ],
     },
@@ -63,7 +63,7 @@ describe("FileBackedMatrixSyncStore", () => {
   const tempDirs: string[] = [];
 
   function createStoragePath(): string {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-matrix-sync-store-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-matrix-sync-store-"));
     tempDirs.push(tempDir);
     return path.join(tempDir, "bot-storage.json");
   }
@@ -93,7 +93,7 @@ describe("FileBackedMatrixSyncStore", () => {
     expect(savedSync?.accountData).toEqual([
       {
         content: { theme: "dark" },
-        type: "com.openclaw.test",
+        type: "com.genesis.test",
       },
     ]);
     expect(savedSync?.roomsData.join?.["!room:example.org"]).toBeTruthy();

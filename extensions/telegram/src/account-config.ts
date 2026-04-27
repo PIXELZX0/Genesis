@@ -1,12 +1,12 @@
 import {
   normalizeAccountId,
   resolveAccountEntry,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/account-core";
-import type { TelegramAccountConfig } from "openclaw/plugin-sdk/config-runtime";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/account-core";
+import type { TelegramAccountConfig } from "genesis/plugin-sdk/config-runtime";
 
 export function resolveTelegramAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): TelegramAccountConfig | undefined {
   const normalized = normalizeAccountId(accountId);
@@ -14,7 +14,7 @@ export function resolveTelegramAccountConfig(
 }
 
 export function mergeTelegramAccountConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId: string,
 ): TelegramAccountConfig {
   const {

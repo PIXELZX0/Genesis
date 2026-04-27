@@ -8,16 +8,16 @@ import {
 
 describe("gh-read helpers", () => {
   it("finds repo from gh args", () => {
-    expect(parseRepoArg(["pr", "view", "42", "-R", "openclaw/openclaw"])).toBe("openclaw/openclaw");
-    expect(parseRepoArg(["run", "list", "--repo=openclaw/docs"])).toBe("openclaw/docs");
+    expect(parseRepoArg(["pr", "view", "42", "-R", "PIXELZX0/Genesis"])).toBe("PIXELZX0/Genesis");
+    expect(parseRepoArg(["run", "list", "--repo=genesis/docs"])).toBe("genesis/docs");
     expect(parseRepoArg(["pr", "view", "42"])).toBeNull();
   });
 
   it("normalizes repo strings from common git formats", () => {
-    expect(normalizeRepo("openclaw/openclaw")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("github.com/openclaw/openclaw")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("https://github.com/openclaw/openclaw.git")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("git@github.com:openclaw/openclaw.git")).toBe("openclaw/openclaw");
+    expect(normalizeRepo("PIXELZX0/Genesis")).toBe("PIXELZX0/Genesis");
+    expect(normalizeRepo("github.com/PIXELZX0/Genesis")).toBe("PIXELZX0/Genesis");
+    expect(normalizeRepo("https://github.com/PIXELZX0/Genesis.git")).toBe("PIXELZX0/Genesis");
+    expect(normalizeRepo("git@github.com:PIXELZX0/Genesis.git")).toBe("PIXELZX0/Genesis");
     expect(normalizeRepo("invalid")).toBeNull();
   });
 

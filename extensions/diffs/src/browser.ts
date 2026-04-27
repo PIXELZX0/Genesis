@@ -1,9 +1,9 @@
 import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { chromium } from "playwright-core";
-import type { OpenClawConfig } from "../api.js";
+import type { GenesisConfig } from "../api.js";
 import type { DiffRenderOptions, DiffTheme } from "./types.js";
 import { VIEWER_ASSET_PREFIX, getServedViewerAsset } from "./viewer-assets.js";
 
@@ -47,10 +47,10 @@ let sharedBrowserState: SharedBrowserState | null = null;
 let executablePathCache: ExecutablePathCache | null = null;
 
 export class PlaywrightDiffScreenshotter implements DiffScreenshotter {
-  private readonly config: OpenClawConfig;
+  private readonly config: GenesisConfig;
   private readonly browserIdleMs: number;
 
-  constructor(params: { config: OpenClawConfig; browserIdleMs?: number }) {
+  constructor(params: { config: GenesisConfig; browserIdleMs?: number }) {
     this.config = params.config;
     this.browserIdleMs = params.browserIdleMs ?? DEFAULT_BROWSER_IDLE_MS;
   }
@@ -116,10 +116,10 @@ export class PlaywrightDiffScreenshotter implements DiffScreenshotter {
         await page.setContent(injectBaseHref(params.html), { waitUntil: "load" });
         await page.waitForFunction(
           () => {
-            if (document.documentElement.dataset.openclawDiffsReady === "true") {
+            if (document.documentElement.dataset.genesisDiffsReady === "true") {
               return true;
             }
-            return [...document.querySelectorAll("[data-openclaw-diff-host]")].every((element) => {
+            return [...document.querySelectorAll("[data-genesis-diff-host]")].every((element) => {
               return (
                 element instanceof HTMLElement && element.shadowRoot?.querySelector("[data-diffs]")
               );
@@ -280,11 +280,11 @@ function injectBaseHref(html: string): string {
   return html.replace("<head>", `<head><base href="${LOCAL_VIEWER_BASE_HREF}" />`);
 }
 
-async function resolveBrowserExecutablePath(config: OpenClawConfig): Promise<string | undefined> {
+async function resolveBrowserExecutablePath(config: GenesisConfig): Promise<string | undefined> {
   const cacheKey = JSON.stringify({
     configPath: config.browser?.executablePath?.trim() || "",
     env: [
-      process.env.OPENCLAW_BROWSER_EXECUTABLE_PATH ?? "",
+      process.env.GENESIS_BROWSER_EXECUTABLE_PATH ?? "",
       process.env.BROWSER_EXECUTABLE_PATH ?? "",
       process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? "",
     ],
@@ -309,7 +309,7 @@ async function resolveBrowserExecutablePath(config: OpenClawConfig): Promise<str
 }
 
 async function resolveBrowserExecutablePathUncached(
-  config: OpenClawConfig,
+  config: GenesisConfig,
 ): Promise<string | undefined> {
   const configPath = config.browser?.executablePath?.trim();
   if (configPath) {
@@ -318,7 +318,7 @@ async function resolveBrowserExecutablePathUncached(
   }
 
   const envCandidates = [
-    process.env.OPENCLAW_BROWSER_EXECUTABLE_PATH,
+    process.env.GENESIS_BROWSER_EXECUTABLE_PATH,
     process.env.BROWSER_EXECUTABLE_PATH,
     process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
   ]
@@ -341,7 +341,7 @@ async function resolveBrowserExecutablePathUncached(
 }
 
 async function acquireSharedBrowser(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   idleMs: number;
 }): Promise<BrowserLease> {
   const executablePath = await resolveBrowserExecutablePath(params.config);

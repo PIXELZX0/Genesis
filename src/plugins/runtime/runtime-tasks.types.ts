@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { DetachedTaskLifecycleRuntime } from "../../tasks/detached-task-runtime-contract.js";
 import type { TaskDeliveryState } from "../../tasks/task-registry.types.js";
-import type { OpenClawPluginToolContext } from "../tool-types.js";
+import type { GenesisPluginToolContext } from "../tool-types.js";
 import type { PluginRuntimeTaskFlow } from "./runtime-taskflow.types.js";
 import type {
   TaskFlowDetail,
@@ -28,7 +28,7 @@ export type BoundTaskRunsRuntime = {
   list: () => TaskRunView[];
   findLatest: () => TaskRunDetail | undefined;
   resolve: (token: string) => TaskRunDetail | undefined;
-  cancel: (params: { taskId: string; cfg: OpenClawConfig }) => Promise<TaskRunCancelResult>;
+  cancel: (params: { taskId: string; cfg: GenesisConfig }) => Promise<TaskRunCancelResult>;
 };
 
 export type PluginRuntimeTaskRuns = {
@@ -37,7 +37,7 @@ export type PluginRuntimeTaskRuns = {
     requesterOrigin?: TaskDeliveryState["requesterOrigin"];
   }) => BoundTaskRunsRuntime;
   fromToolContext: (
-    ctx: Pick<OpenClawPluginToolContext, "sessionKey" | "deliveryContext">,
+    ctx: Pick<GenesisPluginToolContext, "sessionKey" | "deliveryContext">,
   ) => BoundTaskRunsRuntime;
 };
 
@@ -57,7 +57,7 @@ export type PluginRuntimeTaskFlows = {
     requesterOrigin?: TaskDeliveryState["requesterOrigin"];
   }) => BoundTaskFlowsRuntime;
   fromToolContext: (
-    ctx: Pick<OpenClawPluginToolContext, "sessionKey" | "deliveryContext">,
+    ctx: Pick<GenesisPluginToolContext, "sessionKey" | "deliveryContext">,
   ) => BoundTaskFlowsRuntime;
 };
 

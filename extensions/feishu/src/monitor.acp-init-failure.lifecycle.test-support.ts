@@ -31,7 +31,7 @@ const {
 
 let _handlers: Record<string, (data: unknown) => Promise<void>> = {};
 let lastRuntime: ReturnType<typeof createRuntimeEnv> | null = null;
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalStateDir = process.env.GENESIS_STATE_DIR;
 const { cfg: lifecycleConfig, account: lifecycleAccount } = createFeishuLifecycleFixture({
   accountId: "acct-acp",
   appId: "cli_test",
@@ -79,7 +79,7 @@ describe("Feishu ACP-init failure lifecycle", () => {
     resetFeishuLifecycleTestMocks();
     _handlers = {};
     lastRuntime = null;
-    setFeishuLifecycleStateDir("openclaw-feishu-acp-failure");
+    setFeishuLifecycleStateDir("genesis-feishu-acp-failure");
 
     resolveBoundConversationMock.mockReturnValue(null);
     resolveAgentRouteMock.mockReturnValue({

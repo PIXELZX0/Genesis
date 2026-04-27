@@ -1,4 +1,4 @@
-import type { SearchConfigRecord } from "openclaw/plugin-sdk/provider-web-search";
+import type { SearchConfigRecord } from "genesis/plugin-sdk/provider-web-search";
 import {
   buildSearchCacheKey,
   DEFAULT_SEARCH_COUNT,
@@ -17,7 +17,7 @@ import {
   withTrustedWebSearchEndpoint,
   wrapWebContent,
   writeCachedSearchPayload,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "genesis/plugin-sdk/provider-web-search";
 import {
   type BraveLlmContextResponse,
   mapBraveLlmContextResults,
@@ -53,8 +53,8 @@ function resolveBraveApiKey(searchConfig?: SearchConfigRecord): string | undefin
 function missingBraveKeyPayload() {
   return {
     error: "missing_brave_api_key",
-    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
-    docs: "https://docs.openclaw.ai/tools/web",
+    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("genesis configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
+    docs: "https://docs.genesis.ai/tools/web",
   };
 }
 
@@ -215,14 +215,14 @@ export async function executeBraveSearch(
       error: "invalid_search_lang",
       message:
         "search_lang must be a Brave-supported language code like 'en', 'en-gb', 'zh-hans', or 'zh-hant'.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
   if (normalizedLanguage.invalidField === "ui_lang") {
     return {
       error: "invalid_ui_lang",
       message: "ui_lang must be a language-region locale like 'en-US'.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
   if (normalizedLanguage.ui_lang && braveMode === "llm-context") {
@@ -230,7 +230,7 @@ export async function executeBraveSearch(
       error: "unsupported_ui_lang",
       message:
         "ui_lang is not supported by Brave llm-context mode. Remove ui_lang or use Brave web mode for locale-based UI hints.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
 
@@ -240,7 +240,7 @@ export async function executeBraveSearch(
       error: "unsupported_freshness",
       message:
         "freshness filtering is not supported by Brave llm-context mode. Remove freshness or use Brave web mode.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
   const freshness = rawFreshness ? normalizeFreshness(rawFreshness, "brave") : undefined;
@@ -248,7 +248,7 @@ export async function executeBraveSearch(
     return {
       error: "invalid_freshness",
       message: "freshness must be day, week, month, or year.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
 
@@ -259,7 +259,7 @@ export async function executeBraveSearch(
       error: "conflicting_time_filters",
       message:
         "freshness and date_after/date_before cannot be used together. Use either freshness (day/week/month/year) or a date range (date_after/date_before), not both.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
   if ((rawDateAfter || rawDateBefore) && braveMode === "llm-context") {
@@ -267,7 +267,7 @@ export async function executeBraveSearch(
       error: "unsupported_date_filter",
       message:
         "date_after/date_before filtering is not supported by Brave llm-context mode. Use Brave web mode for date filters.",
-      docs: "https://docs.openclaw.ai/tools/web",
+      docs: "https://docs.genesis.ai/tools/web",
     };
   }
 

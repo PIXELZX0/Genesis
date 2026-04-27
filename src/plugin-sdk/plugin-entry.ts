@@ -1,22 +1,22 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 import type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
 import type {
   AnyAgentTool,
   AgentHarness,
   MediaUnderstandingProviderPlugin,
-  OpenClawPluginApi,
-  OpenClawPluginCommandDefinition,
-  OpenClawPluginConfigSchema,
-  OpenClawPluginDefinition,
-  OpenClawPluginNodeHostCommand,
-  OpenClawPluginReloadRegistration,
-  OpenClawPluginSecurityAuditCollector,
-  OpenClawPluginSecurityAuditContext,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
-  OpenClawPluginToolContext,
-  OpenClawPluginToolFactory,
+  GenesisPluginApi,
+  GenesisPluginCommandDefinition,
+  GenesisPluginConfigSchema,
+  GenesisPluginDefinition,
+  GenesisPluginNodeHostCommand,
+  GenesisPluginReloadRegistration,
+  GenesisPluginSecurityAuditCollector,
+  GenesisPluginSecurityAuditContext,
+  GenesisPluginService,
+  GenesisPluginServiceContext,
+  GenesisPluginToolContext,
+  GenesisPluginToolFactory,
   PluginLogger,
   ProviderAugmentModelCatalogContext,
   ProviderAuthContext,
@@ -68,8 +68,8 @@ import type {
   ProviderValidateReplayTurnsContext,
   ProviderWebSocketSessionPolicy,
   ProviderWrapStreamFnContext,
-  OpenClawGatewayDiscoveryAdvertiseContext,
-  OpenClawGatewayDiscoveryService,
+  GenesisGatewayDiscoveryAdvertiseContext,
+  GenesisGatewayDiscoveryService,
   SpeechProviderPlugin,
   PluginCommandContext,
   PluginCommandResult,
@@ -80,16 +80,16 @@ export type {
   AnyAgentTool,
   AgentHarness,
   MediaUnderstandingProviderPlugin,
-  OpenClawPluginApi,
-  OpenClawPluginNodeHostCommand,
-  OpenClawPluginReloadRegistration,
-  OpenClawPluginSecurityAuditCollector,
-  OpenClawPluginSecurityAuditContext,
-  OpenClawPluginToolContext,
-  OpenClawPluginToolFactory,
+  GenesisPluginApi,
+  GenesisPluginNodeHostCommand,
+  GenesisPluginReloadRegistration,
+  GenesisPluginSecurityAuditCollector,
+  GenesisPluginSecurityAuditContext,
+  GenesisPluginToolContext,
+  GenesisPluginToolFactory,
   PluginCommandContext,
   PluginCommandResult,
-  OpenClawPluginConfigSchema,
+  GenesisPluginConfigSchema,
   ProviderDiscoveryContext,
   ProviderCatalogContext,
   ProviderCatalogResult,
@@ -136,17 +136,17 @@ export type {
   ProviderValidateReplayTurnsContext,
   ProviderWebSocketSessionPolicy,
   ProviderWrapStreamFnContext,
-  OpenClawGatewayDiscoveryAdvertiseContext,
-  OpenClawGatewayDiscoveryService,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  GenesisGatewayDiscoveryAdvertiseContext,
+  GenesisGatewayDiscoveryService,
+  GenesisPluginService,
+  GenesisPluginServiceContext,
   ProviderAuthContext,
   ProviderAuthDoctorHintContext,
   ProviderAuthMethodNonInteractiveContext,
   ProviderAuthMethod,
   ProviderAuthResult,
-  OpenClawPluginCommandDefinition,
-  OpenClawPluginDefinition,
+  GenesisPluginCommandDefinition,
+  GenesisPluginDefinition,
   PluginLogger,
 };
 export type {
@@ -161,7 +161,7 @@ export type {
   PluginHookInboundClaimResult,
 } from "../plugins/hook-types.js";
 export type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
-export type { OpenClawConfig };
+export type { GenesisConfig };
 
 export { buildPluginConfigSchema, emptyPluginConfigSchema } from "../plugins/config-schema.js";
 
@@ -170,23 +170,23 @@ type DefinePluginEntryOptions = {
   id: string;
   name: string;
   description: string;
-  kind?: OpenClawPluginDefinition["kind"];
-  configSchema?: OpenClawPluginConfigSchema | (() => OpenClawPluginConfigSchema);
-  reload?: OpenClawPluginDefinition["reload"];
-  nodeHostCommands?: OpenClawPluginDefinition["nodeHostCommands"];
-  securityAuditCollectors?: OpenClawPluginDefinition["securityAuditCollectors"];
-  register: (api: OpenClawPluginApi) => void;
+  kind?: GenesisPluginDefinition["kind"];
+  configSchema?: GenesisPluginConfigSchema | (() => GenesisPluginConfigSchema);
+  reload?: GenesisPluginDefinition["reload"];
+  nodeHostCommands?: GenesisPluginDefinition["nodeHostCommands"];
+  securityAuditCollectors?: GenesisPluginDefinition["securityAuditCollectors"];
+  register: (api: GenesisPluginApi) => void;
 };
 
-/** Normalized object shape that OpenClaw loads from a plugin entry module. */
+/** Normalized object shape that Genesis loads from a plugin entry module. */
 type DefinedPluginEntry = {
   id: string;
   name: string;
   description: string;
-  configSchema: OpenClawPluginConfigSchema;
-  register: NonNullable<OpenClawPluginDefinition["register"]>;
+  configSchema: GenesisPluginConfigSchema;
+  register: NonNullable<GenesisPluginDefinition["register"]>;
 } & Pick<
-  OpenClawPluginDefinition,
+  GenesisPluginDefinition,
   "kind" | "reload" | "nodeHostCommands" | "securityAuditCollectors"
 >;
 
@@ -195,7 +195,7 @@ type DefinedPluginEntry = {
  *
  * Use this for provider, tool, command, service, memory, and context-engine
  * plugins. Channel plugins should use `defineChannelPluginEntry(...)` from
- * `openclaw/plugin-sdk/core` so they inherit the channel capability wiring.
+ * `genesis/plugin-sdk/core` so they inherit the channel capability wiring.
  */
 export function definePluginEntry({
   id,

@@ -1,7 +1,7 @@
 import "./reply.directive.directive-behavior.e2e-mocks.js";
 import { describe, expect, it } from "vitest";
 import type { ModelAliasIndex } from "../agents/model-selection.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
 import { installDirectiveBehaviorE2EHooks } from "./reply.directive.directive-behavior.e2e-harness.js";
 import { runEmbeddedPiAgentMock } from "./reply.directive.directive-behavior.e2e-mocks.js";
@@ -28,10 +28,10 @@ async function runDirectiveStatus(
     agents: {
       defaults: {
         model: "anthropic/claude-opus-4-6",
-        workspace: "/tmp/openclaw",
+        workspace: "/tmp/genesis",
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
   const effectiveSessionKey = overrides.sessionKey ?? sessionKey;
   const effectiveSessionEntry = overrides.sessionEntry ?? sessionEntry;
   const effectiveSessionStore = overrides.sessionStore ?? {
@@ -77,7 +77,7 @@ describe("directive behavior", () => {
         agents: {
           defaults: {
             model: "anthropic/claude-opus-4-6",
-            workspace: "/tmp/openclaw",
+            workspace: "/tmp/genesis",
             models: {
               "anthropic/claude-opus-4-6": {
                 params: { fastMode: true },
@@ -85,7 +85,7 @@ describe("directive behavior", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
     expect(fastText).toContain("Current fast mode: on (config)");
     expect(fastText).toContain("Options: status, on, off.");
@@ -114,7 +114,7 @@ describe("directive behavior", () => {
         agents: {
           defaults: {
             model: "anthropic/claude-opus-4-6",
-            workspace: "/tmp/openclaw",
+            workspace: "/tmp/genesis",
           },
         },
         tools: {
@@ -125,7 +125,7 @@ describe("directive behavior", () => {
             node: "mac-1",
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
     expect(execText).toContain(
       "Current exec defaults: host=gateway, effective=gateway, security=allowlist, ask=always, node=mac-1.",
@@ -142,7 +142,7 @@ describe("directive behavior", () => {
         agents: {
           defaults: {
             model: "anthropic/claude-opus-4-6",
-            workspace: "/tmp/openclaw",
+            workspace: "/tmp/genesis",
             models: {
               "anthropic/claude-opus-4-6": {
                 params: { fastMode: true },
@@ -150,7 +150,7 @@ describe("directive behavior", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
     });
 
     expect(statusText).toContain("Current fast mode: on (config)");

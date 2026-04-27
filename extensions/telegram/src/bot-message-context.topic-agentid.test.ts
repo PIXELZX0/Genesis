@@ -1,4 +1,4 @@
-import { loadConfig } from "openclaw/plugin-sdk/config-runtime";
+import { loadConfig } from "genesis/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { defaultRouteConfig } = vi.hoisted(() => ({
@@ -11,9 +11,9 @@ const { defaultRouteConfig } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,

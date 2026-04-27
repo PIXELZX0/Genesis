@@ -4,7 +4,7 @@ import { getCredentialBackupFile, getLegacyCredentialBackupFile } from "../utils
 import { loadCredentialBackup, saveCredentialBackup } from "./credential-backup.js";
 
 /**
- * These tests write to `~/.openclaw/qqbot/data` under a test-specific
+ * These tests write to `~/.genesis/qqbot/data` under a test-specific
  * accountId prefix and clean up after themselves. Mirrors the approach
  * used by `platform.test.ts` in the same package.
  */

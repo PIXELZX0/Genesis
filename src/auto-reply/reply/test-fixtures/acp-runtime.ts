@@ -1,7 +1,7 @@
 import type { SessionAcpMeta } from "../../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 
-export function createAcpTestConfig(overrides?: Partial<OpenClawConfig>): OpenClawConfig {
+export function createAcpTestConfig(overrides?: Partial<GenesisConfig>): GenesisConfig {
   return {
     acp: {
       enabled: true,
@@ -11,7 +11,7 @@ export function createAcpTestConfig(overrides?: Partial<OpenClawConfig>): OpenCl
       },
     },
     ...overrides,
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
 export function createAcpSessionMeta(overrides?: Partial<SessionAcpMeta>): SessionAcpMeta {

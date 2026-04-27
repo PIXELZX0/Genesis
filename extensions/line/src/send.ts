@@ -1,7 +1,7 @@
 import { messagingApi } from "@line/bot-sdk";
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { recordChannelActivity } from "openclaw/plugin-sdk/infra-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { requireRuntimeConfig, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { recordChannelActivity } from "genesis/plugin-sdk/infra-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 import { resolveLineAccount } from "./accounts.js";
 import { resolveLineChannelAccessToken } from "./channel-access-token.js";
 import { validateLineMediaUrl } from "./outbound-media.js";
@@ -26,7 +26,7 @@ const userProfileCache = new Map<
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 interface LineSendOpts {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   channelAccessToken?: string;
   accountId?: string;
   verbose?: boolean;

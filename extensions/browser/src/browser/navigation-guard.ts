@@ -2,8 +2,9 @@ import { isIP } from "node:net";
 import {
   matchesHostnameAllowlist,
   normalizeHostname,
-} from "openclaw/plugin-sdk/browser-security-runtime";
+} from "genesis/plugin-sdk/browser-security-runtime";
 import {
+  SsrFBlockedError,
   isPrivateNetworkAllowedByPolicy,
   resolvePinnedHostnameWithPolicy,
   type LookupFn,
@@ -34,7 +35,7 @@ export type BrowserNavigationPolicyOptions = {
   browserProxyMode?: BrowserNavigationProxyMode;
 };
 
-export type BrowserNavigationProxyMode = "direct" | "explicit-browser-proxy";
+export type BrowserNavigationProxyMode = "direct" | "explicit-browser-proxy" | "tor";
 
 export type BrowserNavigationRequestLike = {
   url(): string;
@@ -76,6 +77,11 @@ function isIpLiteralHostname(hostname: string): boolean {
   return isIP(normalizeHostname(hostname)) !== 0;
 }
 
+function isOnionHostname(hostname: string): boolean {
+  const normalizedHostname = normalizeHostname(hostname);
+  return normalizedHostname.endsWith(".onion");
+}
+
 function isExplicitlyAllowedBrowserHostname(hostname: string, ssrfPolicy?: SsrFPolicy): boolean {
   const normalizedHostname = normalizeHostname(hostname);
   const exactMatches = ssrfPolicy?.allowedHostnames ?? [];
@@ -88,6 +94,25 @@ function isExplicitlyAllowedBrowserHostname(hostname: string, ssrfPolicy?: SsrFP
   return hostnameAllowlist.length > 0
     ? matchesHostnameAllowlist(normalizedHostname, hostnameAllowlist)
     : false;
+}
+
+function assertTorOnionHostnameAllowed(hostname: string, ssrfPolicy?: SsrFPolicy): void {
+  const normalizedHostname = normalizeHostname(hostname);
+  if (!normalizedHostname || !isOnionHostname(normalizedHostname)) {
+    throw new InvalidBrowserNavigationUrlError("Navigation blocked: invalid Tor onion hostname");
+  }
+  if (isExplicitlyAllowedBrowserHostname(normalizedHostname, ssrfPolicy)) {
+    return;
+  }
+  const hostnameAllowlist = (ssrfPolicy?.hostnameAllowlist ?? [])
+    .map((pattern) => normalizeHostname(pattern))
+    .filter(Boolean);
+  if (
+    hostnameAllowlist.length > 0 &&
+    !matchesHostnameAllowlist(normalizedHostname, hostnameAllowlist)
+  ) {
+    throw new SsrFBlockedError(`Blocked hostname (not in allowlist): ${hostname}`);
+  }
 }
 
 export async function assertBrowserNavigationAllowed(
@@ -115,6 +140,13 @@ export async function assertBrowserNavigationAllowed(
     throw new InvalidBrowserNavigationUrlError(
       `Navigation blocked: unsupported protocol "${parsed.protocol}"`,
     );
+  }
+
+  if (opts.browserProxyMode === "tor") {
+    if (isOnionHostname(parsed.hostname)) {
+      assertTorOnionHostnameAllowed(parsed.hostname, opts.ssrfPolicy);
+      return;
+    }
   }
 
   // Browser proxy routing hides the final connect target from this process.

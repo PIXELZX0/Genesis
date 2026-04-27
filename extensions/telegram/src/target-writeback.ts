@@ -1,18 +1,15 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import {
-  readConfigFileSnapshotForWrite,
-  writeConfigFile,
-} from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { readConfigFileSnapshotForWrite, writeConfigFile } from "genesis/plugin-sdk/config-runtime";
 import {
   loadCronStore,
   resolveCronStorePath,
   saveCronStore,
-} from "openclaw/plugin-sdk/config-runtime";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
+} from "genesis/plugin-sdk/config-runtime";
+import { createSubsystemLogger } from "genesis/plugin-sdk/runtime-env";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   normalizeTelegramChatId,
   normalizeTelegramLookupTarget,
@@ -103,7 +100,7 @@ function rewriteTargetIfMatch(params: {
 }
 
 function replaceTelegramDefaultToTargets(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   matchKey: string;
   resolvedTarget: string;
 }): boolean {
@@ -142,7 +139,7 @@ function replaceTelegramDefaultToTargets(params: {
 }
 
 export async function maybePersistResolvedTelegramTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   rawTarget: string;
   resolvedChatId: string;
   verbose?: boolean;

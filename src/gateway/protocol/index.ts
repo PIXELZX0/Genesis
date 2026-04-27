@@ -280,6 +280,12 @@ import {
   UpdateRunParamsSchema,
   type WakeParams,
   WakeParamsSchema,
+  type WalletSummaryParams,
+  WalletBalanceSchema,
+  WalletPublicAccountSchema,
+  WalletSummaryParamsSchema,
+  type WalletSummaryResult,
+  WalletSummaryResultSchema,
   type WebLoginStartParams,
   WebLoginStartParamsSchema,
   type WebLoginWaitParams,
@@ -522,6 +528,10 @@ export const validateUpdateRunParams = ajv.compile<UpdateRunParams>(UpdateRunPar
 export const validateWebLoginStartParams =
   ajv.compile<WebLoginStartParams>(WebLoginStartParamsSchema);
 export const validateWebLoginWaitParams = ajv.compile<WebLoginWaitParams>(WebLoginWaitParamsSchema);
+export const validateWalletSummaryParams =
+  ajv.compile<WalletSummaryParams>(WalletSummaryParamsSchema);
+export const validateWalletSummaryResult =
+  ajv.compile<WalletSummaryResult>(WalletSummaryResultSchema);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {
@@ -636,6 +646,10 @@ export {
   ChannelsLogoutParamsSchema,
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
+  WalletSummaryParamsSchema,
+  WalletSummaryResultSchema,
+  WalletPublicAccountSchema,
+  WalletBalanceSchema,
   AgentSummarySchema,
   AgentsFileEntrySchema,
   AgentsCreateParamsSchema,
@@ -814,4 +828,6 @@ export type {
   PollParams,
   UpdateRunParams,
   ChatInjectParams,
+  WalletSummaryParams,
+  WalletSummaryResult,
 };

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import { saveExecApprovals } from "../infra/exec-approvals.js";
 import { collectExecRuntimeFindings } from "./audit.js";
 
@@ -55,7 +55,7 @@ describe("security audit exec surface findings", () => {
           agents: {
             list: [{ id: "ops" }],
           },
-        } satisfies OpenClawConfig),
+        } satisfies GenesisConfig),
       ),
     ).toBe(true);
   });
@@ -80,7 +80,7 @@ describe("security audit exec surface findings", () => {
               strictInlineEval: true,
             },
           },
-        } satisfies OpenClawConfig),
+        } satisfies GenesisConfig),
       ),
     ).toBe(false);
   });
@@ -98,7 +98,7 @@ describe("security audit exec surface findings", () => {
           host: "gateway",
         },
       },
-    } satisfies OpenClawConfig);
+    } satisfies GenesisConfig);
 
     expect(hasFinding("security.exposure.open_channels_with_exec", "warn", findings)).toBe(true);
   });
@@ -115,7 +115,7 @@ describe("security audit exec surface findings", () => {
           security: "full",
         },
       },
-    } satisfies OpenClawConfig);
+    } satisfies GenesisConfig);
 
     expect(hasFinding("tools.exec.security_full_configured", "critical", findings)).toBe(true);
     expect(hasFinding("security.exposure.open_channels_with_exec", "critical", findings)).toBe(

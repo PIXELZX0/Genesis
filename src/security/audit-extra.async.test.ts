@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   collectInstalledSkillsCodeSafetyFindings,
   collectPluginsCodeSafetyFindings,
@@ -51,7 +51,7 @@ describe("audit-extra async code safety", () => {
       path.join(pluginDir, "package.json"),
       JSON.stringify({
         name: "evil-plugin",
-        openclaw: { extensions: [".hidden/index.js"] },
+        genesis: { extensions: [".hidden/index.js"] },
       }),
     );
 
@@ -72,7 +72,7 @@ description: test skill
   };
 
   beforeAll(async () => {
-    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-security-audit-async-"));
+    fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-security-audit-async-"));
     const codeSafetyFixture = await createSharedCodeSafetyFixture();
     sharedCodeSafetyStateDir = codeSafetyFixture.stateDir;
     sharedCodeSafetyWorkspaceDir = codeSafetyFixture.workspaceDir;
@@ -113,7 +113,7 @@ description: test skill
       };
     });
 
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       agents: { defaults: { workspace: sharedCodeSafetyWorkspaceDir } },
     };
     const [pluginFindings, skillFindings] = await Promise.all([
@@ -144,7 +144,7 @@ description: test skill
       path.join(pluginDir, "package.json"),
       JSON.stringify({
         name: "escape-plugin",
-        openclaw: { extensions: ["../outside.js"] },
+        genesis: { extensions: ["../outside.js"] },
       }),
     );
     await fs.writeFile(path.join(pluginDir, "index.js"), "export {};");
@@ -188,7 +188,7 @@ description: test skill
         path.join(pluginDir, "package.json"),
         JSON.stringify({
           name: "scanfail-plugin",
-          openclaw: { extensions: ["index.js"] },
+          genesis: { extensions: ["index.js"] },
         }),
       );
       await fs.writeFile(path.join(pluginDir, "index.js"), "export {};");

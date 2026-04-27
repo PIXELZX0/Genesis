@@ -1,4 +1,4 @@
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
 import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.types.js";
 import type { ReplyToMode } from "../../config/types.js";
 import { logVerbose } from "../../globals.js";

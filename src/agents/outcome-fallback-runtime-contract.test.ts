@@ -4,7 +4,7 @@ import {
   createContractRunResult,
   OUTCOME_FALLBACK_RUNTIME_CONTRACT,
 } from "../../test/helpers/agents/outcome-fallback-runtime-contract.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { runWithModelFallback } from "./model-fallback.js";
 import { classifyEmbeddedPiRunResultForModelFallback } from "./pi-embedded-runner/result-fallback-classifier.js";
 
@@ -58,7 +58,7 @@ describe("Outcome/fallback runtime contract - Pi fallback classifier", () => {
       const run = vi.fn().mockResolvedValueOnce(primary).mockResolvedValueOnce(fallback);
 
       const result = await runWithModelFallback({
-        cfg: createContractFallbackConfig() as unknown as OpenClawConfig,
+        cfg: createContractFallbackConfig() as unknown as GenesisConfig,
         provider: OUTCOME_FALLBACK_RUNTIME_CONTRACT.primaryProvider,
         model: OUTCOME_FALLBACK_RUNTIME_CONTRACT.primaryModel,
         run,
@@ -166,7 +166,7 @@ describe("Outcome/fallback runtime contract - Pi fallback classifier", () => {
 
     const run = vi.fn().mockResolvedValue(contractCase.result);
     const result = await runWithModelFallback({
-      cfg: createContractFallbackConfig() as unknown as OpenClawConfig,
+      cfg: createContractFallbackConfig() as unknown as GenesisConfig,
       provider: OUTCOME_FALLBACK_RUNTIME_CONTRACT.primaryProvider,
       model: OUTCOME_FALLBACK_RUNTIME_CONTRACT.primaryModel,
       run,

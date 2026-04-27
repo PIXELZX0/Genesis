@@ -1,6 +1,6 @@
 import { statSync } from "node:fs";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { EdgeTTS } from "node-edge-tts";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
 
 type EdgeTTSDeps = {
   EdgeTTS: new (config: ConstructorParameters<typeof EdgeTTS>[0]) => {

@@ -8,7 +8,7 @@ import {
 } from "../../agents/model-selection.js";
 import { getChannelPlugin } from "../../channels/plugins/index.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -55,7 +55,7 @@ function pushUniqueCatalogEntry(params: {
 }
 
 function buildModelPickerCatalog(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   defaultProvider: string;
   defaultModel: string;
   aliasIndex: ModelAliasIndex;
@@ -192,7 +192,7 @@ function buildModelPickerCatalog(params: {
 
 export async function maybeHandleModelDirectiveInfo(params: {
   directives: InlineDirectives;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentDir: string;
   activeAgentId: string;
   provider: string;

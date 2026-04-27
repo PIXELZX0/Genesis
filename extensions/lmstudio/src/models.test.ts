@@ -1,7 +1,7 @@
 import {
   SELF_HOSTED_DEFAULT_CONTEXT_WINDOW,
   SELF_HOSTED_DEFAULT_MAX_TOKENS,
-} from "openclaw/plugin-sdk/provider-setup";
+} from "genesis/plugin-sdk/provider-setup";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LMSTUDIO_DEFAULT_LOAD_CONTEXT_LENGTH } from "./defaults.js";
 import { discoverLmstudioModels, ensureLmstudioModelLoaded } from "./models.fetch.js";
@@ -13,8 +13,8 @@ import {
 
 const fetchWithSsrFGuardMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/ssrf-runtime")>();
+vi.mock("genesis/plugin-sdk/ssrf-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("genesis/plugin-sdk/ssrf-runtime")>();
   return {
     ...actual,
     fetchWithSsrFGuard: (...args: unknown[]) => fetchWithSsrFGuardMock(...args),

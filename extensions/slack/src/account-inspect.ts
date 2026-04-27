@@ -1,13 +1,13 @@
 import {
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/account-resolution";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/account-resolution";
 import {
   hasConfiguredSecretInput,
   normalizeSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/secret-input";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { SlackAccountSurfaceFields } from "./account-surface-fields.js";
 import {
   mergeSlackAccountConfig,
@@ -65,7 +65,7 @@ function inspectSlackToken(value: unknown): {
 }
 
 export function inspectSlackAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   envBotToken?: string | null;
   envAppToken?: string | null;

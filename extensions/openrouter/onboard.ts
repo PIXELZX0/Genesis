@@ -1,11 +1,11 @@
 import {
   applyAgentDefaultModelPrimary,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/provider-onboard";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/provider-onboard";
 
 export const OPENROUTER_DEFAULT_MODEL_REF = "openrouter/auto";
 
-export function applyOpenrouterProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyOpenrouterProviderConfig(cfg: GenesisConfig): GenesisConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[OPENROUTER_DEFAULT_MODEL_REF] = {
     ...models[OPENROUTER_DEFAULT_MODEL_REF],
@@ -24,7 +24,7 @@ export function applyOpenrouterProviderConfig(cfg: OpenClawConfig): OpenClawConf
   };
 }
 
-export function applyOpenrouterConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyOpenrouterConfig(cfg: GenesisConfig): GenesisConfig {
   return applyAgentDefaultModelPrimary(
     applyOpenrouterProviderConfig(cfg),
     OPENROUTER_DEFAULT_MODEL_REF,

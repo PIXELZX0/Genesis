@@ -8,7 +8,7 @@ import { formatErrorMessage } from "./lib/error-format.mjs";
 export function parseArgs(argv) {
   const args = {
     mode: "",
-    outputDir: process.env.OPENCLAW_VITEST_PROFILE_DIR?.trim() || "",
+    outputDir: process.env.GENESIS_VITEST_PROFILE_DIR?.trim() || "",
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -39,7 +39,7 @@ export function resolveVitestProfileDir({ mode, outputDir }) {
     return path.resolve(outputDir);
   }
 
-  return fs.mkdtempSync(path.join(os.tmpdir(), `openclaw-vitest-${mode}-profile-`));
+  return fs.mkdtempSync(path.join(os.tmpdir(), `genesis-vitest-${mode}-profile-`));
 }
 
 export function buildVitestProfileCommand({ mode, outputDir }) {

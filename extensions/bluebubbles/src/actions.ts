@@ -1,15 +1,15 @@
-import { readBooleanParam } from "openclaw/plugin-sdk/boolean-param";
+import { readBooleanParam } from "genesis/plugin-sdk/boolean-param";
 import {
   createActionGate,
   jsonResult,
   readNumberParam,
   readReactionParams,
   readStringParam,
-} from "openclaw/plugin-sdk/channel-actions";
-import { createLazyRuntimeNamedExport } from "openclaw/plugin-sdk/lazy-runtime";
-import { isPrivateNetworkOptInEnabled } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
-import { extractToolSend } from "openclaw/plugin-sdk/tool-send";
+} from "genesis/plugin-sdk/channel-actions";
+import { createLazyRuntimeNamedExport } from "genesis/plugin-sdk/lazy-runtime";
+import { isPrivateNetworkOptInEnabled } from "genesis/plugin-sdk/ssrf-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
+import { extractToolSend } from "genesis/plugin-sdk/tool-send";
 import { resolveBlueBubblesAccount } from "./accounts.js";
 import {
   BLUEBUBBLES_ACTION_NAMES,

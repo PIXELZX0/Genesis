@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { resolveManifestProviderOnboardAuthFlags } from "../../../plugins/provider-auth-choices.js";
 import { normalizeOptionalString } from "../../../shared/string-coerce.js";
 import { CORE_ONBOARD_AUTH_FLAGS } from "../../onboard-core-auth-flags.js";
@@ -23,7 +23,7 @@ function hasStringValue(value: unknown): boolean {
 export function inferAuthChoiceFromFlags(
   opts: OnboardOptions,
   params?: {
-    config?: OpenClawConfig;
+    config?: GenesisConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
   },

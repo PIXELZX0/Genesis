@@ -1,4 +1,4 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/setup";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/setup";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createPluginSetupWizardConfigure,
@@ -12,7 +12,7 @@ import {
   expectPendingUntilAbort,
   startAccountAndTrackLifecycle,
 } from "../../../test/helpers/plugins/start-account-lifecycle.js";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import {
   listGoogleChatAccountIds,
   resolveGoogleChatAccount,
@@ -179,7 +179,7 @@ describe("googlechat setup", () => {
 
     const result = await runSetupWizardConfigure({
       configure: googlechatConfigure,
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompter,
       options: {},
     });
@@ -212,7 +212,7 @@ describe("googlechat setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         "alerts",
       ),
     ).toBe("allowlist");
@@ -231,7 +231,7 @@ describe("googlechat setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       accountOverrides: {
         googlechat: "alerts",
       },
@@ -255,7 +255,7 @@ describe("googlechat setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       accountOverrides: {},
       options: {},
     });
@@ -288,7 +288,7 @@ describe("googlechat setup", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     expect(googlechatSetupWizard.dmPolicy?.getCurrent(cfg)).toBe("allowlist");
     expect(googlechatSetupWizard.dmPolicy?.resolveConfigKeys?.(cfg)).toEqual({
@@ -325,7 +325,7 @@ describe("googlechat setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompter: prompter as any,
     });
 
@@ -350,7 +350,7 @@ describe("googlechat setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       "open",
       "alerts",
     );
@@ -413,7 +413,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("inherits shared defaults from accounts.default for named accounts", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           accounts: {
@@ -438,7 +438,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("prefers top-level and account overrides over accounts.default", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           audienceType: "project-number",
@@ -464,7 +464,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("does not inherit disabled state from accounts.default for named accounts", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           accounts: {
@@ -488,7 +488,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("does not inherit default-account credentials into named accounts", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           accounts: {
@@ -516,7 +516,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("does not inherit dangerous name matching from accounts.default", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           accounts: {
@@ -539,7 +539,7 @@ describe("resolveGoogleChatAccount", () => {
   });
 
   it("uses configured defaultAccount when accountId is omitted", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         googlechat: {
           defaultAccount: "alerts",

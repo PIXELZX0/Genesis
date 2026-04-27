@@ -1,4 +1,4 @@
-import type { LookupFn, SsrFPolicy } from "openclaw/plugin-sdk/ssrf-runtime";
+import type { LookupFn, SsrFPolicy } from "genesis/plugin-sdk/ssrf-runtime";
 import { UrbitAuthError } from "./errors.js";
 import { urbitFetch } from "./fetch.js";
 

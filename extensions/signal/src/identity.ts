@@ -1,5 +1,5 @@
-import { evaluateSenderGroupAccessForPolicy } from "openclaw/plugin-sdk/group-access";
-import { normalizeE164, normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { evaluateSenderGroupAccessForPolicy } from "genesis/plugin-sdk/group-access";
+import { normalizeE164, normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { looksLikeUuid } from "./uuid.js";
 
 export type SignalSender =

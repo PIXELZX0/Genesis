@@ -1,4 +1,4 @@
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
+import { createPluginRuntimeStore } from "genesis/plugin-sdk/runtime-store";
 import type { PluginRuntime } from "./runtime-support.js";
 
 const { setRuntime: setZaloRuntime, getRuntime: getZaloRuntime } =

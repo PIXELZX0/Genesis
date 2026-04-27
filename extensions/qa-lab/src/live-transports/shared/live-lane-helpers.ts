@@ -1,4 +1,4 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 
 export function appendLiveLaneIssue(issues: string[], label: string, error: unknown) {
   issues.push(`${label}: ${formatErrorMessage(error)}`);

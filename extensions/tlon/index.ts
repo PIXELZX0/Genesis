@@ -2,8 +2,8 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { defineBundledChannelEntry } from "genesis/plugin-sdk/channel-entry-contract";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

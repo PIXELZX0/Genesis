@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 type CodexPackageManifest = {
   dependencies?: Record<string, string>;
-  openclaw?: {
+  genesis?: {
     bundle?: {
       stageRuntimeDependencies?: boolean;
     };
@@ -17,6 +17,6 @@ describe("codex package manifest", () => {
     ) as CodexPackageManifest;
 
     expect(packageJson.dependencies?.["@mariozechner/pi-coding-agent"]).toBeDefined();
-    expect(packageJson.openclaw?.bundle?.stageRuntimeDependencies).toBe(true);
+    expect(packageJson.genesis?.bundle?.stageRuntimeDependencies).toBe(true);
   });
 });

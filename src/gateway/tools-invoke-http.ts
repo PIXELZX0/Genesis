@@ -5,7 +5,7 @@ import { isKnownCoreToolId } from "../agents/tool-catalog.js";
 import { applyOwnerOnlyToolPolicy } from "../agents/tool-policy.js";
 import { ToolInputError, type AnyAgentTool } from "../agents/tools/common.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { logWarn } from "../logger.js";
 import { isTestDefaultMemorySlotDisabled } from "../plugins/config-state.js";
 import { defaultSlotIdForKey } from "../plugins/slots.js";
@@ -48,7 +48,7 @@ function resolveSessionKeyFromBody(body: ToolsInvokeBody): string | undefined {
   return undefined;
 }
 
-function resolveMemoryToolDisableReasons(cfg: OpenClawConfig): string[] {
+function resolveMemoryToolDisableReasons(cfg: GenesisConfig): string[] {
   if (!process.env.VITEST) {
     return [];
   }
@@ -214,12 +214,10 @@ export async function handleToolsInvokeHttpRequest(
     !rawSessionKey || rawSessionKey === "main" ? resolveMainSessionKey(cfg) : rawSessionKey;
 
   // Resolve message channel/account hints (optional headers) for policy inheritance.
-  const messageChannel = normalizeMessageChannel(
-    getHeader(req, "x-openclaw-message-channel") ?? "",
-  );
-  const accountId = normalizeOptionalString(getHeader(req, "x-openclaw-account-id"));
-  const agentTo = normalizeOptionalString(getHeader(req, "x-openclaw-message-to"));
-  const agentThreadId = normalizeOptionalString(getHeader(req, "x-openclaw-thread-id"));
+  const messageChannel = normalizeMessageChannel(getHeader(req, "x-genesis-message-channel") ?? "");
+  const accountId = normalizeOptionalString(getHeader(req, "x-genesis-account-id"));
+  const agentTo = normalizeOptionalString(getHeader(req, "x-genesis-message-to"));
+  const agentThreadId = normalizeOptionalString(getHeader(req, "x-genesis-thread-id"));
   // Owner semantics intentionally follow the same shared-secret HTTP contract
   // on this direct tool surface; SECURITY.md documents this as designed-as-is.
   // Computed before resolveGatewayScopedTools so the message tool is created

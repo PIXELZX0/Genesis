@@ -1,4 +1,4 @@
-import { isRecord } from "openclaw/plugin-sdk/text-runtime";
+import { isRecord } from "genesis/plugin-sdk/text-runtime";
 import { stripImessageLengthPrefixedUtf8Text } from "./strip-imsg-length-prefixed-text.js";
 import type { IMessagePayload } from "./types.js";
 

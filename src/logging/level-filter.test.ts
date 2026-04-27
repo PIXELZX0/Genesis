@@ -23,8 +23,8 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  delete process.env.OPENCLAW_TEST_FILE_LOG;
-  delete process.env.OPENCLAW_LOG_LEVEL;
+  delete process.env.GENESIS_TEST_FILE_LOG;
+  delete process.env.GENESIS_LOG_LEVEL;
   readLoggingConfigMock.mockClear();
   shouldSkipMutatingLoggingConfigReadMock.mockReset();
   shouldSkipMutatingLoggingConfigReadMock.mockReturnValue(false);
@@ -33,8 +33,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.OPENCLAW_TEST_FILE_LOG;
-  delete process.env.OPENCLAW_LOG_LEVEL;
+  delete process.env.GENESIS_TEST_FILE_LOG;
+  delete process.env.GENESIS_LOG_LEVEL;
   logging.resetLogger();
   logging.setLoggerOverride(null);
   vi.restoreAllMocks();

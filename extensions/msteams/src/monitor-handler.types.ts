@@ -1,4 +1,4 @@
-import { type OpenClawConfig, type RuntimeEnv } from "../runtime-api.js";
+import { type GenesisConfig, type RuntimeEnv } from "../runtime-api.js";
 import type { MSTeamsConversationStore } from "./conversation-store.js";
 import type { MSTeamsAdapter } from "./messenger.js";
 import type { MSTeamsMonitorLogger } from "./monitor-types.js";
@@ -6,7 +6,7 @@ import type { MSTeamsPollStore } from "./polls.js";
 import type { MSTeamsSsoDeps } from "./sso.js";
 
 export type MSTeamsMessageHandlerDeps = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   runtime: RuntimeEnv;
   appId: string;
   adapter: MSTeamsAdapter;

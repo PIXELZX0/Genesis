@@ -1,5 +1,5 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { createBlueBubblesClientFromParts } from "./client.js";
 import type { BaseProbeResult } from "./runtime-api.js";
 import { normalizeSecretInputString } from "./secret-input.js";

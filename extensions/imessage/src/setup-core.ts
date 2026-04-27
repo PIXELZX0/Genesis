@@ -2,7 +2,7 @@ import type {
   ChannelSetupAdapter,
   ChannelSetupWizard,
   ChannelSetupWizardTextInput,
-} from "openclaw/plugin-sdk/setup-runtime";
+} from "genesis/plugin-sdk/setup-runtime";
 import {
   createCliPathTextInput,
   createDelegatedSetupWizardProxy,
@@ -14,11 +14,11 @@ import {
   promptParsedAllowFromForAccount,
   setAccountAllowFromForChannel,
   setSetupChannelEnabled,
-  type OpenClawConfig,
+  type GenesisConfig,
   type WizardPrompter,
-} from "openclaw/plugin-sdk/setup-runtime";
-import { formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/setup-runtime";
+import { formatDocsLink } from "genesis/plugin-sdk/setup-tools";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveDefaultIMessageAccountId, resolveIMessageAccount } from "./accounts.js";
 import { normalizeIMessageHandle } from "./targets.js";
 
@@ -68,10 +68,10 @@ function buildIMessageSetupPatch(input: {
 }
 
 export async function promptIMessageAllowFrom(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: WizardPrompter;
   accountId?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<GenesisConfig> {
   return promptParsedAllowFromForAccount({
     cfg: params.cfg,
     accountId: params.accountId,
@@ -108,7 +108,7 @@ export const imessageDmPolicy = {
   channel,
   policyKey: "channels.imessage.dmPolicy",
   allowFromKey: "channels.imessage.allowFrom",
-  resolveConfigKeys: (_cfg: OpenClawConfig, accountId?: string) => {
+  resolveConfigKeys: (_cfg: GenesisConfig, accountId?: string) => {
     const targetAccountId = accountId ?? resolveDefaultIMessageAccountId(_cfg);
     return targetAccountId !== "default"
       ? {
@@ -120,12 +120,12 @@ export const imessageDmPolicy = {
           allowFromKey: "channels.imessage.allowFrom",
         };
   },
-  getCurrent: (cfg: OpenClawConfig, accountId?: string) => {
+  getCurrent: (cfg: GenesisConfig, accountId?: string) => {
     const targetAccountId = accountId ?? resolveDefaultIMessageAccountId(cfg);
     return resolveIMessageAccount({ cfg, accountId: targetAccountId }).config.dmPolicy ?? "pairing";
   },
   setPolicy: (
-    cfg: OpenClawConfig,
+    cfg: GenesisConfig,
     policy: "pairing" | "allowlist" | "open" | "disabled",
     accountId?: string,
   ) => {
@@ -149,7 +149,7 @@ export const imessageDmPolicy = {
   promptAllowFrom: promptIMessageAllowFrom,
 };
 
-function resolveIMessageCliPath(params: { cfg: OpenClawConfig; accountId: string }) {
+function resolveIMessageCliPath(params: { cfg: GenesisConfig; accountId: string }) {
   return resolveIMessageAccount(params).config.cliPath ?? "imsg";
 }
 
@@ -170,7 +170,7 @@ export const imessageCompletionNote = {
   title: "iMessage next steps",
   lines: [
     "This is still a work in progress.",
-    "Ensure OpenClaw has Full Disk Access to Messages DB.",
+    "Ensure Genesis has Full Disk Access to Messages DB.",
     "Grant Automation permission for Messages when prompted.",
     "List chats with: imsg chats --limit 20",
     `Docs: ${formatDocsLink("/imessage", "imessage")}`,
@@ -189,7 +189,7 @@ export const imessageSetupStatusBase = {
   unconfiguredHint: "imsg missing",
   configuredScore: 1,
   unconfiguredScore: 0,
-  resolveConfigured: ({ cfg, accountId }: { cfg: OpenClawConfig; accountId?: string }) =>
+  resolveConfigured: ({ cfg, accountId }: { cfg: GenesisConfig; accountId?: string }) =>
     resolveIMessageAccount({ cfg, accountId }).configured,
 };
 
@@ -216,6 +216,6 @@ export function createIMessageSetupWizardProxy(loadWizard: () => Promise<Channel
     ],
     completionNote: imessageCompletionNote,
     dmPolicy: imessageDmPolicy,
-    disable: (cfg: OpenClawConfig) => setSetupChannelEnabled(cfg, channel, false),
+    disable: (cfg: GenesisConfig) => setSetupChannelEnabled(cfg, channel, false),
   });
 }

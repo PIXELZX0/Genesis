@@ -42,15 +42,15 @@ describe("browser config", () => {
     expect(resolved.cdpHost).toBe("127.0.0.1");
     expect(resolved.cdpProtocol).toBe("http");
     const profile = resolveProfile(resolved, resolved.defaultProfile);
-    expect(profile?.name).toBe("openclaw");
-    expect(profile?.driver).toBe("openclaw");
+    expect(profile?.name).toBe("genesis");
+    expect(profile?.driver).toBe("genesis");
     expect(profile?.cdpPort).toBe(18800);
     expect(profile?.cdpUrl).toBe("http://127.0.0.1:18800");
 
-    const openclaw = resolveProfile(resolved, "openclaw");
-    expect(openclaw?.driver).toBe("openclaw");
-    expect(openclaw?.cdpPort).toBe(18800);
-    expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:18800");
+    const genesis = resolveProfile(resolved, "genesis");
+    expect(genesis?.driver).toBe("genesis");
+    expect(genesis?.cdpPort).toBe(18800);
+    expect(genesis?.cdpUrl).toBe("http://127.0.0.1:18800");
     const user = resolveProfile(resolved, "user");
     expect(user?.driver).toBe("existing-session");
     expect(user?.cdpPort).toBe(0);
@@ -67,29 +67,37 @@ describe("browser config", () => {
       maxTabsPerSession: 8,
       sweepMinutes: 5,
     });
+    expect(genesis?.tor).toEqual({
+      enabled: true,
+      mode: "managed",
+      socksHost: "127.0.0.1",
+      socksPort: 18900,
+      extraArgs: [],
+    });
+    expect(user?.tor).toBeUndefined();
   });
 
-  it("derives default ports from OPENCLAW_GATEWAY_PORT when unset", () => {
-    withEnv({ OPENCLAW_GATEWAY_PORT: "19001" }, () => {
+  it("derives default ports from GENESIS_GATEWAY_PORT when unset", () => {
+    withEnv({ GENESIS_GATEWAY_PORT: "19001" }, () => {
       const resolved = resolveBrowserConfig(undefined);
       expect(resolved.controlPort).toBe(19003);
       expect(resolveProfile(resolved, "chrome-relay")).toBe(null);
 
-      const openclaw = resolveProfile(resolved, "openclaw");
-      expect(openclaw?.cdpPort).toBe(19012);
-      expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19012");
+      const genesis = resolveProfile(resolved, "genesis");
+      expect(genesis?.cdpPort).toBe(19012);
+      expect(genesis?.cdpUrl).toBe("http://127.0.0.1:19012");
     });
   });
 
   it("derives default ports from gateway.port when env is unset", () => {
-    withEnv({ OPENCLAW_GATEWAY_PORT: undefined }, () => {
+    withEnv({ GENESIS_GATEWAY_PORT: undefined }, () => {
       const resolved = resolveBrowserConfig(undefined, { gateway: { port: 19011 } });
       expect(resolved.controlPort).toBe(19013);
       expect(resolveProfile(resolved, "chrome-relay")).toBe(null);
 
-      const openclaw = resolveProfile(resolved, "openclaw");
-      expect(openclaw?.cdpPort).toBe(19022);
-      expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19022");
+      const genesis = resolveProfile(resolved, "genesis");
+      expect(genesis?.cdpPort).toBe(19022);
+      expect(genesis?.cdpUrl).toBe("http://127.0.0.1:19022");
     });
   });
 
@@ -97,10 +105,10 @@ describe("browser config", () => {
     const resolved = resolveBrowserConfig({
       cdpPortRangeStart: 19000,
     });
-    const openclaw = resolveProfile(resolved, "openclaw");
+    const genesis = resolveProfile(resolved, "genesis");
     expect(resolved.cdpPortRangeStart).toBe(19000);
-    expect(openclaw?.cdpPort).toBe(19000);
-    expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19000");
+    expect(genesis?.cdpPort).toBe(19000);
+    expect(genesis?.cdpUrl).toBe("http://127.0.0.1:19000");
   });
 
   it("rejects cdpPortRangeStart values that overflow the CDP range window", () => {
@@ -195,7 +203,7 @@ describe("browser config", () => {
     const resolved = resolveBrowserConfig({
       cdpUrl: "http://example.com:9222",
     });
-    const profile = resolveProfile(resolved, "openclaw");
+    const profile = resolveProfile(resolved, "genesis");
     expect(profile?.cdpIsLoopback).toBe(false);
   });
 
@@ -203,7 +211,7 @@ describe("browser config", () => {
     const resolved = resolveBrowserConfig({
       cdpUrl: "http://example.com:9222",
     });
-    const profile = resolveProfile(resolved, "openclaw");
+    const profile = resolveProfile(resolved, "genesis");
     expect(profile?.cdpPort).toBe(9222);
     expect(profile?.cdpUrl).toBe("http://example.com:9222");
     expect(profile?.cdpIsLoopback).toBe(false);
@@ -342,7 +350,7 @@ describe("browser config", () => {
     const resolved = resolveBrowserConfig({
       cdpUrl: "wss://connect.browserbase.com?apiKey=test-key",
     });
-    const profile = resolveProfile(resolved, "openclaw");
+    const profile = resolveProfile(resolved, "genesis");
     expect(profile?.cdpUrl).toBe("wss://connect.browserbase.com/?apiKey=test-key");
     expect(profile?.cdpHost).toBe("connect.browserbase.com");
     expect(profile?.cdpPort).toBe(443);
@@ -438,6 +446,78 @@ describe("browser config", () => {
       extraArgs: "not-an-array" as unknown as string[],
     });
     expect(resolved.extraArgs).toEqual([]);
+  });
+
+  it("resolves Tor settings for local managed profiles", () => {
+    const resolved = resolveBrowserConfig({
+      profiles: {
+        tor: {
+          cdpPort: 18805,
+          color: "#0066CC",
+          headless: true,
+          tor: {
+            enabled: true,
+            mode: "managed",
+          },
+        },
+      },
+    });
+    const profile = resolveProfile(resolved, "tor");
+    expect(profile?.tor).toEqual({
+      enabled: true,
+      mode: "managed",
+      socksHost: "127.0.0.1",
+      socksPort: 18905,
+      extraArgs: [],
+    });
+  });
+
+  it("does not apply default Tor settings to existing-session profiles", () => {
+    const resolved = resolveBrowserConfig({});
+    const user = resolveProfile(resolved, "user");
+    expect(user?.tor).toBeUndefined();
+  });
+
+  it("allows global Tor to be disabled by default", () => {
+    const resolved = resolveBrowserConfig({
+      tor: { enabled: false },
+    });
+    const genesis = resolveProfile(resolved, "genesis");
+    expect(resolved.tor).toBeUndefined();
+    expect(genesis?.tor).toBeUndefined();
+  });
+
+  it("rejects managed Tor listeners on non-loopback hosts", () => {
+    expect(() =>
+      resolveBrowserConfig({
+        profiles: {
+          tor: {
+            cdpPort: 18805,
+            color: "#0066CC",
+            tor: {
+              enabled: true,
+              mode: "managed",
+              socksHost: "0.0.0.0",
+            },
+          },
+        },
+      }),
+    ).not.toThrow();
+
+    const resolved = resolveBrowserConfig({
+      profiles: {
+        tor: {
+          cdpPort: 18805,
+          color: "#0066CC",
+          tor: {
+            enabled: true,
+            mode: "managed",
+            socksHost: "0.0.0.0",
+          },
+        },
+      },
+    });
+    expect(() => resolveProfile(resolved, "tor")).toThrow(/socksHost must be loopback/i);
   });
 
   it("resolves browser SSRF policy when configured", () => {
@@ -554,7 +634,7 @@ describe("browser config", () => {
     const existingSession = resolveProfile(resolved, "chrome-live")!;
     expect(getBrowserProfileCapabilities(existingSession).usesChromeMcp).toBe(true);
 
-    const managed = resolveProfile(resolved, "openclaw")!;
+    const managed = resolveProfile(resolved, "genesis")!;
     expect(getBrowserProfileCapabilities(managed).usesChromeMcp).toBe(false);
 
     const work = resolveProfile(resolved, "work")!;
@@ -562,34 +642,34 @@ describe("browser config", () => {
   });
 
   describe("default profile preference", () => {
-    it("defaults to openclaw profile when defaultProfile is not configured", () => {
+    it("defaults to genesis profile when defaultProfile is not configured", () => {
       const resolved = resolveBrowserConfig({
         headless: false,
         noSandbox: false,
       });
-      expect(resolved.defaultProfile).toBe("openclaw");
+      expect(resolved.defaultProfile).toBe("genesis");
     });
 
-    it("keeps openclaw default when headless=true", () => {
+    it("keeps genesis default when headless=true", () => {
       const resolved = resolveBrowserConfig({
         headless: true,
       });
-      expect(resolved.defaultProfile).toBe("openclaw");
+      expect(resolved.defaultProfile).toBe("genesis");
     });
 
-    it("keeps openclaw default when noSandbox=true", () => {
+    it("keeps genesis default when noSandbox=true", () => {
       const resolved = resolveBrowserConfig({
         noSandbox: true,
       });
-      expect(resolved.defaultProfile).toBe("openclaw");
+      expect(resolved.defaultProfile).toBe("genesis");
     });
 
-    it("keeps openclaw default when both headless and noSandbox are true", () => {
+    it("keeps genesis default when both headless and noSandbox are true", () => {
       const resolved = resolveBrowserConfig({
         headless: true,
         noSandbox: true,
       });
-      expect(resolved.defaultProfile).toBe("openclaw");
+      expect(resolved.defaultProfile).toBe("genesis");
     });
 
     it("explicit defaultProfile config overrides defaults in headless mode", () => {

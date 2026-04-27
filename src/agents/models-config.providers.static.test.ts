@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 type StaticModule = typeof import("./models-config.providers.static.js");
 
-const fixtureRoot = mkdtempSync(path.join(tmpdir(), "openclaw-provider-catalogs-"));
+const fixtureRoot = mkdtempSync(path.join(tmpdir(), "genesis-provider-catalogs-"));
 const fixtureExtensionsDir = path.join(fixtureRoot, "dist-runtime", "extensions");
 
 function writeFixtureCatalog(dirName: string, exportNames: string[]) {

@@ -1,10 +1,10 @@
 import {
   createAccountListHelpers,
   resolveMergedAccountConfig,
-} from "openclaw/plugin-sdk/account-helpers";
-import { normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/account-helpers";
+import { normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveZaloToken } from "./token.js";
 import type { ResolvedZaloAccount, ZaloAccountConfig, ZaloConfig } from "./types.js";
 
@@ -14,7 +14,7 @@ const { listAccountIds: listZaloAccountIds, resolveDefaultAccountId: resolveDefa
   createAccountListHelpers("zalo");
 export { listZaloAccountIds, resolveDefaultZaloAccountId };
 
-function mergeZaloAccountConfig(cfg: OpenClawConfig, accountId: string): ZaloAccountConfig {
+function mergeZaloAccountConfig(cfg: GenesisConfig, accountId: string): ZaloAccountConfig {
   return resolveMergedAccountConfig<ZaloAccountConfig>({
     channelConfig: cfg.channels?.zalo as ZaloAccountConfig | undefined,
     accounts: (cfg.channels?.zalo as ZaloConfig | undefined)?.accounts as
@@ -26,7 +26,7 @@ function mergeZaloAccountConfig(cfg: OpenClawConfig, accountId: string): ZaloAcc
 }
 
 export function resolveZaloAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   allowUnresolvedSecretRef?: boolean;
 }): ResolvedZaloAccount {
@@ -53,7 +53,7 @@ export function resolveZaloAccount(params: {
   };
 }
 
-export function listEnabledZaloAccounts(cfg: OpenClawConfig): ResolvedZaloAccount[] {
+export function listEnabledZaloAccounts(cfg: GenesisConfig): ResolvedZaloAccount[] {
   return listZaloAccountIds(cfg)
     .map((accountId) => resolveZaloAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

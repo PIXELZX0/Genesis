@@ -3,7 +3,7 @@ import {
   mapBatchEmbeddingsByIndex,
   sanitizeEmbeddingCacheHeaders,
   type MemoryEmbeddingProviderAdapter,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+} from "genesis/plugin-sdk/memory-core-host-engine-embeddings";
 import { runVoyageEmbeddingBatches } from "./embedding-batch.js";
 import {
   createVoyageEmbeddingProvider,

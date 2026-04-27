@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { parseInlineDirectives } from "./directive-handling.parse.js";
 import { maybeHandleQueueDirective } from "./directive-handling.queue-validation.js";
 
@@ -7,7 +7,7 @@ describe("maybeHandleQueueDirective", () => {
   it("reports invalid queue options and current queue settings", () => {
     const invalid = maybeHandleQueueDirective({
       directives: parseInlineDirectives("/queue collect debounce:bogus cap:zero drop:maybe"),
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       channel: "quietchat",
     });
     expect(invalid?.text).toContain("Invalid debounce");
@@ -25,7 +25,7 @@ describe("maybeHandleQueueDirective", () => {
             drop: "summarize",
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       channel: "quietchat",
     });
     expect(current?.text).toContain(

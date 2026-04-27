@@ -4,21 +4,21 @@ import {
   formatLocationText,
   resolveInboundSessionEnvelopeContext,
   toLocationContext,
-} from "openclaw/plugin-sdk/channel-inbound";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-inbound";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   ensureConfiguredBindingRouteReady,
   recordInboundSession,
   resolvePinnedMainDmOwnerFromAllowlist,
   resolveConfiguredBindingRoute,
   resolveRuntimeConversationBindingRoute,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { recordChannelActivity } from "openclaw/plugin-sdk/infra-runtime";
-import { finalizeInboundContext } from "openclaw/plugin-sdk/reply-dispatch-runtime";
-import type { HistoryEntry } from "openclaw/plugin-sdk/reply-history";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/conversation-runtime";
+import { recordChannelActivity } from "genesis/plugin-sdk/infra-runtime";
+import { finalizeInboundContext } from "genesis/plugin-sdk/reply-dispatch-runtime";
+import type { HistoryEntry } from "genesis/plugin-sdk/reply-history";
+import { resolveAgentRoute } from "genesis/plugin-sdk/routing";
+import { logVerbose, shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { normalizeAllowFrom } from "./bot-access.js";
 import { resolveLineGroupConfigEntry } from "./group-keys.js";
 import type { ResolvedLineAccount } from "./types.js";
@@ -36,7 +36,7 @@ interface MediaRef {
 interface BuildLineMessageContextParams {
   event: MessageEvent;
   allMedia: MediaRef[];
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedLineAccount;
   commandAuthorized: boolean;
   groupHistories?: Map<string, HistoryEntry[]>;
@@ -87,7 +87,7 @@ function buildPeerId(source: EventSource): string {
 
 async function resolveLineInboundRoute(params: {
   source: EventSource;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedLineAccount;
 }): Promise<{
   userId?: string;
@@ -276,7 +276,7 @@ function resolveLineAddresses(params: {
 }
 
 async function finalizeLineInboundContext(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedLineAccount;
   event: MessageEvent | PostbackEvent;
   route: LineRouteInfo;
@@ -508,7 +508,7 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
 
 export async function buildLinePostbackContext(params: {
   event: PostbackEvent;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   account: ResolvedLineAccount;
   commandAuthorized: boolean;
 }) {

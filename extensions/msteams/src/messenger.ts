@@ -2,13 +2,13 @@ import {
   isSilentReplyText,
   SILENT_REPLY_TOKEN,
   type ChunkMode,
-} from "openclaw/plugin-sdk/reply-chunking";
+} from "genesis/plugin-sdk/reply-chunking";
 import {
   resolveSendableOutboundReplyParts,
   type ReplyPayload,
-} from "openclaw/plugin-sdk/reply-payload";
-import { normalizeOptionalLowercaseString, sleep } from "openclaw/plugin-sdk/text-runtime";
-import { loadWebMedia } from "openclaw/plugin-sdk/web-media";
+} from "genesis/plugin-sdk/reply-payload";
+import { normalizeOptionalLowercaseString, sleep } from "genesis/plugin-sdk/text-runtime";
+import { loadWebMedia } from "genesis/plugin-sdk/web-media";
 import type { MarkdownTableMode, MSTeamsReplyStyle } from "../runtime-api.js";
 import type { MSTeamsAccessTokenProvider } from "./attachments/types.js";
 import type { StoredConversationReference } from "./conversation-store.js";

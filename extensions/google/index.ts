@@ -1,8 +1,8 @@
-import type { ImageGenerationProvider } from "openclaw/plugin-sdk/image-generation";
-import type { MediaUnderstandingProvider } from "openclaw/plugin-sdk/media-understanding";
-import type { MusicGenerationProvider } from "openclaw/plugin-sdk/music-generation";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import type { VideoGenerationProvider } from "openclaw/plugin-sdk/video-generation";
+import type { ImageGenerationProvider } from "genesis/plugin-sdk/image-generation";
+import type { MediaUnderstandingProvider } from "genesis/plugin-sdk/media-understanding";
+import type { MusicGenerationProvider } from "genesis/plugin-sdk/music-generation";
+import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import type { VideoGenerationProvider } from "genesis/plugin-sdk/video-generation";
 import { buildGoogleGeminiCliBackend } from "./cli-backend.js";
 import { registerGoogleGeminiCliProvider } from "./gemini-cli-provider.js";
 import {

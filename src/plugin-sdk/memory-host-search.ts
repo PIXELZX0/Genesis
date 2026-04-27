@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { RegisteredMemorySearchManager } from "../plugins/memory-state.js";
 
 type ActiveMemorySearchPurpose = "default" | "status";
@@ -15,7 +15,7 @@ async function loadMemoryHostSearchRuntime(): Promise<MemoryHostSearchRuntimeMod
 }
 
 export async function getActiveMemorySearchManager(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   purpose?: ActiveMemorySearchPurpose;
 }): Promise<ActiveMemorySearchManagerResult> {
@@ -23,7 +23,7 @@ export async function getActiveMemorySearchManager(params: {
   return await runtime.getActiveMemorySearchManager(params);
 }
 
-export async function closeActiveMemorySearchManagers(cfg?: OpenClawConfig): Promise<void> {
+export async function closeActiveMemorySearchManagers(cfg?: GenesisConfig): Promise<void> {
   const runtime = await loadMemoryHostSearchRuntime();
   await runtime.closeActiveMemorySearchManagers(cfg);
 }

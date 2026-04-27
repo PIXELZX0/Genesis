@@ -1,25 +1,25 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { loadConfig, type OpenClawConfig } from "../config/config.js";
+import { loadConfig, type GenesisConfig } from "../config/config.js";
 import { VERSION } from "../version.js";
-import { OpenClawChannelBridge } from "./channel-bridge.js";
+import { GenesisChannelBridge } from "./channel-bridge.js";
 import { ClaudePermissionRequestSchema, type ClaudeChannelMode } from "./channel-shared.js";
 import { getChannelMcpCapabilities, registerChannelMcpTools } from "./channel-tools.js";
 
-export { OpenClawChannelBridge } from "./channel-bridge.js";
+export { GenesisChannelBridge } from "./channel-bridge.js";
 
-export type OpenClawMcpServeOptions = {
+export type GenesisMcpServeOptions = {
   gatewayUrl?: string;
   gatewayToken?: string;
   gatewayPassword?: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   claudeChannelMode?: ClaudeChannelMode;
   verbose?: boolean;
 };
 
-export async function createOpenClawChannelMcpServer(opts: OpenClawMcpServeOptions = {}): Promise<{
+export async function createGenesisChannelMcpServer(opts: GenesisMcpServeOptions = {}): Promise<{
   server: McpServer;
-  bridge: OpenClawChannelBridge;
+  bridge: GenesisChannelBridge;
   start: () => Promise<void>;
   close: () => Promise<void>;
 }> {
@@ -27,10 +27,10 @@ export async function createOpenClawChannelMcpServer(opts: OpenClawMcpServeOptio
   const claudeChannelMode = opts.claudeChannelMode ?? "auto";
   const capabilities = getChannelMcpCapabilities(claudeChannelMode);
   const server = new McpServer(
-    { name: "openclaw", version: VERSION },
+    { name: "genesis", version: VERSION },
     capabilities ? { capabilities } : undefined,
   );
-  const bridge = new OpenClawChannelBridge(cfg, {
+  const bridge = new GenesisChannelBridge(cfg, {
     gatewayUrl: opts.gatewayUrl,
     gatewayToken: opts.gatewayToken,
     gatewayPassword: opts.gatewayPassword,
@@ -62,8 +62,8 @@ export async function createOpenClawChannelMcpServer(opts: OpenClawMcpServeOptio
   };
 }
 
-export async function serveOpenClawChannelMcp(opts: OpenClawMcpServeOptions = {}): Promise<void> {
-  const { server, start, close } = await createOpenClawChannelMcpServer(opts);
+export async function serveGenesisChannelMcp(opts: GenesisMcpServeOptions = {}): Promise<void> {
+  const { server, start, close } = await createGenesisChannelMcpServer(opts);
   const transport = new StdioServerTransport();
 
   let shuttingDown = false;

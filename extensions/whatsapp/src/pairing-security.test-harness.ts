@@ -18,9 +18,9 @@ export function resetPairingSecurityMocks(config: Record<string, unknown>) {
   upsertPairingRequestMock.mockReset().mockResolvedValue({ code: "PAIRCODE", created: true });
 }
 
-vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
-    "openclaw/plugin-sdk/config-runtime",
+vi.mock("genesis/plugin-sdk/config-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/config-runtime")>(
+    "genesis/plugin-sdk/config-runtime",
   );
   return {
     ...actual,
@@ -28,15 +28,15 @@ vi.mock("openclaw/plugin-sdk/config-runtime", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/conversation-runtime", () => {
+vi.mock("genesis/plugin-sdk/conversation-runtime", () => {
   return {
     upsertChannelPairingRequest: (...args: unknown[]) => upsertPairingRequestMock(...args),
   };
 });
 
-vi.mock("openclaw/plugin-sdk/security-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/security-runtime")>(
-    "openclaw/plugin-sdk/security-runtime",
+vi.mock("genesis/plugin-sdk/security-runtime", async () => {
+  const actual = await vi.importActual<typeof import("genesis/plugin-sdk/security-runtime")>(
+    "genesis/plugin-sdk/security-runtime",
   );
   return {
     ...actual,

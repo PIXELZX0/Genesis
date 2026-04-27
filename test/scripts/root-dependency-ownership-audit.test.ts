@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 function makeTempRepo() {
-  const dir = mkdtempSync(path.join(tmpdir(), "openclaw-root-deps-audit-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "genesis-root-deps-audit-"));
   tempDirs.push(dir);
   return dir;
 }

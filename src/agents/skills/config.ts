@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { SkillConfig } from "../../config/types.skills.js";
 import {
   evaluateRuntimeEligibility,
@@ -19,12 +19,12 @@ const DEFAULT_CONFIG_VALUES: Record<string, boolean> = {
 
 export { hasBinary, resolveConfigPath, resolveRuntimePlatform };
 
-export function isConfigPathTruthy(config: OpenClawConfig | undefined, pathStr: string): boolean {
+export function isConfigPathTruthy(config: GenesisConfig | undefined, pathStr: string): boolean {
   return isConfigPathTruthyWithDefaults(config, pathStr, DEFAULT_CONFIG_VALUES);
 }
 
 export function resolveSkillConfig(
-  config: OpenClawConfig | undefined,
+  config: GenesisConfig | undefined,
   skillKey: string,
 ): SkillConfig | undefined {
   const skills = config?.skills?.entries;
@@ -49,13 +49,13 @@ function normalizeAllowlist(input: unknown): string[] | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-const BUNDLED_SOURCES = new Set(["openclaw-bundled"]);
+const BUNDLED_SOURCES = new Set(["genesis-bundled"]);
 
 function isBundledSkill(entry: SkillEntry): boolean {
   return BUNDLED_SOURCES.has(resolveSkillSource(entry.skill));
 }
 
-export function resolveBundledAllowlist(config?: OpenClawConfig): string[] | undefined {
+export function resolveBundledAllowlist(config?: GenesisConfig): string[] | undefined {
   return normalizeAllowlist(config?.skills?.allowBundled);
 }
 
@@ -72,7 +72,7 @@ export function isBundledSkillAllowed(entry: SkillEntry, allowlist?: string[]): 
 
 export function shouldIncludeSkill(params: {
   entry: SkillEntry;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   eligibility?: SkillEligibilityContext;
 }): boolean {
   const { entry, config, eligibility } = params;

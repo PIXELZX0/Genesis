@@ -1,18 +1,18 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import { createScopedDmSecurityResolver } from "openclaw/plugin-sdk/channel-config-helpers";
-import { createChatChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { createAccountStatusSink } from "openclaw/plugin-sdk/channel-lifecycle";
+import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/account-id";
+import { createScopedDmSecurityResolver } from "genesis/plugin-sdk/channel-config-helpers";
+import { createChatChannelPlugin } from "genesis/plugin-sdk/channel-core";
+import { createAccountStatusSink } from "genesis/plugin-sdk/channel-lifecycle";
 import {
   createOpenGroupPolicyRestrictSendersWarningCollector,
   projectAccountWarningCollector,
-} from "openclaw/plugin-sdk/channel-policy";
-import { buildProbeChannelStatusSummary } from "openclaw/plugin-sdk/channel-status";
-import { createLazyRuntimeNamedExport } from "openclaw/plugin-sdk/lazy-runtime";
+} from "genesis/plugin-sdk/channel-policy";
+import { buildProbeChannelStatusSummary } from "genesis/plugin-sdk/channel-status";
+import { createLazyRuntimeNamedExport } from "genesis/plugin-sdk/lazy-runtime";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/status-helpers";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import {
   type ResolvedBlueBubblesAccount,
   resolveBlueBubblesEffectiveAllowPrivateNetwork,

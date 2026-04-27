@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ResolvedSlackAccount } from "./accounts.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { GenesisConfig } from "./runtime-api.js";
 import { collectSlackSecurityAuditFindings } from "./security-audit.js";
 
 const { readChannelAllowFromStoreMock } = vi.hoisted(() => ({
   readChannelAllowFromStoreMock: vi.fn(async () => [] as string[]),
 }));
 
-vi.mock("openclaw/plugin-sdk/conversation-runtime", () => ({
+vi.mock("genesis/plugin-sdk/conversation-runtime", () => ({
   readChannelAllowFromStore: readChannelAllowFromStoreMock,
 }));
 
-function createSlackAccount(config: NonNullable<OpenClawConfig["channels"]>["slack"]) {
+function createSlackAccount(config: NonNullable<GenesisConfig["channels"]>["slack"]) {
   return {
     accountId: "default",
     enabled: true,
@@ -22,9 +22,7 @@ function createSlackAccount(config: NonNullable<OpenClawConfig["channels"]>["sla
   } as ResolvedSlackAccount;
 }
 
-function createSlashCommandSlackConfig(
-  options: { useAccessGroups?: boolean } = {},
-): OpenClawConfig {
+function createSlashCommandSlackConfig(options: { useAccessGroups?: boolean } = {}): GenesisConfig {
   return {
     ...(options.useAccessGroups === undefined
       ? {}
@@ -41,7 +39,7 @@ function createSlashCommandSlackConfig(
   };
 }
 
-async function collectSlackFindingsForConfig(cfg: OpenClawConfig) {
+async function collectSlackFindingsForConfig(cfg: GenesisConfig) {
   readChannelAllowFromStoreMock.mockResolvedValue([]);
   return await collectSlackSecurityAuditFindings({
     cfg,

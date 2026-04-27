@@ -1,18 +1,18 @@
 import { parseFrontmatterBlock } from "../markdown/frontmatter.js";
 import {
-  applyOpenClawManifestInstallCommonFields,
+  applyGenesisManifestInstallCommonFields,
   getFrontmatterString,
   normalizeStringList,
-  parseOpenClawManifestInstallBase,
+  parseGenesisManifestInstallBase,
   parseFrontmatterBool,
-  resolveOpenClawManifestBlock,
-  resolveOpenClawManifestInstall,
-  resolveOpenClawManifestOs,
-  resolveOpenClawManifestRequires,
+  resolveGenesisManifestBlock,
+  resolveGenesisManifestInstall,
+  resolveGenesisManifestOs,
+  resolveGenesisManifestRequires,
 } from "../shared/frontmatter.js";
 import { readStringValue } from "../shared/string-coerce.js";
 import type {
-  OpenClawHookMetadata,
+  GenesisHookMetadata,
   HookEntry,
   HookInstallSpec,
   HookInvocationPolicy,
@@ -24,12 +24,12 @@ export function parseFrontmatter(content: string): ParsedHookFrontmatter {
 }
 
 function parseInstallSpec(input: unknown): HookInstallSpec | undefined {
-  const parsed = parseOpenClawManifestInstallBase(input, ["bundled", "npm", "git"]);
+  const parsed = parseGenesisManifestInstallBase(input, ["bundled", "npm", "git"]);
   if (!parsed) {
     return undefined;
   }
   const { raw } = parsed;
-  const spec = applyOpenClawManifestInstallCommonFields<HookInstallSpec>(
+  const spec = applyGenesisManifestInstallCommonFields<HookInstallSpec>(
     {
       kind: parsed.kind as HookInstallSpec["kind"],
     },
@@ -45,16 +45,16 @@ function parseInstallSpec(input: unknown): HookInstallSpec | undefined {
   return spec;
 }
 
-export function resolveOpenClawMetadata(
+export function resolveGenesisMetadata(
   frontmatter: ParsedHookFrontmatter,
-): OpenClawHookMetadata | undefined {
-  const metadataObj = resolveOpenClawManifestBlock({ frontmatter });
+): GenesisHookMetadata | undefined {
+  const metadataObj = resolveGenesisManifestBlock({ frontmatter });
   if (!metadataObj) {
     return undefined;
   }
-  const requires = resolveOpenClawManifestRequires(metadataObj);
-  const install = resolveOpenClawManifestInstall(metadataObj, parseInstallSpec);
-  const osRaw = resolveOpenClawManifestOs(metadataObj);
+  const requires = resolveGenesisManifestRequires(metadataObj);
+  const install = resolveGenesisManifestInstall(metadataObj, parseInstallSpec);
+  const osRaw = resolveGenesisManifestOs(metadataObj);
   const eventsRaw = normalizeStringList(metadataObj.events);
   return {
     always: typeof metadataObj.always === "boolean" ? metadataObj.always : undefined,

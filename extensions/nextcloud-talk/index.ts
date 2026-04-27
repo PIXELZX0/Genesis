@@ -1,4 +1,4 @@
-import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
+import { defineBundledChannelEntry } from "genesis/plugin-sdk/channel-entry-contract";
 
 export default defineBundledChannelEntry({
   id: "nextcloud-talk",

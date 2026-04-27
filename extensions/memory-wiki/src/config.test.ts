@@ -13,7 +13,7 @@ import {
 
 function compileManifestConfigSchema() {
   const manifest = JSON.parse(
-    fs.readFileSync(new URL("../openclaw.plugin.json", import.meta.url), "utf8"),
+    fs.readFileSync(new URL("../genesis.plugin.json", import.meta.url), "utf8"),
   ) as { configSchema: JsonSchemaObject };
   const Ajv = AjvPkg as unknown as new (opts?: object) => import("ajv").default;
   const ajv = new Ajv({ allErrors: true, strict: false, useDefaults: true });

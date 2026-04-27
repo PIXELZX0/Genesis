@@ -1,5 +1,5 @@
-import { expectChannelInboundContextContract } from "openclaw/plugin-sdk/channel-contract-testing";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { expectChannelInboundContextContract } from "genesis/plugin-sdk/channel-contract-testing";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { createTempHomeEnv } from "../../../test/helpers/plugins/temp-home.js";
 import {
@@ -37,12 +37,12 @@ function createSlackMessage(overrides: Partial<SlackMessageEvent>): SlackMessage
 
 describe("Slack inbound context contract", () => {
   it("keeps inbound context finalized", async () => {
-    const tempHome = await createTempHomeEnv("openclaw-slack-inbound-contract-");
+    const tempHome = await createTempHomeEnv("genesis-slack-inbound-contract-");
     try {
       const ctx = createInboundSlackTestContext({
         cfg: {
           channels: { slack: { enabled: true } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       });
       ctx.resolveUserName = async () => ({ name: "Alice" }) as never;
 

@@ -8,7 +8,7 @@ import type { SessionEntry } from "./types.js";
 
 describe("enforceSessionDiskBudget", () => {
   it("does not treat referenced transcripts with marker-like session IDs as archived artifacts", async () => {
-    await withTempDir({ prefix: "openclaw-disk-budget-" }, async (dir) => {
+    await withTempDir({ prefix: "genesis-disk-budget-" }, async (dir) => {
       const storePath = path.join(dir, "sessions.json");
       const sessionId = "keep.deleted.keep";
       const activeKey = "agent:main:main";
@@ -43,7 +43,7 @@ describe("enforceSessionDiskBudget", () => {
   });
 
   it("removes true archived transcript artifacts while preserving referenced primary transcripts", async () => {
-    await withTempDir({ prefix: "openclaw-disk-budget-" }, async (dir) => {
+    await withTempDir({ prefix: "genesis-disk-budget-" }, async (dir) => {
       const storePath = path.join(dir, "sessions.json");
       const sessionId = "keep";
       const transcriptPath = path.join(dir, `${sessionId}.jsonl`);

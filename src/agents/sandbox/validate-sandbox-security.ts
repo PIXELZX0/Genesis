@@ -154,7 +154,7 @@ export function getBlockedReasonForSourcePath(
 function getBlockedHostPaths(): string[] {
   const cacheKey = JSON.stringify({
     home: process.env.HOME,
-    openclawHome: process.env.OPENCLAW_HOME,
+    genesisHome: process.env.GENESIS_HOME,
     osHome: os.homedir(),
   });
   if (blockedHostPathsCache?.key === cacheKey) {
@@ -287,7 +287,7 @@ function formatBindBlockedError(params: { bind: string; reason: BlockedBindReaso
   if (params.reason.kind === "reserved_target") {
     return new Error(
       `Sandbox security: bind mount "${params.bind}" targets reserved container path "${params.reason.reservedPath}" ` +
-        `(resolved target: "${params.reason.targetPath}"). This can shadow OpenClaw sandbox mounts. ` +
+        `(resolved target: "${params.reason.targetPath}"). This can shadow Genesis sandbox mounts. ` +
         "Use a dangerous override only when you fully trust this runtime.",
     );
   }

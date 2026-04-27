@@ -15,7 +15,7 @@ import { optionalStringEnum, stringEnum } from "../schema/typebox.js";
 import { CRON_TOOL_DISPLAY_SUMMARY } from "../tool-description-presets.js";
 import { type AnyAgentTool, jsonResult, readStringParam } from "./common.js";
 import { callGatewayTool, readGatewayCallOptions, type GatewayCallOptions } from "./gateway.js";
-import { isOpenClawOwnerOnlyCoreToolName } from "./owner-only-tools.js";
+import { isGenesisOwnerOnlyCoreToolName } from "./owner-only-tools.js";
 import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
 
 // We spell out job/patch properties so that LLMs know what fields to send.
@@ -416,11 +416,11 @@ export function createCronTool(opts?: CronToolOptions, deps?: CronToolDeps): Any
   return {
     label: "Cron",
     name: "cron",
-    ownerOnly: isOpenClawOwnerOnlyCoreToolName("cron"),
+    ownerOnly: isGenesisOwnerOnlyCoreToolName("cron"),
     displaySummary: CRON_TOOL_DISPLAY_SUMMARY,
     description: `Manage Gateway cron jobs (status/list/add/update/remove/run/runs) and send wake events. Use this for reminders, "check back later" requests, delayed follow-ups, and recurring tasks. Do not emulate scheduling with exec sleep or process polling.
 
-Main-session cron jobs enqueue system events for heartbeat handling. Isolated cron jobs create background task runs that appear in \`openclaw tasks\`.
+Main-session cron jobs enqueue system events for heartbeat handling. Isolated cron jobs create background task runs that appear in \`genesis tasks\`.
 
 ACTIONS:
 - status: Check cron scheduler status
@@ -513,7 +513,7 @@ Use jobId as the canonical identifier; id is accepted for compatibility. Use con
           // job properties to the top level alongside `action` instead of nesting
           // them inside `job`. When `params.job` is missing or empty, reconstruct
           // a synthetic job object from any recognised top-level job fields.
-          // See: https://github.com/openclaw/openclaw/issues/11310
+          // See: https://github.com/PIXELZX0/Genesis/issues/11310
           if (isMissingOrEmptyObject(params.job)) {
             const synthetic = recoverCronObjectFromFlatParams(params);
             // Only use the synthetic job if at least one meaningful field is present

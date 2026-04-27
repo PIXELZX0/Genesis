@@ -1,9 +1,9 @@
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/routing";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/routing";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
   normalizeOptionalStringifiedId,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 const DISCORD_DIRECTORY_CACHE_MAX_ENTRIES = 4000;
 const DISCORD_DISCRIMINATOR_SUFFIX = /#\d{4}$/;

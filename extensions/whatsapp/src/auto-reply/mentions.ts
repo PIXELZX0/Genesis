@@ -1,8 +1,8 @@
 import {
   buildMentionRegexes,
   normalizeMentionText,
-} from "openclaw/plugin-sdk/channel-mention-gating";
-import type { loadConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "genesis/plugin-sdk/channel-mention-gating";
+import type { loadConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   getComparableIdentityValues,
   getMentionIdentities,

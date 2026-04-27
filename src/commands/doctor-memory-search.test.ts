@@ -1,6 +1,6 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import type { checkQmdBinaryAvailability as checkQmdBinaryAvailabilityFn } from "../memory-host-sdk/engine-qmd.js";
 import type { DoctorPrompter } from "./doctor-prompter.js";
 
@@ -142,7 +142,7 @@ function resetMemoryRecallMocks() {
 }
 
 describe("noteMemorySearchHealth", () => {
-  const cfg = {} as OpenClawConfig;
+  const cfg = {} as GenesisConfig;
 
   async function expectNoWarningWithConfiguredRemoteApiKey(provider: string) {
     resolveMemorySearchConfig.mockReturnValue({
@@ -169,7 +169,7 @@ describe("noteMemorySearchHealth", () => {
     hasAnyAuthProfileStoreSource.mockReturnValue(true);
     getActiveMemorySearchManager.mockReset();
     resolveActiveMemoryBackendConfig.mockReset();
-    resolveActiveMemoryBackendConfig.mockImplementation(({ cfg }: { cfg: OpenClawConfig }) =>
+    resolveActiveMemoryBackendConfig.mockImplementation(({ cfg }: { cfg: GenesisConfig }) =>
       cfg.memory?.backend === "qmd"
         ? { backend: "qmd", qmd: cfg.memory.qmd ?? {} }
         : { backend: "builtin" },
@@ -259,7 +259,7 @@ describe("noteMemorySearchHealth", () => {
   });
 
   it("does not warn when QMD backend is active", async () => {
-    const qmdCfg = { memory: { backend: "qmd", qmd: { command: "qmd" } } } as OpenClawConfig;
+    const qmdCfg = { memory: { backend: "qmd", qmd: { command: "qmd" } } } as GenesisConfig;
     resolveMemorySearchConfig.mockReturnValue({
       provider: "auto",
       local: {},
@@ -277,7 +277,7 @@ describe("noteMemorySearchHealth", () => {
   });
 
   it("warns when QMD backend is active but the qmd binary is unavailable", async () => {
-    const qmdCfg = { memory: { backend: "qmd", qmd: { command: "qmd" } } } as OpenClawConfig;
+    const qmdCfg = { memory: { backend: "qmd", qmd: { command: "qmd" } } } as GenesisConfig;
     checkQmdBinaryAvailability.mockResolvedValueOnce({
       available: false,
       error: "spawn qmd ENOENT",
@@ -424,7 +424,7 @@ describe("noteMemorySearchHealth", () => {
     const message = String(note.mock.calls[0]?.[0] ?? "");
     expect(message).toContain('provider "lmstudio" is configured');
     expect(message).toContain("could not confirm embeddings are ready");
-    expect(message).toContain("openclaw memory status --deep");
+    expect(message).toContain("genesis memory status --deep");
   });
 
   it("notes when gateway probe reports embeddings ready and CLI API key is missing", async () => {
@@ -459,8 +459,8 @@ describe("noteMemorySearchHealth", () => {
 
     const message = note.mock.calls[0]?.[0] as string;
     expect(message).toContain("Gateway memory probe for default agent is not ready");
-    expect(message).toContain("openclaw configure --section model");
-    expect(message).not.toContain("openclaw auth add --provider");
+    expect(message).toContain("genesis configure --section model");
+    expect(message).not.toContain("genesis auth add --provider");
   });
 
   it("warns in auto mode when no local modelPath and no API keys are configured", async () => {
@@ -478,7 +478,7 @@ describe("noteMemorySearchHealth", () => {
     expect(note).toHaveBeenCalledTimes(1);
     const message = String(note.mock.calls[0]?.[0] ?? "");
     expect(message).toContain("needs at least one embedding provider");
-    expect(message).toContain("openclaw configure --section model");
+    expect(message).toContain("genesis configure --section model");
   });
 
   it("does not probe unrelated embedding providers in auto mode", async () => {
@@ -565,7 +565,7 @@ describe("noteMemorySearchHealth", () => {
 });
 
 describe("memory recall doctor integration", () => {
-  const cfg = {} as OpenClawConfig;
+  const cfg = {} as GenesisConfig;
 
   beforeEach(() => {
     note.mockClear();
@@ -692,7 +692,7 @@ describe("memory recall doctor integration", () => {
     });
     repairDreamingArtifacts.mockResolvedValueOnce({
       changed: true,
-      archiveDir: "/tmp/agent-default/workspace/.openclaw-repair/dreaming/2026-04-11T21-35-00-000Z",
+      archiveDir: "/tmp/agent-default/workspace/.genesis-repair/dreaming/2026-04-11T21-35-00-000Z",
       archivedDreamsDiary: false,
       archivedSessionCorpus: true,
       archivedSessionIngestion: true,
@@ -717,7 +717,7 @@ describe("memory recall doctor integration", () => {
 
 describe("detectLegacyWorkspaceDirs", () => {
   it("returns active workspace and no legacy dirs", () => {
-    const workspaceDir = "/home/user/openclaw";
+    const workspaceDir = "/home/user/genesis";
     const detection = detectLegacyWorkspaceDirs({ workspaceDir });
     expect(detection.activeWorkspace).toBe(path.resolve(workspaceDir));
     expect(detection.legacyDirs).toEqual([]);

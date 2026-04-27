@@ -56,7 +56,7 @@ export function buildSystemdUnit({
   environmentFiles,
 }: GatewayServiceRenderArgs): string {
   const execStart = programArguments.map(systemdEscapeArg).join(" ");
-  const descriptionValue = description?.trim() || "OpenClaw Gateway";
+  const descriptionValue = description?.trim() || "Genesis Gateway";
   assertNoSystemdLineBreaks(descriptionValue, "Systemd Description");
   const descriptionLine = `Description=${descriptionValue}`;
   const workingDirLine = workingDirectory

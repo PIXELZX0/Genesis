@@ -22,14 +22,14 @@ import type {
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import type { ChannelMeta } from "../channels/plugins/types.public.js";
 import type { ReplyToMode } from "../config/types.base.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { buildOutboundBaseSessionKey } from "../infra/outbound/base-session-key.js";
 import type { OutboundDeliveryResult } from "../infra/outbound/deliver.js";
 import { normalizeOutboundThreadId } from "../infra/outbound/thread-id.js";
 import { resolveBundledPluginsDir } from "../plugins/bundled-dir.js";
 import type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
-import type { OpenClawPluginApi } from "../plugins/types.js";
+import type { GenesisPluginApi } from "../plugins/types.js";
 import { resolveThreadSessionKeys } from "../routing/session-key.js";
 import { parseThreadSessionSuffix } from "../sessions/session-key-utils.js";
 import {
@@ -41,12 +41,12 @@ export type {
   AgentHarness,
   AnyAgentTool,
   MediaUnderstandingProviderPlugin,
-  OpenClawPluginApi,
-  OpenClawPluginCommandDefinition,
-  OpenClawPluginConfigSchema,
-  OpenClawPluginDefinition,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  GenesisPluginApi,
+  GenesisPluginCommandDefinition,
+  GenesisPluginConfigSchema,
+  GenesisPluginDefinition,
+  GenesisPluginService,
+  GenesisPluginServiceContext,
   PluginCommandContext,
   PluginLogger,
   ProviderAuthContext,
@@ -95,7 +95,7 @@ export type {
   SpeechProviderPlugin,
 } from "./plugin-entry.js";
 export type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
-export type { OpenClawPluginToolContext, OpenClawPluginToolFactory } from "../plugins/types.js";
+export type { GenesisPluginToolContext, GenesisPluginToolFactory } from "../plugins/types.js";
 export type {
   MemoryPluginCapability,
   MemoryPluginPublicArtifact,
@@ -106,7 +106,7 @@ export type {
   PluginHookReplyDispatchEvent,
   PluginHookReplyDispatchResult,
 } from "../plugins/types.js";
-export type { OpenClawConfig } from "../config/config.js";
+export type { GenesisConfig } from "../config/config.js";
 export type { OutboundIdentity } from "../infra/outbound/identity.js";
 export type { HistoryEntry } from "../auto-reply/reply/history.js";
 export type { ReplyPayload } from "./reply-payload.js";
@@ -220,7 +220,7 @@ export { formatZonedTimestamp } from "../infra/format-time/format-datetime.js";
 export { resolveConfiguredAcpBindingRecord } from "../acp/persistent-bindings.resolve.js";
 
 export async function ensureConfiguredAcpBindingReady(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   configuredBinding: ResolvedConfiguredAcpBinding | null;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const runtime = await import("../acp/persistent-bindings.lifecycle.js");
@@ -287,7 +287,7 @@ export function stripTargetKindPrefix(raw: string): string {
  * message adapters.
  */
 export function buildChannelOutboundSessionRoute(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   channel: string;
   accountId?: string | null;
@@ -418,8 +418,8 @@ type DefineChannelPluginEntryOptions<TPlugin = ChannelPlugin> = {
   plugin: TPlugin;
   configSchema?: ChannelEntryConfigSchema<TPlugin> | (() => ChannelEntryConfigSchema<TPlugin>);
   setRuntime?: (runtime: PluginRuntime) => void;
-  registerCliMetadata?: (api: OpenClawPluginApi) => void;
-  registerFull?: (api: OpenClawPluginApi) => void;
+  registerCliMetadata?: (api: GenesisPluginApi) => void;
+  registerFull?: (api: GenesisPluginApi) => void;
 };
 
 type DefinedChannelPluginEntry<TPlugin> = {
@@ -427,7 +427,7 @@ type DefinedChannelPluginEntry<TPlugin> = {
   name: string;
   description: string;
   configSchema: ChannelEntryConfigSchema<TPlugin>;
-  register: (api: OpenClawPluginApi) => void;
+  register: (api: GenesisPluginApi) => void;
   channelPlugin: TPlugin;
   setChannelRuntime?: (runtime: PluginRuntime) => void;
 };
@@ -498,7 +498,7 @@ export function defineChannelPluginEntry<TPlugin>({
     name,
     description,
     configSchema: resolvedConfigSchema,
-    register(api: OpenClawPluginApi) {
+    register(api: GenesisPluginApi) {
       if (api.registrationMode === "cli-metadata") {
         registerCliMetadata?.(api);
         return;
@@ -579,7 +579,7 @@ type ChatChannelThreadingReplyModeOptions<TResolvedAccount> =
   | { topLevelReplyToMode: string }
   | {
       scopedAccountReplyToMode: {
-        resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) => TResolvedAccount;
+        resolveAccount: (cfg: GenesisConfig, accountId?: string | null) => TResolvedAccount;
         resolveReplyToMode: (
           account: TResolvedAccount,
           chatType?: string | null,

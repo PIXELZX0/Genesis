@@ -3,7 +3,7 @@ import {
   getMediaGenerationRuntimeMocks,
   resetMusicGenerationRuntimeMocks,
 } from "../../test/helpers/media-generation/runtime-module-mocks.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { GenesisConfig } from "../config/types.js";
 import { generateMusic, listRuntimeMusicGenerationProviders } from "./runtime.js";
 import type { MusicGenerationProvider } from "./types.js";
 
@@ -55,7 +55,7 @@ describe("music-generation runtime", () => {
             musicGenerationModel: { primary: "music-plugin/track-v1" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "play a synth line",
       agentDir: "/tmp/agent",
       authStore,
@@ -124,7 +124,7 @@ describe("music-generation runtime", () => {
     ]);
 
     const result = await generateMusic({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as GenesisConfig,
       prompt: "play a synth line",
     });
 
@@ -157,10 +157,8 @@ describe("music-generation runtime", () => {
     ];
     mocks.listMusicGenerationProviders.mockReturnValue(providers);
 
-    expect(listRuntimeMusicGenerationProviders({ config: {} as OpenClawConfig })).toEqual(
-      providers,
-    );
-    expect(mocks.listMusicGenerationProviders).toHaveBeenCalledWith({} as OpenClawConfig);
+    expect(listRuntimeMusicGenerationProviders({ config: {} as GenesisConfig })).toEqual(providers);
+    expect(mocks.listMusicGenerationProviders).toHaveBeenCalledWith({} as GenesisConfig);
   });
 
   it("ignores unsupported optional overrides per provider and model", async () => {
@@ -206,7 +204,7 @@ describe("music-generation runtime", () => {
             musicGenerationModel: { primary: "google/lyria-3-clip-preview" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "energetic arcade anthem",
       lyrics: "Hero crab in the neon tide",
       instrumental: true,
@@ -275,7 +273,7 @@ describe("music-generation runtime", () => {
             musicGenerationModel: { primary: "google/lyria-3-pro-preview" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "turn this cover image into a trailer cue",
       lyrics: "rise up",
       instrumental: true,
@@ -329,7 +327,7 @@ describe("music-generation runtime", () => {
             musicGenerationModel: { primary: "minimax/music-2.5+" },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       prompt: "energetic arcade anthem",
       durationSeconds: 45,
     });

@@ -1,8 +1,8 @@
-import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk/channel-contract";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/core";
-import { resolveOutboundSendDep } from "openclaw/plugin-sdk/outbound-runtime";
-import { collectStatusIssuesFromLastError } from "openclaw/plugin-sdk/status-helpers";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { ChannelOutboundAdapter } from "genesis/plugin-sdk/channel-contract";
+import type { ChannelPlugin } from "genesis/plugin-sdk/core";
+import { resolveOutboundSendDep } from "genesis/plugin-sdk/outbound-runtime";
+import { collectStatusIssuesFromLastError } from "genesis/plugin-sdk/status-helpers";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 
 function normalizeIMessageTestHandle(raw: string): string {
   let trimmed = raw.trim();

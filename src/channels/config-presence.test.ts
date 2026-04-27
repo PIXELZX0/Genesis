@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { GenesisConfig } from "../config/config.js";
 import {
   hasMeaningfulChannelConfig,
   hasPotentialConfiguredChannels,
@@ -22,19 +22,19 @@ vi.mock("../channels/plugins/persisted-auth-state.js", () => ({
   }: {
     channelId: string;
     env?: NodeJS.ProcessEnv;
-  }) => channelId === "matrix" && env?.OPENCLAW_STATE_DIR?.includes("persisted-matrix"),
+  }) => channelId === "matrix" && env?.GENESIS_STATE_DIR?.includes("persisted-matrix"),
 }));
 
 const tempDirs: string[] = [];
 
 function makeTempStateDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-config-presence-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-config-presence-"));
   tempDirs.push(dir);
   return dir;
 }
 
 function expectPotentialConfiguredChannelCase(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   env: NodeJS.ProcessEnv;
   expectedIds: string[];
   expectedConfigured: boolean;
@@ -100,12 +100,12 @@ describe("config presence", () => {
 
   it("detects persisted Matrix credentials without config or env", () => {
     const stateDir = makeTempStateDir().replace(
-      "openclaw-channel-config-presence-",
+      "genesis-channel-config-presence-",
       "persisted-matrix-",
     );
     fs.mkdirSync(stateDir, { recursive: true });
     tempDirs.push(stateDir);
-    const env = { OPENCLAW_STATE_DIR: stateDir } as NodeJS.ProcessEnv;
+    const env = { GENESIS_STATE_DIR: stateDir } as NodeJS.ProcessEnv;
 
     expectPotentialConfiguredChannelCase({
       cfg: {},

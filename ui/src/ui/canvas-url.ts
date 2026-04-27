@@ -1,6 +1,6 @@
-const A2UI_PATH = "/__openclaw__/a2ui";
-const CANVAS_HOST_PATH = "/__openclaw__/canvas";
-const CANVAS_CAPABILITY_PATH_PREFIX = "/__openclaw__/cap";
+const A2UI_PATH = "/__genesis__/a2ui";
+const CANVAS_HOST_PATH = "/__genesis__/canvas";
+const CANVAS_CAPABILITY_PATH_PREFIX = "/__genesis__/cap";
 
 function isCanvasHttpPath(pathname: string): boolean {
   return (

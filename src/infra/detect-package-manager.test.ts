@@ -8,7 +8,7 @@ async function withPackageManagerRoot<T>(
   files: Array<{ path: string; content: string }>,
   run: (root: string) => Promise<T>,
 ): Promise<T> {
-  return await withTempDir({ prefix: "openclaw-detect-pm-" }, async (root) => {
+  return await withTempDir({ prefix: "genesis-detect-pm-" }, async (root) => {
     for (const file of files) {
       await fs.writeFile(path.join(root, file.path), file.content, "utf8");
     }

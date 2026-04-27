@@ -3,7 +3,7 @@
  * 凭证暂存与恢复。
  *
  * Solves the "hot-upgrade interrupted, appId/secret vanished from
- * openclaw.json" failure mode.
+ * genesis.json" failure mode.
  *
  * Mechanics:
  *   - After each successful gateway start we snapshot the currently
@@ -11,7 +11,7 @@
  *   - During plugin startup, if the live config has an empty appId or
  *     secret, the gateway consults the backup and restores the values
  *     via `writeConfigFile`.
- *   - Backups live under `~/.openclaw/qqbot/data/` so they survive
+ *   - Backups live under `~/.genesis/qqbot/data/` so they survive
  *     plugin directory replacement.
  *
  * Safety notes:

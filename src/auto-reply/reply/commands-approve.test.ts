@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChannelPlugin } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { resolveApprovalApprovers } from "../../plugin-sdk/approval-approvers.js";
 import {
   createApproverRestrictedNativeApprovalAdapter,
@@ -34,7 +34,7 @@ function normalizeDiscordDirectApproverId(value: string | number): string | unde
   return normalized || undefined;
 }
 
-function getDiscordExecApprovalApproversForTests(params: { cfg: OpenClawConfig }): string[] {
+function getDiscordExecApprovalApproversForTests(params: { cfg: GenesisConfig }): string[] {
   const discord = params.cfg.channels?.discord;
   return resolveApprovalApprovers({
     explicit: discord?.execApprovals?.approvers,
@@ -154,7 +154,7 @@ type TelegramTestSectionConfig = TelegramTestAccountConfig & {
   accounts?: Record<string, TelegramTestAccountConfig>;
 };
 
-function listConfiguredTelegramAccountIds(cfg: OpenClawConfig): string[] {
+function listConfiguredTelegramAccountIds(cfg: GenesisConfig): string[] {
   const channel = cfg.channels?.telegram as TelegramTestSectionConfig | undefined;
   const accountIds = Object.keys(channel?.accounts ?? {});
   if (accountIds.length > 0) {
@@ -168,7 +168,7 @@ function listConfiguredTelegramAccountIds(cfg: OpenClawConfig): string[] {
 }
 
 function resolveTelegramTestAccount(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   accountId?: string | null,
 ): TelegramTestAccountConfig {
   const resolvedAccountId = normalizeAccountId(accountId);
@@ -217,7 +217,7 @@ function normalizeTelegramDirectApproverId(value: string | number): string | und
 }
 
 function getTelegramExecApprovalApprovers(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): string[] {
   const account = resolveTelegramTestAccount(params.cfg, params.accountId);
@@ -229,7 +229,7 @@ function getTelegramExecApprovalApprovers(params: {
 }
 
 function isTelegramExecApprovalTargetRecipient(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   senderId?: string | null;
   accountId?: string | null;
 }): boolean {
@@ -256,7 +256,7 @@ function isTelegramExecApprovalTargetRecipient(params: {
 }
 
 function isTelegramExecApprovalAuthorizedSender(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   senderId?: string | null;
 }): boolean {
@@ -271,7 +271,7 @@ function isTelegramExecApprovalAuthorizedSender(params: {
 }
 
 function isTelegramExecApprovalClientEnabled(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): boolean {
   const config = resolveTelegramTestAccount(params.cfg, params.accountId).execApprovals;
@@ -279,7 +279,7 @@ function isTelegramExecApprovalClientEnabled(params: {
 }
 
 function resolveTelegramExecApprovalTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): "dm" | "channel" | "both" {
   return resolveTelegramTestAccount(params.cfg, params.accountId).execApprovals?.target ?? "dm";
@@ -320,9 +320,9 @@ const telegramApproveTestPlugin: ChannelPlugin = {
     },
     config: {
       listAccountIds: listConfiguredTelegramAccountIds,
-      resolveAccount: (cfg: OpenClawConfig, accountId?: string | null) =>
+      resolveAccount: (cfg: GenesisConfig, accountId?: string | null) =>
         resolveTelegramTestAccount(cfg, accountId),
-      defaultAccountId: (cfg: OpenClawConfig) =>
+      defaultAccountId: (cfg: GenesisConfig) =>
         (cfg.channels?.telegram as TelegramTestSectionConfig | undefined)?.defaultAccount ??
         DEFAULT_ACCOUNT_ID,
     },
@@ -368,7 +368,7 @@ function setApprovePluginRegistry(): void {
 
 function buildApproveParams(
   commandBodyNormalized: string,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   ctxOverrides?: {
     Provider?: string;
     Surface?: string;
@@ -410,7 +410,7 @@ describe("handleApproveCommand", () => {
       approvers: string[];
       target: "dm";
     } | null = { enabled: true, approvers: ["123"], target: "dm" },
-  ): OpenClawConfig {
+  ): GenesisConfig {
     return {
       commands: { text: true },
       channels: {
@@ -419,7 +419,7 @@ describe("handleApproveCommand", () => {
           ...(execApprovals ? { execApprovals } : {}),
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
   }
 
   function createDiscordApproveCfg(
@@ -428,7 +428,7 @@ describe("handleApproveCommand", () => {
       approvers: string[];
       target: "dm" | "channel" | "both";
     } | null = { enabled: true, approvers: ["123"], target: "channel" },
-  ): OpenClawConfig {
+  ): GenesisConfig {
     return {
       commands: { text: true },
       channels: {
@@ -437,7 +437,7 @@ describe("handleApproveCommand", () => {
           ...(execApprovals ? { execApprovals } : {}),
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
   }
 
   it("rejects invalid usage", async () => {
@@ -445,7 +445,7 @@ describe("handleApproveCommand", () => {
       buildApproveParams("/approve", {
         commands: { text: true },
         channels: { whatsapp: { allowFrom: ["*"] } },
-      } as OpenClawConfig),
+      } as GenesisConfig),
       true,
     );
     expect(result?.shouldContinue).toBe(false);
@@ -460,7 +460,7 @@ describe("handleApproveCommand", () => {
         {
           commands: { text: true },
           channels: { whatsapp: { allowFrom: ["*"] } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         { SenderId: "123" },
       ),
       true,
@@ -484,7 +484,7 @@ describe("handleApproveCommand", () => {
         {
           commands: { text: true },
           channels: { slack: { allowFrom: ["*"] } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         {
           Provider: "slack",
           Surface: "slack",
@@ -550,7 +550,7 @@ describe("handleApproveCommand", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "telegram",
         Surface: "telegram",
@@ -581,7 +581,7 @@ describe("handleApproveCommand", () => {
             allowFrom: ["+15551230000"],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "signal",
         Surface: "signal",
@@ -607,7 +607,7 @@ describe("handleApproveCommand", () => {
       "/approve abc12345 allow-once",
       {
         commands: { text: true },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "webchat",
         Surface: "webchat",
@@ -643,7 +643,7 @@ describe("handleApproveCommand", () => {
       {
         commands: { text: true },
         channels: { slack: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "slack",
         Surface: "slack",
@@ -668,7 +668,7 @@ describe("handleApproveCommand", () => {
             allowFrom: [],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "signal",
         Surface: "signal",
@@ -694,7 +694,7 @@ describe("handleApproveCommand", () => {
             allowFrom: [],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "signal",
         Surface: "signal",
@@ -731,7 +731,7 @@ describe("handleApproveCommand", () => {
             allowFrom: ["*"],
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "telegram",
         Surface: "telegram",
@@ -897,7 +897,7 @@ describe("handleApproveCommand", () => {
         {
           commands: { text: true },
           channels: { matrix: { allowFrom: ["*"] } },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         {
           Provider: "matrix",
           Surface: "matrix",
@@ -1029,7 +1029,7 @@ describe("handleApproveCommand", () => {
   it("enforces gateway approval scopes", async () => {
     const cfg = {
       commands: { text: true },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     for (const testCase of [
       {
         scopes: ["operator.write"],

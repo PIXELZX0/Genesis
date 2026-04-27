@@ -700,7 +700,7 @@ function buildAssistantText(
     return "Protocol note: I do not have enough context to say what you usually want for QA movie night.";
   }
   if (/tool continuity check/i.test(prompt) && toolOutput) {
-    return `Protocol note: model switch handoff confirmed on ${model || "the requested model"}. QA mission from QA_KICKOFF_TASK.md still applies: understand this OpenClaw repo from source + docs before acting.`;
+    return `Protocol note: model switch handoff confirmed on ${model || "the requested model"}. QA mission from QA_KICKOFF_TASK.md still applies: understand this Genesis repo from source + docs before acting.`;
   }
   if (toolOutput && /repo contract followthrough check/i.test(prompt)) {
     if (

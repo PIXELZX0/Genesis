@@ -1,5 +1,5 @@
 import { resolveThinkingDefaultForModel } from "../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -11,7 +11,7 @@ import { normalizeModelSelection } from "./model-selection-resolve.js";
 type ThinkLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive" | "max";
 
 export function resolveThinkingDefault(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   provider: string;
   model: string;
   catalog?: ModelCatalogEntry[];

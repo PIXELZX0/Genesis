@@ -1,8 +1,8 @@
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
+import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
 import {
   createConnectedChannelStatusPatch,
   createTransportActivityStatusPatch,
-} from "openclaw/plugin-sdk/gateway-runtime";
+} from "genesis/plugin-sdk/gateway-runtime";
 import { formatMatrixErrorMessage } from "../errors.js";
 import {
   isMatrixDisconnectedSyncState,

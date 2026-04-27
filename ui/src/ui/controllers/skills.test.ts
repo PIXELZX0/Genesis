@@ -195,7 +195,7 @@ describe("skill mutations", () => {
         await saveSkillApiKey(state, "github");
       },
       expectedRequest: ["skills.update", { skillKey: "github", apiKey: "sk-test" }],
-      expectedMessage: "API key saved — stored in openclaw.json (skills.entries.github)",
+      expectedMessage: "API key saved — stored in genesis.json (skills.entries.github)",
     },
     {
       name: "installs skills and uses server success messages",

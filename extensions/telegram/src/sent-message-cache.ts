@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveStorePath, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { resolveStorePath, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { logVerbose } from "genesis/plugin-sdk/runtime-env";
 
 const TTL_MS = 24 * 60 * 60 * 1000;
-const TELEGRAM_SENT_MESSAGES_STATE_KEY = Symbol.for("openclaw.telegramSentMessagesState");
+const TELEGRAM_SENT_MESSAGES_STATE_KEY = Symbol.for("genesis.telegramSentMessagesState");
 
 type SentMessageStore = Map<string, Map<string, number>>;
 
@@ -34,7 +34,7 @@ function createSentMessageStore(): SentMessageStore {
   return new Map<string, Map<string, number>>();
 }
 
-function resolveSentMessageStorePath(cfg?: Pick<OpenClawConfig, "session">): string {
+function resolveSentMessageStorePath(cfg?: Pick<GenesisConfig, "session">): string {
   return `${resolveStorePath(cfg?.session?.store)}.telegram-sent-messages.json`;
 }
 
@@ -85,7 +85,7 @@ function readPersistedSentMessages(filePath: string): SentMessageStore {
   }
 }
 
-function getSentMessageBucket(cfg?: Pick<OpenClawConfig, "session">): SentMessageBucket {
+function getSentMessageBucket(cfg?: Pick<GenesisConfig, "session">): SentMessageBucket {
   const state = getSentMessageState();
   const persistedPath = resolveSentMessageStorePath(cfg);
   const existing = state.bucketsByPath.get(persistedPath);
@@ -100,7 +100,7 @@ function getSentMessageBucket(cfg?: Pick<OpenClawConfig, "session">): SentMessag
   return bucket;
 }
 
-function getSentMessages(cfg?: Pick<OpenClawConfig, "session">): SentMessageStore {
+function getSentMessages(cfg?: Pick<GenesisConfig, "session">): SentMessageStore {
   return getSentMessageBucket(cfg).store;
 }
 
@@ -127,7 +127,7 @@ function persistSentMessages(bucket: SentMessageBucket): void {
 export function recordSentMessage(
   chatId: number | string,
   messageId: number,
-  cfg?: Pick<OpenClawConfig, "session">,
+  cfg?: Pick<GenesisConfig, "session">,
 ): void {
   const scopeKey = String(chatId);
   const idKey = String(messageId);
@@ -153,7 +153,7 @@ export function recordSentMessage(
 export function wasSentByBot(
   chatId: number | string,
   messageId: number,
-  cfg?: Pick<OpenClawConfig, "session">,
+  cfg?: Pick<GenesisConfig, "session">,
 ): boolean {
   const scopeKey = String(chatId);
   const idKey = String(messageId);

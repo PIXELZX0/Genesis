@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { telegramMessageActions, telegramMessageActionRuntime } from "./channel-actions.js";
 
@@ -64,7 +64,7 @@ describe("telegramMessageActions", () => {
     const cases = [
       {
         name: "configured telegram enables poll",
-        cfg: { channels: { telegram: { botToken: "tok" } } } as OpenClawConfig,
+        cfg: { channels: { telegram: { botToken: "tok" } } } as GenesisConfig,
         expectPoll: true,
         expectTopicEdit: true,
       },
@@ -77,7 +77,7 @@ describe("telegramMessageActions", () => {
               actions: { sendMessage: false },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectPoll: false,
         expectTopicEdit: true,
       },
@@ -90,7 +90,7 @@ describe("telegramMessageActions", () => {
               actions: { poll: false },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectPoll: false,
         expectTopicEdit: true,
       },
@@ -117,7 +117,7 @@ describe("telegramMessageActions", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectPoll: false,
         expectTopicEdit: true,
       },
@@ -145,7 +145,7 @@ describe("telegramMessageActions", () => {
     const cases = [
       {
         name: "default config",
-        cfg: { channels: { telegram: { botToken: "tok" } } } as OpenClawConfig,
+        cfg: { channels: { telegram: { botToken: "tok" } } } as GenesisConfig,
         expectSticker: false,
       },
       {
@@ -158,7 +158,7 @@ describe("telegramMessageActions", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectSticker: true,
       },
       {
@@ -172,7 +172,7 @@ describe("telegramMessageActions", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         expectSticker: false,
       },
     ] as const;
@@ -213,7 +213,7 @@ describe("telegramMessageActions", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
 
     const defaultActions =
       telegramMessageActions.describeMessageTool?.({
@@ -233,7 +233,7 @@ describe("telegramMessageActions", () => {
   });
 
   it("normalizes reaction message identifiers before dispatch", async () => {
-    const cfg = { channels: { telegram: { botToken: "tok" } } } as OpenClawConfig;
+    const cfg = { channels: { telegram: { botToken: "tok" } } } as GenesisConfig;
     const cases = [
       {
         name: "numeric channelId/messageId",

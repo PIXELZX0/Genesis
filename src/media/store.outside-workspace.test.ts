@@ -34,7 +34,7 @@ describe("media store outside-workspace mapping", () => {
 
   beforeAll(async () => {
     ({ saveMediaSource } = await import("./store.js"));
-    tempHome = await createTempHomeEnv("openclaw-media-store-test-home-");
+    tempHome = await createTempHomeEnv("genesis-media-store-test-home-");
     home = tempHome.home;
   });
 

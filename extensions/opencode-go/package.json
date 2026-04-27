@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/opencode-go-provider",
+  "name": "@genesis/opencode-go-provider",
   "version": "2026.4.20",
   "private": true,
-  "description": "OpenClaw OpenCode Go provider plugin",
+  "description": "Genesis OpenCode Go provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ]

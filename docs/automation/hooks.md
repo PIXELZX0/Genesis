@@ -6,29 +6,29 @@ read_when:
 title: "Hooks"
 ---
 
-Hooks are small scripts that run when something happens inside the Gateway. They can be discovered from directories and inspected with `openclaw hooks`. The Gateway loads internal hooks only after you enable hooks or configure at least one hook entry, hook pack, legacy handler, or extra hook directory.
+Hooks are small scripts that run when something happens inside the Gateway. They can be discovered from directories and inspected with `genesis hooks`. The Gateway loads internal hooks only after you enable hooks or configure at least one hook entry, hook pack, legacy handler, or extra hook directory.
 
-There are two kinds of hooks in OpenClaw:
+There are two kinds of hooks in Genesis:
 
 - **Internal hooks** (this page): run inside the Gateway when agent events fire, like `/new`, `/reset`, `/stop`, or lifecycle events.
-- **Webhooks**: external HTTP endpoints that let other systems trigger work in OpenClaw. See [Webhooks](/automation/cron-jobs#webhooks).
+- **Webhooks**: external HTTP endpoints that let other systems trigger work in Genesis. See [Webhooks](/automation/cron-jobs#webhooks).
 
-Hooks can also be bundled inside plugins. `openclaw hooks list` shows both standalone hooks and plugin-managed hooks.
+Hooks can also be bundled inside plugins. `genesis hooks list` shows both standalone hooks and plugin-managed hooks.
 
 ## Quick start
 
 ```bash
 # List available hooks
-openclaw hooks list
+genesis hooks list
 
 # Enable a hook
-openclaw hooks enable session-memory
+genesis hooks enable session-memory
 
 # Check hook status
-openclaw hooks check
+genesis hooks check
 
 # Get detailed information
-openclaw hooks info session-memory
+genesis hooks info session-memory
 ```
 
 ## Event types
@@ -68,7 +68,7 @@ my-hook/
 name: my-hook
 description: "Short description of what this hook does"
 metadata:
-  { "openclaw": { "emoji": "🔗", "events": ["command:new"], "requires": { "bins": ["node"] } } }
+  { "genesis": { "emoji": "🔗", "events": ["command:new"], "requires": { "bins": ["node"] } } }
 ---
 
 # My Hook
@@ -76,7 +76,7 @@ metadata:
 Detailed documentation goes here.
 ```
 
-**Metadata fields** (`metadata.openclaw`):
+**Metadata fields** (`metadata.genesis`):
 
 | Field      | Description                                          |
 | ---------- | ---------------------------------------------------- |
@@ -130,21 +130,21 @@ Each event includes: `type`, `action`, `sessionKey`, `timestamp`, `messages` (pu
 
 Hooks are discovered from these directories, in order of increasing override precedence:
 
-1. **Bundled hooks**: shipped with OpenClaw
+1. **Bundled hooks**: shipped with Genesis
 2. **Plugin hooks**: hooks bundled inside installed plugins
-3. **Managed hooks**: `~/.openclaw/hooks/` (user-installed, shared across workspaces). Extra directories from `hooks.internal.load.extraDirs` share this precedence.
+3. **Managed hooks**: `~/.genesis/hooks/` (user-installed, shared across workspaces). Extra directories from `hooks.internal.load.extraDirs` share this precedence.
 4. **Workspace hooks**: `<workspace>/hooks/` (per-agent, disabled by default until explicitly enabled)
 
 Workspace hooks can add new hook names but cannot override bundled, managed, or plugin-provided hooks with the same name.
 
-The Gateway skips internal hook discovery on startup until internal hooks are configured. Enable a bundled or managed hook with `openclaw hooks enable <name>`, install a hook pack, or set `hooks.internal.enabled=true` to opt in. When you enable one named hook, the Gateway loads only that hook's handler; `hooks.internal.enabled=true`, extra hook directories, and legacy handlers opt into broad discovery.
+The Gateway skips internal hook discovery on startup until internal hooks are configured. Enable a bundled or managed hook with `genesis hooks enable <name>`, install a hook pack, or set `hooks.internal.enabled=true` to opt in. When you enable one named hook, the Gateway loads only that hook's handler; `hooks.internal.enabled=true`, extra hook directories, and legacy handlers opt into broad discovery.
 
 ### Hook packs
 
-Hook packs are npm packages that export hooks via `openclaw.hooks` in `package.json`. Install with:
+Hook packs are npm packages that export hooks via `genesis.hooks` in `package.json`. Install with:
 
 ```bash
-openclaw plugins install <path-or-spec>
+genesis plugins install <path-or-spec>
 ```
 
 Npm specs are registry-only (package name + optional exact version or dist-tag). Git/URL/file specs and semver ranges are rejected.
@@ -155,13 +155,13 @@ Npm specs are registry-only (package name + optional exact version or dist-tag).
 | --------------------- | ------------------------------ | ----------------------------------------------------- |
 | session-memory        | `command:new`, `command:reset` | Saves session context to `<workspace>/memory/`        |
 | bootstrap-extra-files | `agent:bootstrap`              | Injects additional bootstrap files from glob patterns |
-| command-logger        | `command`                      | Logs all commands to `~/.openclaw/logs/commands.log`  |
+| command-logger        | `command`                      | Logs all commands to `~/.genesis/logs/commands.log`   |
 | boot-md               | `gateway:startup`              | Runs `BOOT.md` when the gateway starts                |
 
 Enable any bundled hook:
 
 ```bash
-openclaw hooks enable <hook-name>
+genesis hooks enable <hook-name>
 ```
 
 <a id="session-memory"></a>
@@ -195,7 +195,7 @@ Paths resolve relative to workspace. Only recognized bootstrap basenames are loa
 
 ### command-logger details
 
-Logs every slash command to `~/.openclaw/logs/commands.log`.
+Logs every slash command to `~/.genesis/logs/commands.log`.
 
 <a id="boot-md"></a>
 
@@ -267,17 +267,17 @@ The legacy `hooks.internal.handlers` array config format is still supported for 
 
 ```bash
 # List all hooks (add --eligible, --verbose, or --json)
-openclaw hooks list
+genesis hooks list
 
 # Show detailed info about a hook
-openclaw hooks info <hook-name>
+genesis hooks info <hook-name>
 
 # Show eligibility summary
-openclaw hooks check
+genesis hooks check
 
 # Enable/disable
-openclaw hooks enable <hook-name>
-openclaw hooks disable <hook-name>
+genesis hooks enable <hook-name>
+genesis hooks disable <hook-name>
 ```
 
 ## Best practices
@@ -293,24 +293,24 @@ openclaw hooks disable <hook-name>
 
 ```bash
 # Verify directory structure
-ls -la ~/.openclaw/hooks/my-hook/
+ls -la ~/.genesis/hooks/my-hook/
 # Should show: HOOK.md, handler.ts
 
 # List all discovered hooks
-openclaw hooks list
+genesis hooks list
 ```
 
 ### Hook not eligible
 
 ```bash
-openclaw hooks info my-hook
+genesis hooks info my-hook
 ```
 
 Check for missing binaries (PATH), environment variables, config values, or OS compatibility.
 
 ### Hook not executing
 
-1. Verify the hook is enabled: `openclaw hooks list`
+1. Verify the hook is enabled: `genesis hooks list`
 2. Restart your gateway process so hooks reload.
 3. Check gateway logs: `./scripts/clawlog.sh | grep hook`
 

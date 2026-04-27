@@ -11,7 +11,7 @@ const resolveSenderScopedGroupPolicy = vi.hoisted(() => vi.fn());
 const warnMissingProviderGroupPolicyFallbackOnce = vi.hoisted(() => vi.fn());
 const sendGoogleChatMessage = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/channel-inbound", () => ({
+vi.mock("genesis/plugin-sdk/channel-inbound", () => ({
   resolveInboundMentionDecision,
 }));
 

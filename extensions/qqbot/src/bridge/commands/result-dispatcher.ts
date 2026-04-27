@@ -11,7 +11,7 @@
  * location where logging and error handling live.
  */
 
-import type { PluginLogger } from "openclaw/plugin-sdk/plugin-entry";
+import type { PluginLogger } from "genesis/plugin-sdk/plugin-entry";
 import type { SlashCommandResult } from "../../engine/commands/slash-commands.js";
 import { sendDocument, type MediaTargetContext } from "../../engine/messaging/outbound.js";
 import type { ResolvedQQBotAccount } from "../../types.js";

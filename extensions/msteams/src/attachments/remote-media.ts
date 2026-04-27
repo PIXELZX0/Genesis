@@ -1,4 +1,4 @@
-import { readResponseWithLimit } from "openclaw/plugin-sdk/media-runtime";
+import { readResponseWithLimit } from "genesis/plugin-sdk/media-runtime";
 import type { SsrFPolicy } from "../../runtime-api.js";
 import { getMSTeamsRuntime } from "../runtime.js";
 import { inferPlaceholder } from "./shared.js";

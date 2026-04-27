@@ -30,7 +30,7 @@ const CHANNEL_HEARTBEAT_KEYS = new Set(["showOk", "showAlerts", "useIndicator"])
 const MEMORY_SEARCH_RULE: LegacyConfigRule = {
   path: ["memorySearch"],
   message:
-    'top-level memorySearch was moved; use agents.defaults.memorySearch instead. Run "openclaw doctor --fix".',
+    'top-level memorySearch was moved; use agents.defaults.memorySearch instead. Run "genesis doctor --fix".',
 };
 
 const HEARTBEAT_RULE: LegacyConfigRule = {
@@ -43,13 +43,13 @@ const LEGACY_SANDBOX_SCOPE_RULES: LegacyConfigRule[] = [
   {
     path: ["agents", "defaults", "sandbox"],
     message:
-      'agents.defaults.sandbox.perSession is legacy; use agents.defaults.sandbox.scope instead. Run "openclaw doctor --fix".',
+      'agents.defaults.sandbox.perSession is legacy; use agents.defaults.sandbox.scope instead. Run "genesis doctor --fix".',
     match: (value) => hasLegacySandboxPerSession(value),
   },
   {
     path: ["agents", "list"],
     message:
-      'agents.list[].sandbox.perSession is legacy; use agents.list[].sandbox.scope instead. Run "openclaw doctor --fix".',
+      'agents.list[].sandbox.perSession is legacy; use agents.list[].sandbox.scope instead. Run "genesis doctor --fix".',
     match: (value) => hasLegacyAgentListSandboxPerSession(value),
   },
 ];

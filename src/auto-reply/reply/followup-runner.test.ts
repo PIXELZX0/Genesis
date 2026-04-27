@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELIVERY_NO_REPLY_RUNTIME_CONTRACT } from "../../../test/helpers/agents/delivery-no-reply-runtime-contract.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 
@@ -29,7 +29,7 @@ let sessionRunAccounting: typeof import("./session-run-accounting.js");
 let setRuntimeConfigSnapshot: typeof import("../../config/config.js").setRuntimeConfigSnapshot;
 let createMockFollowupRun: typeof import("./test-helpers.js").createMockFollowupRun;
 let createMockTypingController: typeof import("./test-helpers.js").createMockTypingController;
-const FOLLOWUP_DEBUG = process.env.OPENCLAW_DEBUG_FOLLOWUP_RUNNER_TEST === "1";
+const FOLLOWUP_DEBUG = process.env.GENESIS_DEBUG_FOLLOWUP_RUNNER_TEST === "1";
 const FOLLOWUP_TEST_QUEUES = new Map<
   string,
   {
@@ -461,7 +461,7 @@ function createAsyncReplySpy() {
 
 describe("createFollowupRunner runtime config", () => {
   it("uses the active runtime snapshot for queued embedded followup runs", async () => {
-    const sourceConfig: OpenClawConfig = {
+    const sourceConfig: GenesisConfig = {
       models: {
         providers: {
           openai: {
@@ -476,7 +476,7 @@ describe("createFollowupRunner runtime config", () => {
         },
       },
     };
-    const runtimeConfig: OpenClawConfig = {
+    const runtimeConfig: GenesisConfig = {
       models: {
         providers: {
           openai: {
@@ -518,7 +518,7 @@ describe("createFollowupRunner runtime config", () => {
   });
 
   it("resolves queued embedded followups before preflight helpers read config", async () => {
-    const sourceConfig: OpenClawConfig = {
+    const sourceConfig: GenesisConfig = {
       skills: {
         entries: {
           whisper: {
@@ -531,7 +531,7 @@ describe("createFollowupRunner runtime config", () => {
         },
       },
     };
-    const runtimeConfig: OpenClawConfig = {
+    const runtimeConfig: GenesisConfig = {
       skills: {
         entries: {
           whisper: {
@@ -585,7 +585,7 @@ describe("createFollowupRunner runtime config", () => {
       payloads: [],
       meta: {},
     });
-    const sourceConfig: OpenClawConfig = {};
+    const sourceConfig: GenesisConfig = {};
     const runner = createFollowupRunner({
       typing: createMockTypingController(),
       typingMode: "instant",
@@ -651,7 +651,7 @@ describe("createFollowupRunner runtime config", () => {
 describe("createFollowupRunner compaction", () => {
   it("adds verbose auto-compaction notice and tracks count", async () => {
     const storePath = path.join(
-      await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-")),
+      await fs.mkdtemp(path.join(tmpdir(), "genesis-compaction-")),
       "sessions.json",
     );
     const sessionEntry: SessionEntry = {
@@ -696,7 +696,7 @@ describe("createFollowupRunner compaction", () => {
 
   it("tracks auto-compaction from embedded result metadata even when no compaction event is emitted", async () => {
     const storePath = path.join(
-      await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-meta-")),
+      await fs.mkdtemp(path.join(tmpdir(), "genesis-compaction-meta-")),
       "sessions.json",
     );
     const sessionEntry: SessionEntry = {
@@ -752,7 +752,7 @@ describe("createFollowupRunner compaction", () => {
 
   it("refreshes queued followup runs to the rotated transcript", async () => {
     const storePath = path.join(
-      await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-queue-")),
+      await fs.mkdtemp(path.join(tmpdir(), "genesis-compaction-queue-")),
       "sessions.json",
     );
     const sessionEntry: SessionEntry = {
@@ -815,7 +815,7 @@ describe("createFollowupRunner compaction", () => {
 
   it("does not count failed compaction end events in followup runs", async () => {
     const storePath = path.join(
-      await fs.mkdtemp(path.join(tmpdir(), "openclaw-compaction-failed-")),
+      await fs.mkdtemp(path.join(tmpdir(), "genesis-compaction-failed-")),
       "sessions.json",
     );
     const sessionEntry: SessionEntry = {
@@ -870,7 +870,7 @@ describe("createFollowupRunner compaction", () => {
   });
 
   it("injects the post-compaction refresh prompt before followup runs after preflight compaction", async () => {
-    const workspaceDir = await fs.mkdtemp(path.join(tmpdir(), "openclaw-preflight-followup-"));
+    const workspaceDir = await fs.mkdtemp(path.join(tmpdir(), "genesis-preflight-followup-"));
     const storePath = path.join(workspaceDir, "sessions.json");
     const transcriptPath = path.join(workspaceDir, "session.jsonl");
     await fs.writeFile(
@@ -1123,7 +1123,7 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
   }
 
   it("persists usage even when replies are suppressed", async () => {
-    const storePath = "/tmp/openclaw-followup-usage.json";
+    const storePath = "/tmp/genesis-followup-usage.json";
     const sessionKey = "main";
     const sessionEntry: SessionEntry = { sessionId: "session", updatedAt: Date.now() };
     const sessionStore: Record<string, SessionEntry> = { [sessionKey]: sessionEntry };
@@ -1183,7 +1183,7 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
   });
 
   it("passes queued config into usage persistence during drained followups", async () => {
-    const storePath = "/tmp/openclaw-followup-usage-cfg.json";
+    const storePath = "/tmp/genesis-followup-usage-cfg.json";
     const sessionKey = "main";
     const sessionEntry: SessionEntry = { sessionId: "session", updatedAt: Date.now() };
     const sessionStore: Record<string, SessionEntry> = { [sessionKey]: sessionEntry };
@@ -1237,7 +1237,7 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
   });
 
   it("uses providerUsed for snapshot freshness when agent metadata overrides the run provider", async () => {
-    const storePath = "/tmp/openclaw-followup-usage-provider.json";
+    const storePath = "/tmp/genesis-followup-usage-provider.json";
     const sessionKey = "main";
     const sessionEntry: SessionEntry = { sessionId: "session", updatedAt: Date.now() };
     const sessionStore: Record<string, SessionEntry> = { [sessionKey]: sessionEntry };
@@ -1278,7 +1278,7 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
                   },
                 },
               },
-            } as OpenClawConfig,
+            } as GenesisConfig,
           },
         }),
       ),

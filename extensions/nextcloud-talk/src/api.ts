@@ -1,1 +1,1 @@
-export { createAuthRateLimiter } from "openclaw/plugin-sdk/nextcloud-talk";
+export { createAuthRateLimiter } from "genesis/plugin-sdk/nextcloud-talk";

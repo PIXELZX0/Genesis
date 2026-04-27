@@ -227,7 +227,7 @@ function loadAuthProfileStoreForAgent(
   }
 
   const mergedOAuth = mergeOAuthFileIntoStore(store);
-  const forceReadOnly = process.env.OPENCLAW_AUTH_STORE_READONLY === "1";
+  const forceReadOnly = process.env.GENESIS_AUTH_STORE_READONLY === "1";
   const shouldWrite = !readOnly && !forceReadOnly && (legacy !== null || mergedOAuth);
   if (shouldWrite) {
     saveAuthProfileStore(store, agentDir);

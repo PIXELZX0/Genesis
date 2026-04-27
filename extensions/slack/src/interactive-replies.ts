@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { resolveDefaultSlackAccountId, resolveSlackAccount } from "./accounts.js";
 
 const SLACK_BUTTON_MAX_ITEMS = 5;
@@ -163,7 +163,7 @@ function resolveInteractiveRepliesFromCapabilities(capabilities: unknown): boole
 }
 
 export function isSlackInteractiveRepliesEnabled(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
 }): boolean {
   const account = resolveSlackAccount({

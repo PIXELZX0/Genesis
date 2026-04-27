@@ -5,12 +5,12 @@ const sdkExports = vi.hoisted(() => ({
   listRuntimeImageGenerationProviders: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/image-generation-runtime", () => sdkExports);
+vi.mock("genesis/plugin-sdk/image-generation-runtime", () => sdkExports);
 
 import {
   generateImage as sdkGenerateImage,
   listRuntimeImageGenerationProviders as sdkListRuntimeImageGenerationProviders,
-} from "openclaw/plugin-sdk/image-generation-runtime";
+} from "genesis/plugin-sdk/image-generation-runtime";
 import { generateImage, listRuntimeImageGenerationProviders } from "./runtime.js";
 
 describe("image-generation-core runtime", () => {

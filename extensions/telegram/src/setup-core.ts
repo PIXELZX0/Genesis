@@ -1,13 +1,13 @@
-import type { ChannelSetupAdapter } from "openclaw/plugin-sdk/setup-runtime";
+import type { ChannelSetupAdapter } from "genesis/plugin-sdk/setup-runtime";
 import {
   createEnvPatchedAccountSetupAdapter,
   patchChannelConfigForAccount,
   promptResolvedAllowFrom,
   splitSetupEntries,
-  type OpenClawConfig,
+  type GenesisConfig,
   type WizardPrompter,
-} from "openclaw/plugin-sdk/setup-runtime";
-import { formatCliCommand, formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
+} from "genesis/plugin-sdk/setup-runtime";
+import { formatCliCommand, formatDocsLink } from "genesis/plugin-sdk/setup-tools";
 import { resolveDefaultTelegramAccountId, resolveTelegramAccount } from "./accounts.js";
 import { isNumericTelegramSenderUserId } from "./allow-from.js";
 
@@ -19,15 +19,15 @@ export const TELEGRAM_TOKEN_HELP_LINES = [
   "3) Copy the token (looks like 123456:ABC...)",
   "Tip: you can also set TELEGRAM_BOT_TOKEN in your env.",
   `Docs: ${formatDocsLink("/telegram")}`,
-  "Website: https://openclaw.ai",
+  "Website: https://genesis.ai",
 ];
 
 export const TELEGRAM_USER_ID_HELP_LINES = [
-  `1) DM your bot, then read from.id in \`${formatCliCommand("openclaw logs --follow")}\` (safest)`,
+  `1) DM your bot, then read from.id in \`${formatCliCommand("genesis logs --follow")}\` (safest)`,
   "2) Or call https://api.telegram.org/bot<bot_token>/getUpdates and read message.from.id",
   "3) Third-party: DM @userinfobot or @getidsbot",
   `Docs: ${formatDocsLink("/telegram")}`,
-  "Website: https://openclaw.ai",
+  "Website: https://genesis.ai",
 ];
 
 export function normalizeTelegramAllowFromInput(raw: string): string {
@@ -43,7 +43,7 @@ export function parseTelegramAllowFromId(raw: string): string | null {
 }
 
 export async function promptTelegramAllowFromForAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   prompter: WizardPrompter;
   accountId?: string;
 }) {

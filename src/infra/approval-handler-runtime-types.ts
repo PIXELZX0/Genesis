@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ChannelApprovalNativePlannedTarget } from "./approval-native-delivery.js";
 import type { PreparedChannelNativeApprovalTarget } from "./approval-native-runtime.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
@@ -17,7 +17,7 @@ export type ApprovalRequest = ExecApprovalRequest | PluginApprovalRequest;
 export type ApprovalResolved = ExecApprovalResolved | PluginApprovalResolved;
 
 export type ChannelApprovalCapabilityHandlerContext = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   accountId?: string | null;
   gatewayUrl?: string;
   context?: unknown;

@@ -18,7 +18,7 @@ let resolvePluginSetupCliBackend: typeof import("./setup-registry.js").resolvePl
 let runPluginSetupConfigMigrations: typeof import("./setup-registry.js").runPluginSetupConfigMigrations;
 
 function makeTempDir(): string {
-  return makeTrackedTempDir("openclaw-setup-registry", tempDirs);
+  return makeTrackedTempDir("genesis-setup-registry", tempDirs);
 }
 
 function writeSetupApiStub(pluginRoot: string): void {

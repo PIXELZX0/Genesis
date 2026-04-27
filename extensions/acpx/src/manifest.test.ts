@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 type AcpxPackageManifest = {
   dependencies?: Record<string, string>;
-  openclaw?: {
+  genesis?: {
     bundle?: {
       stageRuntimeDependencies?: boolean;
     };
@@ -17,6 +17,6 @@ describe("acpx package manifest", () => {
     ) as AcpxPackageManifest;
 
     expect(packageJson.dependencies?.acpx).toBeDefined();
-    expect(packageJson.openclaw?.bundle?.stageRuntimeDependencies).toBe(true);
+    expect(packageJson.genesis?.bundle?.stageRuntimeDependencies).toBe(true);
   });
 });

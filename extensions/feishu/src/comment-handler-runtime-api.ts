@@ -1,3 +1,3 @@
-export type { OpenClawConfig as ClawdbotConfig } from "openclaw/plugin-sdk/config-runtime";
-export type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-export { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
+export type { GenesisConfig as ClawdbotConfig } from "genesis/plugin-sdk/config-runtime";
+export type { RuntimeEnv } from "genesis/plugin-sdk/runtime";
+export { createChannelPairingController } from "genesis/plugin-sdk/channel-pairing";

@@ -2,8 +2,8 @@ import { type ChildProcess, type ChildProcessWithoutNullStreams, spawn } from "n
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { prepareOomScoreAdjustedSpawn } from "openclaw/plugin-sdk/process-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { prepareOomScoreAdjustedSpawn } from "genesis/plugin-sdk/process-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { ensurePortAvailable } from "../infra/ports.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -42,15 +42,21 @@ import {
   resolveBrowserExecutableForPlatform,
 } from "./chrome.executables.js";
 import {
-  decorateOpenClawProfile,
+  decorateGenesisProfile,
   ensureProfileCleanExit,
   isProfileDecorated,
 } from "./chrome.profile-decoration.js";
 import type { ResolvedBrowserConfig, ResolvedBrowserProfile } from "./config.js";
 import {
-  DEFAULT_OPENCLAW_BROWSER_COLOR,
-  DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
+  DEFAULT_GENESIS_BROWSER_COLOR,
+  DEFAULT_GENESIS_BROWSER_PROFILE_NAME,
 } from "./constants.js";
+import {
+  buildTorChromeProxyArgs,
+  startManagedTor,
+  stopManagedTor,
+  type RunningTor,
+} from "./tor.js";
 
 const log = createSubsystemLogger("browser").child("chrome");
 const CHROME_SINGLETON_LOCK_PATHS = [
@@ -75,7 +81,7 @@ export {
   resolveBrowserExecutableForPlatform,
 } from "./chrome.executables.js";
 export {
-  decorateOpenClawProfile,
+  decorateGenesisProfile,
   ensureProfileCleanExit,
   isProfileDecorated,
 } from "./chrome.profile-decoration.js";
@@ -185,7 +191,7 @@ function chromeLaunchHints(params: {
   }
   if (CHROME_SINGLETON_IN_USE_PATTERN.test(params.stderrOutput)) {
     hints.push(
-      `The Chromium profile "${params.profile.name}" is locked. Stop the existing browser or remove stale Singleton* lock files under ~/.openclaw/browser/${params.profile.name}/user-data.`,
+      `The Chromium profile "${params.profile.name}" is locked. Stop the existing browser or remove stale Singleton* lock files under ~/.genesis/browser/${params.profile.name}/user-data.`,
     );
   }
   return hints.length > 0 ? `\nHint: ${hints.join("\nHint: ")}` : "";
@@ -198,6 +204,7 @@ export type RunningChrome = {
   cdpPort: number;
   startedAt: number;
   proc: ChildProcess;
+  tor?: RunningTor | null;
 };
 
 function resolveBrowserExecutable(
@@ -210,7 +217,7 @@ function resolveBrowserExecutable(
   );
 }
 
-export function resolveOpenClawUserDataDir(profileName = DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME) {
+export function resolveGenesisUserDataDir(profileName = DEFAULT_GENESIS_BROWSER_PROFILE_NAME) {
   return path.join(CONFIG_DIR, "browser", profileName, "user-data");
 }
 
@@ -218,12 +225,14 @@ function cdpUrlForPort(cdpPort: number) {
   return `http://127.0.0.1:${cdpPort}`;
 }
 
-export function buildOpenClawChromeLaunchArgs(params: {
+export function buildGenesisChromeLaunchArgs(params: {
   resolved: ResolvedBrowserConfig;
   profile: ResolvedBrowserProfile;
   userDataDir: string;
 }): string[] {
   const { resolved, profile, userDataDir } = params;
+  const torArgs = buildTorChromeProxyArgs(profile.tor);
+  const proxyControlArgs = [...resolved.extraArgs, ...torArgs];
   const args: string[] = [
     `--remote-debugging-port=${profile.cdpPort}`,
     `--user-data-dir=${userDataDir}`,
@@ -249,11 +258,14 @@ export function buildOpenClawChromeLaunchArgs(params: {
   if (process.platform === "linux") {
     args.push("--disable-dev-shm-usage");
   }
-  if (!hasChromeProxyControlArg(resolved.extraArgs)) {
+  if (!hasChromeProxyControlArg(proxyControlArgs)) {
     args.push("--no-proxy-server");
   }
   if (resolved.extraArgs.length > 0) {
     args.push(...resolved.extraArgs);
+  }
+  if (torArgs.length > 0) {
+    args.push(...torArgs);
   }
 
   return args;
@@ -375,7 +387,7 @@ export async function isChromeCdpReady(
   return diagnostic.ok;
 }
 
-export async function launchOpenClawChrome(
+export async function launchGenesisChrome(
   resolved: ResolvedBrowserConfig,
   profile: ResolvedBrowserProfile,
 ): Promise<RunningChrome> {
@@ -391,18 +403,18 @@ export async function launchOpenClawChrome(
     );
   }
 
-  const userDataDir = resolveOpenClawUserDataDir(profile.name);
+  const userDataDir = resolveGenesisUserDataDir(profile.name);
   fs.mkdirSync(userDataDir, { recursive: true });
 
   const needsDecorate = !isProfileDecorated(
     userDataDir,
     profile.name,
-    (profile.color ?? DEFAULT_OPENCLAW_BROWSER_COLOR).toUpperCase(),
+    (profile.color ?? DEFAULT_GENESIS_BROWSER_COLOR).toUpperCase(),
   );
 
   // First launch to create preference files if missing, then decorate and relaunch.
   const spawnOnce = () => {
-    const args = buildOpenClawChromeLaunchArgs({
+    const args = buildGenesisChromeLaunchArgs({
       resolved,
       profile,
       userDataDir,
@@ -425,6 +437,7 @@ export async function launchOpenClawChrome(
   };
 
   const startedAt = Date.now();
+  const runningTor = profile.tor ? await startManagedTor(profile.name, profile.tor) : null;
 
   const localStatePath = path.join(userDataDir, "Local State");
   const preferencesPath = path.join(userDataDir, "Default", "Preferences");
@@ -457,20 +470,20 @@ export async function launchOpenClawChrome(
 
   if (needsDecorate) {
     try {
-      decorateOpenClawProfile(userDataDir, {
+      decorateGenesisProfile(userDataDir, {
         name: profile.name,
         color: profile.color,
       });
-      log.info(`🦞 openclaw browser profile decorated (${profile.color})`);
+      log.info(`🦞 genesis browser profile decorated (${profile.color})`);
     } catch (err) {
-      log.warn(`openclaw browser profile decoration failed: ${String(err)}`);
+      log.warn(`genesis browser profile decoration failed: ${String(err)}`);
     }
   }
 
   try {
     ensureProfileCleanExit(userDataDir);
   } catch (err) {
-    log.warn(`openclaw browser clean-exit prefs failed: ${String(err)}`);
+    log.warn(`genesis browser clean-exit prefs failed: ${String(err)}`);
   }
 
   const launchOnceAndWait = async (allowSingletonRecovery: boolean): Promise<RunningChrome> => {
@@ -527,7 +540,7 @@ export async function launchOpenClawChrome(
 
       const pid = proc.pid ?? -1;
       log.info(
-        `🦞 openclaw browser started (${exe.kind}) profile "${profile.name}" on 127.0.0.1:${profile.cdpPort} (pid ${pid})`,
+        `🦞 genesis browser started (${exe.kind}) profile "${profile.name}" on 127.0.0.1:${profile.cdpPort} (pid ${pid})`,
       );
 
       return {
@@ -537,6 +550,7 @@ export async function launchOpenClawChrome(
         cdpPort: profile.cdpPort,
         startedAt,
         proc,
+        tor: runningTor,
       };
     } finally {
       // Chrome started successfully or launch failed — detach the stderr listener
@@ -546,38 +560,49 @@ export async function launchOpenClawChrome(
     }
   };
 
-  return await launchOnceAndWait(true);
+  try {
+    return await launchOnceAndWait(true);
+  } catch (err) {
+    await stopManagedTor(runningTor).catch(() => {});
+    throw err;
+  }
 }
 
-export async function stopOpenClawChrome(
+export async function stopGenesisChrome(
   running: RunningChrome,
   timeoutMs = CHROME_STOP_TIMEOUT_MS,
 ) {
-  const proc = running.proc;
-  if (proc.killed) {
-    return;
-  }
   try {
-    proc.kill("SIGTERM");
-  } catch {
-    // ignore
-  }
-
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    if (!proc.exitCode && proc.killed) {
-      break;
-    }
-    if (!(await isChromeReachable(cdpUrlForPort(running.cdpPort), CHROME_STOP_PROBE_TIMEOUT_MS))) {
+    const proc = running.proc;
+    if (proc.killed) {
       return;
     }
-    const remainingMs = timeoutMs - (Date.now() - start);
-    await new Promise((r) => setTimeout(r, Math.max(1, Math.min(100, remainingMs))));
-  }
+    try {
+      proc.kill("SIGTERM");
+    } catch {
+      // ignore
+    }
 
-  try {
-    proc.kill("SIGKILL");
-  } catch {
-    // ignore
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (!proc.exitCode && proc.killed) {
+        break;
+      }
+      if (
+        !(await isChromeReachable(cdpUrlForPort(running.cdpPort), CHROME_STOP_PROBE_TIMEOUT_MS))
+      ) {
+        return;
+      }
+      const remainingMs = timeoutMs - (Date.now() - start);
+      await new Promise((r) => setTimeout(r, Math.max(1, Math.min(100, remainingMs))));
+    }
+
+    try {
+      proc.kill("SIGKILL");
+    } catch {
+      // ignore
+    }
+  } finally {
+    await stopManagedTor(running.tor);
   }
 }

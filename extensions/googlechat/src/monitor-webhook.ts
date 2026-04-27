@@ -1,11 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
-import type { WebhookInFlightLimiter } from "openclaw/plugin-sdk/webhook-request-guards";
-import { readJsonWebhookBodyOrReject } from "openclaw/plugin-sdk/webhook-request-guards";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
+import type { WebhookInFlightLimiter } from "genesis/plugin-sdk/webhook-request-guards";
+import { readJsonWebhookBodyOrReject } from "genesis/plugin-sdk/webhook-request-guards";
 import {
   resolveWebhookTargetWithAuthOrReject,
   withResolvedWebhookRequestPipeline,
-} from "openclaw/plugin-sdk/webhook-targets";
+} from "genesis/plugin-sdk/webhook-targets";
 import { verifyGoogleChatRequest } from "./auth.js";
 import type { WebhookTarget } from "./monitor-types.js";
 import type {

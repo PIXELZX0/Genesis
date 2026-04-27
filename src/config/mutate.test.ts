@@ -3,7 +3,7 @@ import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
 import { ConfigMutationConflictError, mutateConfigFile, replaceConfigFile } from "./mutate.js";
-import type { ConfigFileSnapshot, OpenClawConfig } from "./types.js";
+import type { ConfigFileSnapshot, GenesisConfig } from "./types.js";
 
 const ioMocks = vi.hoisted(() => ({
   readConfigFileSnapshotForWrite: vi.fn(),
@@ -17,14 +17,14 @@ function createSnapshot(params: {
   hash: string;
   path?: string;
   parsed?: unknown;
-  sourceConfig: OpenClawConfig;
-  runtimeConfig?: OpenClawConfig;
+  sourceConfig: GenesisConfig;
+  runtimeConfig?: GenesisConfig;
 }): ConfigFileSnapshot {
   const runtimeConfig = (params.runtimeConfig ??
     params.sourceConfig) as ConfigFileSnapshot["config"];
   const sourceConfig = params.sourceConfig as ConfigFileSnapshot["sourceConfig"];
   return {
-    path: params.path ?? "/tmp/openclaw.json",
+    path: params.path ?? "/tmp/genesis.json",
     exists: true,
     raw: "{}",
     parsed: params.parsed ?? params.sourceConfig,
@@ -41,7 +41,7 @@ function createSnapshot(params: {
 }
 
 describe("config mutate helpers", () => {
-  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-config-mutate-" });
+  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "genesis-config-mutate-" });
 
   beforeAll(async () => {
     await suiteRootTracker.setup();
@@ -139,8 +139,8 @@ describe("config mutate helpers", () => {
 
   it("writes through a single-file top-level plugins include", async () => {
     const home = await suiteRootTracker.make("include");
-    const configPath = path.join(home, ".openclaw", "openclaw.json");
-    const pluginsPath = path.join(home, ".openclaw", "config", "plugins.json5");
+    const configPath = path.join(home, ".genesis", "genesis.json");
+    const pluginsPath = path.join(home, ".genesis", "config", "plugins.json5");
     await fs.mkdir(path.dirname(pluginsPath), { recursive: true });
     await fs.writeFile(
       configPath,
@@ -200,7 +200,7 @@ describe("config mutate helpers", () => {
   it("falls back to the root writer when a plugins include write is not isolated", async () => {
     const snapshot = createSnapshot({
       hash: "hash-multi",
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       parsed: { plugins: { $include: "./config/plugins.json5" }, gateway: { mode: "local" } },
       sourceConfig: {
         gateway: { mode: "local" },

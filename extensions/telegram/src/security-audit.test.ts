@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../runtime-api.js";
+import type { GenesisConfig } from "../runtime-api.js";
 import type { ResolvedTelegramAccount } from "./accounts.js";
 import { collectTelegramSecurityAuditFindings } from "./security-audit.js";
 
@@ -7,12 +7,12 @@ const { readChannelAllowFromStoreMock } = vi.hoisted(() => ({
   readChannelAllowFromStoreMock: vi.fn(async () => [] as string[]),
 }));
 
-vi.mock("openclaw/plugin-sdk/conversation-runtime", () => ({
+vi.mock("genesis/plugin-sdk/conversation-runtime", () => ({
   readChannelAllowFromStore: readChannelAllowFromStoreMock,
 }));
 
 function createTelegramAccount(
-  config: NonNullable<NonNullable<OpenClawConfig["channels"]>["telegram"]>,
+  config: NonNullable<NonNullable<GenesisConfig["channels"]>["telegram"]>,
 ): ResolvedTelegramAccount {
   return {
     accountId: "default",
@@ -23,7 +23,7 @@ function createTelegramAccount(
   };
 }
 
-function getTelegramConfig(cfg: OpenClawConfig) {
+function getTelegramConfig(cfg: GenesisConfig) {
   const config = cfg.channels?.telegram;
   if (!config) {
     throw new Error("expected telegram config");
@@ -33,7 +33,7 @@ function getTelegramConfig(cfg: OpenClawConfig) {
 
 describe("Telegram security audit findings", () => {
   it("flags group commands without a sender allowlist", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         telegram: {
           enabled: true,
@@ -62,7 +62,7 @@ describe("Telegram security audit findings", () => {
   });
 
   it("warns when allowFrom entries are non-numeric legacy @username configs", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: GenesisConfig = {
       channels: {
         telegram: {
           enabled: true,

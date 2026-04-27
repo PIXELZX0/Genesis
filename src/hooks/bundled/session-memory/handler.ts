@@ -13,7 +13,7 @@ import {
   resolveAgentWorkspaceDir,
 } from "../../../agents/agent-scope.js";
 import { resolveStateDir } from "../../../config/paths.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { writeFileWithinRoot } from "../../../infra/fs-safe.js";
 import { createSubsystemLogger } from "../../../logging/subsystem.js";
 import {
@@ -29,7 +29,7 @@ import { findPreviousSessionFile, getRecentSessionContentWithResetFallback } fro
 const log = createSubsystemLogger("hooks/session-memory");
 
 function resolveDisplaySessionKey(params: {
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   workspaceDir?: string;
   sessionKey: string;
 }): string {
@@ -61,7 +61,7 @@ const saveSessionToMemory: HookHandler = async (event) => {
     log.debug("Hook triggered for reset/new command", { action: event.action });
 
     const context = event.context || {};
-    const cfg = context.cfg as OpenClawConfig | undefined;
+    const cfg = context.cfg as GenesisConfig | undefined;
     const contextWorkspaceDir =
       typeof context.workspaceDir === "string" && context.workspaceDir.trim().length > 0
         ? context.workspaceDir
@@ -144,7 +144,7 @@ const saveSessionToMemory: HookHandler = async (event) => {
 
       // Avoid calling the model provider in unit tests; keep hooks fast and deterministic.
       const isTestEnv =
-        process.env.OPENCLAW_TEST_FAST === "1" ||
+        process.env.GENESIS_TEST_FAST === "1" ||
         process.env.VITEST === "true" ||
         process.env.VITEST === "1" ||
         process.env.NODE_ENV === "test";

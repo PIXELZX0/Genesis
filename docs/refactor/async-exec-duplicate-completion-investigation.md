@@ -23,7 +23,7 @@ The strongest gateway-side gap is in the **node exec completion path**:
 3. The heartbeat run injects the drained system event block into the agent prompt.
 4. The embedded runner persists that prompt as a new user turn in the session transcript.
 
-If the same `exec.finished` reaches the gateway twice for the same `runId` for any reason (replay, reconnect duplicate, upstream resend, duplicated producer), OpenClaw currently has **no idempotency check keyed by `runId`/`contextKey`** on this path. The second copy will become a second user message with the same content.
+If the same `exec.finished` reaches the gateway twice for the same `runId` for any reason (replay, reconnect duplicate, upstream resend, duplicated producer), Genesis currently has **no idempotency check keyed by `runId`/`contextKey`** on this path. The second copy will become a second user message with the same content.
 
 ## Exact Code Path
 

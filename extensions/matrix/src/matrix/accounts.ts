@@ -1,6 +1,6 @@
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import { hasConfiguredSecretInput } from "openclaw/plugin-sdk/secret-input-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "genesis/plugin-sdk/account-id";
+import { hasConfiguredSecretInput } from "genesis/plugin-sdk/secret-input-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 import {
   resolveConfiguredMatrixAccountIds,
   resolveMatrixDefaultOrOnlyAccountId,

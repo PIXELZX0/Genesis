@@ -1,9 +1,9 @@
 import { ChannelType } from "discord-api-types/v10";
-import type { NativeCommandSpec } from "openclaw/plugin-sdk/command-auth";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { DiscordAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import * as pluginCommandsModule from "openclaw/plugin-sdk/plugin-runtime";
-import * as dispatcherModule from "openclaw/plugin-sdk/reply-dispatch-runtime";
+import type { NativeCommandSpec } from "genesis/plugin-sdk/command-auth";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import type { DiscordAccountConfig } from "genesis/plugin-sdk/config-runtime";
+import * as pluginCommandsModule from "genesis/plugin-sdk/plugin-runtime";
+import * as dispatcherModule from "genesis/plugin-sdk/reply-dispatch-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineThrowingDiscordChannelGetter } from "../test-support/partial-channel.js";
 import { __testing as nativeCommandTesting, createDiscordNativeCommand } from "./native-command.js";
@@ -26,7 +26,7 @@ function createInteraction(params?: { userId?: string }): MockCommandInteraction
   });
 }
 
-function createConfig(): OpenClawConfig {
+function createConfig(): GenesisConfig {
   return {
     commands: {
       allowFrom: {
@@ -48,10 +48,10 @@ function createConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as GenesisConfig;
 }
 
-function createCommand(cfg: OpenClawConfig, discordConfig?: DiscordAccountConfig) {
+function createCommand(cfg: GenesisConfig, discordConfig?: DiscordAccountConfig) {
   const commandSpec: NativeCommandSpec = {
     name: "ping",
     description: "Ping",
@@ -82,7 +82,7 @@ function createDispatchSpy() {
 
 async function runGuildSlashCommand(params?: {
   userId?: string;
-  mutateConfig?: (cfg: OpenClawConfig) => void;
+  mutateConfig?: (cfg: GenesisConfig) => void;
   runtimeDiscordConfig?: DiscordAccountConfig;
   mutateInteraction?: (interaction: MockCommandInteraction) => void;
 }) {

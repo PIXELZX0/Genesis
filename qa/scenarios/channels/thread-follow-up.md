@@ -24,7 +24,7 @@ execution:
   kind: flow
   summary: Verify the agent can keep follow-up work inside a thread and not leak context into the root channel.
   config:
-    prompt: "@openclaw reply in one short sentence inside this thread only. Do not use ACP or any external runtime. Confirm you stayed in-thread."
+    prompt: "@genesis reply in one short sentence inside this thread only. Do not use ACP or any external runtime. Confirm you stayed in-thread."
 ```
 
 ```yaml qa-flow

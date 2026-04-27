@@ -1,3 +1,3 @@
-export { definePluginEntry, jsonResult, type OpenClawPluginApi } from "openclaw/plugin-sdk/core";
-export { resolveDefaultAgentId } from "openclaw/plugin-sdk/agent-runtime";
-export { bumpSkillsSnapshotVersion } from "openclaw/plugin-sdk/skills-runtime";
+export { definePluginEntry, jsonResult, type GenesisPluginApi } from "genesis/plugin-sdk/core";
+export { resolveDefaultAgentId } from "genesis/plugin-sdk/agent-runtime";
+export { bumpSkillsSnapshotVersion } from "genesis/plugin-sdk/skills-runtime";

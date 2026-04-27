@@ -39,7 +39,7 @@ function createStubPluginRegistry(): PluginRegistry {
 }
 
 const GATEWAY_TEST_PLUGIN_REGISTRY_STATE_KEY = Symbol.for(
-  "openclaw.gatewayTestHelpers.pluginRegistryState",
+  "genesis.gatewayTestHelpers.pluginRegistryState",
 );
 
 const pluginRegistryState = resolveGlobalSingleton(GATEWAY_TEST_PLUGIN_REGISTRY_STATE_KEY, () => ({

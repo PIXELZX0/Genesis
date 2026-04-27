@@ -1,9 +1,9 @@
 import type { AuthProfileStore, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ModelProviderAuthMode, ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 export type ProviderResolveSyntheticAuthContext = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   provider: string;
   providerConfig?: ModelProviderConfig;
 };
@@ -15,7 +15,7 @@ export type ProviderSyntheticAuthResult = {
 };
 
 export type ProviderResolveExternalOAuthProfilesContext = {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;

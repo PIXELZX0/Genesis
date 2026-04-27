@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import {
   createSubsystemLogger,
   resolveAgentContextLimits,
   resolveAgentWorkspaceDir,
   resolveGlobalSingleton,
   resolveMemorySearchSyncConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
-import { checkQmdBinaryAvailability } from "openclaw/plugin-sdk/memory-core-host-engine-qmd";
+  type GenesisConfig,
+} from "genesis/plugin-sdk/memory-core-host-engine-foundation";
+import { checkQmdBinaryAvailability } from "genesis/plugin-sdk/memory-core-host-engine-qmd";
 import {
   resolveMemoryBackendConfig,
   type MemoryEmbeddingProbeResult,
@@ -17,10 +17,10 @@ import {
   type MemorySource,
   type MemorySyncProgressUpdate,
   type ResolvedQmdConfig,
-} from "openclaw/plugin-sdk/memory-core-host-engine-storage";
-import { normalizeAgentId } from "openclaw/plugin-sdk/routing";
+} from "genesis/plugin-sdk/memory-core-host-engine-storage";
+import { normalizeAgentId } from "genesis/plugin-sdk/routing";
 
-const MEMORY_SEARCH_MANAGER_CACHE_KEY = Symbol.for("openclaw.memorySearchManagerCache");
+const MEMORY_SEARCH_MANAGER_CACHE_KEY = Symbol.for("genesis.memorySearchManagerCache");
 type Maybe<T> = T | null;
 type QmdManagerRuntimeConfig = {
   workspaceDir: string;
@@ -93,7 +93,7 @@ export type MemorySearchManagerResult = {
 };
 
 export async function getMemorySearchManager(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   purpose?: "default" | "status";
 }): Promise<MemorySearchManagerResult> {
@@ -234,7 +234,7 @@ export async function getMemorySearchManager(params: {
 }
 
 async function getBuiltinMemorySearchManager(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   agentId: string;
   purpose?: "default" | "status";
 }): Promise<MemorySearchManagerResult> {
@@ -510,7 +510,7 @@ function buildQmdManagerIdentityKey(
 }
 
 function resolveQmdManagerRuntimeConfig(
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   agentId: string,
 ): QmdManagerRuntimeConfig {
   return {

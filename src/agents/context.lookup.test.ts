@@ -7,7 +7,7 @@ const contextTestState = vi.hoisted(() => {
   const state = {
     loadConfigImpl: () => ({}) as unknown,
     discoveredModels: [] as DiscoveredModel[],
-    ensureOpenClawModelsJson: vi.fn(async () => {}),
+    ensureGenesisModelsJson: vi.fn(async () => {}),
     discoverAuthStorage: vi.fn(() => ({})),
     discoverModels: vi.fn(() => ({
       getAll: () => state.discoveredModels,
@@ -21,11 +21,11 @@ vi.mock("../config/config.js", () => ({
 }));
 
 vi.mock("./models-config.runtime.js", () => ({
-  ensureOpenClawModelsJson: contextTestState.ensureOpenClawModelsJson,
+  ensureGenesisModelsJson: contextTestState.ensureGenesisModelsJson,
 }));
 
 vi.mock("./agent-paths.js", () => ({
-  resolveOpenClawAgentDir: () => "/tmp/openclaw-agent",
+  resolveGenesisAgentDir: () => "/tmp/genesis-agent",
 }));
 
 vi.mock("./pi-model-discovery-runtime.js", () => ({
@@ -39,8 +39,8 @@ function mockContextDeps(params: {
 }) {
   contextTestState.loadConfigImpl = params.loadConfig;
   contextTestState.discoveredModels = params.discoveredModels ?? [];
-  contextTestState.ensureOpenClawModelsJson.mockClear();
-  return { ensureOpenClawModelsJson: contextTestState.ensureOpenClawModelsJson };
+  contextTestState.ensureGenesisModelsJson.mockClear();
+  return { ensureGenesisModelsJson: contextTestState.ensureGenesisModelsJson };
 }
 
 function mockContextModuleDeps(loadConfigImpl: () => unknown) {
@@ -107,7 +107,7 @@ describe("lookupContextTokens", () => {
   beforeEach(() => {
     contextTestState.loadConfigImpl = () => ({});
     contextTestState.discoveredModels = [];
-    contextTestState.ensureOpenClawModelsJson.mockClear();
+    contextTestState.ensureGenesisModelsJson.mockClear();
     contextTestState.discoverAuthStorage.mockClear();
     contextTestState.discoverModels.mockClear();
     contextModule.resetContextWindowCacheForTest();
@@ -197,24 +197,24 @@ describe("lookupContextTokens", () => {
     expect(secondLoadConfigMock).not.toHaveBeenCalled();
   });
 
-  it("only warms eagerly for real openclaw startup commands that need model metadata", async () => {
+  it("only warms eagerly for real genesis startup commands that need model metadata", async () => {
     const { shouldEagerWarmContextWindowCache } = await importContextModule();
 
-    expect(shouldEagerWarmContextWindowCache(["node", "openclaw", "chat"])).toBe(true);
+    expect(shouldEagerWarmContextWindowCache(["node", "genesis", "chat"])).toBe(true);
     expect(
       shouldEagerWarmContextWindowCache([
         "node",
-        "openclaw",
+        "genesis",
         "--profile",
         "--",
         "config",
         "validate",
       ]),
     ).toBe(false);
-    expect(shouldEagerWarmContextWindowCache(["node", "openclaw", "logs", "--limit", "5"])).toBe(
+    expect(shouldEagerWarmContextWindowCache(["node", "genesis", "logs", "--limit", "5"])).toBe(
       false,
     );
-    expect(shouldEagerWarmContextWindowCache(["node", "openclaw", "status", "--json"])).toBe(false);
+    expect(shouldEagerWarmContextWindowCache(["node", "genesis", "status", "--json"])).toBe(false);
     expect(
       shouldEagerWarmContextWindowCache(["node", "scripts/test-built-plugin-singleton.mjs"]),
     ).toBe(false);

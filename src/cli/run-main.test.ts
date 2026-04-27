@@ -19,7 +19,7 @@ const memoryWikiCommandAliasRegistry: PluginManifestRegistry = {
       origin: "bundled",
       rootDir: "/tmp/memory-wiki",
       source: "bundled",
-      manifestPath: "/tmp/memory-wiki/openclaw.plugin.json",
+      manifestPath: "/tmp/memory-wiki/genesis.plugin.json",
       commandAliases: [{ name: "wiki" }],
     },
   ],
@@ -62,32 +62,32 @@ describe("rewriteUpdateFlagArgv", () => {
 
 describe("shouldEnsureCliPath", () => {
   it("skips path bootstrap for help/version invocations", () => {
-    expect(shouldEnsureCliPath(["node", "openclaw", "--help"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "-V"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "-v"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "--help"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "-V"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "-v"])).toBe(false);
   });
 
   it("skips path bootstrap for read-only fast paths", () => {
-    expect(shouldEnsureCliPath(["node", "openclaw", "status"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "--log-level", "debug", "status"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "sessions", "--json"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "config", "get", "update"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "openclaw", "models", "status", "--json"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "status"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "--log-level", "debug", "status"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "sessions", "--json"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "config", "get", "update"])).toBe(false);
+    expect(shouldEnsureCliPath(["node", "genesis", "models", "status", "--json"])).toBe(false);
   });
 
   it("keeps path bootstrap for mutating or unknown commands", () => {
-    expect(shouldEnsureCliPath(["node", "openclaw", "message", "send"])).toBe(true);
-    expect(shouldEnsureCliPath(["node", "openclaw", "voicecall", "status"])).toBe(true);
-    expect(shouldEnsureCliPath(["node", "openclaw", "acp", "-v"])).toBe(true);
+    expect(shouldEnsureCliPath(["node", "genesis", "message", "send"])).toBe(true);
+    expect(shouldEnsureCliPath(["node", "genesis", "voicecall", "status"])).toBe(true);
+    expect(shouldEnsureCliPath(["node", "genesis", "acp", "-v"])).toBe(true);
   });
 });
 
 describe("shouldUseRootHelpFastPath", () => {
   it("uses the fast path for root help only", () => {
-    expect(shouldUseRootHelpFastPath(["node", "openclaw", "--help"])).toBe(true);
-    expect(shouldUseRootHelpFastPath(["node", "openclaw", "--profile", "work", "-h"])).toBe(true);
-    expect(shouldUseRootHelpFastPath(["node", "openclaw", "status", "--help"])).toBe(false);
-    expect(shouldUseRootHelpFastPath(["node", "openclaw", "--help", "status"])).toBe(false);
+    expect(shouldUseRootHelpFastPath(["node", "genesis", "--help"])).toBe(true);
+    expect(shouldUseRootHelpFastPath(["node", "genesis", "--profile", "work", "-h"])).toBe(true);
+    expect(shouldUseRootHelpFastPath(["node", "genesis", "status", "--help"])).toBe(false);
+    expect(shouldUseRootHelpFastPath(["node", "genesis", "--help", "status"])).toBe(false);
   });
 });
 
@@ -131,7 +131,7 @@ describe("resolveMissingPluginCommandMessage", () => {
     expect(message).toContain("runtime slash command");
     expect(message).toContain("/dreaming");
     expect(message).toContain("memory-core");
-    expect(message).toContain("openclaw memory");
+    expect(message).toContain("genesis memory");
   });
 
   it("returns the runtime command message even when plugins.allow is set", () => {

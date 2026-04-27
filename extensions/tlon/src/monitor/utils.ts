@@ -1,4 +1,4 @@
-import { formatErrorMessage as sharedFormatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage as sharedFormatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { normalizeShip } from "../targets.js";
 
 // Cite types for message references

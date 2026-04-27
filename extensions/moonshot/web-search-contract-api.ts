@@ -1,7 +1,7 @@
 import {
   createWebSearchProviderContractFields,
   type WebSearchProviderPlugin,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "genesis/plugin-sdk/provider-web-search-config-contract";
 
 export function createKimiWebSearchProvider(): WebSearchProviderPlugin {
   const credentialPath = "plugins.entries.moonshot.config.webSearch.apiKey";
@@ -15,7 +15,7 @@ export function createKimiWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["KIMI_API_KEY", "MOONSHOT_API_KEY"],
     placeholder: "sk-...",
     signupUrl: "https://platform.moonshot.cn/",
-    docsUrl: "https://docs.openclaw.ai/tools/web",
+    docsUrl: "https://docs.genesis.ai/tools/web",
     autoDetectOrder: 40,
     credentialPath,
     ...createWebSearchProviderContractFields({

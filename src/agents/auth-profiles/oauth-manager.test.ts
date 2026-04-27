@@ -30,7 +30,7 @@ function createCredential(overrides: Partial<OAuthCredential> = {}): OAuthCreden
 }
 
 const tempDirs: string[] = [];
-const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR", "OPENCLAW_AGENT_DIR", "PI_CODING_AGENT_DIR"]);
+const envSnapshot = captureEnv(["GENESIS_STATE_DIR", "GENESIS_AGENT_DIR", "PI_CODING_AGENT_DIR"]);
 
 beforeEach(() => {
   externalAuthTesting.setResolveExternalAuthProfilesForTest(() => []);
@@ -148,10 +148,10 @@ describe("createOAuthManager", () => {
   it("refreshes with the adopted external oauth credential", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "oauth-manager-refresh-"));
     tempDirs.push(tempRoot);
-    process.env.OPENCLAW_STATE_DIR = tempRoot;
+    process.env.GENESIS_STATE_DIR = tempRoot;
     const mainAgentDir = path.join(tempRoot, "agents", "main", "agent");
     const agentDir = path.join(tempRoot, "agents", "sub", "agent");
-    process.env.OPENCLAW_AGENT_DIR = mainAgentDir;
+    process.env.GENESIS_AGENT_DIR = mainAgentDir;
     process.env.PI_CODING_AGENT_DIR = mainAgentDir;
     await fs.mkdir(agentDir, { recursive: true });
     await fs.mkdir(mainAgentDir, { recursive: true });

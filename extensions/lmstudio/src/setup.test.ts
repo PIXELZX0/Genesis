@@ -1,13 +1,13 @@
-import { CUSTOM_LOCAL_AUTH_MARKER } from "openclaw/plugin-sdk/provider-auth";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/provider-auth";
-import type { ModelDefinitionConfig } from "openclaw/plugin-sdk/provider-model-shared";
-import { resolveAgentModelPrimaryValue } from "openclaw/plugin-sdk/provider-onboard";
+import { CUSTOM_LOCAL_AUTH_MARKER } from "genesis/plugin-sdk/provider-auth";
+import type { GenesisConfig } from "genesis/plugin-sdk/provider-auth";
+import type { ModelDefinitionConfig } from "genesis/plugin-sdk/provider-model-shared";
+import { resolveAgentModelPrimaryValue } from "genesis/plugin-sdk/provider-onboard";
 import {
   SELF_HOSTED_DEFAULT_CONTEXT_WINDOW,
   type ProviderAuthMethodNonInteractiveContext,
   type ProviderCatalogContext,
-} from "openclaw/plugin-sdk/provider-setup";
-import type { WizardPrompter } from "openclaw/plugin-sdk/setup";
+} from "genesis/plugin-sdk/provider-setup";
+import type { WizardPrompter } from "genesis/plugin-sdk/setup";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   LMSTUDIO_DEFAULT_API_KEY_ENV_VAR,
@@ -30,8 +30,8 @@ vi.mock("./models.fetch.js", () => ({
   ensureLmstudioModelLoaded: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/provider-auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/provider-auth")>();
+vi.mock("genesis/plugin-sdk/provider-auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("genesis/plugin-sdk/provider-auth")>();
   return {
     ...actual,
     removeProviderAuthProfilesWithLock: (...args: unknown[]) =>
@@ -39,8 +39,8 @@ vi.mock("openclaw/plugin-sdk/provider-auth", async (importOriginal) => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/provider-setup", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/provider-setup")>();
+vi.mock("genesis/plugin-sdk/provider-setup", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("genesis/plugin-sdk/provider-setup")>();
   return {
     ...actual,
     configureOpenAICompatibleSelfHostedProviderNonInteractive: (...args: unknown[]) =>
@@ -60,7 +60,7 @@ function createModel(id: string, name = id): ModelDefinitionConfig {
   };
 }
 
-function buildConfig(): OpenClawConfig {
+function buildConfig(): GenesisConfig {
   return {
     models: {
       providers: {
@@ -76,13 +76,13 @@ function buildConfig(): OpenClawConfig {
 }
 
 function buildDiscoveryContext(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   apiKey?: string;
   discoveryApiKey?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderCatalogContext {
   return {
-    config: params?.config ?? ({} as OpenClawConfig),
+    config: params?.config ?? ({} as GenesisConfig),
     env: params?.env ?? {},
     resolveProviderApiKey: () => ({
       apiKey: params?.apiKey,
@@ -98,7 +98,7 @@ function buildDiscoveryContext(params?: {
 }
 
 function buildNonInteractiveContext(params?: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   customBaseUrl?: string;
   customApiKey?: string;
   lmstudioApiKey?: string;
@@ -277,7 +277,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customModelId: "qwen3-8b-instruct",
     });
@@ -392,7 +392,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customApiKey: "",
       customModelId: "qwen3-8b-instruct",
@@ -462,7 +462,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customApiKey: "",
       customModelId: "qwen3-8b-instruct",
@@ -521,7 +521,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customApiKey: "",
       customModelId: "qwen3-8b-instruct",
@@ -596,7 +596,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customModelId: "qwen3-8b-instruct",
       lmstudioApiKey: "fresh-cli-key",
@@ -715,7 +715,7 @@ describe("lmstudio setup", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const promptText = vi
       .fn()
       .mockResolvedValueOnce("http://localhost:1234/api/v1/")
@@ -756,7 +756,7 @@ describe("lmstudio setup", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const promptText = vi
       .fn()
       .mockResolvedValueOnce("http://localhost:1234/api/v1/")
@@ -797,7 +797,7 @@ describe("lmstudio setup", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as GenesisConfig;
     const promptText = vi
       .fn()
       .mockResolvedValueOnce("http://localhost:1234/api/v1/")
@@ -916,7 +916,7 @@ describe("lmstudio setup", () => {
                 },
               },
             },
-          } as OpenClawConfig,
+          } as GenesisConfig,
         }),
       );
 
@@ -961,7 +961,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         env: {
           LMSTUDIO_DISCOVERY_TOKEN: "secretref-lmstudio-key",
           LMSTUDIO_PROXY_TOKEN: "proxy-token-from-env",
@@ -1000,7 +1000,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         env: {},
       }),
     );
@@ -1027,7 +1027,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
         env: {},
       }),
     );
@@ -1054,7 +1054,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     );
 
@@ -1085,7 +1085,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     );
 
@@ -1119,7 +1119,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     );
 
@@ -1146,7 +1146,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     );
 
@@ -1174,7 +1174,7 @@ describe("lmstudio setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as GenesisConfig,
       }),
     );
 
@@ -1217,7 +1217,7 @@ describe("lmstudio setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       customBaseUrl: "http://localhost:1234/api/v1/",
       customModelId: "qwen3-8b-instruct",
     });

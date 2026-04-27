@@ -11,7 +11,7 @@ describe("resolveUpdateBuildManager", () => {
       const key = argv.join(" ");
       if (key === "pnpm --version") {
         const envPath = options.env?.PATH ?? options.env?.Path ?? "";
-        if (envPath.includes("openclaw-update-pnpm-")) {
+        if (envPath.includes("genesis-update-pnpm-")) {
           paths.push(envPath);
           return { stdout: "10.0.0", stderr: "", code: 0 };
         }
@@ -34,7 +34,7 @@ describe("resolveUpdateBuildManager", () => {
     expect(result.kind).toBe("resolved");
     if (result.kind === "resolved") {
       expect(result.manager).toBe("pnpm");
-      expect(paths.some((value) => value.includes("openclaw-update-pnpm-"))).toBe(true);
+      expect(paths.some((value) => value.includes("genesis-update-pnpm-"))).toBe(true);
       await result.cleanup?.();
     }
   });

@@ -94,7 +94,7 @@ describe("security CLI", () => {
       gateway: {
         auth: {
           mode: "token",
-          token: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+          token: { source: "env", provider: "default", id: "GENESIS_GATEWAY_TOKEN" },
         },
       },
       secrets: {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as bootstrapCache from "../../agents/bootstrap-cache.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import type { MsgContext } from "../templating.js";
 import { maybeHandleResetCommand } from "./commands-reset.js";
 import type { HandleCommandsParams } from "./commands-types.js";
@@ -59,7 +59,7 @@ vi.mock("./route-reply.runtime.js", () => ({
 
 function buildResetParams(
   commandBody: string,
-  cfg: OpenClawConfig,
+  cfg: GenesisConfig,
   ctxOverrides?: Partial<MsgContext>,
 ): HandleCommandsParams {
   const ctx = {
@@ -93,7 +93,7 @@ function buildResetParams(
     directives: parseInlineDirectives(""),
     elevated: { enabled: true, allowed: true, failures: [] },
     sessionKey: "agent:main:main",
-    workspaceDir: "/tmp/openclaw-commands",
+    workspaceDir: "/tmp/genesis-commands",
     defaultGroupActivation: () => "mention",
     resolvedVerboseLevel: "off",
     resolvedReasoningLevel: "off",
@@ -127,7 +127,7 @@ describe("handleCommands reset hooks", () => {
         params: buildResetParams("/new take notes", {
           commands: { text: true },
           channels: { whatsapp: { allowFrom: ["*"] } },
-        } as OpenClawConfig),
+        } as GenesisConfig),
         expectedCall: expect.objectContaining({ type: "command", action: "new" }),
       },
       {
@@ -138,7 +138,7 @@ describe("handleCommands reset hooks", () => {
             {
               commands: { text: true },
               channels: { telegram: { allowFrom: ["*"] } },
-            } as OpenClawConfig,
+            } as GenesisConfig,
             {
               Provider: "telegram",
               Surface: "telegram",
@@ -159,7 +159,7 @@ describe("handleCommands reset hooks", () => {
           action: "new",
           sessionKey: "agent:main:telegram:direct:123",
           context: expect.objectContaining({
-            workspaceDir: "/tmp/openclaw-commands",
+            workspaceDir: "/tmp/genesis-commands",
           }),
         }),
       },
@@ -181,7 +181,7 @@ describe("handleCommands reset hooks", () => {
       {
         commands: { text: true },
         channels: { discord: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "discord",
         Surface: "discord",
@@ -214,7 +214,7 @@ describe("handleCommands reset hooks", () => {
       {
         commands: { text: true },
         channels: { discord: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "discord",
         Surface: "discord",
@@ -239,7 +239,7 @@ describe("handleCommands reset hooks", () => {
       {
         commands: { text: true },
         channels: { whatsapp: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         SenderId: "id:whatsapp:123",
         SenderName: "Alice",
@@ -268,7 +268,7 @@ describe("handleCommands reset hooks", () => {
     const params = buildResetParams("/reset", {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig);
+    } as GenesisConfig);
     params.sessionEntry = {
       sessionId: "wrapper-session",
       updatedAt: Date.now(),
@@ -297,7 +297,7 @@ describe("handleCommands reset hooks", () => {
     const params = buildResetParams("/reset soft", {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig);
+    } as GenesisConfig);
     params.sessionEntry = {
       sessionId: "session-1",
       updatedAt: Date.now(),
@@ -340,7 +340,7 @@ describe("handleCommands reset hooks", () => {
       {
         commands: { text: true },
         channels: { webchat: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "webchat",
         Surface: "webchat",
@@ -365,7 +365,7 @@ describe("handleCommands reset hooks", () => {
     const params = buildResetParams("/reset soft", {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
-    } as OpenClawConfig);
+    } as GenesisConfig);
     params.sessionEntry = {
       sessionId: "session-direct",
       updatedAt: 1,
@@ -413,7 +413,7 @@ describe("handleCommands reset hooks", () => {
       {
         commands: { text: true },
         channels: { discord: { allowFrom: ["*"] } },
-      } as OpenClawConfig,
+      } as GenesisConfig,
       {
         Provider: "discord",
         Surface: "discord",

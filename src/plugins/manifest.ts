@@ -29,7 +29,7 @@ import {
 import type { PluginConfigUiHint } from "./manifest-types.js";
 import type { PluginKind } from "./plugin-kind.types.js";
 
-export const PLUGIN_MANIFEST_FILENAME = "openclaw.plugin.json";
+export const PLUGIN_MANIFEST_FILENAME = "genesis.plugin.json";
 export const PLUGIN_MANIFEST_FILENAMES = [PLUGIN_MANIFEST_FILENAME] as const;
 export const MAX_PLUGIN_MANIFEST_BYTES = 256 * 1024;
 
@@ -122,7 +122,7 @@ export type PluginManifestSetup = {
 };
 
 export type PluginManifestQaRunner = {
-  /** Subcommand mounted beneath `openclaw qa`, for example `matrix`. */
+  /** Subcommand mounted beneath `genesis qa`, for example `matrix`. */
   commandName: string;
   /** Optional user-facing help text for fallback host stubs. */
   description?: string;
@@ -985,7 +985,7 @@ export function loadPluginManifest(
   };
 }
 
-// package.json "openclaw" metadata (used for setup/catalog)
+// package.json "genesis" metadata (used for setup/catalog)
 export type PluginPackageChannel = {
   id?: string;
   label?: string;
@@ -1046,7 +1046,7 @@ export type PluginPackageInstall = {
   allowInvalidConfigRecovery?: boolean;
 };
 
-export type OpenClawPackageStartup = {
+export type GenesisPackageStartup = {
   /**
    * Opt-in for channel plugins whose `setupEntry` fully covers the gateway
    * startup surface needed before the server starts listening.
@@ -1054,21 +1054,21 @@ export type OpenClawPackageStartup = {
   deferConfiguredChannelFullLoadUntilAfterListen?: boolean;
 };
 
-export type OpenClawPackageSetupFeatures = {
+export type GenesisPackageSetupFeatures = {
   configPromotion?: boolean;
   legacyStateMigrations?: boolean;
   legacySessionSurfaces?: boolean;
 };
 
-export type OpenClawPackageManifest = {
+export type GenesisPackageManifest = {
   extensions?: string[];
   runtimeExtensions?: string[];
   setupEntry?: string;
   runtimeSetupEntry?: string;
-  setupFeatures?: OpenClawPackageSetupFeatures;
+  setupFeatures?: GenesisPackageSetupFeatures;
   channel?: PluginPackageChannel;
   install?: PluginPackageInstall;
-  startup?: OpenClawPackageStartup;
+  startup?: GenesisPackageStartup;
 };
 
 export const DEFAULT_PLUGIN_ENTRY_CANDIDATES = [
@@ -1089,11 +1089,11 @@ export type PackageManifest = {
   name?: string;
   version?: string;
   description?: string;
-} & Partial<Record<ManifestKey, OpenClawPackageManifest>>;
+} & Partial<Record<ManifestKey, GenesisPackageManifest>>;
 
 export function getPackageManifestMetadata(
   manifest: PackageManifest | undefined,
-): OpenClawPackageManifest | undefined {
+): GenesisPackageManifest | undefined {
   if (!manifest) {
     return undefined;
   }

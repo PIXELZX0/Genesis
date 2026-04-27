@@ -5,7 +5,7 @@ import type { JsonSchemaObject } from "../../src/shared/json-schema.types.js";
 import { memoryConfigSchema } from "./config.js";
 
 const manifest = JSON.parse(
-  fs.readFileSync(new URL("./openclaw.plugin.json", import.meta.url), "utf-8"),
+  fs.readFileSync(new URL("./genesis.plugin.json", import.meta.url), "utf-8"),
 ) as { configSchema: JsonSchemaObject };
 
 describe("memory-lancedb config", () => {

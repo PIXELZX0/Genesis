@@ -57,7 +57,7 @@ describe("rewriteSubmittedPromptTranscript", () => {
     const sessionDir = await createTmpDir();
     const sessionManager = SessionManager.create(sessionDir, sessionDir);
     const submittedPrompt =
-      "visible ask\n\n<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>\nsecret runtime context\n<<<END_OPENCLAW_INTERNAL_CONTEXT>>>";
+      "visible ask\n\n<<<BEGIN_GENESIS_INTERNAL_CONTEXT>>>\nsecret runtime context\n<<<END_GENESIS_INTERNAL_CONTEXT>>>";
     const transcriptPrompt = "visible ask";
 
     sessionManager.appendMessage({

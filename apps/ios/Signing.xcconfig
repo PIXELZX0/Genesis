@@ -4,17 +4,17 @@
 
 #include "Config/Version.xcconfig"
 
-OPENCLAW_CODE_SIGN_STYLE = Manual
-OPENCLAW_DEVELOPMENT_TEAM = Y5PE65HELJ
+GENESIS_CODE_SIGN_STYLE = Manual
+GENESIS_DEVELOPMENT_TEAM = Y5PE65HELJ
 
-OPENCLAW_APP_BUNDLE_ID = ai.openclaw.client
-OPENCLAW_SHARE_BUNDLE_ID = ai.openclaw.client.share
-OPENCLAW_WATCH_APP_BUNDLE_ID = ai.openclaw.client.watchkitapp
-OPENCLAW_WATCH_EXTENSION_BUNDLE_ID = ai.openclaw.client.watchkitapp.extension
-OPENCLAW_ACTIVITY_WIDGET_BUNDLE_ID = ai.openclaw.client.activitywidget
+GENESIS_APP_BUNDLE_ID = ai.genesis.client
+GENESIS_SHARE_BUNDLE_ID = ai.genesis.client.share
+GENESIS_WATCH_APP_BUNDLE_ID = ai.genesis.client.watchkitapp
+GENESIS_WATCH_EXTENSION_BUNDLE_ID = ai.genesis.client.watchkitapp.extension
+GENESIS_ACTIVITY_WIDGET_BUNDLE_ID = ai.genesis.client.activitywidget
 
-OPENCLAW_APP_PROFILE = ai.openclaw.client Development
-OPENCLAW_SHARE_PROFILE = ai.openclaw.client.share Development
+GENESIS_APP_PROFILE = ai.genesis.client Development
+GENESIS_SHARE_PROFILE = ai.genesis.client.share Development
 
 // Keep local includes after defaults: xcconfig is evaluated top-to-bottom,
 // so later assignments in local files override the defaults above.

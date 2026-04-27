@@ -12,13 +12,13 @@ import type { NormalizedWebhookMessage } from "./monitor-normalize.js";
 import type { WebhookTarget } from "./monitor-shared.js";
 
 function makeStateDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-catchup-test-"));
-  process.env.OPENCLAW_STATE_DIR = dir;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-catchup-test-"));
+  process.env.GENESIS_STATE_DIR = dir;
   return dir;
 }
 
 function clearStateDir(dir: string): void {
-  delete process.env.OPENCLAW_STATE_DIR;
+  delete process.env.GENESIS_STATE_DIR;
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
@@ -1073,9 +1073,9 @@ describe("saveBlueBubblesCatchupCursor + loadBlueBubblesCatchupCursor — retry 
     // its contents with a hand-crafted payload to exercise the loader's
     // sanitization independently of what the saver would emit.
     await saveBlueBubblesCatchupCursor("acct", 100);
-    const stateRoot = process.env.OPENCLAW_STATE_DIR;
+    const stateRoot = process.env.GENESIS_STATE_DIR;
     if (!stateRoot) {
-      throw new Error("OPENCLAW_STATE_DIR must be set by the test harness");
+      throw new Error("GENESIS_STATE_DIR must be set by the test harness");
     }
     const dir = path.join(stateRoot, "bluebubbles", "catchup");
     const files = fs.readdirSync(dir);

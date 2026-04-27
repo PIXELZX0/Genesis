@@ -44,7 +44,7 @@ function createContinueDirectivesResult(resetHookTriggered: boolean) {
 describe("getReplyFromConfig reset-hook fallback", () => {
   beforeEach(async () => {
     await loadGetReplyRuntimeForTest();
-    vi.stubEnv("OPENCLAW_ALLOW_SLOW_REPLY_TESTS", "1");
+    vi.stubEnv("GENESIS_ALLOW_SLOW_REPLY_TESTS", "1");
     mocks.resolveReplyDirectives.mockReset();
     mocks.handleInlineActions.mockReset();
     mocks.emitResetCommandHooks.mockReset();

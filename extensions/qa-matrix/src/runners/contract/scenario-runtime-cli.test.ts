@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatMatrixQaCliCommand,
   redactMatrixQaCliOutput,
-  resolveMatrixQaOpenClawCliEntryPath,
+  resolveMatrixQaGenesisCliEntryPath,
 } from "./scenario-runtime-cli.js";
 
 describe("Matrix QA CLI runtime", () => {
@@ -19,9 +19,9 @@ describe("Matrix QA CLI runtime", () => {
         "--recovery-key",
         "abcdef1234567890ghij",
       ]),
-    ).toBe("openclaw matrix verify backup restore --recovery-key [REDACTED]");
+    ).toBe("genesis matrix verify backup restore --recovery-key [REDACTED]");
     expect(formatMatrixQaCliCommand(["matrix", "account", "add", "--access-token=token-123"])).toBe(
-      "openclaw matrix account add --access-token=[REDACTED]",
+      "genesis matrix account add --access-token=[REDACTED]",
     );
   });
 
@@ -31,12 +31,12 @@ describe("Matrix QA CLI runtime", () => {
     ).toBe("GET /_matrix/client/v3/sync?access_token=abcdef…ghij");
   });
 
-  it("prefers the ESM OpenClaw CLI entrypoint when present", async () => {
+  it("prefers the ESM Genesis CLI entrypoint when present", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "matrix-qa-cli-entry-"));
     try {
       await mkdir(path.join(root, "dist"));
       await writeFile(path.join(root, "dist", "index.mjs"), "");
-      expect(resolveMatrixQaOpenClawCliEntryPath(root)).toBe(path.join(root, "dist", "index.mjs"));
+      expect(resolveMatrixQaGenesisCliEntryPath(root)).toBe(path.join(root, "dist", "index.mjs"));
     } finally {
       await rm(root, { force: true, recursive: true });
     }

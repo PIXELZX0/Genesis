@@ -10,7 +10,7 @@ import {
   type SessionEntry,
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { logVerbose } from "../../globals.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
 
@@ -52,7 +52,7 @@ function resolveNonNegativeNumber(value: number | undefined): number | undefined
 }
 
 function estimateSessionRunCostUsd(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   usage?: NormalizedUsage;
   providerUsed?: string;
   modelUsed?: string;
@@ -71,7 +71,7 @@ function estimateSessionRunCostUsd(params: {
 export async function persistSessionUsageUpdate(params: {
   storePath?: string;
   sessionKey?: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   usage?: NormalizedUsage;
   /**
    * Usage from the last individual API call (not accumulated). When provided,

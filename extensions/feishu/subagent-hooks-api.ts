@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/channel-entry-contract";
+import type { GenesisPluginApi } from "genesis/plugin-sdk/channel-entry-contract";
 
 type FeishuSubagentHooksModule = typeof import("./src/subagent-hooks.js");
 
@@ -9,7 +9,7 @@ function loadFeishuSubagentHooksModule() {
   return feishuSubagentHooksPromise;
 }
 
-export function registerFeishuSubagentHooks(api: OpenClawPluginApi): void {
+export function registerFeishuSubagentHooks(api: GenesisPluginApi): void {
   api.on("subagent_spawning", async (event, ctx) => {
     const { handleFeishuSubagentSpawning } = await loadFeishuSubagentHooksModule();
     return await handleFeishuSubagentSpawning(event, ctx);

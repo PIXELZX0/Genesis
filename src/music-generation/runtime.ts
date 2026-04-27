@@ -1,5 +1,5 @@
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
   buildMediaGenerationNormalizationMetadata,
@@ -18,7 +18,7 @@ const log = createSubsystemLogger("music-generation");
 
 export type { GenerateMusicParams, GenerateMusicRuntimeResult } from "./runtime-types.js";
 
-export function listRuntimeMusicGenerationProviders(params?: { config?: OpenClawConfig }) {
+export function listRuntimeMusicGenerationProviders(params?: { config?: GenesisConfig }) {
   return listMusicGenerationProviders(params?.config);
 }
 

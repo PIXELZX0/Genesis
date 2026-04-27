@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import { safeEqualSecret } from "openclaw/plugin-sdk/browser-security-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { safeEqualSecret } from "genesis/plugin-sdk/browser-security-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { getHeader } from "./http-headers.js";
 import type { WebhookContext } from "./types.js";
 

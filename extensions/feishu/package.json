@@ -1,25 +1,25 @@
 {
-  "name": "@openclaw/feishu",
+  "name": "@genesis/feishu",
   "version": "2026.4.20",
-  "description": "OpenClaw Feishu/Lark channel plugin (community maintained by @m1heng)",
+  "description": "Genesis Feishu/Lark channel plugin (community maintained by @m1heng)",
   "type": "module",
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.61.1",
     "typebox": "1.1.31"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.24"
+    "genesis": ">=2026.4.24"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -38,7 +38,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/feishu",
+      "npmSpec": "@genesis/feishu",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.24"
     },
@@ -46,7 +46,7 @@
       "pluginApi": ">=2026.4.24"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "bundle": {
       "stageRuntimeDependencies": true

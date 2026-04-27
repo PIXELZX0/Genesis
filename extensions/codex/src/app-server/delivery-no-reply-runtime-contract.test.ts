@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness";
+import type { EmbeddedRunAttemptParams } from "genesis/plugin-sdk/agent-harness";
 import { afterEach, describe, expect, it } from "vitest";
 import { isSilentReplyPayloadText } from "../../../../src/auto-reply/tokens.js";
 import { DELIVERY_NO_REPLY_RUNTIME_CONTRACT } from "../../../../test/helpers/agents/delivery-no-reply-runtime-contract.js";
@@ -16,7 +16,7 @@ const tempDirs = new Set<string>();
 type ProjectorNotification = Parameters<CodexAppServerEventProjector["handleNotification"]>[0];
 
 async function createParams(): Promise<EmbeddedRunAttemptParams> {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-delivery-contract-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-codex-delivery-contract-"));
   tempDirs.add(tempDir);
   const sessionFile = path.join(tempDir, "session.jsonl");
   SessionManager.open(sessionFile);

@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeConfiguredMcpServers } from "../../config/mcp-config.js";
 import { applyMergePatch } from "../../config/merge-patch.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { CliBackendConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import {
   extractMcpServerMap,
   loadEnabledBundleMcpConfig,
@@ -142,9 +142,9 @@ function applyCommonServerConfig(
   }
 }
 
-function isOpenClawLoopbackMcpServer(name: string, server: BundleMcpServerConfig): boolean {
+function isGenesisLoopbackMcpServer(name: string, server: BundleMcpServerConfig): boolean {
   return (
-    name === "openclaw" &&
+    name === "genesis" &&
     typeof server.url === "string" &&
     /^https?:\/\/(?:127\.0\.0\.1|localhost):\d+\/mcp(?:[?#].*)?$/.test(server.url)
   );
@@ -156,7 +156,7 @@ function normalizeCodexServerConfig(
 ): Record<string, unknown> {
   const next: Record<string, unknown> = {};
   applyCommonServerConfig(next, server);
-  if (isOpenClawLoopbackMcpServer(name, server)) {
+  if (isGenesisLoopbackMcpServer(name, server)) {
     next.default_tools_approval_mode = "approve";
   }
   const httpHeaders = normalizeStringRecord(server.headers);
@@ -237,7 +237,7 @@ async function writeGeminiSystemSettings(
   mergedConfig: BundleMcpConfig,
   inheritedEnv: Record<string, string> | undefined,
 ): Promise<{ env: Record<string, string>; cleanup: () => Promise<void> }> {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gemini-mcp-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-gemini-mcp-"));
   const settingsPath = path.join(tempDir, "settings.json");
   const existingSettingsPath =
     inheritedEnv?.GEMINI_CLI_SYSTEM_SETTINGS_PATH ?? process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH;
@@ -285,26 +285,26 @@ function sortJsonValue(value: unknown): unknown {
   );
 }
 
-function normalizeOpenClawLoopbackUrl(value: string): string {
+function normalizeGenesisLoopbackUrl(value: string): string {
   const match =
     /^(http:\/\/(?:127\.0\.0\.1|localhost|\[::1\])):\d+(\/mcp)$/.exec(value.trim()) ?? undefined;
   if (!match) {
     return value;
   }
-  return `${match[1]}:<openclaw-loopback>${match[2]}`;
+  return `${match[1]}:<genesis-loopback>${match[2]}`;
 }
 
 function canonicalizeBundleMcpConfigForResume(config: BundleMcpConfig): BundleMcpConfig {
   const canonicalServers = Object.fromEntries(
     Object.entries(config.mcpServers).map(([name, server]) => {
-      if (name !== "openclaw" || typeof server.url !== "string") {
+      if (name !== "genesis" || typeof server.url !== "string") {
         return [name, sortJsonValue(server)];
       }
       return [
         name,
         sortJsonValue({
           ...server,
-          url: normalizeOpenClawLoopbackUrl(server.url),
+          url: normalizeGenesisLoopbackUrl(server.url),
         }),
       ];
     }),
@@ -356,7 +356,7 @@ async function prepareModeSpecificBundleMcpConfig(params: {
     };
   }
 
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-cli-mcp-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-cli-mcp-"));
   const mcpConfigPath = path.join(tempDir, "mcp.json");
   await fs.writeFile(mcpConfigPath, serializedConfig, "utf-8");
   return {
@@ -382,7 +382,7 @@ export async function prepareCliBundleMcpConfig(params: {
   mode?: CliBundleMcpMode;
   backend: CliBackendConfig;
   workspaceDir: string;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   additionalConfig?: BundleMcpConfig;
   env?: Record<string, string>;
   warn?: (message: string) => void;

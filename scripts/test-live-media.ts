@@ -32,19 +32,19 @@ export const MEDIA_SUITES: Record<MediaSuiteId, MediaSuiteConfig> = {
   image: {
     id: "image",
     testFile: "test/image-generation.runtime.live.test.ts",
-    providerEnvVar: "OPENCLAW_LIVE_IMAGE_GENERATION_PROVIDERS",
+    providerEnvVar: "GENESIS_LIVE_IMAGE_GENERATION_PROVIDERS",
     providers: ["fal", "google", "minimax", "openai", "vydra", "xai"],
   },
   music: {
     id: "music",
     testFile: "extensions/music-generation-providers.live.test.ts",
-    providerEnvVar: "OPENCLAW_LIVE_MUSIC_GENERATION_PROVIDERS",
+    providerEnvVar: "GENESIS_LIVE_MUSIC_GENERATION_PROVIDERS",
     providers: ["google", "minimax"],
   },
   video: {
     id: "video",
     testFile: "extensions/video-generation-providers.live.test.ts",
-    providerEnvVar: "OPENCLAW_LIVE_VIDEO_GENERATION_PROVIDERS",
+    providerEnvVar: "GENESIS_LIVE_VIDEO_GENERATION_PROVIDERS",
     providers: [
       "alibaba",
       "byteplus",

@@ -36,6 +36,19 @@ const BrowserSnapshotDefaultsSchema = z
   .strict()
   .optional();
 
+const BrowserTorSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    mode: z.union([z.literal("managed"), z.literal("external")]).optional(),
+    executablePath: z.string().optional(),
+    socksHost: z.string().optional(),
+    socksPort: z.number().int().min(1).max(65535).optional(),
+    dataDir: z.string().optional(),
+    extraArgs: z.array(z.string()).optional(),
+  })
+  .strict()
+  .optional();
+
 const NodeHostSchema = z
   .object({
     browserProxy: z
@@ -236,7 +249,91 @@ const McpConfigSchema = z
   .strict()
   .optional();
 
-export const OpenClawSchema = z
+const WalletChainConfigEnabledShape = {
+  enabled: z.boolean().optional(),
+};
+
+const WalletDerivationPathSchema = z.string().regex(/^m(\/[0-9]+'?)+$/, "invalid derivation path");
+
+const WalletSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    primaryAccount: z.string().min(1).optional(),
+    networks: z
+      .object({
+        btc: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            network: z.enum(["mainnet", "testnet", "regtest"]).optional(),
+            esploraUrl: SecretInputSchema.optional().register(sensitive),
+            feeRateSatPerVbyte: z.number().positive().optional(),
+            derivationPath: WalletDerivationPathSchema.optional(),
+          })
+          .strict()
+          .optional(),
+        evm: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            chainId: z.number().int().positive().optional(),
+            name: z.string().min(1).optional(),
+            rpcUrl: SecretInputSchema.optional().register(sensitive),
+            currencySymbol: z.string().min(1).max(16).optional(),
+            derivationPath: WalletDerivationPathSchema.optional(),
+            explorerTxUrl: z.string().url().optional(),
+          })
+          .strict()
+          .optional(),
+        sol: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            network: z.enum(["mainnet-beta", "testnet", "devnet"]).optional(),
+            rpcUrl: SecretInputSchema.optional().register(sensitive),
+            derivationPath: WalletDerivationPathSchema.optional(),
+            explorerTxUrl: z.string().url().optional(),
+          })
+          .strict()
+          .optional(),
+        trx: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            fullHost: SecretInputSchema.optional().register(sensitive),
+            apiKey: SecretInputSchema.optional().register(sensitive),
+            derivationPath: WalletDerivationPathSchema.optional(),
+            explorerTxUrl: z.string().url().optional(),
+          })
+          .strict()
+          .optional(),
+        xmr: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            walletRpcUrl: SecretInputSchema.optional().register(sensitive),
+            username: SecretInputSchema.optional().register(sensitive),
+            password: SecretInputSchema.optional().register(sensitive),
+            accountIndex: z.number().int().nonnegative().optional(),
+            addressIndex: z.number().int().nonnegative().optional(),
+            explorerTxUrl: z.string().url().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    spending: z
+      .object({
+        enabled: z.boolean().optional(),
+        requireAllowEnv: z.boolean().optional(),
+        maxNativeAmount: z
+          .string()
+          .regex(/^\d+(?:\.\d+)?$/, "invalid native amount")
+          .optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .optional();
+
+export const GenesisSchema = z
   .object({
     $schema: z.string().optional(),
     meta: z
@@ -389,6 +486,7 @@ export const OpenClawSchema = z
         attachOnly: z.boolean().optional(),
         cdpPortRangeStart: z.number().int().min(1).max(65535).optional(),
         defaultProfile: z.string().optional(),
+        tor: BrowserTorSchema,
         snapshotDefaults: BrowserSnapshotDefaultsSchema,
         ssrfPolicy: z
           .object({
@@ -409,11 +507,12 @@ export const OpenClawSchema = z
                 cdpUrl: z.string().optional(),
                 userDataDir: z.string().optional(),
                 driver: z
-                  .union([z.literal("openclaw"), z.literal("clawd"), z.literal("existing-session")])
+                  .union([z.literal("genesis"), z.literal("clawd"), z.literal("existing-session")])
                   .optional(),
                 headless: z.boolean().optional(),
                 executablePath: z.string().optional(),
                 attachOnly: z.boolean().optional(),
+                tor: BrowserTorSchema,
                 color: HexColorSchema,
               })
               .strict()
@@ -526,6 +625,7 @@ export const OpenClawSchema = z
     nodeHost: NodeHostSchema,
     agents: AgentsSchema,
     tools: ToolsSchema,
+    wallet: WalletSchema,
     bindings: BindingsSchema,
     broadcast: BroadcastSchema,
     audio: AudioSchema,

@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-type DiscoverOpenClawPlugins = typeof import("./discovery.js").discoverOpenClawPlugins;
+type DiscoverGenesisPlugins = typeof import("./discovery.js").discoverGenesisPlugins;
 type LoadPluginManifest = typeof import("./manifest.js").loadPluginManifest;
 type ResolveManifestProviderAuthChoices =
   typeof import("./provider-auth-choices.js").resolveManifestProviderAuthChoices;
 
-const discoverOpenClawPlugins = vi.hoisted(() =>
-  vi.fn<DiscoverOpenClawPlugins>(() => ({ candidates: [], diagnostics: [] })),
+const discoverGenesisPlugins = vi.hoisted(() =>
+  vi.fn<DiscoverGenesisPlugins>(() => ({ candidates: [], diagnostics: [] })),
 );
 vi.mock("./discovery.js", () => ({
-  discoverOpenClawPlugins,
+  discoverGenesisPlugins,
 }));
 
 const loadPluginManifest = vi.hoisted(() => vi.fn<LoadPluginManifest>());
@@ -36,7 +36,7 @@ import {
 describe("provider install catalog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [],
       diagnostics: [],
     });
@@ -44,7 +44,7 @@ describe("provider install catalog", () => {
   });
 
   it("merges manifest auth-choice metadata with discovery install metadata", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "openai",
@@ -52,11 +52,11 @@ describe("provider install catalog", () => {
           rootDir: "/repo/extensions/openai",
           source: "/repo/extensions/openai/index.ts",
           workspaceDir: "/repo",
-          packageName: "@openclaw/openai",
+          packageName: "@genesis/openai",
           packageDir: "/repo/extensions/openai",
           packageManifest: {
             install: {
-              npmSpec: "@openclaw/openai@1.2.3",
+              npmSpec: "@genesis/openai@1.2.3",
               defaultChoice: "npm",
               expectedIntegrity: "sha512-openai",
             },
@@ -67,7 +67,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/repo/extensions/openai/openclaw.plugin.json",
+      manifestPath: "/repo/extensions/openai/genesis.plugin.json",
       manifest: {
         id: "openai",
         configSchema: {
@@ -99,7 +99,7 @@ describe("provider install catalog", () => {
         label: "OpenAI",
         origin: "bundled",
         install: {
-          npmSpec: "@openclaw/openai@1.2.3",
+          npmSpec: "@genesis/openai@1.2.3",
           localPath: "extensions/openai",
           defaultChoice: "npm",
           expectedIntegrity: "sha512-openai",
@@ -107,8 +107,8 @@ describe("provider install catalog", () => {
         installSource: {
           defaultChoice: "npm",
           npm: {
-            spec: "@openclaw/openai@1.2.3",
-            packageName: "@openclaw/openai",
+            spec: "@genesis/openai@1.2.3",
+            packageName: "@genesis/openai",
             selector: "1.2.3",
             selectorKind: "exact-version",
             exactVersion: true,
@@ -125,7 +125,7 @@ describe("provider install catalog", () => {
   });
 
   it("falls back to workspace-relative local path when install metadata is sparse", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "demo-provider",
@@ -142,7 +142,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/repo/extensions/demo-provider/openclaw.plugin.json",
+      manifestPath: "/repo/extensions/demo-provider/genesis.plugin.json",
       manifest: {
         id: "demo-provider",
         configSchema: {
@@ -185,18 +185,18 @@ describe("provider install catalog", () => {
   });
 
   it("resolves one installable auth choice by id", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "vllm",
           origin: "config",
-          rootDir: "/Users/test/.openclaw/extensions/vllm",
-          source: "/Users/test/.openclaw/extensions/vllm/index.js",
-          packageName: "@openclaw/vllm",
-          packageDir: "/Users/test/.openclaw/extensions/vllm",
+          rootDir: "/Users/test/.genesis/extensions/vllm",
+          source: "/Users/test/.genesis/extensions/vllm/index.js",
+          packageName: "@genesis/vllm",
+          packageDir: "/Users/test/.genesis/extensions/vllm",
           packageManifest: {
             install: {
-              npmSpec: "@openclaw/vllm@2.0.0",
+              npmSpec: "@genesis/vllm@2.0.0",
               expectedIntegrity: "sha512-vllm",
             },
           },
@@ -206,7 +206,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/Users/test/.openclaw/extensions/vllm/openclaw.plugin.json",
+      manifestPath: "/Users/test/.genesis/extensions/vllm/genesis.plugin.json",
       manifest: {
         id: "vllm",
         configSchema: {
@@ -235,15 +235,15 @@ describe("provider install catalog", () => {
       label: "vLLM",
       origin: "config",
       install: {
-        npmSpec: "@openclaw/vllm@2.0.0",
+        npmSpec: "@genesis/vllm@2.0.0",
         expectedIntegrity: "sha512-vllm",
         defaultChoice: "npm",
       },
       installSource: {
         defaultChoice: "npm",
         npm: {
-          spec: "@openclaw/vllm@2.0.0",
-          packageName: "@openclaw/vllm",
+          spec: "@genesis/vllm@2.0.0",
+          packageName: "@genesis/vllm",
           selector: "2.0.0",
           selectorKind: "exact-version",
           exactVersion: true,
@@ -256,18 +256,18 @@ describe("provider install catalog", () => {
   });
 
   it("exposes trusted registry npm specs without requiring an exact version or integrity pin", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "vllm",
           origin: "config",
-          rootDir: "/Users/test/.openclaw/extensions/vllm",
-          source: "/Users/test/.openclaw/extensions/vllm/index.js",
-          packageName: "@openclaw/vllm",
-          packageDir: "/Users/test/.openclaw/extensions/vllm",
+          rootDir: "/Users/test/.genesis/extensions/vllm",
+          source: "/Users/test/.genesis/extensions/vllm/index.js",
+          packageName: "@genesis/vllm",
+          packageDir: "/Users/test/.genesis/extensions/vllm",
           packageManifest: {
             install: {
-              npmSpec: "@openclaw/vllm",
+              npmSpec: "@genesis/vllm",
             },
           },
         },
@@ -276,7 +276,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/Users/test/.openclaw/extensions/vllm/openclaw.plugin.json",
+      manifestPath: "/Users/test/.genesis/extensions/vllm/genesis.plugin.json",
       manifest: {
         id: "vllm",
         configSchema: {
@@ -303,14 +303,14 @@ describe("provider install catalog", () => {
       label: "vLLM",
       origin: "config",
       install: {
-        npmSpec: "@openclaw/vllm",
+        npmSpec: "@genesis/vllm",
         defaultChoice: "npm",
       },
       installSource: {
         defaultChoice: "npm",
         npm: {
-          spec: "@openclaw/vllm",
-          packageName: "@openclaw/vllm",
+          spec: "@genesis/vllm",
+          packageName: "@genesis/vllm",
           selectorKind: "none",
           exactVersion: false,
           pinState: "floating-without-integrity",
@@ -321,18 +321,18 @@ describe("provider install catalog", () => {
   });
 
   it("warns when provider install npmSpec drifts from package identity", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "vllm",
           origin: "config",
-          rootDir: "/Users/test/.openclaw/extensions/vllm",
-          source: "/Users/test/.openclaw/extensions/vllm/index.js",
-          packageName: "@openclaw/vllm",
-          packageDir: "/Users/test/.openclaw/extensions/vllm",
+          rootDir: "/Users/test/.genesis/extensions/vllm",
+          source: "/Users/test/.genesis/extensions/vllm/index.js",
+          packageName: "@genesis/vllm",
+          packageDir: "/Users/test/.genesis/extensions/vllm",
           packageManifest: {
             install: {
-              npmSpec: "@openclaw/vllm-fork@2.0.0",
+              npmSpec: "@genesis/vllm-fork@2.0.0",
               expectedIntegrity: "sha512-vllm",
             },
           },
@@ -342,7 +342,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/Users/test/.openclaw/extensions/vllm/openclaw.plugin.json",
+      manifestPath: "/Users/test/.genesis/extensions/vllm/genesis.plugin.json",
       manifest: {
         id: "vllm",
         configSchema: {
@@ -363,9 +363,9 @@ describe("provider install catalog", () => {
     expect(resolveProviderInstallCatalogEntry("vllm")?.installSource).toEqual({
       defaultChoice: "npm",
       npm: {
-        spec: "@openclaw/vllm-fork@2.0.0",
-        packageName: "@openclaw/vllm-fork",
-        expectedPackageName: "@openclaw/vllm",
+        spec: "@genesis/vllm-fork@2.0.0",
+        packageName: "@genesis/vllm-fork",
+        expectedPackageName: "@genesis/vllm",
         selector: "2.0.0",
         selectorKind: "exact-version",
         exactVersion: true,
@@ -377,15 +377,15 @@ describe("provider install catalog", () => {
   });
 
   it("does not expose npm install specs from untrusted package metadata", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "demo-provider",
           origin: "global",
-          rootDir: "/Users/test/.openclaw/extensions/demo-provider",
-          source: "/Users/test/.openclaw/extensions/demo-provider/index.js",
+          rootDir: "/Users/test/.genesis/extensions/demo-provider",
+          source: "/Users/test/.genesis/extensions/demo-provider/index.js",
           packageName: "@vendor/demo-provider",
-          packageDir: "/Users/test/.openclaw/extensions/demo-provider",
+          packageDir: "/Users/test/.genesis/extensions/demo-provider",
           packageManifest: {
             install: {
               npmSpec: "@vendor/demo-provider@1.2.3",
@@ -398,7 +398,7 @@ describe("provider install catalog", () => {
     });
     loadPluginManifest.mockReturnValue({
       ok: true,
-      manifestPath: "/Users/test/.openclaw/extensions/demo-provider/openclaw.plugin.json",
+      manifestPath: "/Users/test/.genesis/extensions/demo-provider/genesis.plugin.json",
       manifest: {
         id: "demo-provider",
         configSchema: {
@@ -420,7 +420,7 @@ describe("provider install catalog", () => {
   });
 
   it("skips untrusted workspace install candidates when requested", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "demo-provider",
@@ -454,7 +454,7 @@ describe("provider install catalog", () => {
   });
 
   it("skips untrusted workspace candidates without id hints before manifest load", () => {
-    discoverOpenClawPlugins.mockReturnValue({
+    discoverGenesisPlugins.mockReturnValue({
       candidates: [
         {
           idHint: "",

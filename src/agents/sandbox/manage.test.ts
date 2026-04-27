@@ -68,11 +68,11 @@ describe("listSandboxBrowsers", () => {
             scope: "session",
             workspaceAccess: "none",
             docker: {
-              image: "openclaw-sandbox:bookworm-slim",
+              image: "genesis-sandbox:bookworm-slim",
             },
             browser: {
               enabled: true,
-              image: "openclaw-sandbox-browser:bookworm-slim",
+              image: "genesis-sandbox-browser:bookworm-slim",
             },
           },
         },
@@ -93,7 +93,7 @@ describe("listSandboxBrowsers", () => {
     });
     backendMocks.describeRuntime.mockResolvedValue({
       running: true,
-      actualConfigLabel: "openclaw-sandbox-browser:bookworm-slim",
+      actualConfigLabel: "genesis-sandbox-browser:bookworm-slim",
       configLabelMatch: true,
     });
   });
@@ -111,7 +111,7 @@ describe("listSandboxBrowsers", () => {
     );
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
-      image: "openclaw-sandbox-browser:bookworm-slim",
+      image: "genesis-sandbox-browser:bookworm-slim",
       running: true,
       imageMatch: true,
     });

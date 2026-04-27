@@ -1,4 +1,6 @@
 export type UpdateAvailable = import("../../../src/infra/update-startup.js").UpdateAvailable;
+export type WalletSummaryResult =
+  import("../../../src/gateway/protocol/schema/wallet.js").WalletSummaryResult;
 import type { CronJobBase } from "../../../src/cron/types-shared.js";
 import type { ConfigUiHints } from "../../../src/shared/config-ui-hints-types.js";
 import type {

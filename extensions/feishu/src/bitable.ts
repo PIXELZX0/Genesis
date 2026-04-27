@@ -1,7 +1,7 @@
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import { Type, type TSchema } from "typebox";
-import type { OpenClawPluginApi } from "../runtime-api.js";
+import type { GenesisPluginApi } from "../runtime-api.js";
 import { listEnabledFeishuAccounts } from "./accounts.js";
 import { createFeishuToolClient } from "./tool-account.js";
 
@@ -541,7 +541,7 @@ const UpdateRecordSchema = Type.Object({
 
 // ============ Tool Registration ============
 
-export function registerFeishuBitableTools(api: OpenClawPluginApi) {
+export function registerFeishuBitableTools(api: GenesisPluginApi) {
   if (!api.config) {
     api.logger.debug?.("feishu_bitable: No config available, skipping bitable tools");
     return;

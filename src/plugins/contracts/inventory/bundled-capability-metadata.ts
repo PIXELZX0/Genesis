@@ -32,7 +32,7 @@ export type BundledPluginContractSnapshot = {
 };
 
 const CURRENT_MODULE_PATH = fileURLToPath(import.meta.url);
-const OPENCLAW_PACKAGE_ROOT =
+const GENESIS_PACKAGE_ROOT =
   resolveLoaderPackageRoot({
     modulePath: CURRENT_MODULE_PATH,
     moduleUrl: import.meta.url,
@@ -66,8 +66,8 @@ function readJsonRecord(filePath: string): Record<string, unknown> | undefined {
 function readBundledCapabilityManifest(pluginDir: string): BundledCapabilityManifest | undefined {
   const packageJson = readJsonRecord(path.join(pluginDir, "package.json"));
   const extensions = normalizeBundledPluginStringList(
-    packageJson?.openclaw && typeof packageJson.openclaw === "object"
-      ? (packageJson.openclaw as { extensions?: unknown }).extensions
+    packageJson?.genesis && typeof packageJson.genesis === "object"
+      ? (packageJson.genesis as { extensions?: unknown }).extensions
       : undefined,
   );
   if (extensions.length === 0) {
@@ -84,7 +84,7 @@ function readBundledCapabilityManifest(pluginDir: string): BundledCapabilityMani
 
 function listBundledCapabilityManifests(): readonly BundledCapabilityManifest[] {
   const scanDir = resolveBundledPluginScanDir({
-    packageRoot: OPENCLAW_PACKAGE_ROOT,
+    packageRoot: GENESIS_PACKAGE_ROOT,
     runningFromBuiltArtifact: RUNNING_FROM_BUILT_ARTIFACT,
   });
   if (!scanDir) {

@@ -1,4 +1,4 @@
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { normalizeOptionalString } from "genesis/plugin-sdk/string-coerce-runtime";
 
 const VERIFICATION_EVENT_PREFIX = "m.key.verification.";
 const VERIFICATION_REQUEST_MSGTYPE = "m.key.verification.request";

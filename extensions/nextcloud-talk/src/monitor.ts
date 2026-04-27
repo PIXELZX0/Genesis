@@ -1,12 +1,12 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { safeParseJsonWithSchema } from "openclaw/plugin-sdk/extension-shared";
+import { safeParseJsonWithSchema } from "genesis/plugin-sdk/extension-shared";
 import {
   WEBHOOK_RATE_LIMIT_DEFAULTS,
   createAuthRateLimiter,
   isRequestBodyLimitError,
   readRequestBodyWithLimit,
   requestBodyErrorToText,
-} from "openclaw/plugin-sdk/webhook-ingress";
+} from "genesis/plugin-sdk/webhook-ingress";
 import { z } from "zod";
 import type { NextcloudTalkReplayGuard } from "./replay-guard.js";
 import { extractNextcloudTalkHeaders, verifyNextcloudTalkSignature } from "./signature.js";

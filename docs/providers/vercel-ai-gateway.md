@@ -2,7 +2,7 @@
 summary: "Vercel AI Gateway setup (auth + model selection)"
 title: "Vercel AI gateway"
 read_when:
-  - You want to use Vercel AI Gateway with OpenClaw
+  - You want to use Vercel AI Gateway with Genesis
   - You need the API key env var or CLI auth choice
 ---
 
@@ -17,7 +17,7 @@ access hundreds of models through a single endpoint.
 | Model catalog | Auto-discovered via `/v1/models` |
 
 <Tip>
-OpenClaw auto-discovers the Gateway `/v1/models` catalog, so
+Genesis auto-discovers the Gateway `/v1/models` catalog, so
 `/models vercel-ai-gateway` includes current model refs such as
 `vercel-ai-gateway/openai/gpt-5.5` and
 `vercel-ai-gateway/moonshotai/kimi-k2.6`.
@@ -30,12 +30,12 @@ OpenClaw auto-discovers the Gateway `/v1/models` catalog, so
     Run onboarding and choose the AI Gateway auth option:
 
     ```bash
-    openclaw onboard --auth-choice ai-gateway-api-key
+    genesis onboard --auth-choice ai-gateway-api-key
     ```
 
   </Step>
   <Step title="Set a default model">
-    Add the model to your OpenClaw config:
+    Add the model to your Genesis config:
 
     ```json5
     {
@@ -50,7 +50,7 @@ OpenClaw auto-discovers the Gateway `/v1/models` catalog, so
   </Step>
   <Step title="Verify the model is available">
     ```bash
-    openclaw models list --provider vercel-ai-gateway
+    genesis models list --provider vercel-ai-gateway
     ```
   </Step>
 </Steps>
@@ -60,7 +60,7 @@ OpenClaw auto-discovers the Gateway `/v1/models` catalog, so
 For scripted or CI setups, pass all values on the command line:
 
 ```bash
-openclaw onboard --non-interactive \
+genesis onboard --non-interactive \
   --mode local \
   --auth-choice ai-gateway-api-key \
   --ai-gateway-api-key "$AI_GATEWAY_API_KEY"
@@ -68,7 +68,7 @@ openclaw onboard --non-interactive \
 
 ## Model ID shorthand
 
-OpenClaw accepts Vercel Claude shorthand model refs and normalizes them at
+Genesis accepts Vercel Claude shorthand model refs and normalizes them at
 runtime:
 
 | Shorthand input                     | Normalized model ref                          |
@@ -78,20 +78,20 @@ runtime:
 
 <Tip>
 You can use either the shorthand or the fully qualified model ref in your
-configuration. OpenClaw resolves the canonical form automatically.
+configuration. Genesis resolves the canonical form automatically.
 </Tip>
 
 ## Advanced configuration
 
 <AccordionGroup>
   <Accordion title="Environment variable for daemon processes">
-    If the OpenClaw Gateway runs as a daemon (launchd/systemd), make sure
+    If the Genesis Gateway runs as a daemon (launchd/systemd), make sure
     `AI_GATEWAY_API_KEY` is available to that process.
 
     <Warning>
     A key set only in `~/.profile` will not be visible to a launchd/systemd
     daemon unless that environment is explicitly imported. Set the key in
-    `~/.openclaw/.env` or via `env.shellEnv` to ensure the gateway process can
+    `~/.genesis/.env` or via `env.shellEnv` to ensure the gateway process can
     read it.
     </Warning>
 

@@ -1,4 +1,4 @@
-import type { MockFn } from "openclaw/plugin-sdk/testing";
+import type { MockFn } from "genesis/plugin-sdk/testing";
 import { vi } from "vitest";
 
 type DiscordWebMediaMockFactoryResult = {

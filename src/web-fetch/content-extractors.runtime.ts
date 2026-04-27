@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type {
   WebContentExtractionResult,
   WebContentExtractMode,
@@ -7,11 +7,11 @@ import { resolvePluginWebContentExtractors } from "../plugins/web-content-extrac
 
 let extractorPromise: Promise<ReturnType<typeof resolvePluginWebContentExtractors>> | undefined;
 const extractorPromisesByConfig = new WeakMap<
-  OpenClawConfig,
+  GenesisConfig,
   Promise<ReturnType<typeof resolvePluginWebContentExtractors>>
 >();
 
-async function loadWebContentExtractors(config?: OpenClawConfig) {
+async function loadWebContentExtractors(config?: GenesisConfig) {
   if (config) {
     const cached = extractorPromisesByConfig.get(config);
     if (cached) {
@@ -32,7 +32,7 @@ export async function extractReadableContent(params: {
   html: string;
   url: string;
   extractMode: WebContentExtractMode;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
 }): Promise<(WebContentExtractionResult & { extractor: string }) | null> {
   let extractors: Awaited<ReturnType<typeof loadWebContentExtractors>>;
   try {

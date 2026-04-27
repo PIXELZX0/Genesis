@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/config.js";
 import { handlePluginsCommand } from "./commands-plugins.js";
 import { buildPluginsCommandParams } from "./commands.test-harness.js";
 
@@ -63,7 +63,7 @@ vi.mock("../../plugins/status.js", () => ({
 }));
 
 vi.mock("../../plugins/toggle-config.js", () => ({
-  setPluginEnabledInConfig: vi.fn((config: OpenClawConfig, id: string, enabled: boolean) => ({
+  setPluginEnabledInConfig: vi.fn((config: GenesisConfig, id: string, enabled: boolean) => ({
     ...config,
     plugins: {
       ...config.plugins,
@@ -83,14 +83,14 @@ vi.mock("../../utils.js", async () => {
   };
 });
 
-function buildCfg(): OpenClawConfig {
+function buildCfg(): GenesisConfig {
   return {
     plugins: { enabled: true },
     commands: { text: true, plugins: true },
   };
 }
 
-function buildPluginsParams(commandBodyNormalized: string, cfg: OpenClawConfig) {
+function buildPluginsParams(commandBodyNormalized: string, cfg: GenesisConfig) {
   return buildPluginsCommandParams({
     commandBodyNormalized,
     cfg,
@@ -102,7 +102,7 @@ describe("handlePluginsCommand", () => {
     vi.clearAllMocks();
     readConfigFileSnapshotMock.mockResolvedValue({
       valid: true,
-      path: "/tmp/openclaw.json",
+      path: "/tmp/genesis.json",
       resolved: buildCfg(),
     });
     validateConfigObjectWithPluginsMock.mockReturnValue({
@@ -117,7 +117,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "superpowers",
           status: "disabled",
-          format: "openclaw",
+          format: "genesis",
           bundleFormat: "claude",
         },
       ],
@@ -129,7 +129,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "superpowers",
           status: "disabled",
-          format: "openclaw",
+          format: "genesis",
           bundleFormat: "claude",
         },
       ],
@@ -233,7 +233,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "Super Powers",
           status: "disabled",
-          format: "openclaw",
+          format: "genesis",
           bundleFormat: "claude",
         },
       ],

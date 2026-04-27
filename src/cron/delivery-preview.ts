@@ -1,5 +1,5 @@
 import { resolveDefaultAgentId } from "../agents/agent-scope-config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { resolveCronDeliveryPlan } from "./delivery-plan.js";
 import { resolveDeliveryTarget } from "./isolated-agent/delivery-target.js";
 import type { CronDeliveryPreview, CronJob } from "./types.js";
@@ -34,7 +34,7 @@ function formatDeliveryDetail(params: {
 }
 
 export async function resolveCronDeliveryPreview(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   defaultAgentId?: string;
   job: CronJob;
 }): Promise<CronDeliveryPreview> {
@@ -84,7 +84,7 @@ export async function resolveCronDeliveryPreview(params: {
 }
 
 export async function resolveCronDeliveryPreviews(params: {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   defaultAgentId?: string;
   jobs: CronJob[];
 }): Promise<Record<string, CronDeliveryPreview>> {

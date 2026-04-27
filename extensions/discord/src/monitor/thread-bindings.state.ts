@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { loadJsonFile, saveJsonFile } from "openclaw/plugin-sdk/json-store";
-import { normalizeAccountId, resolveAgentIdFromSessionKey } from "openclaw/plugin-sdk/routing";
-import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import { loadJsonFile, saveJsonFile } from "genesis/plugin-sdk/json-store";
+import { normalizeAccountId, resolveAgentIdFromSessionKey } from "genesis/plugin-sdk/routing";
+import { resolveStateDir } from "genesis/plugin-sdk/state-paths";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
   normalizeOptionalStringifiedId,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 import {
   DEFAULT_THREAD_BINDING_IDLE_TIMEOUT_MS,
   DEFAULT_THREAD_BINDING_MAX_AGE_MS,
@@ -34,7 +34,7 @@ type ThreadBindingsGlobalState = {
 
 // Plugin hooks can load this module via Jiti while core imports it via ESM.
 // Store mutable state on globalThis so both loader paths share one registry.
-const THREAD_BINDINGS_STATE_KEY = Symbol.for("openclaw.discordThreadBindingsState");
+const THREAD_BINDINGS_STATE_KEY = Symbol.for("genesis.discordThreadBindingsState");
 let threadBindingsState: ThreadBindingsGlobalState | undefined;
 
 function createThreadBindingsGlobalState(): ThreadBindingsGlobalState {

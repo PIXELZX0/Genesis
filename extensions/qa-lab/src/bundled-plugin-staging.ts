@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 
 const QA_ALWAYS_STAGE_RUNTIME_PLUGIN_IDS = Object.freeze([
   "image-generation-core",
@@ -17,8 +17,8 @@ const QA_CLI_METADATA_ENTRY_BASENAMES = Object.freeze([
   "cli-metadata.cjs",
 ]);
 const QA_RUNTIME_DEPS_ARTIFACT_BASENAMES = new Set([
-  ".openclaw-runtime-deps.json",
-  ".openclaw-runtime-deps-stamp.json",
+  ".genesis-runtime-deps.json",
+  ".genesis-runtime-deps-stamp.json",
 ]);
 
 function assertSafeQaBundledPluginId(pluginId: string) {
@@ -119,7 +119,7 @@ export async function resolveQaOwnerPluginIdsForProviderIds(params: {
       if (!entry.isDirectory()) {
         continue;
       }
-      const manifestPath = path.join(sourceRoot, entry.name, "openclaw.plugin.json");
+      const manifestPath = path.join(sourceRoot, entry.name, "genesis.plugin.json");
       if (!existsSync(manifestPath)) {
         continue;
       }
@@ -248,7 +248,7 @@ async function seedQaStagedNodeModules(params: { repoRoot: string; stagedRoot: s
   const stagedNodeModulesDir = path.join(params.stagedRoot, "node_modules");
   await fs.mkdir(stagedNodeModulesDir, { recursive: true });
   for (const entry of await fs.readdir(sourceNodeModulesDir, { withFileTypes: true })) {
-    if (entry.name === "openclaw") {
+    if (entry.name === "genesis") {
       continue;
     }
     await symlinkQaStagedDirEntry({
@@ -320,7 +320,7 @@ function shouldStageQaBundledPluginPath(sourcePath: string) {
   const basename = path.basename(sourcePath);
   return (
     !QA_RUNTIME_DEPS_ARTIFACT_BASENAMES.has(basename) &&
-    !basename.startsWith(".openclaw-runtime-deps-copy-")
+    !basename.startsWith(".genesis-runtime-deps-copy-")
   );
 }
 
@@ -350,13 +350,13 @@ export async function resolveQaRuntimeHostVersion(params: {
     }
     const packageRaw = await fs.readFile(packagePath, "utf8");
     const packageJson = JSON.parse(packageRaw) as {
-      openclaw?: {
+      genesis?: {
         install?: {
           minHostVersion?: string;
         };
       };
     };
-    const candidate = parseStableSemverFloor(packageJson.openclaw?.install?.minHostVersion);
+    const candidate = parseStableSemverFloor(packageJson.genesis?.install?.minHostVersion);
     if (compareSemverFloors(candidate, selected) > 0) {
       selected = candidate;
     }
@@ -390,11 +390,11 @@ export async function createQaBundledPluginsDir(params: {
     repoRoot: params.repoRoot,
     stagedRoot,
   });
-  const stagedOpenClawPackageDir = path.join(stagedRoot, "node_modules", "openclaw");
-  await fs.mkdir(stagedOpenClawPackageDir, { recursive: true });
+  const stagedGenesisPackageDir = path.join(stagedRoot, "node_modules", "genesis");
+  await fs.mkdir(stagedGenesisPackageDir, { recursive: true });
   await fs.copyFile(
     path.join(params.repoRoot, "package.json"),
-    path.join(stagedOpenClawPackageDir, "package.json"),
+    path.join(stagedGenesisPackageDir, "package.json"),
   );
   const stagedTreeName = resolveQaStagedBundledTreeName(params.repoRoot);
   const stagedTreeRoot = path.join(stagedRoot, stagedTreeName);
@@ -433,7 +433,7 @@ export async function createQaBundledPluginsDir(params: {
   }
   await symlinkQaStagedDirEntry({
     sourcePath: path.join(stagedRoot, "dist"),
-    targetPath: path.join(stagedOpenClawPackageDir, "dist"),
+    targetPath: path.join(stagedGenesisPackageDir, "dist"),
     directory: true,
   });
   return {

@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
-import type { BrowserProfileConfig, OpenClawConfig } from "../config/config.js";
+import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
+import type { BrowserProfileConfig, GenesisConfig } from "../config/config.js";
 import { loadConfig, writeConfigFile } from "../config/config.js";
 import { deriveDefaultBrowserCdpPortRange } from "../config/port-defaults.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { resolveUserPath } from "../utils.js";
 import { assertCdpEndpointAllowed } from "./cdp.helpers.js";
-import { resolveOpenClawUserDataDir } from "./chrome.js";
+import { resolveGenesisUserDataDir } from "./chrome.js";
 import { parseHttpUrl, resolveProfile } from "./config.js";
 import {
   BrowserConflictError,
@@ -31,7 +31,8 @@ export type CreateProfileParams = {
   color?: string;
   cdpUrl?: string;
   userDataDir?: string;
-  driver?: "openclaw" | "existing-session";
+  driver?: "genesis" | "existing-session";
+  tor?: boolean;
 };
 
 export type CreateProfileResult = {
@@ -122,6 +123,11 @@ export function createBrowserProfilesService(ctx: BrowserRouteContext) {
         `browser user data directory not found: ${normalizedUserDataDir}`,
       );
     }
+    if (params.tor && (rawCdpUrl || driver === "existing-session")) {
+      throw new BrowserValidationError(
+        "Tor routing is only supported for locally launched managed browser profiles",
+      );
+    }
 
     if (rawCdpUrl) {
       if (driver === "existing-session") {
@@ -160,12 +166,13 @@ export function createBrowserProfilesService(ctx: BrowserRouteContext) {
         profileConfig = {
           cdpPort,
           ...(driver ? { driver } : {}),
+          ...(params.tor ? { headless: true, tor: { enabled: true, mode: "managed" } } : {}),
           color: profileColor,
         };
       }
     }
 
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: GenesisConfig = {
       ...cfg,
       browser: {
         ...cfg.browser,
@@ -222,14 +229,14 @@ export function createBrowserProfilesService(ctx: BrowserRouteContext) {
     let deleted = false;
     const resolved = resolveProfile(state.resolved, name);
 
-    if (resolved?.cdpIsLoopback && resolved.driver === "openclaw") {
+    if (resolved?.cdpIsLoopback && resolved.driver === "genesis") {
       try {
         await ctx.forProfile(name).stopRunningBrowser();
       } catch {
         // ignore
       }
 
-      const userDataDir = resolveOpenClawUserDataDir(name);
+      const userDataDir = resolveGenesisUserDataDir(name);
       const profileDir = path.dirname(userDataDir);
       if (fs.existsSync(profileDir)) {
         await movePathToTrash(profileDir);
@@ -238,7 +245,7 @@ export function createBrowserProfilesService(ctx: BrowserRouteContext) {
     }
 
     const { [name]: _removed, ...remainingProfiles } = profiles;
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: GenesisConfig = {
       ...cfg,
       browser: {
         ...cfg.browser,

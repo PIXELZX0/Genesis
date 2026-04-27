@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import type { ResolvedSlackAccount } from "../../accounts.js";
 import type { SlackMessageEvent } from "../../types.js";
@@ -11,7 +11,7 @@ function buildCtx(overrides?: { replyToMode?: "all" | "first" | "off" }) {
       channels: {
         slack: { enabled: true, replyToMode },
       },
-    } as OpenClawConfig,
+    } as GenesisConfig,
     teamId: "T1",
     threadInheritParent: false,
     threadHistoryScope: "thread",

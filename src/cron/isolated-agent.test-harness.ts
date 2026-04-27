@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { CronJob } from "./types.js";
 
 export async function withTempCronHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(fn, { prefix: "openclaw-cron-" });
+  return withTempHomeBase(fn, { prefix: "genesis-cron-" });
 }
 
 export async function writeSessionStore(
@@ -25,7 +25,7 @@ export async function writeSessionStoreEntries(
   home: string,
   entries: Record<string, Record<string, unknown>>,
 ): Promise<string> {
-  const dir = path.join(home, ".openclaw", "sessions");
+  const dir = path.join(home, ".genesis", "sessions");
   await fs.mkdir(dir, { recursive: true });
   const storePath = path.join(dir, "sessions.json");
   await fs.writeFile(storePath, JSON.stringify(entries, null, 2), "utf-8");
@@ -35,17 +35,17 @@ export async function writeSessionStoreEntries(
 export function makeCfg(
   home: string,
   storePath: string,
-  overrides: Partial<OpenClawConfig> = {},
-): OpenClawConfig {
-  const base: OpenClawConfig = {
+  overrides: Partial<GenesisConfig> = {},
+): GenesisConfig {
+  const base: GenesisConfig = {
     agents: {
       defaults: {
         model: "anthropic/claude-opus-4-6",
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "genesis"),
       },
     },
     session: { store: storePath, mainKey: "main" },
-  } as OpenClawConfig;
+  } as GenesisConfig;
   return { ...base, ...overrides };
 }
 

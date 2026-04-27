@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { DiagnosticTraceContext } from "./diagnostic-trace-context.js";
 
 export type DiagnosticSessionState = "idle" | "processing" | "waiting";
@@ -360,10 +360,10 @@ const ASYNC_DIAGNOSTIC_EVENT_TYPES = new Set<DiagnosticEventPayload["type"]>([
 
 function getDiagnosticEventsState(): DiagnosticEventsGlobalState {
   const globalStore = globalThis as typeof globalThis & {
-    __openclawDiagnosticEventsState?: DiagnosticEventsGlobalState;
+    __genesisDiagnosticEventsState?: DiagnosticEventsGlobalState;
   };
-  if (!globalStore.__openclawDiagnosticEventsState) {
-    globalStore.__openclawDiagnosticEventsState = {
+  if (!globalStore.__genesisDiagnosticEventsState) {
+    globalStore.__genesisDiagnosticEventsState = {
       enabled: true,
       seq: 0,
       listeners: new Set<(evt: DiagnosticEventPayload) => void>(),
@@ -372,10 +372,10 @@ function getDiagnosticEventsState(): DiagnosticEventsGlobalState {
       asyncDrainScheduled: false,
     };
   }
-  return globalStore.__openclawDiagnosticEventsState;
+  return globalStore.__genesisDiagnosticEventsState;
 }
 
-export function isDiagnosticsEnabled(config?: OpenClawConfig): boolean {
+export function isDiagnosticsEnabled(config?: GenesisConfig): boolean {
   return config?.diagnostics?.enabled !== false;
 }
 

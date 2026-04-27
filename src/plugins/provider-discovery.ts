@@ -1,6 +1,6 @@
 import { normalizeProviderId } from "../agents/model-selection.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { ProviderDiscoveryOrder, ProviderPlugin } from "./types.js";
 
 const DISCOVERY_ORDER: readonly ProviderDiscoveryOrder[] = ["simple", "profile", "paired", "late"];
@@ -29,7 +29,7 @@ function isSafeProviderConfigKey(value: string): boolean {
 }
 
 export async function resolvePluginDiscoveryProviders(params: {
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
@@ -106,7 +106,7 @@ export function normalizePluginDiscoveryResult(params: {
 
 export function runProviderCatalog(params: {
   provider: ProviderPlugin;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
@@ -137,7 +137,7 @@ export function runProviderCatalog(params: {
 
 export function runProviderStaticCatalog(params: {
   provider: ProviderPlugin;
-  config: OpenClawConfig;
+  config: GenesisConfig;
   agentDir?: string;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;

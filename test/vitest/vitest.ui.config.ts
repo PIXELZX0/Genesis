@@ -23,7 +23,7 @@ export function createUiVitestConfig(
     environment: "jsdom",
     env,
     excludeUnitFastTests: false,
-    includeOpenClawRuntimeSetup: false,
+    includeGenesisRuntimeSetup: false,
     isolate: true,
     name: options?.name ?? "ui",
     setupFiles: ["ui/src/test-helpers/lit-warnings.setup.ts"],

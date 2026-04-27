@@ -6,11 +6,11 @@ import { resolveDefaultModel } from "../auto-reply/reply/directive-handling.defa
 import { resolveCurrentDirectiveLevels } from "../auto-reply/reply/directive-handling.levels.js";
 import { createModelSelectionState } from "../auto-reply/reply/model-selection.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadSessionEntry } from "../gateway/session-utils.js";
 
 export type ResolveDirectStatusReplyForSessionParams = {
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   sessionKey: string;
   channel: string;
   senderId?: string;

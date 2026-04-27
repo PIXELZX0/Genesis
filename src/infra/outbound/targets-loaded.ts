@@ -1,7 +1,7 @@
 import { getLoadedChannelPluginForRead } from "../../channels/plugins/registry-loaded-read.js";
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
 import type { ChannelOutboundTargetMode } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 import {
@@ -22,7 +22,7 @@ export function tryResolveLoadedOutboundTarget(params: {
   channel: GatewayMessageChannel;
   to?: string;
   allowFrom?: string[];
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   accountId?: string | null;
   mode?: ChannelOutboundTargetMode;
 }): OutboundTargetResolution | undefined {

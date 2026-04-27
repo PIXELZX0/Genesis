@@ -25,7 +25,7 @@ describe("browser server-context listProfiles", () => {
     expect(isChromeReachable).toHaveBeenCalledWith("http://127.0.0.1:18800", 200, undefined);
     expect(profiles).toEqual([
       expect.objectContaining({
-        name: "openclaw",
+        name: "genesis",
         running: true,
       }),
     ]);
@@ -40,7 +40,7 @@ describe("browser server-context listProfiles", () => {
         cdpIsLoopback: true,
         cdpPort: 9222,
         color: "#00AA00",
-        driver: "openclaw",
+        driver: "genesis",
         headless: false,
         attachOnly: true,
       },

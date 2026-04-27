@@ -1,25 +1,25 @@
 {
-  "name": "@openclaw/nostr",
+  "name": "@genesis/nostr",
   "version": "2026.4.20",
-  "description": "OpenClaw Nostr channel plugin for NIP-04 encrypted DMs",
+  "description": "Genesis Nostr channel plugin for NIP-04 encrypted DMs",
   "type": "module",
   "dependencies": {
     "nostr-tools": "^2.23.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
-    "openclaw": "workspace:*"
+    "@genesis/plugin-sdk": "workspace:*",
+    "genesis": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.20"
+    "genesis": ">=2026.4.20"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "genesis": {
       "optional": true
     }
   },
-  "openclaw": {
+  "genesis": {
     "extensions": [
       "./index.ts"
     ],
@@ -45,7 +45,7 @@
       ]
     },
     "install": {
-      "npmSpec": "@openclaw/nostr",
+      "npmSpec": "@genesis/nostr",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.10"
     },
@@ -53,7 +53,7 @@
       "pluginApi": ">=2026.4.20"
     },
     "build": {
-      "openclawVersion": "2026.4.20"
+      "genesisVersion": "2026.4.20"
     },
     "bundle": {
       "stageRuntimeDependencies": true

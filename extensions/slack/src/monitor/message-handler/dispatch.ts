@@ -1,4 +1,4 @@
-import { resolveHumanDelayConfig } from "openclaw/plugin-sdk/agent-runtime";
+import { resolveHumanDelayConfig } from "genesis/plugin-sdk/agent-runtime";
 import {
   createStatusReactionController,
   DEFAULT_TIMING,
@@ -6,22 +6,22 @@ import {
   logTypingFailure,
   removeAckReactionAfterReply,
   type StatusReactionAdapter,
-} from "openclaw/plugin-sdk/channel-feedback";
-import { deliverFinalizableDraftPreview } from "openclaw/plugin-sdk/channel-lifecycle";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+} from "genesis/plugin-sdk/channel-feedback";
+import { deliverFinalizableDraftPreview } from "genesis/plugin-sdk/channel-lifecycle";
+import { createChannelReplyPipeline } from "genesis/plugin-sdk/channel-reply-pipeline";
 import {
   resolveChannelStreamingBlockEnabled,
   resolveChannelStreamingNativeTransport,
   resolveChannelStreamingPreviewToolProgress,
-} from "openclaw/plugin-sdk/channel-streaming";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { resolveAgentOutboundIdentity } from "openclaw/plugin-sdk/outbound-runtime";
-import { clearHistoryEntriesIfEnabled } from "openclaw/plugin-sdk/reply-history";
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
-import type { ReplyDispatchKind, ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { danger, logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { resolvePinnedMainDmOwnerFromAllowlist } from "openclaw/plugin-sdk/security-runtime";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/channel-streaming";
+import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
+import { resolveAgentOutboundIdentity } from "genesis/plugin-sdk/outbound-runtime";
+import { clearHistoryEntriesIfEnabled } from "genesis/plugin-sdk/reply-history";
+import { resolveSendableOutboundReplyParts } from "genesis/plugin-sdk/reply-payload";
+import type { ReplyDispatchKind, ReplyPayload } from "genesis/plugin-sdk/reply-runtime";
+import { danger, logVerbose, shouldLogVerbose } from "genesis/plugin-sdk/runtime-env";
+import { resolvePinnedMainDmOwnerFromAllowlist } from "genesis/plugin-sdk/security-runtime";
+import { normalizeOptionalLowercaseString } from "genesis/plugin-sdk/text-runtime";
 import { reactSlackMessage, removeSlackReaction } from "../../actions.js";
 import { createSlackDraftStream } from "../../draft-stream.js";
 import { normalizeSlackOutboundText } from "../../format.js";

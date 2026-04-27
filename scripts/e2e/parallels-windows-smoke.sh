@@ -5,14 +5,14 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/e2e/lib/parallels-package-common.sh"
 
 VM_NAME="Windows 11"
-SNAPSHOT_HINT="pre-openclaw-native-e2e-2026-03-12"
+SNAPSHOT_HINT="pre-genesis-native-e2e-2026-03-12"
 MODE="both"
 PROVIDER="openai"
 API_KEY_ENV=""
 AUTH_CHOICE=""
 AUTH_KEY_FLAG=""
 MODEL_ID=""
-INSTALL_URL="https://openclaw.ai/install.ps1"
+INSTALL_URL="https://genesis.ai/install.ps1"
 HOST_PORT="18426"
 HOST_PORT_EXPLICIT=0
 HOST_IP=""
@@ -38,13 +38,13 @@ WINDOWS_INSTALL_SCRIPT_PATH=""
 WINDOWS_ONBOARD_SCRIPT_PATH=""
 WINDOWS_DEV_UPDATE_SCRIPT_PATH=""
 SERVER_PID=""
-RUN_DIR="$(mktemp -d /tmp/openclaw-parallels-windows.XXXXXX)"
-BUILD_LOCK_DIR="${TMPDIR:-/tmp}/openclaw-parallels-build.lock"
+RUN_DIR="$(mktemp -d /tmp/genesis-parallels-windows.XXXXXX)"
+BUILD_LOCK_DIR="${TMPDIR:-/tmp}/genesis-parallels-build.lock"
 
 TIMEOUT_SNAPSHOT_S=240
 TIMEOUT_GIT_SETUP_S=1200
 TIMEOUT_INSTALL_S=420
-TIMEOUT_UPDATE_S="${OPENCLAW_PARALLELS_WINDOWS_UPDATE_TIMEOUT_S:-1200}"
+TIMEOUT_UPDATE_S="${GENESIS_PARALLELS_WINDOWS_UPDATE_TIMEOUT_S:-1200}"
 TIMEOUT_UPDATE_POLL_GRACE_S=60
 TIMEOUT_VERIFY_S=120
 TIMEOUT_ONBOARD_S=600
@@ -134,26 +134,26 @@ Usage: bash scripts/e2e/parallels-windows-smoke.sh [options]
 Options:
   --vm <name>                Parallels VM name. Default: "Windows 11"
   --snapshot-hint <name>     Snapshot name substring/fuzzy match.
-                             Default: "pre-openclaw-native-e2e-2026-03-12"
+                             Default: "pre-genesis-native-e2e-2026-03-12"
   --mode <fresh|upgrade|both>
   --provider <openai|anthropic|minimax>
                              Provider auth/model lane. Default: openai
   --api-key-env <var>        Host env var name for provider API key.
                              Default: OPENAI_API_KEY for openai, ANTHROPIC_API_KEY for anthropic
   --openai-api-key-env <var> Alias for --api-key-env (backward compatible)
-  --install-url <url>        Installer URL for latest release. Default: https://openclaw.ai/install.ps1
+  --install-url <url>        Installer URL for latest release. Default: https://genesis.ai/install.ps1
   --host-port <port>         Host HTTP port for current-main tgz. Default: 18426
   --host-ip <ip>             Override Parallels host IP.
   --latest-version <ver>     Override npm latest version lookup.
   --install-version <ver>    Pin site-installer version/dist-tag for the baseline lane.
   --upgrade-from-packed-main
                              Upgrade lane: install the packed current-main npm tgz as baseline,
-                             then run openclaw update --channel dev.
+                             then run genesis update --channel dev.
   --target-package-spec <npm-spec>
                              Upgrade lane: install this npm package tarball as the baseline,
-                             then run openclaw update --channel dev.
+                             then run genesis update --channel dev.
                              Fresh lane: install this npm package tarball instead of packing current main.
-                             Example: openclaw@2026.3.13-beta.1
+                             Example: genesis@2026.3.13-beta.1
                              Default upgrade lane without this flag: latest/site installer -> dev channel update.
   --skip-latest-ref-check    Skip latest-release ref-mode precheck.
   --keep-server              Leave temp host HTTP server running.
@@ -579,7 +579,7 @@ state_path.write_text(current, encoding="utf-8")
 PY
 }
 
-guest_run_openclaw() {
+guest_run_genesis() {
   local env_name="${1:-}"
   local env_value="${2:-}"
   shift 2
@@ -590,14 +590,14 @@ guest_run_openclaw() {
   env_value_q="$(ps_single_quote "$env_value")"
 
   guest_powershell "$(cat <<EOF
-\$openclaw = Join-Path \$env:APPDATA 'npm\openclaw.cmd'
+\$genesis = Join-Path \$env:APPDATA 'npm\genesis.cmd'
 \$args = $args_literal
 if ('${env_name_q}' -ne '') {
   Set-Item -Path ('Env:' + '${env_name_q}') -Value '${env_value_q}'
 }
-# openclaw.cmd preserves multi-word --message args reliably here; Start-Process
+# genesis.cmd preserves multi-word --message args reliably here; Start-Process
 # against the shim can re-split argv and make Commander reject the turn.
-\$output = & \$openclaw @args 2>&1
+\$output = & \$genesis @args 2>&1
 if (\$null -ne \$output) {
   \$output | ForEach-Object { \$_ }
 }
@@ -786,7 +786,7 @@ import re
 import sys
 
 text = pathlib.Path(sys.argv[1]).read_text(errors="replace")
-matches = re.findall(r"OpenClaw [^\r\n]+ \([0-9a-f]{7,}\)", text)
+matches = re.findall(r"Genesis [^\r\n]+ \([0-9a-f]{7,}\)", text)
 print(matches[-1] if matches else "")
 PY
 }
@@ -835,7 +835,7 @@ resolve_latest_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view openclaw version --userconfig "$(mktemp)"
+  npm view genesis version --userconfig "$(mktemp)"
 }
 
 baseline_install_version() {
@@ -843,7 +843,7 @@ baseline_install_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view "openclaw@$INSTALL_VERSION" version --userconfig "$(mktemp)"
+  npm view "genesis@$INSTALL_VERSION" version --userconfig "$(mktemp)"
 }
 
 resolve_mingit_download() {
@@ -854,7 +854,7 @@ import urllib.request
 req = urllib.request.Request(
     "https://api.github.com/repos/git-for-windows/git/releases/latest",
     headers={
-        "User-Agent": "openclaw-parallels-smoke",
+        "User-Agent": "genesis-parallels-smoke",
         "Accept": "application/vnd.github+json",
     },
 )
@@ -910,7 +910,7 @@ release_build_lock() {
 ensure_current_build() {
   local head build_commit rc lock_owned
   lock_owned=0
-  if [[ "${OPENCLAW_PARALLELS_BUILD_LOCK_HELD:-0}" != "1" ]]; then
+  if [[ "${GENESIS_PARALLELS_BUILD_LOCK_HELD:-0}" != "1" ]]; then
     acquire_build_lock
     lock_owned=1
   fi
@@ -956,7 +956,7 @@ ensure_guest_git() {
   mingit_url_q="$(ps_single_quote "$mingit_url")"
   mingit_name_q="$(ps_single_quote "$MINGIT_ZIP_NAME")"
   guest_powershell "$(cat <<EOF
-\$depsRoot = Join-Path \$env:LOCALAPPDATA 'OpenClaw\deps'
+\$depsRoot = Join-Path \$env:LOCALAPPDATA 'Genesis\deps'
 \$portableGit = Join-Path \$depsRoot 'portable-git'
 \$archive = Join-Path \$env:TEMP '${mingit_name_q}'
 if (Test-Path \$portableGit) {
@@ -1008,7 +1008,7 @@ pack_main_tgz() {
   acquire_build_lock
   set +e
   {
-    OPENCLAW_PARALLELS_BUILD_LOCK_HELD=1 ensure_current_build &&
+    GENESIS_PARALLELS_BUILD_LOCK_HELD=1 ensure_current_build &&
       write_package_dist_inventory &&
       short_head="$(git rev-parse --short HEAD)" &&
       pkg="$(
@@ -1020,7 +1020,7 @@ pack_main_tgz() {
   set -e
   release_build_lock
   [[ $rc -eq 0 ]] || return "$rc"
-  MAIN_TGZ_PATH="$MAIN_TGZ_DIR/openclaw-main-$short_head.tgz"
+  MAIN_TGZ_PATH="$MAIN_TGZ_DIR/genesis-main-$short_head.tgz"
   cp "$MAIN_TGZ_DIR/$pkg" "$MAIN_TGZ_PATH"
   packed_commit="$(extract_package_build_commit_from_tgz "$MAIN_TGZ_PATH")"
   [[ -n "$packed_commit" ]] || die "failed to read packed build commit from $MAIN_TGZ_PATH"
@@ -1053,7 +1053,7 @@ start_server() {
     (
       cd "$MAIN_TGZ_DIR"
       exec python3 -m http.server "$HOST_PORT" --bind 0.0.0.0
-    ) >/tmp/openclaw-parallels-windows-http.log 2>&1 &
+    ) >/tmp/genesis-parallels-windows-http.log 2>&1 &
     SERVER_PID=$!
     sleep 1
     probe_url="http://127.0.0.1:$HOST_PORT/$artifact"
@@ -1074,7 +1074,7 @@ start_server() {
 write_latest_install_runner_script() {
   local install_url_q="$1"
   local version_flag_q="$2"
-  WINDOWS_LATEST_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/openclaw-install-latest.ps1"
+  WINDOWS_LATEST_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/genesis-install-latest.ps1"
   cat >"$WINDOWS_LATEST_INSTALL_SCRIPT_PATH" <<EOF
 param(
   [Parameter(Mandatory = \$true)][string]\$LogPath,
@@ -1098,9 +1098,9 @@ try {
     throw "installer failed with exit code \$LASTEXITCODE"
   }
   Write-ProgressLog 'install.version'
-  & (Join-Path \$env:APPDATA 'npm\openclaw.cmd') --version *>&1 | Tee-Object -FilePath \$LogPath -Append | Out-Null
+  & (Join-Path \$env:APPDATA 'npm\genesis.cmd') --version *>&1 | Tee-Object -FilePath \$LogPath -Append | Out-Null
   if (\$LASTEXITCODE -ne 0) {
-    throw "openclaw --version failed with exit code \$LASTEXITCODE"
+    throw "genesis --version failed with exit code \$LASTEXITCODE"
   }
   Set-Content -Path \$DonePath -Value ([string]0)
   exit 0
@@ -1117,7 +1117,7 @@ EOF
 }
 
 write_baseline_npm_install_runner_script() {
-  WINDOWS_BASELINE_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/openclaw-install-baseline-npm.ps1"
+  WINDOWS_BASELINE_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/genesis-install-baseline-npm.ps1"
   cat >"$WINDOWS_BASELINE_INSTALL_SCRIPT_PATH" <<'EOF'
 param(
   [Parameter(Mandatory = $true)][string]$Version,
@@ -1158,17 +1158,17 @@ function Invoke-Logged {
 }
 
 try {
-  $portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'OpenClaw\deps') 'portable-git') ''
+  $portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'Genesis\deps') 'portable-git') ''
   $env:PATH = "$portableGit\cmd;$portableGit\mingw64\bin;$portableGit\usr\bin;$env:PATH"
-  $openclaw = Join-Path $env:APPDATA 'npm\openclaw.cmd'
+  $genesis = Join-Path $env:APPDATA 'npm\genesis.cmd'
 
   Write-ProgressLog 'install.start'
   Invoke-Logged 'npm install baseline release' {
-    & npm.cmd install -g "openclaw@$Version" --no-fund --no-audit --loglevel=error
+    & npm.cmd install -g "genesis@$Version" --no-fund --no-audit --loglevel=error
   }
 
   Write-ProgressLog 'install.version'
-  Invoke-Logged 'openclaw --version' { & $openclaw --version }
+  Invoke-Logged 'genesis --version' { & $genesis --version }
 
   Set-Content -Path $DonePath -Value ([string]0)
   exit 0
@@ -1194,11 +1194,11 @@ install_baseline_npm_release() {
 
   write_baseline_npm_install_runner_script
   script_url="http://$host_ip:$HOST_PORT/$(basename "$WINDOWS_BASELINE_INSTALL_SCRIPT_PATH")"
-  runner_name="openclaw-install-baseline-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-install-baseline-$RANDOM-$RANDOM.log"
-  done_name="openclaw-install-baseline-$RANDOM-$RANDOM.done"
-  log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-install-baseline-log-state.XXXXXX")"
-  npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-install-baseline-npm-log-state.XXXXXX")"
+  runner_name="genesis-install-baseline-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-install-baseline-$RANDOM-$RANDOM.log"
+  done_name="genesis-install-baseline-$RANDOM-$RANDOM.done"
+  log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-install-baseline-log-state.XXXXXX")"
+  npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-install-baseline-npm-log-state.XXXXXX")"
   : >"$log_state_path"
   : >"$npm_log_state_path"
   start_seconds="$SECONDS"
@@ -1339,10 +1339,10 @@ install_latest_release() {
   fi
   write_latest_install_runner_script "$install_url_q" "$version_flag_q"
   script_url="http://$HOST_IP:$HOST_PORT/$(basename "$WINDOWS_LATEST_INSTALL_SCRIPT_PATH")"
-  runner_name="openclaw-install-latest-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-install-latest-$RANDOM-$RANDOM.log"
-  done_name="openclaw-install-latest-$RANDOM-$RANDOM.done"
-  log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-install-latest-log-state.XXXXXX")"
+  runner_name="genesis-install-latest-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-install-latest-$RANDOM-$RANDOM.log"
+  done_name="genesis-install-latest-$RANDOM-$RANDOM.done"
+  log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-install-latest-log-state.XXXXXX")"
   : >"$log_state_path"
   start_seconds="$SECONDS"
   poll_deadline=$((SECONDS + TIMEOUT_INSTALL_S + 60))
@@ -1462,11 +1462,11 @@ install_main_tgz() {
   tgz_url="http://$host_ip:$HOST_PORT/$(basename "$MAIN_TGZ_PATH")"
   write_install_runner_script
   script_url="http://$host_ip:$HOST_PORT/$(basename "$WINDOWS_INSTALL_SCRIPT_PATH")"
-  runner_name="openclaw-install-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-install-$RANDOM-$RANDOM.log"
-  done_name="openclaw-install-$RANDOM-$RANDOM.done"
-  log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-install-log-state.XXXXXX")"
-  npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-install-npm-log-state.XXXXXX")"
+  runner_name="genesis-install-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-install-$RANDOM-$RANDOM.log"
+  done_name="genesis-install-$RANDOM-$RANDOM.done"
+  log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-install-log-state.XXXXXX")"
+  npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-install-npm-log-state.XXXXXX")"
   : >"$log_state_path"
   : >"$npm_log_state_path"
   start_seconds="$SECONDS"
@@ -1617,7 +1617,7 @@ PY
 }
 
 write_dev_update_runner_script() {
-  WINDOWS_DEV_UPDATE_SCRIPT_PATH="$MAIN_TGZ_DIR/openclaw-update-dev.ps1"
+  WINDOWS_DEV_UPDATE_SCRIPT_PATH="$MAIN_TGZ_DIR/genesis-update-dev.ps1"
   cat >"$WINDOWS_DEV_UPDATE_SCRIPT_PATH" <<'EOF'
 param(
   [Parameter(Mandatory = $true)][string]$LogPath,
@@ -1668,7 +1668,7 @@ function Invoke-Logged {
 }
 
 try {
-  $portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'OpenClaw\deps') 'portable-git') ''
+  $portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'Genesis\deps') 'portable-git') ''
   $shortRoot = 'C:\ocu'
   $shortTemp = Join-Path $shortRoot 'tmp'
   $shimBin = Join-Path $shortRoot 'shims'
@@ -1678,9 +1678,9 @@ try {
   $env:PATH = "$shimBin;$bootstrapBin;$portableGit\cmd;$portableGit\mingw64\bin;$env:PATH"
   $env:ComSpec = Join-Path $env:SystemRoot 'System32\cmd.exe'
   $env:npm_config_ignore_scripts = 'true'
-  $openclaw = Join-Path $env:APPDATA 'npm\openclaw.cmd'
-  $gitRoot = Join-Path $env:USERPROFILE 'openclaw'
-  $gitEntry = Join-Path $gitRoot 'openclaw.mjs'
+  $genesis = Join-Path $env:APPDATA 'npm\genesis.cmd'
+  $gitRoot = Join-Path $env:USERPROFILE 'genesis'
+  $gitEntry = Join-Path $gitRoot 'genesis.mjs'
 
   Remove-Item $LogPath, $DonePath -Force -ErrorAction SilentlyContinue
   Write-ProgressLog 'update.start'
@@ -1763,8 +1763,8 @@ exit `$LASTEXITCODE
   }
 
   Write-ProgressLog 'update.run-dev'
-  Invoke-Logged 'openclaw update --channel dev --yes --json' {
-    & $openclaw update --channel dev --yes --json
+  Invoke-Logged 'genesis update --channel dev --yes --json' {
+    & $genesis update --channel dev --yes --json
   }
 
   if (-not (Test-Path $gitEntry)) {
@@ -1779,8 +1779,8 @@ exit `$LASTEXITCODE
   Write-LoggedLine $pnpmPost.Source
 
   Write-ProgressLog 'update.verify-post'
-  Invoke-Logged 'git openclaw --version' { & node.exe $gitEntry --version }
-  Invoke-Logged 'git openclaw update status --json' { & node.exe $gitEntry update status --json }
+  Invoke-Logged 'git genesis --version' { & node.exe $gitEntry --version }
+  Invoke-Logged 'git genesis update status --json' { & node.exe $gitEntry update status --json }
 
   Write-ProgressLog 'update.done'
   Set-Content -Path $DonePath -Value ([string]0)
@@ -1806,10 +1806,10 @@ run_dev_channel_update() {
 
   write_dev_update_runner_script
   script_url="http://$host_ip:$HOST_PORT/$(basename "$WINDOWS_DEV_UPDATE_SCRIPT_PATH")"
-  runner_name="openclaw-update-dev-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-update-dev-$RANDOM-$RANDOM.log"
-  done_name="openclaw-update-dev-$RANDOM-$RANDOM.done"
-  log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-update-dev-log-state.XXXXXX")"
+  runner_name="genesis-update-dev-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-update-dev-$RANDOM-$RANDOM.log"
+  done_name="genesis-update-dev-$RANDOM-$RANDOM.done"
+  log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-update-dev-log-state.XXXXXX")"
   : >"$log_state_path"
   start_seconds="$SECONDS"
   poll_deadline=$((SECONDS + TIMEOUT_UPDATE_S + TIMEOUT_UPDATE_POLL_GRACE_S))
@@ -1936,12 +1936,12 @@ $ErrorActionPreference = 'Stop'
 $busy = Get-CimInstance Win32_Process |
   Where-Object {
     $_.CommandLine -and
-    ($_.CommandLine -match 'openclaw update|npm install|pnpm install|pnpm run build')
+    ($_.CommandLine -match 'genesis update|npm install|pnpm install|pnpm run build')
   }
 if ($busy) {
-  throw 'dev update still has active npm/pnpm/openclaw processes'
+  throw 'dev update still has active npm/pnpm/genesis processes'
 }
-$gitEntry = Join-Path $env:USERPROFILE 'openclaw\openclaw.mjs'
+$gitEntry = Join-Path $env:USERPROFILE 'genesis\genesis.mjs'
 if (-not (Test-Path $gitEntry)) {
   throw "git entry missing after transport loss: $gitEntry"
 }
@@ -1955,7 +1955,7 @@ EOF
 }
 
 write_install_runner_script() {
-  WINDOWS_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/openclaw-install-main.ps1"
+  WINDOWS_INSTALL_SCRIPT_PATH="$MAIN_TGZ_DIR/genesis-install-main.ps1"
   cat >"$WINDOWS_INSTALL_SCRIPT_PATH" <<'EOF'
 param(
   [Parameter(Mandatory = $true)][string]$TgzUrl,
@@ -2002,7 +2002,7 @@ function Invoke-Logged {
 }
 
 try {
-  $env:PATH = "$env:LOCALAPPDATA\OpenClaw\deps\portable-git\cmd;$env:LOCALAPPDATA\OpenClaw\deps\portable-git\mingw64\bin;$env:LOCALAPPDATA\OpenClaw\deps\portable-git\usr\bin;$env:PATH"
+  $env:PATH = "$env:LOCALAPPDATA\Genesis\deps\portable-git\cmd;$env:LOCALAPPDATA\Genesis\deps\portable-git\mingw64\bin;$env:LOCALAPPDATA\Genesis\deps\portable-git\usr\bin;$env:PATH"
   $tgz = Join-Path $env:TEMP $TempName
   Remove-Item $tgz, $LogPath, $DonePath -Force -ErrorAction SilentlyContinue
   Write-ProgressLog 'install.start'
@@ -2010,9 +2010,9 @@ try {
   Invoke-Logged 'download current tgz' { curl.exe -fsSL $TgzUrl -o $tgz }
   Write-ProgressLog 'install.install-tgz'
   Invoke-Logged 'npm install current tgz' { npm.cmd install -g $tgz --omit=dev --no-fund --no-audit }
-  $openclaw = Join-Path $env:APPDATA 'npm\openclaw.cmd'
+  $genesis = Join-Path $env:APPDATA 'npm\genesis.cmd'
   Write-ProgressLog 'install.verify-version'
-  Invoke-Logged 'openclaw --version' { & $openclaw --version }
+  Invoke-Logged 'genesis --version' { & $genesis --version }
   Write-ProgressLog 'install.done'
   Set-Content -Path $DonePath -Value ([string]0)
   exit 0
@@ -2031,7 +2031,7 @@ EOF
 verify_version_contains() {
   local needle="$1"
   local version
-  version="$(guest_run_openclaw "" "" "--version")"
+  version="$(guest_run_genesis "" "" "--version")"
   printf '%s\n' "$version"
   case "$version" in
     *"$needle"*) ;;
@@ -2043,7 +2043,7 @@ verify_version_contains() {
 }
 
 write_onboard_runner_script() {
-  WINDOWS_ONBOARD_SCRIPT_PATH="$MAIN_TGZ_DIR/openclaw-onboard-$PROVIDER.ps1"
+  WINDOWS_ONBOARD_SCRIPT_PATH="$MAIN_TGZ_DIR/genesis-onboard-$PROVIDER.ps1"
   cat >"$WINDOWS_ONBOARD_SCRIPT_PATH" <<EOF
 param(
   [Parameter(Mandatory = \$true)][string]\$LogPath,
@@ -2054,9 +2054,9 @@ param(
 \$PSNativeCommandUseErrorActionPreference = \$false
 
 try {
-  \$openclaw = Join-Path \$env:APPDATA 'npm\openclaw.cmd'
+  \$genesis = Join-Path \$env:APPDATA 'npm\genesis.cmd'
   Set-Content -Path \$LogPath -Value 'onboard.start'
-  \$cmdLine = ('"{0}" onboard --non-interactive --mode local --auth-choice ${AUTH_CHOICE} --secret-input-mode ref --gateway-port 18789 --gateway-bind loopback --install-daemon --skip-skills --skip-health --accept-risk --json >> "{1}" 2>&1' -f \$openclaw, \$LogPath)
+  \$cmdLine = ('"{0}" onboard --non-interactive --mode local --auth-choice ${AUTH_CHOICE} --secret-input-mode ref --gateway-port 18789 --gateway-bind loopback --install-daemon --skip-skills --skip-health --accept-risk --json >> "{1}" 2>&1' -f \$genesis, \$LogPath)
   & cmd.exe /d /s /c \$cmdLine
   Add-Content -Path \$LogPath -Value ('onboard.exit={0}' -f \$LASTEXITCODE)
   Set-Content -Path \$DonePath -Value ([string]\$LASTEXITCODE)
@@ -2080,13 +2080,13 @@ run_ref_onboard() {
   api_key_value_q="$(ps_single_quote "$API_KEY_VALUE")"
   write_onboard_runner_script
   script_url="http://$HOST_IP:$HOST_PORT/$(basename "$WINDOWS_ONBOARD_SCRIPT_PATH")"
-  runner_name="openclaw-onboard-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-onboard-$RANDOM-$RANDOM.log"
-  done_name="openclaw-onboard-$RANDOM-$RANDOM.done"
+  runner_name="genesis-onboard-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-onboard-$RANDOM-$RANDOM.log"
+  done_name="genesis-onboard-$RANDOM-$RANDOM.done"
   start_seconds="$SECONDS"
   poll_deadline=$((SECONDS + TIMEOUT_ONBOARD_S + 60))
   startup_checked=0
-  log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-onboard-log-state.XXXXXX")"
+  log_state_path="$(mktemp "${TMPDIR:-/tmp}/genesis-onboard-log-state.XXXXXX")"
   : >"$log_state_path"
 
   guest_powershell "$(cat <<EOF
@@ -2189,14 +2189,14 @@ PY
 }
 
 verify_gateway() {
-  guest_run_openclaw "" "" gateway status --deep --require-rpc
+  guest_run_genesis "" "" gateway status --deep --require-rpc
 }
 
 verify_gateway_reachable() {
   local probe_json attempt
   for attempt in 1 2 3 4 5 6; do
     probe_json="$(
-      guest_run_openclaw "" "" gateway probe --url ws://127.0.0.1:18789 --timeout 30000 --json
+      guest_run_genesis "" "" gateway probe --url ws://127.0.0.1:18789 --timeout 30000 --json
     )"
     printf '%s\n' "$probe_json"
     if PROBE_JSON="$probe_json" python3 - <<'PY'
@@ -2221,9 +2221,9 @@ verify_dev_channel_update() {
   local status_json pnpm_output
   status_json="$(
     guest_powershell "$(cat <<'EOF'
-$portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'OpenClaw\deps') 'portable-git') ''
+$portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'Genesis\deps') 'portable-git') ''
 $env:PATH = "$portableGit\cmd;$portableGit\mingw64\bin;$portableGit\usr\bin;$env:PATH"
-$gitEntry = Join-Path (Join-Path $env:USERPROFILE 'openclaw') 'openclaw.mjs'
+$gitEntry = Join-Path (Join-Path $env:USERPROFILE 'genesis') 'genesis.mjs'
 if (-not (Test-Path $gitEntry)) {
   throw "git entry missing: $gitEntry"
 }
@@ -2233,7 +2233,7 @@ EOF
   )"
   pnpm_output="$(
     guest_powershell "$(cat <<'EOF'
-$portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'OpenClaw\deps') 'portable-git') ''
+$portableGit = Join-Path (Join-Path (Join-Path $env:LOCALAPPDATA 'Genesis\deps') 'portable-git') ''
 $shortRoot = 'C:\ocu'
 $shimBin = Join-Path $shortRoot 'shims'
 $bootstrapBin = Join-Path $shortRoot 'bootstrap\node_modules\.bin'
@@ -2258,9 +2258,9 @@ run_gateway_daemon_action() {
   local action="$1"
   local runner_name log_name done_name done_status launcher_state
   local poll_rc state_rc log_rc start_seconds poll_deadline startup_checked
-  runner_name="openclaw-gateway-$action-$RANDOM-$RANDOM.ps1"
-  log_name="openclaw-gateway-$action-$RANDOM-$RANDOM.log"
-  done_name="openclaw-gateway-$action-$RANDOM-$RANDOM.done"
+  runner_name="genesis-gateway-$action-$RANDOM-$RANDOM.ps1"
+  log_name="genesis-gateway-$action-$RANDOM-$RANDOM.log"
+  done_name="genesis-gateway-$action-$RANDOM-$RANDOM.done"
   start_seconds="$SECONDS"
   poll_deadline=$((SECONDS + TIMEOUT_GATEWAY_S + 60))
   startup_checked=0
@@ -2276,8 +2276,8 @@ Remove-Item \$runner, \$log, \$done -Force -ErrorAction SilentlyContinue
 \$log = Join-Path \$env:TEMP '$log_name'
 \$done = Join-Path \$env:TEMP '$done_name'
 try {
-  \$openclaw = Join-Path \$env:APPDATA 'npm\openclaw.cmd'
-  & \$openclaw gateway $action *>&1 | Tee-Object -FilePath \$log -Append | Out-Null
+  \$genesis = Join-Path \$env:APPDATA 'npm\genesis.cmd'
+  & \$genesis gateway $action *>&1 | Tee-Object -FilePath \$log -Append | Out-Null
   Set-Content -Path \$done -Value ([string]\$LASTEXITCODE)
 } catch {
   if (Test-Path \$log) {
@@ -2358,16 +2358,16 @@ stop_gateway() {
 }
 
 show_gateway_status_compat() {
-  if guest_run_openclaw "" "" gateway status --help | grep -Fq -- "--require-rpc"; then
-    guest_run_openclaw "" "" gateway status --deep --require-rpc
+  if guest_run_genesis "" "" gateway status --help | grep -Fq -- "--require-rpc"; then
+    guest_run_genesis "" "" gateway status --deep --require-rpc
     return
   fi
-  guest_run_openclaw "" "" gateway status --deep
+  guest_run_genesis "" "" gateway status --deep
 }
 
 verify_turn() {
-  guest_run_openclaw "" "" models set "$MODEL_ID"
-  guest_run_openclaw "$API_KEY_ENV" "$API_KEY_VALUE" \
+  guest_run_genesis "" "" models set "$MODEL_ID"
+  guest_run_genesis "$API_KEY_ENV" "$API_KEY_VALUE" \
     agent --agent main --message "Reply with exact ASCII text OK only." --json
 }
 
@@ -2397,11 +2397,11 @@ run_fresh_main_lane() {
     phase_run "fresh.wait-for-user-retry" "$TIMEOUT_SNAPSHOT_S" wait_for_guest_ready || return $?
     phase_run "fresh.ensure-git-retry" "$TIMEOUT_GIT_SETUP_S" ensure_guest_git "$host_ip" || return $?
   fi
-  if phase_run "fresh.install-main" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "openclaw-main-fresh.tgz"; then
+  if phase_run "fresh.install-main" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "genesis-main-fresh.tgz"; then
     install_log_phase="fresh.install-main"
   else
     phase_run "fresh.wait-for-user-install-retry" "$TIMEOUT_SNAPSHOT_S" wait_for_guest_ready || return $?
-    phase_run "fresh.install-main-retry" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "openclaw-main-fresh.tgz" || return $?
+    phase_run "fresh.install-main-retry" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "genesis-main-fresh.tgz" || return $?
     install_log_phase="fresh.install-main-retry"
   fi
   FRESH_MAIN_VERSION="$(extract_last_version "$(phase_log_path "$install_log_phase")")"
@@ -2425,7 +2425,7 @@ run_upgrade_lane() {
     phase_run "upgrade.ensure-git-retry" "$TIMEOUT_GIT_SETUP_S" ensure_guest_git "$host_ip" || return $?
   fi
   if upgrade_uses_host_tgz; then
-    phase_run "upgrade.install-baseline-package" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "openclaw-main-upgrade.tgz" || return $?
+    phase_run "upgrade.install-baseline-package" "$TIMEOUT_INSTALL_S" install_main_tgz "$host_ip" "genesis-main-upgrade.tgz" || return $?
     LATEST_INSTALLED_VERSION="$(extract_last_version "$(phase_log_path upgrade.install-baseline-package)")"
     phase_run "upgrade.verify-baseline-package-version" "$TIMEOUT_VERIFY_S" verify_target_version || return $?
   else

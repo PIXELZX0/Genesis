@@ -1,6 +1,6 @@
 import type { AuthProfileStore } from "../../agents/auth-profiles/types.js";
 import { modelKey } from "../../agents/model-ref-shared.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { isLocalBaseUrl } from "./list.local-url.js";
 import type { ModelRow } from "./list.types.js";
 
@@ -16,7 +16,7 @@ export type ListRowModel = {
 
 export type ModelAuthAvailabilityResolver = (params: {
   provider: string;
-  cfg: OpenClawConfig;
+  cfg: GenesisConfig;
   authStore: AuthProfileStore;
 }) => boolean;
 
@@ -32,7 +32,7 @@ export function toModelRow(params: {
   tags: string[];
   aliases?: string[];
   availableKeys?: Set<string>;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   authStore?: AuthProfileStore;
   allowProviderAvailabilityFallback?: boolean;
   hasAuthForProvider?: ModelAuthAvailabilityResolver;

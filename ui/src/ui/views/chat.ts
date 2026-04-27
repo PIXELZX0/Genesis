@@ -488,14 +488,14 @@ function renderWelcomeState(props: ChatProps): TemplateResult {
         ? html`<img
             src=${avatar}
             alt=${name}
-            style="width:56px; height:56px; border-radius:50%; object-fit:cover;"
+            style="width:56px; height:56px; border-radius:var(--radius-full); object-fit:cover;"
           />`
         : avatarText
           ? html`<div class="agent-chat__avatar agent-chat__avatar--text" aria-label=${name}>
               ${avatarText}
             </div>`
           : html`<div class="agent-chat__avatar agent-chat__avatar--logo">
-              <img src=${logoUrl} alt="OpenClaw" />
+              <img src=${logoUrl} alt="Genesis" />
             </div>`}
       <h2>${name}</h2>
       <div class="agent-chat__badges">
@@ -1238,7 +1238,7 @@ export function renderChat(props: ChatProps) {
                 ${props.realtimeTalkDetail ??
                 props.realtimeTalkTranscript ??
                 (props.realtimeTalkStatus === "thinking"
-                  ? "Asking OpenClaw..."
+                  ? "Asking Genesis..."
                   : props.realtimeTalkStatus === "connecting"
                     ? "Connecting Talk..."
                     : "Talk live")}

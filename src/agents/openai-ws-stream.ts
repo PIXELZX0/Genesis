@@ -223,9 +223,8 @@ function resolveWsSessionPoolConfig(env: NodeJS.ProcessEnv = process.env): {
   enabled: boolean;
   idleMs: number;
 } {
-  const enabled =
-    env.OPENCLAW_OPENAI_WS_POOL === "1" || env.OPENCLAW_OPENAI_WS_SESSION_POOL === "1";
-  const rawIdleMs = Number(env.OPENCLAW_OPENAI_WS_SESSION_POOL_IDLE_MS);
+  const enabled = env.GENESIS_OPENAI_WS_POOL === "1" || env.GENESIS_OPENAI_WS_SESSION_POOL === "1";
+  const rawIdleMs = Number(env.GENESIS_OPENAI_WS_SESSION_POOL_IDLE_MS);
   const idleMs = Number.isFinite(rawIdleMs)
     ? Math.min(300_000, Math.max(1_000, Math.trunc(rawIdleMs)))
     : 30_000;
@@ -479,7 +478,7 @@ function resolveNativeOpenAISessionHeaders(params: {
   }
   return {
     "x-client-request-id": sessionId,
-    "x-openclaw-session-id": sessionId,
+    "x-genesis-session-id": sessionId,
   };
 }
 
@@ -504,14 +503,14 @@ function resolveNativeOpenAITransportTurnState(params: {
   return {
     headers: {
       ...sessionHeaders,
-      "x-openclaw-turn-id": turnId,
-      "x-openclaw-turn-attempt": attempt,
+      "x-genesis-turn-id": turnId,
+      "x-genesis-turn-attempt": attempt,
     },
     metadata: {
-      openclaw_session_id: sessionHeaders["x-openclaw-session-id"] ?? "",
-      openclaw_turn_id: turnId,
-      openclaw_turn_attempt: attempt,
-      openclaw_transport: params.transport,
+      genesis_session_id: sessionHeaders["x-genesis-session-id"] ?? "",
+      genesis_turn_id: turnId,
+      genesis_turn_attempt: attempt,
+      genesis_transport: params.transport,
     },
   };
 }

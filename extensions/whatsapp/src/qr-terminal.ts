@@ -1,1 +1,1 @@
-export { renderQrTerminal } from "openclaw/plugin-sdk/media-runtime";
+export { renderQrTerminal } from "genesis/plugin-sdk/media-runtime";

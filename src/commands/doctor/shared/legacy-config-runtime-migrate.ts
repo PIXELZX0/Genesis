@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { normalizeBaseCompatibilityConfigValues } from "./legacy-config-compatibility-base.js";
 
-export function normalizeRuntimeCompatibilityConfigValues(cfg: OpenClawConfig): {
-  config: OpenClawConfig;
+export function normalizeRuntimeCompatibilityConfigValues(cfg: GenesisConfig): {
+  config: GenesisConfig;
   changes: string[];
 } {
   const changes: string[] = [];

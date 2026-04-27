@@ -2,8 +2,8 @@ import {
   createDetectedBinaryStatus,
   setSetupChannelEnabled,
   type ChannelSetupWizard,
-} from "openclaw/plugin-sdk/setup";
-import { detectBinary } from "openclaw/plugin-sdk/setup-tools";
+} from "genesis/plugin-sdk/setup";
+import { detectBinary } from "genesis/plugin-sdk/setup-tools";
 import { listSignalAccountIds, resolveSignalAccount } from "./accounts.js";
 import { installSignalCli } from "./install-signal-cli.js";
 import {

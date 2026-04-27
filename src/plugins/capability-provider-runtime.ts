@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   withBundledPluginAllowlistCompat,
   withBundledPluginEnablementCompat,
@@ -45,7 +45,7 @@ const CAPABILITY_CONTRACT_KEY: Record<CapabilityProviderRegistryKey, CapabilityC
 
 function resolveBundledCapabilityCompatPluginIds(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   providerId?: string;
 }): string[] {
   const contractKey = CAPABILITY_CONTRACT_KEY[params.key];
@@ -65,7 +65,7 @@ function resolveBundledCapabilityCompatPluginIds(params: {
 
 function resolveCapabilityProviderConfig(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
   pluginIds?: string[];
 }) {
   const pluginIds = params.pluginIds ?? resolveBundledCapabilityCompatPluginIds(params);
@@ -145,7 +145,7 @@ function addStringValue(target: Set<string>, value: unknown): void {
   }
 }
 
-function collectRequestedSpeechProviderIds(cfg: OpenClawConfig | undefined): Set<string> {
+function collectRequestedSpeechProviderIds(cfg: GenesisConfig | undefined): Set<string> {
   const requested = new Set<string>();
   const tts =
     typeof cfg?.messages?.tts === "object" && cfg.messages.tts !== null
@@ -201,7 +201,7 @@ function filterLoadedProvidersForRequestedConfig<K extends CapabilityProviderReg
 export function resolvePluginCapabilityProvider<K extends CapabilityProviderRegistryKey>(params: {
   key: K;
   providerId: string;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): CapabilityProviderForKey<K> | undefined {
   const activeRegistry = resolveRuntimePluginRegistry();
   const activeProvider = findProviderById(activeRegistry?.[params.key] ?? [], params.providerId);
@@ -231,7 +231,7 @@ export function resolvePluginCapabilityProvider<K extends CapabilityProviderRegi
 
 export function resolvePluginCapabilityProviders<K extends CapabilityProviderRegistryKey>(params: {
   key: K;
-  cfg?: OpenClawConfig;
+  cfg?: GenesisConfig;
 }): CapabilityProviderForKey<K>[] {
   const activeRegistry = resolveRuntimePluginRegistry();
   const activeProviders = activeRegistry?.[params.key] ?? [];

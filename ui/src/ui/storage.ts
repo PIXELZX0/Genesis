@@ -1,8 +1,8 @@
-const SETTINGS_KEY_PREFIX = "openclaw.control.settings.v1:";
-const LEGACY_SETTINGS_KEY = "openclaw.control.settings.v1";
-const LOCAL_USER_IDENTITY_KEY = "openclaw.control.user.v1";
-const LEGACY_TOKEN_SESSION_KEY = "openclaw.control.token.v1";
-const TOKEN_SESSION_KEY_PREFIX = "openclaw.control.token.v1:";
+const SETTINGS_KEY_PREFIX = "genesis.control.settings.v1:";
+const LEGACY_SETTINGS_KEY = "genesis.control.settings.v1";
+const LOCAL_USER_IDENTITY_KEY = "genesis.control.user.v1";
+const LEGACY_TOKEN_SESSION_KEY = "genesis.control.token.v1";
+const TOKEN_SESSION_KEY_PREFIX = "genesis.control.token.v1:";
 const MAX_SCOPED_SESSION_ENTRIES = 10;
 
 function settingsKeyForGateway(gatewayUrl: string): string {
@@ -63,7 +63,7 @@ export type UiSettings = {
   navCollapsed: boolean; // Collapsible sidebar state
   navWidth: number; // Sidebar width when expanded (240–400px)
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
-  borderRadius: number; // Corner roundness (0–100, default 50)
+  borderRadius: number; // Corner roundness (0-100, default 0)
   customTheme?: ImportedCustomTheme;
   locale?: string;
 };
@@ -86,7 +86,7 @@ function deriveDefaultGatewayUrl(): { pageUrl: string; effectiveUrl: string } {
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const configured =
     typeof window !== "undefined" &&
-    normalizeOptionalString(window.__OPENCLAW_CONTROL_UI_BASE_PATH__);
+    normalizeOptionalString(window.__GENESIS_CONTROL_UI_BASE_PATH__);
   const basePath = configured
     ? normalizeBasePath(configured)
     : inferBasePathFromPathname(location.pathname);
@@ -196,7 +196,7 @@ export function loadSettings(): UiSettings {
     sessionKey: "main",
     lastActiveSessionKey: "main",
     theme: "claw",
-    themeMode: "system",
+    themeMode: "dark",
     chatFocusMode: false,
     chatShowThinking: true,
     chatShowToolCalls: true,
@@ -204,7 +204,7 @@ export function loadSettings(): UiSettings {
     navCollapsed: false,
     navWidth: 220,
     navGroupsCollapsed: {},
-    borderRadius: 50,
+    borderRadius: 0,
   };
 
   try {
@@ -321,7 +321,7 @@ function persistSettings(next: UiSettings) {
     const raw =
       storage?.getItem(scopedKey) ??
       storage?.getItem(SETTINGS_KEY_PREFIX + "default") ??
-      storage?.getItem("openclaw.control.settings.v1");
+      storage?.getItem("genesis.control.settings.v1");
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedUiSettings;
       if (parsed.sessionsByGateway && typeof parsed.sessionsByGateway === "object") {

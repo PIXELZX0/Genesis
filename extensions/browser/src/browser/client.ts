@@ -22,11 +22,18 @@ export type ProfileStatus = {
   cdpPort: number | null;
   cdpUrl: string | null;
   color: string;
-  driver: "openclaw" | "existing-session";
+  driver: "genesis" | "existing-session";
   running: boolean;
   tabCount: number;
   isDefault: boolean;
   isRemote: boolean;
+  tor?: {
+    enabled: true;
+    mode: "managed" | "external";
+    socksHost: string;
+    socksPort: number;
+    running: boolean | null;
+  } | null;
   missingFromConfig?: boolean;
   reconcileReason?: string | null;
 };
@@ -166,7 +173,8 @@ export async function browserCreateProfile(
     color?: string;
     cdpUrl?: string;
     userDataDir?: string;
-    driver?: "openclaw" | "existing-session";
+    driver?: "genesis" | "existing-session";
+    tor?: boolean;
   },
 ): Promise<BrowserCreateProfileResult> {
   return await fetchBrowserJson<BrowserCreateProfileResult>(
@@ -180,6 +188,7 @@ export async function browserCreateProfile(
         cdpUrl: opts.cdpUrl,
         userDataDir: opts.userDataDir,
         driver: opts.driver,
+        tor: opts.tor,
       }),
       timeoutMs: 10000,
     },

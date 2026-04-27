@@ -1,4 +1,4 @@
-import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelProviderConfig } from "genesis/plugin-sdk/provider-model-shared";
 
 const ZERO_COST = Object.freeze({
   input: 0,

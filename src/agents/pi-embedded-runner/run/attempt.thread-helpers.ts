@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { GenesisConfig } from "../../../config/types.genesis.js";
 import { joinPresentTextSegments } from "../../../shared/text/join-segments.js";
 import { normalizeStructuredPromptSection } from "../../prompt-cache-stability.js";
 import { resolveProviderEndpoint } from "../../provider-attribution.js";
 
-export const ATTEMPT_CACHE_TTL_CUSTOM_TYPE = "openclaw.cache-ttl";
+export const ATTEMPT_CACHE_TTL_CUSTOM_TYPE = "genesis.cache-ttl";
 
 export function composeSystemPromptWithHookContext(params: {
   baseSystemPrompt?: string;
@@ -58,7 +58,7 @@ export function shouldUseOpenAIWebSocketTransport(params: {
 export function shouldAppendAttemptCacheTtl(params: {
   timedOutDuringCompaction: boolean;
   compactionOccurredThisAttempt: boolean;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   provider: string;
   modelId: string;
   modelApi?: string;
@@ -79,7 +79,7 @@ export function appendAttemptCacheTtlIfNeeded(params: {
   };
   timedOutDuringCompaction: boolean;
   compactionOccurredThisAttempt: boolean;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   provider: string;
   modelId: string;
   modelApi?: string;

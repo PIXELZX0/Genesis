@@ -1,10 +1,10 @@
 import { getBootstrapChannelSecrets } from "../channels/plugins/bootstrap-registry.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import { loadBundledChannelSecretContractApi } from "./channel-contract-api.js";
 import { type ResolverContext, type SecretDefaults } from "./runtime-shared.js";
 
 export function collectChannelConfigAssignments(params: {
-  config: OpenClawConfig;
+  config: GenesisConfig;
   defaults: SecretDefaults | undefined;
   context: ResolverContext;
 }): void {

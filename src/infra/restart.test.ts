@@ -26,7 +26,7 @@ vi.mock("../config/paths.js", async () => {
 let __testing: typeof import("./restart-stale-pids.js").__testing;
 let cleanStaleGatewayProcessesSync: typeof import("./restart-stale-pids.js").cleanStaleGatewayProcessesSync;
 let findGatewayPidsOnPortSync: typeof import("./restart-stale-pids.js").findGatewayPidsOnPortSync;
-let triggerOpenClawRestart: typeof import("./restart.js").triggerOpenClawRestart;
+let triggerGenesisRestart: typeof import("./restart.js").triggerGenesisRestart;
 
 let currentTimeMs = 0;
 const envSnapshot = captureFullEnv();
@@ -35,7 +35,7 @@ const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, "pla
 beforeAll(async () => {
   ({ __testing, cleanStaleGatewayProcessesSync, findGatewayPidsOnPortSync } =
     await import("./restart-stale-pids.js"));
-  ({ triggerOpenClawRestart } = await import("./restart.js"));
+  ({ triggerGenesisRestart } = await import("./restart.js"));
 });
 
 beforeEach(() => {
@@ -73,7 +73,7 @@ function setPlatform(platform: NodeJS.Platform): void {
 }
 
 describe.runIf(process.platform !== "win32")("findGatewayPidsOnPortSync", () => {
-  it("parses lsof output and filters non-openclaw/current processes", () => {
+  it("parses lsof output and filters non-genesis/current processes", () => {
     const gatewayPidA = process.pid + 1000;
     const gatewayPidB = process.pid + 2000;
     const foreignPid = process.pid + 3000;
@@ -82,13 +82,13 @@ describe.runIf(process.platform !== "win32")("findGatewayPidsOnPortSync", () => 
       status: 0,
       stdout: [
         `p${process.pid}`,
-        "copenclaw",
+        "cgenesis",
         `p${gatewayPidA}`,
-        "copenclaw-gateway",
+        "cgenesis-gateway",
         `p${foreignPid}`,
         "cnode",
         `p${gatewayPidB}`,
-        "cOpenClaw",
+        "cGenesis",
       ].join("\n"),
     });
 
@@ -122,7 +122,7 @@ describe.runIf(process.platform !== "win32")("cleanStaleGatewayProcessesSync", (
       .mockReturnValueOnce({
         error: undefined,
         status: 0,
-        stdout: [`p${stalePidA}`, "copenclaw", `p${stalePidB}`, "copenclaw-gateway"].join("\n"),
+        stdout: [`p${stalePidA}`, "cgenesis", `p${stalePidB}`, "cgenesis-gateway"].join("\n"),
       })
       .mockReturnValue({
         error: undefined,
@@ -147,7 +147,7 @@ describe.runIf(process.platform !== "win32")("cleanStaleGatewayProcessesSync", (
       .mockReturnValueOnce({
         error: undefined,
         status: 0,
-        stdout: [`p${stalePid}`, "copenclaw"].join("\n"),
+        stdout: [`p${stalePid}`, "cgenesis"].join("\n"),
       })
       .mockReturnValue({
         error: undefined,
@@ -184,13 +184,13 @@ describe.runIf(process.platform !== "win32")("cleanStaleGatewayProcessesSync", (
   });
 });
 
-describe("triggerOpenClawRestart", () => {
+describe("triggerGenesisRestart", () => {
   it("continues when launchctl bootstrap reports the service is already loaded", () => {
     setPlatform("darwin");
     delete process.env.VITEST;
     delete process.env.NODE_ENV;
     process.env.HOME = "/Users/test";
-    process.env.OPENCLAW_PROFILE = "default";
+    process.env.GENESIS_PROFILE = "default";
     const uid = typeof process.getuid === "function" ? process.getuid() : 501;
     spawnSyncMock.mockImplementation((command: string, args: string[]) => {
       if (command === "/usr/sbin/lsof") {
@@ -208,15 +208,15 @@ describe("triggerOpenClawRestart", () => {
       return { error: undefined, status: 1, stdout: "" };
     });
 
-    const result = triggerOpenClawRestart();
+    const result = triggerGenesisRestart();
 
     expect(result).toEqual({
       ok: true,
       method: "launchctl",
       tried: [
-        `launchctl kickstart -k gui/${uid}/ai.openclaw.gateway`,
-        `launchctl bootstrap gui/${uid} /Users/test/Library/LaunchAgents/ai.openclaw.gateway.plist`,
-        `launchctl kickstart gui/${uid}/ai.openclaw.gateway`,
+        `launchctl kickstart -k gui/${uid}/ai.genesis.gateway`,
+        `launchctl bootstrap gui/${uid} /Users/test/Library/LaunchAgents/ai.genesis.gateway.plist`,
+        `launchctl kickstart gui/${uid}/ai.genesis.gateway`,
       ],
     });
   });

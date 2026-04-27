@@ -2,11 +2,11 @@ import {
   REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME,
   resolveRealtimeVoiceAgentConsultToolPolicy,
   type RealtimeVoiceAgentConsultToolPolicy,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "genesis/plugin-sdk/realtime-voice";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "genesis/plugin-sdk/text-runtime";
 
 export type GoogleMeetTransport = "chrome" | "chrome-node" | "twilio";
 export type GoogleMeetMode = "realtime" | "transcribe";
@@ -107,7 +107,7 @@ export const DEFAULT_GOOGLE_MEET_AUDIO_OUTPUT_COMMAND = [
   "-",
 ] as const;
 
-export const DEFAULT_GOOGLE_MEET_REALTIME_INSTRUCTIONS = `You are joining a private Google Meet as an OpenClaw agent. Keep spoken replies brief and natural. When a question needs deeper reasoning, current information, or tools, call ${REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME} before answering.`;
+export const DEFAULT_GOOGLE_MEET_REALTIME_INSTRUCTIONS = `You are joining a private Google Meet as an Genesis agent. Keep spoken replies brief and natural. When a question needs deeper reasoning, current information, or tools, call ${REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME} before answering.`;
 export const DEFAULT_GOOGLE_MEET_REALTIME_INTRO_MESSAGE = "Say exactly: I'm here and listening.";
 
 export const DEFAULT_GOOGLE_MEET_CONFIG: GoogleMeetConfig = {
@@ -121,7 +121,7 @@ export const DEFAULT_GOOGLE_MEET_CONFIG: GoogleMeetConfig = {
   chrome: {
     audioBackend: "blackhole-2ch",
     launch: true,
-    guestName: "OpenClaw Agent",
+    guestName: "Genesis Agent",
     reuseExistingTab: true,
     autoJoin: true,
     joinTimeoutMs: 30_000,
@@ -149,29 +149,29 @@ export const DEFAULT_GOOGLE_MEET_CONFIG: GoogleMeetConfig = {
   },
 };
 
-const GOOGLE_MEET_CLIENT_ID_KEYS = ["OPENCLAW_GOOGLE_MEET_CLIENT_ID", "GOOGLE_MEET_CLIENT_ID"];
+const GOOGLE_MEET_CLIENT_ID_KEYS = ["GENESIS_GOOGLE_MEET_CLIENT_ID", "GOOGLE_MEET_CLIENT_ID"];
 const GOOGLE_MEET_CLIENT_SECRET_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_CLIENT_SECRET",
+  "GENESIS_GOOGLE_MEET_CLIENT_SECRET",
   "GOOGLE_MEET_CLIENT_SECRET",
 ] as const;
 const GOOGLE_MEET_REFRESH_TOKEN_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_REFRESH_TOKEN",
+  "GENESIS_GOOGLE_MEET_REFRESH_TOKEN",
   "GOOGLE_MEET_REFRESH_TOKEN",
 ] as const;
 const GOOGLE_MEET_ACCESS_TOKEN_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN",
+  "GENESIS_GOOGLE_MEET_ACCESS_TOKEN",
   "GOOGLE_MEET_ACCESS_TOKEN",
 ] as const;
 const GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT",
+  "GENESIS_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT",
   "GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT",
 ] as const;
 const GOOGLE_MEET_DEFAULT_MEETING_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_DEFAULT_MEETING",
+  "GENESIS_GOOGLE_MEET_DEFAULT_MEETING",
   "GOOGLE_MEET_DEFAULT_MEETING",
 ] as const;
 const GOOGLE_MEET_PREVIEW_ACK_KEYS = [
-  "OPENCLAW_GOOGLE_MEET_PREVIEW_ACK",
+  "GENESIS_GOOGLE_MEET_PREVIEW_ACK",
   "GOOGLE_MEET_PREVIEW_ACK",
 ] as const;
 

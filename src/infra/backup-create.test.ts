@@ -4,8 +4,8 @@ import { formatBackupCreateSummary, type BackupCreateResult } from "./backup-cre
 function makeResult(overrides: Partial<BackupCreateResult> = {}): BackupCreateResult {
   return {
     createdAt: "2026-01-01T00:00:00.000Z",
-    archiveRoot: "openclaw-backup-2026-01-01",
-    archivePath: "/tmp/openclaw-backup.tar.gz",
+    archiveRoot: "genesis-backup-2026-01-01",
+    archivePath: "/tmp/genesis-backup.tar.gz",
     dryRun: false,
     includeWorkspace: true,
     onlyConfig: false,
@@ -17,7 +17,7 @@ function makeResult(overrides: Partial<BackupCreateResult> = {}): BackupCreateRe
 }
 
 describe("formatBackupCreateSummary", () => {
-  const backupArchiveLine = "Backup archive: /tmp/openclaw-backup.tar.gz";
+  const backupArchiveLine = "Backup archive: /tmp/genesis-backup.tar.gz";
 
   it.each([
     {
@@ -29,26 +29,26 @@ describe("formatBackupCreateSummary", () => {
             kind: "state",
             sourcePath: "/state",
             archivePath: "archive/state",
-            displayPath: "~/.openclaw",
+            displayPath: "~/.genesis",
           },
         ],
         skipped: [
           {
             kind: "workspace",
             sourcePath: "/workspace",
-            displayPath: "~/Projects/openclaw",
+            displayPath: "~/Projects/genesis",
             reason: "covered",
-            coveredBy: "~/.openclaw",
+            coveredBy: "~/.genesis",
           },
         ],
       }),
       expected: [
         backupArchiveLine,
         "Included 1 path:",
-        "- state: ~/.openclaw",
+        "- state: ~/.genesis",
         "Skipped 1 path:",
-        "- workspace: ~/Projects/openclaw (covered by ~/.openclaw)",
-        "Created /tmp/openclaw-backup.tar.gz",
+        "- workspace: ~/Projects/genesis (covered by ~/.genesis)",
+        "Created /tmp/genesis-backup.tar.gz",
         "Archive verification: passed",
       ],
     },
@@ -61,21 +61,21 @@ describe("formatBackupCreateSummary", () => {
             kind: "config",
             sourcePath: "/config",
             archivePath: "archive/config",
-            displayPath: "~/.openclaw/config.json",
+            displayPath: "~/.genesis/config.json",
           },
           {
             kind: "credentials",
             sourcePath: "/oauth",
             archivePath: "archive/oauth",
-            displayPath: "~/.openclaw/oauth",
+            displayPath: "~/.genesis/oauth",
           },
         ],
       }),
       expected: [
         backupArchiveLine,
         "Included 2 paths:",
-        "- config: ~/.openclaw/config.json",
-        "- credentials: ~/.openclaw/oauth",
+        "- config: ~/.genesis/config.json",
+        "- credentials: ~/.genesis/oauth",
         "Dry run only; archive was not written.",
       ],
     },

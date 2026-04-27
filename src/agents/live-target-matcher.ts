@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -54,7 +54,7 @@ function parseModelTarget(raw: string): ModelTarget | null {
 export function createLiveTargetMatcher(params: {
   providerFilter: Set<string> | null;
   modelFilter: Set<string> | null;
-  config?: OpenClawConfig;
+  config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }) {

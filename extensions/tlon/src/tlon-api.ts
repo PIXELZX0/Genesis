@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { fetchWithSsrFGuard } from "genesis/plugin-sdk/ssrf-runtime";
+import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { authenticate } from "./urbit/auth.js";
 import { scryUrbitPath } from "./urbit/channel-ops.js";
 import { ssrfPolicyFromDangerouslyAllowPrivateNetwork } from "./urbit/context.js";
