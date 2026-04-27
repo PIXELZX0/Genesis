@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changed-gate:
+    name: Changed gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    env:
+      CI: "1"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      GENESIS_LOCAL_CHECK: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set comparison base
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            git fetch --no-tags --prune origin "$GITHUB_BASE_REF"
+            echo "GENESIS_CHANGED_BASE=origin/$GITHUB_BASE_REF" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          before_sha="${{ github.event.before }}"
+          if [ -n "$before_sha" ] && [ "$before_sha" != "0000000000000000000000000000000000000000" ]; then
+            echo "GENESIS_CHANGED_BASE=$before_sha" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          git fetch --no-tags --prune origin main
+          echo "GENESIS_CHANGED_BASE=origin/main" >> "$GITHUB_ENV"
+
+      - name: Print changed lanes
+        run: pnpm changed:lanes --base "$GENESIS_CHANGED_BASE" --json
+
+      - name: Run changed gate
+        run: pnpm check:changed --base "$GENESIS_CHANGED_BASE"

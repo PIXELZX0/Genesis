@@ -8,7 +8,7 @@ read_when:
 
 Genesis has three public release lanes:
 
-- stable: tagged releases that publish to npm `beta` by default, or to npm `latest` when explicitly requested
+- stable: published GitHub releases that publish to npm `latest`
 - beta: prerelease tags that publish to npm `beta`
 - dev: the moving head of `main`
 
@@ -23,7 +23,8 @@ Genesis has three public release lanes:
 - Do not zero-pad month or day
 - `latest` means the current promoted stable npm release
 - `beta` means the current beta install target
-- Stable and stable correction releases publish to npm `beta` by default; release operators can target `latest` explicitly, or promote a vetted beta build later
+- Stable and stable correction GitHub releases publish to npm `latest`
+  automatically when the GitHub release is published
 - Every stable Genesis release ships the npm package and macOS app together;
   beta releases normally validate and publish the npm/package path first, with
   mac app build/sign/notarize reserved for stable unless explicitly requested
@@ -70,18 +71,13 @@ Genesis has three public release lanes:
   40-character workflow-branch commit SHA
 - In commit-SHA mode it only accepts the current workflow-branch HEAD; use a
   release tag for older release commits
-- `Genesis NPM Release` validation-only preflight also accepts the current
-  full 40-character workflow-branch commit SHA without requiring a pushed tag
-- That SHA path is validation-only and cannot be promoted into a real publish
-- In SHA mode the workflow synthesizes `v<package.json version>` only for the
-  package metadata check; real publish still requires a real release tag
-- Both workflows keep the real publish and promotion path on GitHub-hosted
-  runners, while the non-mutating validation path can use the larger
-  Blacksmith Linux runners
-- That workflow runs
+- `Genesis NPM Release` publishes only from a real release tag. It runs on
+  GitHub-hosted runners so npm trusted publishing can issue provenance through
+  GitHub OIDC.
+- `Genesis Release Checks` runs
   `GENESIS_LIVE_TEST=1 GENESIS_LIVE_CACHE_TEST=1 pnpm test:live:cache`
   using both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` workflow secrets
-- npm release preflight no longer waits on the separate release checks lane
+- npm release publishing does not wait on the separate release checks lane
 - Run `RELEASE_TAG=vYYYY.M.D node --import tsx scripts/genesis-npm-release-check.ts`
   (or the matching beta/correction tag) before approval
 - After npm publish, run
@@ -96,12 +92,12 @@ Genesis has three public release lanes:
 - Maintainers can run the same post-publish check from GitHub Actions via the
   manual `NPM Telegram Beta E2E` workflow. It is intentionally manual-only and
   does not run on every merge.
-- Maintainer release automation now uses preflight-then-promote:
-  - real npm publish must pass a successful npm `preflight_run_id`
-  - the real npm publish must be dispatched from the same `main` or
-    `release/YYYY.M.D` branch as the successful preflight run
-  - stable npm releases default to `beta`
-  - stable npm publish can target `latest` explicitly via workflow input
+- Maintainer release automation now publishes from the GitHub release event:
+  - publishing a GitHub prerelease or `vYYYY.M.D-beta.N` tag publishes
+    `genesis@YYYY.M.D-beta.N` to the npm `beta` dist-tag
+  - publishing a stable or correction GitHub release publishes
+    `genesis@YYYY.M.D` or `genesis@YYYY.M.D-N` to the npm `latest` dist-tag
+  - the workflow still supports manual dispatch for recovery runs
   - token-based npm dist-tag mutation now lives in
     `genesis/releases-private/.github/workflows/genesis-npm-dist-tags.yml`
     for security, because `npm dist-tag add` still needs `NPM_TOKEN` while the
@@ -109,13 +105,13 @@ Genesis has three public release lanes:
   - public `macOS Release` is validation-only
   - real private mac publish must pass successful private mac
     `preflight_run_id` and `validate_run_id`
-  - the real publish paths promote prepared artifacts instead of rebuilding
-    them again
+  - the private mac publish path promotes prepared artifacts instead of
+    rebuilding them again
 - For stable correction releases like `YYYY.M.D-N`, the post-publish verifier
   also checks the same temp-prefix upgrade path from `YYYY.M.D` to `YYYY.M.D-N`
   so release corrections cannot silently leave older global installs on the
   base stable payload
-- npm release preflight fails closed unless the tarball includes both
+- npm release workflow fails closed unless the tarball includes both
   `dist/control-ui/index.html` and a non-empty `dist/control-ui/assets/` payload
   so we do not ship an empty browser dashboard again
 - Post-publish verification also checks that the published registry install
@@ -139,16 +135,13 @@ Genesis has three public release lanes:
 
 ## NPM workflow inputs
 
-`Genesis NPM Release` accepts these operator-controlled inputs:
+`Genesis NPM Release` runs automatically when a GitHub release is published. It
+also accepts these manual-dispatch recovery inputs:
 
 - `tag`: required release tag such as `v2026.4.2`, `v2026.4.2-1`, or
-  `v2026.4.2-beta.1`; when `preflight_only=true`, it may also be the current
-  full 40-character workflow-branch commit SHA for validation-only preflight
-- `preflight_only`: `true` for validation/build/package only, `false` for the
-  real publish path
-- `preflight_run_id`: required on the real publish path so the workflow reuses
-  the prepared tarball from the successful preflight run
-- `npm_dist_tag`: npm target tag for the publish path; defaults to `beta`
+  `v2026.4.2-beta.1`
+- `npm_dist_tag`: `auto`, `beta`, or `latest`; `auto` publishes beta
+  prereleases to `beta` and stable releases to `latest`
 
 `Genesis Release Checks` accepts these operator-controlled inputs:
 
@@ -159,40 +152,32 @@ Genesis has three public release lanes:
 
 Rules:
 
-- Stable and correction tags may publish to either `beta` or `latest`
+- Automatic release-published runs publish stable and correction tags to
+  `latest`
 - Beta prerelease tags may publish only to `beta`
-- For `Genesis NPM Release`, full commit SHA input is allowed only when
-  `preflight_only=true`
 - `Genesis Release Checks` is always validation-only and also accepts the
   current workflow-branch commit SHA
 - Release checks commit-SHA mode also requires the current workflow-branch HEAD
-- The real publish path must use the same `npm_dist_tag` used during preflight;
-  the workflow verifies that metadata before publish continues
+- Manual recovery dispatch can choose `beta` or `latest` for stable and
+  correction tags
 
 ## Stable npm release sequence
 
 When cutting a stable npm release:
 
-1. Run `Genesis NPM Release` with `preflight_only=true`
-   - Before a tag exists, you may use the current full workflow-branch commit
-     SHA for a validation-only dry run of the preflight workflow
-2. Choose `npm_dist_tag=beta` for the normal beta-first flow, or `latest` only
-   when you intentionally want a direct stable publish
-3. Run `Genesis Release Checks` separately with the same tag or the
+1. Run `Genesis Release Checks` separately with the same tag or the
    full current workflow-branch commit SHA when you want live prompt cache,
    QA Lab parity, Matrix, and Telegram coverage
    - This is separate on purpose so live coverage stays available without
      recoupling long-running or flaky checks to the publish workflow
-4. Save the successful `preflight_run_id`
-5. Run `Genesis NPM Release` again with `preflight_only=false`, the same
-   `tag`, the same `npm_dist_tag`, and the saved `preflight_run_id`
-6. If the release landed on `beta`, use the private
+2. Publish the GitHub release for the tag. `Genesis NPM Release` starts from
+   the release-published event, validates the tag/package metadata, builds the
+   release artifacts, runs the npm release checks, publishes to npm `latest`,
+   and verifies the published install path.
+3. If `beta` should follow the same stable build immediately, use the private
    `genesis/releases-private/.github/workflows/genesis-npm-dist-tags.yml`
-   workflow to promote that stable version from `beta` to `latest`
-7. If the release intentionally published directly to `latest` and `beta`
-   should follow the same stable build immediately, use that same private
-   workflow to point both dist-tags at the stable version, or let its scheduled
-   self-healing sync move `beta` later
+   workflow to point `beta` at the stable version, or let its scheduled
+   self-healing sync move `beta` later.
 
 The dist-tag mutation lives in the private repo for security because it still
 requires `NPM_TOKEN`, while the public repo keeps OIDC-only publish.

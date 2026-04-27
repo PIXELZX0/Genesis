@@ -1,0 +1,155 @@
+name: Genesis NPM Release
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, for example v2026.4.24 or v2026.4.24-beta.1.
+        required: true
+        type: string
+      npm_dist_tag:
+        description: npm dist-tag. Automatic uses beta for prereleases and latest for stable releases.
+        default: auto
+        required: true
+        type: choice
+        options:
+          - auto
+          - beta
+          - latest
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish genesis to npm
+    if: github.repository == 'PIXELZX0/Genesis'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: npm-release
+
+    env:
+      CI: "1"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve publish target
+        id: publish-target
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_NPM_DIST_TAG: ${{ inputs.npm_dist_tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          tag="${RELEASE_TAG:-$INPUT_TAG}"
+          if [ -z "$tag" ]; then
+            echo "Missing release tag." >&2
+            exit 1
+          fi
+
+          case "$tag" in
+            v*) ;;
+            *)
+              echo "Release tag must start with v: $tag" >&2
+              exit 1
+              ;;
+          esac
+
+          package_version="${tag#v}"
+          package_json_version="$(node -p "require('./package.json').version")"
+          if [ "$package_json_version" != "$package_version" ]; then
+            echo "package.json version $package_json_version does not match release tag $tag." >&2
+            exit 1
+          fi
+
+          requested_dist_tag="${INPUT_NPM_DIST_TAG:-auto}"
+          if [ "$requested_dist_tag" = "auto" ]; then
+            if [ "$RELEASE_PRERELEASE" = "true" ] || printf '%s\n' "$tag" | grep -Eq -- '-beta\.[0-9]+$'; then
+              npm_dist_tag="beta"
+            else
+              npm_dist_tag="latest"
+            fi
+          else
+            npm_dist_tag="$requested_dist_tag"
+          fi
+
+          if [ "$npm_dist_tag" = "latest" ] && printf '%s\n' "$tag" | grep -Eq -- '-beta\.[0-9]+$'; then
+            echo "Beta prerelease tags may only publish to the beta npm dist-tag." >&2
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "package_version=$package_version" >> "$GITHUB_OUTPUT"
+          echo "npm_dist_tag=$npm_dist_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Build release artifacts
+        run: |
+          pnpm build
+          pnpm ui:build
+
+      - name: Run release checks
+        env:
+          RELEASE_TAG: ${{ steps.publish-target.outputs.tag }}
+        run: |
+          pnpm check:architecture
+          pnpm check:test-types
+          pnpm release:check
+          pnpm release:genesis:npm:check
+
+      - name: Check existing npm version
+        id: npm-version
+        env:
+          PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
+        run: |
+          if npm view "genesis@$PACKAGE_VERSION" version --silent >/tmp/genesis-npm-version.txt 2>/dev/null; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "genesis@$PACKAGE_VERSION is already published; publish step will be skipped."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.npm-version.outputs.already_published != 'true'
+        env:
+          GENESIS_NPM_PUBLISH_TAG: ${{ steps.publish-target.outputs.npm_dist_tag }}
+        run: bash scripts/genesis-npm-publish.sh --publish
+
+      - name: Verify published package
+        env:
+          PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
+          NPM_DIST_TAG: ${{ steps.publish-target.outputs.npm_dist_tag }}
+        run: |
+          node --import tsx scripts/genesis-npm-postpublish-verify.ts "$PACKAGE_VERSION"
+
+          actual_dist_tag_version="$(npm view "genesis" "dist-tags.$NPM_DIST_TAG" --silent || true)"
+          if [ "$actual_dist_tag_version" != "$PACKAGE_VERSION" ]; then
+            echo "npm dist-tag $NPM_DIST_TAG points to ${actual_dist_tag_version:-<missing>}, expected $PACKAGE_VERSION." >&2
+            exit 1
+          fi
