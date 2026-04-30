@@ -1280,6 +1280,10 @@
     "./extension-api": "./dist/extensionAPI.js",
     "./cli-entry": "./genesis.mjs"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "android:assemble": "cd apps/android && ./gradlew :app:assemblePlayDebug",
     "android:assemble:third-party": "cd apps/android && ./gradlew :app:assembleThirdPartyDebug",

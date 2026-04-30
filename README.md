@@ -99,8 +99,8 @@ Model note: while many providers and models are supported, prefer a current flag
 Runtime: **Node 24 (recommended) or Node 22.16+**.
 
 ```bash
-npm install -g genesis@latest
-# or: pnpm add -g genesis@latest
+npm install -g @pixelzx/genesis@latest
+# or: pnpm add -g @pixelzx/genesis@latest
 
 genesis onboard --install-daemon
 ```

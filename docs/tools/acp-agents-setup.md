@@ -166,7 +166,7 @@ See [Plugins](/tools/plugin).
 
 ### Automatic dependency install
 
-When you install Genesis globally with `npm install -g genesis`, the acpx
+When you install Genesis globally with `npm install -g @pixelzx/genesis`, the acpx
 runtime dependencies (platform-specific binaries) are installed automatically
 via a postinstall hook. If the automatic install fails, the gateway still starts
 normally and reports the missing dependency through `genesis acp doctor`.
