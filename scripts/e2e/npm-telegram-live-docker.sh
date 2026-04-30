@@ -6,7 +6,7 @@ source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
 IMAGE_NAME="$(docker_e2e_resolve_image "genesis-npm-telegram-live-e2e" GENESIS_NPM_TELEGRAM_LIVE_E2E_IMAGE)"
 DOCKER_TARGET="${GENESIS_NPM_TELEGRAM_DOCKER_TARGET:-build}"
-PACKAGE_SPEC="${GENESIS_NPM_TELEGRAM_PACKAGE_SPEC:-genesis@beta}"
+PACKAGE_SPEC="${GENESIS_NPM_TELEGRAM_PACKAGE_SPEC:-@pixelzx/genesis@beta}"
 OUTPUT_DIR="${GENESIS_NPM_TELEGRAM_OUTPUT_DIR:-.artifacts/qa-e2e/npm-telegram-live}"
 
 resolve_credential_source() {
@@ -37,10 +37,10 @@ resolve_credential_role() {
 
 validate_genesis_package_spec() {
   local spec="$1"
-  if [[ "$spec" =~ ^genesis@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$ ]]; then
+  if [[ "$spec" =~ ^@pixelzx/genesis@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$ ]]; then
     return 0
   fi
-  echo "GENESIS_NPM_TELEGRAM_PACKAGE_SPEC must be genesis@beta, genesis@latest, or an exact Genesis release version; got: $spec" >&2
+  echo "GENESIS_NPM_TELEGRAM_PACKAGE_SPEC must be @pixelzx/genesis@beta, @pixelzx/genesis@latest, or an exact Genesis release version; got: $spec" >&2
   exit 1
 }
 

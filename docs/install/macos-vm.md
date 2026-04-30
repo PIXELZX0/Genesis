@@ -137,7 +137,7 @@ Replace `youruser` with the account you created, and the IP with your VM's IP.
 Inside the VM:
 
 ```bash
-npm install -g genesis@latest
+npm install -g @pixelzx/genesis@latest
 genesis onboard --install-daemon
 ```
 

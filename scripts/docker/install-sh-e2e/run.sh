@@ -10,6 +10,7 @@ fi
 source "$VERIFY_HELPER_PATH"
 
 INSTALL_URL="${GENESIS_INSTALL_URL:-https://genesis.bot/install.sh}"
+PACKAGE_NAME="${GENESIS_INSTALL_PACKAGE:-@pixelzx/genesis}"
 MODELS_MODE="${GENESIS_E2E_MODELS:-both}" # both|openai|anthropic
 INSTALL_TAG="${GENESIS_INSTALL_TAG:-latest}"
 E2E_PREVIOUS_VERSION="${GENESIS_INSTALL_E2E_PREVIOUS:-}"
@@ -48,15 +49,15 @@ elif [[ "$MODELS_MODE" == "anthropic" && -z "$ANTHROPIC_API_TOKEN" && -z "$ANTHR
 fi
 
 echo "==> Resolve npm versions"
-EXPECTED_VERSION="$(quiet_npm view "genesis@${INSTALL_TAG}" version)"
+EXPECTED_VERSION="$(quiet_npm view "${PACKAGE_NAME}@${INSTALL_TAG}" version)"
 if [[ -z "$EXPECTED_VERSION" || "$EXPECTED_VERSION" == "undefined" || "$EXPECTED_VERSION" == "null" ]]; then
-  echo "ERROR: unable to resolve genesis@${INSTALL_TAG} version" >&2
+  echo "ERROR: unable to resolve ${PACKAGE_NAME}@${INSTALL_TAG} version" >&2
   exit 2
 fi
 if [[ -n "$E2E_PREVIOUS_VERSION" ]]; then
   PREVIOUS_VERSION="$E2E_PREVIOUS_VERSION"
 else
-  PREVIOUS_VERSION="$(VERSIONS_JSON="$(quiet_npm view genesis versions --json)" node - <<'NODE'
+  PREVIOUS_VERSION="$(VERSIONS_JSON="$(quiet_npm view "$PACKAGE_NAME" versions --json)" node - <<'NODE'
 const versions = JSON.parse(process.env.VERSIONS_JSON || "[]");
 if (!Array.isArray(versions) || versions.length === 0) process.exit(1);
 process.stdout.write(versions.length >= 2 ? versions[versions.length - 2] : versions[0]);
@@ -69,7 +70,7 @@ if [[ "$SKIP_PREVIOUS" == "1" ]]; then
   echo "==> Skip preinstall previous (GENESIS_INSTALL_E2E_SKIP_PREVIOUS=1)"
 else
   echo "==> Preinstall previous (forces installer upgrade path; avoids read() prompt)"
-  quiet_npm install -g "genesis@${PREVIOUS_VERSION}"
+  quiet_npm install -g "${PACKAGE_NAME}@${PREVIOUS_VERSION}"
 fi
 
 echo "==> Run official installer one-liner"
@@ -86,7 +87,7 @@ INSTALLED_VERSION="$(genesis --version 2>/dev/null | head -n 1 | tr -d '\r')"
 INSTALLED_VERSION="$(extract_genesis_semver "$INSTALLED_VERSION")"
 echo "installed=$INSTALLED_VERSION expected=$EXPECTED_VERSION"
 if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
-  echo "ERROR: expected genesis@$EXPECTED_VERSION, got genesis@$INSTALLED_VERSION" >&2
+  echo "ERROR: expected ${PACKAGE_NAME}@$EXPECTED_VERSION, got genesis@$INSTALLED_VERSION" >&2
   exit 1
 fi
 

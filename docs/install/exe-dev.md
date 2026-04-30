@@ -122,7 +122,7 @@ with email auth.
 ## Updating
 
 ```bash
-npm i -g genesis@latest
+npm i -g @pixelzx/genesis@latest
 genesis doctor
 genesis gateway restart
 genesis health

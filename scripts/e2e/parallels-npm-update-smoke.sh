@@ -112,7 +112,7 @@ usage() {
 Usage: bash scripts/e2e/parallels-npm-update-smoke.sh [options]
 
 Options:
-  --package-spec <npm-spec>  Baseline npm package spec. Default: genesis@latest
+  --package-spec <npm-spec>  Baseline npm package spec. Default: @pixelzx/genesis@latest
   --update-target <target>    Target passed to guest 'genesis update --tag'.
                              Default: host-served tgz packed from current checkout.
                              Examples: latest, beta, 2026.4.10, http://host/genesis.tgz
@@ -297,7 +297,7 @@ PY
 }
 
 resolve_latest_version() {
-  npm view genesis version --userconfig "$(mktemp)"
+  npm view @pixelzx/genesis version --userconfig "$(mktemp)"
 }
 
 vm_status() {
@@ -440,8 +440,8 @@ resolve_current_head() {
 resolve_registry_target_version() {
   local target="$1"
   local spec="$target"
-  if [[ "$spec" != genesis@* ]]; then
-    spec="genesis@$spec"
+  if [[ "$spec" != @pixelzx/genesis@* ]]; then
+    spec="@pixelzx/genesis@$spec"
   fi
   npm view "$spec" version 2>/dev/null || true
 }
@@ -1873,7 +1873,7 @@ PY
 
 LATEST_VERSION="$(resolve_latest_version)"
 if [[ -z "$PACKAGE_SPEC" ]]; then
-  PACKAGE_SPEC="genesis@$LATEST_VERSION"
+  PACKAGE_SPEC="@pixelzx/genesis@$LATEST_VERSION"
 fi
 resolve_current_head
 

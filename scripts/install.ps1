@@ -363,7 +363,7 @@ function Resolve-PackageInstallSpec {
 
     $trimmed = $Target.Trim()
     if ([string]::IsNullOrWhiteSpace($trimmed)) {
-        return "genesis@latest"
+        return "@pixelzx/genesis@latest"
     }
     if ($trimmed.ToLowerInvariant() -eq "main") {
         return "github:PIXELZX0/Genesis#main"
@@ -371,7 +371,7 @@ function Resolve-PackageInstallSpec {
     if (Test-ExplicitPackageInstallSpec -Target $trimmed) {
         return $trimmed
     }
-    return "genesis@$trimmed"
+    return "@pixelzx/genesis@$trimmed"
 }
 
 function Add-ToPath {

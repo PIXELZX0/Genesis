@@ -84,7 +84,7 @@ Genesis has three public release lanes:
   `node --import tsx scripts/genesis-npm-postpublish-verify.ts YYYY.M.D`
   (or the matching beta/correction version) to verify the published registry
   install path in a fresh temp prefix
-- After a beta publish, run `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=genesis@YYYY.M.D-beta.N GENESIS_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex GENESIS_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
+- After a beta publish, run `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=@pixelzx/genesis@YYYY.M.D-beta.N GENESIS_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex GENESIS_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential
   pool. Local maintainer one-offs may omit the Convex vars and pass the three
@@ -94,9 +94,10 @@ Genesis has three public release lanes:
   does not run on every merge.
 - Maintainer release automation now publishes from the GitHub release event:
   - publishing a GitHub prerelease or `vYYYY.M.D-beta.N` tag publishes
-    `genesis@YYYY.M.D-beta.N` to the npm `beta` dist-tag
+    `@pixelzx/genesis@YYYY.M.D-beta.N` to the npm `beta` dist-tag
   - publishing a stable or correction GitHub release publishes
-    `genesis@YYYY.M.D` or `genesis@YYYY.M.D-N` to the npm `latest` dist-tag
+    `@pixelzx/genesis@YYYY.M.D` or `@pixelzx/genesis@YYYY.M.D-N` to the npm
+    `latest` dist-tag
   - the workflow still supports manual dispatch for recovery runs
   - token-based npm dist-tag mutation now lives in
     `genesis/releases-private/.github/workflows/genesis-npm-dist-tags.yml`

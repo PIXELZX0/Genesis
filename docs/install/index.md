@@ -68,13 +68,13 @@ If you already manage Node yourself:
 <Tabs>
   <Tab title="npm">
     ```bash
-    npm install -g genesis@latest
+    npm install -g @pixelzx/genesis@latest
     genesis onboard --install-daemon
     ```
   </Tab>
   <Tab title="pnpm">
     ```bash
-    pnpm add -g genesis@latest
+    pnpm add -g @pixelzx/genesis@latest
     pnpm approve-builds -g
     genesis onboard --install-daemon
     ```
@@ -86,7 +86,7 @@ If you already manage Node yourself:
   </Tab>
   <Tab title="bun">
     ```bash
-    bun add -g genesis@latest
+    bun add -g @pixelzx/genesis@latest
     genesis onboard --install-daemon
     ```
 
@@ -101,7 +101,7 @@ If you already manage Node yourself:
   If `sharp` fails due to a globally installed libvips:
 
 ```bash
-SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g genesis@latest
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g @pixelzx/genesis@latest
 ```
 
 </Accordion>

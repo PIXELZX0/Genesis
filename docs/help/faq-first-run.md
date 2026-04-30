@@ -786,7 +786,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     From git to npm:
 
     ```bash
-    npm install -g genesis@latest
+    npm install -g @pixelzx/genesis@latest
     genesis doctor
     genesis gateway restart
     ```

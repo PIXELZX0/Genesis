@@ -27,7 +27,7 @@ describe("buildPublishedInstallScenarios", () => {
     expect(buildPublishedInstallScenarios("2026.3.23")).toEqual([
       {
         name: "fresh-exact",
-        installSpecs: ["genesis@2026.3.23"],
+        installSpecs: ["@pixelzx/genesis@2026.3.23"],
         expectedVersion: "2026.3.23",
       },
     ]);
@@ -37,12 +37,12 @@ describe("buildPublishedInstallScenarios", () => {
     expect(buildPublishedInstallScenarios("2026.3.23-2")).toEqual([
       {
         name: "fresh-exact",
-        installSpecs: ["genesis@2026.3.23-2"],
+        installSpecs: ["@pixelzx/genesis@2026.3.23-2"],
         expectedVersion: "2026.3.23-2",
       },
       {
         name: "upgrade-from-base-stable",
-        installSpecs: ["genesis@2026.3.23", "genesis@2026.3.23-2"],
+        installSpecs: ["@pixelzx/genesis@2026.3.23", "@pixelzx/genesis@2026.3.23-2"],
         expectedVersion: "2026.3.23-2",
       },
     ]);
@@ -51,14 +51,17 @@ describe("buildPublishedInstallScenarios", () => {
 
 describe("buildPublishedInstallCommandArgs", () => {
   it("runs lifecycle scripts for published install verification", () => {
-    const args = buildPublishedInstallCommandArgs("/tmp/genesis-prefix", "genesis@2026.4.10");
+    const args = buildPublishedInstallCommandArgs(
+      "/tmp/genesis-prefix",
+      "@pixelzx/genesis@2026.4.10",
+    );
 
     expect(args).toEqual([
       "install",
       "-g",
       "--prefix",
       "/tmp/genesis-prefix",
-      "genesis@2026.4.10",
+      "@pixelzx/genesis@2026.4.10",
       "--no-fund",
       "--no-audit",
     ]);

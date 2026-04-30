@@ -65,7 +65,7 @@ genesis update --tag beta
 genesis update --tag main
 
 # Install a specific npm package spec
-genesis update --tag genesis@2026.4.1-beta.1
+genesis update --tag @pixelzx/genesis@2026.4.1-beta.1
 ```
 
 Notes:

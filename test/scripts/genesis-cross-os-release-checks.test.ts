@@ -366,7 +366,9 @@ describe("scripts/genesis-cross-os-release-checks", () => {
   it("only treats pinned baseline specs as exact installer version assertions", () => {
     expect(resolveExplicitBaselineVersion("")).toBe("");
     expect(resolveExplicitBaselineVersion("genesis@latest")).toBe("");
+    expect(resolveExplicitBaselineVersion("@pixelzx/genesis@latest")).toBe("");
     expect(resolveExplicitBaselineVersion("genesis@2026.4.10")).toBe("2026.4.10");
+    expect(resolveExplicitBaselineVersion("@pixelzx/genesis@2026.4.10")).toBe("2026.4.10");
     expect(resolveExplicitBaselineVersion("2026.4.10")).toBe("2026.4.10");
   });
 
@@ -375,13 +377,13 @@ describe("scripts/genesis-cross-os-release-checks", () => {
     try {
       const packageRoot =
         process.platform === "win32"
-          ? join(prefixDir, "node_modules", "genesis")
-          : join(prefixDir, "lib", "node_modules", "genesis");
+          ? join(prefixDir, "node_modules", "@pixelzx", "genesis")
+          : join(prefixDir, "lib", "node_modules", "@pixelzx", "genesis");
       mkdirSync(packageRoot, { recursive: true });
       writeFileSync(
         join(packageRoot, "package.json"),
         JSON.stringify({
-          name: "genesis",
+          name: "@pixelzx/genesis",
           version: "2026.4.10",
         }),
         "utf8",

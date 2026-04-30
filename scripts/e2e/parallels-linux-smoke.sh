@@ -113,7 +113,7 @@ Options:
   --install-version <ver>    Pin site-installer version/dist-tag for the baseline lane.
   --target-package-spec <npm-spec>
                              Install this npm package tarball instead of packing current main.
-                             Example: genesis@2026.3.13-beta.1
+                             Example: @pixelzx/genesis@2026.3.13-beta.1
   --keep-server              Leave temp host HTTP server running.
   --json                     Print machine-readable JSON summary.
   -h, --help                 Show help.
@@ -462,7 +462,7 @@ resolve_latest_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view genesis version --userconfig "$(mktemp)"
+  npm view @pixelzx/genesis version --userconfig "$(mktemp)"
 }
 
 current_build_commit() {

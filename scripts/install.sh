@@ -1935,7 +1935,7 @@ EOF
 # Install Genesis
 resolve_beta_version() {
     local beta=""
-    beta="$(npm view genesis dist-tags.beta 2>/dev/null || true)"
+    beta="$(npm view @pixelzx/genesis dist-tags.beta 2>/dev/null || true)"
     if [[ -z "$beta" || "$beta" == "undefined" || "$beta" == "null" ]]; then
         return 1
     fi
@@ -1989,14 +1989,14 @@ resolve_package_install_spec() {
 }
 
 install_genesis() {
-    local package_name="genesis"
+    local package_name="@pixelzx/genesis"
     if [[ "$USE_BETA" == "1" ]]; then
         local beta_version=""
         beta_version="$(resolve_beta_version || true)"
         if [[ -n "$beta_version" ]]; then
             GENESIS_VERSION="$beta_version"
             ui_info "Beta tag detected (${beta_version})"
-            package_name="genesis"
+            package_name="@pixelzx/genesis"
         else
             GENESIS_VERSION="latest"
             ui_info "No beta tag found; using latest"
@@ -2025,11 +2025,11 @@ install_genesis() {
         install_genesis_npm "${install_spec}"
     fi
 
-    if [[ "${GENESIS_VERSION}" == "latest" && "${package_name}" == "genesis" ]]; then
+    if [[ "${GENESIS_VERSION}" == "latest" && "${package_name}" == "@pixelzx/genesis" ]]; then
         if ! resolve_genesis_bin &> /dev/null; then
-            ui_warn "npm install genesis@latest failed; retrying genesis@next"
+            ui_warn "npm install @pixelzx/genesis@latest failed; retrying @pixelzx/genesis@next"
             cleanup_npm_genesis_paths
-            install_genesis_npm "genesis@next"
+            install_genesis_npm "@pixelzx/genesis@next"
         fi
     fi
 

@@ -18,6 +18,7 @@ if [[ -n "${publish_target}" && -f "${publish_target}" ]]; then
 fi
 
 package_version="$(node -p "require('./package.json').version")"
+package_name="$(node -p "require('./package.json').name")"
 mapfile -t publish_plan < <(
   PACKAGE_VERSION="${package_version}" REQUESTED_PUBLISH_TAG="${GENESIS_NPM_PUBLISH_TAG:-}" \
     node --import tsx --input-type=module <<'EOF'
@@ -39,6 +40,7 @@ if [[ -n "${publish_target}" ]]; then
 fi
 publish_cmd+=(--access public --tag "${publish_tag}" --provenance)
 
+echo "Resolved package name: ${package_name}"
 echo "Resolved package version: ${package_version}"
 echo "Resolved release channel: ${release_channel}"
 echo "Resolved publish tag: ${publish_tag}"

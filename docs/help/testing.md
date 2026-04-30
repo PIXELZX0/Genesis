@@ -110,7 +110,7 @@ runs the same lanes before release approval.
   - Installs a published Genesis package in Docker, runs installed-package
     onboarding, configures Telegram through the installed CLI, then reuses the
     live Telegram QA lane with that installed package as the SUT Gateway.
-  - Defaults to `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=genesis@beta`.
+  - Defaults to `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=@pixelzx/genesis@beta`.
   - Uses the same Telegram env credentials or Convex credential source as
     `pnpm genesis qa telegram`. For CI/release automation, set
     `GENESIS_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex` plus

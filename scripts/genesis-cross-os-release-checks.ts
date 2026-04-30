@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const PUBLISHED_INSTALLER_BASE_URL = "https://genesis.ai";
+const GENESIS_NPM_PACKAGE_NAME = "@pixelzx/genesis";
 
 const SUPPORTED_MODES = new Set(["fresh", "upgrade", "both"]);
 const SUPPORTED_SUITES = new Set([
@@ -245,7 +246,9 @@ async function main(argv) {
   const previousVersion = args["previous-version"]?.trim() || "";
   const baselineSpec =
     args["baseline-spec"]?.trim() ||
-    (previousVersion ? `genesis@${previousVersion}` : "genesis@latest");
+    (previousVersion
+      ? `${GENESIS_NPM_PACKAGE_NAME}@${previousVersion}`
+      : `${GENESIS_NPM_PACKAGE_NAME}@latest`);
   const providedBaselineTgz = args["baseline-tgz"]?.trim()
     ? resolve(args["baseline-tgz"].trim())
     : "";
@@ -1187,8 +1190,15 @@ export function buildRealUpdateEnv(env) {
 
 export function resolveExplicitBaselineVersion(baselineSpec) {
   const trimmed = baselineSpec.trim();
-  if (!trimmed || trimmed === "genesis@latest") {
+  if (
+    !trimmed ||
+    trimmed === "genesis@latest" ||
+    trimmed === `${GENESIS_NPM_PACKAGE_NAME}@latest`
+  ) {
     return "";
+  }
+  if (trimmed.startsWith(`${GENESIS_NPM_PACKAGE_NAME}@`)) {
+    return trimmed.slice(`${GENESIS_NPM_PACKAGE_NAME}@`.length);
   }
   if (trimmed.startsWith("genesis@")) {
     return trimmed.slice("genesis@".length);
@@ -1201,13 +1211,19 @@ async function resolveInstallerTargetVersion(params) {
   if (resolvedVersion) {
     return resolvedVersion;
   }
-  const latestResult = await runCommand(npmCommand(), ["view", "genesis@latest", "version"], {
-    logPath: join(params.logsDir, `${params.suiteName}-latest-version.log`),
-    timeoutMs: 2 * 60 * 1000,
-  });
+  const latestResult = await runCommand(
+    npmCommand(),
+    ["view", `${GENESIS_NPM_PACKAGE_NAME}@latest`, "version"],
+    {
+      logPath: join(params.logsDir, `${params.suiteName}-latest-version.log`),
+      timeoutMs: 2 * 60 * 1000,
+    },
+  );
   const latestVersion = latestResult.stdout.trim();
   if (!latestVersion) {
-    throw new Error("npm view genesis@latest version did not return a version.");
+    throw new Error(
+      `npm view ${GENESIS_NPM_PACKAGE_NAME}@latest version did not return a version.`,
+    );
   }
   return latestVersion;
 }
@@ -2632,8 +2648,8 @@ function verifyInstalledCandidate(installed, build) {
 
 function installedPackageRoot(prefixDir) {
   return process.platform === "win32"
-    ? join(prefixDir, "node_modules", "genesis")
-    : join(prefixDir, "lib", "node_modules", "genesis");
+    ? join(prefixDir, "node_modules", "@pixelzx", "genesis")
+    : join(prefixDir, "lib", "node_modules", "@pixelzx", "genesis");
 }
 
 function installedEntryPath(prefixDir) {

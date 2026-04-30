@@ -52,10 +52,10 @@ The macOS app expects a global `genesis` CLI install to manage background tasks.
 Alternatively, install it manually:
 
 ```bash
-npm install -g genesis@<version>
+npm install -g @pixelzx/genesis@<version>
 ```
 
-`pnpm add -g genesis@<version>` and `bun add -g genesis@<version>` also work.
+`pnpm add -g @pixelzx/genesis@<version>` and `bun add -g @pixelzx/genesis@<version>` also work.
 For the Gateway runtime, Node remains the recommended path.
 
 ## Troubleshooting

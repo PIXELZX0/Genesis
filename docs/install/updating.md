@@ -41,15 +41,15 @@ Add `--no-onboard` to skip onboarding. For source installs, pass `--install-meth
 ## Alternative: manual npm, pnpm, or bun
 
 ```bash
-npm i -g genesis@latest
+npm i -g @pixelzx/genesis@latest
 ```
 
 ```bash
-pnpm add -g genesis@latest
+pnpm add -g @pixelzx/genesis@latest
 ```
 
 ```bash
-bun add -g genesis@latest
+bun add -g @pixelzx/genesis@latest
 ```
 
 ### Global npm installs and runtime dependencies
@@ -144,12 +144,12 @@ genesis health
 ### Pin a version (npm)
 
 ```bash
-npm i -g genesis@<version>
+npm i -g @pixelzx/genesis@<version>
 genesis doctor
 genesis gateway restart
 ```
 
-Tip: `npm view genesis version` shows the current published version.
+Tip: `npm view @pixelzx/genesis version` shows the current published version.
 
 ### Pin a commit (source)
 

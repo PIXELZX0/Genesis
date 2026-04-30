@@ -59,6 +59,7 @@ export type NpmDistTagMirrorAuth = {
   hasAuth: boolean;
   source: "node-auth-token" | "npm-token" | "none";
 };
+export const GENESIS_NPM_PACKAGE_NAME = "@pixelzx/genesis";
 const EXPECTED_REPOSITORY_URL = "https://github.com/PIXELZX0/Genesis";
 const OPTIONAL_LOCAL_EMBEDDING_RUNTIME_PACKAGE = "node-llama-cpp";
 const MAX_CALVER_DISTANCE_DAYS = 2;
@@ -248,8 +249,10 @@ export function collectReleasePackageMetadataErrors(pkg: PackageJson): string[] 
   );
   const errors: string[] = [];
 
-  if (pkg.name !== "genesis") {
-    errors.push(`package.json name must be "genesis"; found "${pkg.name ?? ""}".`);
+  if (pkg.name !== GENESIS_NPM_PACKAGE_NAME) {
+    errors.push(
+      `package.json name must be "${GENESIS_NPM_PACKAGE_NAME}"; found "${pkg.name ?? ""}".`,
+    );
   }
   if (!pkg.description?.trim()) {
     errors.push("package.json description must be non-empty.");

@@ -17,7 +17,11 @@ import { isAbsolute, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { formatErrorMessage } from "../src/infra/errors.ts";
 import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../src/plugins/runtime-sidecar-paths.ts";
-import { parseReleaseVersion, resolveNpmCommandInvocation } from "./genesis-npm-release-check.ts";
+import {
+  GENESIS_NPM_PACKAGE_NAME,
+  parseReleaseVersion,
+  resolveNpmCommandInvocation,
+} from "./genesis-npm-release-check.ts";
 import { listBundledPluginPackArtifacts } from "./lib/bundled-plugin-build-entries.mjs";
 import {
   collectBundledPluginRootRuntimeMirrorErrors,
@@ -70,7 +74,7 @@ export function buildPublishedInstallScenarios(version: string): PublishedInstal
     throw new Error(`Unsupported release version "${version}".`);
   }
 
-  const exactSpec = `genesis@${version}`;
+  const exactSpec = `${GENESIS_NPM_PACKAGE_NAME}@${version}`;
   const scenarios: PublishedInstallScenario[] = [
     {
       name: "fresh-exact",
@@ -82,7 +86,7 @@ export function buildPublishedInstallScenarios(version: string): PublishedInstal
   if (parsed.channel === "stable" && parsed.correctionNumber !== undefined) {
     scenarios.push({
       name: "upgrade-from-base-stable",
-      installSpecs: [`genesis@${parsed.baseVersion}`, exactSpec],
+      installSpecs: [`${GENESIS_NPM_PACKAGE_NAME}@${parsed.baseVersion}`, exactSpec],
       expectedVersion: version,
     });
   }

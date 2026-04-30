@@ -98,7 +98,7 @@ The Gateway is the single source of truth for sessions, routing, and channel con
 <Steps>
   <Step title="Install Genesis">
     ```bash
-    npm install -g genesis@latest
+    npm install -g @pixelzx/genesis@latest
     ```
   </Step>
   <Step title="Onboard and install the service">

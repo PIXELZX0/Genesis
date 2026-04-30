@@ -153,7 +153,7 @@ Options:
                              Upgrade lane: install this npm package tarball as the baseline,
                              then run genesis update --channel dev.
                              Fresh lane: install this npm package tarball instead of packing current main.
-                             Example: genesis@2026.3.13-beta.1
+                             Example: @pixelzx/genesis@2026.3.13-beta.1
                              Default upgrade lane without this flag: latest/site installer -> dev channel update.
   --skip-latest-ref-check    Skip latest-release ref-mode precheck.
   --keep-server              Leave temp host HTTP server running.
@@ -835,7 +835,7 @@ resolve_latest_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view genesis version --userconfig "$(mktemp)"
+  npm view @pixelzx/genesis version --userconfig "$(mktemp)"
 }
 
 baseline_install_version() {
@@ -843,7 +843,7 @@ baseline_install_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view "genesis@$INSTALL_VERSION" version --userconfig "$(mktemp)"
+  npm view "@pixelzx/genesis@$INSTALL_VERSION" version --userconfig "$(mktemp)"
 }
 
 resolve_mingit_download() {
@@ -1164,7 +1164,7 @@ try {
 
   Write-ProgressLog 'install.start'
   Invoke-Logged 'npm install baseline release' {
-    & npm.cmd install -g "genesis@$Version" --no-fund --no-audit --loglevel=error
+    & npm.cmd install -g "@pixelzx/genesis@$Version" --no-fund --no-audit --loglevel=error
   }
 
   Write-ProgressLog 'install.version'
