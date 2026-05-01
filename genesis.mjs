@@ -128,6 +128,9 @@ const buildMissingEntryErrorMessage = async () => {
 const isBareRootHelpInvocation = (argv) =>
   argv.length === 3 && (argv[2] === "--help" || argv[2] === "-h");
 
+const isBareRootVersionInvocation = (argv) =>
+  argv.length === 3 && (argv[2] === "--version" || argv[2] === "-V" || argv[2] === "-v");
+
 const loadPrecomputedRootHelpText = () => {
   try {
     const raw = readFileSync(new URL("./dist/cli-startup-metadata.json", import.meta.url), "utf8");
@@ -138,6 +141,57 @@ const loadPrecomputedRootHelpText = () => {
   } catch {
     return null;
   }
+};
+
+const formatCommit = (value) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+  const match = value.trim().match(/[0-9a-fA-F]{7,40}/);
+  return match ? match[0].slice(0, 7).toLowerCase() : null;
+};
+
+const readJson = (specifier) => {
+  try {
+    return JSON.parse(readFileSync(new URL(specifier, import.meta.url), "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+const loadPackageVersion = () => {
+  const parsed = readJson("./package.json");
+  return typeof parsed?.version === "string" && parsed.version.trim()
+    ? parsed.version.trim()
+    : null;
+};
+
+const loadBuildInfoCommit = () => {
+  const parsed = readJson("./dist/build-info.json");
+  return formatCommit(parsed?.commit);
+};
+
+const loadPackageCommit = () => {
+  const parsed = readJson("./package.json");
+  return formatCommit(parsed?.gitHead ?? parsed?.githead);
+};
+
+const loadVersionCommit = () =>
+  formatCommit(process.env.GIT_COMMIT ?? process.env.GIT_SHA) ??
+  loadBuildInfoCommit() ??
+  loadPackageCommit();
+
+const tryOutputBareRootVersion = () => {
+  if (!isBareRootVersionInvocation(process.argv)) {
+    return false;
+  }
+  const version = loadPackageVersion();
+  if (!version) {
+    return false;
+  }
+  const commit = loadVersionCommit();
+  process.stdout.write(commit ? `Genesis ${version} (${commit})\n` : `Genesis ${version}\n`);
+  return true;
 };
 
 const tryOutputBareRootHelp = async () => {
@@ -167,6 +221,8 @@ const tryOutputBareRootHelp = async () => {
 };
 
 if (await tryOutputBareRootHelp()) {
+  // OK
+} else if (tryOutputBareRootVersion()) {
   // OK
 } else {
   await installProcessWarningFilter();
