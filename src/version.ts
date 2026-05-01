@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 import { normalizeOptionalString } from "./shared/string-coerce.js";
 
 declare const __GENESIS_VERSION__: string | undefined;
-const CORE_PACKAGE_NAME = "genesis";
+const CORE_PACKAGE_NAMES = new Set(["genesis", "@pixelzx/genesis"]);
 
 const PACKAGE_JSON_CANDIDATES = [
   "../package.json",
@@ -31,7 +31,7 @@ function readVersionFromJsonCandidates(
         if (!version) {
           continue;
         }
-        if (opts.requirePackageName && parsed.name !== CORE_PACKAGE_NAME) {
+        if (opts.requirePackageName && !CORE_PACKAGE_NAMES.has(parsed.name ?? "")) {
           continue;
         }
         return version;

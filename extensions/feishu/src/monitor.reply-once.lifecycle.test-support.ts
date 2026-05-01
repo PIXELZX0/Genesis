@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { createTypedRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
 import "./lifecycle.test-support.js";
 import {
   getFeishuLifecycleTestMocks,
@@ -19,6 +19,14 @@ import {
   setupFeishuMessageReceiveLifecycleHandler,
 } from "./test-support/lifecycle-test-support.js";
 
+type TestRuntimeEnv = {
+  log: Mock<(...args: unknown[]) => void>;
+  error: Mock<(...args: unknown[]) => void>;
+  exit: Mock<(code: number) => void>;
+  writeStdout: Mock<(value: string) => void>;
+  writeJson: Mock<(value: unknown, space?: number) => void>;
+};
+
 const {
   createFeishuReplyDispatcherMock,
   dispatchReplyFromConfigMock,
@@ -27,7 +35,7 @@ const {
   withReplyDispatcherMock,
 } = getFeishuLifecycleTestMocks();
 
-let lastRuntime: ReturnType<typeof createRuntimeEnv> | null = null;
+let lastRuntime: TestRuntimeEnv | null = null;
 let lifecycleCore: ReturnType<typeof installFeishuLifecycleReplyRuntime>;
 const handleMessageMock = vi.fn();
 const originalStateDir = process.env.GENESIS_STATE_DIR;
@@ -48,7 +56,7 @@ const lifecycleConfig = createFeishuLifecycleConfig({
 });
 
 async function setupLifecycleMonitor() {
-  lastRuntime = createRuntimeEnv();
+  lastRuntime = createTypedRuntimeEnv<TestRuntimeEnv>();
   return setupFeishuMessageReceiveLifecycleHandler({
     runtime: lastRuntime,
     core: lifecycleCore,

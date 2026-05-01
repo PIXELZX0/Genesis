@@ -1,0 +1,58 @@
+name: NPM Telegram Beta E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_spec:
+        description: Published package spec to test.
+        required: true
+        default: "@pixelzx/genesis@beta"
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prepare_docker_e2e_image:
+    name: Prepare Docker E2E image
+    runs-on: ubuntu-24.04
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker builder
+        uses: useblacksmith/setup-docker-builder@v1
+      - name: Build Docker E2E image
+        uses: useblacksmith/build-push-action@v1
+        with:
+          context: .
+          file: scripts/e2e/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/genesis-npm-telegram-e2e:${{ github.sha }}
+      - name: Export image
+        id: image
+        run: echo "image=ghcr.io/${{ github.repository }}/genesis-npm-telegram-e2e:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+  approve_release_manager:
+    name: Approve release manager
+    runs-on: ubuntu-24.04
+    environment: npm-release
+    steps:
+      - name: Await approval
+        run: echo "Release manager approval granted."
+
+  npm_telegram_beta_e2e:
+    name: NPM Telegram beta E2E
+    needs: [approve_release_manager, prepare_docker_e2e_image]
+    runs-on: ubuntu-24.04
+    env:
+      GENESIS_NPM_TELEGRAM_PACKAGE_SPEC: ${{ inputs.package_spec }}
+      GENESIS_SKIP_DOCKER_BUILD: "1"
+      GENESIS_DOCKER_E2E_IMAGE: ${{ needs.prepare_docker_e2e_image.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run NPM Telegram beta E2E
+        run: bash scripts/e2e/npm-telegram-live-docker.sh

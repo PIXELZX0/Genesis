@@ -58,7 +58,7 @@ async function readPassphrase(opts: WalletPassphraseOpts): Promise<string> {
 }
 
 function parseChain(value: unknown): WalletChain {
-  const chain = String(value ?? "").trim();
+  const chain = typeof value === "string" ? value.trim() : "";
   if (!WALLET_CHAIN_SET.has(chain)) {
     throw new Error(`--chain must be one of ${WALLET_CHAINS.join(", ")}`);
   }

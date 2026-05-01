@@ -1,0 +1,19 @@
+name: Genesis Release Checks
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Release tag or full commit SHA to validate.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  install_smoke_release_checks:
+    name: Install smoke release checks
+    uses: ./.github/workflows/install-smoke.yml
+    with:
+      run_bun_global_install_smoke: true

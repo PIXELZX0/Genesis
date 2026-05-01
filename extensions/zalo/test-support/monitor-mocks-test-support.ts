@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { vi, type Mock } from "vitest";
 import {
   createEmptyPluginRegistry,
@@ -15,8 +16,8 @@ type WebhookModule = typeof import("../src/monitor.webhook.js");
 const monitorModuleUrl = new URL("../src/monitor.ts", import.meta.url).href;
 const secretInputModuleUrl = new URL("../src/secret-input.ts", import.meta.url).href;
 const webhookModuleUrl = new URL("../src/monitor.webhook.ts", import.meta.url).href;
-const apiModuleId = new URL("../src/api.js", import.meta.url).pathname;
-const runtimeModuleId = new URL("../src/runtime.js", import.meta.url).pathname;
+const apiModuleId = fileURLToPath(new URL("../src/api.js", import.meta.url));
+const runtimeModuleId = fileURLToPath(new URL("../src/runtime.js", import.meta.url));
 
 type UnknownMock = Mock<(...args: unknown[]) => unknown>;
 type AsyncUnknownMock = Mock<(...args: unknown[]) => Promise<unknown>>;

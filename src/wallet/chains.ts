@@ -344,7 +344,7 @@ async function quoteBtc(params: {
   let selected = 0n;
   let selectedCount = 0;
   let fee = 0n;
-  for (const utxo of utxos.sort((a, b) => b.value - a.value)) {
+  for (const utxo of utxos.toSorted((a, b) => b.value - a.value)) {
     selected += BigInt(utxo.value);
     selectedCount += 1;
     fee = BigInt(Math.ceil((10 + selectedCount * 68 + 2 * 31) * feeRate));
@@ -546,7 +546,7 @@ export async function sendWalletTransaction(params: {
     const target = BigInt(quote.amountAtomic);
     let selected = 0n;
     const selectedUtxos: BtcUtxo[] = [];
-    for (const utxo of utxos.sort((a, b) => b.value - a.value)) {
+    for (const utxo of utxos.toSorted((a, b) => b.value - a.value)) {
       selected += BigInt(utxo.value);
       selectedUtxos.push(utxo);
       if (selected >= target + fee) {

@@ -212,6 +212,10 @@ function assertSpendGuard(params: {
   }
 }
 
+function unsupportedWalletChainError(chain: WalletChain): Error {
+  return new Error(`Unsupported wallet chain: ${chain}`);
+}
+
 export async function quoteWalletTransaction(
   params: WalletServiceOptions & {
     chain: WalletChain;
@@ -225,7 +229,7 @@ export async function quoteWalletTransaction(
     return quoteXmrSend({ to: params.to, amount: params.amount, config });
   }
   if (!isLocalKeystoreWalletChain(params.chain)) {
-    throw new Error(`Unsupported wallet chain: ${params.chain}`);
+    throw unsupportedWalletChainError(params.chain);
   }
   const accounts = await getWalletAccounts({ config, env: params.env });
   return quoteWalletSend({
@@ -259,7 +263,7 @@ export async function sendWallet(
     return sendXmrTransaction({ to: params.to, amount: params.amount, config });
   }
   if (!isLocalKeystoreWalletChain(params.chain)) {
-    throw new Error(`Unsupported wallet chain: ${params.chain}`);
+    throw unsupportedWalletChainError(params.chain);
   }
   const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
   const accounts = await getWalletAccounts({ config, env: params.env });

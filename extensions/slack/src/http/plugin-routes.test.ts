@@ -10,7 +10,7 @@ function createApi(config: GenesisConfig, registerHttpRoute = vi.fn()): GenesisP
     id: "slack",
     config,
     registerHttpRoute,
-  }) as GenesisPluginApi;
+  });
 }
 
 describe("registerSlackPluginHttpRoutes", () => {

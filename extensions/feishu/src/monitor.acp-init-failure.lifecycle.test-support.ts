@@ -1,6 +1,6 @@
 import "./lifecycle.test-support.js";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { createTypedRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
 import type { ClawdbotConfig } from "../runtime-api.js";
 import {
   getFeishuLifecycleTestMocks,
@@ -17,6 +17,14 @@ import {
 } from "./test-support/lifecycle-test-support.js";
 import type { ResolvedFeishuAccount } from "./types.js";
 
+type TestRuntimeEnv = {
+  log: Mock<(...args: unknown[]) => void>;
+  error: Mock<(...args: unknown[]) => void>;
+  exit: Mock<(code: number) => void>;
+  writeStdout: Mock<(value: string) => void>;
+  writeJson: Mock<(value: unknown, space?: number) => void>;
+};
+
 const {
   createEventDispatcherMock,
   dispatchReplyFromConfigMock,
@@ -30,7 +38,7 @@ const {
 } = getFeishuLifecycleTestMocks();
 
 let _handlers: Record<string, (data: unknown) => Promise<void>> = {};
-let lastRuntime: ReturnType<typeof createRuntimeEnv> | null = null;
+let lastRuntime: TestRuntimeEnv | null = null;
 const originalStateDir = process.env.GENESIS_STATE_DIR;
 const { cfg: lifecycleConfig, account: lifecycleAccount } = createFeishuLifecycleFixture({
   accountId: "acct-acp",
@@ -59,7 +67,7 @@ const { cfg: lifecycleConfig, account: lifecycleAccount } = createFeishuLifecycl
 };
 
 async function setupLifecycleMonitor() {
-  lastRuntime = createRuntimeEnv();
+  lastRuntime = createTypedRuntimeEnv<TestRuntimeEnv>();
   return setupFeishuLifecycleHandler({
     createEventDispatcherMock,
     onRegister: (registered) => {

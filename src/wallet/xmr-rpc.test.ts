@@ -69,7 +69,10 @@ describe("monero wallet RPC adapter", () => {
     expect(sent.txId).toBe("xmr-tx");
     expect(sent.amountAtomic).toBe("500000000000");
     const transferInit = fetchMock.mock.calls[1]?.[1] as RequestInit;
-    expect(JSON.parse(String(transferInit.body))).toMatchObject({
+    if (typeof transferInit.body !== "string") {
+      throw new Error("Expected XMR transfer request body to be a string.");
+    }
+    expect(JSON.parse(transferInit.body)).toMatchObject({
       method: "transfer",
       params: {
         destinations: [{ address: "84destination", amount: 500000000000 }],

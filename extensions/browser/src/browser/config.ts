@@ -185,7 +185,7 @@ function normalizeTorExtraArgs(raw: string[] | undefined): string[] {
 }
 
 function normalizeBrowserTorConfig(
-  raw: BrowserConfig["tor"] | BrowserProfileConfig["tor"] | undefined,
+  raw: BrowserConfig["tor"] | undefined,
   inherited: ResolvedBrowserTorConfig | undefined,
   opts?: { cdpPort?: number; defaultEnabled?: boolean },
 ): ResolvedBrowserTorConfig | undefined {
