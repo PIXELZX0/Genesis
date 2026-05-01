@@ -28,7 +28,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
       ttlMs: 10_000,
       command: {
-        executable: "/opt/Open Claw/genesis.mjs",
+        executable: "/opt/Genesis/genesis.mjs",
         nodeExecutable: "/usr/local/bin/node",
         timeoutMs: 1234,
       },
@@ -41,7 +41,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
     });
     expect(relay.commandForEvent("pre_tool_use")).toBe(
-      "/usr/local/bin/node '/opt/Open Claw/genesis.mjs' hooks relay --provider codex --relay-id " +
+      "/usr/local/bin/node /opt/Genesis/genesis.mjs hooks relay --provider codex --relay-id " +
         `${relay.relayId} --event pre_tool_use --timeout 1234`,
     );
   });
