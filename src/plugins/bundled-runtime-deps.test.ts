@@ -642,6 +642,98 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     expect(second).toEqual({ installedSpecs: [], retainSpecs: [] });
   });
 
+  it("uses package export entries for external runtime dependency aliases", () => {
+    const packageRoot = makeTempDir();
+    const installRoot = makeTempDir();
+    fs.writeFileSync(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "genesis", version: "2026.4.22" }),
+    );
+    const pluginRoot = path.join(packageRoot, "dist", "extensions", "feishu");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      JSON.stringify({
+        dependencies: {
+          typebox: "1.1.31",
+        },
+      }),
+    );
+
+    const typeboxRoot = path.join(installRoot, "node_modules", "typebox");
+    fs.mkdirSync(path.join(typeboxRoot, "build"), { recursive: true });
+    fs.writeFileSync(
+      path.join(typeboxRoot, "package.json"),
+      JSON.stringify({
+        exports: {
+          ".": {
+            default: "./build/index.mjs",
+            import: "./build/index.mjs",
+          },
+        },
+        name: "typebox",
+        type: "module",
+        version: "1.1.31",
+      }),
+    );
+    fs.writeFileSync(path.join(typeboxRoot, "build", "index.mjs"), "export {};\n");
+
+    expect(createBundledRuntimeDependencyAliasMap({ pluginRoot, installRoot })).toEqual({
+      typebox: path.join(typeboxRoot, "build", "index.mjs"),
+    });
+  });
+
+  it("adds package export subpath aliases for external runtime dependencies", () => {
+    const packageRoot = makeTempDir();
+    const installRoot = makeTempDir();
+    fs.writeFileSync(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "genesis", version: "2026.4.22" }),
+    );
+    const pluginRoot = path.join(packageRoot, "dist", "extensions", "nostr");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      JSON.stringify({
+        dependencies: {
+          "nostr-tools": "2.23.3",
+        },
+      }),
+    );
+
+    const nostrRoot = path.join(installRoot, "node_modules", "nostr-tools");
+    fs.mkdirSync(path.join(nostrRoot, "lib", "cjs"), { recursive: true });
+    fs.mkdirSync(path.join(nostrRoot, "lib", "esm"), { recursive: true });
+    fs.writeFileSync(
+      path.join(nostrRoot, "package.json"),
+      JSON.stringify({
+        exports: {
+          ".": {
+            import: "./lib/esm/index.js",
+            require: "./lib/cjs/index.js",
+          },
+          "./nip04": {
+            import: "./lib/esm/nip04.js",
+            require: "./lib/cjs/nip04.js",
+          },
+        },
+        main: "./lib/cjs/index.js",
+        name: "nostr-tools",
+        type: "module",
+        version: "2.23.3",
+      }),
+    );
+    fs.writeFileSync(path.join(nostrRoot, "lib", "cjs", "index.js"), "module.exports = {};\n");
+    fs.writeFileSync(path.join(nostrRoot, "lib", "cjs", "nip04.js"), "module.exports = {};\n");
+    fs.writeFileSync(path.join(nostrRoot, "lib", "esm", "index.js"), "export {};\n");
+    fs.writeFileSync(path.join(nostrRoot, "lib", "esm", "nip04.js"), "export {};\n");
+
+    expect(createBundledRuntimeDependencyAliasMap({ pluginRoot, installRoot })).toEqual({
+      "nostr-tools": nostrRoot,
+      "nostr-tools/nip04": path.join(nostrRoot, "lib", "esm", "nip04.js"),
+    });
+  });
+
   it("retains external staged deps across separate loader passes", () => {
     const packageRoot = makeTempDir();
     const stageDir = makeTempDir();

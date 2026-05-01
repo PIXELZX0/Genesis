@@ -22,6 +22,7 @@ import {
   resolveBundledRuntimeDependencyInstallRoot,
   resolveBundledRuntimeDependencyPackageInstallRoot,
 } from "../src/plugins/bundled-runtime-deps.ts";
+import { GENESIS_NPM_PACKAGE_NAME } from "./genesis-npm-release-check.ts";
 import {
   collectBundledExtensionManifestErrors,
   type BundledExtension,
@@ -34,6 +35,7 @@ import {
   collectBundledPluginRuntimeDependencySpecs,
   collectRootDistBundledRuntimeMirrors,
 } from "./lib/bundled-plugin-root-runtime-mirrors.mjs";
+import { resolveInstalledPackageRoot } from "./lib/npm-installed-package-root.mjs";
 import { collectPackUnpackedSizeErrors as collectNpmPackUnpackedSizeErrors } from "./lib/npm-pack-budget.mjs";
 import { listPluginSdkDistArtifacts } from "./lib/plugin-sdk-entries.mjs";
 import {
@@ -512,7 +514,10 @@ function runPackedBundledChannelEntrySmoke(): void {
     const prefixDir = join(tmpRoot, "prefix");
     installPackedTarball(prefixDir, tarballPath, tmpRoot);
 
-    const packageRoot = join(resolveGlobalRoot(prefixDir, tmpRoot), "genesis");
+    const packageRoot = resolveInstalledPackageRoot(
+      resolveGlobalRoot(prefixDir, tmpRoot),
+      GENESIS_NPM_PACKAGE_NAME,
+    );
     const homeDir = join(tmpRoot, "home");
     const stateDir = join(tmpRoot, "state");
     mkdirSync(homeDir, { recursive: true });

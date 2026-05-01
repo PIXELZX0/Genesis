@@ -9,6 +9,10 @@ import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import {
+  createBundledRuntimeDependencyAliasMap,
+  resolveBundledRuntimeDependencyInstallRoot,
+} from "../plugins/bundled-runtime-deps.js";
+import {
   isBuiltBundledPluginRuntimeRoot,
   prepareBundledPluginRuntimeRoot,
 } from "../plugins/bundled-runtime-root.js";
@@ -22,7 +26,7 @@ import {
   shouldProfilePluginLoader,
 } from "../plugins/plugin-load-profile.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
-import { resolveLoaderPackageRoot } from "../plugins/sdk-alias.js";
+import { buildPluginLoaderAliasMap, resolveLoaderPackageRoot } from "../plugins/sdk-alias.js";
 import type { AnyAgentTool, GenesisPluginApi, PluginCommandContext } from "../plugins/types.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
@@ -320,13 +324,21 @@ function resolveBundledEntryModulePath(importMetaUrl: string, specifier: string)
   );
 }
 
-function getJiti(modulePath: string) {
+function getJiti(modulePath: string, runtimeDependencyAliasMap?: Record<string, string>) {
+  const aliasMap =
+    runtimeDependencyAliasMap && Object.keys(runtimeDependencyAliasMap).length > 0
+      ? {
+          ...buildPluginLoaderAliasMap(modulePath, process.argv[1], import.meta.url),
+          ...runtimeDependencyAliasMap,
+        }
+      : undefined;
   return getCachedPluginJitiLoader({
     cache: jitiLoaders,
     modulePath,
     importerUrl: import.meta.url,
     preferBuiltDist: true,
     jitiFilename: import.meta.url,
+    ...(aliasMap ? { aliasMap } : {}),
   });
 }
 
@@ -347,6 +359,7 @@ function loadBundledEntryModuleSync(
 ): unknown {
   let modulePath = resolveBundledEntryModulePath(importMetaUrl, specifier);
   const boundaryRoot = resolveEntryBoundaryRoot(importMetaUrl);
+  let runtimeDependencyAliasMap: Record<string, string> | undefined;
   if (options.installRuntimeDeps !== false && isBuiltBundledPluginRuntimeRoot(boundaryRoot)) {
     const prepared = prepareBundledPluginRuntimeRoot({
       pluginId: path.basename(boundaryRoot),
@@ -355,6 +368,12 @@ function loadBundledEntryModuleSync(
       env: process.env,
     });
     modulePath = prepared.modulePath;
+    runtimeDependencyAliasMap = createBundledRuntimeDependencyAliasMap({
+      pluginRoot: prepared.pluginRoot,
+      installRoot: resolveBundledRuntimeDependencyInstallRoot(boundaryRoot, {
+        env: process.env,
+      }),
+    });
   }
   const cached = loadedModuleExports.get(modulePath);
   if (cached !== undefined) {
@@ -368,12 +387,12 @@ function loadBundledEntryModuleSync(
     try {
       loaded = nodeRequire(modulePath);
     } catch {
-      const jiti = getJiti(modulePath);
+      const jiti = getJiti(modulePath, runtimeDependencyAliasMap);
       getJitiEndMs = profile ? performance.now() : 0;
       loaded = jiti(modulePath);
     }
   } else {
-    const jiti = getJiti(modulePath);
+    const jiti = getJiti(modulePath, runtimeDependencyAliasMap);
     getJitiEndMs = profile ? performance.now() : 0;
     loaded = jiti(modulePath);
   }

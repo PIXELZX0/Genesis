@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { importFreshModule } from "../../test/helpers/import-fresh.ts";
+import { resolveBundledRuntimeDependencyInstallRoot } from "../plugins/bundled-runtime-deps.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
 import type { GenesisPluginApi, PluginRegistrationMode } from "../plugins/types.js";
 import { defineBundledChannelEntry, loadBundledEntryExportSync } from "./channel-entry-contract.js";
@@ -262,6 +263,68 @@ describe("loadBundledEntryExportSync", () => {
     } finally {
       platformSpy.mockRestore();
     }
+  });
+
+  it("passes external bundled runtime dependency aliases to jiti fallback", async () => {
+    const loadedModule = { value: 42 };
+    const loadWithJiti = vi.fn(() => loadedModule);
+    const createJiti = vi.fn(() => loadWithJiti);
+    vi.doMock("jiti", () => ({
+      createJiti,
+    }));
+
+    const channelEntryContract = await importFreshModule<
+      typeof import("./channel-entry-contract.js")
+    >(import.meta.url, "./channel-entry-contract.js?scope=runtime-dep-alias");
+
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-contract-"));
+    tempDirs.push(tempRoot);
+    vi.stubEnv("GENESIS_PLUGIN_STAGE_DIR", path.join(tempRoot, "runtime-deps"));
+
+    fs.writeFileSync(
+      path.join(tempRoot, "package.json"),
+      '{"name":"@pixelzx/genesis","version":"2026.5.1-beta.1"}\n',
+      "utf8",
+    );
+    const pluginRoot = path.join(tempRoot, "dist", "extensions", "discord");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(path.join(pluginRoot, "index.js"), "export default {};\n", "utf8");
+    fs.writeFileSync(path.join(pluginRoot, "helper.ts"), "export const value = 42;\n", "utf8");
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      '{"dependencies":{"@example/runtime":"1.0.0"}}\n',
+      "utf8",
+    );
+
+    const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
+      env: process.env,
+    });
+    const runtimePackageRoot = path.join(installRoot, "node_modules", "@example", "runtime");
+    fs.mkdirSync(runtimePackageRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(runtimePackageRoot, "package.json"),
+      '{"name":"@example/runtime","version":"1.0.0"}\n',
+      "utf8",
+    );
+
+    expect(
+      channelEntryContract.loadBundledEntryExportSync<number>(
+        pathToFileURL(path.join(pluginRoot, "index.js")).href,
+        {
+          specifier: "./helper.ts",
+          exportName: "value",
+        },
+      ),
+    ).toBe(42);
+
+    expect(createJiti).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        alias: expect.objectContaining({
+          "@example/runtime": runtimePackageRoot,
+        }),
+      }),
+    );
   });
 
   it("loads packaged telegram setup sidecars from dist-facing api modules", () => {

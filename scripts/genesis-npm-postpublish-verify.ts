@@ -29,6 +29,7 @@ import {
   collectRuntimeDependencySpecs,
   packageNameFromSpecifier,
 } from "./lib/bundled-plugin-root-runtime-mirrors.mjs";
+import { resolveInstalledPackageRoot } from "./lib/npm-installed-package-root.mjs";
 import { runInstalledWorkspaceBootstrapSmoke } from "./lib/workspace-bootstrap-smoke.mjs";
 
 type InstalledPackageJson = {
@@ -532,8 +533,10 @@ function verifyScenario(version: string, scenario: PublishedInstallScenario): vo
       installSpec(prefixDir, spec, workingDir);
     }
 
-    const globalRoot = resolveGlobalRoot(prefixDir, workingDir);
-    const packageRoot = join(globalRoot, "genesis");
+    const packageRoot = resolveInstalledPackageRoot(
+      resolveGlobalRoot(prefixDir, workingDir),
+      GENESIS_NPM_PACKAGE_NAME,
+    );
     const pkg = JSON.parse(
       readFileSync(join(packageRoot, "package.json"), "utf8"),
     ) as InstalledPackageJson;

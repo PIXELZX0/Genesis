@@ -58,33 +58,18 @@ export function runInstalledWorkspaceBootstrapSmoke(params) {
   let combinedOutput = "";
   try {
     try {
-      execFileSync(
-        process.execPath,
-        [
-          join(params.packageRoot, "genesis.mjs"),
-          "agent",
-          "--message",
-          "workspace bootstrap smoke",
-          "--session-id",
-          "workspace-bootstrap-smoke",
-          "--local",
-          "--timeout",
-          "1",
-          "--json",
-        ],
-        {
-          cwd,
-          encoding: "utf8",
-          maxBuffer: 1024 * 1024 * 16,
-          stdio: ["ignore", "pipe", "pipe"],
-          env: {
-            ...process.env,
-            HOME: homeDir,
-            GENESIS_HOME: homeDir,
-            GENESIS_SUPPRESS_NOTES: "1",
-          },
+      execFileSync(process.execPath, [join(params.packageRoot, "genesis.mjs"), "setup"], {
+        cwd,
+        encoding: "utf8",
+        maxBuffer: 1024 * 1024 * 16,
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          HOME: homeDir,
+          GENESIS_HOME: homeDir,
+          GENESIS_SUPPRESS_NOTES: "1",
         },
-      );
+      });
     } catch (error) {
       combinedOutput = describeExecFailure(error);
     }
@@ -98,8 +83,9 @@ export function runInstalledWorkspaceBootstrapSmoke(params) {
     const workspaceDir = join(homeDir, ".genesis", "workspace");
     const missingFiles = collectMissingBootstrapWorkspaceFiles(workspaceDir);
     if (missingFiles.length > 0) {
+      const outputSuffix = combinedOutput ? ` Command output: ${combinedOutput}` : "";
       throw new Error(
-        `installed workspace bootstrap did not create required files in ${workspaceDir}: ${missingFiles.join(", ")}`,
+        `installed workspace bootstrap did not create required files in ${workspaceDir}: ${missingFiles.join(", ")}.${outputSuffix}`,
       );
     }
   } finally {

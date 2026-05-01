@@ -192,6 +192,14 @@ describe("resolveGenesisPackageRoot", () => {
       },
     },
     {
+      name: "resolves scoped package root",
+      setup: () => {
+        const pkgRoot = fx("scoped-package");
+        setPackageRoot(pkgRoot, "@pixelzx/genesis");
+        return { opts: { cwd: path.join(pkgRoot, "dist") }, expected: pkgRoot };
+      },
+    },
+    {
       name: "returns null for non-genesis package roots",
       setup: () => {
         const pkgRoot = fx("not-genesis");

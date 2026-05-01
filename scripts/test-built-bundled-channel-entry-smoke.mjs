@@ -4,6 +4,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import {
+  packageNameToInstallPathSegments,
+  packageRootLooksInstalled,
+} from "./lib/npm-installed-package-root.mjs";
 import { parsePackageRootArg } from "./lib/package-root-args.mjs";
 import { installProcessWarningFilter } from "./process-warning-filter.mjs";
 
@@ -17,20 +21,23 @@ const { packageRoot } = parsePackageRootArg(
 );
 const distExtensionsRoot = path.join(packageRoot, "dist", "extensions");
 const installedLayoutEnv = "GENESIS_BUNDLED_CHANNEL_SMOKE_INSTALLED_LAYOUT";
-
-function packageRootLooksInstalled(root) {
-  return root.replaceAll("\\", "/").endsWith("/node_modules/genesis");
-}
+const legacyImportPackageName = "genesis";
 
 function smokeInInstalledLayoutIfNeeded() {
-  if (process.env[installedLayoutEnv] === "1" || packageRootLooksInstalled(packageRoot)) {
+  if (
+    process.env[installedLayoutEnv] === "1" ||
+    packageRootLooksInstalled(packageRoot, legacyImportPackageName)
+  ) {
     return;
   }
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-channel-entry-smoke-"));
   const nodeModulesRoot = path.join(tempRoot, "node_modules");
-  const installedPackageRoot = path.join(nodeModulesRoot, "genesis");
-  fs.mkdirSync(nodeModulesRoot, { recursive: true });
+  const installedPackageRoot = path.join(
+    nodeModulesRoot,
+    ...packageNameToInstallPathSegments(legacyImportPackageName),
+  );
+  fs.mkdirSync(path.dirname(installedPackageRoot), { recursive: true });
   fs.symlinkSync(packageRoot, installedPackageRoot, "dir");
 
   try {

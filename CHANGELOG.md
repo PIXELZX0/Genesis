@@ -2,6 +2,13 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.1
+
+### Fixes
+
+- CLI/startup: answer bare root `genesis --version`, `-V`, and `-v` from the wrapper before loading the full CLI bundle, reducing version checks while preserving release commit metadata.
+- Version reporting: recognize the scoped `@pixelzx/genesis` package name when resolving the runtime version, preventing package-rename installs from falling back to `0.0.0`.
+
 ## 2026.4.24
 
 ### Highlights

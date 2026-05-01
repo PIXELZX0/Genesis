@@ -2,7 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { genesisRootFs, genesisRootFsSync } from "./genesis-root.fs.runtime.js";
 
-const CORE_PACKAGE_NAMES = new Set(["genesis"]);
+const CORE_PACKAGE_NAMES = new Set(["genesis", "@pixelzx/genesis"]);
 
 function parsePackageName(raw: string): string | null {
   const parsed = JSON.parse(raw) as { name?: unknown };

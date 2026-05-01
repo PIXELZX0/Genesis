@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
-import { Module } from "node:module";
+import { createRequire, Module } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
@@ -55,6 +55,7 @@ const BUNDLED_RUNTIME_DEPS_LOCK_OWNER_FILE = "owner.json";
 const BUNDLED_RUNTIME_DEPS_LOCK_WAIT_MS = 100;
 const BUNDLED_RUNTIME_DEPS_LOCK_TIMEOUT_MS = 5 * 60_000;
 const BUNDLED_RUNTIME_DEPS_LOCK_STALE_MS = 10 * 60_000;
+const runtimeDependencyAliasRequire = createRequire(import.meta.url);
 
 const registeredBundledRuntimeDepNodePaths = new Set<string>();
 
@@ -176,6 +177,134 @@ function readJsonObject(filePath: string): JsonObject | null {
   } catch {
     return null;
   }
+}
+
+function selectExportAliasTarget(rawExport: unknown): string | null {
+  if (typeof rawExport === "string") {
+    return rawExport;
+  }
+  if (!rawExport || typeof rawExport !== "object" || Array.isArray(rawExport)) {
+    return null;
+  }
+  const exportObject = rawExport as JsonObject;
+  for (const condition of ["import", "default", "module", "require", "node"]) {
+    const selected = selectExportAliasTarget(exportObject[condition]);
+    if (selected) {
+      return selected;
+    }
+  }
+  return null;
+}
+
+function selectRootExportAliasTarget(rawExports: unknown): string | null {
+  if (typeof rawExports === "string") {
+    return rawExports;
+  }
+  if (!rawExports || typeof rawExports !== "object" || Array.isArray(rawExports)) {
+    return null;
+  }
+  const exportsObject = rawExports as JsonObject;
+  return selectExportAliasTarget(
+    Object.hasOwn(exportsObject, ".") ? exportsObject["."] : exportsObject,
+  );
+}
+
+function resolvePackageExportAliasName(packageName: string, exportName: string): string | null {
+  if (exportName === ".") {
+    return packageName;
+  }
+  if (!exportName.startsWith("./") || exportName.includes("*")) {
+    return null;
+  }
+  const subpath = exportName.slice(2);
+  if (
+    subpath === "" ||
+    subpath.split("/").some((segment) => segment === "" || segment === "." || segment === "..")
+  ) {
+    return null;
+  }
+  return `${packageName}/${subpath}`;
+}
+
+function resolvePackageAliasFileTarget(packageRoot: string, rawTarget: unknown): string | null {
+  if (typeof rawTarget !== "string") {
+    return null;
+  }
+  const target = rawTarget.trim();
+  if (target === "" || path.isAbsolute(target)) {
+    return null;
+  }
+  const resolvedPackageRoot = path.resolve(packageRoot);
+  const resolvedTarget = path.resolve(resolvedPackageRoot, target);
+  if (
+    resolvedTarget !== resolvedPackageRoot &&
+    !resolvedTarget.startsWith(`${resolvedPackageRoot}${path.sep}`)
+  ) {
+    return null;
+  }
+  return fs.existsSync(resolvedTarget) ? resolvedTarget : null;
+}
+
+function canResolveRuntimeDependencyAliasTarget(target: string): boolean {
+  try {
+    runtimeDependencyAliasRequire.resolve(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveRuntimeDependencyAliasTarget(packageRoot: string): string {
+  if (canResolveRuntimeDependencyAliasTarget(packageRoot)) {
+    return packageRoot;
+  }
+  const packageJson = readJsonObject(path.join(packageRoot, "package.json"));
+  if (!packageJson) {
+    return packageRoot;
+  }
+  const candidates = [
+    selectRootExportAliasTarget(packageJson.exports),
+    packageJson.module,
+    packageJson.main,
+  ];
+  for (const candidate of candidates) {
+    const resolvedTarget = resolvePackageAliasFileTarget(packageRoot, candidate);
+    if (resolvedTarget) {
+      return resolvedTarget;
+    }
+  }
+  return packageRoot;
+}
+
+function createPackageExportAliasMap(params: {
+  packageName: string;
+  packageRoot: string;
+  packageJson: JsonObject;
+}): Record<string, string> {
+  const rawExports = params.packageJson.exports;
+  if (!rawExports || typeof rawExports !== "object" || Array.isArray(rawExports)) {
+    return {};
+  }
+  const aliases: Record<string, string> = {};
+  for (const [exportName, rawExport] of Object.entries(rawExports as JsonObject).toSorted(
+    ([left], [right]) => left.localeCompare(right),
+  )) {
+    if (exportName === ".") {
+      continue;
+    }
+    const aliasName = resolvePackageExportAliasName(params.packageName, exportName);
+    if (!aliasName) {
+      continue;
+    }
+    const resolvedTarget = resolvePackageAliasFileTarget(
+      params.packageRoot,
+      selectExportAliasTarget(rawExport),
+    );
+    if (resolvedTarget) {
+      aliases[aliasName] = resolvedTarget;
+    }
+  }
+  return aliases;
 }
 
 function sleepSync(ms: number): void {
@@ -994,8 +1123,17 @@ export function createBundledRuntimeDependencyAliasMap(params: {
       continue;
     }
     const target = path.join(params.installRoot, "node_modules", ...normalizedName.split("/"));
-    if (fs.existsSync(path.join(target, "package.json"))) {
-      aliases[normalizedName] = target;
+    const installedPackageJson = readJsonObject(path.join(target, "package.json"));
+    if (installedPackageJson) {
+      aliases[normalizedName] = resolveRuntimeDependencyAliasTarget(target);
+      Object.assign(
+        aliases,
+        createPackageExportAliasMap({
+          packageJson: installedPackageJson,
+          packageName: normalizedName,
+          packageRoot: target,
+        }),
+      );
     }
   }
   return aliases;
