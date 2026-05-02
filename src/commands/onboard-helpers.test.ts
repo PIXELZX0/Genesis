@@ -8,6 +8,7 @@ import {
   normalizeGatewayTokenInput,
   openUrl,
   probeGatewayReachable,
+  printWizardHeader,
   resolveBrowserOpenCommand,
   resolveControlUiLinks,
   validateGatewayPasswordInput,
@@ -46,6 +47,23 @@ afterEach(() => {
   vi.clearAllMocks();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+});
+
+describe("printWizardHeader", () => {
+  it("prints Genesis ASCII art without OpenClaw remnants", () => {
+    const runtime = { log: vi.fn() } as unknown as RuntimeEnv;
+
+    printWizardHeader(runtime);
+
+    expect(runtime.log).toHaveBeenCalledTimes(1);
+    const header = vi.mocked(runtime.log).mock.calls[0]?.[0];
+    if (typeof header !== "string") {
+      throw new Error("Expected onboarding header to be logged as a string");
+    }
+    expect(header).toContain("GENESIS ONBOARDING");
+    expect(header).toContain(" / ___| ___ _ __   ___  ___ ___(_)___");
+    expect(header).not.toMatch(/openclaw|open claw|claw|lobster/iu);
+  });
 });
 
 describe("handleReset", () => {
