@@ -9,8 +9,10 @@ import {
   collectInstalledRootDependencyManifestErrors,
   collectInstalledMirroredRootDependencyManifestErrors,
   collectInstalledPackageErrors,
+  isNpmRegistryPropagationError,
   normalizeInstalledBinaryVersion,
   resolveInstalledBinaryPath,
+  runWithNpmRegistryRetry,
 } from "../scripts/genesis-npm-postpublish-verify.ts";
 import { listBundledPluginPackArtifacts } from "../scripts/lib/bundled-plugin-build-entries.mjs";
 import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../src/plugins/runtime-sidecar-paths.ts";
@@ -66,6 +68,69 @@ describe("buildPublishedInstallCommandArgs", () => {
       "--no-audit",
     ]);
     expect(args).not.toContain("--ignore-scripts");
+  });
+});
+
+describe("npm registry propagation retries", () => {
+  it("recognizes exact package version propagation misses from npm install", () => {
+    expect(
+      isNpmRegistryPropagationError(
+        new Error(
+          [
+            "npm error code ETARGET",
+            "npm error notarget No matching version found for @pixelzx/genesis@2026.5.1-beta.4.",
+          ].join("\n"),
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("retries transient registry propagation misses", () => {
+    let attempts = 0;
+    const delays: number[] = [];
+
+    const result = runWithNpmRegistryRetry(
+      () => {
+        attempts += 1;
+        if (attempts < 3) {
+          throw new Error(
+            [
+              "npm error code ETARGET",
+              "npm error notarget No matching version found for @pixelzx/genesis@2026.5.1-beta.4.",
+            ].join("\n"),
+          );
+        }
+        return "ok";
+      },
+      {
+        attempts: 3,
+        delayMs: 7,
+        sleep: (delayMs) => delays.push(delayMs),
+      },
+    );
+
+    expect(result).toBe("ok");
+    expect(attempts).toBe(3);
+    expect(delays).toEqual([7, 7]);
+  });
+
+  it("does not retry non-propagation npm failures", () => {
+    let attempts = 0;
+
+    expect(() =>
+      runWithNpmRegistryRetry(
+        () => {
+          attempts += 1;
+          throw new Error("npm error code ELIFECYCLE");
+        },
+        {
+          attempts: 3,
+          delayMs: 0,
+          sleep: () => undefined,
+        },
+      ),
+    ).toThrow("ELIFECYCLE");
+    expect(attempts).toBe(1);
   });
 });
 

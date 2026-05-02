@@ -84,6 +84,8 @@ Genesis has three public release lanes:
   `node --import tsx scripts/genesis-npm-postpublish-verify.ts YYYY.M.D`
   (or the matching beta/correction version) to verify the published registry
   install path in a fresh temp prefix
+- The post-publish verifier retries exact-version installs and the expected
+  npm dist-tag check for short npm registry propagation windows after publish
 - After a beta publish, run `GENESIS_NPM_TELEGRAM_PACKAGE_SPEC=@pixelzx/genesis@YYYY.M.D-beta.N GENESIS_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex GENESIS_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential

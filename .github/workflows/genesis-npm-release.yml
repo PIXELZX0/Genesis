@@ -150,11 +150,4 @@ jobs:
         env:
           PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
           NPM_DIST_TAG: ${{ steps.publish-target.outputs.npm_dist_tag }}
-        run: |
-          node --import tsx scripts/genesis-npm-postpublish-verify.ts "$PACKAGE_VERSION"
-
-          actual_dist_tag_version="$(npm view "$GENESIS_NPM_PACKAGE_NAME" "dist-tags.$NPM_DIST_TAG" --silent || true)"
-          if [ "$actual_dist_tag_version" != "$PACKAGE_VERSION" ]; then
-            echo "npm dist-tag $NPM_DIST_TAG points to ${actual_dist_tag_version:-<missing>}, expected $PACKAGE_VERSION." >&2
-            exit 1
-          fi
+        run: node --import tsx scripts/genesis-npm-postpublish-verify.ts "$PACKAGE_VERSION"

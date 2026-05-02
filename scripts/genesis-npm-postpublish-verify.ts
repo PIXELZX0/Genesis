@@ -60,6 +60,10 @@ const MAX_INSTALLED_ROOT_PACKAGE_JSON_BYTES = 1024 * 1024;
 const MAX_INSTALLED_ROOT_DIST_JS_BYTES = 2 * 1024 * 1024;
 const MAX_INSTALLED_ROOT_DIST_JS_FILES = 5000;
 const ROOT_DIST_JAVASCRIPT_MODULE_FILE_RE = /\.(?:c|m)?js$/u;
+const DEFAULT_NPM_REGISTRY_RETRY_ATTEMPTS = 12;
+const DEFAULT_NPM_REGISTRY_RETRY_DELAY_MS = 10_000;
+const NPM_REGISTRY_RETRY_ATTEMPTS_ENV = "GENESIS_NPM_POSTPUBLISH_RETRY_ATTEMPTS";
+const NPM_REGISTRY_RETRY_DELAY_MS_ENV = "GENESIS_NPM_POSTPUBLISH_RETRY_DELAY_MS";
 const require = createRequire(import.meta.url);
 const acorn = require("acorn") as typeof import("acorn");
 
@@ -68,6 +72,25 @@ export type PublishedInstallScenario = {
   installSpecs: string[];
   expectedVersion: string;
 };
+
+export type NpmRegistryRetryOptions = {
+  attempts?: number;
+  delayMs?: number;
+  onRetry?: (params: {
+    attempt: number;
+    attempts: number;
+    delayMs: number;
+    error: unknown;
+  }) => void;
+  sleep?: (delayMs: number) => void;
+};
+
+export class NpmRegistryPropagationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NpmRegistryPropagationError";
+  }
+}
 
 export function buildPublishedInstallScenarios(version: string): PublishedInstallScenario[] {
   const parsed = parseReleaseVersion(version);
@@ -126,6 +149,124 @@ export function normalizeInstalledBinaryVersion(output: string): string {
   const trimmed = output.trim();
   const versionMatch = /\b\d{4}\.\d{1,2}\.\d{1,2}(?:-\d+|-beta\.\d+)?\b/u.exec(trimmed);
   return versionMatch?.[0] ?? trimmed;
+}
+
+function commandErrorOutput(error: unknown): string {
+  const parts = [formatErrorMessage(error)];
+  if (error && typeof error === "object") {
+    const commandError = error as { stderr?: unknown; stdout?: unknown };
+    for (const value of [commandError.stderr, commandError.stdout]) {
+      if (typeof value === "string") {
+        parts.push(value);
+      } else if (Buffer.isBuffer(value)) {
+        parts.push(value.toString("utf8"));
+      }
+    }
+  }
+  return parts.filter(Boolean).join("\n");
+}
+
+export function isNpmRegistryPropagationError(error: unknown): boolean {
+  if (error instanceof NpmRegistryPropagationError) {
+    return true;
+  }
+
+  const output = commandErrorOutput(error);
+  const mentionsGenesisPackage =
+    output.includes(GENESIS_NPM_PACKAGE_NAME) ||
+    output.toLowerCase().includes(encodeURIComponent(GENESIS_NPM_PACKAGE_NAME).toLowerCase()) ||
+    output.toLowerCase().includes("@pixelzx%2fgenesis");
+  if (!mentionsGenesisPackage) {
+    return false;
+  }
+
+  if (/\bETARGET\b/iu.test(output)) {
+    return /(?:No matching version found|notarget)/iu.test(output);
+  }
+
+  if (/\bE404\b/iu.test(output)) {
+    return /(?:No match found|not in this registry|could not be found|Not Found)/iu.test(output);
+  }
+
+  return false;
+}
+
+function sleepSync(delayMs: number): void {
+  if (delayMs <= 0) {
+    return;
+  }
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delayMs);
+}
+
+function normalizeRetryCount(value: number | undefined, name: string): number {
+  if (value === undefined) {
+    return DEFAULT_NPM_REGISTRY_RETRY_ATTEMPTS;
+  }
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  return value;
+}
+
+function normalizeRetryDelayMs(value: number | undefined, name: string): number {
+  if (value === undefined) {
+    return DEFAULT_NPM_REGISTRY_RETRY_DELAY_MS;
+  }
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+  return value;
+}
+
+function readIntegerEnv(name: string, fallback: number): number {
+  const raw = process.env[name]?.trim();
+  if (!raw) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isInteger(value)) {
+    throw new Error(`${name} must be an integer.`);
+  }
+  return value;
+}
+
+function resolveNpmRegistryRetryOptions(): Required<
+  Pick<NpmRegistryRetryOptions, "attempts" | "delayMs" | "sleep">
+> {
+  return {
+    attempts: normalizeRetryCount(
+      readIntegerEnv(NPM_REGISTRY_RETRY_ATTEMPTS_ENV, DEFAULT_NPM_REGISTRY_RETRY_ATTEMPTS),
+      NPM_REGISTRY_RETRY_ATTEMPTS_ENV,
+    ),
+    delayMs: normalizeRetryDelayMs(
+      readIntegerEnv(NPM_REGISTRY_RETRY_DELAY_MS_ENV, DEFAULT_NPM_REGISTRY_RETRY_DELAY_MS),
+      NPM_REGISTRY_RETRY_DELAY_MS_ENV,
+    ),
+    sleep: sleepSync,
+  };
+}
+
+export function runWithNpmRegistryRetry<T>(
+  operation: () => T,
+  options: NpmRegistryRetryOptions = {},
+): T {
+  const attempts = normalizeRetryCount(options.attempts, "attempts");
+  const delayMs = normalizeRetryDelayMs(options.delayMs, "delayMs");
+  const sleep = options.sleep ?? sleepSync;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return operation();
+    } catch (error) {
+      if (attempt >= attempts || !isNpmRegistryPropagationError(error)) {
+        throw error;
+      }
+      options.onRetry?.({ attempt, attempts, delayMs, error });
+      sleep(delayMs);
+    }
+  }
+
+  throw new Error("unreachable npm registry retry state.");
 }
 
 function listDistJavaScriptFiles(
@@ -515,6 +656,24 @@ function installSpec(prefixDir: string, spec: string, cwd: string): void {
   npmExec(buildPublishedInstallCommandArgs(prefixDir, spec), cwd);
 }
 
+function installSpecWithRegistryRetry(params: {
+  prefixDir: string;
+  retryOptions: NpmRegistryRetryOptions;
+  scenarioName: string;
+  spec: string;
+  cwd: string;
+}): void {
+  runWithNpmRegistryRetry(() => installSpec(params.prefixDir, params.spec, params.cwd), {
+    ...params.retryOptions,
+    onRetry: ({ attempt, attempts, delayMs }) => {
+      const retryDelaySeconds = Math.ceil(delayMs / 1000);
+      console.warn(
+        `genesis-npm-postpublish-verify: npm registry has not exposed ${params.spec} for ${params.scenarioName} yet (attempt ${attempt}/${attempts}); retrying in ${retryDelaySeconds}s.`,
+      );
+    },
+  });
+}
+
 function readInstalledBinaryVersion(prefixDir: string, cwd: string): string {
   return execFileSync(resolveInstalledBinaryPath(prefixDir), ["--version"], {
     cwd,
@@ -524,13 +683,23 @@ function readInstalledBinaryVersion(prefixDir: string, cwd: string): string {
   }).trim();
 }
 
-function verifyScenario(version: string, scenario: PublishedInstallScenario): void {
+function verifyScenario(
+  version: string,
+  scenario: PublishedInstallScenario,
+  retryOptions: NpmRegistryRetryOptions,
+): void {
   const workingDir = mkdtempSync(join(tmpdir(), `genesis-postpublish-${scenario.name}.`));
   const prefixDir = join(workingDir, "prefix");
 
   try {
     for (const spec of scenario.installSpecs) {
-      installSpec(prefixDir, spec, workingDir);
+      installSpecWithRegistryRetry({
+        prefixDir,
+        retryOptions,
+        scenarioName: scenario.name,
+        spec,
+        cwd: workingDir,
+      });
     }
 
     const packageRoot = resolveInstalledPackageRoot(
@@ -567,15 +736,55 @@ function verifyScenario(version: string, scenario: PublishedInstallScenario): vo
   }
 }
 
+function readNpmDistTagVersion(distTag: string, cwd: string): string {
+  return npmExec(["view", GENESIS_NPM_PACKAGE_NAME, `dist-tags.${distTag}`, "--silent"], cwd);
+}
+
+function verifyNpmDistTag(params: {
+  distTag: string;
+  expectedVersion: string;
+  retryOptions: NpmRegistryRetryOptions;
+}): void {
+  runWithNpmRegistryRetry(
+    () => {
+      const actualVersion = readNpmDistTagVersion(params.distTag, process.cwd()).trim();
+      if (actualVersion !== params.expectedVersion) {
+        throw new NpmRegistryPropagationError(
+          `npm dist-tag ${params.distTag} points to ${actualVersion || "<missing>"}, expected ${params.expectedVersion}.`,
+        );
+      }
+    },
+    {
+      ...params.retryOptions,
+      onRetry: ({ attempt, attempts, delayMs }) => {
+        const retryDelaySeconds = Math.ceil(delayMs / 1000);
+        console.warn(
+          `genesis-npm-postpublish-verify: npm dist-tag ${params.distTag} has not settled on ${params.expectedVersion} yet (attempt ${attempt}/${attempts}); retrying in ${retryDelaySeconds}s.`,
+        );
+      },
+    },
+  );
+
+  console.log(
+    `genesis-npm-postpublish-verify: npm dist-tag ${params.distTag} OK (${params.expectedVersion})`,
+  );
+}
+
 function main(): void {
   const version = process.argv[2]?.trim();
   if (!version) {
     throw new Error("Usage: node --import tsx scripts/genesis-npm-postpublish-verify.ts <version>");
   }
 
+  const retryOptions = resolveNpmRegistryRetryOptions();
   const scenarios = buildPublishedInstallScenarios(version);
   for (const scenario of scenarios) {
-    verifyScenario(version, scenario);
+    verifyScenario(version, scenario, retryOptions);
+  }
+
+  const npmDistTag = process.env.NPM_DIST_TAG?.trim();
+  if (npmDistTag) {
+    verifyNpmDistTag({ distTag: npmDistTag, expectedVersion: version, retryOptions });
   }
 
   console.log(
