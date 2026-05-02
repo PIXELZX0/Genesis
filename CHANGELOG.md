@@ -2,6 +2,13 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-1
+
+### Fixes
+
+- Packaging: include the export-session HTML vendor assets and the sherpa-onnx-tts wrapper in clean checkouts and published packages.
+- Tests: keep the bundled entry fast-path profiler fixture focused on nodeRequire instead of runtime dependency mirroring.
+
 ## 2026.5.3
 
 ### Changes
