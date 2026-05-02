@@ -84,6 +84,7 @@ jobs:
         env:
           GENESIS_INSTALL_SMOKE_UPDATE_BASELINE: latest
           GENESIS_INSTALL_SMOKE_SKIP_NPM_GLOBAL: "1"
+          GENESIS_INSTALL_SMOKE_SKIP_NONROOT: "1"
         run: bash scripts/test-install-sh-docker.sh
 
   install-smoke-full:

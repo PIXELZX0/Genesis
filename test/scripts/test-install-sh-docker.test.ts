@@ -178,6 +178,7 @@ describe("bun global install smoke", () => {
     expect(workflow).toContain("run_fast_install_smoke");
     expect(workflow).toContain("run_full_install_smoke");
     expect(workflow).toContain('GENESIS_INSTALL_SMOKE_SKIP_NPM_GLOBAL: "1"');
+    expect(workflow).toContain('GENESIS_INSTALL_SMOKE_SKIP_NONROOT: "1"');
     expect(releaseChecks).toContain("install_smoke_release_checks:");
     expect(releaseChecks).toContain("uses: ./.github/workflows/install-smoke.yml");
     expect(releaseChecks).toContain("run_bun_global_install_smoke: true");
