@@ -3,11 +3,19 @@ name: Install Smoke
 on:
   workflow_call:
     inputs:
+      ref:
+        type: string
+        default: ""
       run_bun_global_install_smoke:
         type: boolean
         default: false
   workflow_dispatch:
     inputs:
+      ref:
+        description: Git ref to validate. Defaults to the workflow ref.
+        required: false
+        type: string
+        default: ""
       run_bun_global_install_smoke:
         type: boolean
         default: false
@@ -60,6 +68,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Run fast install smoke
         env:
           GENESIS_INSTALL_SMOKE_UPDATE_BASELINE: latest
@@ -74,6 +94,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Run full install smoke
         env:
           GENESIS_INSTALL_SMOKE_UPDATE_BASELINE: latest
@@ -90,5 +122,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
       - name: Run Bun global install image-provider smoke
         run: bash scripts/e2e/bun-global-install-smoke.sh
