@@ -89,11 +89,6 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
   },
   { pluginId: "openshell", pluginLocalRuntimeDeps: ["openshell"] },
   {
-    pluginId: "qqbot",
-    pluginLocalRuntimeDeps: ["@tencent-connect/qqbot-connector", "mpg123-decoder", "silk-wasm"],
-    mirroredRootRuntimeDeps: ["ws"],
-  },
-  {
     pluginId: "slack",
     pluginLocalRuntimeDeps: ["@slack/bolt", "@slack/web-api"],
     mirroredRootRuntimeDeps: ["https-proxy-agent"],

@@ -108,12 +108,12 @@ describe("tsdown config", () => {
     const neverBundle = unifiedGraph?.deps?.neverBundle;
 
     if (typeof neverBundle === "function") {
-      expect(neverBundle("silk-wasm")).toBe(true);
+      expect(neverBundle("@slack/bolt")).toBe(true);
       expect(neverBundle("ws")).toBe(true);
       expect(neverBundle("ws/lib/websocket.js")).toBe(true);
       expect(neverBundle("not-a-runtime-dependency")).toBe(false);
     } else {
-      expect(neverBundle).toEqual(expect.arrayContaining(["silk-wasm", "ws"]));
+      expect(neverBundle).toEqual(expect.arrayContaining(["@slack/bolt", "ws"]));
     }
   });
 

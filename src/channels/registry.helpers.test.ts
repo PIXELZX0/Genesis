@@ -55,8 +55,8 @@ describe("channel registry helpers", () => {
     const replacementRegistry = createEmptyPluginRegistry();
     replacementRegistry.channels = [
       {
-        pluginId: "qqbot",
-        plugin: { id: "qqbot", meta: { aliases: ["qq"] } },
+        pluginId: "example-chat",
+        plugin: { id: "example-chat", meta: { aliases: ["example"] } },
         source: "test",
       },
     ] as never;
@@ -74,14 +74,14 @@ describe("channel registry helpers", () => {
     const replacementRegistry = createEmptyPluginRegistry();
     replacementRegistry.channels = [
       {
-        pluginId: "qqbot",
-        plugin: { id: "qqbot", meta: { aliases: ["qq"] } },
+        pluginId: "example-chat",
+        plugin: { id: "example-chat", meta: { aliases: ["example"] } },
         source: "test",
       },
     ] as never;
     setActivePluginRegistry(replacementRegistry);
 
-    expect(listRegisteredChannelPluginIds()).toEqual(["qqbot"]);
-    expect(normalizeAnyChannelId("qq")).toBe("qqbot");
+    expect(listRegisteredChannelPluginIds()).toEqual(["example-chat"]);
+    expect(normalizeAnyChannelId("example")).toBe("example-chat");
   });
 });

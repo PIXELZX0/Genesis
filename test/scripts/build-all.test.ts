@@ -159,6 +159,12 @@ describe("resolveBuildAllSteps", () => {
     expect(step?.cache).toBeUndefined();
   });
 
+  it("invalidates plugin SDK declarations when generated config metadata changes", () => {
+    const step = BUILD_ALL_STEPS.find((entry) => entry.label === "build:plugin-sdk:dts");
+
+    expect(step?.cache?.inputs).toContain("src/config");
+  });
+
   it("does not cache hook metadata over compiled hook handlers", () => {
     const step = BUILD_ALL_STEPS.find((entry) => entry.label === "copy-hook-metadata");
     expect(step).toBeTruthy();

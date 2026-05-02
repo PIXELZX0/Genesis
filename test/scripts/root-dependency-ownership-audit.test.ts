@@ -136,19 +136,19 @@ describe("collectRootDependencyOwnershipCheckErrors", () => {
     );
     writeRepoFile(
       repoRoot,
-      "extensions/qqbot/package.json",
+      "extensions/regional-chat/package.json",
       JSON.stringify({ dependencies: { "vendor-sdk": "^1.0.0" } }),
     );
     writeRepoFile(
       repoRoot,
-      "extensions/qqbot/src/setup.ts",
+      "extensions/regional-chat/src/setup.ts",
       'const sdk = await import("vendor-sdk");\n',
     );
 
     const records = collectRootDependencyOwnershipAudit({ repoRoot, scanRoots: ["extensions"] });
 
     expect(collectRootDependencyOwnershipCheckErrors(records)).toEqual([
-      "root dependency 'vendor-sdk' is extension-owned (remove from root package.json and rely on owning extension manifests plus doctor --fix); extension declarations: qqbot:dependencies; sample imports: extensions/qqbot/src/setup.ts",
+      "root dependency 'vendor-sdk' is extension-owned (remove from root package.json and rely on owning extension manifests plus doctor --fix); extension declarations: regional-chat:dependencies; sample imports: extensions/regional-chat/src/setup.ts",
     ]);
   });
 
@@ -206,11 +206,11 @@ describe("collectRootDependencyOwnershipCheckErrors", () => {
       collectRootDependencyOwnershipCheckErrors([
         {
           category: "extension_only_localizable",
-          declaredInExtensions: ["qqbot:dependencies"],
-          depName: "@tencent-connect/qqbot-connector",
+          declaredInExtensions: ["regional-chat:dependencies"],
+          depName: "vendor-sdk",
           recommendation:
             "remove from root package.json and rely on owning extension manifests plus doctor --fix",
-          sampleFiles: ["extensions/qqbot/src/bridge/setup/finalize.ts"],
+          sampleFiles: ["extensions/regional-chat/src/bridge/setup/finalize.ts"],
         },
         {
           category: "unreferenced",
@@ -221,7 +221,7 @@ describe("collectRootDependencyOwnershipCheckErrors", () => {
         },
       ]),
     ).toEqual([
-      "root dependency '@tencent-connect/qqbot-connector' is extension-owned (remove from root package.json and rely on owning extension manifests plus doctor --fix); extension declarations: qqbot:dependencies; sample imports: extensions/qqbot/src/bridge/setup/finalize.ts",
+      "root dependency 'vendor-sdk' is extension-owned (remove from root package.json and rely on owning extension manifests plus doctor --fix); extension declarations: regional-chat:dependencies; sample imports: extensions/regional-chat/src/bridge/setup/finalize.ts",
     ]);
   });
 });

@@ -105,19 +105,6 @@ Full troubleshooting:
 
 Full troubleshooting: [Signal troubleshooting](/channels/signal#troubleshooting)
 
-## QQ Bot
-
-### QQ Bot failure signatures
-
-| Symptom                         | Fastest check                               | Fix                                                             |
-| ------------------------------- | ------------------------------------------- | --------------------------------------------------------------- |
-| Bot replies "gone to Mars"      | Verify `appId` and `clientSecret` in config | Set credentials or restart the gateway.                         |
-| No inbound messages             | `genesis channels status --probe`           | Verify credentials on the QQ Open Platform.                     |
-| Voice not transcribed           | Check STT provider config                   | Configure `channels.qqbot.stt` or `tools.media.audio`.          |
-| Proactive messages not arriving | Check QQ platform interaction requirements  | QQ may block bot-initiated messages without recent interaction. |
-
-Full troubleshooting: [QQ Bot troubleshooting](/channels/qqbot#troubleshooting)
-
 ## Matrix
 
 ### Matrix failure signatures

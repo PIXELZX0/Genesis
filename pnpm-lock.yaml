@@ -1112,34 +1112,6 @@ importers:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
 
-  extensions/qqbot:
-    dependencies:
-      '@tencent-connect/qqbot-connector':
-        specifier: ^1.1.0
-        version: 1.1.0
-      mpg123-decoder:
-        specifier: ^1.0.3
-        version: 1.0.3
-      silk-wasm:
-        specifier: ^3.7.1
-        version: 3.7.1
-      ws:
-        specifier: ^8.20.0
-        version: 8.20.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@genesis/plugin-sdk':
-        specifier: workspace:*
-        version: link:../../packages/plugin-sdk
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      genesis:
-        specifier: workspace:*
-        version: link:../..
-
   extensions/qwen:
     devDependencies:
       '@genesis/plugin-sdk':
@@ -4045,10 +4017,6 @@ packages:
   '@telegraf/types@7.1.0':
     resolution: {integrity: sha512-kGevOIbpMcIlCDeorKGpwZmdH7kHbqlk/Yj6dEpJMKEQw5lk0KVQY0OLXaCswy8GqlIVLd5625OB+rAntP9xVw==}
 
-  '@tencent-connect/qqbot-connector@1.1.0':
-    resolution: {integrity: sha512-3nQ2mdyzPRKpBHjd3QiKZDwNzw1F7fBN+rSq8Xms2gg+JWZR4SY2Zdf+doqTyXdyVjG4Y0QM7IA4U42zT9xxzw==}
-    engines: {node: '>=18.0.0'}
-
   '@thi.ng/bitstream@2.4.46':
     resolution: {integrity: sha512-p2cZshqkY/YX8EtNZEw29wbNF2vAJfi6A+yTkLUzERMpYIIdQz6bIt8rSJFyPqZcB5cI+tauXWwBXFbbsXuqKg==}
     engines: {node: '>=18'}
@@ -6816,10 +6784,6 @@ packages:
   qoa-format@1.0.1:
     resolution: {integrity: sha512-dMB0Z6XQjdpz/Cw4Rf6RiBpQvUSPCfYlQMWvmuWlWkAT7nDQD29cVZ1SwDUB6DYJSitHENwbt90lqfI+7bvMcw==}
 
-  qrcode-terminal@0.12.0:
-    resolution: {integrity: sha512-EXtzRZmC+YGmGlDFbXKxQiMZNwCLEO6BANKXG4iCtSIM0yqc/pappSx3RIKr4r0uh5JsBckOXeKrB3Iz7mdQpQ==}
-    hasBin: true
-
   qrcode@1.5.4:
     resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
     engines: {node: '>=10.13.0'}
@@ -7133,10 +7097,6 @@ packages:
     resolution: {integrity: sha512-i9cdLSvVH4j8ql8mz2lyrA93xL499P8wEbIev3ldSriXeUwqh+wM4Q5VPhIZ19gPtIS4BOopJuKB8l1+wH9LCg==}
     peerDependencies:
       signal-polyfill: ^0.2.0
-
-  silk-wasm@3.7.1:
-    resolution: {integrity: sha512-mXPwLRtZxrYV3TZx41jMAeKc80wvmyrcXIcs8HctFxK15Ahz2OJQENYhNgEPeCEOdI6Mbx1NxQsqxzwc3DKerw==}
-    engines: {node: '>=16.11.0'}
 
   simple-xml-to-json@1.2.7:
     resolution: {integrity: sha512-mz9VXphOxQWX3eQ/uXCtm6upltoN0DLx8Zb5T4TFC4FHB7S9FDPGre8CfLWqPWQQH/GrQYd2AXhhVM5LDpYx6Q==}
@@ -11061,10 +11021,6 @@ snapshots:
 
   '@telegraf/types@7.1.0': {}
 
-  '@tencent-connect/qqbot-connector@1.1.0':
-    dependencies:
-      qrcode-terminal: 0.12.0
-
   '@thi.ng/bitstream@2.4.46':
     dependencies:
       '@thi.ng/errors': 2.6.8
@@ -14410,8 +14366,6 @@ snapshots:
       '@thi.ng/bitstream': 2.4.46
     optional: true
 
-  qrcode-terminal@0.12.0: {}
-
   qrcode@1.5.4:
     dependencies:
       dijkstrajs: 1.0.3
@@ -14840,8 +14794,6 @@ snapshots:
   signal-utils@0.21.1(signal-polyfill@0.2.2):
     dependencies:
       signal-polyfill: 0.2.2
-
-  silk-wasm@3.7.1: {}
 
   simple-xml-to-json@1.2.7: {}
 

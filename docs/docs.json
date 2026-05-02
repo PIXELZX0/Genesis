@@ -1055,7 +1055,6 @@
                 "pages": [
                   "channels/line",
                   "channels/wechat",
-                  "channels/qqbot",
                   "channels/feishu",
                   "channels/zalo",
                   "channels/zalouser"

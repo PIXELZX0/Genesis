@@ -24,6 +24,7 @@ export const BUILD_ALL_STEPS = [
       inputs: [
         "tsconfig.json",
         "tsconfig.plugin-sdk.dts.json",
+        "src/config",
         "src/plugin-sdk",
         "src/types",
         "src/video-generation/dashscope-compatible.ts",

@@ -4,7 +4,6 @@ export const messagingExtensionIds = [
   "googlechat",
   "nextcloud-talk",
   "nostr",
-  "qqbot",
   "synology-chat",
   "tlon",
   "twitch",

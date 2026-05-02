@@ -503,7 +503,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     - **Model/auth setup** (provider OAuth, API keys, Anthropic setup-token, plus local model options such as LM Studio)
     - **Workspace** location + bootstrap files
     - **Gateway settings** (bind/port/auth/tailscale)
-    - **Channels** (WhatsApp, Telegram, Discord, Mattermost, Signal, iMessage, plus bundled channel plugins like QQ Bot)
+    - **Channels** (WhatsApp, Telegram, Discord, Mattermost, Signal, iMessage, plus bundled channel plugins)
     - **Daemon install** (LaunchAgent on macOS; systemd user unit on Linux/WSL2)
     - **Health checks** and **skills** selection
 
