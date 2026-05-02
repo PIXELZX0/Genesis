@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -171,6 +172,33 @@ function resolveNodeModulesBinPackageRoot(argv1: string): string | null {
   return path.join(nodeModulesDir, binName);
 }
 
+function resolveNodeModulesPackageRootFromPath(targetPath: string): string | null {
+  const normalized = path.resolve(targetPath);
+  const parts = normalized.split(path.sep);
+  const nodeModulesIndex = parts.lastIndexOf("node_modules");
+  if (nodeModulesIndex < 0) {
+    return null;
+  }
+  const packageStart = nodeModulesIndex + 1;
+  const packageHead = parts[packageStart];
+  if (!packageHead || packageHead === ".bin") {
+    return null;
+  }
+  const packageEnd = packageHead.startsWith("@") ? packageStart + 2 : packageStart + 1;
+  if (parts.length < packageEnd || !parts[packageEnd - 1]) {
+    return null;
+  }
+  return parts.slice(0, packageEnd).join(path.sep) || path.sep;
+}
+
+function tryRealpathSync(targetPath: string): string | null {
+  try {
+    return fsSync.realpathSync(targetPath);
+  } catch {
+    return null;
+  }
+}
+
 function buildStartDirs(opts: UpdateRunnerOptions): string[] {
   const dirs: string[] = [];
   const cwd = normalizeDir(opts.cwd);
@@ -180,6 +208,14 @@ function buildStartDirs(opts: UpdateRunnerOptions): string[] {
   const argv1 = normalizeDir(opts.argv1);
   if (argv1) {
     dirs.push(path.dirname(argv1));
+    const argv1Realpath = tryRealpathSync(argv1);
+    if (argv1Realpath && path.resolve(argv1Realpath) !== argv1) {
+      dirs.push(path.dirname(argv1Realpath));
+      const realPackageRoot = resolveNodeModulesPackageRootFromPath(argv1Realpath);
+      if (realPackageRoot) {
+        dirs.push(realPackageRoot);
+      }
+    }
     const packageRoot = resolveNodeModulesBinPackageRoot(argv1);
     if (packageRoot) {
       dirs.push(packageRoot);

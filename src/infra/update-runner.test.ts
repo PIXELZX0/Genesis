@@ -210,11 +210,13 @@ describe("runGatewayUpdate", () => {
       channel?: "stable" | "beta" | "dev";
       tag?: string;
       cwd?: string;
+      argv1?: string;
       devTargetRef?: string;
     },
   ) {
     return runGatewayUpdate({
       cwd: options?.cwd ?? tempDir,
+      argv1: options?.argv1,
       runCommand: async (argv, runOptions) => runCommand(argv, runOptions),
       timeoutMs: 5000,
       ...(options?.channel ? { channel: options.channel } : {}),
@@ -229,6 +231,7 @@ describe("runGatewayUpdate", () => {
       channel?: "stable" | "beta" | "dev";
       tag?: string;
       cwd?: string;
+      argv1?: string;
       devTargetRef?: string;
     },
   ) {
@@ -1352,6 +1355,38 @@ describe("runGatewayUpdate", () => {
     expect(result.after?.version).toBe("2.0.0");
     expect(calls).toContain(expectedInstallCommand);
   });
+
+  it.skipIf(process.platform === "win32")(
+    "updates scoped global npm installs from a symlinked bin argv",
+    async () => {
+      const packageName = "@pixelzx/genesis";
+      const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir, packageName);
+      const entryPath = path.join(pkgRoot, "dist", "index.js");
+      const binPath = path.join(tempDir, "bin", "genesis");
+      await fs.mkdir(path.dirname(entryPath), { recursive: true });
+      await fs.writeFile(entryPath, "export {};\n", "utf-8");
+      await fs.mkdir(path.dirname(binPath), { recursive: true });
+      await fs.symlink(entryPath, binPath);
+
+      const expectedInstallCommand =
+        "npm i -g @pixelzx/genesis@latest --no-fund --no-audit --loglevel=error";
+      const { calls, runCommand } = createGlobalInstallHarness({
+        pkgRoot,
+        npmRootOutput: nodeModules,
+        installCommand: expectedInstallCommand,
+        onInstall: async () => writeGlobalPackageVersion(pkgRoot, "2.0.0", packageName),
+      });
+
+      const result = await runWithCommand(runCommand, { cwd: tempDir, argv1: binPath });
+
+      expect(result.status).toBe("ok");
+      expect(result.mode).toBe("npm");
+      expect(await fs.realpath(result.root ?? "")).toBe(await fs.realpath(pkgRoot));
+      expect(result.before?.version).toBe("1.0.0");
+      expect(result.after?.version).toBe("2.0.0");
+      expect(calls).toContain(expectedInstallCommand);
+    },
+  );
 
   it("updates global npm installs from the GitHub main package spec", async () => {
     const { calls, result } = await runNpmGlobalUpdateCase({
