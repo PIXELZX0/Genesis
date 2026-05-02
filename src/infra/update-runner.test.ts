@@ -235,21 +235,29 @@ describe("runGatewayUpdate", () => {
     return runWithCommand(runner, options);
   }
 
-  async function seedGlobalPackageRoot(pkgRoot: string, version = "1.0.0") {
+  async function seedGlobalPackageRoot(
+    pkgRoot: string,
+    version = "1.0.0",
+    packageName = "genesis",
+  ) {
     await fs.mkdir(pkgRoot, { recursive: true });
     await fs.writeFile(
       path.join(pkgRoot, "package.json"),
-      JSON.stringify({ name: "genesis", version }),
+      JSON.stringify({ name: packageName, version }),
       "utf-8",
     );
     await writeBundledRuntimeSidecars(pkgRoot);
     await writePackageDistInventory(pkgRoot);
   }
 
-  async function writeGlobalPackageVersion(pkgRoot: string, version = "2.0.0") {
+  async function writeGlobalPackageVersion(
+    pkgRoot: string,
+    version = "2.0.0",
+    packageName = "genesis",
+  ) {
     await fs.writeFile(
       path.join(pkgRoot, "package.json"),
-      JSON.stringify({ name: "genesis", version }),
+      JSON.stringify({ name: packageName, version }),
       "utf-8",
     );
     await writeBundledRuntimeSidecars(pkgRoot);
@@ -264,10 +272,14 @@ describe("runGatewayUpdate", () => {
     }
   }
 
-  async function createGlobalPackageFixture(rootDir: string) {
+  function packageInstallPath(rootDir: string, packageName: string) {
+    return path.join(rootDir, "node_modules", ...packageName.split("/").filter(Boolean));
+  }
+
+  async function createGlobalPackageFixture(rootDir: string, packageName = "genesis") {
     const nodeModules = path.join(rootDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "genesis");
-    await seedGlobalPackageRoot(pkgRoot);
+    const pkgRoot = packageInstallPath(rootDir, packageName);
+    await seedGlobalPackageRoot(pkgRoot, "1.0.0", packageName);
     return { nodeModules, pkgRoot };
   }
 
@@ -1317,6 +1329,28 @@ describe("runGatewayUpdate", () => {
     expect(result.before?.version).toBe("1.0.0");
     expect(result.after?.version).toBe("2.0.0");
     expect(calls.some((call) => call === expectedInstallCommand)).toBe(true);
+  });
+
+  it("updates scoped global npm installs when detected", async () => {
+    const packageName = "@pixelzx/genesis";
+    const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir, packageName);
+    const expectedInstallCommand =
+      "npm i -g @pixelzx/genesis@latest --no-fund --no-audit --loglevel=error";
+    const { calls, runCommand } = createGlobalInstallHarness({
+      pkgRoot,
+      npmRootOutput: nodeModules,
+      installCommand: expectedInstallCommand,
+      onInstall: async () => writeGlobalPackageVersion(pkgRoot, "2.0.0", packageName),
+    });
+
+    const result = await runWithCommand(runCommand, { cwd: pkgRoot });
+
+    expect(result.status).toBe("ok");
+    expect(result.mode).toBe("npm");
+    expect(result.root).toBe(pkgRoot);
+    expect(result.before?.version).toBe("1.0.0");
+    expect(result.after?.version).toBe("2.0.0");
+    expect(calls).toContain(expectedInstallCommand);
   });
 
   it("updates global npm installs from the GitHub main package spec", async () => {

@@ -121,8 +121,19 @@ describe("update global helpers", () => {
       path.join(".bun", "install", "global", "node_modules"),
     );
     await expect(resolveGlobalPackageRoot("npm", runCommand, 1000)).resolves.toBe(
-      path.join("/tmp/npm-root", "genesis"),
+      path.join("/tmp/npm-root", "@pixelzx", "genesis"),
     );
+    await expect(
+      resolveGlobalPackageRoot("npm", runCommand, 1000, path.join("/tmp/npm-root", "genesis")),
+    ).resolves.toBe(path.join("/tmp/npm-root", "genesis"));
+    await expect(
+      resolveGlobalPackageRoot(
+        "npm",
+        runCommand,
+        1000,
+        path.join("/tmp/npm-root", "@pixelzx", "genesis"),
+      ),
+    ).resolves.toBe(path.join("/tmp/npm-root", "@pixelzx", "genesis"));
   });
 
   it("maps main and explicit install specs for global installs", () => {
@@ -393,6 +404,23 @@ describe("update global helpers", () => {
       });
       await expect(fs.stat(path.join(root, "genesis"))).resolves.toBeDefined();
       await expect(fs.stat(path.join(root, ".genesis-file"))).resolves.toBeDefined();
+    });
+  });
+
+  it("cleans scoped package rename dirs by package leaf", async () => {
+    await withTempDir({ prefix: "genesis-update-cleanup-scoped-" }, async (root) => {
+      await fs.mkdir(path.join(root, ".genesis-stale"), { recursive: true });
+      await fs.mkdir(path.join(root, "genesis"), { recursive: true });
+
+      await expect(
+        cleanupGlobalRenameDirs({
+          globalRoot: root,
+          packageName: "@pixelzx/genesis",
+        }),
+      ).resolves.toEqual({
+        removed: [".genesis-stale"],
+      });
+      await expect(fs.stat(path.join(root, "genesis"))).resolves.toBeDefined();
     });
   });
 

@@ -35,8 +35,9 @@ export type ResolvedGlobalInstallTarget = ResolvedGlobalInstallCommand & {
   packageRoot: string | null;
 };
 
-const PRIMARY_PACKAGE_NAME = "genesis";
-const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME] as const;
+const PRIMARY_PACKAGE_NAME = "@pixelzx/genesis";
+const LEGACY_PACKAGE_NAME = "genesis";
+const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME, LEGACY_PACKAGE_NAME] as const;
 const GLOBAL_RENAME_PREFIX = ".";
 export const GENESIS_MAIN_PACKAGE_SPEC = "github:PIXELZX0/Genesis#main";
 const COREPACK_ENABLE_DOWNLOAD_PROMPT_DEFAULT = "0";
@@ -363,6 +364,40 @@ async function tryRealpath(targetPath: string): Promise<string> {
   }
 }
 
+function packageNameToPathSegments(packageName: string): string[] {
+  return packageName.split("/").filter((segment) => segment.length > 0);
+}
+
+function resolvePackageInstallRoot(globalRoot: string, packageName: string): string {
+  return path.join(globalRoot, ...packageNameToPathSegments(packageName));
+}
+
+async function resolveGlobalPackageRootForInstall(params: {
+  globalRoot: string;
+  pkgRoot?: string | null;
+}): Promise<string> {
+  const pkgRoot = params.pkgRoot?.trim();
+  if (pkgRoot) {
+    const pkgReal = path.resolve(await tryRealpath(pkgRoot));
+    const globalReal = await tryRealpath(params.globalRoot);
+    for (const name of ALL_PACKAGE_NAMES) {
+      const candidateReal = path.resolve(
+        await tryRealpath(resolvePackageInstallRoot(globalReal, name)),
+      );
+      if (candidateReal === pkgReal) {
+        return pkgRoot;
+      }
+    }
+  }
+  for (const name of ALL_PACKAGE_NAMES) {
+    const candidate = resolvePackageInstallRoot(params.globalRoot, name);
+    if (await pathExists(candidate)) {
+      return candidate;
+    }
+  }
+  return resolvePackageInstallRoot(params.globalRoot, PRIMARY_PACKAGE_NAME);
+}
+
 function resolveBunGlobalRoot(): string {
   const bunInstall = process.env.BUN_INSTALL?.trim() || path.join(os.homedir(), ".bun");
   return path.join(bunInstall, "install", "global", "node_modules");
@@ -374,7 +409,9 @@ function inferNpmPrefixFromPackageRoot(pkgRoot?: string | null): string | null {
     return null;
   }
   const normalized = path.resolve(trimmed);
-  const nodeModulesDir = path.dirname(normalized);
+  const packageParent = path.dirname(normalized);
+  const nodeModulesDir =
+    path.basename(packageParent) === "node_modules" ? packageParent : path.dirname(packageParent);
   if (path.basename(nodeModulesDir) !== "node_modules") {
     return null;
   }
@@ -459,7 +496,7 @@ export async function resolveGlobalPackageRoot(
   if (!root) {
     return null;
   }
-  return path.join(root, PRIMARY_PACKAGE_NAME);
+  return resolveGlobalPackageRootForInstall({ globalRoot: root, pkgRoot });
 }
 
 export async function resolveGlobalInstallTarget(params: {
@@ -478,7 +515,9 @@ export async function resolveGlobalInstallTarget(params: {
   return {
     ...command,
     globalRoot,
-    packageRoot: globalRoot ? path.join(globalRoot, PRIMARY_PACKAGE_NAME) : null,
+    packageRoot: globalRoot
+      ? await resolveGlobalPackageRootForInstall({ globalRoot, pkgRoot: params.pkgRoot })
+      : null,
   };
 }
 
@@ -508,7 +547,7 @@ export async function detectGlobalInstallManagerForRoot(
     }
     const globalReal = await tryRealpath(globalRoot);
     for (const name of ALL_PACKAGE_NAMES) {
-      const expected = path.join(globalReal, name);
+      const expected = resolvePackageInstallRoot(globalReal, name);
       const expectedReal = await tryRealpath(expected);
       if (path.resolve(expectedReal) === path.resolve(pkgReal)) {
         return manager;
@@ -519,7 +558,7 @@ export async function detectGlobalInstallManagerForRoot(
   const bunGlobalRoot = resolveBunGlobalRoot();
   const bunGlobalReal = await tryRealpath(bunGlobalRoot);
   for (const name of ALL_PACKAGE_NAMES) {
-    const bunExpected = path.join(bunGlobalReal, name);
+    const bunExpected = resolvePackageInstallRoot(bunGlobalReal, name);
     const bunExpectedReal = await tryRealpath(bunExpected);
     if (path.resolve(bunExpectedReal) === path.resolve(pkgReal)) {
       return "bun";
@@ -543,7 +582,7 @@ export async function detectGlobalInstallManagerByPresence(
       continue;
     }
     for (const name of ALL_PACKAGE_NAMES) {
-      if (await pathExists(path.join(root, name))) {
+      if (await pathExists(resolvePackageInstallRoot(root, name))) {
         return manager;
       }
     }
@@ -551,7 +590,7 @@ export async function detectGlobalInstallManagerByPresence(
 
   const bunRoot = resolveBunGlobalRoot();
   for (const name of ALL_PACKAGE_NAMES) {
-    if (await pathExists(path.join(bunRoot, name))) {
+    if (await pathExists(resolvePackageInstallRoot(bunRoot, name))) {
       return "bun";
     }
   }
@@ -595,7 +634,8 @@ export async function cleanupGlobalRenameDirs(params: {
   if (!root || !name) {
     return { removed };
   }
-  const prefix = `${GLOBAL_RENAME_PREFIX}${name}-`;
+  const packageLeafName = packageNameToPathSegments(name).at(-1) ?? name;
+  const prefix = `${GLOBAL_RENAME_PREFIX}${packageLeafName}-`;
   let entries: string[] = [];
   try {
     entries = await fs.readdir(root);

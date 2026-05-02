@@ -58,10 +58,11 @@ const GENESIS_REPO_URL = "https://github.com/PIXELZX0/Genesis.git";
 const MAX_LOG_CHARS = 8000;
 
 export const DEFAULT_PACKAGE_NAME = "genesis";
-const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME]);
+const SCOPED_PACKAGE_NAME = "@pixelzx/genesis";
+const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
 
 export function normalizeTag(value?: string | null): string | null {
-  return normalizePackageTagInput(value, ["genesis", DEFAULT_PACKAGE_NAME]);
+  return normalizePackageTagInput(value, [DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
 }
 
 export function normalizeVersionTag(tag: string): string | null {

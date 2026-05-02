@@ -392,6 +392,7 @@ async function runPackageInstallUpdate(params: {
         manager: installTarget,
         runCommand,
         timeoutMs: params.timeoutMs,
+        pkgRoot,
       })
     ).packageRoot ?? pkgRoot;
   if (verifiedPackageRoot) {

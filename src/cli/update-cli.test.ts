@@ -939,7 +939,7 @@ describe("update-cli", () => {
     const tempDir = createCaseDir("genesis-update");
     const nodeModules = path.join(tempDir, "node_modules");
     const pkgRoot = path.join(nodeModules, "genesis");
-    mockPackageInstallStatus(tempDir);
+    mockPackageInstallStatus(pkgRoot);
     await fs.mkdir(pkgRoot, { recursive: true });
     await fs.writeFile(
       path.join(pkgRoot, "package.json"),

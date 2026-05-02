@@ -137,7 +137,8 @@ const MAX_LOG_CHARS = 8000;
 const PREFLIGHT_MAX_COMMITS = 10;
 const START_DIRS = ["cwd", "argv1", "process"];
 const DEFAULT_PACKAGE_NAME = "genesis";
-const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME]);
+const SCOPED_PACKAGE_NAME = "@pixelzx/genesis";
+const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
 const PREFLIGHT_TEMP_PREFIX =
   process.platform === "win32" ? "ocu-pf-" : "genesis-update-preflight-";
 const PREFLIGHT_WORKTREE_DIRNAME = process.platform === "win32" ? "wt" : "worktree";
@@ -1343,6 +1344,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
           manager: installTarget,
           runCommand,
           timeoutMs,
+          pkgRoot,
         })
       ).packageRoot ?? pkgRoot;
     const expectedVersion = resolveExpectedInstalledVersionFromSpec(packageName, spec);

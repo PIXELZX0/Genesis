@@ -156,7 +156,8 @@ describe("bun global install smoke", () => {
     );
     expect(workflow).toContain("Run Bun global install image-provider smoke");
     expect(workflow).toContain("bash scripts/e2e/bun-global-install-smoke.sh");
-    expect(workflow).toContain(
+    expect(workflow).toContain("Set up Bun");
+    expect(workflow).not.toContain(
       "GENESIS_BUN_GLOBAL_SMOKE_DIST_IMAGE: genesis-dockerfile-smoke:local",
     );
     expect(workflow).toContain("format('{0}-manual-{1}', github.workflow, github.run_id)");
