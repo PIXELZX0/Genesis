@@ -4,10 +4,14 @@ import { validateJsonSchemaValue } from "../../../src/plugins/schema-validator.j
 
 const manifest = JSON.parse(
   fs.readFileSync(new URL("../genesis.plugin.json", import.meta.url), "utf-8"),
-) as { configSchema: Record<string, unknown> };
+) as { configSchema: Record<string, unknown>; enabledByDefault?: unknown };
 const manifestConfigSchemaCacheKey = "qqbot.manifest.config-schema";
 
 describe("qqbot manifest schema", () => {
+  it("keeps QQ Bot opt-in so first-run startup does not load its runtime", () => {
+    expect(manifest.enabledByDefault).not.toBe(true);
+  });
+
   it("accepts top-level speech overrides", () => {
     const result = validateJsonSchemaValue({
       schema: manifest.configSchema,

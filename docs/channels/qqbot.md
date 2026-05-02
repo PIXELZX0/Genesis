@@ -17,7 +17,9 @@ media are supported. Reactions and threads are not supported.
 ## Bundled plugin
 
 Current Genesis releases bundle QQ Bot, so normal packaged builds do not need
-a separate `genesis plugins install` step.
+a separate `genesis plugins install` step. The plugin is opt-in: Genesis does
+not load QQ Bot on a fresh install until `channels.qqbot` is configured or the
+plugin is explicitly enabled.
 
 ## Setup
 

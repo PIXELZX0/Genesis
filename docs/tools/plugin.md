@@ -191,7 +191,8 @@ Genesis scans for plugins in this order (first match wins):
 
   <Step title="Bundled plugins">
     Shipped with Genesis. Many are enabled by default (model providers, speech).
-    Others require explicit enablement.
+    Channel plugins and other optional bundled plugins require explicit
+    enablement or matching channel configuration.
   </Step>
 </Steps>
 
@@ -202,6 +203,8 @@ Genesis scans for plugins in this order (first match wins):
 - `plugins.entries.\<id\>.enabled: false` disables that plugin
 - Workspace-origin plugins are **disabled by default** (must be explicitly enabled)
 - Bundled plugins follow the built-in default-on set unless overridden
+- Bundled channel plugins stay disabled on a fresh install until channel config,
+  env-backed setup, or explicit plugin config selects them
 - Exclusive slots can force-enable the selected plugin for that slot
 - Some bundled opt-in plugins are enabled automatically when config names a
   plugin-owned surface, such as a provider model ref, channel config, or harness

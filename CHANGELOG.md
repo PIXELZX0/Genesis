@@ -6,7 +6,7 @@ Docs: https://docs.genesis.ai
 
 ### Fixes
 
-- QQ Bot: keep setup-runtime startup on the lazy channel runtime path, so packaged installs no longer fail to load QQ Bot with `Unable to resolve plugin runtime module` before the full Gateway runtime is needed.
+- QQ Bot: keep the bundled channel opt-in instead of default-enabled, so fresh packaged installs no longer stage QQ Bot runtime dependencies or hit `Unable to resolve plugin runtime module` before QQ Bot is configured.
 
 ## 2026.5.1
 
