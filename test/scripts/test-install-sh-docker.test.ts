@@ -102,6 +102,8 @@ describe("install-sh smoke runner", () => {
     expect(script).toContain("genesis update --tag");
     expect(script).toContain("parseFirstJsonObject");
     expect(script).toContain("unterminated update JSON object");
+    expect(script).toContain("update JSON omitted ${label}");
+    expect(script).toContain("install smoke will verify the CLI version directly");
   });
 
   it("covers plain npm global installs and npm-driven updates", () => {

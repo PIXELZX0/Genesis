@@ -312,16 +312,20 @@ const expectedUrl = String(process.env.UPDATE_TAG_URL || "");
 if (payload.status !== "ok") {
   throw new Error(`expected update status ok, got ${JSON.stringify(payload.status)}`);
 }
-if ((payload.before?.version ?? null) !== baselineVersion) {
-  throw new Error(
-    `expected before.version ${baselineVersion}, got ${JSON.stringify(payload.before?.version)}`,
-  );
+
+function verifyJsonVersion(label, actual, expected) {
+  if (actual == null) {
+    console.warn(
+      `update JSON omitted ${label}; install smoke will verify the CLI version directly`,
+    );
+    return;
+  }
+  if (actual !== expected) {
+    throw new Error(`expected ${label} ${expected}, got ${JSON.stringify(actual)}`);
+  }
 }
-if ((payload.after?.version ?? null) !== expectedVersion) {
-  throw new Error(
-    `expected after.version ${expectedVersion}, got ${JSON.stringify(payload.after?.version)}`,
-  );
-}
+verifyJsonVersion("before.version", payload.before?.version ?? null, baselineVersion);
+verifyJsonVersion("after.version", payload.after?.version ?? null, expectedVersion);
 if (payload.reason != null) {
   throw new Error(`expected no failure reason, got ${JSON.stringify(payload.reason)}`);
 }
