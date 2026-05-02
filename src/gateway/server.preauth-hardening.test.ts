@@ -7,6 +7,7 @@ import {
   type DiagnosticEventPayload,
 } from "../infra/diagnostic-events.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
+import { PROTOCOL_VERSION } from "./protocol/version.js";
 import { MAX_PREAUTH_PAYLOAD_BYTES } from "./server-constants.js";
 import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-http.js";
 import { createPreauthConnectionBudget } from "./server/preauth-connection-budget.js";
@@ -173,8 +174,8 @@ describe("gateway pre-auth hardening", () => {
           id: "oversized-connect",
           method: "connect",
           params: {
-            minProtocol: 3,
-            maxProtocol: 3,
+            minProtocol: PROTOCOL_VERSION,
+            maxProtocol: PROTOCOL_VERSION,
             client: { id: "test", version: "1.0.0", platform: "test", mode: "test" },
             pathEnv: large,
             role: "operator",

@@ -92,7 +92,7 @@ run_logged gateway-network-client timeout "$CLIENT_TIMEOUT" docker run --rm \
   bash -lc "node --input-type=module - <<'NODE'
 import { WebSocket } from \"ws\";
 
-const PROTOCOL_VERSION = 3;
+const PROTOCOL_VERSION = 4;
 
 const url = process.env.GW_URL;
 const token = process.env.GW_TOKEN;

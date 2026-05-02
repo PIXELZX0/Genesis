@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION as GATEWAY_PROTOCOL_VERSION } from "../../src/gateway/protocol/version.ts";
 import { createArgReader, createGatewayWsClient, resolveGatewayUrl } from "./gateway-ws-client.ts";
 
 function writeStdoutLine(message = ""): void {
@@ -97,8 +98,8 @@ async function main() {
   await waitOpen();
 
   const connectRes = await request("connect", {
-    minProtocol: 3,
-    maxProtocol: 3,
+    minProtocol: GATEWAY_PROTOCOL_VERSION,
+    maxProtocol: GATEWAY_PROTOCOL_VERSION,
     client: {
       id: "cli",
       displayName: "genesis ios node e2e",

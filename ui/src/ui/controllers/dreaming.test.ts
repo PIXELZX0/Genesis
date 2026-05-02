@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { PROTOCOL_VERSION as GATEWAY_PROTOCOL_VERSION } from "../../../../src/gateway/protocol/version.js";
 import {
   backfillDreamDiary,
   copyDreamingArchivePath,
@@ -230,7 +231,7 @@ describe("dreaming controller", () => {
     const { state, request } = createState();
     state.hello = {
       type: "hello-ok",
-      protocol: 3,
+      protocol: GATEWAY_PROTOCOL_VERSION,
       features: { methods: ["wiki.importInsights"] },
     };
     state.configSnapshot = {
@@ -365,7 +366,7 @@ describe("dreaming controller", () => {
     const { state, request } = createState();
     state.hello = {
       type: "hello-ok",
-      protocol: 3,
+      protocol: GATEWAY_PROTOCOL_VERSION,
       features: { methods: ["doctor.memory.status"] },
     };
     state.configSnapshot = {
@@ -400,7 +401,7 @@ describe("dreaming controller", () => {
     const { state, request } = createState();
     state.hello = {
       type: "hello-ok",
-      protocol: 3,
+      protocol: GATEWAY_PROTOCOL_VERSION,
       features: { methods: ["wiki.palace"] },
     };
     state.configSnapshot = {
@@ -535,7 +536,7 @@ describe("dreaming controller", () => {
     const { state, request } = createState();
     state.hello = {
       type: "hello-ok",
-      protocol: 3,
+      protocol: GATEWAY_PROTOCOL_VERSION,
       features: { methods: ["doctor.memory.status"] },
     };
     state.configSnapshot = {
