@@ -2,6 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3
+
+### Changes
+
+- QQ Bot: remove the bundled channel plugin and its staged runtime dependencies from packaged Genesis builds.
+- README/onboarding: refresh remaining legacy branding in the repository README and first-run banner.
+
+### Fixes
+
+- Gateway clients: align Control UI, Android, and dev smoke clients with protocol v4 so current gateways no longer reject them with `protocol mismatch`.
+
 ## 2026.5.2
 
 ### Fixes
