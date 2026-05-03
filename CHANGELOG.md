@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-3
+
+### Changes
+
+- Wallet: manage one Secret Recovery Phrase from the Control UI and derive BTC, EVM, SOL, and TRX local keystore wallets from that phrase.
+
 ## 2026.5.3-2
 
 ### Changes
