@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-4
+
+### Fixes
+
+- Wallet: allow Control UI Secret Recovery Phrase generation and import without a wallet passphrase, and keep the recovery phrase mode icons consistently sized.
+
 ## 2026.5.3-3
 
 ### Changes
