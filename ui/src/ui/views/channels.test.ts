@@ -1,12 +1,19 @@
-import { describe, expect, it } from "vitest";
+/* @vitest-environment jsdom */
+
+import { render } from "lit";
+import { describe, expect, it, vi } from "vitest";
 import {
   channelEnabled,
   resolveChannelConfigured,
   resolveChannelDisplayState,
 } from "./channels.shared.ts";
+import { renderChannels } from "./channels.ts";
 import type { ChannelsProps } from "./channels.types.ts";
 
-function createProps(snapshot: ChannelsProps["snapshot"]): ChannelsProps {
+function createProps(
+  snapshot: ChannelsProps["snapshot"],
+  overrides: Partial<ChannelsProps> = {},
+): ChannelsProps {
   return {
     connected: true,
     loading: false,
@@ -25,7 +32,17 @@ function createProps(snapshot: ChannelsProps["snapshot"]): ChannelsProps {
     configFormDirty: false,
     nostrProfileFormState: null,
     nostrProfileAccountId: null,
+    channelWizardStep: null,
+    channelWizardInput: null,
+    channelWizardBusy: false,
+    channelWizardError: null,
+    channelWizardMessage: null,
     onRefresh: () => {},
+    onChannelWizardStart: () => {},
+    onChannelWizardSubmit: () => {},
+    onChannelWizardCancel: () => {},
+    onChannelWizardInput: () => {},
+    onChannelWizardClose: () => {},
     onWhatsAppStart: () => {},
     onWhatsAppWait: () => {},
     onWhatsAppLogout: () => {},
@@ -38,6 +55,7 @@ function createProps(snapshot: ChannelsProps["snapshot"]): ChannelsProps {
     onNostrProfileSave: () => {},
     onNostrProfileImport: () => {},
     onNostrProfileToggleAdvanced: () => {},
+    ...overrides,
   };
 }
 
@@ -116,5 +134,53 @@ describe("channel display selectors", () => {
     expect(displayState.running).toBeNull();
     expect(displayState.connected).toBeNull();
     expect(channelEnabled("quietchat", props)).toBe(false);
+  });
+});
+
+describe("channel setup wizard rendering", () => {
+  it("starts the guided add flow from the channel toolbar", () => {
+    const onChannelWizardStart = vi.fn();
+    const container = document.createElement("div");
+    render(renderChannels(createProps(null, { onChannelWizardStart })), container);
+
+    const addButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Add channel"),
+    );
+    addButton?.click();
+
+    expect(onChannelWizardStart).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders server-provided select steps in the popup", () => {
+    const onChannelWizardInput = vi.fn();
+    const onChannelWizardSubmit = vi.fn();
+    const container = document.createElement("div");
+    render(
+      renderChannels(
+        createProps(null, {
+          channelWizardStep: {
+            id: "step-1",
+            type: "select",
+            message: "Select a channel",
+            options: [
+              { value: "telegram", label: "Telegram" },
+              { value: "slack", label: "Slack", hint: "Workspace chat" },
+            ],
+          },
+          channelWizardInput: "telegram",
+          onChannelWizardInput,
+          onChannelWizardSubmit,
+        }),
+      ),
+      container,
+    );
+
+    container.querySelectorAll<HTMLButtonElement>(".channel-wizard-option")[1]?.click();
+    Array.from(container.querySelectorAll<HTMLButtonElement>("button"))
+      .find((button) => button.textContent?.includes("Continue"))
+      ?.click();
+
+    expect(onChannelWizardInput).toHaveBeenCalledWith("slack");
+    expect(onChannelWizardSubmit).toHaveBeenCalledTimes(1);
   });
 });

@@ -73,6 +73,15 @@ export const pl: TranslationMap = {
     generic: {
       subtitle: "Stan kanału i konfiguracja.",
     },
+    wizard: {
+      addChannel: "Add channel",
+      toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",
+      title: "Channel setup",
+      subtitle: "Answer each prompt to update genesis.json.",
+      continue: "Continue",
+      doneTitle: "Channel setup",
+      errorTitle: "Channel setup failed",
+    },
     gatewayUrlConfirmation: {
       title: "Zmień URL Gateway",
       subtitle: "To spowoduje ponowne połączenie z innym serwerem Gateway",

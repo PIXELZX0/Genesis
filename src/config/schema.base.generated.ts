@@ -679,6 +679,21 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 description:
                   'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
               },
+              routeMode: {
+                anyOf: [
+                  {
+                    type: "string",
+                    const: "onion-only",
+                  },
+                  {
+                    type: "string",
+                    const: "all",
+                  },
+                ],
+                title: "Browser Tor Route Mode",
+                description:
+                  'Tor browser routing policy. Default "onion-only" sends only .onion HTTP(S) URLs through Tor and leaves regular domains/IPs direct; use "all" to route every browser HTTP(S) request through Tor.',
+              },
               executablePath: {
                 type: "string",
                 title: "Browser Tor Executable Path",
@@ -855,6 +870,21 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       title: "Browser Profile Tor Mode",
                       description:
                         'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+                    },
+                    routeMode: {
+                      anyOf: [
+                        {
+                          type: "string",
+                          const: "onion-only",
+                        },
+                        {
+                          type: "string",
+                          const: "all",
+                        },
+                      ],
+                      title: "Browser Profile Tor Route Mode",
+                      description:
+                        'Per-profile Tor routing policy. Default "onion-only" keeps clearnet URLs direct and sends .onion HTTP(S) URLs through Tor; use "all" for whole-profile Tor routing.',
                     },
                     executablePath: {
                       type: "string",
@@ -24883,6 +24913,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: 'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
       tags: ["advanced"],
     },
+    "browser.tor.routeMode": {
+      label: "Browser Tor Route Mode",
+      help: 'Tor browser routing policy. Default "onion-only" sends only .onion HTTP(S) URLs through Tor and leaves regular domains/IPs direct; use "all" to route every browser HTTP(S) request through Tor.',
+      tags: ["advanced"],
+    },
     "browser.tor.executablePath": {
       label: "Browser Tor Executable Path",
       help: 'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
@@ -24956,6 +24991,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "browser.profiles.*.tor.mode": {
       label: "Browser Profile Tor Mode",
       help: 'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+      tags: ["storage"],
+    },
+    "browser.profiles.*.tor.routeMode": {
+      label: "Browser Profile Tor Route Mode",
+      help: 'Per-profile Tor routing policy. Default "onion-only" keeps clearnet URLs direct and sends .onion HTTP(S) URLs through Tor; use "all" for whole-profile Tor routing.',
       tags: ["storage"],
     },
     "browser.profiles.*.tor.executablePath": {

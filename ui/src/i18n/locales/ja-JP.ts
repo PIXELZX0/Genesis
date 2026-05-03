@@ -73,6 +73,15 @@ export const ja_JP: TranslationMap = {
     generic: {
       subtitle: "チャネルの状態と設定。",
     },
+    wizard: {
+      addChannel: "Add channel",
+      toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",
+      title: "Channel setup",
+      subtitle: "Answer each prompt to update genesis.json.",
+      continue: "Continue",
+      doneTitle: "Channel setup",
+      errorTitle: "Channel setup failed",
+    },
     gatewayUrlConfirmation: {
       title: "Gateway URL を変更",
       subtitle: "別の Gateway サーバーに再接続します",

@@ -73,6 +73,15 @@ export const ko: TranslationMap = {
     generic: {
       subtitle: "채널 상태 및 구성.",
     },
+    wizard: {
+      addChannel: "Add channel",
+      toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",
+      title: "Channel setup",
+      subtitle: "Answer each prompt to update genesis.json.",
+      continue: "Continue",
+      doneTitle: "Channel setup",
+      errorTitle: "Channel setup failed",
+    },
     gatewayUrlConfirmation: {
       title: "Gateway URL 변경",
       subtitle: "다른 Gateway 서버에 다시 연결됩니다",

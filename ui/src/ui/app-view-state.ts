@@ -1,3 +1,4 @@
+import type { ChannelWizardStep } from "./app-channels.ts";
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
 import type { RealtimeTalkStatus } from "./chat/realtime-talk.ts";
@@ -197,6 +198,12 @@ export type AppViewState = {
   whatsappBusy: boolean;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
+  channelWizardSessionId: string | null;
+  channelWizardStep: ChannelWizardStep | null;
+  channelWizardInput: unknown;
+  channelWizardBusy: boolean;
+  channelWizardError: string | null;
+  channelWizardMessage: string | null;
   configFormDirty: boolean;
   presenceLoading: boolean;
   presenceEntries: PresenceEntry[];
@@ -413,6 +420,11 @@ export type AppViewState = {
     handleWhatsAppLogout: () => Promise<void>;
     handleChannelConfigSave: () => Promise<void>;
     handleChannelConfigReload: () => Promise<void>;
+    handleChannelWizardStart: () => Promise<void>;
+    handleChannelWizardSubmit: () => Promise<void>;
+    handleChannelWizardCancel: () => Promise<void>;
+    handleChannelWizardInput: (value: unknown) => void;
+    handleChannelWizardClose: () => void;
     handleNostrProfileEdit: (accountId: string, profile: NostrProfile | null) => void;
     handleNostrProfileCancel: () => void;
     handleNostrProfileFieldChange: (field: keyof NostrProfile, value: string) => void;

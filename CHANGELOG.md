@@ -6,6 +6,8 @@ Docs: https://docs.genesis.ai
 
 ### Changes
 
+- Control UI: add a guided channel setup flow in the Channels tab, backed by the Gateway wizard session so operators can add or update channel accounts without leaving the web UI.
+- Browser: keep regular domains and IP literals on direct clearnet routing by default for Tor-enabled managed profiles while sending `.onion` HTTP(S) URLs through Tor; `routeMode: "all"` keeps whole-profile Tor routing available.
 - Skill Workshop: add a Hermes-style complex-turn review trigger so enabled workspaces can run the LLM reviewer immediately after tool-heavy turns, using only newly appended run messages when available.
 
 ### Fixes

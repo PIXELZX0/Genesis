@@ -10,8 +10,10 @@ const WizardRunStatusSchema = Type.Union([
 
 export const WizardStartParamsSchema = Type.Object(
   {
+    target: Type.Optional(Type.Union([Type.Literal("setup"), Type.Literal("channels")])),
     mode: Type.Optional(Type.Union([Type.Literal("local"), Type.Literal("remote")])),
     workspace: Type.Optional(Type.String()),
+    channel: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

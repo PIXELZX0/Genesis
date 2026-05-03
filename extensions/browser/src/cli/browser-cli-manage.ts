@@ -271,7 +271,7 @@ export function registerBrowserManageCommands(
             `profileColor: ${status.color}`,
             ...(status.tor
               ? [
-                  `tor: ${status.tor.mode} ${status.tor.socksHost}:${status.tor.socksPort}${
+                  `tor: ${status.tor.mode}/${status.tor.routeMode} ${status.tor.socksHost}:${status.tor.socksPort}${
                     status.tor.running === true ? " (running)" : ""
                   }`,
                 ]
@@ -604,7 +604,7 @@ export function registerBrowserManageCommands(
               const remote = p.isRemote ? " [remote]" : "";
               const driver = p.driver !== "genesis" ? ` [${p.driver}]` : "";
               const tor = p.tor
-                ? `\n  tor: ${p.tor.mode} ${p.tor.socksHost}:${p.tor.socksPort}${
+                ? `\n  tor: ${p.tor.mode}/${p.tor.routeMode} ${p.tor.socksHost}:${p.tor.socksPort}${
                     p.tor.running === true ? " (running)" : ""
                   }`
                 : "";

@@ -73,6 +73,15 @@ export const zh_TW: TranslationMap = {
     generic: {
       subtitle: "頻道狀態與設定。",
     },
+    wizard: {
+      addChannel: "Add channel",
+      toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",
+      title: "Channel setup",
+      subtitle: "Answer each prompt to update genesis.json.",
+      continue: "Continue",
+      doneTitle: "Channel setup",
+      errorTitle: "Channel setup failed",
+    },
     gatewayUrlConfirmation: {
       title: "變更 Gateway URL",
       subtitle: "這將重新連線至不同的 Gateway 伺服器",

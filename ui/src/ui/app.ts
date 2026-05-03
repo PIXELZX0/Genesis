@@ -4,6 +4,11 @@ import { i18n, I18nController, isSupportedLocale } from "../i18n/index.ts";
 import {
   handleChannelConfigReload as handleChannelConfigReloadInternal,
   handleChannelConfigSave as handleChannelConfigSaveInternal,
+  handleChannelWizardCancel as handleChannelWizardCancelInternal,
+  handleChannelWizardClose as handleChannelWizardCloseInternal,
+  handleChannelWizardInput as handleChannelWizardInputInternal,
+  handleChannelWizardStart as handleChannelWizardStartInternal,
+  handleChannelWizardSubmit as handleChannelWizardSubmitInternal,
   handleNostrProfileCancel as handleNostrProfileCancelInternal,
   handleNostrProfileEdit as handleNostrProfileEditInternal,
   handleNostrProfileFieldChange as handleNostrProfileFieldChangeInternal,
@@ -13,6 +18,7 @@ import {
   handleWhatsAppLogout as handleWhatsAppLogoutInternal,
   handleWhatsAppStart as handleWhatsAppStartInternal,
   handleWhatsAppWait as handleWhatsAppWaitInternal,
+  type ChannelWizardStep,
 } from "./app-channels.ts";
 import {
   handleAbortChat as handleAbortChatInternal,
@@ -304,6 +310,12 @@ export class GenesisApp extends LitElement {
   @state() whatsappBusy = false;
   @state() nostrProfileFormState: NostrProfileFormState | null = null;
   @state() nostrProfileAccountId: string | null = null;
+  @state() channelWizardSessionId: string | null = null;
+  @state() channelWizardStep: ChannelWizardStep | null = null;
+  @state() channelWizardInput: unknown = null;
+  @state() channelWizardBusy = false;
+  @state() channelWizardError: string | null = null;
+  @state() channelWizardMessage: string | null = null;
 
   @state() presenceLoading = false;
   @state() presenceEntries: PresenceEntry[] = [];
@@ -858,6 +870,26 @@ export class GenesisApp extends LitElement {
 
   async handleChannelConfigReload() {
     await handleChannelConfigReloadInternal(this);
+  }
+
+  async handleChannelWizardStart() {
+    await handleChannelWizardStartInternal(this);
+  }
+
+  async handleChannelWizardSubmit() {
+    await handleChannelWizardSubmitInternal(this);
+  }
+
+  async handleChannelWizardCancel() {
+    await handleChannelWizardCancelInternal(this);
+  }
+
+  handleChannelWizardInput(value: unknown) {
+    handleChannelWizardInputInternal(this, value);
+  }
+
+  handleChannelWizardClose() {
+    handleChannelWizardCloseInternal(this);
   }
 
   handleNostrProfileEdit(accountId: string, profile: NostrProfile | null) {

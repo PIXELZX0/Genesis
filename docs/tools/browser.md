@@ -145,6 +145,7 @@ Browser settings live in `~/.genesis/genesis.json`.
     tor: {
       enabled: true, // default for local managed profiles; set false to opt out
       // mode: "managed", // starts `tor`; use "external" for an existing SOCKS endpoint
+      // routeMode: "onion-only", // .onion through Tor; regular domains/IPs direct
       // executablePath: "/usr/local/bin/tor",
       // socksHost: "127.0.0.1",
       // socksPort: 9050,
@@ -198,7 +199,7 @@ Browser settings live in `~/.genesis/genesis.json`.
 - In strict SSRF mode, remote CDP endpoint discovery and `/json/version` probes (`cdpUrl`) are checked too.
 - Gateway/provider `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, and `NO_PROXY` environment variables do not automatically proxy the Genesis-managed browser. Managed Chrome launches direct by default so provider proxy settings do not weaken browser SSRF checks.
 - To proxy the managed browser itself, pass explicit Chrome proxy flags through `browser.extraArgs`, such as `--proxy-server=...` or `--proxy-pac-url=...`. Strict SSRF mode blocks explicit browser proxy routing unless private-network browser access is intentionally enabled.
-- Local managed profiles use Tor by default. `browser.tor.enabled=false` opts out globally; `browser.profiles.<name>.tor.enabled=false` opts out one profile. `.onion` HTTP(S) URLs skip local DNS resolution, while non-onion URLs still pass normal browser SSRF checks before Chromium routes them through Tor.
+- Local managed profiles start Tor by default. `browser.tor.enabled=false` opts out globally; `browser.profiles.<name>.tor.enabled=false` opts out one profile. With the default `routeMode: "onion-only"`, `.onion` HTTP(S) URLs skip local DNS resolution and use Tor, while regular domains and IP literals use direct clearnet routing after normal browser SSRF checks.
 - `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork` is off by default; enable only when private-network browser access is intentionally trusted.
 - `browser.ssrfPolicy.allowPrivateNetwork` remains supported as a legacy alias.
 
@@ -279,7 +280,9 @@ genesis browser --browser-profile onion open http://examplehiddenservice.onion
 ```
 
 The optional `--tor` shortcut persists explicit `tor: { enabled: true, mode:
-"managed" }` on the profile. Managed mode runs `tor` from PATH unless you
+"managed" }` on the profile. The default route mode is `onion-only`: regular
+domains and IP literals stay on clearnet, while `.onion` HTTP(S) URLs use the
+Tor SOCKS endpoint automatically. Managed mode runs `tor` from PATH unless you
 configure `browser.tor.executablePath` or
 `browser.profiles.<name>.tor.executablePath`.
 
@@ -322,6 +325,7 @@ To use an already-running Tor service instead:
         tor: {
           enabled: true,
           mode: "external",
+          routeMode: "onion-only",
           socksHost: "127.0.0.1",
           socksPort: 9050,
         },
@@ -334,8 +338,10 @@ To use an already-running Tor service instead:
 Security notes:
 
 - Keep Tor profiles separate from signed-in `user` or existing-session profiles.
-- Browser SSRF checks still run for non-onion URLs before Chromium routes them
-  through Tor.
+- Browser SSRF checks still run for non-onion URLs. In the default
+  `onion-only` route mode, those URLs use direct clearnet routing.
+- Set `routeMode: "all"` only when the whole managed browser profile should use
+  Tor for every HTTP(S) request.
 - Genesis does not vendor a Tor binary; managed mode starts the `tor` executable
   available on the host.
 

@@ -1,5 +1,12 @@
 {
   "fallbackKeys": [
+    "channels.wizard.addChannel",
+    "channels.wizard.continue",
+    "channels.wizard.doneTitle",
+    "channels.wizard.errorTitle",
+    "channels.wizard.subtitle",
+    "channels.wizard.title",
+    "channels.wizard.toolbarSubtitle",
     "overview.wallet.copyAddress",
     "overview.wallet.empty",
     "overview.wallet.manage",
@@ -55,12 +62,12 @@
     "wallet.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-05-03T13:49:58.915Z",
+  "generatedAt": "2026-05-03T14:35:04.574Z",
   "locale": "id",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "c3d28f37fc86a5f98fa8cbc48e7ba799ab4fd6ece58d47eb1e3dfbc841625245",
-  "totalKeys": 788,
+  "sourceHash": "fe53131546da8c0886c961e8bfd04d02f30df95ec4283fce918ede0ed4262ac0",
+  "totalKeys": 795,
   "translatedKeys": 734,
   "workflow": 1
 }
