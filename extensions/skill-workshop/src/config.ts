@@ -5,6 +5,7 @@ export type SkillWorkshopConfig = {
   reviewMode: "off" | "heuristic" | "llm" | "hybrid";
   reviewInterval: number;
   reviewMinToolCalls: number;
+  reviewComplexTurnMinToolCalls: number;
   reviewTimeoutMs: number;
   maxPending: number;
   maxSkillBytes: number;
@@ -43,6 +44,7 @@ export function resolveConfig(raw: unknown): SkillWorkshopConfig {
     reviewMode,
     reviewInterval: readInteger(cfg.reviewInterval, 15, 1, 200),
     reviewMinToolCalls: readInteger(cfg.reviewMinToolCalls, 8, 1, 500),
+    reviewComplexTurnMinToolCalls: readInteger(cfg.reviewComplexTurnMinToolCalls, 5, 0, 500),
     reviewTimeoutMs: readInteger(cfg.reviewTimeoutMs, 45_000, 5_000, 180_000),
     maxPending: readInteger(cfg.maxPending, 50, 1, 200),
     maxSkillBytes: readInteger(cfg.maxSkillBytes, 40_000, 1024, 200_000),

@@ -4,6 +4,10 @@ Docs: https://docs.genesis.ai
 
 ## 2026.5.3-4
 
+### Changes
+
+- Skill Workshop: add a Hermes-style complex-turn review trigger so enabled workspaces can run the LLM reviewer immediately after tool-heavy turns, using only newly appended run messages when available.
+
 ### Fixes
 
 - Update: infer the default source-checkout channel from the current tag or branch so stable correction checkouts stay on `stable`, and retry npm package updates with `--omit=optional` when optional dependency builds fail.

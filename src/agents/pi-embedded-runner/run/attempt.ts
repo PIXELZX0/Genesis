@@ -2857,6 +2857,7 @@ export async function runEmbeddedAttempt(
             .runAgentEnd(
               {
                 messages: messagesSnapshot,
+                newMessages: messagesSnapshot.slice(Math.max(0, prePromptMessageCount)),
                 success: !aborted && !promptError,
                 error: promptError ? formatErrorMessage(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,

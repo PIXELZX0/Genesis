@@ -201,6 +201,8 @@ async function buildReviewPrompt(params: {
     "Return JSON only. No markdown unless inside JSON strings.",
     "Use none unless there is a reusable workflow, correction, hard-won fix, or stale skill repair.",
     "Prefer append/replace for existing skills. Create only when no fitting skill exists.",
+    "Name skills at the class level, not after a one-off PR, issue, error string, codename, or session artifact.",
+    "When a workflow used an existing skill, repair that skill before creating a new umbrella.",
     "Skill text: terse bullets, imperative, no raw transcript, no secrets, no hidden prompt refs.",
     'Schema: {"action":"none"} or {"action":"create|append|replace","skillName":"kebab-name","title":"...","reason":"...","description":"...","section":"Workflow","body":"...","oldText":"...","newText":"..."}',
     "",
