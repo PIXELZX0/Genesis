@@ -100,13 +100,22 @@ function copyAddress(address: string) {
   void navigator.clipboard?.writeText(address).catch(() => undefined);
 }
 
-function renderWalletCard(props: Pick<OverviewProps, "walletSummary" | "walletSummaryError">) {
+function renderWalletCard(
+  props: Pick<OverviewProps, "walletSummary" | "walletSummaryError" | "onNavigate">,
+) {
   const summary = props.walletSummary;
   const accounts = summary?.accounts ?? [];
   return html`
     <div class="card">
-      <div class="card-title">${t("overview.wallet.title")}</div>
-      <div class="card-sub">${t("overview.wallet.subtitle")}</div>
+      <div class="row" style="justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div class="card-title">${t("overview.wallet.title")}</div>
+          <div class="card-sub">${t("overview.wallet.subtitle")}</div>
+        </div>
+        <button class="btn btn--sm" @click=${() => props.onNavigate("wallet")}>
+          ${t("overview.wallet.manage")}
+        </button>
+      </div>
       ${props.walletSummaryError
         ? html`<div class="callout danger" style="margin-top: 14px">
             ${props.walletSummaryError}

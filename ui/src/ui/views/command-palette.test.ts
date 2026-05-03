@@ -50,5 +50,11 @@ describe("command palette", () => {
         label: "/prose",
       }),
     );
+    expect(items).toContainEqual(
+      expect.objectContaining({
+        id: "nav-wallet",
+        action: "nav:wallet",
+      }),
+    );
   });
 });

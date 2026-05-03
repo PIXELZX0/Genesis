@@ -49,6 +49,13 @@ function getPaletteBaseItems(): PaletteItem[] {
       action: "nav:cron",
     },
     {
+      id: "nav-wallet",
+      label: "Wallet",
+      icon: "wallet",
+      category: "navigation",
+      action: "nav:wallet",
+    },
+    {
       id: "nav-skills",
       label: "Skills",
       icon: "zap",

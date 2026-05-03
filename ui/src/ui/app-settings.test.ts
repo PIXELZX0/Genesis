@@ -17,6 +17,7 @@ type Tab =
   | "instances"
   | "sessions"
   | "usage"
+  | "wallet"
   | "cron"
   | "skills"
   | "nodes"
@@ -28,7 +29,8 @@ type Tab =
   | "infrastructure"
   | "aiAgents"
   | "debug"
-  | "logs";
+  | "logs"
+  | "dreams";
 
 type SettingsHost = {
   settings: {

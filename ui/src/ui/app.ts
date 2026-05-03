@@ -467,6 +467,9 @@ export class GenesisApp extends LitElement {
   @state() overviewLogCursor = 0;
   @state() walletSummary: import("./types.js").WalletSummaryResult | null = null;
   @state() walletSummaryError: string | null = null;
+  @state() walletSummaryLoading = false;
+  @state() walletBalancesLoading = false;
+  @state() walletLastUpdatedAt: number | null = null;
 
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;

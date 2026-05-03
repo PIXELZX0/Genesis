@@ -44,6 +44,7 @@ import { loadPresence, type PresenceState } from "./controllers/presence.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
 import { loadUsage, type UsageState } from "./controllers/usage.ts";
+import { loadWalletSummary, type WalletState } from "./controllers/wallet.ts";
 import { syncCustomThemeStyleTag } from "./custom-theme.ts";
 import { isMonitoredAuthProvider } from "./model-auth-helpers.ts";
 import {
@@ -63,7 +64,7 @@ import {
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode, type ThemeName } from "./theme.ts";
-import type { AgentsListResult, AttentionItem, WalletSummaryResult } from "./types.ts";
+import type { AgentsListResult, AttentionItem } from "./types.ts";
 import { normalizeLocalUserIdentity } from "./user-identity.ts";
 import { resetChatViewState } from "./views/chat.ts";
 
@@ -125,11 +126,10 @@ type SettingsAppHost = SettingsHost &
   SessionsState &
   SkillsState &
   ModelAuthStatusState &
-  UsageState & {
+  UsageState &
+  WalletState & {
     overviewLogCursor: number | null;
     overviewLogLines: string[];
-    walletSummary: WalletSummaryResult | null;
-    walletSummaryError: string | null;
     attentionItems: AttentionItem[];
     hello: { auth?: { role?: string; scopes?: string[] } } | null;
   };
@@ -363,6 +363,9 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "cron":
       await loadCron(host);
+      return;
+    case "wallet":
+      await loadWalletSummary(app, { includeBalances: true });
       return;
     case "skills":
       await loadSkills(app);
@@ -666,19 +669,6 @@ async function loadOverviewLogs(host: SettingsAppHost) {
     }
   } catch {
     /* non-critical */
-  }
-}
-
-async function loadWalletSummary(host: SettingsAppHost) {
-  if (!host.client || !host.connected) {
-    return;
-  }
-  try {
-    host.walletSummary = (await host.client.request("wallet.summary", {})) as WalletSummaryResult;
-    host.walletSummaryError = null;
-  } catch (error) {
-    host.walletSummary = null;
-    host.walletSummaryError = error instanceof Error ? error.message : String(error);
   }
 }
 

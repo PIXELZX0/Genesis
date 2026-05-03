@@ -383,6 +383,9 @@ export type AppViewState = {
     overviewLogCursor: number;
     walletSummary: WalletSummaryResult | null;
     walletSummaryError: string | null;
+    walletSummaryLoading: boolean;
+    walletBalancesLoading: boolean;
+    walletLastUpdatedAt: number | null;
     client: GatewayBrowserClient | null;
     refreshSessionsAfterChat: Set<string>;
     connect: () => void;

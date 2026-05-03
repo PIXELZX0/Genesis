@@ -113,6 +113,7 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
+import { loadWalletSummary } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
@@ -184,6 +185,7 @@ const lazyLogs = createLazy(() => import("./views/logs.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
 const lazySkills = createLazy(() => import("./views/skills.ts"));
+const lazyWallet = createLazy(() => import("./views/wallet.ts"));
 
 function formatDreamNextCycle(nextRunAtMs: number | undefined): string | null {
   if (typeof nextRunAtMs !== "number" || !Number.isFinite(nextRunAtMs)) {
@@ -1686,6 +1688,27 @@ export function renderApp(state: AppViewState) {
             )
           : nothing}
         ${renderUsageTab(state)}
+        ${state.tab === "wallet"
+          ? lazyRender(lazyWallet, (m) =>
+              m.renderWallet({
+                connected: state.connected,
+                loading: state.walletSummaryLoading,
+                balancesLoading: state.walletBalancesLoading,
+                summary: state.walletSummary,
+                error: state.walletSummaryError,
+                lastUpdatedAt: state.walletLastUpdatedAt,
+                onRefresh: () => loadWalletSummary(state, { includeBalances: true }),
+                onConfigure: () => {
+                  state.configSettingsMode = "advanced";
+                  state.configFormMode = "form";
+                  state.configActiveSection = "wallet";
+                  state.configActiveSubsection = null;
+                  state.setTab("config" as import("./navigation.ts").Tab);
+                  requestHostUpdate?.();
+                },
+              }),
+            )
+          : nothing}
         ${state.tab === "cron" ? renderCronQuickCreateForTab(state, requestHostUpdate) : nothing}
         ${state.tab === "cron"
           ? lazyRender(lazyCron, (m) =>

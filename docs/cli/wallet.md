@@ -142,8 +142,8 @@ marks them sensitive. See [Secrets Management](/gateway/secrets).
 ## Gateway and Control UI
 
 The Gateway exposes read-only `wallet.summary` for operator clients with
-`operator.read`. The Control UI Overview card calls that method and displays
-public addresses with copy buttons.
+`operator.read`. The Control UI Wallet tab calls that method and displays public
+addresses, balance refresh results, warnings, and copy buttons.
 
 No Gateway or web method returns seed phrases, private keys, passphrases, or a
 send/broadcast control.

@@ -114,7 +114,7 @@ Wallet note:
 - Wallet sends still require the wallet CLI guards in addition to any exec
   approval: `wallet.spending.enabled`, `--yes`, passphrase input,
   `GENESIS_WALLET_ALLOW_SPEND=1` by default, and configured spend limits.
-- The Control UI and Gateway wallet summary are read-only and do not provide
+- The Control UI Wallet tab and Gateway wallet summary are read-only and do not provide
   seed, private key, passphrase, or send surfaces.
 
 Example:

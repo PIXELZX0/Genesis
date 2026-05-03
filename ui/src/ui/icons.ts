@@ -50,6 +50,14 @@ export const icons = {
       <line x1="12" x2="12" y1="17" y2="21" />
     </svg>
   `,
+  wallet: html`
+    <svg viewBox="0 0 24 24">
+      <path
+        d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v4a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V5"
+      />
+      <path d="M18 12h.01" />
+    </svg>
+  `,
   sun: html`
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="4" />

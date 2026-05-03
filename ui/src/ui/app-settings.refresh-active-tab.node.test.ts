@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   loadCronJobsPageMock: vi.fn(async () => {}),
   loadCronRunsMock: vi.fn(async () => {}),
   loadLogsMock: vi.fn(async () => {}),
+  loadWalletSummaryMock: vi.fn(async () => {}),
 }));
 
 vi.mock("./app-chat.ts", () => ({
@@ -54,6 +55,9 @@ vi.mock("./controllers/cron.ts", () => ({
 vi.mock("./controllers/logs.ts", () => ({
   loadLogs: mocks.loadLogsMock,
 }));
+vi.mock("./controllers/wallet.ts", () => ({
+  loadWalletSummary: mocks.loadWalletSummaryMock,
+}));
 
 import { refreshActiveTab } from "./app-settings.ts";
 
@@ -75,6 +79,11 @@ function createHost() {
     cronRunsScope: "all",
     cronRunsJobId: null as string | null,
     sessionKey: "main",
+    walletSummary: null,
+    walletSummaryError: null,
+    walletSummaryLoading: false,
+    walletBalancesLoading: false,
+    walletLastUpdatedAt: null,
   };
 }
 
@@ -149,5 +158,14 @@ describe("refreshActiveTab", () => {
     expect(host.logsAtBottom).toBe(true);
     expect(mocks.loadLogsMock).toHaveBeenCalledWith(host, { reset: true });
     expect(mocks.scheduleLogsScrollMock).toHaveBeenCalledWith(host, true);
+  });
+
+  it("refreshes wallet tab with balances", async () => {
+    const host = createHost();
+    host.tab = "wallet";
+
+    await refreshActiveTab(host as never);
+
+    expect(mocks.loadWalletSummaryMock).toHaveBeenCalledWith(host, { includeBalances: true });
   });
 });
