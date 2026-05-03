@@ -39,6 +39,15 @@ export type WalletInitParams = WalletServiceOptions & {
   overwrite?: boolean;
 };
 
+export type WalletRecoveryPhraseMode = "generate" | "import";
+
+export type WalletRecoveryPhraseSetParams = WalletServiceOptions & {
+  mode: WalletRecoveryPhraseMode;
+  passphrase: string;
+  mnemonic?: string;
+  overwrite?: boolean;
+};
+
 export type WalletSendGuard = {
   yes?: boolean;
   allowEnv?: NodeJS.ProcessEnv;
@@ -146,6 +155,29 @@ export async function initWallet(params: WalletInitParams): Promise<{
 
 export async function importWallet(params: WalletInitParams & { mnemonic: string }) {
   return initWallet(params);
+}
+
+export async function setWalletRecoveryPhrase(params: WalletRecoveryPhraseSetParams): Promise<{
+  mnemonicGenerated: boolean;
+  mnemonic?: string;
+  summary: WalletSummary;
+}> {
+  const mnemonic =
+    params.mode === "generate"
+      ? generateWalletMnemonic()
+      : assertValidWalletMnemonic(params.mnemonic ?? "");
+  const result = await initWallet({
+    config: params.config,
+    env: params.env,
+    passphrase: params.passphrase,
+    mnemonic,
+    overwrite: params.overwrite,
+  });
+  return {
+    mnemonicGenerated: params.mode === "generate",
+    ...(params.mode === "generate" ? { mnemonic } : {}),
+    summary: result.summary,
+  };
 }
 
 export async function unlockWalletMnemonic(params: {

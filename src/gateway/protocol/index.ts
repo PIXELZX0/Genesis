@@ -280,6 +280,10 @@ import {
   UpdateRunParamsSchema,
   type WakeParams,
   WakeParamsSchema,
+  type WalletRecoveryPhraseSetParams,
+  WalletRecoveryPhraseSetParamsSchema,
+  type WalletRecoveryPhraseSetResult,
+  WalletRecoveryPhraseSetResultSchema,
   type WalletSummaryParams,
   WalletBalanceSchema,
   WalletPublicAccountSchema,
@@ -532,6 +536,12 @@ export const validateWalletSummaryParams =
   ajv.compile<WalletSummaryParams>(WalletSummaryParamsSchema);
 export const validateWalletSummaryResult =
   ajv.compile<WalletSummaryResult>(WalletSummaryResultSchema);
+export const validateWalletRecoveryPhraseSetParams = ajv.compile<WalletRecoveryPhraseSetParams>(
+  WalletRecoveryPhraseSetParamsSchema,
+);
+export const validateWalletRecoveryPhraseSetResult = ajv.compile<WalletRecoveryPhraseSetResult>(
+  WalletRecoveryPhraseSetResultSchema,
+);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {
@@ -646,6 +656,8 @@ export {
   ChannelsLogoutParamsSchema,
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
+  WalletRecoveryPhraseSetParamsSchema,
+  WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
   WalletPublicAccountSchema,
@@ -830,4 +842,6 @@ export type {
   ChatInjectParams,
   WalletSummaryParams,
   WalletSummaryResult,
+  WalletRecoveryPhraseSetParams,
+  WalletRecoveryPhraseSetResult,
 };

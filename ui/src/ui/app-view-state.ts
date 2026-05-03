@@ -11,6 +11,7 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
+import type { WalletRecoveryPhraseMode } from "./controllers/wallet.ts";
 import type { EmbedSandboxMode } from "./embed-sandbox.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -386,6 +387,11 @@ export type AppViewState = {
     walletSummaryLoading: boolean;
     walletBalancesLoading: boolean;
     walletLastUpdatedAt: number | null;
+    walletRecoveryPhraseMode: WalletRecoveryPhraseMode;
+    walletRecoveryPhraseBusy: boolean;
+    walletRecoveryPhraseError: string | null;
+    walletRecoveryPhraseGeneratedMnemonic: string | null;
+    walletRecoveryPhraseStatus: "generated" | "imported" | null;
     client: GatewayBrowserClient | null;
     refreshSessionsAfterChat: Set<string>;
     connect: () => void;

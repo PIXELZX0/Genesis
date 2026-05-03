@@ -4,6 +4,8 @@ export type WalletSummaryResult =
 export type WalletPublicAccount =
   import("../../../src/gateway/protocol/schema/wallet.js").WalletPublicAccount;
 export type WalletBalance = import("../../../src/gateway/protocol/schema/wallet.js").WalletBalance;
+export type WalletRecoveryPhraseSetResult =
+  import("../../../src/gateway/protocol/schema/wallet.js").WalletRecoveryPhraseSetResult;
 import type { CronJobBase } from "../../../src/cron/types-shared.js";
 import type { ConfigUiHints } from "../../../src/shared/config-ui-hints-types.js";
 import type {

@@ -1,5 +1,15 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
-import type { WalletSummaryResult } from "../types.ts";
+import type { WalletRecoveryPhraseSetResult, WalletSummaryResult } from "../types.ts";
+
+export type WalletRecoveryPhraseMode = "generate" | "import";
+
+export type WalletRecoveryPhraseInput = {
+  mode: WalletRecoveryPhraseMode;
+  mnemonic: string;
+  passphrase: string;
+  confirmPassphrase: string;
+  overwrite: boolean;
+};
 
 export type WalletState = {
   client: GatewayBrowserClient | null;
@@ -9,6 +19,11 @@ export type WalletState = {
   walletSummaryLoading: boolean;
   walletBalancesLoading: boolean;
   walletLastUpdatedAt: number | null;
+  walletRecoveryPhraseMode: WalletRecoveryPhraseMode;
+  walletRecoveryPhraseBusy: boolean;
+  walletRecoveryPhraseError: string | null;
+  walletRecoveryPhraseGeneratedMnemonic: string | null;
+  walletRecoveryPhraseStatus: "generated" | "imported" | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -39,5 +54,63 @@ export async function loadWalletSummary(
   } finally {
     state.walletSummaryLoading = false;
     state.walletBalancesLoading = false;
+  }
+}
+
+export async function setWalletRecoveryPhrase(
+  state: WalletState,
+  input: WalletRecoveryPhraseInput,
+): Promise<boolean> {
+  if (!state.client || !state.connected) {
+    state.walletRecoveryPhraseError = "Connect to the gateway before updating the wallet.";
+    return false;
+  }
+  if (!input.passphrase.trim()) {
+    state.walletRecoveryPhraseError = "Wallet passphrase is required.";
+    return false;
+  }
+  if (input.passphrase !== input.confirmPassphrase) {
+    state.walletRecoveryPhraseError = "Wallet passphrase confirmation does not match.";
+    return false;
+  }
+  const mnemonic = input.mnemonic.trim().replace(/\s+/g, " ");
+  if (input.mode === "import" && !mnemonic) {
+    state.walletRecoveryPhraseError = "Secret recovery phrase is required.";
+    return false;
+  }
+
+  state.walletRecoveryPhraseBusy = true;
+  state.walletRecoveryPhraseError = null;
+  state.walletRecoveryPhraseGeneratedMnemonic = null;
+  state.walletRecoveryPhraseStatus = null;
+  try {
+    const params =
+      input.mode === "generate"
+        ? {
+            mode: input.mode,
+            passphrase: input.passphrase,
+            overwrite: input.overwrite,
+          }
+        : {
+            mode: input.mode,
+            mnemonic,
+            passphrase: input.passphrase,
+            overwrite: input.overwrite,
+          };
+    const result = (await state.client.request(
+      "wallet.recoveryPhrase.set",
+      params,
+    )) as WalletRecoveryPhraseSetResult;
+    state.walletSummary = result.summary;
+    state.walletSummaryError = null;
+    state.walletLastUpdatedAt = Date.now();
+    state.walletRecoveryPhraseGeneratedMnemonic = result.mnemonic ?? null;
+    state.walletRecoveryPhraseStatus = result.mnemonicGenerated ? "generated" : "imported";
+    return true;
+  } catch (error) {
+    state.walletRecoveryPhraseError = getErrorMessage(error);
+    return false;
+  } finally {
+    state.walletRecoveryPhraseBusy = false;
   }
 }

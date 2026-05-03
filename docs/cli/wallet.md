@@ -25,10 +25,16 @@ Security model:
 - The encrypted keystore is stored under the Genesis credentials directory with
   owner-only file permissions.
 - Public address metadata is readable while the keystore is locked.
-- Mnemonics, private keys, passphrases, and raw secret material are not returned
-  by JSON output, Gateway RPC, or the Control UI.
-- Web surfaces display public addresses only. Import, recovery, and send flows
-  stay in the CLI.
+- One BIP39 secret recovery phrase derives every local keystore chain account
+  (`btc`, `evm`, `sol`, and `trx`) through that chain's configured derivation
+  path.
+- Existing mnemonics, private keys, passphrases, and raw secret material are not
+  returned by JSON output, Gateway RPC, or the Control UI.
+- The Control UI can create a new recovery phrase or import/replace one through
+  the admin-scoped `wallet.recoveryPhrase.set` method. A newly generated phrase
+  is returned once so it can be backed up; imported or existing phrases are not
+  echoed back.
+- Send and broadcast flows stay in the CLI.
 
 ## Create or import
 
@@ -145,8 +151,17 @@ The Gateway exposes read-only `wallet.summary` for operator clients with
 `operator.read`. The Control UI Wallet tab calls that method and displays public
 addresses, balance refresh results, warnings, and copy buttons.
 
-No Gateway or web method returns seed phrases, private keys, passphrases, or a
-send/broadcast control.
+The Control UI also supports admin-scoped recovery phrase management through
+`wallet.recoveryPhrase.set`:
+
+- `mode: "generate"` creates a new BIP39 phrase, encrypts it locally, derives
+  all local chain accounts, and returns the generated phrase once.
+- `mode: "import"` imports a BIP39 phrase, encrypts it locally, derives all
+  local chain accounts, and does not return the phrase.
+- `overwrite: true` is required when replacing an existing keystore.
+
+No Gateway or web method returns existing seed phrases, private keys, stored
+passphrases, or a send/broadcast control.
 
 ## Related
 

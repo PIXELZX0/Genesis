@@ -2367,6 +2367,54 @@ public struct WalletBalance: Codable, Sendable {
     }
 }
 
+public struct WalletRecoveryPhraseSetParams: Codable, Sendable {
+    public let mode: AnyCodable
+    public let passphrase: String
+    public let mnemonic: String?
+    public let overwrite: Bool?
+
+    public init(
+        mode: AnyCodable,
+        passphrase: String,
+        mnemonic: String?,
+        overwrite: Bool?)
+    {
+        self.mode = mode
+        self.passphrase = passphrase
+        self.mnemonic = mnemonic
+        self.overwrite = overwrite
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case mode
+        case passphrase
+        case mnemonic
+        case overwrite
+    }
+}
+
+public struct WalletRecoveryPhraseSetResult: Codable, Sendable {
+    public let mnemonicgenerated: Bool
+    public let mnemonic: String?
+    public let summary: WalletSummaryResult
+
+    public init(
+        mnemonicgenerated: Bool,
+        mnemonic: String?,
+        summary: WalletSummaryResult)
+    {
+        self.mnemonicgenerated = mnemonicgenerated
+        self.mnemonic = mnemonic
+        self.summary = summary
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case mnemonicgenerated = "mnemonicGenerated"
+        case mnemonic
+        case summary
+    }
+}
+
 public struct WalletSummaryParams: Codable, Sendable {
     public let includebalances: Bool?
 

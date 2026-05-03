@@ -6,6 +6,7 @@ import {
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
   validateWakeParams,
+  validateWalletRecoveryPhraseSetParams,
 } from "./index.js";
 
 const makeError = (overrides: Partial<ErrorObject>): ErrorObject => ({
@@ -141,6 +142,37 @@ describe("validateTalkRealtimeSessionParams", () => {
     expect(formatValidationErrors(validateTalkRealtimeSessionParams.errors)).toContain(
       "unexpected property 'instructions'",
     );
+  });
+});
+
+describe("validateWalletRecoveryPhraseSetParams", () => {
+  it("accepts generated and imported recovery phrase management params", () => {
+    expect(
+      validateWalletRecoveryPhraseSetParams({
+        mode: "generate",
+        passphrase: "correct horse battery staple",
+      }),
+    ).toBe(true);
+
+    expect(
+      validateWalletRecoveryPhraseSetParams({
+        mode: "import",
+        mnemonic:
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        passphrase: "correct horse battery staple",
+        overwrite: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects unexpected recovery phrase management fields", () => {
+    expect(
+      validateWalletRecoveryPhraseSetParams({
+        mode: "generate",
+        passphrase: "correct horse battery staple",
+        privateKey: "not accepted",
+      }),
+    ).toBe(false);
   });
 });
 

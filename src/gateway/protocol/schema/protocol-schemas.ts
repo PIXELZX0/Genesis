@@ -189,6 +189,8 @@ import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snaps
 import {
   WalletBalanceSchema,
   WalletPublicAccountSchema,
+  WalletRecoveryPhraseSetParamsSchema,
+  WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
 } from "./wallet.js";
@@ -286,6 +288,8 @@ export const ProtocolSchemas = {
   WizardStatusResult: WizardStatusResultSchema,
   WalletPublicAccount: WalletPublicAccountSchema,
   WalletBalance: WalletBalanceSchema,
+  WalletRecoveryPhraseSetParams: WalletRecoveryPhraseSetParamsSchema,
+  WalletRecoveryPhraseSetResult: WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParams: WalletSummaryParamsSchema,
   WalletSummaryResult: WalletSummaryResultSchema,
   TalkModeParams: TalkModeParamsSchema,

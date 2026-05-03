@@ -442,6 +442,12 @@ enumeration of `src/gateway/server-methods/*.ts`.
     sanitized install options without exposing raw secret values.
 - Operators may call `skills.search` and `skills.detail` (`operator.read`) for
   ClawHub discovery metadata.
+- Operators may call `wallet.summary` (`operator.read`) to fetch public wallet
+  metadata and optional balances. Operators may call
+  `wallet.recoveryPhrase.set` (`operator.admin`) to generate or import the one
+  BIP39 recovery phrase used for every local keystore chain account. The
+  generate path returns the new phrase once; the import path and summary path do
+  not echo stored phrases or private keys.
 - Operators may call `skills.install` (`operator.admin`) in two modes:
   - ClawHub mode: `{ source: "clawhub", slug, version?, force? }` installs a
     skill folder into the default agent workspace `skills/` directory.

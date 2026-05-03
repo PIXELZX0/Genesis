@@ -168,6 +168,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "sessions.delete",
     "sessions.compact",
     "sessions.compaction.restore",
+    "wallet.recoveryPhrase.set",
     "connect",
     "chat.inject",
     "nativeHook.invoke",

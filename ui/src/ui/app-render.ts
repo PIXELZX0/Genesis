@@ -113,7 +113,7 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
-import { loadWalletSummary } from "./controllers/wallet.ts";
+import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
@@ -1697,7 +1697,20 @@ export function renderApp(state: AppViewState) {
                 summary: state.walletSummary,
                 error: state.walletSummaryError,
                 lastUpdatedAt: state.walletLastUpdatedAt,
+                recoveryPhraseMode: state.walletRecoveryPhraseMode,
+                recoveryPhraseBusy: state.walletRecoveryPhraseBusy,
+                recoveryPhraseError: state.walletRecoveryPhraseError,
+                recoveryPhraseGeneratedMnemonic: state.walletRecoveryPhraseGeneratedMnemonic,
+                recoveryPhraseStatus: state.walletRecoveryPhraseStatus,
                 onRefresh: () => loadWalletSummary(state, { includeBalances: true }),
+                onRecoveryPhraseModeChange: (mode) => {
+                  state.walletRecoveryPhraseMode = mode;
+                  state.walletRecoveryPhraseError = null;
+                  state.walletRecoveryPhraseGeneratedMnemonic = null;
+                  state.walletRecoveryPhraseStatus = null;
+                  requestHostUpdate?.();
+                },
+                onManageRecoveryPhrase: (input) => setWalletRecoveryPhrase(state, input),
                 onConfigure: () => {
                   state.configSettingsMode = "advanced";
                   state.configFormMode = "form";
