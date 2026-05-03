@@ -85,6 +85,10 @@ Both show up under `genesis plugins list`. See [Plugin Bundles](/plugins/bundles
 If you are writing a native plugin, start with [Building Plugins](/plugins/building-plugins)
 and the [Plugin SDK Overview](/plugins/sdk-overview).
 
+Genesis can load OpenClaw-compatible native plugins that declare package
+metadata under `openclaw` and import SDK subpaths from `openclaw/plugin-sdk/*`
+or `@openclaw/plugin-sdk/*`.
+
 ## Official plugins
 
 ### Installable (npm)

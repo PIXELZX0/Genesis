@@ -710,6 +710,25 @@ describe("installPluginFromArchive", () => {
     expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_GENESIS_EXTENSIONS);
   });
 
+  it("accepts OpenClaw-compatible package metadata during install", async () => {
+    const result = await installArchivePackageAndReturnResult({
+      packageJson: {
+        name: "@openclaw/compat",
+        version: "0.0.1",
+        openclaw: { extensions: ["./dist/index.js"] },
+      },
+      withDistIndex: true,
+      outName: "openclaw-compat.tgz",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.pluginId).toBe("@openclaw/compat");
+    expect(result.extensions).toEqual(["./dist/index.js"]);
+  });
+
   it("rejects legacy plugin package shape when genesis.extensions is missing", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     fs.writeFileSync(
@@ -2399,6 +2418,25 @@ describe("linkGenesisPeerDependencies (via installPluginFromDir)", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
+  it("creates a node_modules/openclaw symlink when peerDependencies declares openclaw", async () => {
+    const { pluginDir, extensionsDir } = setupPluginInstallDirs();
+    const fakeHostRoot = suiteTempRootTracker.makeTempDir();
+    resolveRootMock.mockReturnValue(fakeHostRoot);
+
+    writePluginWithPeerDeps(pluginDir, { openclaw: "*" });
+
+    const { result } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const symlinkPath = path.join(result.targetDir, "node_modules", "openclaw");
+    expect(fs.lstatSync(symlinkPath).isSymbolicLink()).toBe(true);
+    expect(fs.realpathSync(symlinkPath)).toBe(fs.realpathSync(fakeHostRoot));
+  });
+
   it("does not create a symlink when peerDependencies is empty", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     resolveRootMock.mockReturnValue(suiteTempRootTracker.makeTempDir());
@@ -2453,6 +2491,6 @@ describe("linkGenesisPeerDependencies (via installPluginFromDir)", () => {
     const { result, warnings } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
 
     expect(result.ok).toBe(true);
-    expect(warnings.some((w) => w.includes("Could not locate genesis package root"))).toBe(true);
+    expect(warnings.some((w) => w.includes("Could not locate Genesis package root"))).toBe(true);
   });
 });

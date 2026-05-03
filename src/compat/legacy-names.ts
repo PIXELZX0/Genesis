@@ -6,6 +6,12 @@ export const MANIFEST_KEY = PROJECT_NAME;
 
 export const LEGACY_MANIFEST_KEYS = LEGACY_PROJECT_NAMES;
 
+export const COMPATIBLE_MANIFEST_KEYS = [
+  MANIFEST_KEY,
+  "openclaw",
+  ...LEGACY_MANIFEST_KEYS,
+] as const;
+
 export const LEGACY_PLUGIN_MANIFEST_FILENAMES = [] as const;
 
 export const LEGACY_CANVAS_HANDLER_NAMES = [] as const;

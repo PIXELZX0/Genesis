@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import JSON5 from "json5";
 import type { ChannelConfigRuntimeSchema } from "../channels/plugins/types.config.js";
-import { MANIFEST_KEY } from "../compat/legacy-names.js";
+import { COMPATIBLE_MANIFEST_KEYS } from "../compat/legacy-names.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isBlockedObjectKey } from "../infra/prototype-keys.js";
 import {
@@ -1079,11 +1079,11 @@ export const DEFAULT_PLUGIN_ENTRY_CANDIDATES = [
 ] as const;
 
 export type PackageExtensionResolution =
-  | { status: "ok"; entries: string[] }
+  | { status: "ok"; entries: string[]; manifestKey: ManifestKey }
   | { status: "missing"; entries: [] }
-  | { status: "empty"; entries: [] };
+  | { status: "empty"; entries: []; manifestKey: ManifestKey };
 
-export type ManifestKey = typeof MANIFEST_KEY;
+export type ManifestKey = (typeof COMPATIBLE_MANIFEST_KEYS)[number];
 
 export type PackageManifest = {
   name?: string;
@@ -1094,22 +1094,38 @@ export type PackageManifest = {
 export function getPackageManifestMetadata(
   manifest: PackageManifest | undefined,
 ): GenesisPackageManifest | undefined {
+  return getPackageManifestMetadataWithKey(manifest)?.metadata;
+}
+
+export function getPackageManifestMetadataWithKey(
+  manifest: PackageManifest | undefined,
+): { metadata: GenesisPackageManifest; manifestKey: ManifestKey } | undefined {
   if (!manifest) {
     return undefined;
   }
-  return manifest[MANIFEST_KEY];
+  for (const key of COMPATIBLE_MANIFEST_KEYS) {
+    const metadata = manifest[key];
+    if (metadata && typeof metadata === "object") {
+      return { metadata, manifestKey: key };
+    }
+  }
+  return undefined;
 }
 
 export function resolvePackageExtensionEntries(
   manifest: PackageManifest | undefined,
 ): PackageExtensionResolution {
-  const raw = getPackageManifestMetadata(manifest)?.extensions;
+  const packageManifest = getPackageManifestMetadataWithKey(manifest);
+  if (!packageManifest) {
+    return { status: "missing", entries: [] };
+  }
+  const raw = packageManifest.metadata.extensions;
   if (!Array.isArray(raw)) {
     return { status: "missing", entries: [] };
   }
   const entries = raw.map((entry) => normalizeOptionalString(entry) ?? "").filter(Boolean);
   if (entries.length === 0) {
-    return { status: "empty", entries: [] };
+    return { status: "empty", entries: [], manifestKey: packageManifest.manifestKey };
   }
-  return { status: "ok", entries };
+  return { status: "ok", entries, manifestKey: packageManifest.manifestKey };
 }

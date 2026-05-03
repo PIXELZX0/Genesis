@@ -13,6 +13,8 @@ const PLUGIN_ID = "matrix";
 const GENESIS_PLUGIN_SDK_PACKAGE_NAMES = [
   ["genesis", "plugin-sdk"].join("/"),
   ["@genesis", "plugin-sdk"].join("/"),
+  ["openclaw", "plugin-sdk"].join("/"),
+  ["@openclaw", "plugin-sdk"].join("/"),
 ];
 const PLUGIN_SDK_EXPORT_PREFIX = "./plugin-sdk/";
 const PLUGIN_SDK_SOURCE_EXTENSIONS = [".ts", ".mts", ".js", ".mjs", ".cts", ".cjs"];
@@ -29,6 +31,7 @@ const JITI_EXTENSIONS = [
   ".cjs",
   ".json",
 ];
+const GENESIS_COMPAT_PACKAGE_NAMES = new Set(["genesis", "@pixelzx/genesis", "openclaw"]);
 
 function readPackageJson(packageRoot) {
   try {
@@ -62,7 +65,10 @@ function findGenesisPackageRoot(startDir) {
   let cursor = path.resolve(startDir);
   for (let i = 0; i < 12; i += 1) {
     const pkg = readPackageJson(cursor);
-    if (pkg?.name === "genesis" && hasTrustedGenesisRootIndicator(cursor, pkg)) {
+    if (
+      GENESIS_COMPAT_PACKAGE_NAMES.has(pkg?.name) &&
+      hasTrustedGenesisRootIndicator(cursor, pkg)
+    ) {
       return { packageRoot: cursor, packageJson: pkg };
     }
     const parent = path.dirname(cursor);
@@ -128,6 +134,7 @@ function buildPluginSdkAliasMap(moduleUrl) {
     ) ?? resolveExistingFile(path.join(packageRoot, "dist", "extensionAPI"), [".js"]);
   if (extensionApi) {
     aliasMap["genesis/extension-api"] = extensionApi;
+    aliasMap["openclaw/extension-api"] = extensionApi;
   }
 
   return aliasMap;

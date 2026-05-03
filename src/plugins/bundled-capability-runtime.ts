@@ -54,6 +54,8 @@ export function buildVitestCapabilityShimAliasMap(): Record<string, string> {
       return [
         [`genesis/plugin-sdk/${subpath}`, targetPath],
         [`@genesis/plugin-sdk/${subpath}`, targetPath],
+        [`openclaw/plugin-sdk/${subpath}`, targetPath],
+        [`@openclaw/plugin-sdk/${subpath}`, targetPath],
       ];
     }),
   );
@@ -71,6 +73,8 @@ function applyVitestCapabilityAliasOverrides(params: {
   const {
     "genesis/plugin-sdk": _ignoredLegacyRootAlias,
     "@genesis/plugin-sdk": _ignoredScopedRootAlias,
+    "openclaw/plugin-sdk": _ignoredOpenClawRootAlias,
+    "@openclaw/plugin-sdk": _ignoredScopedOpenClawRootAlias,
     ...scopedAliasMap
   } = params.aliasMap;
   return {

@@ -20,10 +20,15 @@
     "useDefineForClassFields": false,
     "paths": {
       "genesis/extension-api": ["./src/extensionAPI.ts"],
+      "openclaw/extension-api": ["./src/extensionAPI.ts"],
       "genesis/plugin-sdk": ["./src/plugin-sdk/index.ts"],
       "genesis/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
       "@genesis/plugin-sdk": ["./src/plugin-sdk/index.ts"],
       "@genesis/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+      "openclaw/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+      "openclaw/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+      "@openclaw/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+      "@openclaw/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
       "genesis/plugin-sdk/account-id": ["./src/plugin-sdk/account-id.ts"],
       "@genesis/*": ["./extensions/*"]
     }

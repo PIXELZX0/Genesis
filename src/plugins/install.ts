@@ -36,7 +36,7 @@ type PackageManifest = PluginPackageManifest & {
 };
 
 const MISSING_EXTENSIONS_ERROR =
-  'package.json missing genesis.extensions; update the plugin package to include genesis.extensions (for example ["./dist/index.js"]). See https://docs.genesis.ai/help/troubleshooting#plugin-install-fails-with-missing-genesis-extensions';
+  'package.json missing genesis.extensions (or OpenClaw-compatible openclaw.extensions); update the plugin package to include genesis.extensions (for example ["./dist/index.js"]). See https://docs.genesis.ai/help/troubleshooting#plugin-install-fails-with-missing-genesis-extensions';
 const PLUGIN_ARCHIVE_ROOT_MARKERS = [
   "package.json",
   "genesis.plugin.json",
@@ -174,7 +174,7 @@ function ensureGenesisExtensions(params: { manifest: PackageManifest }):
   if (resolved.status === "empty") {
     return {
       ok: false,
-      error: "package.json genesis.extensions is empty",
+      error: `package.json ${resolved.manifestKey}.extensions is empty`,
       code: PLUGIN_INSTALL_ERROR_CODE.EMPTY_GENESIS_EXTENSIONS,
     };
   }
@@ -611,15 +611,17 @@ async function detectNativePackageInstallSource(packageDir: string): Promise<boo
 }
 
 /**
- * After the staged plugin tree has been scanned, symlink the host genesis
- * package for plugins that declare it as a peer dependency.
+ * After the staged plugin tree has been scanned, symlink the host package for
+ * plugins that declare Genesis/OpenClaw as a peer dependency.
  */
 async function linkGenesisPeerDependencies(params: {
   installedDir: string;
   peerDependencies: Record<string, string>;
   logger: PluginInstallLogger;
 }): Promise<void> {
-  const peers = Object.keys(params.peerDependencies).filter((name) => name === "genesis");
+  const peers = Object.keys(params.peerDependencies).filter(
+    (name) => name === "genesis" || name === "openclaw",
+  );
   if (peers.length === 0) {
     return;
   }
@@ -631,7 +633,7 @@ async function linkGenesisPeerDependencies(params: {
   });
   if (!hostRoot) {
     params.logger.warn?.(
-      "Could not locate genesis package root to symlink peerDependencies; plugin may fail to resolve genesis at runtime.",
+      "Could not locate Genesis package root to symlink peerDependencies; plugin may fail to resolve host imports at runtime.",
     );
     return;
   }

@@ -258,6 +258,9 @@ import { createPluginRuntimeStore } from "genesis/plugin-sdk/runtime-store";
 import { ... } from "genesis/plugin-sdk";
 ```
 
+Genesis also resolves OpenClaw-compatible `openclaw/plugin-sdk/<subpath>` and
+`@openclaw/plugin-sdk/<subpath>` imports for existing npm plugins.
+
 For the full subpath reference, see [SDK Overview](/plugins/sdk-overview).
 
 Within your plugin, use local barrel files (`api.ts`, `runtime-api.ts`) for

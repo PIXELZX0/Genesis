@@ -133,6 +133,44 @@ export function describeOfficialFallbackChannelCatalogContract(params: {
       expect(entry?.pluginId).toBeUndefined();
     });
 
+    it("reads OpenClaw-compatible external catalog metadata", () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-openclaw-catalog-"));
+      const catalogPath = path.join(dir, "catalog.json");
+      fs.writeFileSync(
+        catalogPath,
+        JSON.stringify({
+          entries: [
+            {
+              name: params.packageName.replace("@genesis/", "@openclaw/"),
+              openclaw: {
+                channel: params.meta,
+                install: {
+                  npmSpec: params.npmSpec.replace("@genesis/", "@openclaw/"),
+                  defaultChoice: "npm",
+                },
+              },
+            },
+          ],
+        }),
+        "utf8",
+      );
+
+      const entry = listChannelPluginCatalogEntries({
+        catalogPaths: [catalogPath],
+        officialCatalogPaths: [],
+        env: {
+          ...process.env,
+          GENESIS_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+        },
+      }).find((item) => item.id === params.channelId);
+
+      expect(entry?.install.npmSpec).toBe(params.npmSpec.replace("@genesis/", "@openclaw/"));
+      expect(entry?.installSource?.warnings).toEqual([
+        "npm-spec-floating",
+        "npm-spec-missing-integrity",
+      ]);
+    });
+
     it("lets external catalogs override shipped fallback channel metadata", () => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-fallback-catalog-"));
       const bundledDir = path.join(dir, "dist", "extensions", params.pluginId);

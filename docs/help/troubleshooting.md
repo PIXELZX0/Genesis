@@ -55,14 +55,15 @@ agent turns:
    continue in the deep runbook:
    [/gateway/troubleshooting#local-openai-compatible-backend-passes-direct-probes-but-agent-runs-fail](/gateway/troubleshooting#local-openai-compatible-backend-passes-direct-probes-but-agent-runs-fail)
 
-## Plugin install fails with missing genesis extensions
+## Plugin install fails with missing plugin extensions
 
 If install fails with `package.json missing genesis.extensions`, the plugin package
-is using an old shape that Genesis no longer accepts.
+is using an old shape that Genesis no longer accepts. OpenClaw-compatible
+packages may declare the same entrypoints under `openclaw.extensions`.
 
 Fix in the plugin package:
 
-1. Add `genesis.extensions` to `package.json`.
+1. Add `genesis.extensions` or `openclaw.extensions` to `package.json`.
 2. Point entries at built runtime files (usually `./dist/index.js`).
 3. Republish the plugin and run `genesis plugins install <package>` again.
 

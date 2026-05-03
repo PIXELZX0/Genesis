@@ -749,7 +749,8 @@ path" instead of crashing or misreporting the account as not configured.
 
 ## Package packs
 
-A plugin directory may include a `package.json` with `genesis.extensions`:
+A plugin directory may include a `package.json` with `genesis.extensions`.
+OpenClaw-compatible package packs may use `openclaw.extensions` instead:
 
 ```json
 {
@@ -767,9 +768,9 @@ becomes `name/<fileBase>`.
 If your plugin imports npm deps, install them in that directory so
 `node_modules` is available (`npm install` / `pnpm install`).
 
-Security guardrail: every `genesis.extensions` entry must stay inside the plugin
-directory after symlink resolution. Entries that escape the package directory are
-rejected.
+Security guardrail: every package extension entry must stay inside the plugin
+directory after symlink resolution. Entries that escape the package directory
+are rejected.
 
 Security note: `genesis plugins install` installs plugin dependencies with
 `npm install --omit=dev --ignore-scripts` (no lifecycle scripts, no dev dependencies at runtime). Keep plugin dependency

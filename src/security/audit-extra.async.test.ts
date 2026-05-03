@@ -153,6 +153,23 @@ description: test skill
     expect(findings.some((f) => f.checkId === "plugins.code_safety.entry_escape")).toBe(true);
   });
 
+  it("audits OpenClaw-compatible package extension entries", async () => {
+    const tmpDir = await makeTmpDir("audit-scanner-openclaw");
+    const pluginDir = path.join(tmpDir, "extensions", "openclaw-plugin");
+    await fs.mkdir(pluginDir, { recursive: true });
+    await fs.writeFile(
+      path.join(pluginDir, "package.json"),
+      JSON.stringify({
+        name: "openclaw-plugin",
+        openclaw: { extensions: ["../outside.js"] },
+      }),
+    );
+    await fs.writeFile(path.join(pluginDir, "index.js"), "export {};");
+
+    const findings = await collectPluginsCodeSafetyFindings({ stateDir: tmpDir });
+    expect(findings.some((f) => f.checkId === "plugins.code_safety.entry_escape")).toBe(true);
+  });
+
   it("surfaces manifest_parse_error finding when plugin package.json is malformed JSON", async () => {
     const tmpDir = await makeTmpDir("audit-manifest-parse-error");
     const pluginDir = path.join(tmpDir, "extensions", "broken-plugin");

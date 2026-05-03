@@ -300,10 +300,18 @@ describe("plugin-sdk root alias", () => {
     expect(lazyModule.createJitiOptions.at(-1)?.alias).toMatchObject({
       "genesis/plugin-sdk": rootAliasPath,
       "@genesis/plugin-sdk": rootAliasPath,
+      "openclaw/plugin-sdk": rootAliasPath,
+      "@openclaw/plugin-sdk": rootAliasPath,
       "genesis/plugin-sdk/group-access": expect.stringContaining(
         path.join("src", "plugin-sdk", "group-access.ts"),
       ),
       "@genesis/plugin-sdk/group-access": expect.stringContaining(
+        path.join("src", "plugin-sdk", "group-access.ts"),
+      ),
+      "openclaw/plugin-sdk/group-access": expect.stringContaining(
+        path.join("src", "plugin-sdk", "group-access.ts"),
+      ),
+      "@openclaw/plugin-sdk/group-access": expect.stringContaining(
         path.join("src", "plugin-sdk", "group-access.ts"),
       ),
     });
@@ -329,12 +337,20 @@ describe("plugin-sdk root alias", () => {
     expect(aliasKeys).toEqual([
       "genesis/plugin-sdk/alpha",
       "@genesis/plugin-sdk/alpha",
+      "openclaw/plugin-sdk/alpha",
+      "@openclaw/plugin-sdk/alpha",
       "genesis/plugin-sdk/group-access",
       "@genesis/plugin-sdk/group-access",
+      "openclaw/plugin-sdk/group-access",
+      "@openclaw/plugin-sdk/group-access",
       "genesis/plugin-sdk/zeta",
       "@genesis/plugin-sdk/zeta",
+      "openclaw/plugin-sdk/zeta",
+      "@openclaw/plugin-sdk/zeta",
       "genesis/plugin-sdk",
       "@genesis/plugin-sdk",
+      "openclaw/plugin-sdk",
+      "@openclaw/plugin-sdk",
     ]);
   });
 
@@ -357,8 +373,16 @@ describe("plugin-sdk root alias", () => {
     expect(aliasMap["@genesis/plugin-sdk/qa-lab"]).toBe(
       path.join(packageRoot, "src", "plugin-sdk", "qa-lab.ts"),
     );
+    expect(aliasMap["openclaw/plugin-sdk/qa-lab"]).toBe(
+      path.join(packageRoot, "src", "plugin-sdk", "qa-lab.ts"),
+    );
+    expect(aliasMap["@openclaw/plugin-sdk/qa-lab"]).toBe(
+      path.join(packageRoot, "src", "plugin-sdk", "qa-lab.ts"),
+    );
     expect(aliasMap).not.toHaveProperty("genesis/plugin-sdk/../escape");
     expect(aliasMap).not.toHaveProperty("genesis/plugin-sdk/nested/path");
+    expect(aliasMap).not.toHaveProperty("openclaw/plugin-sdk/../escape");
+    expect(aliasMap).not.toHaveProperty("openclaw/plugin-sdk/nested/path");
   });
 
   it("builds source plugin-sdk subpath aliases through the wider source extension family", () => {
@@ -382,6 +406,18 @@ describe("plugin-sdk root alias", () => {
         "channel-runtime.mts",
       ),
       "@genesis/plugin-sdk/channel-runtime": path.join(
+        packageRoot,
+        "src",
+        "plugin-sdk",
+        "channel-runtime.mts",
+      ),
+      "openclaw/plugin-sdk/channel-runtime": path.join(
+        packageRoot,
+        "src",
+        "plugin-sdk",
+        "channel-runtime.mts",
+      ),
+      "@openclaw/plugin-sdk/channel-runtime": path.join(
         packageRoot,
         "src",
         "plugin-sdk",

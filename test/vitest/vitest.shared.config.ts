@@ -131,6 +131,10 @@ export const sharedVitestConfig = {
         find: "genesis/extension-api",
         replacement: path.join(repoRoot, "src", "extensionAPI.ts"),
       },
+      {
+        find: "openclaw/extension-api",
+        replacement: path.join(repoRoot, "src", "extensionAPI.ts"),
+      },
       ...pluginSdkSubpaths.map((subpath) => ({
         find: `genesis/plugin-sdk/${subpath}`,
         replacement: path.join(repoRoot, "src", "plugin-sdk", `${subpath}.ts`),
@@ -139,9 +143,29 @@ export const sharedVitestConfig = {
         find: `@genesis/plugin-sdk/${subpath}`,
         replacement: path.join(repoRoot, "packages", "plugin-sdk", "src", `${subpath}.ts`),
       })),
+      ...pluginSdkSubpaths.map((subpath) => ({
+        find: `openclaw/plugin-sdk/${subpath}`,
+        replacement: path.join(repoRoot, "src", "plugin-sdk", `${subpath}.ts`),
+      })),
+      ...pluginSdkSubpaths.map((subpath) => ({
+        find: `@openclaw/plugin-sdk/${subpath}`,
+        replacement: path.join(repoRoot, "packages", "plugin-sdk", "src", `${subpath}.ts`),
+      })),
       {
         find: "genesis/plugin-sdk",
         replacement: path.join(repoRoot, "src", "plugin-sdk", "index.ts"),
+      },
+      {
+        find: "@genesis/plugin-sdk",
+        replacement: path.join(repoRoot, "packages", "plugin-sdk", "src", "index.ts"),
+      },
+      {
+        find: "openclaw/plugin-sdk",
+        replacement: path.join(repoRoot, "src", "plugin-sdk", "index.ts"),
+      },
+      {
+        find: "@openclaw/plugin-sdk",
+        replacement: path.join(repoRoot, "packages", "plugin-sdk", "src", "index.ts"),
       },
     ],
   },

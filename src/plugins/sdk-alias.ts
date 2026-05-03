@@ -251,7 +251,12 @@ export function resolvePluginSdkAliasFile(params: {
 
 const cachedPluginSdkExportedSubpaths = new Map<string, string[]>();
 const cachedPluginSdkScopedAliasMaps = new Map<string, Record<string, string>>();
-const PLUGIN_SDK_PACKAGE_NAMES = ["genesis/plugin-sdk", "@genesis/plugin-sdk"] as const;
+const PLUGIN_SDK_PACKAGE_NAMES = [
+  "genesis/plugin-sdk",
+  "@genesis/plugin-sdk",
+  "openclaw/plugin-sdk",
+  "@openclaw/plugin-sdk",
+] as const;
 const PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS = [
   ".ts",
   ".mts",
@@ -624,7 +629,10 @@ export function buildPluginLoaderAliasMap(
   const extensionApiAlias = resolveExtensionApiAlias({ modulePath, pluginSdkResolution });
   const result: Record<string, string> = {
     ...(extensionApiAlias
-      ? { "genesis/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias) }
+      ? {
+          "genesis/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias),
+          "openclaw/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias),
+        }
       : {}),
     ...(pluginSdkAlias
       ? Object.fromEntries(

@@ -708,7 +708,9 @@ If you are unsure where a piece of metadata belongs, use this rule:
 ### package.json fields that affect discovery
 
 Some pre-runtime plugin metadata intentionally lives in `package.json` under the
-`genesis` block instead of `genesis.plugin.json`.
+`genesis` block instead of `genesis.plugin.json`. Genesis also accepts the same
+metadata under `openclaw` for OpenClaw-compatible npm plugins; when both are
+present, `genesis` wins.
 
 Important examples:
 

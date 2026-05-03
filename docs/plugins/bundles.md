@@ -246,7 +246,7 @@ These are recognized and shown in diagnostics, but Genesis does not run them:
 
 Genesis checks for native plugin format first:
 
-1. `genesis.plugin.json` or valid `package.json` with `genesis.extensions` — treated as **native plugin**
+1. `genesis.plugin.json` or valid `package.json` with `genesis.extensions`/`openclaw.extensions` — treated as **native plugin**
 2. Bundle markers (`.codex-plugin/`, `.claude-plugin/`, or default Claude/Cursor layout) — treated as **bundle**
 
 If a directory contains both, Genesis uses the native path. This prevents

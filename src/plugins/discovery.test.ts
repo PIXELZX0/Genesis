@@ -71,12 +71,14 @@ function writePluginPackageManifest(params: {
   runtimeExtensions?: string[];
   setupEntry?: string;
   runtimeSetupEntry?: string;
+  manifestKey?: "genesis" | "openclaw";
 }) {
+  const manifestKey = params.manifestKey ?? "genesis";
   fs.writeFileSync(
     path.join(params.packageDir, "package.json"),
     JSON.stringify({
       name: params.packageName,
-      genesis: {
+      [manifestKey]: {
         extensions: params.extensions,
         ...(params.runtimeExtensions ? { runtimeExtensions: params.runtimeExtensions } : {}),
         ...(params.setupEntry ? { setupEntry: params.setupEntry } : {}),
@@ -112,12 +114,14 @@ function createPackagePlugin(params: {
   packageName: string;
   extensions: string[];
   pluginId?: string;
+  manifestKey?: "genesis" | "openclaw";
 }) {
   mkdirSafe(params.packageDir);
   writePluginPackageManifest({
     packageDir: params.packageDir,
     packageName: params.packageName,
     extensions: params.extensions,
+    ...(params.manifestKey ? { manifestKey: params.manifestKey } : {}),
   });
   if (params.pluginId) {
     writePluginManifest({ pluginDir: params.packageDir, id: params.pluginId });
@@ -316,6 +320,27 @@ describe("discoverGenesisPlugins", () => {
       absent: ["stray-workspace-plugin"],
     });
     expect(result.diagnostics).toEqual([]);
+  });
+
+  it("discovers packages that use OpenClaw-compatible package metadata", () => {
+    const stateDir = makeTempDir();
+    const pluginDir = path.join(stateDir, "extensions", "openclaw-pack");
+    const entryPath = "src/index.ts";
+    mkdirSafe(path.dirname(path.join(pluginDir, entryPath)));
+    createPackagePlugin({
+      packageDir: pluginDir,
+      packageName: "@openclaw/openclaw-pack",
+      extensions: [`./${entryPath}`],
+      pluginId: "openclaw-pack",
+      manifestKey: "openclaw",
+    });
+    writePluginEntry(path.join(pluginDir, entryPath));
+
+    const result = discoverGenesisPlugins({ env: buildDiscoveryEnv(stateDir) });
+
+    expectCandidatePresence(result, { present: ["openclaw-pack"] });
+    const candidate = result.candidates.find((item) => item.idHint === "openclaw-pack");
+    expect(candidate?.packageManifest?.extensions?.[0]).toBe(`./${entryPath}`);
   });
 
   it("resolves tilde workspace dirs against the provided env", () => {

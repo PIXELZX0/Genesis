@@ -11,7 +11,7 @@ import { execDockerRaw, type ExecDockerRawResult } from "../agents/sandbox/docke
 import { resolveSkillSource } from "../agents/skills/source.js";
 import { listAgentWorkspaceDirs } from "../agents/workspace-dirs.js";
 import { formatCliCommand } from "../cli/command-format.js";
-import { MANIFEST_KEY } from "../compat/legacy-names.js";
+import { COMPATIBLE_MANIFEST_KEYS } from "../compat/legacy-names.js";
 import type { GenesisConfig, ConfigFileSnapshot } from "../config/config.js";
 import { collectIncludePathsRecursive } from "../config/includes-scan.js";
 import { resolveOAuthDir } from "../config/paths.js";
@@ -130,10 +130,12 @@ async function readPluginManifestExtensions(pluginPath: string): Promise<string[
     return [];
   }
 
-  let parsed: Partial<Record<typeof MANIFEST_KEY, { extensions?: unknown }>> | null;
+  let parsed: Partial<
+    Record<(typeof COMPATIBLE_MANIFEST_KEYS)[number], { extensions?: unknown }>
+  > | null;
   try {
     parsed = JSON.parse(raw) as Partial<
-      Record<typeof MANIFEST_KEY, { extensions?: unknown }>
+      Record<(typeof COMPATIBLE_MANIFEST_KEYS)[number], { extensions?: unknown }>
     > | null;
   } catch (err) {
     // Re-throw so callers can surface a security finding for malformed manifests.
@@ -143,7 +145,10 @@ async function readPluginManifestExtensions(pluginPath: string): Promise<string[
       cause: err,
     });
   }
-  const extensions = parsed?.[MANIFEST_KEY]?.extensions;
+  const metadata = COMPATIBLE_MANIFEST_KEYS.map((key) => parsed?.[key]).find(
+    (candidate) => candidate && typeof candidate === "object",
+  );
+  const extensions = metadata?.extensions;
   if (!Array.isArray(extensions)) {
     return [];
   }
@@ -849,7 +854,7 @@ export async function collectPluginsCodeSafetyFindings(params: {
         title: `Plugin "${pluginName}" has a malformed package.json`,
         detail:
           `Could not parse plugin manifest: ${String(manifestErr)}.\n` +
-          "The extension entrypoint list is unavailable. Deep scan will cover the plugin directory but may miss entries declared via `genesis.extensions`.",
+          "The extension entrypoint list is unavailable. Deep scan will cover the plugin directory but may miss entries declared via `genesis.extensions` or `openclaw.extensions`.",
         remediation:
           "Inspect the plugin package.json for syntax errors. If the plugin is untrusted, remove it from your Genesis extensions state directory.",
       });
@@ -883,7 +888,7 @@ export async function collectPluginsCodeSafetyFindings(params: {
         title: `Plugin "${pluginName}" has extension entry path traversal`,
         detail: `Found extension entries that escape the plugin directory:\n${escapedEntries.map((entry) => `  - ${entry}`).join("\n")}`,
         remediation:
-          "Update the plugin manifest so all genesis.extensions entries stay inside the plugin directory.",
+          "Update the plugin manifest so all extension entries stay inside the plugin directory.",
       });
     }
 

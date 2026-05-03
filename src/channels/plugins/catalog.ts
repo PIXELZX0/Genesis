@@ -1,14 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 import officialExternalChannelCatalog from "../../../scripts/lib/official-external-channel-catalog.json" with { type: "json" };
-import { MANIFEST_KEY } from "../../compat/legacy-names.js";
 import { resolveGenesisPackageRootSync } from "../../infra/genesis-root.js";
 import { listChannelCatalogEntries } from "../../plugins/channel-catalog-registry.js";
 import {
   describePluginInstallSource,
   type PluginInstallSourceInfo,
 } from "../../plugins/install-source-info.js";
-import type { GenesisPackageManifest } from "../../plugins/manifest.js";
+import {
+  getPackageManifestMetadata,
+  type GenesisPackageManifest,
+  type ManifestKey,
+} from "../../plugins/manifest.js";
 import type { PluginPackageChannel, PluginPackageInstall } from "../../plugins/manifest.js";
 import type { PluginOrigin } from "../../plugins/plugin-origin.types.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -69,8 +72,6 @@ type ExternalCatalogEntry = {
 
 const ENV_CATALOG_PATHS = ["GENESIS_PLUGIN_CATALOG_PATHS", "GENESIS_MPM_CATALOG_PATHS"];
 const OFFICIAL_CHANNEL_CATALOG_RELATIVE_PATH = path.join("dist", "channel-catalog.json");
-
-type ManifestKey = typeof MANIFEST_KEY;
 
 function parseCatalogEntries(raw: unknown): ExternalCatalogEntry[] {
   if (Array.isArray(raw)) {
@@ -276,7 +277,7 @@ function buildCatalogEntryFromManifest(params: {
 }
 
 function buildExternalCatalogEntry(entry: ExternalCatalogEntry): ChannelPluginCatalogEntry | null {
-  const manifest = entry[MANIFEST_KEY];
+  const manifest = getPackageManifestMetadata(entry);
   return buildCatalogEntryFromManifest({
     packageName: entry.name,
     channel: manifest?.channel,

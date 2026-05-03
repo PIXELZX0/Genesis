@@ -7,7 +7,12 @@ let monolithicSdk = null;
 let diagnosticEventsModule = null;
 const jitiLoaders = new Map();
 const pluginSdkSubpathsCache = new Map();
-const pluginSdkPackageNames = ["genesis/plugin-sdk", "@genesis/plugin-sdk"];
+const pluginSdkPackageNames = [
+  "genesis/plugin-sdk",
+  "@genesis/plugin-sdk",
+  "openclaw/plugin-sdk",
+  "@openclaw/plugin-sdk",
+];
 const pluginSdkSourceExtensions = [".ts", ".mts", ".js", ".mjs", ".cts", ".cjs"];
 const isDistRootAlias = __filename.includes(
   `${path.sep}dist${path.sep}plugin-sdk${path.sep}root-alias.cjs`,

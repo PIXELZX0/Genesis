@@ -14,8 +14,12 @@ const matrixWrapperGlobal = globalThis as typeof globalThis & {
 };
 const PLUGIN_SDK_ROOT = ["genesis", "plugin-sdk"].join("/");
 const SCOPED_PLUGIN_SDK_ROOT = ["@genesis", "plugin-sdk"].join("/");
+const OPENCLAW_PLUGIN_SDK_ROOT = ["openclaw", "plugin-sdk"].join("/");
+const SCOPED_OPENCLAW_PLUGIN_SDK_ROOT = ["@openclaw", "plugin-sdk"].join("/");
 const GROUP_ACCESS_SUBPATH = `${PLUGIN_SDK_ROOT}/group-access`;
 const SCOPED_GROUP_ACCESS_SUBPATH = `${SCOPED_PLUGIN_SDK_ROOT}/group-access`;
+const OPENCLAW_GROUP_ACCESS_SUBPATH = `${OPENCLAW_PLUGIN_SDK_ROOT}/group-access`;
+const SCOPED_OPENCLAW_GROUP_ACCESS_SUBPATH = `${SCOPED_OPENCLAW_PLUGIN_SDK_ROOT}/group-access`;
 const MATRIX_RUNTIME_WRAPPER_SOURCE = fs.readFileSync(
   path.join(REPO_ROOT, "extensions", "matrix", "src", "plugin-entry.runtime.js"),
   "utf8",
@@ -76,6 +80,26 @@ function writeGenesisPackageFixture(fixtureRoot: string) {
     JSON.stringify(
       {
         name: "genesis",
+        type: "module",
+        exports: {
+          "./plugin-sdk": "./dist/plugin-sdk/index.js",
+        },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  writeFixtureFile(fixtureRoot, "genesis.mjs", "export {};\n");
+  writeFixtureFile(fixtureRoot, "dist/plugin-sdk/index.js", "export {};\n");
+}
+
+function writePixelGenesisPackageFixture(fixtureRoot: string) {
+  writeFixtureFile(
+    fixtureRoot,
+    "package.json",
+    JSON.stringify(
+      {
+        name: "@pixelzx/genesis",
         type: "module",
         exports: {
           "./plugin-sdk": "./dist/plugin-sdk/index.js",
@@ -182,8 +206,27 @@ function expectSourcePluginSdkAliases(fixtureRoot: string) {
     alias: {
       [PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
       [SCOPED_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
+      [OPENCLAW_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
+      [SCOPED_OPENCLAW_PLUGIN_SDK_ROOT]: path.join(
+        fixtureRoot,
+        "src",
+        "plugin-sdk",
+        "root-alias.cjs",
+      ),
       [GROUP_ACCESS_SUBPATH]: path.join(fixtureRoot, "src", "plugin-sdk", "group-access.ts"),
       [SCOPED_GROUP_ACCESS_SUBPATH]: path.join(fixtureRoot, "src", "plugin-sdk", "group-access.ts"),
+      [OPENCLAW_GROUP_ACCESS_SUBPATH]: path.join(
+        fixtureRoot,
+        "src",
+        "plugin-sdk",
+        "group-access.ts",
+      ),
+      [SCOPED_OPENCLAW_GROUP_ACCESS_SUBPATH]: path.join(
+        fixtureRoot,
+        "src",
+        "plugin-sdk",
+        "group-access.ts",
+      ),
     },
   });
 }
@@ -198,6 +241,18 @@ it("loads the source-checkout runtime wrapper through native ESM import", async 
   const fixtureRoot = makeFixtureRoot(".tmp-matrix-source-runtime-");
 
   writeGenesisPackageFixture(fixtureRoot);
+  writeJitiFixture(fixtureRoot);
+  writeSourceRuntimeWrapperFixture(fixtureRoot);
+
+  expectRuntimeWrapperExports(
+    await importFixtureModule(fixtureRoot, "extensions/matrix/src/plugin-entry.runtime.js"),
+  );
+}, 240_000);
+
+it("finds the packaged Genesis root when package name is scoped", async () => {
+  const fixtureRoot = makeFixtureRoot(".tmp-matrix-scoped-genesis-runtime-");
+
+  writePixelGenesisPackageFixture(fixtureRoot);
   writeJitiFixture(fixtureRoot);
   writeSourceRuntimeWrapperFixture(fixtureRoot);
 
@@ -251,6 +306,7 @@ it("resolves extension-api aliases through the same source extension family", as
   expect(matrixWrapperGlobal.__genesisMatrixWrapperJitiOptions).toMatchObject({
     alias: {
       "genesis/extension-api": path.join(fixtureRoot, "src", "extensionAPI.mts"),
+      "openclaw/extension-api": path.join(fixtureRoot, "src", "extensionAPI.mts"),
     },
   });
 }, 240_000);
@@ -280,12 +336,20 @@ it("keeps wrapper plugin-sdk aliases deterministic and ignores unsafe subpaths",
   expect(aliasKeys).toEqual([
     PLUGIN_SDK_ROOT,
     SCOPED_PLUGIN_SDK_ROOT,
+    OPENCLAW_PLUGIN_SDK_ROOT,
+    SCOPED_OPENCLAW_PLUGIN_SDK_ROOT,
     `${PLUGIN_SDK_ROOT}/alpha`,
     `${SCOPED_PLUGIN_SDK_ROOT}/alpha`,
+    `${OPENCLAW_PLUGIN_SDK_ROOT}/alpha`,
+    `${SCOPED_OPENCLAW_PLUGIN_SDK_ROOT}/alpha`,
     GROUP_ACCESS_SUBPATH,
     SCOPED_GROUP_ACCESS_SUBPATH,
+    OPENCLAW_GROUP_ACCESS_SUBPATH,
+    SCOPED_OPENCLAW_GROUP_ACCESS_SUBPATH,
     `${PLUGIN_SDK_ROOT}/zeta`,
     `${SCOPED_PLUGIN_SDK_ROOT}/zeta`,
+    `${OPENCLAW_PLUGIN_SDK_ROOT}/zeta`,
+    `${SCOPED_OPENCLAW_PLUGIN_SDK_ROOT}/zeta`,
   ]);
 }, 240_000);
 
@@ -336,6 +400,13 @@ it("treats string bin hints case-insensitively when trusting wrapper package roo
     alias: {
       [PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
       [SCOPED_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
+      [OPENCLAW_PLUGIN_SDK_ROOT]: path.join(fixtureRoot, "src", "plugin-sdk", "root-alias.cjs"),
+      [SCOPED_OPENCLAW_PLUGIN_SDK_ROOT]: path.join(
+        fixtureRoot,
+        "src",
+        "plugin-sdk",
+        "root-alias.cjs",
+      ),
     },
   });
 }, 240_000);

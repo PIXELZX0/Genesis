@@ -259,11 +259,23 @@ function expectPluginSdkAliasTargets(
   expect(fs.realpathSync(aliases["@genesis/plugin-sdk"] ?? "")).toBe(
     fs.realpathSync(params.rootAliasPath),
   );
+  expect(fs.realpathSync(aliases["openclaw/plugin-sdk"] ?? "")).toBe(
+    fs.realpathSync(params.rootAliasPath),
+  );
+  expect(fs.realpathSync(aliases["@openclaw/plugin-sdk"] ?? "")).toBe(
+    fs.realpathSync(params.rootAliasPath),
+  );
   if (params.channelRuntimePath) {
     expect(fs.realpathSync(aliases["genesis/plugin-sdk/channel-runtime"] ?? "")).toBe(
       fs.realpathSync(params.channelRuntimePath),
     );
     expect(fs.realpathSync(aliases["@genesis/plugin-sdk/channel-runtime"] ?? "")).toBe(
+      fs.realpathSync(params.channelRuntimePath),
+    );
+    expect(fs.realpathSync(aliases["openclaw/plugin-sdk/channel-runtime"] ?? "")).toBe(
+      fs.realpathSync(params.channelRuntimePath),
+    );
+    expect(fs.realpathSync(aliases["@openclaw/plugin-sdk/channel-runtime"] ?? "")).toBe(
       fs.realpathSync(params.channelRuntimePath),
     );
   }
@@ -677,7 +689,13 @@ describe("plugin sdk alias helpers", () => {
     expect(fs.realpathSync(aliases["genesis/plugin-sdk/qa-runtime"] ?? "")).toBe(
       fs.realpathSync(sourceQaRuntimePath),
     );
+    expect(fs.realpathSync(aliases["openclaw/plugin-sdk/qa-runtime"] ?? "")).toBe(
+      fs.realpathSync(sourceQaRuntimePath),
+    );
     expect(fs.realpathSync(aliases["genesis/plugin-sdk/qa-lab"] ?? "")).toBe(
+      fs.realpathSync(distQaLabPath),
+    );
+    expect(fs.realpathSync(aliases["openclaw/plugin-sdk/qa-lab"] ?? "")).toBe(
       fs.realpathSync(distQaLabPath),
     );
   });
@@ -767,6 +785,33 @@ describe("plugin sdk alias helpers", () => {
       rootAliasPath: sourceRootAlias,
       channelRuntimePath: sourceChannelRuntimePath,
     });
+  });
+
+  it("adds OpenClaw compatibility aliases for plugin-sdk and extension-api imports", () => {
+    const fixture = createPluginSdkAliasTargetFixture();
+    const sourcePluginEntry = writePluginEntry(
+      fixture.fixture.root,
+      bundledPluginFile("demo", "src/index.ts"),
+    );
+    fs.writeFileSync(
+      path.join(fixture.fixture.root, "src", "extensionAPI.ts"),
+      "export {};\n",
+      "utf-8",
+    );
+
+    const aliases = withEnv({ NODE_ENV: undefined }, () =>
+      buildPluginLoaderAliasMap(sourcePluginEntry),
+    );
+
+    expect(fs.realpathSync(aliases["openclaw/plugin-sdk"] ?? "")).toBe(
+      fs.realpathSync(fixture.sourceRootAlias),
+    );
+    expect(fs.realpathSync(aliases["@openclaw/plugin-sdk/channel-runtime"] ?? "")).toBe(
+      fs.realpathSync(fixture.sourceChannelRuntimePath),
+    );
+    expect(fs.realpathSync(aliases["openclaw/extension-api"] ?? "")).toBe(
+      fs.realpathSync(path.join(fixture.fixture.root, "src", "extensionAPI.ts")),
+    );
   });
 
   it("resolves plugin-sdk aliases for user-installed plugins via moduleUrl hint", () => {
