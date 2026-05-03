@@ -21,9 +21,8 @@ import { resolveGatewayService } from "../../daemon/service.js";
 import { nodeVersionSatisfiesEngine } from "../../infra/runtime-guard.js";
 import {
   channelToNpmTag,
-  DEFAULT_GIT_CHANNEL,
-  DEFAULT_PACKAGE_CHANNEL,
   normalizeUpdateChannel,
+  resolveEffectiveUpdateChannel,
 } from "../../infra/update-channels.js";
 import {
   compareSemverStrings,
@@ -37,6 +36,7 @@ import {
   createGlobalInstallEnv,
   cleanupGlobalRenameDirs,
   globalInstallArgs,
+  globalInstallFallbackArgs,
   resolveExpectedInstalledVersionFromSpec,
   resolveGlobalInstallTarget,
   resolveGlobalInstallSpec,
@@ -384,6 +384,21 @@ async function runPackageInstallUpdate(params: {
   });
 
   const steps = [updateStep];
+  let finalInstallStep = updateStep;
+  if (updateStep.exitCode !== 0) {
+    const fallbackArgv = globalInstallFallbackArgs(installTarget, installSpec);
+    if (fallbackArgv) {
+      const fallbackStep = await runUpdateStep({
+        name: "global update (omit optional)",
+        argv: fallbackArgv,
+        env: installEnv,
+        timeoutMs: params.timeoutMs,
+        progress: params.progress,
+      });
+      steps.push(fallbackStep);
+      finalInstallStep = fallbackStep;
+    }
+  }
   let afterVersion = beforeVersion;
 
   const verifiedPackageRoot =
@@ -429,7 +444,11 @@ async function runPackageInstallUpdate(params: {
     }
   }
 
-  const failedStep = steps.find((step) => step.exitCode !== 0);
+  const failedStep =
+    finalInstallStep.exitCode !== 0
+      ? finalInstallStep
+      : (steps.find((step) => step.name === "global install verify" && step.exitCode !== 0) ??
+        steps.find((step) => step.name === `${CLI_NAME} doctor` && step.exitCode !== 0));
   return {
     status: failedStep ? "error" : "ok",
     mode: manager,
@@ -1043,9 +1062,17 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
   const switchToPackage =
     requestedChannel !== null && requestedChannel !== "dev" && installKind === "git";
   const updateInstallKind = switchToGit ? "git" : switchToPackage ? "package" : installKind;
-  const defaultChannel =
-    updateInstallKind === "git" ? DEFAULT_GIT_CHANNEL : DEFAULT_PACKAGE_CHANNEL;
-  const channel = requestedChannel ?? storedChannel ?? defaultChannel;
+  const inferredChannel = resolveEffectiveUpdateChannel({
+    configChannel: storedChannel,
+    installKind: updateInstallKind,
+    git: updateStatus.git
+      ? {
+          tag: updateStatus.git.tag ?? null,
+          branch: updateStatus.git.branch ?? null,
+        }
+      : undefined,
+  });
+  const channel = requestedChannel ?? inferredChannel.channel;
   const devTargetRef =
     channel === "dev" ? process.env.GENESIS_UPDATE_DEV_TARGET_REF?.trim() || undefined : undefined;
 

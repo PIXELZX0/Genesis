@@ -6,6 +6,7 @@ Docs: https://docs.genesis.ai
 
 ### Fixes
 
+- Update: infer the default source-checkout channel from the current tag or branch so stable correction checkouts stay on `stable`, and retry npm package updates with `--omit=optional` when optional dependency builds fail.
 - Wallet: allow Control UI Secret Recovery Phrase generation and import without a wallet passphrase, and keep the recovery phrase mode icons consistently sized.
 
 ## 2026.5.3-3

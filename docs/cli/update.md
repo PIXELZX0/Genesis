@@ -80,6 +80,10 @@ install method aligned:
 - `beta` → prefers npm dist-tag `beta`, but falls back to `latest` when beta is
   missing or older than the current stable release.
 
+When no update channel is configured, source checkouts infer the channel from
+the current checkout: stable tags use `stable`, beta tags use `beta`, and branch
+checkouts use `dev`.
+
 The Gateway core auto-updater (when enabled via config) reuses this same update path.
 
 For package-manager installs, `genesis update` resolves the target package

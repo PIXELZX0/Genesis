@@ -484,7 +484,7 @@ describe("update-cli", () => {
         stdio: "inherit",
         env: expect.objectContaining({
           GENESIS_UPDATE_POST_CORE: "1",
-          GENESIS_UPDATE_POST_CORE_CHANNEL: "dev",
+          GENESIS_UPDATE_POST_CORE_CHANNEL: "stable",
         }),
       }),
     );
@@ -696,6 +696,17 @@ describe("update-cli", () => {
     },
   ] as const)("updateCommand dry-run behavior: $name", runUpdateCliScenario);
 
+  it("shows the git-tag inferred channel in dry-run JSON", async () => {
+    vi.mocked(defaultRuntime.writeJson).mockClear();
+
+    await updateCommand({ dryRun: true, json: true });
+
+    const preview = vi.mocked(defaultRuntime.writeJson).mock.calls.at(-1)?.[0] as
+      | { effectiveChannel?: string }
+      | undefined;
+    expect(preview?.effectiveChannel).toBe("stable");
+  });
+
   it.each([
     {
       name: "table output",
@@ -744,10 +755,41 @@ describe("update-cli", () => {
 
   it.each([
     {
-      name: "defaults to dev channel for git installs when unset",
+      name: "infers stable channel from a git release tag when unset",
       mode: "git" as const,
       options: {},
       prepare: async () => {},
+      expectedChannel: "stable" as const,
+      expectedTag: undefined as string | undefined,
+    },
+    {
+      name: "defaults to dev channel for git branch installs when unset",
+      mode: "git" as const,
+      options: {},
+      prepare: async () => {
+        vi.mocked(checkUpdateStatus).mockResolvedValue({
+          root: "/test/path",
+          installKind: "git",
+          packageManager: "pnpm",
+          git: {
+            root: "/test/path",
+            sha: "abcdef1234567890",
+            tag: null,
+            branch: "main",
+            upstream: "origin/main",
+            dirty: false,
+            ahead: 0,
+            behind: 0,
+            fetchOk: true,
+          },
+          deps: {
+            manager: "pnpm",
+            status: "ok",
+            lockfilePath: "/test/path/pnpm-lock.yaml",
+            markerPath: "/test/path/node_modules",
+          },
+        });
+      },
       expectedChannel: "dev" as const,
       expectedTag: undefined as string | undefined,
     },
@@ -858,6 +900,58 @@ describe("update-cli", () => {
     expect(replaceConfigFile).not.toHaveBeenCalled();
     const logs = vi.mocked(defaultRuntime.log).mock.calls.map((call) => String(call[0]));
     expect(logs.join("\n")).not.toContain("already-current");
+  });
+
+  it("retries npm package updates without optional dependencies when the first install fails", async () => {
+    const tempDir = createCaseDir("genesis-update");
+    mockPackageInstallStatus(tempDir);
+    vi.mocked(runCommandWithTimeout).mockImplementation(async (argv) => {
+      if (
+        Array.isArray(argv) &&
+        argv[0] === "npm" &&
+        argv[1] === "i" &&
+        argv[2] === "-g" &&
+        !argv.includes("--omit=optional")
+      ) {
+        return {
+          stdout: "",
+          stderr: "node-gyp failed",
+          code: 1,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      return {
+        stdout: "",
+        stderr: "",
+        code: 0,
+        signal: null,
+        killed: false,
+        termination: "exit",
+      };
+    });
+
+    await updateCommand({ yes: true, restart: false });
+
+    expect(runCommandWithTimeout).toHaveBeenCalledWith(
+      ["npm", "i", "-g", "genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      expect.any(Object),
+    );
+    expect(runCommandWithTimeout).toHaveBeenCalledWith(
+      [
+        "npm",
+        "i",
+        "-g",
+        "genesis@latest",
+        "--omit=optional",
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ],
+      expect.any(Object),
+    );
+    expect(defaultRuntime.exit).not.toHaveBeenCalledWith(1);
   });
 
   it("blocks package updates when the target requires a newer Node runtime", async () => {
