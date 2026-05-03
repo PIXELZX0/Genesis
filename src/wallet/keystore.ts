@@ -68,9 +68,6 @@ async function deriveKey(
   salt: Buffer,
   params = SCRYPT_PARAMS,
 ): Promise<Buffer> {
-  if (!passphrase.trim()) {
-    throw new Error("Wallet passphrase is required.");
-  }
   return scryptAsync(passphrase, salt, KEY_LENGTH, params);
 }
 

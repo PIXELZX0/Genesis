@@ -75,6 +75,64 @@ describe("setWalletRecoveryPhrase", () => {
     expect(state.walletRecoveryPhraseGeneratedMnemonic).toBeNull();
   });
 
+  it("allows imported phrases without a passphrase", async () => {
+    const { request, state } = createState();
+    request.mockResolvedValue({
+      mnemonicGenerated: false,
+      summary: {
+        enabled: true,
+        keystore: { exists: true, locked: true },
+        accounts: [],
+        warnings: [],
+      },
+    });
+
+    const ok = await setWalletRecoveryPhrase(state, {
+      mode: "import",
+      mnemonic:
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      passphrase: "",
+      confirmPassphrase: "",
+      overwrite: true,
+    });
+
+    expect(ok).toBe(true);
+    expect(request).toHaveBeenCalledWith("wallet.recoveryPhrase.set", {
+      mode: "import",
+      mnemonic:
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      overwrite: true,
+    });
+  });
+
+  it("allows generated phrases without a passphrase", async () => {
+    const { request, state } = createState();
+    request.mockResolvedValue({
+      mnemonicGenerated: true,
+      mnemonic: "fresh generated phrase",
+      summary: {
+        enabled: true,
+        keystore: { exists: true, locked: true },
+        accounts: [],
+        warnings: [],
+      },
+    });
+
+    const ok = await setWalletRecoveryPhrase(state, {
+      mode: "generate",
+      mnemonic: "",
+      passphrase: "",
+      confirmPassphrase: "",
+      overwrite: false,
+    });
+
+    expect(ok).toBe(true);
+    expect(request).toHaveBeenCalledWith("wallet.recoveryPhrase.set", {
+      mode: "generate",
+      overwrite: false,
+    });
+  });
+
   it("stores generated phrases only from the create response", async () => {
     const { request, state } = createState();
     request.mockResolvedValue({

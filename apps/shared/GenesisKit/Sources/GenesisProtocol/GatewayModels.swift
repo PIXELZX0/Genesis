@@ -2369,13 +2369,13 @@ public struct WalletBalance: Codable, Sendable {
 
 public struct WalletRecoveryPhraseSetParams: Codable, Sendable {
     public let mode: AnyCodable
-    public let passphrase: String
+    public let passphrase: String?
     public let mnemonic: String?
     public let overwrite: Bool?
 
     public init(
         mode: AnyCodable,
-        passphrase: String,
+        passphrase: String?,
         mnemonic: String?,
         overwrite: Bool?)
     {

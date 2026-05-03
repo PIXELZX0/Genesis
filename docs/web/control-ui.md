@@ -117,7 +117,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
-- Wallet: dedicated Control tab with public addresses, balance refresh, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; generated phrases are shown once, existing phrases/private keys/passphrases/send controls are not exposed
+- Wallet: dedicated Control tab with public addresses, balance refresh, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; passphrases are optional, generated phrases are shown once, and existing phrases/private keys/passphrases/send controls are not exposed
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
 - Config: view/edit `~/.genesis/genesis.json` (`config.get`, `config.set`)

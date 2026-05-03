@@ -65,10 +65,6 @@ export async function setWalletRecoveryPhrase(
     state.walletRecoveryPhraseError = "Connect to the gateway before updating the wallet.";
     return false;
   }
-  if (!input.passphrase.trim()) {
-    state.walletRecoveryPhraseError = "Wallet passphrase is required.";
-    return false;
-  }
   if (input.passphrase !== input.confirmPassphrase) {
     state.walletRecoveryPhraseError = "Wallet passphrase confirmation does not match.";
     return false;
@@ -84,17 +80,18 @@ export async function setWalletRecoveryPhrase(
   state.walletRecoveryPhraseGeneratedMnemonic = null;
   state.walletRecoveryPhraseStatus = null;
   try {
+    const passphrase = input.passphrase.length > 0 ? input.passphrase : undefined;
     const params =
       input.mode === "generate"
         ? {
             mode: input.mode,
-            passphrase: input.passphrase,
+            ...(passphrase === undefined ? {} : { passphrase }),
             overwrite: input.overwrite,
           }
         : {
             mode: input.mode,
             mnemonic,
-            passphrase: input.passphrase,
+            ...(passphrase === undefined ? {} : { passphrase }),
             overwrite: input.overwrite,
           };
     const result = (await state.client.request(

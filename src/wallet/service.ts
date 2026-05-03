@@ -33,7 +33,7 @@ export type WalletServiceOptions = {
 };
 
 export type WalletInitParams = WalletServiceOptions & {
-  passphrase: string;
+  passphrase?: string;
   mnemonic?: string;
   chains?: readonly LocalKeystoreWalletChain[];
   overwrite?: boolean;
@@ -43,7 +43,7 @@ export type WalletRecoveryPhraseMode = "generate" | "import";
 
 export type WalletRecoveryPhraseSetParams = WalletServiceOptions & {
   mode: WalletRecoveryPhraseMode;
-  passphrase: string;
+  passphrase?: string;
   mnemonic?: string;
   overwrite?: boolean;
 };
@@ -144,7 +144,7 @@ export async function initWallet(params: WalletInitParams): Promise<{
     payload,
     publicAccounts: accounts,
     primaryAccount: primary,
-    passphrase: params.passphrase,
+    passphrase: params.passphrase ?? "",
   });
   await writeWalletKeystore(file, params.env);
   return {
@@ -169,7 +169,7 @@ export async function setWalletRecoveryPhrase(params: WalletRecoveryPhraseSetPar
   const result = await initWallet({
     config: params.config,
     env: params.env,
-    passphrase: params.passphrase,
+    passphrase: params.passphrase ?? "",
     mnemonic,
     overwrite: params.overwrite,
   });

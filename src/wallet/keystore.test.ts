@@ -98,4 +98,26 @@ describe("wallet keystore", () => {
     });
     expect(unlocked).toBe(MNEMONIC);
   });
+
+  it("allows recovery phrase management without a passphrase", async () => {
+    const { env } = await tempEnv();
+    const generated = await setWalletRecoveryPhrase({
+      env,
+      mode: "generate",
+    });
+
+    expect(generated.mnemonicGenerated).toBe(true);
+    expect(generated.mnemonic?.split(/\s+/)).toHaveLength(24);
+
+    const imported = await setWalletRecoveryPhrase({
+      env,
+      mode: "import",
+      mnemonic: MNEMONIC,
+      overwrite: true,
+    });
+
+    expect(imported.mnemonicGenerated).toBe(false);
+    expect(imported.mnemonic).toBeUndefined();
+    await expect(unlockWalletMnemonic({ env, passphrase: "" })).resolves.toBe(MNEMONIC);
+  });
 });

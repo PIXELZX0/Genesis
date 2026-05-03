@@ -365,6 +365,8 @@ export const es: TranslationMap = {
       phrasePlaceholder: "word1 word2 word3 ...",
       passphrase: "Wallet passphrase",
       confirmPassphrase: "Confirm passphrase",
+      passphraseOptional: "Wallet passphrase (optional)",
+      confirmPassphraseOptional: "Confirm passphrase (optional)",
       overwrite: "Replace the existing encrypted wallet",
       generateAction: "Generate wallet",
       importAction: "Import phrase",

@@ -158,6 +158,8 @@ The Control UI also supports admin-scoped recovery phrase management through
   all local chain accounts, and returns the generated phrase once.
 - `mode: "import"` imports a BIP39 phrase, encrypts it locally, derives all
   local chain accounts, and does not return the phrase.
+- `passphrase` is optional for the web/admin method; omit it to create or
+  import a wallet without a passphrase.
 - `overwrite: true` is required when replacing an existing keystore.
 
 No Gateway or web method returns existing seed phrases, private keys, stored

@@ -23,7 +23,7 @@ export const WalletRecoveryPhraseModeSchema = Type.Union([
 export const WalletRecoveryPhraseSetParamsSchema = Type.Object(
   {
     mode: WalletRecoveryPhraseModeSchema,
-    passphrase: Type.String({ minLength: 1, maxLength: 16 * 1024 }),
+    passphrase: Type.Optional(Type.String({ maxLength: 16 * 1024 })),
     mnemonic: Type.Optional(Type.String({ minLength: 1, maxLength: 64 * 1024 })),
     overwrite: Type.Optional(Type.Boolean()),
   },

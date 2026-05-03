@@ -166,6 +166,20 @@
   box-shadow: 0 1px 3px var(--accent-subtle);
 }
 
+.wallet-recovery-mode-toggle .config-mode-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.wallet-recovery-mode-toggle .config-mode-toggle__btn svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  stroke-width: 1.75px;
+}
+
 /* ===========================================
    Main Content
    =========================================== */

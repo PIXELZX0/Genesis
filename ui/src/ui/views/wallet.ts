@@ -310,7 +310,11 @@ function renderRecoveryPhraseManager(props: WalletProps) {
         style="display: grid; gap: 14px; margin-top: 16px;"
         @submit=${(event: SubmitEvent) => void handleRecoveryPhraseSubmit(event, props)}
       >
-        <div class="config-mode-toggle" role="group" aria-label=${t("wallet.recoveryPhrase.mode")}>
+        <div
+          class="config-mode-toggle wallet-recovery-mode-toggle"
+          role="group"
+          aria-label=${t("wallet.recoveryPhrase.mode")}
+        >
           ${renderRecoveryPhraseModeButton(
             props,
             "generate",
@@ -341,23 +345,21 @@ function renderRecoveryPhraseManager(props: WalletProps) {
           : nothing}
         <div class="stat-grid">
           <label class="field">
-            <span>${t("wallet.recoveryPhrase.passphrase")}</span>
+            <span>${t("wallet.recoveryPhrase.passphraseOptional")}</span>
             <input
               name="passphrase"
               type="password"
               autocomplete="new-password"
               ?disabled=${props.recoveryPhraseBusy}
-              required
             />
           </label>
           <label class="field">
-            <span>${t("wallet.recoveryPhrase.confirmPassphrase")}</span>
+            <span>${t("wallet.recoveryPhrase.confirmPassphraseOptional")}</span>
             <input
               name="confirmPassphrase"
               type="password"
               autocomplete="new-password"
               ?disabled=${props.recoveryPhraseBusy}
-              required
             />
           </label>
         </div>

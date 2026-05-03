@@ -446,8 +446,9 @@ enumeration of `src/gateway/server-methods/*.ts`.
   metadata and optional balances. Operators may call
   `wallet.recoveryPhrase.set` (`operator.admin`) to generate or import the one
   BIP39 recovery phrase used for every local keystore chain account. The
-  generate path returns the new phrase once; the import path and summary path do
-  not echo stored phrases or private keys.
+  optional `passphrase` field can be omitted. The generate path returns the new
+  phrase once; the import path and summary path do not echo stored phrases or
+  private keys.
 - Operators may call `skills.install` (`operator.admin`) in two modes:
   - ClawHub mode: `{ source: "clawhub", slug, version?, force? }` installs a
     skill folder into the default agent workspace `skills/` directory.

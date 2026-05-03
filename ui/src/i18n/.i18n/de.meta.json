@@ -22,6 +22,7 @@
     "wallet.configure",
     "wallet.lastUpdated",
     "wallet.recoveryPhrase.confirmPassphrase",
+    "wallet.recoveryPhrase.confirmPassphraseOptional",
     "wallet.recoveryPhrase.copyGenerated",
     "wallet.recoveryPhrase.generate",
     "wallet.recoveryPhrase.generateAction",
@@ -31,6 +32,7 @@
     "wallet.recoveryPhrase.mode",
     "wallet.recoveryPhrase.overwrite",
     "wallet.recoveryPhrase.passphrase",
+    "wallet.recoveryPhrase.passphraseOptional",
     "wallet.recoveryPhrase.phraseLabel",
     "wallet.recoveryPhrase.phrasePlaceholder",
     "wallet.recoveryPhrase.safety",
@@ -53,12 +55,12 @@
     "wallet.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-05-03T10:50:11.965Z",
+  "generatedAt": "2026-05-03T13:49:56.050Z",
   "locale": "de",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "5cc1f239b905127b456074dc0eb197e3c126b80cdd1e3e2b9ceab8d6f2c52c0d",
-  "totalKeys": 786,
+  "sourceHash": "c3d28f37fc86a5f98fa8cbc48e7ba799ab4fd6ece58d47eb1e3dfbc841625245",
+  "totalKeys": 788,
   "translatedKeys": 734,
   "workflow": 1
 }

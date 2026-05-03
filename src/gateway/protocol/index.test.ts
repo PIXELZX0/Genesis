@@ -150,7 +150,6 @@ describe("validateWalletRecoveryPhraseSetParams", () => {
     expect(
       validateWalletRecoveryPhraseSetParams({
         mode: "generate",
-        passphrase: "correct horse battery staple",
       }),
     ).toBe(true);
 
@@ -163,13 +162,20 @@ describe("validateWalletRecoveryPhraseSetParams", () => {
         overwrite: true,
       }),
     ).toBe(true);
+
+    expect(
+      validateWalletRecoveryPhraseSetParams({
+        mode: "import",
+        mnemonic:
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      }),
+    ).toBe(true);
   });
 
   it("rejects unexpected recovery phrase management fields", () => {
     expect(
       validateWalletRecoveryPhraseSetParams({
         mode: "generate",
-        passphrase: "correct horse battery staple",
         privateKey: "not accepted",
       }),
     ).toBe(false);
