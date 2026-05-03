@@ -2,6 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-2
+
+### Changes
+
+- Control UI: add a dedicated Wallet tab with public addresses, balance refresh, warnings, and config navigation while keeping seed, private key, passphrase, and send controls unavailable.
+- Plugins: load OpenClaw-compatible npm plugins that declare `openclaw.extensions` and import SDK surfaces from `openclaw/plugin-sdk/*`, `@openclaw/plugin-sdk/*`, or `openclaw/extension-api`.
+
+### Fixes
+
+- Plugin installs: satisfy `openclaw` peer dependencies from the host package root so OpenClaw-compatible npm plugins can resolve runtime imports after install.
+
 ## 2026.5.3-1
 
 ### Fixes
