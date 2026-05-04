@@ -353,15 +353,19 @@ function renderRecoveryPhraseManager(props: WalletProps) {
               ?disabled=${props.recoveryPhraseBusy}
             />
           </label>
-          <label class="field">
-            <span>${t("wallet.recoveryPhrase.confirmPassphraseOptional")}</span>
-            <input
-              name="confirmPassphrase"
-              type="password"
-              autocomplete="new-password"
-              ?disabled=${props.recoveryPhraseBusy}
-            />
-          </label>
+          ${isImport
+            ? nothing
+            : html`
+                <label class="field">
+                  <span>${t("wallet.recoveryPhrase.confirmPassphraseOptional")}</span>
+                  <input
+                    name="confirmPassphrase"
+                    type="password"
+                    autocomplete="new-password"
+                    ?disabled=${props.recoveryPhraseBusy}
+                  />
+                </label>
+              `}
         </div>
         <label class="field-inline checkbox">
           <input name="overwrite" type="checkbox" ?disabled=${props.recoveryPhraseBusy} />

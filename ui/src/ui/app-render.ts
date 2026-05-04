@@ -1842,6 +1842,7 @@ export function renderApp(state: AppViewState) {
           ? lazyRender(lazyAgents, (m) =>
               m.renderAgents({
                 basePath: state.basePath ?? "",
+                connected: state.connected,
                 loading: state.agentsLoading,
                 error: state.agentsError,
                 agentsList: state.agentsList,
@@ -1897,6 +1898,11 @@ export function renderApp(state: AppViewState) {
                 runtimeSessionKey: state.sessionKey,
                 runtimeSessionMatchesSelectedAgent: toolsPanelUsesActiveSession,
                 modelCatalog: state.chatModelCatalog ?? [],
+                modelProviderWizardStep: state.modelProviderWizardStep,
+                modelProviderWizardInput: state.modelProviderWizardInput,
+                modelProviderWizardBusy: state.modelProviderWizardBusy,
+                modelProviderWizardError: state.modelProviderWizardError,
+                modelProviderWizardMessage: state.modelProviderWizardMessage,
                 onRefresh: async () => {
                   await loadAgents(state);
                   const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
@@ -2013,6 +2019,11 @@ export function renderApp(state: AppViewState) {
                 },
                 onConfigReload: () => loadConfig(state),
                 onConfigSave: () => saveAgentsConfig(state),
+                onModelProviderWizardStart: () => state.handleModelProviderWizardStart(),
+                onModelProviderWizardSubmit: () => state.handleModelProviderWizardSubmit(),
+                onModelProviderWizardCancel: () => state.handleModelProviderWizardCancel(),
+                onModelProviderWizardInput: (value) => state.handleModelProviderWizardInput(value),
+                onModelProviderWizardClose: () => state.handleModelProviderWizardClose(),
                 onChannelsRefresh: () => loadChannels(state, false),
                 onCronRefresh: () => state.loadCron(),
                 onCronRunNow: (jobId) => {

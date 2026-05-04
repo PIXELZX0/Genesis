@@ -2,6 +2,19 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-5
+
+### Changes
+
+- Control UI: add guided model provider setup from Agents -> Overview, with sensitive credential prompts masked in browser-based wizard sessions.
+
+### Fixes
+
+- Agents: skip pre-prompt context-overflow checks after an empty prompt/history/image turn has already been skipped, so empty channel wakes no longer surface misleading "Context overflow" replies.
+- Skills: avoid scheduling an immediate Gateway restart for skill-only config changes, including when config reload mode is off.
+- Wallet: ask for the optional Control UI import passphrase only once instead of requiring a confirmation entry.
+- Packaged plugins: restore the `genesis/plugin-sdk/*` alias during postinstall so bundled provider catalogs can load SDK helpers after scoped package installs.
+
 ## 2026.5.3-4
 
 ### Changes

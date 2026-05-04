@@ -254,6 +254,7 @@ import {
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   hasPromptSubmissionContent,
+  shouldRunPreemptiveContextPrecheck,
   shouldWarnOnOrphanedUserRepair,
   shouldInjectHeartbeatPrompt,
 } from "./attempt.prompt-helpers.js";
@@ -2473,86 +2474,84 @@ export async function runEmbeddedAttempt(
               });
           }
 
-          const reserveTokens = settingsManager.getCompactionReserveTokens();
-          const contextTokenBudget = params.contextTokenBudget ?? DEFAULT_CONTEXT_TOKENS;
-          const preemptiveCompaction = shouldPreemptivelyCompactBeforePrompt({
-            messages: activeSession.messages,
-            unwindowedMessages: unwindowedContextEngineMessagesForPrecheck,
-            systemPrompt: systemPromptText,
-            prompt: effectivePrompt,
-            contextTokenBudget,
-            reserveTokens,
-            toolResultMaxChars: resolveLiveToolResultMaxChars({
-              contextWindowTokens: contextTokenBudget,
-              cfg: params.config,
-              agentId: sessionAgentId,
-            }),
-          });
-          if (preemptiveCompaction.route === "truncate_tool_results_only") {
+          if (shouldRunPreemptiveContextPrecheck({ skipPromptSubmission })) {
+            const reserveTokens = settingsManager.getCompactionReserveTokens();
+            const contextTokenBudget = params.contextTokenBudget ?? DEFAULT_CONTEXT_TOKENS;
             const toolResultMaxChars = resolveLiveToolResultMaxChars({
               contextWindowTokens: contextTokenBudget,
               cfg: params.config,
               agentId: sessionAgentId,
             });
-            const truncationResult = truncateOversizedToolResultsInSessionManager({
-              sessionManager,
-              contextWindowTokens: contextTokenBudget,
-              maxCharsOverride: toolResultMaxChars,
-              sessionFile: params.sessionFile,
-              sessionId: params.sessionId,
-              sessionKey: params.sessionKey,
+            const preemptiveCompaction = shouldPreemptivelyCompactBeforePrompt({
+              messages: activeSession.messages,
+              unwindowedMessages: unwindowedContextEngineMessagesForPrecheck,
+              systemPrompt: systemPromptText,
+              prompt: effectivePrompt,
+              contextTokenBudget,
+              reserveTokens,
+              toolResultMaxChars,
             });
-            if (truncationResult.truncated) {
-              preflightRecovery = {
-                route: "truncate_tool_results_only",
-                handled: true,
-                truncatedCount: truncationResult.truncatedCount,
-              };
-              log.info(
-                `[context-overflow-precheck] early tool-result truncation succeeded for ` +
-                  `${params.provider}/${params.modelId} route=${preemptiveCompaction.route} ` +
-                  `truncatedCount=${truncationResult.truncatedCount} ` +
+            if (preemptiveCompaction.route === "truncate_tool_results_only") {
+              const truncationResult = truncateOversizedToolResultsInSessionManager({
+                sessionManager,
+                contextWindowTokens: contextTokenBudget,
+                maxCharsOverride: toolResultMaxChars,
+                sessionFile: params.sessionFile,
+                sessionId: params.sessionId,
+                sessionKey: params.sessionKey,
+              });
+              if (truncationResult.truncated) {
+                preflightRecovery = {
+                  route: "truncate_tool_results_only",
+                  handled: true,
+                  truncatedCount: truncationResult.truncatedCount,
+                };
+                log.info(
+                  `[context-overflow-precheck] early tool-result truncation succeeded for ` +
+                    `${params.provider}/${params.modelId} route=${preemptiveCompaction.route} ` +
+                    `truncatedCount=${truncationResult.truncatedCount} ` +
+                    `estimatedPromptTokens=${preemptiveCompaction.estimatedPromptTokens} ` +
+                    `promptBudgetBeforeReserve=${preemptiveCompaction.promptBudgetBeforeReserve} ` +
+                    `overflowTokens=${preemptiveCompaction.overflowTokens} ` +
+                    `toolResultReducibleChars=${preemptiveCompaction.toolResultReducibleChars} ` +
+                    `effectiveReserveTokens=${preemptiveCompaction.effectiveReserveTokens} ` +
+                    `sessionFile=${params.sessionFile}`,
+                );
+                skipPromptSubmission = true;
+              }
+              if (!skipPromptSubmission) {
+                log.warn(
+                  `[context-overflow-precheck] early tool-result truncation did not help for ` +
+                    `${params.provider}/${params.modelId}; falling back to compaction ` +
+                    `reason=${truncationResult.reason ?? "unknown"} sessionFile=${params.sessionFile}`,
+                );
+                preflightRecovery = { route: "compact_only" };
+                promptError = new Error(PREEMPTIVE_OVERFLOW_ERROR_TEXT);
+                promptErrorSource = "precheck";
+                skipPromptSubmission = true;
+              }
+            }
+            if (!skipPromptSubmission && preemptiveCompaction.shouldCompact) {
+              preflightRecovery =
+                preemptiveCompaction.route === "compact_then_truncate"
+                  ? { route: "compact_then_truncate" }
+                  : { route: "compact_only" };
+              promptError = new Error(PREEMPTIVE_OVERFLOW_ERROR_TEXT);
+              promptErrorSource = "precheck";
+              log.warn(
+                `[context-overflow-precheck] sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                  `provider=${params.provider}/${params.modelId} ` +
+                  `route=${preemptiveCompaction.route} ` +
                   `estimatedPromptTokens=${preemptiveCompaction.estimatedPromptTokens} ` +
                   `promptBudgetBeforeReserve=${preemptiveCompaction.promptBudgetBeforeReserve} ` +
                   `overflowTokens=${preemptiveCompaction.overflowTokens} ` +
                   `toolResultReducibleChars=${preemptiveCompaction.toolResultReducibleChars} ` +
+                  `reserveTokens=${reserveTokens} ` +
                   `effectiveReserveTokens=${preemptiveCompaction.effectiveReserveTokens} ` +
                   `sessionFile=${params.sessionFile}`,
               );
               skipPromptSubmission = true;
             }
-            if (!skipPromptSubmission) {
-              log.warn(
-                `[context-overflow-precheck] early tool-result truncation did not help for ` +
-                  `${params.provider}/${params.modelId}; falling back to compaction ` +
-                  `reason=${truncationResult.reason ?? "unknown"} sessionFile=${params.sessionFile}`,
-              );
-              preflightRecovery = { route: "compact_only" };
-              promptError = new Error(PREEMPTIVE_OVERFLOW_ERROR_TEXT);
-              promptErrorSource = "precheck";
-              skipPromptSubmission = true;
-            }
-          }
-          if (preemptiveCompaction.shouldCompact) {
-            preflightRecovery =
-              preemptiveCompaction.route === "compact_then_truncate"
-                ? { route: "compact_then_truncate" }
-                : { route: "compact_only" };
-            promptError = new Error(PREEMPTIVE_OVERFLOW_ERROR_TEXT);
-            promptErrorSource = "precheck";
-            log.warn(
-              `[context-overflow-precheck] sessionKey=${params.sessionKey ?? params.sessionId} ` +
-                `provider=${params.provider}/${params.modelId} ` +
-                `route=${preemptiveCompaction.route} ` +
-                `estimatedPromptTokens=${preemptiveCompaction.estimatedPromptTokens} ` +
-                `promptBudgetBeforeReserve=${preemptiveCompaction.promptBudgetBeforeReserve} ` +
-                `overflowTokens=${preemptiveCompaction.overflowTokens} ` +
-                `toolResultReducibleChars=${preemptiveCompaction.toolResultReducibleChars} ` +
-                `reserveTokens=${reserveTokens} ` +
-                `effectiveReserveTokens=${preemptiveCompaction.effectiveReserveTokens} ` +
-                `sessionFile=${params.sessionFile}`,
-            );
-            skipPromptSubmission = true;
           }
 
           if (!skipPromptSubmission) {

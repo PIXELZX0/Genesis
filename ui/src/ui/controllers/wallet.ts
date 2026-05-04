@@ -65,7 +65,7 @@ export async function setWalletRecoveryPhrase(
     state.walletRecoveryPhraseError = "Connect to the gateway before updating the wallet.";
     return false;
   }
-  if (input.passphrase !== input.confirmPassphrase) {
+  if (input.mode === "generate" && input.passphrase !== input.confirmPassphrase) {
     state.walletRecoveryPhraseError = "Wallet passphrase confirmation does not match.";
     return false;
   }

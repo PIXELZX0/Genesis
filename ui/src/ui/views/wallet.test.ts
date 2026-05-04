@@ -124,17 +124,16 @@ describe("wallet view", () => {
     const form = container.querySelector<HTMLFormElement>("form");
     expect(mnemonic).not.toBeNull();
     expect(passphrase).not.toBeNull();
-    expect(confirmPassphrase).not.toBeNull();
+    expect(confirmPassphrase).toBeNull();
     expect(overwrite).not.toBeNull();
     expect(form).not.toBeNull();
-    if (!mnemonic || !passphrase || !confirmPassphrase || !overwrite || !form) {
+    if (!mnemonic || !passphrase || !overwrite || !form) {
       return;
     }
 
     mnemonic.value =
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     passphrase.value = "correct horse battery staple";
-    confirmPassphrase.value = "correct horse battery staple";
     overwrite.checked = true;
     form.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
     await Promise.resolve();
@@ -146,13 +145,12 @@ describe("wallet view", () => {
         mnemonic:
           "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
         passphrase: "correct horse battery staple",
-        confirmPassphrase: "correct horse battery staple",
+        confirmPassphrase: "",
         overwrite: true,
       },
     ]);
     expect(mnemonic.value).toBe("");
     expect(passphrase.value).toBe("");
-    expect(confirmPassphrase.value).toBe("");
     expect(overwrite.checked).toBe(false);
   });
 });

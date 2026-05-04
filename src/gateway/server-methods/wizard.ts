@@ -74,6 +74,16 @@ export const wizardHandlers: GatewayRequestHandlers = {
       if (target === "channels") {
         return runChannelsWizard({ channel: params.channel, prompter });
       }
+      if (target === "models") {
+        return import("./wizard-models.js").then(({ runModelProviderWizard }) =>
+          runModelProviderWizard({
+            provider: params.provider,
+            authMethod: params.authMethod,
+            setDefault: params.setDefault,
+            prompter,
+          }),
+        );
+      }
       const opts = {
         mode: params.mode,
         workspace: readStringValue(params.workspace),

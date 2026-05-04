@@ -14,6 +14,7 @@ vi.mock("../../video-generation-task-status.js", () => videoGenerationTaskStatus
 import {
   hasPromptSubmissionContent,
   resolveAttemptPrependSystemContext,
+  shouldRunPreemptiveContextPrecheck,
 } from "./attempt.prompt-helpers.js";
 
 describe("resolveAttemptPrependSystemContext", () => {
@@ -100,6 +101,24 @@ describe("hasPromptSubmissionContent", () => {
         prompt: "   ",
         messages: [],
         imageCount: 1,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("shouldRunPreemptiveContextPrecheck", () => {
+  it("skips context precheck after prompt submission was already skipped", () => {
+    expect(
+      shouldRunPreemptiveContextPrecheck({
+        skipPromptSubmission: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("runs context precheck while a prompt submission is still pending", () => {
+    expect(
+      shouldRunPreemptiveContextPrecheck({
+        skipPromptSubmission: false,
       }),
     ).toBe(true);
   });

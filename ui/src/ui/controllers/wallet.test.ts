@@ -24,13 +24,12 @@ function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState 
 }
 
 describe("setWalletRecoveryPhrase", () => {
-  it("validates passphrase confirmation before sending secret material", async () => {
+  it("validates generated passphrase confirmation before sending secret material", async () => {
     const { request, state } = createState();
 
     const ok = await setWalletRecoveryPhrase(state, {
-      mode: "import",
-      mnemonic:
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      mode: "generate",
+      mnemonic: "",
       passphrase: "one",
       confirmPassphrase: "two",
       overwrite: true,
@@ -39,6 +38,37 @@ describe("setWalletRecoveryPhrase", () => {
     expect(ok).toBe(false);
     expect(request).not.toHaveBeenCalled();
     expect(state.walletRecoveryPhraseError).toContain("confirmation");
+  });
+
+  it("imports phrases with one passphrase entry", async () => {
+    const { request, state } = createState();
+    request.mockResolvedValue({
+      mnemonicGenerated: false,
+      summary: {
+        enabled: true,
+        keystore: { exists: true, locked: true },
+        accounts: [],
+        warnings: [],
+      },
+    });
+
+    const ok = await setWalletRecoveryPhrase(state, {
+      mode: "import",
+      mnemonic:
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      passphrase: "correct horse battery staple",
+      confirmPassphrase: "",
+      overwrite: true,
+    });
+
+    expect(ok).toBe(true);
+    expect(request).toHaveBeenCalledWith("wallet.recoveryPhrase.set", {
+      mode: "import",
+      mnemonic:
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      passphrase: "correct horse battery staple",
+      overwrite: true,
+    });
   });
 
   it("normalizes imported phrases and updates summary state", async () => {

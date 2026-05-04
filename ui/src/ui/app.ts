@@ -35,6 +35,14 @@ import {
   handleFirstUpdated,
   handleUpdated,
 } from "./app-lifecycle.ts";
+import {
+  handleModelProviderWizardCancel as handleModelProviderWizardCancelInternal,
+  handleModelProviderWizardClose as handleModelProviderWizardCloseInternal,
+  handleModelProviderWizardInput as handleModelProviderWizardInputInternal,
+  handleModelProviderWizardStart as handleModelProviderWizardStartInternal,
+  handleModelProviderWizardSubmit as handleModelProviderWizardSubmitInternal,
+  type ModelProviderWizardStep,
+} from "./app-model-providers.ts";
 import { renderApp } from "./app-render.ts";
 import {
   exportLogs as exportLogsInternal,
@@ -316,6 +324,12 @@ export class GenesisApp extends LitElement {
   @state() channelWizardBusy = false;
   @state() channelWizardError: string | null = null;
   @state() channelWizardMessage: string | null = null;
+  @state() modelProviderWizardSessionId: string | null = null;
+  @state() modelProviderWizardStep: ModelProviderWizardStep | null = null;
+  @state() modelProviderWizardInput: unknown = null;
+  @state() modelProviderWizardBusy = false;
+  @state() modelProviderWizardError: string | null = null;
+  @state() modelProviderWizardMessage: string | null = null;
 
   @state() presenceLoading = false;
   @state() presenceEntries: PresenceEntry[] = [];
@@ -890,6 +904,26 @@ export class GenesisApp extends LitElement {
 
   handleChannelWizardClose() {
     handleChannelWizardCloseInternal(this);
+  }
+
+  async handleModelProviderWizardStart() {
+    await handleModelProviderWizardStartInternal(this);
+  }
+
+  async handleModelProviderWizardSubmit() {
+    await handleModelProviderWizardSubmitInternal(this);
+  }
+
+  async handleModelProviderWizardCancel() {
+    await handleModelProviderWizardCancelInternal(this);
+  }
+
+  handleModelProviderWizardInput(value: unknown) {
+    handleModelProviderWizardInputInternal(this, value);
+  }
+
+  handleModelProviderWizardClose() {
+    handleModelProviderWizardCloseInternal(this);
   }
 
   handleNostrProfileEdit(accountId: string, profile: NostrProfile | null) {

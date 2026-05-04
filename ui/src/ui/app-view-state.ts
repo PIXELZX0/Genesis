@@ -1,5 +1,6 @@
 import type { ChannelWizardStep } from "./app-channels.ts";
 import type { EventLogEntry } from "./app-events.ts";
+import type { ModelProviderWizardStep } from "./app-model-providers.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
 import type { RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
@@ -204,6 +205,12 @@ export type AppViewState = {
   channelWizardBusy: boolean;
   channelWizardError: string | null;
   channelWizardMessage: string | null;
+  modelProviderWizardSessionId: string | null;
+  modelProviderWizardStep: ModelProviderWizardStep | null;
+  modelProviderWizardInput: unknown;
+  modelProviderWizardBusy: boolean;
+  modelProviderWizardError: string | null;
+  modelProviderWizardMessage: string | null;
   configFormDirty: boolean;
   presenceLoading: boolean;
   presenceEntries: PresenceEntry[];
@@ -425,6 +432,11 @@ export type AppViewState = {
     handleChannelWizardCancel: () => Promise<void>;
     handleChannelWizardInput: (value: unknown) => void;
     handleChannelWizardClose: () => void;
+    handleModelProviderWizardStart: () => Promise<void>;
+    handleModelProviderWizardSubmit: () => Promise<void>;
+    handleModelProviderWizardCancel: () => Promise<void>;
+    handleModelProviderWizardInput: (value: unknown) => void;
+    handleModelProviderWizardClose: () => void;
     handleNostrProfileEdit: (accountId: string, profile: NostrProfile | null) => void;
     handleNostrProfileCancel: () => void;
     handleNostrProfileFieldChange: (field: keyof NostrProfile, value: string) => void;

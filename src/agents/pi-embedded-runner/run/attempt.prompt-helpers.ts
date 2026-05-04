@@ -130,6 +130,12 @@ export function hasPromptSubmissionContent(params: {
   return params.prompt.trim().length > 0 || params.messages.length > 0 || params.imageCount > 0;
 }
 
+export function shouldRunPreemptiveContextPrecheck(params: {
+  skipPromptSubmission: boolean;
+}): boolean {
+  return !params.skipPromptSubmission;
+}
+
 const QUEUED_USER_MESSAGE_MARKER =
   "[Queued user message that arrived while the previous turn was still active]";
 const MAX_STRUCTURED_MEDIA_REF_CHARS = 300;

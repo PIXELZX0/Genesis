@@ -114,6 +114,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
+- Model providers: guided provider auth setup from Agents -> Overview (`wizard.start` with `target: "models"`)
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)

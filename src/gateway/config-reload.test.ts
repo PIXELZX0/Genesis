@@ -334,6 +334,12 @@ describe("buildGatewayReloadPlan", () => {
     expect(plan.noopPaths).toContain("secrets.providers.default.path");
   });
 
+  it("treats skills config changes as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan(["skills.entries.github.enabled"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("skills.entries.github.enabled");
+  });
+
   it("treats diagnostics.stuckSessionWarnMs as no-op for gateway restart planning", () => {
     const plan = buildGatewayReloadPlan(["diagnostics.stuckSessionWarnMs"]);
     expect(plan.restartGateway).toBe(false);

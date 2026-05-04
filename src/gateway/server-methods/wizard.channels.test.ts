@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
   normalizeAnyChannelId: vi.fn((value: string | null | undefined) => value ?? null),
   runInteractiveChannelsAddWizard: vi.fn(),
+  runModelProviderWizard: vi.fn(),
 }));
 
 vi.mock("../../config/config.js", () => ({
@@ -17,6 +18,10 @@ vi.mock("../../channels/registry.js", () => ({
 
 vi.mock("../../flows/channel-add-wizard.js", () => ({
   runInteractiveChannelsAddWizard: mocks.runInteractiveChannelsAddWizard,
+}));
+
+vi.mock("./wizard-models.js", () => ({
+  runModelProviderWizard: mocks.runModelProviderWizard,
 }));
 
 import { wizardHandlers } from "./wizard.js";
@@ -128,5 +133,45 @@ describe("wizardHandlers channel setup target", () => {
       context,
     );
     expect(done).toMatchObject({ done: true, status: "done" });
+  });
+});
+
+describe("wizardHandlers model provider setup target", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.runModelProviderWizard.mockImplementation(async ({ prompter }) => {
+      await prompter.intro("Model provider setup");
+      const selected = await prompter.select({
+        message: "Select a model provider",
+        options: [{ value: "openai", label: "OpenAI" }],
+      });
+      await prompter.outro(`Selected ${selected}`);
+    });
+  });
+
+  it("runs the model provider wizard through the shared wizard session", async () => {
+    const context = createContext();
+    const start = await callWizard(
+      "wizard.start",
+      { target: "models", provider: "openai", authMethod: "api-key", setDefault: true },
+      context,
+    );
+
+    expect(start.sessionId).toEqual(expect.any(String));
+    expect(start.step).toMatchObject({ type: "note", title: "Model provider setup" });
+    expect(mocks.runModelProviderWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "openai",
+        authMethod: "api-key",
+        setDefault: true,
+      }),
+    );
+
+    const select = await callWizard(
+      "wizard.next",
+      { sessionId: start.sessionId, answer: { stepId: start.step?.id, value: true } },
+      context,
+    );
+    expect(select.step).toMatchObject({ type: "select", message: "Select a model provider" });
   });
 });

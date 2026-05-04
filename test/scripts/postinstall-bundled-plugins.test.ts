@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
   createBundledRuntimeDependencyInstallArgs,
@@ -435,6 +436,56 @@ describe("bundled plugin postinstall", () => {
         log: { log: vi.fn(), warn: vi.fn() },
       }),
     ).toEqual(["dist/stale-runtime.js"]);
+  });
+
+  it("restores the Genesis SDK alias used by packaged bundled plugin ESM imports", async () => {
+    const packageRoot = await createTempDirAsync("genesis-packaged-install-sdk-alias-");
+    const promptOverlayPath = path.join(
+      packageRoot,
+      "dist",
+      "extensions",
+      "codex",
+      "prompt-overlay.js",
+    );
+    await fs.mkdir(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
+    await fs.mkdir(path.dirname(promptOverlayPath), { recursive: true });
+    await fs.writeFile(path.join(packageRoot, "package.json"), '{"type":"module"}\n');
+    await fs.writeFile(path.join(packageRoot, "dist", "plugin-sdk", "index.js"), "export {};\n");
+    await fs.writeFile(
+      path.join(packageRoot, "dist", "plugin-sdk", "provider-model-shared.js"),
+      'export const modelCatalogMarker = "loaded";\n',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, "dist", "extensions", "codex", "package.json"),
+      '{"type":"module"}\n',
+    );
+    await fs.writeFile(
+      promptOverlayPath,
+      [
+        'import { modelCatalogMarker } from "genesis/plugin-sdk/provider-model-shared";',
+        "export const loadedMarker = modelCatalogMarker;",
+        "",
+      ].join("\n"),
+    );
+    await writePackageDistInventory(packageRoot);
+
+    runBundledPluginPostinstall({
+      packageRoot,
+      spawnSync: vi.fn(),
+      log: { log: vi.fn(), warn: vi.fn() },
+    });
+
+    await expect(
+      fs.readFile(
+        path.join(packageRoot, "dist", "node_modules", "genesis", "package.json"),
+        "utf8",
+      ),
+    ).resolves.toContain('"./plugin-sdk/*": "./plugin-sdk/*.js"');
+
+    const loadedModule = (await import(
+      `${pathToFileURL(promptOverlayPath).href}?t=${Date.now()}`
+    )) as { loadedMarker: string };
+    expect(loadedModule.loadedMarker).toBe("loaded");
   });
 
   it("unlinks stale files instead of recursive pruning them", () => {
