@@ -39,7 +39,7 @@ jobs:
       package_version: ${{ steps.publish-target.outputs.package_version }}
       tag: ${{ steps.publish-target.outputs.tag }}
       tarball_artifact: ${{ steps.pack.outputs.artifact_name }}
-      tarball_name: ${{ steps.pack.outputs.tarball }}
+      tarball_name: ${{ steps.pack.outputs.tarball_name }}
 
     env:
       CI: "1"
@@ -134,24 +134,18 @@ jobs:
         env:
           PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
         run: |
-          pack_json="$(mktemp)"
-          npm pack --json > "$pack_json"
-          tarball="$(node --input-type=module - "$pack_json" <<'NODE'
-          import { readFileSync } from "node:fs";
-
-          const packJsonPath = process.argv[2];
-          const parsed = JSON.parse(readFileSync(packJsonPath, "utf8") || "[]");
-          const entry = Array.isArray(parsed) ? parsed.at(-1) : null;
-          if (!entry?.filename) {
-            throw new Error("npm pack output did not include a tarball filename.");
-          }
-          console.log(entry.filename);
-          NODE
-          )"
+          pack_dir=".artifacts/npm-release-pack"
+          rm -rf "$pack_dir"
+          mkdir -p "$pack_dir"
+          npm pack --pack-destination "$pack_dir"
+          tarball="$(find "$pack_dir" -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "$tarball"
           test -f "$tarball"
+          tarball_name="$(basename "$tarball")"
           artifact_name="genesis-npm-release-tarball-${PACKAGE_VERSION}"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
           echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "tarball_name=$tarball_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload release tarball
         uses: actions/upload-artifact@v4
