@@ -433,6 +433,12 @@ describe("update global helpers", () => {
         await fs.mkdir(path.dirname(absolutePath), { recursive: true });
         await fs.writeFile(absolutePath, "export {};\n", "utf-8");
       }
+      await fs.mkdir(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
+      await fs.writeFile(
+        path.join(packageRoot, "dist", "plugin-sdk", "index.js"),
+        "export {};\n",
+        "utf8",
+      );
       await writePackageDistInventory(packageRoot);
       const installedAliasWrapper = path.join(
         packageRoot,
