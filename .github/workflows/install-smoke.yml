@@ -32,7 +32,7 @@ concurrency:
 jobs:
   preflight:
     name: Preflight
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       run_bun_global_install_smoke: ${{ steps.scope.outputs.run_bun_global_install_smoke }}
       run_fast_install_smoke: ${{ steps.scope.outputs.run_fast_install_smoke }}
@@ -64,7 +64,7 @@ jobs:
     name: Install smoke fast
     needs: preflight
     if: needs.preflight.outputs.run_fast_install_smoke == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
     name: Install smoke full
     needs: preflight
     if: needs.preflight.outputs.run_full_install_smoke == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +116,7 @@ jobs:
     name: Bun global install smoke
     needs: preflight
     if: needs.preflight.outputs.run_bun_global_install_smoke == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       install-bun: ${{ needs.preflight.outputs.run_bun_global_install_smoke }}
     steps:
