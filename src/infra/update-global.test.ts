@@ -434,6 +434,21 @@ describe("update global helpers", () => {
         await fs.writeFile(absolutePath, "export {};\n", "utf-8");
       }
       await writePackageDistInventory(packageRoot);
+      const installedAliasWrapper = path.join(
+        packageRoot,
+        "dist",
+        "node_modules",
+        "genesis",
+        "plugin-sdk",
+        "index.js",
+      );
+      await fs.mkdir(path.dirname(installedAliasWrapper), { recursive: true });
+      await fs.writeFile(
+        path.join(packageRoot, "dist", "node_modules", "genesis", "package.json"),
+        '{"type":"module"}\n',
+        "utf8",
+      );
+      await fs.writeFile(installedAliasWrapper, "export {};\n", "utf8");
 
       await expect(collectInstalledGlobalPackageErrors({ packageRoot })).resolves.toEqual([]);
 
