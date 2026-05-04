@@ -16,7 +16,7 @@ permissions:
 jobs:
   prepare_docker_e2e_image:
     name: Prepare Docker E2E image
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     outputs:
       image: ${{ steps.image.outputs.image }}
     steps:
@@ -37,7 +37,7 @@ jobs:
 
   approve_release_manager:
     name: Approve release manager
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     environment: npm-release
     steps:
       - name: Await approval
@@ -46,7 +46,7 @@ jobs:
   npm_telegram_beta_e2e:
     name: NPM Telegram beta E2E
     needs: [approve_release_manager, prepare_docker_e2e_image]
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       GENESIS_NPM_TELEGRAM_PACKAGE_SPEC: ${{ inputs.package_spec }}
       GENESIS_SKIP_DOCKER_BUILD: "1"

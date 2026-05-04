@@ -146,7 +146,7 @@ export function resolveRunnerMatrix(params) {
     {
       os_id: "ubuntu",
       display_name: "Linux",
-      runner: pick(params.ubuntuRunner, params.varUbuntuRunner, "ubuntu-latest"),
+      runner: pick(params.ubuntuRunner, params.varUbuntuRunner, "blacksmith-8vcpu-ubuntu-2404"),
       artifact_name: "linux",
     },
     {
@@ -158,7 +158,7 @@ export function resolveRunnerMatrix(params) {
     {
       os_id: "macos",
       display_name: "macOS",
-      runner: pick(params.macosRunner, params.varMacosRunner, "macos-latest-xlarge"),
+      runner: pick(params.macosRunner, params.varMacosRunner, "blacksmith-12vcpu-macos-latest"),
       artifact_name: "macos",
     },
   ];

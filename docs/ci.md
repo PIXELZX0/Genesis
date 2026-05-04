@@ -8,6 +8,19 @@ read_when:
 
 The CI runs on every push to `main` and every pull request. It uses smart scoping to skip expensive jobs when only unrelated areas changed.
 
+The repository workflows run on Blacksmith runners except the npm trusted
+publishing job in `.github/workflows/genesis-npm-release.yml`, which stays on
+GitHub-hosted Ubuntu because npm trusted publishing currently supports GitHub
+Actions only on GitHub-hosted runners.
+
+The `Blacksmith Testbox` workflow in `.github/workflows/ci-check-testbox.yml`
+is the setup target for `blacksmith testbox warmup ci-check-testbox.yml --job test`.
+It is `workflow_dispatch` only: the workflow hydrates checkout, Node 22, pnpm,
+dependencies, and shell PATH on a Blacksmith runner, then waits for remote
+commands through `useblacksmith/run-testbox@v2`. Run tests later with
+`blacksmith testbox run --id <tbx_id> "pnpm check:changed"` or the broader command
+needed for the task; warmup itself should not execute the suite.
+
 QA Lab has dedicated CI lanes outside the main smart-scoped workflow. The
 `Parity gate` workflow runs on matching PR changes and manual dispatch; it
 builds the private QA runtime and compares the mock GPT-5.4 and Opus 4.6
@@ -43,8 +56,8 @@ passing baseline test count. If the baseline has failing tests, Codex may fix
 only obvious failures and the after-agent full-suite report must pass before
 anything is committed. When `main` advances before the bot push lands, the lane
 rebases the validated patch, reruns `pnpm check:changed`, and retries the push;
-conflicting stale patches are skipped. It uses GitHub-hosted Ubuntu so the Codex
-action can keep the same drop-sudo safety posture as the docs agent.
+conflicting stale patches are skipped. It uses a Blacksmith Ubuntu runner for
+the same Linux workflow surface as the docs agent.
 
 ```bash
 gh workflow run duplicate-after-merge.yml \
@@ -109,12 +122,14 @@ The CI concurrency key is versioned (`CI-v7-*`) so a GitHub-side zombie in an ol
 
 | Runner                           | Jobs                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ubuntu-24.04`                   | `preflight`, fast security jobs and aggregates (`security-scm-fast`, `security-dependency-audit`, `security-fast`), fast protocol/contract/bundled checks, sharded channel contract checks, `check` shards except lint, `check-additional` shards and aggregates, Node test aggregate verifiers, docs checks, Python skills, workflow-sanity, labeler, auto-response; install-smoke preflight also uses GitHub-hosted Ubuntu so the Blacksmith matrix can queue earlier |
-| `blacksmith-8vcpu-ubuntu-2404`   | `build-artifacts`, build-smoke, Linux Node test shards, bundled plugin test shards, `android`                                                                                                                                                                                                                                                                                                                                                                           |
-| `blacksmith-16vcpu-ubuntu-2404`  | `check-lint`, which remains CPU-sensitive enough that 8 vCPU cost more than it saved; install-smoke Docker builds, where 32-vCPU queue time cost more than it saved                                                                                                                                                                                                                                                                                                     |
+| `ubuntu-24.04`                   | npm trusted publishing in `.github/workflows/genesis-npm-release.yml`; npm does not currently support trusted publishing from self-hosted runners                                                                                                                                                                                                                                                                                                                        |
+| `blacksmith-2vcpu-ubuntu-2404`   | Lightweight approval and preflight jobs                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `blacksmith-8vcpu-ubuntu-2404`   | Changed gate, build artifacts, build smoke, Linux Node test shards, bundled plugin test shards, `android`, Linux cross-OS release checks                                                                                                                                                                                                                                                                                                                                 |
+| `blacksmith-16vcpu-ubuntu-2404`  | CPU-sensitive lint/check jobs, install-smoke Docker builds, NPM Telegram beta Docker image and E2E jobs                                                                                                                                                                                                                                                                                                                                                                  |
+| `blacksmith-32vcpu-ubuntu-2404`  | Blacksmith Testbox hydration in `.github/workflows/ci-check-testbox.yml`                                                                                                                                                                                                                                                                                                                                                                                                |
 | `blacksmith-16vcpu-windows-2025` | `checks-windows`                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `blacksmith-6vcpu-macos-latest`  | `macos-node` on `PIXELZX0/Genesis`; forks fall back to `macos-latest`                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `blacksmith-12vcpu-macos-latest` | `macos-swift` on `PIXELZX0/Genesis`; forks fall back to `macos-latest`                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `blacksmith-6vcpu-macos-latest`  | `macos-node`                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `blacksmith-12vcpu-macos-latest` | `macos-swift`, macOS cross-OS release checks                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## Local Equivalents
 
