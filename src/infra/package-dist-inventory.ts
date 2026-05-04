@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { NPM_UPDATE_COMPAT_SIDECAR_PATHS } from "./npm-update-compat-sidecars.js";
@@ -23,8 +24,9 @@ const OMITTED_PRIVATE_QA_PLUGIN_SDK_FILES = new Set([
   "dist/plugin-sdk/src/plugin-sdk/qa-runtime.d.ts",
 ]);
 const OMITTED_PRIVATE_QA_DIST_PREFIXES = ["dist/qa-runtime-"];
+const LEGACY_PLUGIN_SDK_ALIAS_PACKAGE_PATH = "dist/node_modules/genesis/package.json";
+const LEGACY_PLUGIN_SDK_ALIAS_DIR = "dist/node_modules/genesis/plugin-sdk";
 const OMITTED_DIST_SUBTREE_PATTERNS = [
-  /^dist\/node_modules\/genesis(?:\/|$)/u,
   /^dist\/extensions\/node_modules(?:\/|$)/u,
   /^dist\/extensions\/[^/]+\/node_modules(?:\/|$)/u,
   /^dist\/extensions\/[^/]+\/\.genesis-runtime-deps-[^/]+(?:\/|$)/u,
@@ -114,11 +116,40 @@ export async function collectPackageDistInventory(packageRoot: string): Promise<
   return await collectRelativeFiles(path.join(packageRoot, "dist"), packageRoot);
 }
 
+async function collectLegacyPluginSdkAliasInventoryPaths(packageRoot: string): Promise<string[]> {
+  const pluginSdkDir = path.join(packageRoot, "dist", "plugin-sdk");
+  let entries: Dirent[];
+  try {
+    entries = await fs.readdir(pluginSdkDir, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+
+  const wrappers = entries
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        entry.name.endsWith(".js") &&
+        isPackagedDistPath(`dist/plugin-sdk/${entry.name}`),
+    )
+    .map((entry) => `${LEGACY_PLUGIN_SDK_ALIAS_DIR}/${entry.name}`);
+  if (wrappers.length === 0) {
+    return [];
+  }
+  return [LEGACY_PLUGIN_SDK_ALIAS_PACKAGE_PATH, ...wrappers].toSorted((left, right) =>
+    left.localeCompare(right),
+  );
+}
+
 export async function writePackageDistInventory(packageRoot: string): Promise<string[]> {
   const inventory = [
     ...new Set([
       ...(await collectPackageDistInventory(packageRoot)),
       ...LEGACY_VERIFIER_COMPAT_INVENTORY_PATHS,
+      ...(await collectLegacyPluginSdkAliasInventoryPaths(packageRoot)),
     ]),
   ].toSorted((left, right) => left.localeCompare(right));
   const inventoryPath = path.join(packageRoot, PACKAGE_DIST_INVENTORY_RELATIVE_PATH);
