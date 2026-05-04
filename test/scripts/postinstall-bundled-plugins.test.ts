@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -18,6 +19,25 @@ import { writePackageDistInventory } from "../../src/infra/package-dist-inventor
 import { createScriptTestHarness } from "./test-helpers.js";
 
 const { createTempDirAsync } = createScriptTestHarness();
+
+function importPackagedEsmWithPlainNode(modulePath: string) {
+  const moduleUrl = `${pathToFileURL(modulePath).href}?t=${Date.now()}`;
+  return execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      [
+        `const loadedModule = await import(${JSON.stringify(moduleUrl)});`,
+        'process.stdout.write(String(loadedModule.loadedMarker ?? ""));',
+      ].join("\n"),
+    ],
+    {
+      encoding: "utf8",
+      env: { ...process.env, NODE_OPTIONS: "" },
+    },
+  );
+}
 
 async function createExtensionsDir() {
   const root = await createTempDirAsync("genesis-postinstall-");
@@ -482,10 +502,7 @@ describe("bundled plugin postinstall", () => {
       ),
     ).resolves.toContain('"./plugin-sdk/*": "./plugin-sdk/*.js"');
 
-    const loadedModule = (await import(
-      `${pathToFileURL(promptOverlayPath).href}?t=${Date.now()}`
-    )) as { loadedMarker: string };
-    expect(loadedModule.loadedMarker).toBe("loaded");
+    expect(importPackagedEsmWithPlainNode(promptOverlayPath)).toBe("loaded");
   });
 
   it("unlinks stale files instead of recursive pruning them", () => {
