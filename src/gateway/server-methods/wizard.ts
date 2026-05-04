@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
+import { normalizeAnyChannelId } from "../../channels/registry.js";
+import { readConfigFileSnapshot } from "../../config/config.js";
+import type { GenesisConfig } from "../../config/types.genesis.js";
 import { defaultRuntime } from "../../runtime.js";
 import { readStringValue } from "../../shared/string-coerce.js";
+import type { WizardPrompter } from "../../wizard/prompts.js";
 import { WizardSession } from "../../wizard/session.js";
 import {
   ErrorCodes,
@@ -13,6 +17,26 @@ import {
 import { formatForLog } from "../ws-log.js";
 import type { GatewayRequestContext, GatewayRequestHandlers, RespondFn } from "./types.js";
 import { assertValidParams } from "./validation.js";
+
+async function runChannelsWizard(params: { channel?: unknown; prompter: WizardPrompter }) {
+  const snapshot = await readConfigFileSnapshot();
+  if (snapshot.exists && !snapshot.valid) {
+    throw new Error("config invalid; fix it before running channel setup");
+  }
+  const rawChannel = readStringValue(params.channel);
+  const initialChannel = rawChannel ? normalizeAnyChannelId(rawChannel) : null;
+  if (rawChannel && !initialChannel) {
+    throw new Error(`unknown channel: ${rawChannel}`);
+  }
+  const { runInteractiveChannelsAddWizard } = await import("../../flows/channel-add-wizard.js");
+  await runInteractiveChannelsAddWizard({
+    cfg: (snapshot.sourceConfig ?? snapshot.config ?? {}) as GenesisConfig,
+    ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),
+    runtime: defaultRuntime,
+    prompter: params.prompter,
+    ...(initialChannel ? { initialSelection: [initialChannel] } : {}),
+  });
+}
 
 function readWizardStatus(session: WizardSession) {
   return {
@@ -45,13 +69,27 @@ export const wizardHandlers: GatewayRequestHandlers = {
       return;
     }
     const sessionId = randomUUID();
-    const opts = {
-      mode: params.mode,
-      workspace: readStringValue(params.workspace),
-    };
-    const session = new WizardSession((prompter) =>
-      context.wizardRunner(opts, defaultRuntime, prompter),
-    );
+    const target = params.target ?? "setup";
+    const session = new WizardSession((prompter) => {
+      if (target === "channels") {
+        return runChannelsWizard({ channel: params.channel, prompter });
+      }
+      if (target === "models") {
+        return import("./wizard-models.js").then(({ runModelProviderWizard }) =>
+          runModelProviderWizard({
+            provider: params.provider,
+            authMethod: params.authMethod,
+            setDefault: params.setDefault,
+            prompter,
+          }),
+        );
+      }
+      const opts = {
+        mode: params.mode,
+        workspace: readStringValue(params.workspace),
+      };
+      return context.wizardRunner(opts, defaultRuntime, prompter);
+    });
     context.wizardSessions.set(sessionId, session);
     const result = await session.next();
     if (result.done) {

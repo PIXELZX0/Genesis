@@ -150,6 +150,23 @@ describe("scripts/genesis-cross-os-release-checks", () => {
     expect(matrix.include).toContainEqual(
       expect.objectContaining({
         os_id: "ubuntu",
+        runner: "blacksmith-8vcpu-ubuntu-2404",
+        suite: "installer-fresh",
+        lane: "fresh",
+      }),
+    );
+    expect(matrix.include).toContainEqual(
+      expect.objectContaining({
+        os_id: "ubuntu",
+        runner: "blacksmith-8vcpu-ubuntu-2404",
+        suite: "dev-update",
+        lane: "upgrade",
+      }),
+    );
+    expect(matrix.include).toContainEqual(
+      expect.objectContaining({
+        os_id: "macos",
+        runner: "blacksmith-12vcpu-macos-latest",
         suite: "installer-fresh",
         lane: "fresh",
       }),

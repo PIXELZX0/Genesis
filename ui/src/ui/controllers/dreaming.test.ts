@@ -618,6 +618,42 @@ describe("dreaming controller", () => {
     expect(state.dreamingStatusError).toBeNull();
   });
 
+  it("updates local config state after patching global dreaming enablement", async () => {
+    const { state, request } = createState();
+    state.configSnapshot = {
+      hash: "hash-1",
+      config: {
+        plugins: {
+          entries: {
+            "memory-core": {
+              config: {
+                dreaming: {
+                  enabled: false,
+                  frequency: "0 3 * * *",
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    state.configForm = structuredClone(state.configSnapshot.config);
+    state.configFormOriginal = structuredClone(state.configSnapshot.config);
+    state.configFormDirty = false;
+    request.mockResolvedValue({ ok: true });
+
+    const ok = await updateDreamingEnabled(state, true);
+
+    expect(ok).toBe(true);
+    expect(resolveConfiguredDreaming(state.configSnapshot.config ?? null).enabled).toBe(true);
+    expect(resolveConfiguredDreaming(state.configForm ?? null).enabled).toBe(true);
+    expect(resolveConfiguredDreaming(state.configFormOriginal ?? null).enabled).toBe(true);
+    const snapshotPlugins = state.configSnapshot.config?.plugins as {
+      entries?: Record<string, { config?: { dreaming?: { frequency?: unknown } } }>;
+    };
+    expect(snapshotPlugins.entries?.["memory-core"]?.config?.dreaming?.frequency).toBe("0 3 * * *");
+  });
+
   it("falls back to memory-core when selected memory slot is blank", async () => {
     const { state, request } = createState();
     state.configSnapshot = {

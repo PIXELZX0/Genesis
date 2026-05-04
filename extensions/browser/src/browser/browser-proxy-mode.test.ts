@@ -61,6 +61,7 @@ describe("browser proxy mode", () => {
           tor: {
             enabled: true,
             mode: "managed",
+            routeMode: "onion-only",
             socksHost: "127.0.0.1",
             socksPort: 18900,
             extraArgs: [],

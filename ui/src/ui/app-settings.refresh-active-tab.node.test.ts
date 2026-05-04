@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   loadCronJobsPageMock: vi.fn(async () => {}),
   loadCronRunsMock: vi.fn(async () => {}),
   loadLogsMock: vi.fn(async () => {}),
+  loadPluginsMock: vi.fn(async () => {}),
   loadWalletSummaryMock: vi.fn(async () => {}),
 }));
 
@@ -54,6 +55,9 @@ vi.mock("./controllers/cron.ts", () => ({
 }));
 vi.mock("./controllers/logs.ts", () => ({
   loadLogs: mocks.loadLogsMock,
+}));
+vi.mock("./controllers/plugins.ts", () => ({
+  loadPlugins: mocks.loadPluginsMock,
 }));
 vi.mock("./controllers/wallet.ts", () => ({
   loadWalletSummary: mocks.loadWalletSummaryMock,
@@ -167,5 +171,14 @@ describe("refreshActiveTab", () => {
     await refreshActiveTab(host as never);
 
     expect(mocks.loadWalletSummaryMock).toHaveBeenCalledWith(host, { includeBalances: true });
+  });
+
+  it("refreshes plugins tab", async () => {
+    const host = createHost();
+    host.tab = "plugins";
+
+    await refreshActiveTab(host as never);
+
+    expect(mocks.loadPluginsMock).toHaveBeenCalledWith(host);
   });
 });

@@ -250,7 +250,7 @@ describe("chrome.ts internal", () => {
       expect(args).toContain("--no-proxy-server");
     });
 
-    it("routes Tor profiles through the configured SOCKS endpoint", () => {
+    it("routes Tor profiles through the configured onion-only PAC endpoint by default", () => {
       const args = buildGenesisChromeLaunchArgs({
         resolved: baseResolved(),
         profile: {
@@ -258,6 +258,7 @@ describe("chrome.ts internal", () => {
           tor: {
             enabled: true,
             mode: "managed",
+            routeMode: "onion-only",
             socksHost: "127.0.0.1",
             socksPort: 18900,
             extraArgs: [],
@@ -265,8 +266,9 @@ describe("chrome.ts internal", () => {
         },
         userDataDir: "/tmp/foo",
       });
-      expect(args).toContain("--proxy-server=socks5://127.0.0.1:18900");
-      expect(args).toContain("--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1");
+      expect(args.some((arg) => arg.startsWith("--proxy-pac-url="))).toBe(true);
+      expect(args).toContain("--host-resolver-rules=MAP *.onion ~NOTFOUND, EXCLUDE 127.0.0.1");
+      expect(args).toContain("--dns-prefetch-disable");
       expect(args).not.toContain("--no-proxy-server");
     });
   });

@@ -24,6 +24,7 @@ const OMITTED_PRIVATE_QA_PLUGIN_SDK_FILES = new Set([
 ]);
 const OMITTED_PRIVATE_QA_DIST_PREFIXES = ["dist/qa-runtime-"];
 const OMITTED_DIST_SUBTREE_PATTERNS = [
+  /^dist\/node_modules\/genesis(?:\/|$)/u,
   /^dist\/extensions\/node_modules(?:\/|$)/u,
   /^dist\/extensions\/[^/]+\/node_modules(?:\/|$)/u,
   /^dist\/extensions\/[^/]+\/\.genesis-runtime-deps-[^/]+(?:\/|$)/u,

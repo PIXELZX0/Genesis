@@ -24,6 +24,7 @@ describe("config view", () => {
     showModeToggle: true,
     formValue: {},
     originalValue: {},
+    restartPrompt: null,
     searchQuery: "",
     activeSection: null,
     activeSubsection: null,
@@ -36,6 +37,9 @@ describe("config view", () => {
     onReset: vi.fn(),
     onSave: vi.fn(),
     onApply: vi.fn(),
+    onRestartNow: vi.fn(),
+    onRestartLater: vi.fn(),
+    onCancelRestartChanges: vi.fn(),
     onUpdate: vi.fn(),
     onSubsectionChange: vi.fn(),
     version: "2026.3.11",
@@ -188,6 +192,30 @@ describe("config view", () => {
     expect(btn).toBeTruthy();
     btn?.click();
     expect(onFormModeChange).toHaveBeenCalledWith("raw");
+  });
+
+  it("renders restart-required changes prompt actions", () => {
+    const onRestartNow = vi.fn();
+    const onRestartLater = vi.fn();
+    const onCancelRestartChanges = vi.fn();
+    const { container } = renderConfigView({
+      restartPrompt: { paths: ["gateway.auth.mode"] },
+      onRestartNow,
+      onRestartLater,
+      onCancelRestartChanges,
+    });
+
+    expect(normalizedText(container)).toContain("Restart required");
+    expect(normalizedText(container)).toContain("gateway.auth.mode");
+
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>("button"));
+    buttons.find((button) => button.textContent?.trim() === "Restart now")?.click();
+    buttons.find((button) => button.textContent?.trim() === "Restart later")?.click();
+    buttons.find((button) => button.textContent?.trim() === "Cancel changes")?.click();
+
+    expect(onRestartNow).toHaveBeenCalledTimes(1);
+    expect(onRestartLater).toHaveBeenCalledTimes(1);
+    expect(onCancelRestartChanges).toHaveBeenCalledTimes(1);
   });
 
   it("forces Form mode and disables Raw mode when raw text is unavailable", () => {

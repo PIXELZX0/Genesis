@@ -1,6 +1,15 @@
 import { loadConfig } from "../../config/config.js";
-import { getWalletBalanceForChain, getWalletSummary } from "../../wallet/service.js";
-import { ErrorCodes, errorShape, validateWalletSummaryParams } from "../protocol/index.js";
+import {
+  getWalletBalanceForChain,
+  getWalletSummary,
+  setWalletRecoveryPhrase,
+} from "../../wallet/service.js";
+import {
+  ErrorCodes,
+  errorShape,
+  validateWalletRecoveryPhraseSetParams,
+  validateWalletSummaryParams,
+} from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { assertValidParams } from "./validation.js";
 
@@ -31,6 +40,43 @@ export const walletHandlers: GatewayRequestHandlers = {
         }
       }
       respond(true, { ...summary, balances }, undefined);
+    } catch (error) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, error instanceof Error ? error.message : String(error)),
+      );
+    }
+  },
+  "wallet.recoveryPhrase.set": async ({ respond, params }) => {
+    if (
+      !assertValidParams(
+        params,
+        validateWalletRecoveryPhraseSetParams,
+        "wallet.recoveryPhrase.set",
+        respond,
+      )
+    ) {
+      return;
+    }
+    if (params.mode === "import" && !params.mnemonic?.trim()) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "wallet.recoveryPhrase.set requires mnemonic"),
+      );
+      return;
+    }
+    const config = loadConfig().wallet;
+    try {
+      const result = await setWalletRecoveryPhrase({
+        config,
+        mode: params.mode,
+        passphrase: params.passphrase,
+        mnemonic: params.mnemonic,
+        overwrite: params.overwrite === true,
+      });
+      respond(true, result, undefined);
     } catch (error) {
       respond(
         false,

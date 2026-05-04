@@ -161,6 +161,10 @@ so your plugin does not depend on a legacy combined phase.
 
 `before_agent_start` and `agent_end` include `event.runId` when Genesis can
 identify the active run. The same value is also available on `ctx.runId`.
+`agent_end` receives `event.messages` for the final transcript view and, on
+Genesis-owned harnesses, `event.newMessages` for only the messages appended by
+the completed run. Plugins that run post-turn learning or analytics should use
+`newMessages ?? messages` so old transcript content is not double-counted.
 
 Non-bundled plugins that need `llm_input`, `llm_output`, or `agent_end` must set:
 

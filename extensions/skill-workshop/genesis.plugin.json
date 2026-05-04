@@ -18,6 +18,10 @@
       "label": "Review Mode",
       "help": "Choose heuristic capture, threshold LLM review, both, or no automatic capture."
     },
+    "reviewComplexTurnMinToolCalls": {
+      "label": "Complex Turn Tool Calls",
+      "help": "Run the LLM reviewer immediately after one turn reaches this many tool calls; set 0 to disable."
+    },
     "maxPending": {
       "label": "Max Pending",
       "help": "Maximum pending skill suggestions to keep per workspace."
@@ -56,6 +60,12 @@
         "minimum": 1,
         "maximum": 500,
         "default": 8
+      },
+      "reviewComplexTurnMinToolCalls": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 5
       },
       "reviewTimeoutMs": {
         "type": "integer",

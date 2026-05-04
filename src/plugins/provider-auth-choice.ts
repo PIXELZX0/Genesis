@@ -180,8 +180,15 @@ export async function runProviderPluginAuthMethod(params: {
   emitNotes?: boolean;
   secretInputMode?: ProviderAuthOptionBag["secretInputMode"];
   allowSecretRefPrompt?: boolean;
+  isRemote?: boolean;
+  openUrl?: (url: string) => Promise<void>;
   opts?: Partial<ProviderAuthOptionBag>;
-}): Promise<{ config: GenesisConfig; defaultModel?: string }> {
+}): Promise<{
+  config: GenesisConfig;
+  defaultModel?: string;
+  profileCount: number;
+  patched: boolean;
+}> {
   const agentId = params.agentId ?? resolveDefaultAgentId(params.config);
   const defaultAgentId = resolveDefaultAgentId(params.config);
   const agentDir =
@@ -204,8 +211,12 @@ export async function runProviderPluginAuthMethod(params: {
     opts: params.opts,
     secretInputMode: params.secretInputMode,
     allowSecretRefPrompt: params.allowSecretRefPrompt,
-    isRemote: isRemoteEnvironment(),
+    isRemote: params.isRemote ?? isRemoteEnvironment(),
     openUrl: async (url) => {
+      if (params.openUrl) {
+        await params.openUrl(url);
+        return;
+      }
       await openUrl(url);
     },
     oauth: {
@@ -247,6 +258,8 @@ export async function runProviderPluginAuthMethod(params: {
   return {
     config: nextConfig,
     defaultModel: result.defaultModel,
+    profileCount: result.profiles.length,
+    patched: Boolean(result.configPatch),
   };
 }
 

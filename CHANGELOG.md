@@ -2,6 +2,46 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.3-5
+
+### Changes
+
+- Control UI: add guided model provider setup from Agents -> Overview, with sensitive credential prompts masked in browser-based wizard sessions.
+- Control UI: add a Plugins tab for plugin status, enable/disable, managed uninstall, and ClawHub plugin search/install.
+- Control UI/config: prompt before restart-required config apply operations, with restart now, restart later, and cancel actions.
+- Skills: add a ClawHub browse action and clearer install success messages in the Skills tab.
+
+### Fixes
+
+- Update: resolve package-manager update targets from `@pixelzx/genesis` by default so `genesis update` no longer mistakes the legacy `genesis@latest` package for a downgrade target.
+- Agents: skip pre-prompt context-overflow checks after an empty prompt/history/image turn has already been skipped, so empty channel wakes no longer surface misleading "Context overflow" replies.
+- Skills: avoid scheduling an immediate Gateway restart for skill-only config changes, including when config reload mode is off.
+- Wallet: ask for the optional Control UI import passphrase only once instead of requiring a confirmation entry.
+- Packaged plugins: restore the `genesis/plugin-sdk/*` alias during postinstall so bundled provider catalogs can load SDK helpers after scoped package installs.
+- CLI/config: remove only the requested array element for `genesis config unset array[index]` instead of deleting the shifted next element during the write pass.
+- Tools: keep `tools.deny: ["write"]` from implicitly denying `apply_patch`; deny `apply_patch` or `group:fs` to block patch edits explicitly.
+- Status/sessions: ignore malformed persisted session provider/model metadata instead of throwing while rendering session lists and status summaries.
+- Control UI/Skills: defer skill detail dialogs until the element is connected so browsers do not throw when opening skill details.
+
+## 2026.5.3-4
+
+### Changes
+
+- Control UI: add a guided channel setup flow in the Channels tab, backed by the Gateway wizard session so operators can add or update channel accounts without leaving the web UI.
+- Browser: keep regular domains and IP literals on direct clearnet routing by default for Tor-enabled managed profiles while sending `.onion` HTTP(S) URLs through Tor; `routeMode: "all"` keeps whole-profile Tor routing available.
+- Skill Workshop: add a Hermes-style complex-turn review trigger so enabled workspaces can run the LLM reviewer immediately after tool-heavy turns, using only newly appended run messages when available.
+
+### Fixes
+
+- Update: infer the default source-checkout channel from the current tag or branch so stable correction checkouts stay on `stable`, and retry npm package updates with `--omit=optional` when optional dependency builds fail.
+- Wallet: allow Control UI Secret Recovery Phrase generation and import without a wallet passphrase, and keep the recovery phrase mode icons consistently sized.
+
+## 2026.5.3-3
+
+### Changes
+
+- Wallet: manage one Secret Recovery Phrase from the Control UI and derive BTC, EVM, SOL, and TRX local keystore wallets from that phrase.
+
 ## 2026.5.3-2
 
 ### Changes

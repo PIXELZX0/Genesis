@@ -40,6 +40,7 @@ import {
   type ModelAuthStatusState,
 } from "./controllers/model-auth-status.ts";
 import { loadNodes, type NodesState } from "./controllers/nodes.ts";
+import { loadPlugins, type PluginsState } from "./controllers/plugins.ts";
 import { loadPresence, type PresenceState } from "./controllers/presence.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
@@ -125,6 +126,7 @@ type SettingsAppHost = SettingsHost &
   PresenceState &
   SessionsState &
   SkillsState &
+  PluginsState &
   ModelAuthStatusState &
   UsageState &
   WalletState & {
@@ -369,6 +371,9 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "skills":
       await loadSkills(app);
+      return;
+    case "plugins":
+      await loadPlugins(app);
       return;
     case "agents":
       await refreshAgentsTab(host, app);

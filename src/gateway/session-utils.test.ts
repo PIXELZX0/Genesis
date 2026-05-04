@@ -879,6 +879,23 @@ describe("resolveSessionModelRef", () => {
 
     expect(resolved).toEqual({ provider: "anthropic", model: "claude-sonnet-4-6" });
   });
+
+  test("ignores malformed persisted model fields", () => {
+    const cfg = createModelDefaultsConfig({
+      primary: "anthropic/claude-opus-4-6",
+    });
+
+    const resolved = resolveSessionModelRef(cfg, {
+      sessionId: "malformed-model",
+      updatedAt: Date.now(),
+      modelProvider: { bad: true },
+      model: ["gpt-5.4"],
+      providerOverride: 123,
+      modelOverride: { nested: "model" },
+    } as unknown as SessionEntry);
+
+    expect(resolved).toEqual({ provider: "anthropic", model: "claude-opus-4-6" });
+  });
 });
 
 describe("listSessionsFromStore selected model display", () => {
@@ -899,6 +916,29 @@ describe("listSessionsFromStore selected model display", () => {
           modelProvider: "openai-codex",
           model: "gpt-5.4",
         } as SessionEntry,
+      },
+      opts: {},
+    });
+
+    expect(result.sessions[0]?.modelProvider).toBe("anthropic");
+    expect(result.sessions[0]?.model).toBe("claude-opus-4-6");
+  });
+
+  test("lists sessions with malformed persisted model fields", () => {
+    const cfg = createModelDefaultsConfig({
+      primary: "anthropic/claude-opus-4-6",
+    });
+
+    const result = listSessionsFromStore({
+      cfg,
+      storePath: "/tmp/sessions.json",
+      store: {
+        "agent:main:main": {
+          sessionId: "sess-bad-model",
+          updatedAt: Date.now(),
+          modelProvider: { bad: true },
+          model: ["gpt-5.4"],
+        } as unknown as SessionEntry,
       },
       opts: {},
     });
@@ -1035,6 +1075,21 @@ describe("resolveSessionModelIdentityRef", () => {
       provider: "vercel-ai-gateway",
       model: "anthropic/claude-sonnet-4-6",
     });
+  });
+
+  test("falls back when persisted runtime identity is malformed", () => {
+    const cfg = createModelDefaultsConfig({
+      primary: "google-gemini-cli/gemini-3-pro-preview",
+    });
+
+    const resolved = resolveSessionModelIdentityRef(cfg, {
+      sessionId: "malformed-runtime-model",
+      updatedAt: Date.now(),
+      model: { id: "claude-sonnet-4-6" },
+      modelProvider: ["anthropic"],
+    } as unknown as SessionEntry);
+
+    expect(resolved).toEqual({ provider: "google-gemini-cli", model: "gemini-3-pro-preview" });
   });
 });
 

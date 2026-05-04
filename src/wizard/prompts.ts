@@ -22,6 +22,7 @@ export type WizardTextParams = {
   message: string;
   initialValue?: string;
   placeholder?: string;
+  sensitive?: boolean;
   validate?: (value: string) => string | undefined;
 };
 

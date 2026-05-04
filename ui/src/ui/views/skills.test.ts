@@ -96,10 +96,37 @@ describe("renderSkills", () => {
     while (dialogRestores.length > 0) {
       dialogRestores.pop()?.();
     }
+    document.body.replaceChildren();
+  });
+
+  it("surfaces ClawHub browsing from the Skills tab", () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const onClawHubQueryChange = vi.fn();
+
+    render(
+      renderSkills(
+        createProps({
+          onClawHubQueryChange,
+        }),
+      ),
+      container,
+    );
+
+    const text = normalizeText(container);
+    expect(text).toContain("Search or browse ClawHub to install registry skills.");
+
+    const browse = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
+      (button) => button.textContent?.trim() === "Browse",
+    );
+    browse?.click();
+
+    expect(onClawHubQueryChange).toHaveBeenCalledWith("");
   });
 
   it("opens detail dialogs and routes ClawHub actions", async () => {
     const container = document.createElement("div");
+    document.body.append(container);
     const onDetailClose = vi.fn();
     const showModal = vi.fn(function (this: HTMLDialogElement) {
       this.setAttribute("open", "");
@@ -219,6 +246,33 @@ describe("renderSkills", () => {
 
     expect(onClawHubInstall).toHaveBeenCalledTimes(1);
     expect(onClawHubInstall).toHaveBeenCalledWith("github");
+  });
+
+  it("waits until detail dialogs are connected before opening", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const showModal = vi.fn(function (this: HTMLDialogElement) {
+      if (!this.isConnected) {
+        throw new DOMException("Dialog element is not connected");
+      }
+      this.setAttribute("open", "");
+    });
+    installDialogMethod("showModal", showModal);
+
+    render(
+      renderSkills(
+        createProps({
+          detailKey: "repo-skill",
+        }),
+      ),
+      container,
+    );
+
+    expect(showModal).not.toHaveBeenCalled();
+    await Promise.resolve();
+
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("dialog")?.hasAttribute("open")).toBe(true);
   });
 });
 

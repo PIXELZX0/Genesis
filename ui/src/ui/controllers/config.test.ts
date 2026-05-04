@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import {
   applyConfigSnapshot,
   applyConfig,
+  applyConfigRestartNow,
+  cancelConfigRestartChanges,
   ensureAgentConfigEntry,
   findAgentConfigEntryIndex,
+  getConfigRestartRequiredPaths,
   resetConfigPendingChanges,
+  requestApplyConfig,
   runUpdate,
   saveConfig,
+  saveConfigRestartLater,
   updateConfigFormValue,
   type ConfigState,
 } from "./config.ts";
@@ -22,6 +27,7 @@ function createState(): ConfigState {
     configFormDirty: false,
     configFormMode: "form",
     configFormOriginal: null,
+    configRestartPrompt: null,
     configIssues: [],
     configLoading: false,
     configRaw: "",
@@ -354,6 +360,116 @@ describe("applyConfig", () => {
     expect(parsed.gateway.debug).toBe(true);
     expect(params.baseHash).toBe("hash-apply-1");
     expect(params.sessionKey).toBe("agent:main:web:dm:test");
+  });
+});
+
+describe("restart-required config changes", () => {
+  it("detects form changes that require a gateway restart", () => {
+    const state = createState();
+    state.configSnapshot = {
+      hash: "hash-restart-1",
+      config: {
+        gateway: { auth: { mode: "token" } },
+        ui: { theme: "claw" },
+      },
+    };
+    state.configFormOriginal = {
+      gateway: { auth: { mode: "token" } },
+      ui: { theme: "claw" },
+    };
+    state.configForm = {
+      gateway: { auth: { mode: "password" } },
+      ui: { theme: "dash" },
+    };
+
+    expect(getConfigRestartRequiredPaths(state)).toEqual(["gateway.auth.mode"]);
+  });
+
+  it("opens a restart prompt instead of applying immediately", async () => {
+    const request = vi.fn().mockResolvedValue({});
+    const state = createState();
+    state.connected = true;
+    state.client = { request } as unknown as ConfigState["client"];
+    state.configSnapshot = {
+      hash: "hash-restart-2",
+      config: { gateway: { auth: { mode: "token" } } },
+    };
+    state.configFormOriginal = { gateway: { auth: { mode: "token" } } };
+    state.configForm = { gateway: { auth: { mode: "password" } } };
+
+    await requestApplyConfig(state);
+
+    expect(request).not.toHaveBeenCalled();
+    expect(state.configRestartPrompt).toEqual({ paths: ["gateway.auth.mode"] });
+  });
+
+  it("detects restart-required changes from raw JSON5 edits", async () => {
+    const request = vi.fn().mockResolvedValue({});
+    const state = createState();
+    state.connected = true;
+    state.client = { request } as unknown as ConfigState["client"];
+    state.configFormMode = "raw";
+    state.configSnapshot = {
+      hash: "hash-restart-raw",
+      raw: "{ gateway: { auth: { mode: 'token' } } }",
+      config: { gateway: { auth: { mode: "token" } } },
+    };
+    state.configRaw = "{ gateway: { auth: { mode: 'password' } } }";
+
+    await requestApplyConfig(state);
+
+    expect(request).not.toHaveBeenCalled();
+    expect(state.configRestartPrompt).toEqual({ paths: ["gateway.auth.mode"] });
+  });
+
+  it("lets restart prompt actions restart now, restart later, or cancel changes", async () => {
+    const request = createRequestWithConfigGet();
+    const state = createState();
+    state.connected = true;
+    state.client = { request } as unknown as ConfigState["client"];
+    state.configSnapshot = {
+      hash: "hash-restart-3",
+      raw: "{}",
+      config: { gateway: { auth: { mode: "token" } } },
+    };
+    state.configFormOriginal = { gateway: { auth: { mode: "token" } } };
+    state.configForm = { gateway: { auth: { mode: "password" } } };
+    state.configRestartPrompt = { paths: ["gateway.auth.mode"] };
+
+    await applyConfigRestartNow(state);
+
+    expect(request.mock.calls[0]?.[0]).toBe("config.apply");
+    expect(state.configRestartPrompt).toBeNull();
+
+    request.mockClear();
+    state.configSnapshot = {
+      hash: "hash-restart-4",
+      raw: "{}",
+      config: { gateway: { auth: { mode: "token" } } },
+    };
+    state.configFormOriginal = { gateway: { auth: { mode: "token" } } };
+    state.configForm = { gateway: { auth: { mode: "password" } } };
+    state.configRestartPrompt = { paths: ["gateway.auth.mode"] };
+
+    await saveConfigRestartLater(state);
+
+    expect(request.mock.calls[0]?.[0]).toBe("config.set");
+    expect(state.configRestartPrompt).toBeNull();
+
+    state.configSnapshot = {
+      hash: "hash-restart-5",
+      raw: "{}",
+      config: { gateway: { auth: { mode: "token" } } },
+    };
+    state.configFormOriginal = { gateway: { auth: { mode: "token" } } };
+    state.configForm = { gateway: { auth: { mode: "password" } } };
+    state.configRestartPrompt = { paths: ["gateway.auth.mode"] };
+
+    cancelConfigRestartChanges(state);
+
+    expect(state.configRestartPrompt).toBeNull();
+    expect(state.configForm).toEqual({ gateway: { auth: { mode: "token" } } });
+    expect(state.configFormDirty).toBe(false);
   });
 });
 

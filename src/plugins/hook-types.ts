@@ -219,6 +219,8 @@ export type PluginHookLlmOutputEvent = {
 export type PluginHookAgentEndEvent = {
   runId?: string;
   messages: unknown[];
+  /** Messages appended by the completed run. Falls back to `messages` on older harnesses. */
+  newMessages?: unknown[];
   success: boolean;
   error?: string;
   durationMs?: number;

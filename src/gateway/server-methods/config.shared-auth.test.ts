@@ -186,6 +186,104 @@ describe("config shared auth disconnects", () => {
     expect(scheduleGatewaySigusr1RestartMock).toHaveBeenCalledTimes(1);
   });
 
+  it("does not schedule a direct restart for skills-only config.patch writes when reload mode is off", async () => {
+    const prevConfig: GenesisConfig = {
+      gateway: {
+        reload: {
+          mode: "off",
+        },
+      },
+      skills: {
+        entries: {
+          github: {
+            enabled: true,
+          },
+        },
+      },
+    };
+    readConfigFileSnapshotForWriteMock.mockResolvedValue(createConfigWriteSnapshot(prevConfig));
+
+    const { options } = createConfigHandlerHarness({
+      method: "config.patch",
+      params: {
+        baseHash: "base-hash",
+        raw: JSON.stringify({ skills: { entries: { github: { enabled: false } } } }),
+        restartDelayMs: 1_000,
+      },
+    });
+
+    await configHandlers["config.patch"](options);
+    await flushConfigHandlerMicrotasks();
+
+    expect(scheduleGatewaySigusr1RestartMock).not.toHaveBeenCalled();
+  });
+
+  it("does not schedule a direct restart for hot-safe model config.patch writes when reload mode is off", async () => {
+    const prevConfig: GenesisConfig = {
+      gateway: {
+        reload: {
+          mode: "off",
+        },
+      },
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-5.4",
+          },
+        },
+      },
+    };
+    readConfigFileSnapshotForWriteMock.mockResolvedValue(createConfigWriteSnapshot(prevConfig));
+
+    const { options } = createConfigHandlerHarness({
+      method: "config.patch",
+      params: {
+        baseHash: "base-hash",
+        raw: JSON.stringify({
+          agents: {
+            defaults: {
+              model: {
+                primary: "anthropic/claude-sonnet-4-6",
+              },
+            },
+          },
+        }),
+        restartDelayMs: 1_000,
+      },
+    });
+
+    await configHandlers["config.patch"](options);
+    await flushConfigHandlerMicrotasks();
+
+    expect(scheduleGatewaySigusr1RestartMock).not.toHaveBeenCalled();
+  });
+
+  it("still schedules a direct restart for restart-required config.patch writes when reload mode is off", async () => {
+    const prevConfig: GenesisConfig = {
+      gateway: {
+        reload: {
+          mode: "off",
+        },
+        port: 18789,
+      },
+    };
+    readConfigFileSnapshotForWriteMock.mockResolvedValue(createConfigWriteSnapshot(prevConfig));
+
+    const { options } = createConfigHandlerHarness({
+      method: "config.patch",
+      params: {
+        baseHash: "base-hash",
+        raw: JSON.stringify({ gateway: { port: 19001 } }),
+        restartDelayMs: 1_000,
+      },
+    });
+
+    await configHandlers["config.patch"](options);
+    await flushConfigHandlerMicrotasks();
+
+    expect(scheduleGatewaySigusr1RestartMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not add an agent continuation from generic control-plane sessionKey params", async () => {
     const prevConfig: GenesisConfig = {
       gateway: {

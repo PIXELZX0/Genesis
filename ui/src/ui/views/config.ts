@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
+import type { ConfigRestartPrompt } from "../controllers/config.ts";
 import { icons } from "../icons.ts";
 import { BORDER_RADIUS_STOPS, type BorderRadiusStop } from "../storage.ts";
 import type { ThemeTransitionContext } from "../theme-transition.ts";
@@ -42,6 +43,7 @@ export type ConfigProps = {
   showModeToggle?: boolean;
   formValue: Record<string, unknown> | null;
   originalValue: Record<string, unknown> | null;
+  restartPrompt: ConfigRestartPrompt | null;
   searchQuery: string;
   activeSection: string | null;
   activeSubsection: string | null;
@@ -55,6 +57,9 @@ export type ConfigProps = {
   onReset: () => void;
   onSave: () => void;
   onApply: () => void;
+  onRestartNow: () => void;
+  onRestartLater: () => void;
+  onCancelRestartChanges: () => void;
   onUpdate: () => void;
   onOpenFile?: () => void;
   version: string;
@@ -1029,6 +1034,8 @@ export function renderConfig(props: ConfigProps) {
     hasChanges &&
     (formMode === "raw" ? true : canSaveForm);
   const canUpdate = props.connected && !props.applying && !props.updating;
+  const restartPaths = props.restartPrompt?.paths.slice(0, 4) ?? [];
+  const hiddenRestartPathCount = Math.max(0, (props.restartPrompt?.paths.length ?? 0) - 4);
 
   const showAppearanceOnRoot =
     includeVirtualSections &&
@@ -1038,6 +1045,41 @@ export function renderConfig(props: ConfigProps) {
 
   return html`
     <div class="config-layout">
+      ${props.restartPrompt
+        ? html`
+            <div class="config-restart-modal" role="dialog" aria-modal="true">
+              <div class="config-restart-modal__panel">
+                <div class="config-restart-modal__title">Restart required</div>
+                <p class="config-restart-modal__body">
+                  These changes require a Gateway restart before they take effect.
+                </p>
+                ${restartPaths.length > 0
+                  ? html`
+                      <div class="config-restart-modal__paths">
+                        ${restartPaths.map(
+                          (path) => html`<span class="config-restart-modal__path">${path}</span>`,
+                        )}
+                        ${hiddenRestartPathCount > 0
+                          ? html`<span class="config-restart-modal__path"
+                              >+${hiddenRestartPathCount} more</span
+                            >`
+                          : nothing}
+                      </div>
+                    `
+                  : nothing}
+                <div class="config-restart-modal__actions">
+                  <button class="btn btn--sm danger" @click=${props.onCancelRestartChanges}>
+                    Cancel changes
+                  </button>
+                  <button class="btn btn--sm" @click=${props.onRestartLater}>Restart later</button>
+                  <button class="btn btn--sm primary" @click=${props.onRestartNow}>
+                    Restart now
+                  </button>
+                </div>
+              </div>
+            </div>
+          `
+        : nothing}
       <main class="config-main">
         <div class="config-actions">
           <div class="config-actions__left">

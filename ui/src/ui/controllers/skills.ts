@@ -200,13 +200,8 @@ export async function searchClawHub(state: SkillsState, query: string) {
   if (!state.client || !state.connected) {
     return;
   }
-  if (!query.trim()) {
-    state.clawhubSearchResults = null;
-    state.clawhubSearchError = null;
-    state.clawhubSearchLoading = false;
-    return;
-  }
   const client = state.client;
+  const trimmedQuery = query.trim();
   // Clear stale entries as soon as a new search begins so the UI cannot act on
   // results that no longer match the current query while the next request is in flight.
   state.clawhubSearchResults = null;
@@ -216,7 +211,7 @@ export async function searchClawHub(state: SkillsState, query: string) {
     () => query === state.clawhubSearchQuery,
     () =>
       client.request<{ results: ClawHubSearchResult[] }>("skills.search", {
-        query,
+        ...(trimmedQuery ? { query: trimmedQuery } : {}),
         limit: 20,
       }),
     (res) => {
@@ -269,9 +264,15 @@ export async function installFromClawHub(state: SkillsState, slug: string) {
   state.clawhubInstallSlug = slug;
   state.clawhubInstallMessage = null;
   try {
-    await state.client.request("skills.install", { source: "clawhub", slug });
+    const result = await state.client.request<{ message?: string }>("skills.install", {
+      source: "clawhub",
+      slug,
+    });
     await loadSkills(state);
-    state.clawhubInstallMessage = { kind: "success", text: `Installed ${slug}` };
+    state.clawhubInstallMessage = {
+      kind: "success",
+      text: result?.message ?? `Installed ${slug}`,
+    };
   } catch (err) {
     state.clawhubInstallMessage = { kind: "error", text: getErrorMessage(err) };
   } finally {

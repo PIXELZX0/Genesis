@@ -56,6 +56,10 @@ If you prefer chat-native control, enable `commands.plugins: true` and use:
 The install path uses the same resolver as the CLI: local path/archive, explicit
 `clawhub:<pkg>`, or bare package spec (ClawHub first, then npm fallback).
 
+The browser Control UI also has a Plugins tab for listing plugins, toggling
+enablement, uninstalling managed plugins, and searching/installing plugins from
+ClawHub.
+
 If config is invalid, install normally fails closed and points you at
 `genesis doctor --fix`. The only recovery exception is a narrow bundled-plugin
 reinstall path for plugins that opt into

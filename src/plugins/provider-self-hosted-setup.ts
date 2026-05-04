@@ -211,6 +211,7 @@ export async function promptAndConfigureOpenAICompatibleSelfHostedProvider(
   const apiKeyRaw = await params.prompter.text({
     message: `${params.providerLabel} API key`,
     placeholder: "sk-... (or any non-empty string)",
+    sensitive: true,
     validate: (value) => (value?.trim() ? undefined : "Required"),
   });
   const modelIdRaw = await params.prompter.text({

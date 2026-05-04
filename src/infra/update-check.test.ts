@@ -36,14 +36,17 @@ describe("compareSemverStrings", () => {
 
 describe("resolveNpmChannelTag", () => {
   let versionByTag: Record<string, string | null>;
+  let requestedUrls: string[];
 
   beforeEach(() => {
     versionByTag = {};
+    requestedUrls = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url =
           typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        requestedUrls.push(url);
         const tag = decodeURIComponent(url.split("/").pop() ?? "");
         const version = versionByTag[tag] ?? null;
         return {
@@ -108,6 +111,7 @@ describe("resolveNpmChannelTag", () => {
       version: "1.0.4",
       nodeEngine: ">=22.14.0",
     });
+    expect(requestedUrls.at(-1)).toBe("https://registry.npmjs.org/%40pixelzx%2Fgenesis/latest");
     await expect(fetchNpmTagVersion({ tag: "latest", timeoutMs: 1000 })).resolves.toEqual({
       tag: "latest",
       version: "1.0.4",
@@ -121,6 +125,22 @@ describe("resolveNpmChannelTag", () => {
       version: null,
       error: "HTTP 404",
     });
+  });
+
+  it("allows callers to resolve legacy package metadata explicitly", async () => {
+    versionByTag.latest = "1.0.0";
+
+    await expect(
+      fetchNpmPackageTargetStatus({
+        packageName: "genesis",
+        target: "latest",
+        timeoutMs: 1000,
+      }),
+    ).resolves.toMatchObject({
+      target: "latest",
+      version: "1.0.0",
+    });
+    expect(requestedUrls.at(-1)).toBe("https://registry.npmjs.org/genesis/latest");
   });
 });
 

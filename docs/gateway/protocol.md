@@ -322,7 +322,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `config.schema` returns the live config schema payload used by Control UI and CLI tooling: schema, `uiHints`, version, and generation metadata, including plugin + channel schema metadata when the runtime can load it. The schema includes field `title` / `description` metadata derived from the same labels and help text used by the UI, including nested object, wildcard, array-item, and `anyOf` / `oneOf` / `allOf` composition branches when matching field documentation exists.
     - `config.schema.lookup` returns a path-scoped lookup payload for one config path: normalized path, a shallow schema node, matched hint + `hintPath`, and immediate child summaries for UI/CLI drill-down. Lookup schema nodes keep the user-facing docs and common validation fields (`title`, `description`, `type`, `enum`, `const`, `format`, `pattern`, numeric/string/array/object bounds, and flags like `additionalProperties`, `deprecated`, `readOnly`, `writeOnly`). Child summaries expose `key`, normalized `path`, `type`, `required`, `hasChildren`, plus the matched `hint` / `hintPath`.
     - `update.run` runs the gateway update flow and schedules a restart only when the update itself succeeded.
-    - `wizard.start`, `wizard.next`, `wizard.status`, and `wizard.cancel` expose the onboarding wizard over WS RPC.
+    - `wizard.start`, `wizard.next`, `wizard.status`, and `wizard.cancel` expose setup wizard sessions over WS RPC. `wizard.start` defaults to the full onboarding wizard and also accepts `target: "channels"` plus an optional `channel` id for guided channel add/update flows.
   </Accordion>
 
   <Accordion title="Agent and workspace helpers">
@@ -442,6 +442,13 @@ enumeration of `src/gateway/server-methods/*.ts`.
     sanitized install options without exposing raw secret values.
 - Operators may call `skills.search` and `skills.detail` (`operator.read`) for
   ClawHub discovery metadata.
+- Operators may call `wallet.summary` (`operator.read`) to fetch public wallet
+  metadata and optional balances. Operators may call
+  `wallet.recoveryPhrase.set` (`operator.admin`) to generate or import the one
+  BIP39 recovery phrase used for every local keystore chain account. The
+  optional `passphrase` field can be omitted. The generate path returns the new
+  phrase once; the import path and summary path do not echo stored phrases or
+  private keys.
 - Operators may call `skills.install` (`operator.admin`) in two modes:
   - ClawHub mode: `{ source: "clawhub", slug, version?, force? }` installs a
     skill folder into the default agent workspace `skills/` directory.

@@ -12,6 +12,7 @@ import { formatConfigIssueLines } from "../config/issue-format.js";
 import { isPlainObject } from "../utils.js";
 import {
   buildGatewayReloadPlan,
+  isNoopGatewayReloadPlan,
   listPluginInstallTimestampMetadataPaths,
   listPluginInstallWholeRecordPaths,
   type GatewayReloadPlan,
@@ -19,6 +20,7 @@ import {
 
 export {
   buildGatewayReloadPlan,
+  isNoopGatewayReloadPlan,
   listPluginInstallTimestampMetadataPaths,
   listPluginInstallWholeRecordPaths,
 };
@@ -57,19 +59,6 @@ function firstSkillsChangedPath(changedPaths: string[]): string | undefined {
 
 export function shouldInvalidateSkillsSnapshotForPaths(changedPaths: string[]): boolean {
   return firstSkillsChangedPath(changedPaths) !== undefined;
-}
-
-function isNoopReloadPlan(plan: GatewayReloadPlan): boolean {
-  return (
-    !plan.restartGateway &&
-    plan.hotReasons.length === 0 &&
-    !plan.reloadHooks &&
-    !plan.restartGmailWatcher &&
-    !plan.restartCron &&
-    !plan.restartHeartbeat &&
-    !plan.restartHealthMonitor &&
-    plan.restartChannels.size === 0
-  );
 }
 
 export function diffConfigPaths(prev: unknown, next: unknown, prefix = ""): string[] {
@@ -280,7 +269,7 @@ export function startGatewayConfigReloader(opts: {
       noopPaths: pluginInstallTimestampNoopPaths,
       forceChangedPaths: pluginInstallWholeRecordPaths,
     });
-    if (isNoopReloadPlan(plan)) {
+    if (isNoopGatewayReloadPlan(plan)) {
       return;
     }
     if (settings.mode === "off") {

@@ -73,6 +73,7 @@ export type ProfileStatus = {
   tor?: {
     enabled: true;
     mode: "managed" | "external";
+    routeMode: "onion-only" | "all";
     socksHost: string;
     socksPort: number;
     running: boolean | null;

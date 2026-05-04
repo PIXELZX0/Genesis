@@ -1,3 +1,4 @@
+import JSON5 from "json5";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types.ts";
 import type { JsonSchema } from "../views/config-form.shared.ts";
@@ -33,7 +34,12 @@ export type ConfigState = {
   configSearchQuery: string;
   configActiveSection: string | null;
   configActiveSubsection: string | null;
+  configRestartPrompt: ConfigRestartPrompt | null;
   lastError: string | null;
+};
+
+export type ConfigRestartPrompt = {
+  paths: string[];
 };
 
 export async function loadConfig(state: ConfigState) {
@@ -134,6 +140,87 @@ function serializeFormForSubmit(state: ConfigState): string {
   return serializeConfigForm(form);
 }
 
+function isConfigRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function diffConfigFormPaths(prev: unknown, next: unknown, prefix = ""): string[] {
+  if (prev === next) {
+    return [];
+  }
+  if (isConfigRecord(prev) && isConfigRecord(next)) {
+    const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+    const paths: string[] = [];
+    for (const key of keys) {
+      const childPrefix = prefix ? `${prefix}.${key}` : key;
+      paths.push(...diffConfigFormPaths(prev[key], next[key], childPrefix));
+    }
+    return paths;
+  }
+  if (Array.isArray(prev) && Array.isArray(next) && JSON.stringify(prev) === JSON.stringify(next)) {
+    return [];
+  }
+  return [prefix || "<root>"];
+}
+
+function pathMatchesPrefix(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}.`);
+}
+
+function isGatewayHotOrNoopPath(path: string): boolean {
+  return [
+    "gateway.remote",
+    "gateway.reload",
+    "gateway.channelHealthCheckMinutes",
+    "gateway.channelStaleEventThresholdMinutes",
+    "gateway.channelMaxRestartsPerHour",
+  ].some((prefix) => pathMatchesPrefix(path, prefix));
+}
+
+function configPathRequiresGatewayRestart(path: string): boolean {
+  if (path === "<root>") {
+    return true;
+  }
+  if (pathMatchesPrefix(path, "gateway")) {
+    return !isGatewayHotOrNoopPath(path);
+  }
+  if (
+    pathMatchesPrefix(path, "plugins") ||
+    pathMatchesPrefix(path, "discovery") ||
+    pathMatchesPrefix(path, "canvasHost")
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function resolveCurrentStructuredConfig(state: ConfigState): Record<string, unknown> | null {
+  if (state.configFormMode === "raw") {
+    try {
+      const parsed = JSON5.parse(state.configRaw);
+      return isConfigRecord(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  if (state.configFormMode !== "form" || !state.configForm) {
+    return null;
+  }
+  const schema = asJsonSchema(state.configSchema);
+  return schema
+    ? (coerceFormValues(state.configForm, schema) as Record<string, unknown>)
+    : state.configForm;
+}
+
+export function getConfigRestartRequiredPaths(state: ConfigState): string[] {
+  const original = state.configFormOriginal ?? state.configSnapshot?.config ?? null;
+  const current = resolveCurrentStructuredConfig(state);
+  if (!original || !current) {
+    return [];
+  }
+  return diffConfigFormPaths(original, current).filter(configPathRequiresGatewayRestart);
+}
+
 type ConfigSubmitMethod = "config.set" | "config.apply";
 type ConfigSubmitBusyKey = "configSaving" | "configApplying";
 
@@ -173,6 +260,30 @@ export async function applyConfig(state: ConfigState) {
   await submitConfigChange(state, "config.apply", "configApplying", {
     sessionKey: state.applySessionKey,
   });
+}
+
+export async function requestApplyConfig(state: ConfigState) {
+  const restartPaths = getConfigRestartRequiredPaths(state);
+  if (restartPaths.length > 0) {
+    state.configRestartPrompt = { paths: restartPaths };
+    return;
+  }
+  await applyConfig(state);
+}
+
+export async function applyConfigRestartNow(state: ConfigState) {
+  state.configRestartPrompt = null;
+  await applyConfig(state);
+}
+
+export async function saveConfigRestartLater(state: ConfigState) {
+  state.configRestartPrompt = null;
+  await saveConfig(state);
+}
+
+export function cancelConfigRestartChanges(state: ConfigState) {
+  state.configRestartPrompt = null;
+  resetConfigPendingChanges(state);
 }
 
 export async function runUpdate(state: ConfigState) {

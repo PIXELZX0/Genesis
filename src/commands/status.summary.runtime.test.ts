@@ -106,4 +106,18 @@ describe("statusSummaryRuntime.resolveSessionModelRef", () => {
       model: "gpt-5.4",
     });
   });
+
+  it("ignores malformed persisted model metadata", () => {
+    expect(
+      statusSummaryRuntime.resolveSessionModelRef(cfg, {
+        providerOverride: { bad: true },
+        modelOverride: ["gpt-5.4"],
+        modelProvider: 123,
+        model: { id: "claude-haiku" },
+      } as never),
+    ).toEqual({
+      provider: "anthropic",
+      model: "claude-sonnet-4-6",
+    });
+  });
 });

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { resolveWalletKeystorePaths } from "./keystore.js";
-import { initWallet, unlockWalletMnemonic } from "./service.js";
+import { initWallet, setWalletRecoveryPhrase, unlockWalletMnemonic } from "./service.js";
 
 const MNEMONIC =
   "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
@@ -55,5 +55,69 @@ describe("wallet keystore", () => {
     await expect(unlockWalletMnemonic({ env, passphrase: "wrong passphrase" })).rejects.toThrow(
       /Unable to decrypt/,
     );
+  });
+
+  it("manages one recovery phrase for every local keystore chain", async () => {
+    const { env } = await tempEnv();
+    const generated = await setWalletRecoveryPhrase({
+      env,
+      mode: "generate",
+      passphrase: "fresh local passphrase",
+    });
+
+    expect(generated.mnemonicGenerated).toBe(true);
+    expect(generated.mnemonic?.split(/\s+/)).toHaveLength(24);
+    expect(generated.summary.accounts.map((account) => account.chain)).toEqual([
+      "btc",
+      "evm",
+      "sol",
+      "trx",
+    ]);
+
+    const imported = await setWalletRecoveryPhrase({
+      env,
+      mode: "import",
+      mnemonic: MNEMONIC,
+      passphrase: "replacement passphrase",
+      overwrite: true,
+    });
+
+    expect(imported.mnemonicGenerated).toBe(false);
+    expect(imported.mnemonic).toBeUndefined();
+    expect(imported.summary.accounts.map((account) => account.chain)).toEqual([
+      "btc",
+      "evm",
+      "sol",
+      "trx",
+    ]);
+    expect(JSON.stringify(imported)).not.toContain("abandon");
+
+    const unlocked = await unlockWalletMnemonic({
+      env,
+      passphrase: "replacement passphrase",
+    });
+    expect(unlocked).toBe(MNEMONIC);
+  });
+
+  it("allows recovery phrase management without a passphrase", async () => {
+    const { env } = await tempEnv();
+    const generated = await setWalletRecoveryPhrase({
+      env,
+      mode: "generate",
+    });
+
+    expect(generated.mnemonicGenerated).toBe(true);
+    expect(generated.mnemonic?.split(/\s+/)).toHaveLength(24);
+
+    const imported = await setWalletRecoveryPhrase({
+      env,
+      mode: "import",
+      mnemonic: MNEMONIC,
+      overwrite: true,
+    });
+
+    expect(imported.mnemonicGenerated).toBe(false);
+    expect(imported.mnemonic).toBeUndefined();
+    await expect(unlockWalletMnemonic({ env, passphrase: "" })).resolves.toBe(MNEMONIC);
   });
 });

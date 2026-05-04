@@ -1,4 +1,6 @@
+import type { ChannelWizardStep } from "./app-channels.ts";
 import type { EventLogEntry } from "./app-events.ts";
+import type { ModelProviderWizardStep } from "./app-model-providers.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
 import type { RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
@@ -7,10 +9,16 @@ import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type {
+  PluginClawHubDetail,
+  PluginClawHubSearchResult,
+  PluginMessage,
+} from "./controllers/plugins.ts";
+import type {
   ClawHubSearchResult,
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
+import type { WalletRecoveryPhraseMode } from "./controllers/wallet.ts";
 import type { EmbedSandboxMode } from "./embed-sandbox.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -40,6 +48,7 @@ import type {
   SessionsListResult,
   SessionCompactionCheckpoint,
   SkillStatusReport,
+  PluginStatusReport,
   StatusSummary,
   ToolsCatalogResult,
   WalletSummaryResult,
@@ -144,6 +153,7 @@ export type AppViewState = {
   configUiHints: ConfigUiHints;
   configForm: Record<string, unknown> | null;
   configFormOriginal: Record<string, unknown> | null;
+  configRestartPrompt: import("./controllers/config.js").ConfigRestartPrompt | null;
   dreamingStatusLoading: boolean;
   dreamingStatusError: string | null;
   dreamingStatus: import("./controllers/dreaming.js").DreamingStatus | null;
@@ -196,6 +206,18 @@ export type AppViewState = {
   whatsappBusy: boolean;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
+  channelWizardSessionId: string | null;
+  channelWizardStep: ChannelWizardStep | null;
+  channelWizardInput: unknown;
+  channelWizardBusy: boolean;
+  channelWizardError: string | null;
+  channelWizardMessage: string | null;
+  modelProviderWizardSessionId: string | null;
+  modelProviderWizardStep: ModelProviderWizardStep | null;
+  modelProviderWizardInput: unknown;
+  modelProviderWizardBusy: boolean;
+  modelProviderWizardError: string | null;
+  modelProviderWizardMessage: string | null;
   configFormDirty: boolean;
   presenceLoading: boolean;
   presenceEntries: PresenceEntry[];
@@ -343,6 +365,24 @@ export type AppViewState = {
     clawhubDetailError: string | null;
     clawhubInstallSlug: string | null;
     clawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
+    pluginsLoading: boolean;
+    pluginsReport: PluginStatusReport | null;
+    pluginsError: string | null;
+    pluginsFilter: string;
+    pluginsStatusFilter: "all" | "loaded" | "disabled" | "error" | "managed";
+    pluginsBusyKey: string | null;
+    pluginMessages: Record<string, PluginMessage>;
+    pluginDetailKey: string | null;
+    pluginClawhubSearchQuery: string;
+    pluginClawhubSearchResults: PluginClawHubSearchResult[] | null;
+    pluginClawhubSearchLoading: boolean;
+    pluginClawhubSearchError: string | null;
+    pluginClawhubDetail: PluginClawHubDetail | null;
+    pluginClawhubDetailName: string | null;
+    pluginClawhubDetailLoading: boolean;
+    pluginClawhubDetailError: string | null;
+    pluginClawhubInstallName: string | null;
+    pluginClawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
     healthLoading: boolean;
     healthResult: HealthSummary | null;
     healthError: string | null;
@@ -386,6 +426,11 @@ export type AppViewState = {
     walletSummaryLoading: boolean;
     walletBalancesLoading: boolean;
     walletLastUpdatedAt: number | null;
+    walletRecoveryPhraseMode: WalletRecoveryPhraseMode;
+    walletRecoveryPhraseBusy: boolean;
+    walletRecoveryPhraseError: string | null;
+    walletRecoveryPhraseGeneratedMnemonic: string | null;
+    walletRecoveryPhraseStatus: "generated" | "imported" | null;
     client: GatewayBrowserClient | null;
     refreshSessionsAfterChat: Set<string>;
     connect: () => void;
@@ -407,6 +452,16 @@ export type AppViewState = {
     handleWhatsAppLogout: () => Promise<void>;
     handleChannelConfigSave: () => Promise<void>;
     handleChannelConfigReload: () => Promise<void>;
+    handleChannelWizardStart: () => Promise<void>;
+    handleChannelWizardSubmit: () => Promise<void>;
+    handleChannelWizardCancel: () => Promise<void>;
+    handleChannelWizardInput: (value: unknown) => void;
+    handleChannelWizardClose: () => void;
+    handleModelProviderWizardStart: () => Promise<void>;
+    handleModelProviderWizardSubmit: () => Promise<void>;
+    handleModelProviderWizardCancel: () => Promise<void>;
+    handleModelProviderWizardInput: (value: unknown) => void;
+    handleModelProviderWizardClose: () => void;
     handleNostrProfileEdit: (accountId: string, profile: NostrProfile | null) => void;
     handleNostrProfileCancel: () => void;
     handleNostrProfileFieldChange: (field: keyof NostrProfile, value: string) => void;

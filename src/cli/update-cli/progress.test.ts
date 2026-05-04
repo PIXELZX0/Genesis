@@ -14,7 +14,7 @@ function makeResult(
     steps: [
       {
         name: stepName,
-        command: "npm i -g genesis@latest",
+        command: "npm i -g @pixelzx/genesis@latest",
         cwd: "/tmp",
         durationMs: 1,
         exitCode: 1,
@@ -64,12 +64,14 @@ describe("inferUpdateFailureHints", () => {
     const hints = inferUpdateFailureHints(result);
     expect(hints.join("\n")).toContain("EACCES");
     expect(hints.join("\n")).toContain("npm config set prefix ~/.local");
+    expect(hints.join("\n")).toContain("@pixelzx/genesis@latest");
   });
 
   it("returns native optional dependency hint for node-gyp failures", () => {
     const result = makeResult("global update", "node-pre-gyp ERR!\nnode-gyp rebuild failed");
     const hints = inferUpdateFailureHints(result);
     expect(hints.join("\n")).toContain("--omit=optional");
+    expect(hints.join("\n")).toContain("@pixelzx/genesis@latest");
   });
 
   it("does not return npm hints for non-npm install modes", () => {

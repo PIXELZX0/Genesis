@@ -280,6 +280,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Enables Tor SOCKS routing for locally launched managed browser profiles that inherit the default Tor settings. Default is true for local managed profiles.",
   "browser.tor.mode":
     'Tor routing mode: "managed" starts a Tor sidecar with the browser profile, while "external" uses an already-running Tor SOCKS endpoint.',
+  "browser.tor.routeMode":
+    'Tor browser routing policy. Default "onion-only" sends only .onion HTTP(S) URLs through Tor and leaves regular domains/IPs direct; use "all" to route every browser HTTP(S) request through Tor.',
   "browser.tor.executablePath":
     'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
   "browser.tor.socksHost":
@@ -310,6 +312,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Enables Tor SOCKS routing for this locally launched managed browser profile. Defaults to the global browser.tor setting, which is enabled by default.",
   "browser.profiles.*.tor.mode":
     'Per-profile Tor mode: "managed" starts a Tor sidecar and "external" uses an existing SOCKS endpoint.',
+  "browser.profiles.*.tor.routeMode":
+    'Per-profile Tor routing policy. Default "onion-only" keeps clearnet URLs direct and sends .onion HTTP(S) URLs through Tor; use "all" for whole-profile Tor routing.',
   "browser.profiles.*.tor.executablePath":
     'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
   "browser.profiles.*.tor.socksHost": "Per-profile Tor SOCKS host used by Chromium proxy routing.",

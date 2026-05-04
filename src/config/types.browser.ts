@@ -23,6 +23,13 @@ export type BrowserTorConfig = {
   enabled?: boolean;
   /** Use a Genesis-managed Tor sidecar or an externally managed Tor SOCKS endpoint. Default: "managed". */
   mode?: "managed" | "external";
+  /**
+   * Browser routing policy when Tor is enabled.
+   * "onion-only" sends .onion HTTP(S) URLs through Tor and leaves regular domains/IPs on clearnet.
+   * "all" routes all browser HTTP(S) requests through Tor.
+   * Default: "onion-only".
+   */
+  routeMode?: "onion-only" | "all";
   /** Tor executable path for managed mode. Defaults to "tor" on PATH. */
   executablePath?: string;
   /** SOCKS listen/connect host. Default: 127.0.0.1 */

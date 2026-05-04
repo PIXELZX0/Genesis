@@ -4,6 +4,7 @@ import {
   toAgentModelListLike,
 } from "../config/model-input.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
+import { readStringValue } from "../shared/string-coerce.js";
 import {
   resolveAgentConfig,
   resolveAgentEffectiveModelPrimary,
@@ -79,13 +80,13 @@ export { isCliProvider } from "./model-selection-cli.js";
 
 export function resolvePersistedOverrideModelRef(params: {
   defaultProvider: string;
-  overrideProvider?: string;
-  overrideModel?: string;
+  overrideProvider?: unknown;
+  overrideModel?: unknown;
   allowPluginNormalization?: boolean;
 }): ModelRef | null {
   const defaultProvider = params.defaultProvider.trim();
-  const overrideProvider = params.overrideProvider?.trim();
-  const overrideModel = params.overrideModel?.trim();
+  const overrideProvider = readStringValue(params.overrideProvider)?.trim();
+  const overrideModel = readStringValue(params.overrideModel)?.trim();
   if (!overrideModel) {
     return null;
   }
@@ -106,15 +107,15 @@ export function resolvePersistedOverrideModelRef(params: {
  */
 export function resolvePersistedModelRef(params: {
   defaultProvider: string;
-  runtimeProvider?: string;
-  runtimeModel?: string;
-  overrideProvider?: string;
-  overrideModel?: string;
+  runtimeProvider?: unknown;
+  runtimeModel?: unknown;
+  overrideProvider?: unknown;
+  overrideModel?: unknown;
   allowPluginNormalization?: boolean;
 }): ModelRef | null {
   const defaultProvider = params.defaultProvider.trim();
-  const runtimeProvider = params.runtimeProvider?.trim();
-  const runtimeModel = params.runtimeModel?.trim();
+  const runtimeProvider = readStringValue(params.runtimeProvider)?.trim();
+  const runtimeModel = readStringValue(params.runtimeModel)?.trim();
   if (runtimeModel) {
     if (runtimeProvider) {
       return { provider: runtimeProvider, model: runtimeModel };
@@ -143,10 +144,10 @@ export function resolvePersistedModelRef(params: {
  */
 export function resolvePersistedSelectedModelRef(params: {
   defaultProvider: string;
-  runtimeProvider?: string;
-  runtimeModel?: string;
-  overrideProvider?: string;
-  overrideModel?: string;
+  runtimeProvider?: unknown;
+  runtimeModel?: unknown;
+  overrideProvider?: unknown;
+  overrideModel?: unknown;
   allowPluginNormalization?: boolean;
 }): ModelRef | null {
   const override = resolvePersistedOverrideModelRef({
@@ -167,11 +168,11 @@ export function resolvePersistedSelectedModelRef(params: {
 }
 
 export function normalizeStoredOverrideModel(params: {
-  providerOverride?: string | null;
-  modelOverride?: string | null;
+  providerOverride?: unknown;
+  modelOverride?: unknown;
 }): { providerOverride?: string; modelOverride?: string } {
-  const providerOverride = params.providerOverride?.trim();
-  const modelOverride = params.modelOverride?.trim();
+  const providerOverride = readStringValue(params.providerOverride)?.trim();
+  const modelOverride = readStringValue(params.modelOverride)?.trim();
   if (!providerOverride || !modelOverride) {
     return {
       providerOverride,

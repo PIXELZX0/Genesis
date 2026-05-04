@@ -70,6 +70,7 @@ function createSaveState(): {
       configSchemaLoading: false,
       configUiHints: {},
       configFormOriginal: { agents: { list: [{ id: "main" }] } },
+      configRestartPrompt: null,
       configSearchQuery: "",
       configActiveSection: null,
       configActiveSubsection: null,

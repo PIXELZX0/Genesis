@@ -32,9 +32,33 @@ export function buildTorChromeProxyArgs(tor: ResolvedBrowserTorConfig | undefine
   if (!tor?.enabled) {
     return [];
   }
+  if (tor.routeMode === "all") {
+    return [
+      `--proxy-server=socks5://${tor.socksHost}:${tor.socksPort}`,
+      `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE ${tor.socksHost}`,
+      "--dns-prefetch-disable",
+    ];
+  }
+
+  const torProxy = `SOCKS5 ${tor.socksHost}:${tor.socksPort}`;
+  const pacScript = [
+    "function FindProxyForURL(url, host) {",
+    '  var h = String(host || "").toLowerCase();',
+    '  if (h === "onion" || h.slice(-6) === ".onion") {',
+    `    return ${JSON.stringify(torProxy)};`,
+    "  }",
+    '  return "DIRECT";',
+    "}",
+    "",
+  ].join("\n");
+  const pacUrl = `data:application/x-ns-proxy-autoconfig;base64,${Buffer.from(
+    pacScript,
+    "utf8",
+  ).toString("base64")}`;
   return [
-    `--proxy-server=socks5://${tor.socksHost}:${tor.socksPort}`,
-    `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE ${tor.socksHost}`,
+    `--proxy-pac-url=${pacUrl}`,
+    `--host-resolver-rules=MAP *.onion ~NOTFOUND, EXCLUDE ${tor.socksHost}`,
+    "--dns-prefetch-disable",
   ];
 }
 
