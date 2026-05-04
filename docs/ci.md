@@ -8,10 +8,11 @@ read_when:
 
 The CI runs on every push to `main` and every pull request. It uses smart scoping to skip expensive jobs when only unrelated areas changed.
 
-The repository workflows run on Blacksmith runners except the npm trusted
-publishing job in `.github/workflows/genesis-npm-release.yml`, which stays on
-GitHub-hosted Ubuntu because npm trusted publishing currently supports GitHub
-Actions only on GitHub-hosted runners.
+The repository workflows run on Blacksmith runners except the minimal npm
+trusted publishing job in `.github/workflows/genesis-npm-release.yml`, which
+stays on GitHub-hosted Ubuntu because npm trusted publishing currently supports
+GitHub Actions only on GitHub-hosted runners. Release build, pack validation,
+install smoke, and post-publish verification run on Blacksmith.
 
 The `Blacksmith Testbox` workflow in `.github/workflows/ci-check-testbox.yml`
 is the setup target for `blacksmith testbox warmup ci-check-testbox.yml --job test`.
@@ -120,16 +121,16 @@ The CI concurrency key is versioned (`CI-v7-*`) so a GitHub-side zombie in an ol
 
 ## Runners
 
-| Runner                           | Jobs                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ubuntu-24.04`                   | npm trusted publishing in `.github/workflows/genesis-npm-release.yml`; npm does not currently support trusted publishing from self-hosted runners                                                                                                                                                                                                                                                                                                                        |
-| `blacksmith-2vcpu-ubuntu-2404`   | Lightweight approval and preflight jobs                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `blacksmith-8vcpu-ubuntu-2404`   | Changed gate, build artifacts, build smoke, Linux Node test shards, bundled plugin test shards, `android`, Linux cross-OS release checks                                                                                                                                                                                                                                                                                                                                 |
-| `blacksmith-16vcpu-ubuntu-2404`  | CPU-sensitive lint/check jobs, install-smoke Docker builds, NPM Telegram beta Docker image and E2E jobs                                                                                                                                                                                                                                                                                                                                                                  |
-| `blacksmith-32vcpu-ubuntu-2404`  | Blacksmith Testbox hydration in `.github/workflows/ci-check-testbox.yml`                                                                                                                                                                                                                                                                                                                                                                                                |
-| `blacksmith-16vcpu-windows-2025` | `checks-windows`                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `blacksmith-6vcpu-macos-latest`  | `macos-node`                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `blacksmith-12vcpu-macos-latest` | `macos-swift`, macOS cross-OS release checks                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Runner                           | Jobs                                                                                                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ubuntu-24.04`                   | Minimal npm trusted publishing in `.github/workflows/genesis-npm-release.yml`; npm does not currently support trusted publishing from self-hosted runners |
+| `blacksmith-2vcpu-ubuntu-2404`   | Lightweight approval and preflight jobs                                                                                                                   |
+| `blacksmith-8vcpu-ubuntu-2404`   | Changed gate, build artifacts, build smoke, Linux Node test shards, bundled plugin test shards, `android`, Linux cross-OS release checks                  |
+| `blacksmith-16vcpu-ubuntu-2404`  | CPU-sensitive lint/check jobs, install-smoke Docker builds, NPM release build/pack/verify jobs, NPM Telegram beta Docker image and E2E jobs               |
+| `blacksmith-32vcpu-ubuntu-2404`  | Blacksmith Testbox hydration in `.github/workflows/ci-check-testbox.yml`                                                                                  |
+| `blacksmith-16vcpu-windows-2025` | `checks-windows`                                                                                                                                          |
+| `blacksmith-6vcpu-macos-latest`  | `macos-node`                                                                                                                                              |
+| `blacksmith-12vcpu-macos-latest` | `macos-swift`, macOS cross-OS release checks                                                                                                              |
 
 ## Local Equivalents
 

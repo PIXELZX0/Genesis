@@ -29,12 +29,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publish @pixelzx/genesis to npm
+  validate:
+    name: Validate npm release package
     if: github.repository == 'PIXELZX0/Genesis'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 90
-    environment: npm-release
+    outputs:
+      npm_dist_tag: ${{ steps.publish-target.outputs.npm_dist_tag }}
+      package_version: ${{ steps.publish-target.outputs.package_version }}
+      tag: ${{ steps.publish-target.outputs.tag }}
+      tarball_artifact: ${{ steps.pack.outputs.artifact_name }}
+      tarball_name: ${{ steps.pack.outputs.tarball }}
 
     env:
       CI: "1"
@@ -52,10 +57,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@11.5.1
 
       - name: Enable pnpm
         run: |
@@ -128,10 +129,77 @@ jobs:
           pnpm release:check
           pnpm release:genesis:npm:check
 
+      - name: Pack release tarball
+        id: pack
+        env:
+          PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
+        run: |
+          pack_json="$(mktemp)"
+          npm pack --json > "$pack_json"
+          tarball="$(node --input-type=module - "$pack_json" <<'NODE'
+          import { readFileSync } from "node:fs";
+
+          const packJsonPath = process.argv[2];
+          const parsed = JSON.parse(readFileSync(packJsonPath, "utf8") || "[]");
+          const entry = Array.isArray(parsed) ? parsed.at(-1) : null;
+          if (!entry?.filename) {
+            throw new Error("npm pack output did not include a tarball filename.");
+          }
+          console.log(entry.filename);
+          NODE
+          )"
+          test -f "$tarball"
+          artifact_name="genesis-npm-release-tarball-${PACKAGE_VERSION}"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release tarball
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: ${{ steps.pack.outputs.artifact_name }}
+          path: ${{ steps.pack.outputs.tarball }}
+          retention-days: 7
+
+  publish:
+    name: Publish @pixelzx/genesis to npm
+    needs: validate
+    if: github.repository == 'PIXELZX0/Genesis'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: npm-release
+
+    env:
+      CI: "1"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      GENESIS_NPM_PACKAGE_NAME: "@pixelzx/genesis"
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.validate.outputs.tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@11.5.1
+
+      - name: Download release tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.tarball_artifact }}
+          path: .artifacts/npm-release-tarball
+
       - name: Check existing npm version
         id: npm-version
         env:
-          PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
+          PACKAGE_VERSION: ${{ needs.validate.outputs.package_version }}
         run: |
           if npm view "$GENESIS_NPM_PACKAGE_NAME@$PACKAGE_VERSION" version --silent >/tmp/genesis-npm-version.txt 2>/dev/null; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
@@ -143,11 +211,47 @@ jobs:
       - name: Publish to npm
         if: steps.npm-version.outputs.already_published != 'true'
         env:
-          GENESIS_NPM_PUBLISH_TAG: ${{ steps.publish-target.outputs.npm_dist_tag }}
-        run: bash scripts/genesis-npm-publish.sh --publish
+          NPM_DIST_TAG: ${{ needs.validate.outputs.npm_dist_tag }}
+          PUBLISH_TARBALL: .artifacts/npm-release-tarball/${{ needs.validate.outputs.tarball_name }}
+        run: |
+          test -f "$PUBLISH_TARBALL"
+          npm publish "$PUBLISH_TARBALL" --access public --tag "$NPM_DIST_TAG" --provenance
+
+  verify_published:
+    name: Verify published npm package
+    needs: [validate, publish]
+    if: github.repository == 'PIXELZX0/Genesis'
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    env:
+      CI: "1"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      GENESIS_NPM_PACKAGE_NAME: "@pixelzx/genesis"
+      GENESIS_NPM_POSTPUBLISH_RETRY_ATTEMPTS: "30"
+      NPM_DIST_TAG: ${{ needs.validate.outputs.npm_dist_tag }}
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.validate.outputs.tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Verify published package
         env:
-          PACKAGE_VERSION: ${{ steps.publish-target.outputs.package_version }}
-          NPM_DIST_TAG: ${{ steps.publish-target.outputs.npm_dist_tag }}
+          PACKAGE_VERSION: ${{ needs.validate.outputs.package_version }}
         run: node --import tsx scripts/genesis-npm-postpublish-verify.ts "$PACKAGE_VERSION"
