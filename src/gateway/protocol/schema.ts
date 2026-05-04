@@ -11,6 +11,7 @@ export * from "./schema/frames.js";
 export * from "./schema/logs-chat.js";
 export * from "./schema/nodes.js";
 export * from "./schema/protocol-schemas.js";
+export * from "./schema/plugins.js";
 export * from "./schema/push.js";
 export * from "./schema/secrets.js";
 export * from "./schema/sessions.js";

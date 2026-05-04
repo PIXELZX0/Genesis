@@ -137,9 +137,9 @@ const DEFAULT_TIMEOUT_MS = 20 * 60_000;
 const MAX_LOG_CHARS = 8000;
 const PREFLIGHT_MAX_COMMITS = 10;
 const START_DIRS = ["cwd", "argv1", "process"];
-const DEFAULT_PACKAGE_NAME = "genesis";
-const SCOPED_PACKAGE_NAME = "@pixelzx/genesis";
-const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
+const DEFAULT_PACKAGE_NAME = "@pixelzx/genesis";
+const LEGACY_PACKAGE_NAME = "genesis";
+const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, LEGACY_PACKAGE_NAME]);
 const PREFLIGHT_TEMP_PREFIX =
   process.platform === "win32" ? "ocu-pf-" : "genesis-update-preflight-";
 const PREFLIGHT_WORKTREE_DIRNAME = process.platform === "win32" ? "wt" : "worktree";
@@ -423,7 +423,7 @@ async function runStep(opts: RunStepOptions): Promise<UpdateStepResult> {
 }
 
 function normalizeTag(tag?: string) {
-  return normalizePackageTagInput(tag, ["genesis", DEFAULT_PACKAGE_NAME]) ?? "latest";
+  return normalizePackageTagInput(tag, [DEFAULT_PACKAGE_NAME, LEGACY_PACKAGE_NAME]) ?? "latest";
 }
 
 function normalizeDevTargetRef(value?: string | null): string | null {

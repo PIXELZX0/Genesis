@@ -32,14 +32,17 @@ import {
 import { loadChannels } from "./controllers/channels.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
-  applyConfig,
+  applyConfigRestartNow,
+  cancelConfigRestartChanges,
   ensureAgentConfigEntry,
   findAgentConfigEntryIndex,
   loadConfig,
   openConfigFile,
+  requestApplyConfig,
   resetConfigPendingChanges,
   runUpdate,
   saveConfig,
+  saveConfigRestartLater,
   updateConfigFormValue,
   removeConfigFormValue,
 } from "./controllers/config.ts";
@@ -92,6 +95,16 @@ import {
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
+import {
+  closePluginClawHubDetail,
+  installPluginFromClawHub,
+  loadPluginClawHubDetail,
+  loadPlugins,
+  searchPluginClawHub,
+  setPluginClawHubSearchQuery,
+  uninstallPlugin,
+  updatePluginEnabled,
+} from "./controllers/plugins.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import {
   branchSessionFromCheckpoint,
@@ -183,6 +196,7 @@ const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
+const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
 const lazySkills = createLazy(() => import("./views/skills.ts"));
 const lazyWallet = createLazy(() => import("./views/wallet.ts"));
@@ -216,6 +230,7 @@ function resolveDreamingNextCycle(
 }
 
 let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let pluginClawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 function lazyRender<M>(getter: () => M | null, render: (mod: M) => unknown) {
   const mod = getter();
   return mod ? render(mod) : nothing;
@@ -852,6 +867,7 @@ export function renderApp(state: AppViewState) {
     uiHints: state.configUiHints,
     formValue: state.configForm,
     originalValue: state.configFormOriginal,
+    restartPrompt: state.configRestartPrompt,
     onRawChange: (next: string) => {
       state.configRaw = next;
     },
@@ -861,7 +877,10 @@ export function renderApp(state: AppViewState) {
     onReload: () => loadConfig(state),
     onReset: () => resetConfigPendingChanges(state),
     onSave: () => saveConfig(state),
-    onApply: () => applyConfig(state),
+    onApply: () => requestApplyConfig(state),
+    onRestartNow: () => applyConfigRestartNow(state),
+    onRestartLater: () => saveConfigRestartLater(state),
+    onCancelRestartChanges: () => cancelConfigRestartChanges(state),
     onUpdate: () => runUpdate(state),
     onOpenFile: () => openConfigFile(state),
     version: state.hello?.server?.version ?? "",
@@ -2207,6 +2226,51 @@ export function renderApp(state: AppViewState) {
                 onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
                 onClawHubInstall: (slug) => installFromClawHub(state, slug),
+              }),
+            )
+          : nothing}
+        ${state.tab === "plugins"
+          ? lazyRender(lazyPlugins, (m) =>
+              m.renderPlugins({
+                connected: state.connected,
+                loading: state.pluginsLoading,
+                report: state.pluginsReport,
+                error: state.pluginsError,
+                filter: state.pluginsFilter,
+                statusFilter: state.pluginsStatusFilter,
+                busyKey: state.pluginsBusyKey,
+                messages: state.pluginMessages,
+                detailKey: state.pluginDetailKey,
+                clawhubQuery: state.pluginClawhubSearchQuery,
+                clawhubResults: state.pluginClawhubSearchResults,
+                clawhubSearchLoading: state.pluginClawhubSearchLoading,
+                clawhubSearchError: state.pluginClawhubSearchError,
+                clawhubDetail: state.pluginClawhubDetail,
+                clawhubDetailName: state.pluginClawhubDetailName,
+                clawhubDetailLoading: state.pluginClawhubDetailLoading,
+                clawhubDetailError: state.pluginClawhubDetailError,
+                clawhubInstallName: state.pluginClawhubInstallName,
+                clawhubInstallMessage: state.pluginClawhubInstallMessage,
+                onFilterChange: (next) => (state.pluginsFilter = next),
+                onStatusFilterChange: (next) => (state.pluginsStatusFilter = next),
+                onRefresh: () => loadPlugins(state, { clearMessages: true }),
+                onToggle: (pluginId, enabled) => updatePluginEnabled(state, pluginId, enabled),
+                onUninstall: (pluginId) => uninstallPlugin(state, pluginId),
+                onDetailOpen: (pluginId) => (state.pluginDetailKey = pluginId),
+                onDetailClose: () => (state.pluginDetailKey = null),
+                onClawHubQueryChange: (query) => {
+                  setPluginClawHubSearchQuery(state, query);
+                  if (pluginClawhubSearchTimer) {
+                    clearTimeout(pluginClawhubSearchTimer);
+                  }
+                  pluginClawhubSearchTimer = setTimeout(
+                    () => searchPluginClawHub(state, query),
+                    300,
+                  );
+                },
+                onClawHubDetailOpen: (name) => loadPluginClawHubDetail(state, name),
+                onClawHubDetailClose: () => closePluginClawHubDetail(state),
+                onClawHubInstall: (name) => installPluginFromClawHub(state, name),
               }),
             )
           : nothing}

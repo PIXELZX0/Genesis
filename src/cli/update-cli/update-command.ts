@@ -140,6 +140,7 @@ function tryResolveInvocationCwd(): string | undefined {
 }
 
 async function resolvePackageRuntimePreflightError(params: {
+  packageName: string;
   tag: string;
   timeoutMs?: number;
 }): Promise<string | null> {
@@ -151,6 +152,7 @@ async function resolvePackageRuntimePreflightError(params: {
     return null;
   }
   const status = await fetchNpmPackageTargetStatus({
+    packageName: params.packageName,
     target,
     timeoutMs: params.timeoutMs,
   });
@@ -163,11 +165,13 @@ async function resolvePackageRuntimePreflightError(params: {
   }
   const targetLabel = status.version ?? target;
   return [
-    `Node ${process.versions.node ?? "unknown"} is too old for genesis@${targetLabel}.`,
+    `Node ${process.versions.node ?? "unknown"} is too old for ${
+      params.packageName
+    }@${targetLabel}.`,
     `The requested package requires ${status.nodeEngine}.`,
     "Upgrade Node to 22.14+ or Node 24, then rerun `genesis update`.",
-    "Bare `npm i -g genesis` can silently install an older compatible release.",
-    "After upgrading Node, use `npm i -g genesis@latest`.",
+    `Bare \`npm i -g ${params.packageName}\` can silently install an older compatible release.`,
+    `After upgrading Node, use \`npm i -g ${params.packageName}@latest\`.`,
   ].join("\n");
 }
 
@@ -1083,18 +1087,24 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
   let downgradeRisk = false;
   let fallbackToLatest = false;
   let packageInstallSpec: string | null = null;
+  let packageName = DEFAULT_PACKAGE_NAME;
   let packageAlreadyCurrent = false;
 
   if (updateInstallKind !== "git") {
+    packageName = switchToPackage
+      ? DEFAULT_PACKAGE_NAME
+      : ((await readPackageName(root)) ?? DEFAULT_PACKAGE_NAME);
     currentVersion = switchToPackage ? null : await readPackageVersion(root);
     if (explicitTag) {
-      targetVersion = await resolveTargetVersion(tag, timeoutMs);
+      targetVersion = await resolveTargetVersion(tag, timeoutMs, packageName);
     } else {
-      targetVersion = await resolveNpmChannelTag({ channel, timeoutMs }).then((resolved) => {
-        tag = resolved.tag;
-        fallbackToLatest = channel === "beta" && resolved.tag === "latest";
-        return resolved.version;
-      });
+      targetVersion = await resolveNpmChannelTag({ packageName, channel, timeoutMs }).then(
+        (resolved) => {
+          tag = resolved.tag;
+          fallbackToLatest = channel === "beta" && resolved.tag === "latest";
+          return resolved.version;
+        },
+      );
     }
     const cmp =
       currentVersion && targetVersion ? compareSemverStrings(currentVersion, targetVersion) : null;
@@ -1111,7 +1121,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       currentVersion != null &&
       (targetVersion == null || (cmp != null && cmp > 0));
     packageInstallSpec = resolveGlobalInstallSpec({
-      packageName: DEFAULT_PACKAGE_NAME,
+      packageName,
       tag,
       env: process.env,
     });
@@ -1225,6 +1235,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
 
   if (updateInstallKind === "package") {
     const runtimePreflightError = await resolvePackageRuntimePreflightError({
+      packageName,
       tag,
       timeoutMs,
     });
@@ -1299,7 +1310,10 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       );
       defaultRuntime.log(
         theme.muted(
-          `Examples: \`${replaceCliName("npm i -g genesis@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g genesis@latest", CLI_NAME)}\``,
+          `Examples: \`${replaceCliName(
+            `npm i -g ${DEFAULT_PACKAGE_NAME}@latest`,
+            CLI_NAME,
+          )}\` or \`${replaceCliName(`pnpm add -g ${DEFAULT_PACKAGE_NAME}@latest`, CLI_NAME)}\``,
         ),
       );
     }

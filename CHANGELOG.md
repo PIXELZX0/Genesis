@@ -7,9 +7,13 @@ Docs: https://docs.genesis.ai
 ### Changes
 
 - Control UI: add guided model provider setup from Agents -> Overview, with sensitive credential prompts masked in browser-based wizard sessions.
+- Control UI: add a Plugins tab for plugin status, enable/disable, managed uninstall, and ClawHub plugin search/install.
+- Control UI/config: prompt before restart-required config apply operations, with restart now, restart later, and cancel actions.
+- Skills: add a ClawHub browse action and clearer install success messages in the Skills tab.
 
 ### Fixes
 
+- Update: resolve package-manager update targets from `@pixelzx/genesis` by default so `genesis update` no longer mistakes the legacy `genesis@latest` package for a downgrade target.
 - Agents: skip pre-prompt context-overflow checks after an empty prompt/history/image turn has already been skipped, so empty channel wakes no longer surface misleading "Context overflow" replies.
 - Skills: avoid scheduling an immediate Gateway restart for skill-only config changes, including when config reload mode is off.
 - Wallet: ask for the optional Control UI import passphrase only once instead of requiring a confirmation entry.

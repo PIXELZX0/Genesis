@@ -3,6 +3,11 @@ import { describe, expect, it } from "vitest";
 import { TALK_TEST_PROVIDER_ID } from "../../test-utils/talk-test-provider.js";
 import {
   formatValidationErrors,
+  validatePluginsInstallParams,
+  validatePluginsSearchParams,
+  validatePluginsStatusParams,
+  validatePluginsUninstallParams,
+  validatePluginsUpdateParams,
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
   validateWakeParams,
@@ -179,6 +184,31 @@ describe("validateWalletRecoveryPhraseSetParams", () => {
         privateKey: "not accepted",
       }),
     ).toBe(false);
+  });
+});
+
+describe("validatePluginsParams", () => {
+  it("accepts plugin management params", () => {
+    expect(validatePluginsStatusParams({})).toBe(true);
+    expect(validatePluginsSearchParams({ query: "telegram", limit: 24 })).toBe(true);
+    expect(
+      validatePluginsInstallParams({
+        source: "clawhub",
+        name: "genesis-telegram",
+        version: "1.0.0",
+        force: true,
+      }),
+    ).toBe(true);
+    expect(validatePluginsUpdateParams({ pluginId: "telegram", enabled: false })).toBe(true);
+    expect(validatePluginsUninstallParams({ pluginId: "telegram", keepFiles: true })).toBe(true);
+  });
+
+  it("rejects unknown plugin management fields", () => {
+    expect(validatePluginsStatusParams({ pluginId: "telegram" })).toBe(false);
+    expect(validatePluginsSearchParams({ query: "" })).toBe(false);
+    expect(validatePluginsInstallParams({ source: "npm", name: "package" })).toBe(false);
+    expect(validatePluginsUpdateParams({ pluginId: "telegram" })).toBe(false);
+    expect(validatePluginsUninstallParams({ pluginId: "telegram", deleteFiles: true })).toBe(false);
   });
 });
 

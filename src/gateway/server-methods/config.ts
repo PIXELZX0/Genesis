@@ -293,7 +293,7 @@ function shouldScheduleDirectConfigRestart(params: {
     return false;
   }
   if (reloadSettings.mode === "off") {
-    return true;
+    return plan.restartGateway;
   }
   if (reloadSettings.mode === "hot" && plan.restartGateway) {
     return true;

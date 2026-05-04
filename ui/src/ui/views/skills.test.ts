@@ -99,6 +99,31 @@ describe("renderSkills", () => {
     document.body.replaceChildren();
   });
 
+  it("surfaces ClawHub browsing from the Skills tab", () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const onClawHubQueryChange = vi.fn();
+
+    render(
+      renderSkills(
+        createProps({
+          onClawHubQueryChange,
+        }),
+      ),
+      container,
+    );
+
+    const text = normalizeText(container);
+    expect(text).toContain("Search or browse ClawHub to install registry skills.");
+
+    const browse = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
+      (button) => button.textContent?.trim() === "Browse",
+    );
+    browse?.click();
+
+    expect(onClawHubQueryChange).toHaveBeenCalledWith("");
+  });
+
   it("opens detail dialogs and routes ClawHub actions", async () => {
     const container = document.createElement("div");
     document.body.append(container);

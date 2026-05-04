@@ -63,6 +63,13 @@ function getPaletteBaseItems(): PaletteItem[] {
       action: "nav:skills",
     },
     {
+      id: "nav-plugins",
+      label: "Plugins",
+      icon: "wrench",
+      category: "navigation",
+      action: "nav:plugins",
+    },
+    {
       id: "nav-config",
       label: "Settings",
       icon: "settings",

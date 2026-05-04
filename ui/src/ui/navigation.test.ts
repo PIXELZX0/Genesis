@@ -34,6 +34,7 @@ describe("iconForTab", () => {
     expect(iconForTab("wallet")).toBe("wallet");
     expect(iconForTab("cron")).toBe("loader");
     expect(iconForTab("skills")).toBe("zap");
+    expect(iconForTab("plugins")).toBe("wrench");
     expect(iconForTab("nodes")).toBe("monitor");
     expect(iconForTab("config")).toBe("settings");
     expect(iconForTab("debug")).toBe("bug");

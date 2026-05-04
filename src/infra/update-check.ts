@@ -6,6 +6,8 @@ import { detectPackageManager as detectPackageManagerImpl } from "./detect-packa
 import { compareComparableSemver, parseComparableSemver } from "./semver-compare.js";
 import { channelToNpmTag, type UpdateChannel } from "./update-channels.js";
 
+const GENESIS_NPM_PACKAGE_NAME = "@pixelzx/genesis";
+
 export type PackageManager = "pnpm" | "bun" | "npm" | "unknown";
 
 export type GitUpdateStatus = {
@@ -293,9 +295,14 @@ export async function checkDepsStatus(params: {
 }
 
 export async function fetchNpmLatestVersion(params?: {
+  packageName?: string;
   timeoutMs?: number;
 }): Promise<RegistryStatus> {
-  const res = await fetchNpmTagVersion({ tag: "latest", timeoutMs: params?.timeoutMs });
+  const res = await fetchNpmTagVersion({
+    packageName: params?.packageName,
+    tag: "latest",
+    timeoutMs: params?.timeoutMs,
+  });
   return {
     latestVersion: res.version,
     error: res.error,
@@ -303,14 +310,16 @@ export async function fetchNpmLatestVersion(params?: {
 }
 
 export async function fetchNpmPackageTargetStatus(params: {
+  packageName?: string;
   target: string;
   timeoutMs?: number;
 }): Promise<NpmPackageTargetStatus> {
   const timeoutMs = params.timeoutMs ?? 3500;
+  const packageName = params.packageName?.trim() || GENESIS_NPM_PACKAGE_NAME;
   const target = params.target;
   try {
     const res = await fetchWithTimeout(
-      `https://registry.npmjs.org/genesis/${encodeURIComponent(target)}`,
+      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(target)}`,
       {},
       Math.max(250, timeoutMs),
     );
@@ -330,10 +339,12 @@ export async function fetchNpmPackageTargetStatus(params: {
 }
 
 export async function fetchNpmTagVersion(params: {
+  packageName?: string;
   tag: string;
   timeoutMs?: number;
 }): Promise<NpmTagStatus> {
   const res = await fetchNpmPackageTargetStatus({
+    packageName: params.packageName,
     target: params.tag,
     timeoutMs: params.timeoutMs,
   });
@@ -345,16 +356,25 @@ export async function fetchNpmTagVersion(params: {
 }
 
 export async function resolveNpmChannelTag(params: {
+  packageName?: string;
   channel: UpdateChannel;
   timeoutMs?: number;
 }): Promise<{ tag: string; version: string | null }> {
   const channelTag = channelToNpmTag(params.channel);
-  const channelStatus = await fetchNpmTagVersion({ tag: channelTag, timeoutMs: params.timeoutMs });
+  const channelStatus = await fetchNpmTagVersion({
+    packageName: params.packageName,
+    tag: channelTag,
+    timeoutMs: params.timeoutMs,
+  });
   if (params.channel !== "beta") {
     return { tag: channelTag, version: channelStatus.version };
   }
 
-  const latestStatus = await fetchNpmTagVersion({ tag: "latest", timeoutMs: params.timeoutMs });
+  const latestStatus = await fetchNpmTagVersion({
+    packageName: params.packageName,
+    tag: "latest",
+    timeoutMs: params.timeoutMs,
+  });
   if (!latestStatus.version) {
     return { tag: channelTag, version: channelStatus.version };
   }

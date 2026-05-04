@@ -117,12 +117,16 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Model providers: guided provider auth setup from Agents -> Overview (`wizard.start` with `target: "models"`)
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
-- Skills: status, enable/disable, install, API key updates (`skills.*`)
+- Skills: status, enable/disable, ClawHub search/browse/install, dependency installs, API key updates (`skills.*`)
+- Plugins: status, enable/disable, uninstall, and ClawHub search/browse/install
+  (`plugins.*`)
 - Wallet: dedicated Control tab with public addresses, balance refresh, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; passphrases are optional, generated phrases are shown once, and existing phrases/private keys/passphrases/send controls are not exposed
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
 - Config: view/edit `~/.genesis/genesis.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session
+- Config Apply prompts before restart-required changes, with restart now,
+  restart later, and cancel changes actions
 - Config writes include a base-hash guard to prevent clobbering concurrent edits
 - Config writes (`config.set`/`config.apply`/`config.patch`) also preflight active SecretRef resolution for refs in the submitted config payload; unresolved active submitted refs are rejected before write
 - Config schema + form rendering (`config.schema` / `config.schema.lookup`,

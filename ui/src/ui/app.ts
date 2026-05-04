@@ -264,6 +264,7 @@ export class GenesisApp extends LitElement {
   @state() configUiHints: ConfigUiHints = {};
   @state() configForm: Record<string, unknown> | null = null;
   @state() configFormOriginal: Record<string, unknown> | null = null;
+  @state() configRestartPrompt: import("./controllers/config.js").ConfigRestartPrompt | null = null;
   @state() dreamingStatusLoading = false;
   @state() dreamingStatusError: string | null = null;
   @state() dreamingStatus: DreamingStatus | null = null;
@@ -522,6 +523,28 @@ export class GenesisApp extends LitElement {
   @state() clawhubDetailError: string | null = null;
   @state() clawhubInstallSlug: string | null = null;
   @state() clawhubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
+
+  @state() pluginsLoading = false;
+  @state() pluginsReport: import("./types.js").PluginStatusReport | null = null;
+  @state() pluginsError: string | null = null;
+  @state() pluginsFilter = "";
+  @state() pluginsStatusFilter: "all" | "loaded" | "disabled" | "error" | "managed" = "all";
+  @state() pluginsBusyKey: string | null = null;
+  @state() pluginMessages: import("./controllers/plugins.js").PluginMessageMap = {};
+  @state() pluginDetailKey: string | null = null;
+  @state() pluginClawhubSearchQuery = "";
+  @state() pluginClawhubSearchResults:
+    | import("./controllers/plugins.js").PluginClawHubSearchResult[]
+    | null = null;
+  @state() pluginClawhubSearchLoading = false;
+  @state() pluginClawhubSearchError: string | null = null;
+  @state() pluginClawhubDetail: import("./controllers/plugins.js").PluginClawHubDetail | null =
+    null;
+  @state() pluginClawhubDetailName: string | null = null;
+  @state() pluginClawhubDetailLoading = false;
+  @state() pluginClawhubDetailError: string | null = null;
+  @state() pluginClawhubInstallName: string | null = null;
+  @state() pluginClawhubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
 
   @state() healthLoading = false;
   @state() healthResult: HealthSummary | null = null;

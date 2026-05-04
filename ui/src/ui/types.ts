@@ -700,6 +700,68 @@ export type SkillStatusReport = {
   skills: SkillStatusEntry[];
 };
 
+export type PluginInstallRecord = {
+  source: string;
+  spec?: string;
+  sourcePath?: string;
+  installPath?: string;
+  version?: string;
+  resolvedName?: string;
+  resolvedVersion?: string;
+  resolvedSpec?: string;
+  marketplaceName?: string;
+  marketplaceSource?: string;
+  marketplacePlugin?: string;
+  clawhubUrl?: string;
+  clawhubPackage?: string;
+  clawhubFamily?: string;
+  clawhubChannel?: string;
+  installedAt?: string;
+  resolvedAt?: string;
+};
+
+export type PluginStatusEntry = {
+  id: string;
+  name: string;
+  status: "loaded" | "disabled" | "error";
+  source: string;
+  origin: string;
+  enabled: boolean;
+  explicitlyEnabled?: boolean;
+  imported?: boolean;
+  description?: string;
+  version?: string;
+  format?: string;
+  bundleFormat?: string;
+  kind?: string | string[];
+  rootDir?: string;
+  activationReason?: string;
+  error?: string;
+  configSchema: boolean;
+  install?: PluginInstallRecord;
+  toolNames: string[];
+  channelIds: string[];
+  providerIds: string[];
+  speechProviderIds: string[];
+  webSearchProviderIds: string[];
+  webFetchProviderIds: string[];
+  agentHarnessIds: string[];
+  commands: string[];
+  gatewayMethods: string[];
+  services: string[];
+  httpRoutes: number;
+};
+
+export type PluginStatusReport = {
+  workspaceDir?: string;
+  plugins: PluginStatusEntry[];
+  diagnostics: Array<{
+    level: string;
+    message: string;
+    pluginId?: string;
+  }>;
+};
+
 export type StatusSummary = Record<string, unknown>;
 
 export type HealthSnapshot = Record<string, unknown>;

@@ -9,6 +9,11 @@ import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type {
+  PluginClawHubDetail,
+  PluginClawHubSearchResult,
+  PluginMessage,
+} from "./controllers/plugins.ts";
+import type {
   ClawHubSearchResult,
   ClawHubSkillDetail,
   SkillMessage,
@@ -43,6 +48,7 @@ import type {
   SessionsListResult,
   SessionCompactionCheckpoint,
   SkillStatusReport,
+  PluginStatusReport,
   StatusSummary,
   ToolsCatalogResult,
   WalletSummaryResult,
@@ -147,6 +153,7 @@ export type AppViewState = {
   configUiHints: ConfigUiHints;
   configForm: Record<string, unknown> | null;
   configFormOriginal: Record<string, unknown> | null;
+  configRestartPrompt: import("./controllers/config.js").ConfigRestartPrompt | null;
   dreamingStatusLoading: boolean;
   dreamingStatusError: string | null;
   dreamingStatus: import("./controllers/dreaming.js").DreamingStatus | null;
@@ -358,6 +365,24 @@ export type AppViewState = {
     clawhubDetailError: string | null;
     clawhubInstallSlug: string | null;
     clawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
+    pluginsLoading: boolean;
+    pluginsReport: PluginStatusReport | null;
+    pluginsError: string | null;
+    pluginsFilter: string;
+    pluginsStatusFilter: "all" | "loaded" | "disabled" | "error" | "managed";
+    pluginsBusyKey: string | null;
+    pluginMessages: Record<string, PluginMessage>;
+    pluginDetailKey: string | null;
+    pluginClawhubSearchQuery: string;
+    pluginClawhubSearchResults: PluginClawHubSearchResult[] | null;
+    pluginClawhubSearchLoading: boolean;
+    pluginClawhubSearchError: string | null;
+    pluginClawhubDetail: PluginClawHubDetail | null;
+    pluginClawhubDetailName: string | null;
+    pluginClawhubDetailLoading: boolean;
+    pluginClawhubDetailError: string | null;
+    pluginClawhubInstallName: string | null;
+    pluginClawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
     healthLoading: boolean;
     healthResult: HealthSummary | null;
     healthError: string | null;
