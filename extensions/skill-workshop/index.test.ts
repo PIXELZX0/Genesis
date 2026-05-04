@@ -625,7 +625,7 @@ describe("skill-workshop", () => {
       path.join(workspaceDir, "skills", "qa-scenario-workflow", "SKILL.md"),
       "---\nname: qa-scenario-workflow\ndescription: QA notes.\n---\n\n## Workflow\n\n- Run smoke tests.\n",
     );
-    const runEmbeddedPiAgent = vi.fn(async () => ({
+    const runEmbeddedPiAgent = vi.fn(async (_params: { prompt?: string }) => ({
       payloads: [
         {
           text: JSON.stringify({
@@ -663,6 +663,7 @@ describe("skill-workshop", () => {
         reviewMode: "llm",
         reviewInterval: 1,
         reviewMinToolCalls: 1,
+        reviewComplexTurnMinToolCalls: 5,
         reviewTimeoutMs: 5_000,
         maxPending: 50,
         maxSkillBytes: 40_000,
@@ -734,6 +735,76 @@ describe("skill-workshop", () => {
     const store = new SkillWorkshopStore({ stateDir, workspaceDir });
     expect(await store.list("pending")).toHaveLength(1);
     expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+  });
+
+  it("runs reviewer immediately after a complex new turn", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const runEmbeddedPiAgent = vi.fn(async (_params: { prompt?: string }) => ({
+      payloads: [
+        {
+          text: JSON.stringify({
+            action: "create",
+            skillName: "debugging-workflow",
+            title: "Debugging Workflow",
+            reason: "Complex tool loop exposed a reusable debugging procedure",
+            description: "Debugging workflow.",
+            body: "## Workflow\n\n- Preserve the minimized repro before changing code.",
+          }),
+        },
+      ],
+      meta: {},
+    }));
+    const on = vi.fn();
+    const api = createTestPluginApi({
+      pluginConfig: {
+        reviewMode: "llm",
+        reviewInterval: 200,
+        reviewMinToolCalls: 500,
+        reviewComplexTurnMinToolCalls: 5,
+      },
+      runtime: {
+        agent: {
+          defaults: { provider: "openai", model: "gpt-5.4" },
+          resolveAgentWorkspaceDir: () => workspaceDir,
+          resolveAgentDir: () => path.join(workspaceDir, ".agent"),
+          runEmbeddedPiAgent,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      on,
+    });
+
+    plugin.register(api);
+    const handler = on.mock.calls.find((call) => call[0] === "agent_end")?.[1];
+    await handler?.(
+      {
+        success: true,
+        messages: [{ role: "user", content: "Old transcript should not be reviewed." }],
+        newMessages: [
+          { role: "user", content: "We debugged a flaky provider timeout." },
+          {
+            role: "assistant",
+            content: "",
+            tool_calls: Array.from({ length: 5 }, (_, index) => ({
+              id: `call-${index}`,
+              type: "function",
+              function: { name: "read", arguments: "{}" },
+            })),
+          },
+        ],
+      },
+      { workspaceDir, agentId: "main" },
+    );
+
+    const prompt = runEmbeddedPiAgent.mock.calls[0]?.[0]?.prompt ?? "";
+    expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+    expect(prompt).toContain("We debugged a flaky provider timeout.");
+    expect(prompt).not.toContain("Old transcript should not be reviewed.");
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    expect(await store.list("pending")).toHaveLength(1);
   });
 
   it("quarantines unsafe tool suggestions with scan metadata", async () => {

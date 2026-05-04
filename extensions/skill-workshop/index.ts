@@ -56,12 +56,17 @@ export default definePluginEntry({
       if (ctx.sessionId?.startsWith("skill-workshop-review-")) {
         return;
       }
+      const reviewMessages =
+        Array.isArray(event.newMessages) && event.newMessages.length > 0
+          ? event.newMessages
+          : event.messages;
+      const turnToolCalls = countToolCalls(reviewMessages);
       const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
       const workspaceDir =
         ctx.workspaceDir || api.runtime.agent.resolveAgentWorkspaceDir(api.config, agentId);
       const store = createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
       const heuristicProposal = createProposalFromMessages({
-        messages: event.messages,
+        messages: reviewMessages,
         workspaceDir,
         agentId,
         sessionId: ctx.sessionId,
@@ -91,8 +96,12 @@ export default definePluginEntry({
       if (!llmEnabled) {
         return;
       }
-      const reviewState = await store.recordReviewTurn(countToolCalls(event.messages));
+      const reviewState = await store.recordReviewTurn(turnToolCalls);
+      const complexTurn =
+        config.reviewComplexTurnMinToolCalls > 0 &&
+        turnToolCalls >= config.reviewComplexTurnMinToolCalls;
       const thresholdMet =
+        complexTurn ||
         reviewState.turnsSinceReview >= config.reviewInterval ||
         reviewState.toolCallsSinceReview >= config.reviewMinToolCalls;
       const shouldReview =
@@ -105,7 +114,7 @@ export default definePluginEntry({
         const proposal = await reviewTranscriptForProposal({
           api,
           config,
-          messages: event.messages,
+          messages: reviewMessages,
           ctx: {
             agentId,
             sessionId: ctx.sessionId,

@@ -270,6 +270,7 @@ Notes:
 
 - Only available for OpenAI/OpenAI Codex models.
 - Tool policy still applies; `allow: ["write"]` implicitly allows `apply_patch`.
+  To block patches, deny `apply_patch` or `group:fs` explicitly.
 - Config lives under `tools.exec.applyPatch`.
 - `tools.exec.applyPatch.enabled` defaults to `true`; set it to `false` to disable the tool for OpenAI models.
 - `tools.exec.applyPatch.workspaceOnly` defaults to `true` (workspace-contained). Set it to `false` only if you intentionally want `apply_patch` to write/delete outside the workspace directory.

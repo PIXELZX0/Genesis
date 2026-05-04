@@ -22,7 +22,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, isAbsolute, join, relative } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveNpmRunner } from "./npm-runner.mjs";
 
@@ -118,6 +118,13 @@ const BAILEYS_MEDIA_ASYNC_CONTEXT_RE =
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
+}
+
+function writeJsonFile(targetPath, value, params = {}) {
+  const makeDirectory = params.mkdirSync ?? mkdirSync;
+  const writeFile = params.writeFileSync ?? writeFileSync;
+  makeDirectory(dirname(targetPath), { recursive: true });
+  writeFile(targetPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
 function normalizeRelativePath(filePath) {
@@ -344,6 +351,99 @@ export function restoreLegacyUpdaterCompatSidecars(params = {}) {
     log.log(`[postinstall] restored legacy updater compat sidecars: ${restored.join(", ")}`);
   }
   return restored;
+}
+
+function relativeModuleSpecifier(sourcePath, targetPath) {
+  const specifier = relative(dirname(targetPath), sourcePath).replace(/\\/g, "/");
+  return specifier.startsWith(".") ? specifier : `./${specifier}`;
+}
+
+function hasDefaultExport(sourcePath, params = {}) {
+  const readFile = params.readFileSync ?? readFileSync;
+  const text = readFile(sourcePath, "utf8");
+  return /\bexport\s+default\b/u.test(text) || /\bas\s+default\b/u.test(text);
+}
+
+function writePluginSdkAliasWrapper(sourcePath, targetPath, params = {}) {
+  const makeDirectory = params.mkdirSync ?? mkdirSync;
+  const writeFile = params.writeFileSync ?? writeFileSync;
+  const specifier = relativeModuleSpecifier(sourcePath, targetPath);
+  const defaultForwarder = hasDefaultExport(sourcePath, params)
+    ? [
+        `import defaultModule from ${JSON.stringify(specifier)};`,
+        `let defaultExport = defaultModule;`,
+        `for (let index = 0; index < 4 && defaultExport && typeof defaultExport === "object" && "default" in defaultExport; index += 1) {`,
+        `  defaultExport = defaultExport.default;`,
+        `}`,
+      ]
+    : [
+        `import * as module from ${JSON.stringify(specifier)};`,
+        `let defaultExport = "default" in module ? module.default : module;`,
+        `for (let index = 0; index < 4 && defaultExport && typeof defaultExport === "object" && "default" in defaultExport; index += 1) {`,
+        `  defaultExport = defaultExport.default;`,
+        `}`,
+      ];
+  makeDirectory(dirname(targetPath), { recursive: true });
+  writeFile(
+    targetPath,
+    [
+      `export * from ${JSON.stringify(specifier)};`,
+      ...defaultForwarder,
+      "export { defaultExport as default };",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+}
+
+export function ensureInstalledGenesisPluginSdkAlias(params = {}) {
+  const packageRoot = params.packageRoot ?? DEFAULT_PACKAGE_ROOT;
+  const pathExists = params.existsSync ?? existsSync;
+  const readDir = params.readdirSync ?? readdirSync;
+  const makeDirectory = params.mkdirSync ?? mkdirSync;
+  const removePath = params.rmSync ?? rmSync;
+  const pluginSdkDir = join(packageRoot, "dist", "plugin-sdk");
+  const extensionsDir = params.extensionsDir ?? join(packageRoot, "dist", "extensions");
+
+  if (!pathExists(pluginSdkDir) || !pathExists(extensionsDir)) {
+    return [];
+  }
+
+  const aliasRootDir = params.aliasRootDir ?? join(packageRoot, "dist", "node_modules");
+  const aliasDir = join(aliasRootDir, "genesis");
+  const pluginSdkAliasDir = join(aliasDir, "plugin-sdk");
+  removePath(aliasDir, { recursive: true, force: true });
+  writeJsonFile(
+    join(aliasDir, "package.json"),
+    {
+      name: "genesis",
+      type: "module",
+      exports: {
+        "./plugin-sdk": "./plugin-sdk/index.js",
+        "./plugin-sdk/*": "./plugin-sdk/*.js",
+      },
+    },
+    params,
+  );
+  makeDirectory(pluginSdkAliasDir, { recursive: true });
+
+  const writtenSubpaths = [];
+  for (const dirent of readDir(pluginSdkDir, { withFileTypes: true })) {
+    if (!dirent.isFile() || extname(dirent.name) !== ".js") {
+      continue;
+    }
+    writePluginSdkAliasWrapper(
+      join(pluginSdkDir, dirent.name),
+      join(pluginSdkAliasDir, dirent.name),
+      params,
+    );
+    writtenSubpaths.push(dirent.name.slice(0, -".js".length));
+  }
+
+  if (writtenSubpaths.length === 0) {
+    removePath(aliasDir, { recursive: true, force: true });
+  }
+  return writtenSubpaths.toSorted((left, right) => left.localeCompare(right));
 }
 
 function dependencySentinelPath(depName) {
@@ -743,6 +843,25 @@ export function runBundledPluginPostinstall(params = {}) {
     })
   ) {
     return;
+  }
+  try {
+    const restoredSubpaths = ensureInstalledGenesisPluginSdkAlias({
+      packageRoot,
+      extensionsDir,
+      existsSync: pathExists,
+      readdirSync: params.readdirSync,
+      mkdirSync: params.mkdirSync,
+      rmSync: params.rmSync,
+      readFileSync: params.readFileSync,
+      writeFileSync: params.writeFileSync,
+    });
+    if (restoredSubpaths.length > 0) {
+      log.log(
+        `[postinstall] restored bundled plugin SDK alias (${restoredSubpaths.length} subpaths)`,
+      );
+    }
+  } catch (e) {
+    log.warn(`[postinstall] could not restore bundled plugin SDK alias: ${String(e)}`);
   }
   if (!shouldEagerInstallBundledPluginDeps(env)) {
     applyBundledPluginRuntimeHotfixes({

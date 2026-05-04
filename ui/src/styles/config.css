@@ -4,6 +4,7 @@
 
 /* Layout Container */
 .config-layout {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
@@ -166,6 +167,20 @@
   box-shadow: 0 1px 3px var(--accent-subtle);
 }
 
+.wallet-recovery-mode-toggle .config-mode-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.wallet-recovery-mode-toggle .config-mode-toggle__btn svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  stroke-width: 1.75px;
+}
+
 /* ===========================================
    Main Content
    =========================================== */
@@ -268,6 +283,67 @@
   font-size: 12.5px;
   color: var(--muted);
   line-height: 1.35;
+}
+
+.config-restart-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--bg) 68%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.config-restart-modal__panel {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.config-restart-modal__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.config-restart-modal__body {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.config-restart-modal__paths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.config-restart-modal__path {
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.config-restart-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .config-top-tabs {

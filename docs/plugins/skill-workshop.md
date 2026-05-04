@@ -113,17 +113,18 @@ does not apply proposals with critical findings.
 
 ## Configuration
 
-| Key                  | Default     | Range / values                              | Meaning                                                              |
-| -------------------- | ----------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| `enabled`            | `true`      | boolean                                     | Enables the plugin after the plugin entry is loaded.                 |
-| `autoCapture`        | `true`      | boolean                                     | Enables post-turn capture/review on successful agent turns.          |
-| `approvalPolicy`     | `"pending"` | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.               |
-| `reviewMode`         | `"hybrid"`  | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither. |
-| `reviewInterval`     | `15`        | `1..200`                                    | Run reviewer after this many successful turns.                       |
-| `reviewMinToolCalls` | `8`         | `1..500`                                    | Run reviewer after this many observed tool calls.                    |
-| `reviewTimeoutMs`    | `45000`     | `5000..180000`                              | Timeout for the embedded reviewer run.                               |
-| `maxPending`         | `50`        | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                |
-| `maxSkillBytes`      | `40000`     | `1024..200000`                              | Max generated skill/support file size.                               |
+| Key                             | Default     | Range / values                              | Meaning                                                                                                                    |
+| ------------------------------- | ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                       | `true`      | boolean                                     | Enables the plugin after the plugin entry is loaded.                                                                       |
+| `autoCapture`                   | `true`      | boolean                                     | Enables post-turn capture/review on successful agent turns.                                                                |
+| `approvalPolicy`                | `"pending"` | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.                                                                     |
+| `reviewMode`                    | `"hybrid"`  | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither.                                                       |
+| `reviewInterval`                | `15`        | `1..200`                                    | Run reviewer after this many successful turns.                                                                             |
+| `reviewMinToolCalls`            | `8`         | `1..500`                                    | Run reviewer after this many observed tool calls.                                                                          |
+| `reviewComplexTurnMinToolCalls` | `5`         | `0..500`                                    | Run reviewer immediately after one complex turn with at least this many tool calls; `0` disables the complex-turn trigger. |
+| `reviewTimeoutMs`               | `45000`     | `5000..180000`                              | Timeout for the embedded reviewer run.                                                                                     |
+| `maxPending`                    | `50`        | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                                                                      |
+| `maxSkillBytes`                 | `40000`     | `1024..200000`                              | Max generated skill/support file size.                                                                                     |
 
 Recommended profiles:
 
@@ -204,9 +205,20 @@ repeatable process notes, not for general transcript summarization.
 When `autoCapture` is enabled and `reviewMode` is `llm` or `hybrid`, the plugin
 runs a compact embedded reviewer after thresholds are reached.
 
+The reviewer can trigger in two ways:
+
+- **Cumulative review**: after `reviewInterval` successful turns or
+  `reviewMinToolCalls` observed tool calls.
+- **Complex-turn review**: immediately after a single new turn reaches
+  `reviewComplexTurnMinToolCalls` tool calls. This is the Hermes-style
+  self-improvement loop: difficult tool-heavy work gets reviewed for reusable
+  procedure updates right after the user-visible answer, without waiting for a
+  later scheduled sweep.
+
 The reviewer receives:
 
-- the recent transcript text, capped to the last 12,000 characters
+- the new turn transcript when the harness provides it, otherwise the recent
+  transcript text, capped to the last 12,000 characters
 - up to 12 existing workspace skills
 - up to 2,000 characters from each existing skill
 - JSON-only instructions

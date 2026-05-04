@@ -1,3 +1,4 @@
+import { applyMergePatch } from "../../../../src/config/merge-patch.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "../gateway.ts";
 import { isPluginEnabledInConfigSnapshot } from "../plugin-activation.ts";
 import type { ConfigSnapshot } from "../types.ts";
@@ -203,6 +204,9 @@ export type DreamingState = {
   connected: boolean;
   hello: GatewayHelloOk | null;
   configSnapshot: ConfigSnapshot | null;
+  configForm?: Record<string, unknown> | null;
+  configFormOriginal?: Record<string, unknown> | null;
+  configFormDirty?: boolean;
   applySessionKey: string;
   dreamingStatusLoading: boolean;
   dreamingStatusError: string | null;
@@ -957,6 +961,57 @@ async function writeDreamingPatch(
   }
 }
 
+function buildDreamingEnabledPatch(pluginId: string, enabled: boolean): Record<string, unknown> {
+  return {
+    plugins: {
+      entries: {
+        [pluginId]: {
+          config: {
+            dreaming: {
+              enabled,
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function mergeDreamingPatch(
+  value: Record<string, unknown> | null | undefined,
+  patch: Record<string, unknown>,
+): Record<string, unknown> {
+  return applyMergePatch(value ?? {}, patch) as Record<string, unknown>;
+}
+
+function applyDreamingEnabledLocally(
+  state: DreamingState,
+  enabled: boolean,
+  patch: Record<string, unknown>,
+) {
+  if (state.dreamingStatus) {
+    state.dreamingStatus = {
+      ...state.dreamingStatus,
+      enabled,
+    };
+  }
+
+  if (state.configSnapshot) {
+    state.configSnapshot = {
+      ...state.configSnapshot,
+      config: mergeDreamingPatch(state.configSnapshot.config, patch),
+    };
+  }
+
+  if (state.configForm) {
+    state.configForm = mergeDreamingPatch(state.configForm, patch);
+  }
+
+  if (state.configFormOriginal && state.configFormDirty !== true) {
+    state.configFormOriginal = mergeDreamingPatch(state.configFormOriginal, patch);
+  }
+}
+
 function lookupIncludesDreamingProperty(value: unknown): boolean {
   const lookup = asRecord(value);
   const children = Array.isArray(lookup?.children) ? lookup.children : [];
@@ -1016,24 +1071,10 @@ export async function updateDreamingEnabled(
   if (!(await ensureDreamingPathSupported(state, pluginId))) {
     return false;
   }
-  const ok = await writeDreamingPatch(state, {
-    plugins: {
-      entries: {
-        [pluginId]: {
-          config: {
-            dreaming: {
-              enabled,
-            },
-          },
-        },
-      },
-    },
-  });
-  if (ok && state.dreamingStatus) {
-    state.dreamingStatus = {
-      ...state.dreamingStatus,
-      enabled,
-    };
+  const patch = buildDreamingEnabledPatch(pluginId, enabled);
+  const ok = await writeDreamingPatch(state, patch);
+  if (ok) {
+    applyDreamingEnabledLocally(state, enabled, patch);
   }
   return ok;
 }

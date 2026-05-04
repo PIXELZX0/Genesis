@@ -27,6 +27,7 @@ export type BrowserStatus = {
 export type BrowserTorStatus = {
   enabled: true;
   mode: "managed" | "external";
+  routeMode: "onion-only" | "all";
   socksHost: string;
   socksPort: number;
   running: boolean | null;

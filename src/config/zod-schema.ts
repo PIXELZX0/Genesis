@@ -40,6 +40,7 @@ const BrowserTorSchema = z
   .object({
     enabled: z.boolean().optional(),
     mode: z.union([z.literal("managed"), z.literal("external")]).optional(),
+    routeMode: z.union([z.literal("onion-only"), z.literal("all")]).optional(),
     executablePath: z.string().optional(),
     socksHost: z.string().optional(),
     socksPort: z.number().int().min(1).max(65535).optional(),

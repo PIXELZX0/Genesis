@@ -32,14 +32,17 @@ import {
 import { loadChannels } from "./controllers/channels.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
-  applyConfig,
+  applyConfigRestartNow,
+  cancelConfigRestartChanges,
   ensureAgentConfigEntry,
   findAgentConfigEntryIndex,
   loadConfig,
   openConfigFile,
+  requestApplyConfig,
   resetConfigPendingChanges,
   runUpdate,
   saveConfig,
+  saveConfigRestartLater,
   updateConfigFormValue,
   removeConfigFormValue,
 } from "./controllers/config.ts";
@@ -92,6 +95,16 @@ import {
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
+import {
+  closePluginClawHubDetail,
+  installPluginFromClawHub,
+  loadPluginClawHubDetail,
+  loadPlugins,
+  searchPluginClawHub,
+  setPluginClawHubSearchQuery,
+  uninstallPlugin,
+  updatePluginEnabled,
+} from "./controllers/plugins.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import {
   branchSessionFromCheckpoint,
@@ -113,7 +126,7 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
-import { loadWalletSummary } from "./controllers/wallet.ts";
+import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
@@ -183,6 +196,7 @@ const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
+const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
 const lazySkills = createLazy(() => import("./views/skills.ts"));
 const lazyWallet = createLazy(() => import("./views/wallet.ts"));
@@ -216,6 +230,7 @@ function resolveDreamingNextCycle(
 }
 
 let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let pluginClawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 function lazyRender<M>(getter: () => M | null, render: (mod: M) => unknown) {
   const mod = getter();
   return mod ? render(mod) : nothing;
@@ -852,6 +867,7 @@ export function renderApp(state: AppViewState) {
     uiHints: state.configUiHints,
     formValue: state.configForm,
     originalValue: state.configFormOriginal,
+    restartPrompt: state.configRestartPrompt,
     onRawChange: (next: string) => {
       state.configRaw = next;
     },
@@ -861,7 +877,10 @@ export function renderApp(state: AppViewState) {
     onReload: () => loadConfig(state),
     onReset: () => resetConfigPendingChanges(state),
     onSave: () => saveConfig(state),
-    onApply: () => applyConfig(state),
+    onApply: () => requestApplyConfig(state),
+    onRestartNow: () => applyConfigRestartNow(state),
+    onRestartLater: () => saveConfigRestartLater(state),
+    onCancelRestartChanges: () => cancelConfigRestartChanges(state),
     onUpdate: () => runUpdate(state),
     onOpenFile: () => openConfigFile(state),
     version: state.hello?.server?.version ?? "",
@@ -1553,7 +1572,17 @@ export function renderApp(state: AppViewState) {
                 configFormDirty: state.configFormDirty,
                 nostrProfileFormState: state.nostrProfileFormState,
                 nostrProfileAccountId: state.nostrProfileAccountId,
+                channelWizardStep: state.channelWizardStep,
+                channelWizardInput: state.channelWizardInput,
+                channelWizardBusy: state.channelWizardBusy,
+                channelWizardError: state.channelWizardError,
+                channelWizardMessage: state.channelWizardMessage,
                 onRefresh: (probe) => loadChannels(state, probe),
+                onChannelWizardStart: () => state.handleChannelWizardStart(),
+                onChannelWizardSubmit: () => state.handleChannelWizardSubmit(),
+                onChannelWizardCancel: () => state.handleChannelWizardCancel(),
+                onChannelWizardInput: (value) => state.handleChannelWizardInput(value),
+                onChannelWizardClose: () => state.handleChannelWizardClose(),
                 onWhatsAppStart: (force) => state.handleWhatsAppStart(force),
                 onWhatsAppWait: () => state.handleWhatsAppWait(),
                 onWhatsAppLogout: () => state.handleWhatsAppLogout(),
@@ -1697,7 +1726,20 @@ export function renderApp(state: AppViewState) {
                 summary: state.walletSummary,
                 error: state.walletSummaryError,
                 lastUpdatedAt: state.walletLastUpdatedAt,
+                recoveryPhraseMode: state.walletRecoveryPhraseMode,
+                recoveryPhraseBusy: state.walletRecoveryPhraseBusy,
+                recoveryPhraseError: state.walletRecoveryPhraseError,
+                recoveryPhraseGeneratedMnemonic: state.walletRecoveryPhraseGeneratedMnemonic,
+                recoveryPhraseStatus: state.walletRecoveryPhraseStatus,
                 onRefresh: () => loadWalletSummary(state, { includeBalances: true }),
+                onRecoveryPhraseModeChange: (mode) => {
+                  state.walletRecoveryPhraseMode = mode;
+                  state.walletRecoveryPhraseError = null;
+                  state.walletRecoveryPhraseGeneratedMnemonic = null;
+                  state.walletRecoveryPhraseStatus = null;
+                  requestHostUpdate?.();
+                },
+                onManageRecoveryPhrase: (input) => setWalletRecoveryPhrase(state, input),
                 onConfigure: () => {
                   state.configSettingsMode = "advanced";
                   state.configFormMode = "form";
@@ -1819,6 +1861,7 @@ export function renderApp(state: AppViewState) {
           ? lazyRender(lazyAgents, (m) =>
               m.renderAgents({
                 basePath: state.basePath ?? "",
+                connected: state.connected,
                 loading: state.agentsLoading,
                 error: state.agentsError,
                 agentsList: state.agentsList,
@@ -1874,6 +1917,11 @@ export function renderApp(state: AppViewState) {
                 runtimeSessionKey: state.sessionKey,
                 runtimeSessionMatchesSelectedAgent: toolsPanelUsesActiveSession,
                 modelCatalog: state.chatModelCatalog ?? [],
+                modelProviderWizardStep: state.modelProviderWizardStep,
+                modelProviderWizardInput: state.modelProviderWizardInput,
+                modelProviderWizardBusy: state.modelProviderWizardBusy,
+                modelProviderWizardError: state.modelProviderWizardError,
+                modelProviderWizardMessage: state.modelProviderWizardMessage,
                 onRefresh: async () => {
                   await loadAgents(state);
                   const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
@@ -1990,6 +2038,11 @@ export function renderApp(state: AppViewState) {
                 },
                 onConfigReload: () => loadConfig(state),
                 onConfigSave: () => saveAgentsConfig(state),
+                onModelProviderWizardStart: () => state.handleModelProviderWizardStart(),
+                onModelProviderWizardSubmit: () => state.handleModelProviderWizardSubmit(),
+                onModelProviderWizardCancel: () => state.handleModelProviderWizardCancel(),
+                onModelProviderWizardInput: (value) => state.handleModelProviderWizardInput(value),
+                onModelProviderWizardClose: () => state.handleModelProviderWizardClose(),
                 onChannelsRefresh: () => loadChannels(state, false),
                 onCronRefresh: () => state.loadCron(),
                 onCronRunNow: (jobId) => {
@@ -2173,6 +2226,51 @@ export function renderApp(state: AppViewState) {
                 onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
                 onClawHubInstall: (slug) => installFromClawHub(state, slug),
+              }),
+            )
+          : nothing}
+        ${state.tab === "plugins"
+          ? lazyRender(lazyPlugins, (m) =>
+              m.renderPlugins({
+                connected: state.connected,
+                loading: state.pluginsLoading,
+                report: state.pluginsReport,
+                error: state.pluginsError,
+                filter: state.pluginsFilter,
+                statusFilter: state.pluginsStatusFilter,
+                busyKey: state.pluginsBusyKey,
+                messages: state.pluginMessages,
+                detailKey: state.pluginDetailKey,
+                clawhubQuery: state.pluginClawhubSearchQuery,
+                clawhubResults: state.pluginClawhubSearchResults,
+                clawhubSearchLoading: state.pluginClawhubSearchLoading,
+                clawhubSearchError: state.pluginClawhubSearchError,
+                clawhubDetail: state.pluginClawhubDetail,
+                clawhubDetailName: state.pluginClawhubDetailName,
+                clawhubDetailLoading: state.pluginClawhubDetailLoading,
+                clawhubDetailError: state.pluginClawhubDetailError,
+                clawhubInstallName: state.pluginClawhubInstallName,
+                clawhubInstallMessage: state.pluginClawhubInstallMessage,
+                onFilterChange: (next) => (state.pluginsFilter = next),
+                onStatusFilterChange: (next) => (state.pluginsStatusFilter = next),
+                onRefresh: () => loadPlugins(state, { clearMessages: true }),
+                onToggle: (pluginId, enabled) => updatePluginEnabled(state, pluginId, enabled),
+                onUninstall: (pluginId) => uninstallPlugin(state, pluginId),
+                onDetailOpen: (pluginId) => (state.pluginDetailKey = pluginId),
+                onDetailClose: () => (state.pluginDetailKey = null),
+                onClawHubQueryChange: (query) => {
+                  setPluginClawHubSearchQuery(state, query);
+                  if (pluginClawhubSearchTimer) {
+                    clearTimeout(pluginClawhubSearchTimer);
+                  }
+                  pluginClawhubSearchTimer = setTimeout(
+                    () => searchPluginClawHub(state, query),
+                    300,
+                  );
+                },
+                onClawHubDetailOpen: (name) => loadPluginClawHubDetail(state, name),
+                onClawHubDetailClose: () => closePluginClawHubDetail(state),
+                onClawHubInstall: (name) => installPluginFromClawHub(state, name),
               }),
             )
           : nothing}

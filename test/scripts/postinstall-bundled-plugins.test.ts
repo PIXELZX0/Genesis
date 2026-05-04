@@ -1,5 +1,7 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
   createBundledRuntimeDependencyInstallArgs,
@@ -17,6 +19,25 @@ import { writePackageDistInventory } from "../../src/infra/package-dist-inventor
 import { createScriptTestHarness } from "./test-helpers.js";
 
 const { createTempDirAsync } = createScriptTestHarness();
+
+function importPackagedEsmWithPlainNode(modulePath: string) {
+  const moduleUrl = `${pathToFileURL(modulePath).href}?t=${Date.now()}`;
+  return execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      [
+        `const loadedModule = await import(${JSON.stringify(moduleUrl)});`,
+        'process.stdout.write(String(loadedModule.loadedMarker ?? ""));',
+      ].join("\n"),
+    ],
+    {
+      encoding: "utf8",
+      env: { ...process.env, NODE_OPTIONS: "" },
+    },
+  );
+}
 
 async function createExtensionsDir() {
   const root = await createTempDirAsync("genesis-postinstall-");
@@ -435,6 +456,53 @@ describe("bundled plugin postinstall", () => {
         log: { log: vi.fn(), warn: vi.fn() },
       }),
     ).toEqual(["dist/stale-runtime.js"]);
+  });
+
+  it("restores the Genesis SDK alias used by packaged bundled plugin ESM imports", async () => {
+    const packageRoot = await createTempDirAsync("genesis-packaged-install-sdk-alias-");
+    const promptOverlayPath = path.join(
+      packageRoot,
+      "dist",
+      "extensions",
+      "codex",
+      "prompt-overlay.js",
+    );
+    await fs.mkdir(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
+    await fs.mkdir(path.dirname(promptOverlayPath), { recursive: true });
+    await fs.writeFile(path.join(packageRoot, "package.json"), '{"type":"module"}\n');
+    await fs.writeFile(path.join(packageRoot, "dist", "plugin-sdk", "index.js"), "export {};\n");
+    await fs.writeFile(
+      path.join(packageRoot, "dist", "plugin-sdk", "provider-model-shared.js"),
+      'export const modelCatalogMarker = "loaded";\n',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, "dist", "extensions", "codex", "package.json"),
+      '{"type":"module"}\n',
+    );
+    await fs.writeFile(
+      promptOverlayPath,
+      [
+        'import { modelCatalogMarker } from "genesis/plugin-sdk/provider-model-shared";',
+        "export const loadedMarker = modelCatalogMarker;",
+        "",
+      ].join("\n"),
+    );
+    await writePackageDistInventory(packageRoot);
+
+    runBundledPluginPostinstall({
+      packageRoot,
+      spawnSync: vi.fn(),
+      log: { log: vi.fn(), warn: vi.fn() },
+    });
+
+    await expect(
+      fs.readFile(
+        path.join(packageRoot, "dist", "node_modules", "genesis", "package.json"),
+        "utf8",
+      ),
+    ).resolves.toContain('"./plugin-sdk/*": "./plugin-sdk/*.js"');
+
+    expect(importPackagedEsmWithPlainNode(promptOverlayPath)).toBe("loaded");
   });
 
   it("unlinks stale files instead of recursive pruning them", () => {

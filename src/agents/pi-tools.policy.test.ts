@@ -34,8 +34,12 @@ describe("pi-tools.policy", () => {
     expect(isToolAllowedByPolicyName("apply_patch", { allow: ["write"] })).toBe(true);
   });
 
-  it("blocks apply_patch when write is denylisted", () => {
-    expect(isToolAllowedByPolicyName("apply_patch", { deny: ["write"] })).toBe(false);
+  it("keeps apply_patch when only write is denylisted", () => {
+    expect(isToolAllowedByPolicyName("apply_patch", { deny: ["write"] })).toBe(true);
+  });
+
+  it("blocks apply_patch when apply_patch is denylisted", () => {
+    expect(isToolAllowedByPolicyName("apply_patch", { deny: ["apply_patch"] })).toBe(false);
   });
 });
 

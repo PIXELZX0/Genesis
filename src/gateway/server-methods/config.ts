@@ -32,6 +32,7 @@ import { resolveEffectiveSharedGatewayAuth } from "../auth.js";
 import {
   buildGatewayReloadPlan,
   diffConfigPaths,
+  isNoopGatewayReloadPlan,
   resolveGatewayReloadSettings,
 } from "../config-reload.js";
 import {
@@ -287,10 +288,13 @@ function shouldScheduleDirectConfigRestart(params: {
   nextConfig: GenesisConfig;
 }): boolean {
   const reloadSettings = resolveGatewayReloadSettings(params.nextConfig);
-  if (reloadSettings.mode === "off") {
-    return true;
-  }
   const plan = buildGatewayReloadPlan(params.changedPaths);
+  if (isNoopGatewayReloadPlan(plan)) {
+    return false;
+  }
+  if (reloadSettings.mode === "off") {
+    return plan.restartGateway;
+  }
   if (reloadSettings.mode === "hot" && plan.restartGateway) {
     return true;
   }

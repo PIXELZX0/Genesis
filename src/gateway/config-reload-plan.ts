@@ -341,3 +341,16 @@ export function buildGatewayReloadPlan(
 
   return plan;
 }
+
+export function isNoopGatewayReloadPlan(plan: GatewayReloadPlan): boolean {
+  return (
+    !plan.restartGateway &&
+    plan.hotReasons.length === 0 &&
+    !plan.reloadHooks &&
+    !plan.restartGmailWatcher &&
+    !plan.restartCron &&
+    !plan.restartHeartbeat &&
+    !plan.restartHealthMonitor &&
+    plan.restartChannels.size === 0
+  );
+}

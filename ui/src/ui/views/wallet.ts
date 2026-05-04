@@ -1,5 +1,6 @@
-import { html, nothing } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
+import type { WalletRecoveryPhraseInput, WalletRecoveryPhraseMode } from "../controllers/wallet.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import type { WalletBalance, WalletPublicAccount, WalletSummaryResult } from "../types.ts";
@@ -11,8 +12,15 @@ export type WalletProps = {
   summary: WalletSummaryResult | null;
   error: string | null;
   lastUpdatedAt: number | null;
+  recoveryPhraseMode: WalletRecoveryPhraseMode;
+  recoveryPhraseBusy: boolean;
+  recoveryPhraseError: string | null;
+  recoveryPhraseGeneratedMnemonic: string | null;
+  recoveryPhraseStatus: "generated" | "imported" | null;
   onRefresh: () => void;
   onConfigure: () => void;
+  onRecoveryPhraseModeChange: (mode: WalletRecoveryPhraseMode) => void;
+  onManageRecoveryPhrase: (input: WalletRecoveryPhraseInput) => Promise<boolean> | boolean;
 };
 
 function walletChainLabel(chain: WalletPublicAccount["chain"]): string {
@@ -43,8 +51,8 @@ function accountBalance(
   );
 }
 
-function copyAddress(address: string) {
-  void navigator.clipboard?.writeText(address).catch(() => undefined);
+function copyText(value: string) {
+  void navigator.clipboard?.writeText(value).catch(() => undefined);
 }
 
 function renderStatusCard(label: string, value: unknown, valueClass = "") {
@@ -175,7 +183,7 @@ function renderAccount(account: WalletPublicAccount, props: WalletProps) {
           class="btn btn--icon"
           title=${t("wallet.accounts.copyAddress")}
           aria-label=${t("wallet.accounts.copyAddress")}
-          @click=${() => copyAddress(account.address)}
+          @click=${() => copyText(account.address)}
         >
           ${icons.copy}
         </button>
@@ -203,6 +211,187 @@ function renderWalletAccounts(props: WalletProps) {
   `;
 }
 
+function formValue(data: FormData, key: string): string {
+  const value = data.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+async function handleRecoveryPhraseSubmit(event: SubmitEvent, props: WalletProps) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+  const data = new FormData(form);
+  const ok = await props.onManageRecoveryPhrase({
+    mode: props.recoveryPhraseMode,
+    mnemonic: formValue(data, "mnemonic"),
+    passphrase: formValue(data, "passphrase"),
+    confirmPassphrase: formValue(data, "confirmPassphrase"),
+    overwrite: data.get("overwrite") === "on",
+  });
+  if (ok) {
+    form.reset();
+  }
+}
+
+function renderRecoveryPhraseModeButton(
+  props: WalletProps,
+  mode: WalletRecoveryPhraseMode,
+  icon: TemplateResult,
+  label: string,
+) {
+  const active = props.recoveryPhraseMode === mode;
+  return html`
+    <button
+      type="button"
+      class="config-mode-toggle__btn ${active ? "active" : ""}"
+      aria-pressed=${active ? "true" : "false"}
+      @click=${() => props.onRecoveryPhraseModeChange(mode)}
+    >
+      ${icon} ${label}
+    </button>
+  `;
+}
+
+function renderGeneratedRecoveryPhrase(props: WalletProps) {
+  const phrase = props.recoveryPhraseGeneratedMnemonic;
+  if (!phrase) {
+    return nothing;
+  }
+  return html`
+    <div class="callout success" style="margin-top: 14px;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start;">
+        <div>
+          <strong>${t("wallet.recoveryPhrase.generatedTitle")}</strong>
+          <div
+            class="mono"
+            style="margin-top: 10px; overflow-wrap: anywhere; color: var(--text-strong);"
+          >
+            ${phrase}
+          </div>
+        </div>
+        <button
+          class="btn btn--icon"
+          title=${t("wallet.recoveryPhrase.copyGenerated")}
+          aria-label=${t("wallet.recoveryPhrase.copyGenerated")}
+          @click=${() => copyText(phrase)}
+        >
+          ${icons.copy}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderRecoveryPhraseManager(props: WalletProps) {
+  const isImport = props.recoveryPhraseMode === "import";
+  const successText =
+    props.recoveryPhraseStatus === "generated"
+      ? t("wallet.recoveryPhrase.successGenerated")
+      : props.recoveryPhraseStatus === "imported"
+        ? t("wallet.recoveryPhrase.successImported")
+        : null;
+  return html`
+    <section class="card">
+      <div class="card-title">${t("wallet.recoveryPhrase.title")}</div>
+      <div class="card-sub">${t("wallet.recoveryPhrase.subtitle")}</div>
+      <div class="callout info" style="margin-top: 14px;">${t("wallet.recoveryPhrase.safety")}</div>
+      ${renderGeneratedRecoveryPhrase(props)}
+      ${successText && !props.recoveryPhraseGeneratedMnemonic
+        ? html`<div class="callout success" style="margin-top: 14px;">${successText}</div>`
+        : nothing}
+      ${props.recoveryPhraseError
+        ? html`<div class="callout danger" style="margin-top: 14px;">
+            ${props.recoveryPhraseError}
+          </div>`
+        : nothing}
+      <form
+        style="display: grid; gap: 14px; margin-top: 16px;"
+        @submit=${(event: SubmitEvent) => void handleRecoveryPhraseSubmit(event, props)}
+      >
+        <div
+          class="config-mode-toggle wallet-recovery-mode-toggle"
+          role="group"
+          aria-label=${t("wallet.recoveryPhrase.mode")}
+        >
+          ${renderRecoveryPhraseModeButton(
+            props,
+            "generate",
+            icons.spark,
+            t("wallet.recoveryPhrase.generate"),
+          )}
+          ${renderRecoveryPhraseModeButton(
+            props,
+            "import",
+            icons.download,
+            t("wallet.recoveryPhrase.import"),
+          )}
+        </div>
+        ${isImport
+          ? html`
+              <label class="field full">
+                <span>${t("wallet.recoveryPhrase.phraseLabel")}</span>
+                <textarea
+                  name="mnemonic"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder=${t("wallet.recoveryPhrase.phrasePlaceholder")}
+                  ?disabled=${props.recoveryPhraseBusy}
+                  required
+                ></textarea>
+              </label>
+            `
+          : nothing}
+        <div class="stat-grid">
+          <label class="field">
+            <span>${t("wallet.recoveryPhrase.passphraseOptional")}</span>
+            <input
+              name="passphrase"
+              type="password"
+              autocomplete="new-password"
+              ?disabled=${props.recoveryPhraseBusy}
+            />
+          </label>
+          ${isImport
+            ? nothing
+            : html`
+                <label class="field">
+                  <span>${t("wallet.recoveryPhrase.confirmPassphraseOptional")}</span>
+                  <input
+                    name="confirmPassphrase"
+                    type="password"
+                    autocomplete="new-password"
+                    ?disabled=${props.recoveryPhraseBusy}
+                  />
+                </label>
+              `}
+        </div>
+        <label class="field-inline checkbox">
+          <input name="overwrite" type="checkbox" ?disabled=${props.recoveryPhraseBusy} />
+          <span>${t("wallet.recoveryPhrase.overwrite")}</span>
+        </label>
+        <div class="row" style="justify-content: flex-end; flex-wrap: wrap;">
+          <button
+            class="btn primary"
+            type="submit"
+            ?disabled=${props.recoveryPhraseBusy || !props.connected}
+          >
+            ${props.recoveryPhraseBusy
+              ? t("common.saving")
+              : isImport
+                ? t("wallet.recoveryPhrase.importAction")
+                : t("wallet.recoveryPhrase.generateAction")}
+          </button>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
 export function renderWallet(props: WalletProps) {
-  return html` ${renderWalletStatus(props)} ${renderWalletAccounts(props)} `;
+  return html`
+    ${renderWalletStatus(props)} ${renderRecoveryPhraseManager(props)}
+    ${renderWalletAccounts(props)}
+  `;
 }

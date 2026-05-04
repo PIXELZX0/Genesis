@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
+import type { ModelProviderWizardStep } from "../app-model-providers.ts";
 import type {
   AgentIdentityResult,
   AgentsFilesListResult,
@@ -76,6 +77,7 @@ export type ToolsEffectiveState = {
 
 export type AgentsProps = {
   basePath: string;
+  connected: boolean;
   loading: boolean;
   error: string | null;
   agentsList: AgentsListResult | null;
@@ -94,6 +96,11 @@ export type AgentsProps = {
   runtimeSessionKey: string;
   runtimeSessionMatchesSelectedAgent: boolean;
   modelCatalog: ModelCatalogEntry[];
+  modelProviderWizardStep: ModelProviderWizardStep | null;
+  modelProviderWizardInput: unknown;
+  modelProviderWizardBusy: boolean;
+  modelProviderWizardError: string | null;
+  modelProviderWizardMessage: string | null;
   onRefresh: () => void;
   onSelectAgent: (agentId: string) => void;
   onSelectPanel: (panel: AgentsPanel) => void;
@@ -108,6 +115,11 @@ export type AgentsProps = {
   onConfigSave: () => void;
   onModelChange: (agentId: string, modelId: string | null) => void;
   onModelFallbacksChange: (agentId: string, fallbacks: string[]) => void;
+  onModelProviderWizardStart: () => void;
+  onModelProviderWizardSubmit: () => void;
+  onModelProviderWizardCancel: () => void;
+  onModelProviderWizardInput: (value: unknown) => void;
+  onModelProviderWizardClose: () => void;
   onChannelsRefresh: () => void;
   onCronRefresh: () => void;
   onCronRunNow: (jobId: string) => void;
@@ -232,11 +244,22 @@ export function renderAgents(props: AgentsProps) {
                     configLoading: props.config.loading,
                     configSaving: props.config.saving,
                     configDirty: props.config.dirty,
+                    connected: props.connected,
                     modelCatalog: props.modelCatalog,
+                    modelProviderWizardStep: props.modelProviderWizardStep,
+                    modelProviderWizardInput: props.modelProviderWizardInput,
+                    modelProviderWizardBusy: props.modelProviderWizardBusy,
+                    modelProviderWizardError: props.modelProviderWizardError,
+                    modelProviderWizardMessage: props.modelProviderWizardMessage,
                     onConfigReload: props.onConfigReload,
                     onConfigSave: props.onConfigSave,
                     onModelChange: props.onModelChange,
                     onModelFallbacksChange: props.onModelFallbacksChange,
+                    onModelProviderWizardStart: props.onModelProviderWizardStart,
+                    onModelProviderWizardSubmit: props.onModelProviderWizardSubmit,
+                    onModelProviderWizardCancel: props.onModelProviderWizardCancel,
+                    onModelProviderWizardInput: props.onModelProviderWizardInput,
+                    onModelProviderWizardClose: props.onModelProviderWizardClose,
                     onSelectPanel: props.onSelectPanel,
                   })
                 : nothing}

@@ -46,6 +46,8 @@ Local onboarding defaults new local configs to `tools.profile: "coding"` when un
 ### `tools.allow` / `tools.deny`
 
 Global tool allow/deny policy (deny wins). Case-insensitive, supports `*` wildcards. Applied even when Docker sandbox is off.
+`apply_patch` is distinct from `write` for deny policy; deny `apply_patch` or
+`group:fs` when you want to block patch edits.
 
 ```json5
 {

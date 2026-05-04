@@ -111,17 +111,22 @@ locale picker lives in the Gateway Access card, not under Appearance.
   `genesis_agent_consult` tool calls back through `chat.send` for the larger
   configured Genesis model.
 - Stream tool calls + live tool output cards in Chat (agent events)
-- Channels: built-in plus bundled/external plugin channels status, QR login, and per-channel config (`channels.status`, `web.login.*`, `config.patch`)
+- Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
+- Model providers: guided provider auth setup from Agents -> Overview (`wizard.start` with `target: "models"`)
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
-- Skills: status, enable/disable, install, API key updates (`skills.*`)
-- Wallet: dedicated Control tab with public addresses, balance refresh, warnings, and config navigation from read-only `wallet.summary`; no seed, private key, passphrase, or send controls
+- Skills: status, enable/disable, ClawHub search/browse/install, dependency installs, API key updates (`skills.*`)
+- Plugins: status, enable/disable, uninstall, and ClawHub search/browse/install
+  (`plugins.*`)
+- Wallet: dedicated Control tab with public addresses, balance refresh, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; passphrases are optional, generated phrases are shown once, and existing phrases/private keys/passphrases/send controls are not exposed
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
 - Config: view/edit `~/.genesis/genesis.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session
+- Config Apply prompts before restart-required changes, with restart now,
+  restart later, and cancel changes actions
 - Config writes include a base-hash guard to prevent clobbering concurrent edits
 - Config writes (`config.set`/`config.apply`/`config.patch`) also preflight active SecretRef resolution for refs in the submitted config payload; unresolved active submitted refs are rejected before write
 - Config schema + form rendering (`config.schema` / `config.schema.lookup`,

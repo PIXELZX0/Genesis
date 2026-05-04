@@ -1,3 +1,4 @@
+import type { ChannelWizardStep } from "../app-channels.ts";
 import type {
   ChannelAccountSnapshot,
   ChannelsStatusSnapshot,
@@ -34,7 +35,17 @@ export type ChannelsProps = {
   configFormDirty: boolean;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
+  channelWizardStep: ChannelWizardStep | null;
+  channelWizardInput: unknown;
+  channelWizardBusy: boolean;
+  channelWizardError: string | null;
+  channelWizardMessage: string | null;
   onRefresh: (probe: boolean) => void;
+  onChannelWizardStart: () => void;
+  onChannelWizardSubmit: () => void;
+  onChannelWizardCancel: () => void;
+  onChannelWizardInput: (value: unknown) => void;
+  onChannelWizardClose: () => void;
   onWhatsAppStart: (force: boolean) => void;
   onWhatsAppWait: () => void;
   onWhatsAppLogout: () => void;

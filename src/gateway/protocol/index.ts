@@ -143,6 +143,30 @@ import {
   PluginApprovalRequestParamsSchema,
   type PluginApprovalResolveParams,
   PluginApprovalResolveParamsSchema,
+  type PluginsDetailParams,
+  PluginsDetailParamsSchema,
+  type PluginsDetailResult,
+  PluginsDetailResultSchema,
+  type PluginsInstallParams,
+  PluginsInstallParamsSchema,
+  type PluginsInstallResult,
+  PluginsInstallResultSchema,
+  type PluginsSearchParams,
+  PluginsSearchParamsSchema,
+  type PluginsSearchResult,
+  PluginsSearchResultSchema,
+  type PluginsStatusParams,
+  PluginsStatusParamsSchema,
+  type PluginsStatusResult,
+  PluginsStatusResultSchema,
+  type PluginsUninstallParams,
+  PluginsUninstallParamsSchema,
+  type PluginsUninstallResult,
+  PluginsUninstallResultSchema,
+  type PluginsUpdateParams,
+  PluginsUpdateParamsSchema,
+  type PluginsUpdateResult,
+  PluginsUpdateResultSchema,
   ErrorCodes,
   type ErrorShape,
   ErrorShapeSchema,
@@ -280,6 +304,10 @@ import {
   UpdateRunParamsSchema,
   type WakeParams,
   WakeParamsSchema,
+  type WalletRecoveryPhraseSetParams,
+  WalletRecoveryPhraseSetParamsSchema,
+  type WalletRecoveryPhraseSetResult,
+  WalletRecoveryPhraseSetResultSchema,
   type WalletSummaryParams,
   WalletBalanceSchema,
   WalletPublicAccountSchema,
@@ -512,6 +540,20 @@ export const validatePluginApprovalRequestParams = ajv.compile<PluginApprovalReq
 export const validatePluginApprovalResolveParams = ajv.compile<PluginApprovalResolveParams>(
   PluginApprovalResolveParamsSchema,
 );
+export const validatePluginsStatusParams =
+  ajv.compile<PluginsStatusParams>(PluginsStatusParamsSchema);
+export const validatePluginsSearchParams =
+  ajv.compile<PluginsSearchParams>(PluginsSearchParamsSchema);
+export const validatePluginsDetailParams =
+  ajv.compile<PluginsDetailParams>(PluginsDetailParamsSchema);
+export const validatePluginsInstallParams = ajv.compile<PluginsInstallParams>(
+  PluginsInstallParamsSchema,
+);
+export const validatePluginsUpdateParams =
+  ajv.compile<PluginsUpdateParams>(PluginsUpdateParamsSchema);
+export const validatePluginsUninstallParams = ajv.compile<PluginsUninstallParams>(
+  PluginsUninstallParamsSchema,
+);
 export const validateExecApprovalsNodeGetParams = ajv.compile<ExecApprovalsNodeGetParams>(
   ExecApprovalsNodeGetParamsSchema,
 );
@@ -532,6 +574,12 @@ export const validateWalletSummaryParams =
   ajv.compile<WalletSummaryParams>(WalletSummaryParamsSchema);
 export const validateWalletSummaryResult =
   ajv.compile<WalletSummaryResult>(WalletSummaryResultSchema);
+export const validateWalletRecoveryPhraseSetParams = ajv.compile<WalletRecoveryPhraseSetParams>(
+  WalletRecoveryPhraseSetParamsSchema,
+);
+export const validateWalletRecoveryPhraseSetResult = ajv.compile<WalletRecoveryPhraseSetResult>(
+  WalletRecoveryPhraseSetResultSchema,
+);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {
@@ -646,6 +694,8 @@ export {
   ChannelsLogoutParamsSchema,
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
+  WalletRecoveryPhraseSetParamsSchema,
+  WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
   WalletPublicAccountSchema,
@@ -678,6 +728,18 @@ export {
   SkillsDetailParamsSchema,
   SkillsDetailResultSchema,
   SkillsUpdateParamsSchema,
+  PluginsStatusParamsSchema,
+  PluginsStatusResultSchema,
+  PluginsSearchParamsSchema,
+  PluginsSearchResultSchema,
+  PluginsDetailParamsSchema,
+  PluginsDetailResultSchema,
+  PluginsInstallParamsSchema,
+  PluginsInstallResultSchema,
+  PluginsUpdateParamsSchema,
+  PluginsUpdateResultSchema,
+  PluginsUninstallParamsSchema,
+  PluginsUninstallResultSchema,
   CronJobSchema,
   CronListParamsSchema,
   CronStatusParamsSchema,
@@ -789,6 +851,18 @@ export type {
   SkillsDetailResult,
   SkillsInstallParams,
   SkillsUpdateParams,
+  PluginsStatusParams,
+  PluginsStatusResult,
+  PluginsSearchParams,
+  PluginsSearchResult,
+  PluginsDetailParams,
+  PluginsDetailResult,
+  PluginsInstallParams,
+  PluginsInstallResult,
+  PluginsUpdateParams,
+  PluginsUpdateResult,
+  PluginsUninstallParams,
+  PluginsUninstallResult,
   NodePairRejectParams,
   NodePairVerifyParams,
   NodeListParams,
@@ -830,4 +904,6 @@ export type {
   ChatInjectParams,
   WalletSummaryParams,
   WalletSummaryResult,
+  WalletRecoveryPhraseSetParams,
+  WalletRecoveryPhraseSetResult,
 };

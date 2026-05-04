@@ -25,6 +25,7 @@ function buildTorStatus(profileCtx: ProfileContext, running: boolean | null) {
   return {
     enabled: true as const,
     mode: tor.mode,
+    routeMode: tor.routeMode,
     socksHost: tor.socksHost,
     socksPort: tor.socksPort,
     running,

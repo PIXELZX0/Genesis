@@ -114,6 +114,21 @@ describe("package dist inventory", () => {
         "genesis",
         "plugin-sdk",
       );
+      const omittedInstalledAliasPackage = path.join(
+        packageRoot,
+        "dist",
+        "node_modules",
+        "genesis",
+        "package.json",
+      );
+      const omittedInstalledAliasWrapper = path.join(
+        packageRoot,
+        "dist",
+        "node_modules",
+        "genesis",
+        "plugin-sdk",
+        "index.js",
+      );
       const omittedMap = path.join(packageRoot, "dist", "feature.runtime.js.map");
       await fs.mkdir(path.dirname(packagedQaChannelRuntime), { recursive: true });
       await fs.mkdir(path.dirname(packagedQaLabRuntime), { recursive: true });
@@ -124,6 +139,7 @@ describe("package dist inventory", () => {
       await fs.mkdir(path.dirname(omittedRuntimeDepsTempSymlink), { recursive: true });
       await fs.mkdir(path.dirname(omittedExtensionNodeModuleSymlink), { recursive: true });
       await fs.mkdir(path.dirname(omittedExtensionRootAliasSymlink), { recursive: true });
+      await fs.mkdir(path.dirname(omittedInstalledAliasWrapper), { recursive: true });
       await fs.mkdir(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
       await fs.writeFile(path.join(packageRoot, "color-support.js"), "export {};\n", "utf8");
       await fs.writeFile(packagedQaChannelRuntime, "export {};\n", "utf8");
@@ -135,6 +151,8 @@ describe("package dist inventory", () => {
       await fs.writeFile(omittedQaLabTypes, "export {};\n", "utf8");
       await fs.writeFile(omittedQaRuntimeChunk, "export {};\n", "utf8");
       await fs.writeFile(omittedRuntimeDepsStamp, "{}\n", "utf8");
+      await fs.writeFile(omittedInstalledAliasPackage, '{"type":"module"}\n', "utf8");
+      await fs.writeFile(omittedInstalledAliasWrapper, "export {};\n", "utf8");
       await fs.writeFile(omittedRuntimeDepsTempFile, "module.exports = 1;\n", "utf8");
       await fs.symlink(path.join(packageRoot, "color-support.js"), omittedRuntimeDepsTempSymlink);
       await fs.symlink(

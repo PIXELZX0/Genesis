@@ -4,6 +4,11 @@ import { i18n, I18nController, isSupportedLocale } from "../i18n/index.ts";
 import {
   handleChannelConfigReload as handleChannelConfigReloadInternal,
   handleChannelConfigSave as handleChannelConfigSaveInternal,
+  handleChannelWizardCancel as handleChannelWizardCancelInternal,
+  handleChannelWizardClose as handleChannelWizardCloseInternal,
+  handleChannelWizardInput as handleChannelWizardInputInternal,
+  handleChannelWizardStart as handleChannelWizardStartInternal,
+  handleChannelWizardSubmit as handleChannelWizardSubmitInternal,
   handleNostrProfileCancel as handleNostrProfileCancelInternal,
   handleNostrProfileEdit as handleNostrProfileEditInternal,
   handleNostrProfileFieldChange as handleNostrProfileFieldChangeInternal,
@@ -13,6 +18,7 @@ import {
   handleWhatsAppLogout as handleWhatsAppLogoutInternal,
   handleWhatsAppStart as handleWhatsAppStartInternal,
   handleWhatsAppWait as handleWhatsAppWaitInternal,
+  type ChannelWizardStep,
 } from "./app-channels.ts";
 import {
   handleAbortChat as handleAbortChatInternal,
@@ -29,6 +35,14 @@ import {
   handleFirstUpdated,
   handleUpdated,
 } from "./app-lifecycle.ts";
+import {
+  handleModelProviderWizardCancel as handleModelProviderWizardCancelInternal,
+  handleModelProviderWizardClose as handleModelProviderWizardCloseInternal,
+  handleModelProviderWizardInput as handleModelProviderWizardInputInternal,
+  handleModelProviderWizardStart as handleModelProviderWizardStartInternal,
+  handleModelProviderWizardSubmit as handleModelProviderWizardSubmitInternal,
+  type ModelProviderWizardStep,
+} from "./app-model-providers.ts";
 import { renderApp } from "./app-render.ts";
 import {
   exportLogs as exportLogsInternal,
@@ -250,6 +264,7 @@ export class GenesisApp extends LitElement {
   @state() configUiHints: ConfigUiHints = {};
   @state() configForm: Record<string, unknown> | null = null;
   @state() configFormOriginal: Record<string, unknown> | null = null;
+  @state() configRestartPrompt: import("./controllers/config.js").ConfigRestartPrompt | null = null;
   @state() dreamingStatusLoading = false;
   @state() dreamingStatusError: string | null = null;
   @state() dreamingStatus: DreamingStatus | null = null;
@@ -304,6 +319,18 @@ export class GenesisApp extends LitElement {
   @state() whatsappBusy = false;
   @state() nostrProfileFormState: NostrProfileFormState | null = null;
   @state() nostrProfileAccountId: string | null = null;
+  @state() channelWizardSessionId: string | null = null;
+  @state() channelWizardStep: ChannelWizardStep | null = null;
+  @state() channelWizardInput: unknown = null;
+  @state() channelWizardBusy = false;
+  @state() channelWizardError: string | null = null;
+  @state() channelWizardMessage: string | null = null;
+  @state() modelProviderWizardSessionId: string | null = null;
+  @state() modelProviderWizardStep: ModelProviderWizardStep | null = null;
+  @state() modelProviderWizardInput: unknown = null;
+  @state() modelProviderWizardBusy = false;
+  @state() modelProviderWizardError: string | null = null;
+  @state() modelProviderWizardMessage: string | null = null;
 
   @state() presenceLoading = false;
   @state() presenceEntries: PresenceEntry[] = [];
@@ -470,6 +497,12 @@ export class GenesisApp extends LitElement {
   @state() walletSummaryLoading = false;
   @state() walletBalancesLoading = false;
   @state() walletLastUpdatedAt: number | null = null;
+  @state() walletRecoveryPhraseMode: import("./controllers/wallet.js").WalletRecoveryPhraseMode =
+    "generate";
+  @state() walletRecoveryPhraseBusy = false;
+  @state() walletRecoveryPhraseError: string | null = null;
+  @state() walletRecoveryPhraseGeneratedMnemonic: string | null = null;
+  @state() walletRecoveryPhraseStatus: "generated" | "imported" | null = null;
 
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;
@@ -490,6 +523,28 @@ export class GenesisApp extends LitElement {
   @state() clawhubDetailError: string | null = null;
   @state() clawhubInstallSlug: string | null = null;
   @state() clawhubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
+
+  @state() pluginsLoading = false;
+  @state() pluginsReport: import("./types.js").PluginStatusReport | null = null;
+  @state() pluginsError: string | null = null;
+  @state() pluginsFilter = "";
+  @state() pluginsStatusFilter: "all" | "loaded" | "disabled" | "error" | "managed" = "all";
+  @state() pluginsBusyKey: string | null = null;
+  @state() pluginMessages: import("./controllers/plugins.js").PluginMessageMap = {};
+  @state() pluginDetailKey: string | null = null;
+  @state() pluginClawhubSearchQuery = "";
+  @state() pluginClawhubSearchResults:
+    | import("./controllers/plugins.js").PluginClawHubSearchResult[]
+    | null = null;
+  @state() pluginClawhubSearchLoading = false;
+  @state() pluginClawhubSearchError: string | null = null;
+  @state() pluginClawhubDetail: import("./controllers/plugins.js").PluginClawHubDetail | null =
+    null;
+  @state() pluginClawhubDetailName: string | null = null;
+  @state() pluginClawhubDetailLoading = false;
+  @state() pluginClawhubDetailError: string | null = null;
+  @state() pluginClawhubInstallName: string | null = null;
+  @state() pluginClawhubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
 
   @state() healthLoading = false;
   @state() healthResult: HealthSummary | null = null;
@@ -852,6 +907,46 @@ export class GenesisApp extends LitElement {
 
   async handleChannelConfigReload() {
     await handleChannelConfigReloadInternal(this);
+  }
+
+  async handleChannelWizardStart() {
+    await handleChannelWizardStartInternal(this);
+  }
+
+  async handleChannelWizardSubmit() {
+    await handleChannelWizardSubmitInternal(this);
+  }
+
+  async handleChannelWizardCancel() {
+    await handleChannelWizardCancelInternal(this);
+  }
+
+  handleChannelWizardInput(value: unknown) {
+    handleChannelWizardInputInternal(this, value);
+  }
+
+  handleChannelWizardClose() {
+    handleChannelWizardCloseInternal(this);
+  }
+
+  async handleModelProviderWizardStart() {
+    await handleModelProviderWizardStartInternal(this);
+  }
+
+  async handleModelProviderWizardSubmit() {
+    await handleModelProviderWizardSubmitInternal(this);
+  }
+
+  async handleModelProviderWizardCancel() {
+    await handleModelProviderWizardCancelInternal(this);
+  }
+
+  handleModelProviderWizardInput(value: unknown) {
+    handleModelProviderWizardInputInternal(this, value);
+  }
+
+  handleModelProviderWizardClose() {
+    handleModelProviderWizardCloseInternal(this);
   }
 
   handleNostrProfileEdit(accountId: string, profile: NostrProfile | null) {

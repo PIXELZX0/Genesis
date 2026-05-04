@@ -414,7 +414,7 @@ describe("update-cli", () => {
     vi.spyOn(updateCliShared, "readPackageName").mockImplementation(readPackageName);
     vi.spyOn(updateCliShared, "readPackageVersion").mockImplementation(readPackageVersion);
     vi.spyOn(updateCliShared, "resolveGlobalManager").mockImplementation(resolveGlobalManager);
-    readPackageName.mockResolvedValue("genesis");
+    readPackageName.mockResolvedValue("@pixelzx/genesis");
     readPackageVersion.mockResolvedValue("1.0.0");
     resolveGlobalManager.mockResolvedValue("npm");
     serviceLoaded.mockResolvedValue(false);
@@ -484,7 +484,7 @@ describe("update-cli", () => {
         stdio: "inherit",
         env: expect.objectContaining({
           GENESIS_UPDATE_POST_CORE: "1",
-          GENESIS_UPDATE_POST_CORE_CHANNEL: "dev",
+          GENESIS_UPDATE_POST_CORE_CHANNEL: "stable",
         }),
       }),
     );
@@ -696,6 +696,17 @@ describe("update-cli", () => {
     },
   ] as const)("updateCommand dry-run behavior: $name", runUpdateCliScenario);
 
+  it("shows the git-tag inferred channel in dry-run JSON", async () => {
+    vi.mocked(defaultRuntime.writeJson).mockClear();
+
+    await updateCommand({ dryRun: true, json: true });
+
+    const preview = vi.mocked(defaultRuntime.writeJson).mock.calls.at(-1)?.[0] as
+      | { effectiveChannel?: string }
+      | undefined;
+    expect(preview?.effectiveChannel).toBe("stable");
+  });
+
   it.each([
     {
       name: "table output",
@@ -744,10 +755,41 @@ describe("update-cli", () => {
 
   it.each([
     {
-      name: "defaults to dev channel for git installs when unset",
+      name: "infers stable channel from a git release tag when unset",
       mode: "git" as const,
       options: {},
       prepare: async () => {},
+      expectedChannel: "stable" as const,
+      expectedTag: undefined as string | undefined,
+    },
+    {
+      name: "defaults to dev channel for git branch installs when unset",
+      mode: "git" as const,
+      options: {},
+      prepare: async () => {
+        vi.mocked(checkUpdateStatus).mockResolvedValue({
+          root: "/test/path",
+          installKind: "git",
+          packageManager: "pnpm",
+          git: {
+            root: "/test/path",
+            sha: "abcdef1234567890",
+            tag: null,
+            branch: "main",
+            upstream: "origin/main",
+            dirty: false,
+            ahead: 0,
+            behind: 0,
+            fetchOk: true,
+          },
+          deps: {
+            manager: "pnpm",
+            status: "ok",
+            lockfilePath: "/test/path/pnpm-lock.yaml",
+            markerPath: "/test/path/node_modules",
+          },
+        });
+      },
       expectedChannel: "dev" as const,
       expectedTag: undefined as string | undefined,
     },
@@ -801,7 +843,15 @@ describe("update-cli", () => {
       } else {
         expect(runGatewayUpdate).not.toHaveBeenCalled();
         expect(runCommandWithTimeout).toHaveBeenCalledWith(
-          ["npm", "i", "-g", "genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+          [
+            "npm",
+            "i",
+            "-g",
+            "@pixelzx/genesis@latest",
+            "--no-fund",
+            "--no-audit",
+            "--loglevel=error",
+          ],
           expect.any(Object),
         );
       }
@@ -832,7 +882,7 @@ describe("update-cli", () => {
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      ["npm", "i", "-g", "@pixelzx/genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
       expect.any(Object),
     );
   });
@@ -860,6 +910,58 @@ describe("update-cli", () => {
     expect(logs.join("\n")).not.toContain("already-current");
   });
 
+  it("retries npm package updates without optional dependencies when the first install fails", async () => {
+    const tempDir = createCaseDir("genesis-update");
+    mockPackageInstallStatus(tempDir);
+    vi.mocked(runCommandWithTimeout).mockImplementation(async (argv) => {
+      if (
+        Array.isArray(argv) &&
+        argv[0] === "npm" &&
+        argv[1] === "i" &&
+        argv[2] === "-g" &&
+        !argv.includes("--omit=optional")
+      ) {
+        return {
+          stdout: "",
+          stderr: "node-gyp failed",
+          code: 1,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      return {
+        stdout: "",
+        stderr: "",
+        code: 0,
+        signal: null,
+        killed: false,
+        termination: "exit",
+      };
+    });
+
+    await updateCommand({ yes: true, restart: false });
+
+    expect(runCommandWithTimeout).toHaveBeenCalledWith(
+      ["npm", "i", "-g", "@pixelzx/genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      expect.any(Object),
+    );
+    expect(runCommandWithTimeout).toHaveBeenCalledWith(
+      [
+        "npm",
+        "i",
+        "-g",
+        "@pixelzx/genesis@latest",
+        "--omit=optional",
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ],
+      expect.any(Object),
+    );
+    expect(defaultRuntime.exit).not.toHaveBeenCalledWith(1);
+  });
+
   it("blocks package updates when the target requires a newer Node runtime", async () => {
     mockPackageInstallStatus(createCaseDir("genesis-update"));
     vi.mocked(fetchNpmPackageTargetStatus).mockResolvedValue({
@@ -873,14 +975,14 @@ describe("update-cli", () => {
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
     expect(runCommandWithTimeout).not.toHaveBeenCalledWith(
-      ["npm", "i", "-g", "genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      ["npm", "i", "-g", "@pixelzx/genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
       expect.any(Object),
     );
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     const errors = vi.mocked(defaultRuntime.error).mock.calls.map((call) => String(call[0]));
     expect(errors.join("\n")).toContain("Node ");
     expect(errors.join("\n")).toContain(
-      "Bare `npm i -g genesis` can silently install an older compatible release.",
+      "Bare `npm i -g @pixelzx/genesis` can silently install an older compatible release.",
     );
   });
 
@@ -1094,7 +1196,7 @@ describe("update-cli", () => {
     await updateCommand({ yes: true, restart: false });
 
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      ["npm", "i", "-g", "@pixelzx/genesis@latest", "--no-fund", "--no-audit", "--loglevel=error"],
       expect.any(Object),
     );
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
@@ -1178,7 +1280,7 @@ describe("update-cli", () => {
           isOwningNpmCommand(argv[0], brewPrefix) &&
           argv[1] === "i" &&
           argv[2] === "-g" &&
-          argv[3] === "genesis@latest",
+          argv[3] === "@pixelzx/genesis@latest",
       );
 
     expect(installCall).toBeDefined();

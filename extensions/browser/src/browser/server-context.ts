@@ -237,6 +237,7 @@ export function createBrowserRouteContext(opts: ContextOptions): BrowserRouteCon
           ? {
               enabled: true,
               mode: profile.tor.mode,
+              routeMode: profile.tor.routeMode,
               socksHost: profile.tor.socksHost,
               socksPort: profile.tor.socksPort,
               running: profileState?.running?.tor ? true : null,

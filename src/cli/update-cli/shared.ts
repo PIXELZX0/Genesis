@@ -57,12 +57,12 @@ export function parseTimeoutMsOrExit(timeout?: string): number | undefined | nul
 const GENESIS_REPO_URL = "https://github.com/PIXELZX0/Genesis.git";
 const MAX_LOG_CHARS = 8000;
 
-export const DEFAULT_PACKAGE_NAME = "genesis";
-const SCOPED_PACKAGE_NAME = "@pixelzx/genesis";
-const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
+export const DEFAULT_PACKAGE_NAME = "@pixelzx/genesis";
+const LEGACY_PACKAGE_NAME = "genesis";
+const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, LEGACY_PACKAGE_NAME]);
 
 export function normalizeTag(value?: string | null): string | null {
-  return normalizePackageTagInput(value, [DEFAULT_PACKAGE_NAME, SCOPED_PACKAGE_NAME]);
+  return normalizePackageTagInput(value, [DEFAULT_PACKAGE_NAME, LEGACY_PACKAGE_NAME]);
 }
 
 export function normalizeVersionTag(tag: string): string | null {
@@ -79,6 +79,7 @@ export { readPackageName, readPackageVersion };
 export async function resolveTargetVersion(
   tag: string,
   timeoutMs?: number,
+  packageName = DEFAULT_PACKAGE_NAME,
 ): Promise<string | null> {
   if (!canResolveRegistryVersionForPackageTarget(tag)) {
     return null;
@@ -87,7 +88,7 @@ export async function resolveTargetVersion(
   if (direct) {
     return direct;
   }
-  const res = await fetchNpmTagVersion({ tag, timeoutMs });
+  const res = await fetchNpmTagVersion({ packageName, tag, timeoutMs });
   return res.version ?? null;
 }
 

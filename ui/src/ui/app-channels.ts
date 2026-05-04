@@ -12,6 +12,32 @@ import { createNostrProfileFormState } from "./views/channels.nostr-profile-form
 
 type NostrProfileFormState = ReturnType<typeof createNostrProfileFormState> | null;
 
+export type ChannelWizardStepOption = {
+  value: unknown;
+  label: string;
+  hint?: string;
+};
+
+export type ChannelWizardStep = {
+  id: string;
+  type: "note" | "select" | "text" | "confirm" | "multiselect" | "progress" | "action";
+  title?: string;
+  message?: string;
+  options?: ChannelWizardStepOption[];
+  initialValue?: unknown;
+  placeholder?: string;
+  sensitive?: boolean;
+  executor?: "gateway" | "client";
+};
+
+type ChannelWizardResult = {
+  sessionId?: string;
+  done: boolean;
+  step?: ChannelWizardStep;
+  status?: "running" | "done" | "cancelled" | "error";
+  error?: string;
+};
+
 type ChannelsActionHost = ChannelsState &
   ConfigState & {
     hello?: { auth?: { deviceToken?: string | null } | null } | null;
@@ -19,6 +45,12 @@ type ChannelsActionHost = ChannelsState &
     settings: { token?: string };
     nostrProfileFormState: NostrProfileFormState;
     nostrProfileAccountId: string | null;
+    channelWizardSessionId: string | null;
+    channelWizardStep: ChannelWizardStep | null;
+    channelWizardInput: unknown;
+    channelWizardBusy: boolean;
+    channelWizardError: string | null;
+    channelWizardMessage: string | null;
   };
 
 export async function handleWhatsAppStart(host: ChannelsActionHost, force: boolean) {
@@ -45,6 +77,131 @@ export async function handleChannelConfigSave(host: ChannelsActionHost) {
 export async function handleChannelConfigReload(host: ChannelsActionHost) {
   await loadConfig(host as ConfigState);
   await loadChannels(host as ChannelsState, true);
+}
+
+function resolveInitialWizardInput(step: ChannelWizardStep): unknown {
+  if (step.initialValue !== undefined) {
+    return step.initialValue;
+  }
+  if (step.type === "select") {
+    return step.options?.[0]?.value ?? "";
+  }
+  if (step.type === "multiselect") {
+    return [];
+  }
+  if (step.type === "confirm") {
+    return false;
+  }
+  if (step.type === "text") {
+    return "";
+  }
+  return true;
+}
+
+async function applyChannelWizardResult(
+  host: ChannelsActionHost,
+  result: ChannelWizardResult,
+  sessionId?: string | null,
+) {
+  if (result.step && !result.done) {
+    host.channelWizardSessionId = result.sessionId ?? sessionId ?? host.channelWizardSessionId;
+    host.channelWizardStep = result.step;
+    host.channelWizardInput = resolveInitialWizardInput(result.step);
+    host.channelWizardMessage = null;
+    host.channelWizardError = null;
+    return;
+  }
+
+  host.channelWizardSessionId = null;
+  host.channelWizardStep = null;
+  host.channelWizardInput = null;
+  if (result.status === "error") {
+    host.channelWizardError = result.error ?? "Channel setup failed.";
+    host.channelWizardMessage = null;
+    return;
+  }
+  if (result.status === "cancelled") {
+    host.channelWizardError = null;
+    host.channelWizardMessage = "Channel setup cancelled.";
+    return;
+  }
+  host.channelWizardError = null;
+  host.channelWizardMessage = null;
+  await loadConfig(host as ConfigState);
+  await loadChannels(host as ChannelsState, true);
+}
+
+export async function handleChannelWizardStart(host: ChannelsActionHost) {
+  if (!host.client || !host.connected || host.channelWizardBusy) {
+    return;
+  }
+  host.channelWizardBusy = true;
+  host.channelWizardError = null;
+  host.channelWizardMessage = null;
+  try {
+    const result = await host.client.request<ChannelWizardResult>("wizard.start", {
+      target: "channels",
+    });
+    await applyChannelWizardResult(host, result, result.sessionId ?? null);
+  } catch (err) {
+    host.channelWizardError = String(err);
+    host.channelWizardMessage = null;
+  } finally {
+    host.channelWizardBusy = false;
+  }
+}
+
+export function handleChannelWizardInput(host: ChannelsActionHost, value: unknown) {
+  host.channelWizardInput = value;
+}
+
+export async function handleChannelWizardSubmit(host: ChannelsActionHost) {
+  if (!host.client || !host.connected || host.channelWizardBusy) {
+    return;
+  }
+  const sessionId = host.channelWizardSessionId;
+  const step = host.channelWizardStep;
+  if (!sessionId || !step) {
+    return;
+  }
+  host.channelWizardBusy = true;
+  host.channelWizardError = null;
+  try {
+    const result = await host.client.request<ChannelWizardResult>("wizard.next", {
+      sessionId,
+      answer: {
+        stepId: step.id,
+        value: host.channelWizardInput,
+      },
+    });
+    await applyChannelWizardResult(host, result, sessionId);
+  } catch (err) {
+    host.channelWizardError = String(err);
+  } finally {
+    host.channelWizardBusy = false;
+  }
+}
+
+export async function handleChannelWizardCancel(host: ChannelsActionHost) {
+  const sessionId = host.channelWizardSessionId;
+  host.channelWizardSessionId = null;
+  host.channelWizardStep = null;
+  host.channelWizardInput = null;
+  host.channelWizardError = null;
+  host.channelWizardMessage = null;
+  if (!sessionId || !host.client || !host.connected) {
+    return;
+  }
+  try {
+    await host.client.request("wizard.cancel", { sessionId });
+  } catch {
+    // The session may already have completed server-side.
+  }
+}
+
+export function handleChannelWizardClose(host: ChannelsActionHost) {
+  host.channelWizardError = null;
+  host.channelWizardMessage = null;
 }
 
 function parseValidationErrors(details: unknown): Record<string, string> {

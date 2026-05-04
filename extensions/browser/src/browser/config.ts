@@ -108,6 +108,7 @@ export type ResolvedBrowserProfile = {
 export type ResolvedBrowserTorConfig = {
   enabled: true;
   mode: "managed" | "external";
+  routeMode: "onion-only" | "all";
   executablePath?: string;
   socksHost: string;
   socksPort: number;
@@ -120,6 +121,7 @@ const DEFAULT_TOR_SOCKS_HOST = "127.0.0.1";
 const DEFAULT_EXTERNAL_TOR_SOCKS_PORT = 9050;
 const MANAGED_TOR_SOCKS_PORT_OFFSET = 100;
 const DEFAULT_TOR_ENABLED = true;
+const DEFAULT_TOR_ROUTE_MODE: ResolvedBrowserTorConfig["routeMode"] = "onion-only";
 
 function normalizeHexColor(raw: string | undefined): string {
   const value = (raw ?? "").trim();
@@ -195,6 +197,7 @@ function normalizeBrowserTorConfig(
   }
 
   const mode = raw?.mode ?? inherited?.mode ?? "managed";
+  const routeMode = raw?.routeMode ?? inherited?.routeMode ?? DEFAULT_TOR_ROUTE_MODE;
   const socksHost =
     normalizeOptionalString(raw?.socksHost) ?? inherited?.socksHost ?? DEFAULT_TOR_SOCKS_HOST;
   if (mode === "managed" && !isLoopbackHost(socksHost)) {
@@ -212,6 +215,7 @@ function normalizeBrowserTorConfig(
   return {
     enabled: true,
     mode,
+    routeMode,
     ...(executablePath ? { executablePath } : {}),
     socksHost,
     socksPort,

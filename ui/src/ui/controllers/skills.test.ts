@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  installFromClawHub,
   installSkill,
   loadClawHubDetail,
   saveSkillApiKey,
@@ -128,13 +129,33 @@ describe("searchClawHub", () => {
     expect(state.clawhubSearchLoading).toBe(false);
   });
 
-  it("clears stale results when the query is emptied", async () => {
+  it("browses ClawHub when the query is emptied", async () => {
     const { state, request } = createState();
+    state.clawhubSearchQuery = "   ";
+    request.mockResolvedValue({
+      results: [
+        {
+          score: 1,
+          slug: "calendar",
+          displayName: "Calendar",
+          summary: "Calendar skill",
+          version: "1.0.0",
+        },
+      ],
+    });
 
     await searchClawHub(state, "   ");
 
-    expect(request).not.toHaveBeenCalled();
-    expect(state.clawhubSearchResults).toBeNull();
+    expect(request).toHaveBeenCalledWith("skills.search", { limit: 20 });
+    expect(state.clawhubSearchResults).toEqual([
+      {
+        score: 1,
+        slug: "calendar",
+        displayName: "Calendar",
+        summary: "Calendar skill",
+        version: "1.0.0",
+      },
+    ]);
     expect(state.clawhubSearchError).toBeNull();
     expect(state.clawhubSearchLoading).toBe(false);
   });
@@ -237,5 +258,33 @@ describe("skill mutations", () => {
       message: "skills update failed",
     });
     expect(state.skillsBusyKey).toBeNull();
+  });
+
+  it("installs ClawHub skills and refreshes local status", async () => {
+    const { state, request } = createState();
+    request.mockImplementation(async (method: string) => {
+      if (method === "skills.status") {
+        return { workspaceDir: "/tmp/workspace", managedSkillsDir: "/tmp/skills", skills: [] };
+      }
+      return { message: "Installed calendar@1.0.0" };
+    });
+
+    await installFromClawHub(state, "calendar");
+
+    expect(request).toHaveBeenNthCalledWith(1, "skills.install", {
+      source: "clawhub",
+      slug: "calendar",
+    });
+    expect(request).toHaveBeenNthCalledWith(2, "skills.status", {});
+    expect(state.clawhubInstallMessage).toEqual({
+      kind: "success",
+      text: "Installed calendar@1.0.0",
+    });
+    expect(state.clawhubInstallSlug).toBeNull();
+    expect(state.skillsReport).toEqual({
+      workspaceDir: "/tmp/workspace",
+      managedSkillsDir: "/tmp/skills",
+      skills: [],
+    });
   });
 });

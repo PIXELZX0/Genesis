@@ -15,6 +15,21 @@ export const WalletSummaryParamsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const WalletRecoveryPhraseModeSchema = Type.Union([
+  Type.Literal("generate"),
+  Type.Literal("import"),
+]);
+
+export const WalletRecoveryPhraseSetParamsSchema = Type.Object(
+  {
+    mode: WalletRecoveryPhraseModeSchema,
+    passphrase: Type.Optional(Type.String({ maxLength: 16 * 1024 })),
+    mnemonic: Type.Optional(Type.String({ minLength: 1, maxLength: 64 * 1024 })),
+    overwrite: Type.Optional(Type.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
 export const WalletPublicAccountSchema = Type.Object(
   {
     id: Type.String({ minLength: 1 }),
@@ -62,7 +77,19 @@ export const WalletSummaryResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const WalletRecoveryPhraseSetResultSchema = Type.Object(
+  {
+    mnemonicGenerated: Type.Boolean(),
+    mnemonic: Type.Optional(Type.String({ minLength: 1 })),
+    summary: WalletSummaryResultSchema,
+  },
+  { additionalProperties: false },
+);
+
 export type WalletSummaryParams = Static<typeof WalletSummaryParamsSchema>;
+export type WalletRecoveryPhraseMode = Static<typeof WalletRecoveryPhraseModeSchema>;
+export type WalletRecoveryPhraseSetParams = Static<typeof WalletRecoveryPhraseSetParamsSchema>;
 export type WalletPublicAccount = Static<typeof WalletPublicAccountSchema>;
 export type WalletBalance = Static<typeof WalletBalanceSchema>;
 export type WalletSummaryResult = Static<typeof WalletSummaryResultSchema>;
+export type WalletRecoveryPhraseSetResult = Static<typeof WalletRecoveryPhraseSetResultSchema>;

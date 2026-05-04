@@ -118,6 +118,7 @@ async function runAnthropicSetupTokenAuth(ctx: ProviderAuthContext): Promise<Pro
     normalizeAnthropicSetupTokenInput(
       await ctx.prompter.text({
         message: "Paste Anthropic setup-token",
+        sensitive: true,
         validate: (value) => validateAnthropicSetupToken(normalizeAnthropicSetupTokenInput(value)),
       }),
     );

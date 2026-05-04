@@ -28,7 +28,12 @@ function showDialogWhenClosed(el?: Element) {
   if (!(el instanceof HTMLDialogElement) || el.open) {
     return;
   }
-  el.showModal();
+  queueMicrotask(() => {
+    if (!el.isConnected || el.open) {
+      return;
+    }
+    el.showModal();
+  });
 }
 
 export type SkillsStatusFilter = "all" | "ready" | "needs-setup" | "disabled";
@@ -200,6 +205,13 @@ export function renderSkills(props: SkillsProps) {
               name="clawhub-search"
             />
           </label>
+          <button
+            class="btn btn--sm"
+            ?disabled=${!props.connected || props.clawhubSearchLoading}
+            @click=${() => props.onClawHubQueryChange("")}
+          >
+            Browse
+          </button>
           ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
         </div>
         ${props.clawhubSearchError
@@ -256,7 +268,9 @@ export function renderSkills(props: SkillsProps) {
 function renderClawHubResults(props: SkillsProps) {
   const results = props.clawhubResults;
   if (!results) {
-    return nothing;
+    return html`<div class="muted" style="margin-top: 8px;">
+      Search or browse ClawHub to install registry skills.
+    </div>`;
   }
   if (results.length === 0) {
     return html`<div class="muted" style="margin-top: 8px;">No skills found on ClawHub.</div>`;

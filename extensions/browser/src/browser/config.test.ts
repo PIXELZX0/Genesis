@@ -70,6 +70,7 @@ describe("browser config", () => {
     expect(genesis?.tor).toEqual({
       enabled: true,
       mode: "managed",
+      routeMode: "onion-only",
       socksHost: "127.0.0.1",
       socksPort: 18900,
       extraArgs: [],
@@ -466,10 +467,29 @@ describe("browser config", () => {
     expect(profile?.tor).toEqual({
       enabled: true,
       mode: "managed",
+      routeMode: "onion-only",
       socksHost: "127.0.0.1",
       socksPort: 18905,
       extraArgs: [],
     });
+  });
+
+  it("allows Tor routeMode=all for profiles that intentionally route every URL through Tor", () => {
+    const resolved = resolveBrowserConfig({
+      profiles: {
+        tor: {
+          cdpPort: 18805,
+          color: "#0066CC",
+          tor: {
+            enabled: true,
+            mode: "managed",
+            routeMode: "all",
+          },
+        },
+      },
+    });
+    const profile = resolveProfile(resolved, "tor");
+    expect(profile?.tor?.routeMode).toBe("all");
   });
 
   it("does not apply default Tor settings to existing-session profiles", () => {

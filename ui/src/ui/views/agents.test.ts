@@ -34,6 +34,7 @@ function createSkill() {
 function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
   return {
     basePath: "",
+    connected: true,
     loading: false,
     error: null,
     agentsList: {
@@ -94,6 +95,11 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     runtimeSessionKey: "main",
     runtimeSessionMatchesSelectedAgent: false,
     modelCatalog: [],
+    modelProviderWizardStep: null,
+    modelProviderWizardInput: null,
+    modelProviderWizardBusy: false,
+    modelProviderWizardError: null,
+    modelProviderWizardMessage: null,
     onRefresh: () => undefined,
     onSelectAgent: () => undefined,
     onSelectPanel: () => undefined,
@@ -108,6 +114,11 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     onConfigSave: () => undefined,
     onModelChange: () => undefined,
     onModelFallbacksChange: () => undefined,
+    onModelProviderWizardStart: () => undefined,
+    onModelProviderWizardSubmit: () => undefined,
+    onModelProviderWizardCancel: () => undefined,
+    onModelProviderWizardInput: () => undefined,
+    onModelProviderWizardClose: () => undefined,
     onChannelsRefresh: () => undefined,
     onCronRefresh: () => undefined,
     onCronRunNow: () => undefined,
@@ -175,5 +186,27 @@ describe("renderAgents", () => {
     );
 
     expect(skillsTab?.textContent?.trim()).toContain("1");
+  });
+
+  it("renders sensitive model provider wizard prompts as password inputs", async () => {
+    const container = document.createElement("div");
+    render(
+      renderAgents(
+        createProps({
+          modelProviderWizardStep: {
+            id: "step-1",
+            type: "text",
+            message: "Enter OpenAI API key",
+            sensitive: true,
+          },
+          modelProviderWizardInput: "",
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+
+    const input = container.querySelector<HTMLInputElement>(".channel-wizard-text");
+    expect(input?.type).toBe("password");
   });
 });
