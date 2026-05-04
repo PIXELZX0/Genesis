@@ -70,6 +70,7 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
+  readStringValue,
 } from "../shared/string-coerce.js";
 import { normalizeSessionDeliveryFields } from "../utils/delivery-context.shared.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../utils/usage-format.js";
@@ -1174,8 +1175,8 @@ export function resolveSessionModelIdentityRef(
   agentId?: string,
   fallbackModelRef?: string,
 ): { provider?: string; model: string } {
-  const runtimeModel = entry?.model?.trim();
-  const runtimeProvider = entry?.modelProvider?.trim();
+  const runtimeModel = readStringValue(entry?.model)?.trim();
+  const runtimeProvider = readStringValue(entry?.modelProvider)?.trim();
   if (runtimeModel) {
     if (runtimeProvider) {
       return { provider: runtimeProvider, model: runtimeModel };
@@ -1196,7 +1197,7 @@ export function resolveSessionModelIdentityRef(
     }
     return { model: runtimeModel };
   }
-  const fallbackRef = fallbackModelRef?.trim();
+  const fallbackRef = readStringValue(fallbackModelRef)?.trim();
   if (fallbackRef) {
     const parsedFallback = parseModelRef(fallbackRef, DEFAULT_PROVIDER);
     if (parsedFallback) {
@@ -1302,7 +1303,7 @@ export function buildGatewaySessionRow(params: {
           ? resolveSessionRuntimeMs(subagentRun, now)
           : undefined))
     : undefined;
-  const selectedModel = entry?.modelOverride?.trim()
+  const selectedModel = readStringValue(entry?.modelOverride)?.trim()
     ? resolveSessionModelRef(cfg, entry, sessionAgentId)
     : null;
   const resolvedModel = resolveSessionModelIdentityRef(
@@ -1312,7 +1313,8 @@ export function buildGatewaySessionRow(params: {
     subagentRun?.model,
   );
   const runtimeModelPresent =
-    Boolean(entry?.model?.trim()) || Boolean(entry?.modelProvider?.trim());
+    Boolean(readStringValue(entry?.model)?.trim()) ||
+    Boolean(readStringValue(entry?.modelProvider)?.trim());
   const needsTranscriptTotalTokens =
     resolvePositiveNumber(resolveFreshSessionTotalTokens(entry)) === undefined;
   const needsTranscriptContextTokens = resolvePositiveNumber(entry?.contextTokens) === undefined;

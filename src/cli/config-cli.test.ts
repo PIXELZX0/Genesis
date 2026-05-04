@@ -1827,6 +1827,26 @@ describe("config cli", () => {
         unsetPaths: [["tools", "alsoAllow"]],
       });
     });
+
+    it("removes only the requested array element", async () => {
+      const resolved: GenesisConfig = {
+        agents: {
+          list: [
+            { id: "main", workspace: "/tmp/main" },
+            { id: "ops", workspace: "/tmp/ops" },
+            { id: "qa", workspace: "/tmp/qa" },
+          ],
+        },
+      };
+      setSnapshot(resolved, { ...withRuntimeDefaults(resolved) });
+
+      await runConfigCommand(["config", "unset", "agents.list[0]"]);
+
+      expect(mockWriteConfigFile).toHaveBeenCalledTimes(1);
+      const written = mockWriteConfigFile.mock.calls[0]?.[0];
+      expect(written.agents?.list?.map((agent) => agent.id)).toEqual(["ops", "qa"]);
+      expect(mockWriteConfigFile.mock.calls[0]?.[1]).toBeUndefined();
+    });
   });
 
   describe("config file", () => {

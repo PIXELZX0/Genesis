@@ -488,6 +488,14 @@ function unsetAtPath(root: Record<string, unknown>, path: PathSegment[]): boolea
   return true;
 }
 
+function isArrayElementUnsetPath(root: Record<string, unknown>, path: PathSegment[]): boolean {
+  if (path.length === 0 || !isIndexSegment(path[path.length - 1])) {
+    return false;
+  }
+  const parent = getAtPath(root, path.slice(0, -1));
+  return parent.found && Array.isArray(parent.value);
+}
+
 async function loadValidConfig(runtime: RuntimeEnv = defaultRuntime) {
   const snapshot = await readConfigFileSnapshot();
   if (snapshot.valid) {
@@ -1408,7 +1416,12 @@ export async function runConfigUnset(opts: { path: string; runtime?: RuntimeEnv 
     await replaceConfigFile({
       nextConfig: next,
       ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),
-      writeOptions: { unsetPaths: [parsedPath] },
+      writeOptions: isArrayElementUnsetPath(
+        snapshot.resolved as Record<string, unknown>,
+        parsedPath,
+      )
+        ? undefined
+        : { unsetPaths: [parsedPath] },
     });
     runtime.log(info(`Removed ${opts.path}. Restart the gateway to apply.`));
   } catch (err) {

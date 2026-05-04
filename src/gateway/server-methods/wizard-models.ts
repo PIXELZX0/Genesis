@@ -55,7 +55,7 @@ async function selectProvider(params: {
     if (!matched) {
       const available = params.providers
         .map((provider) => provider.id)
-        .sort()
+        .toSorted()
         .join(", ");
       throw new Error(`Unknown provider "${requested}". Available providers: ${available}`);
     }
@@ -90,7 +90,7 @@ async function selectAuthMethod(params: {
     if (!matched) {
       const available = params.provider.auth
         .map((method) => method.id)
-        .sort()
+        .toSorted()
         .join(", ");
       throw new Error(
         `Unknown auth method "${requested}" for provider "${params.provider.id}". Available methods: ${available}`,

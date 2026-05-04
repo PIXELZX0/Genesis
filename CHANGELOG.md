@@ -14,6 +14,10 @@ Docs: https://docs.genesis.ai
 - Skills: avoid scheduling an immediate Gateway restart for skill-only config changes, including when config reload mode is off.
 - Wallet: ask for the optional Control UI import passphrase only once instead of requiring a confirmation entry.
 - Packaged plugins: restore the `genesis/plugin-sdk/*` alias during postinstall so bundled provider catalogs can load SDK helpers after scoped package installs.
+- CLI/config: remove only the requested array element for `genesis config unset array[index]` instead of deleting the shifted next element during the write pass.
+- Tools: keep `tools.deny: ["write"]` from implicitly denying `apply_patch`; deny `apply_patch` or `group:fs` to block patch edits explicitly.
+- Status/sessions: ignore malformed persisted session provider/model metadata instead of throwing while rendering session lists and status summaries.
+- Control UI/Skills: defer skill detail dialogs until the element is connected so browsers do not throw when opening skill details.
 
 ## 2026.5.3-4
 
