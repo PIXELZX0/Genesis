@@ -167,6 +167,28 @@ describe("package dist inventory", () => {
 
       await expect(writePackageDistInventory(packageRoot)).resolves.toEqual([
         "dist/extensions/qa-channel/runtime-api.js",
+        "dist/node_modules/genesis/package.json",
+        "dist/node_modules/genesis/plugin-sdk/index.js",
+      ]);
+    });
+  });
+
+  it("adds postinstall SDK alias paths for legacy updater verification", async () => {
+    await withTempDir({ prefix: "genesis-dist-inventory-sdk-alias-" }, async (packageRoot) => {
+      await fs.mkdir(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
+      await fs.writeFile(path.join(packageRoot, "dist", "plugin-sdk", "index.js"), "export {};\n");
+      await fs.writeFile(
+        path.join(packageRoot, "dist", "plugin-sdk", "provider-model-shared.js"),
+        "export {};\n",
+      );
+
+      await expect(writePackageDistInventory(packageRoot)).resolves.toEqual([
+        "dist/extensions/qa-channel/runtime-api.js",
+        "dist/node_modules/genesis/package.json",
+        "dist/node_modules/genesis/plugin-sdk/index.js",
+        "dist/node_modules/genesis/plugin-sdk/provider-model-shared.js",
+        "dist/plugin-sdk/index.js",
+        "dist/plugin-sdk/provider-model-shared.js",
       ]);
     });
   });
