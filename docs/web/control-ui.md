@@ -20,6 +20,9 @@ If the Gateway is running on the same computer, open:
 - [http://127.0.0.1:18789/](http://127.0.0.1:18789/) (or [http://localhost:18789/](http://localhost:18789/))
 
 If the page fails to load, start the Gateway first: `genesis gateway`.
+While Gateway startup sidecars are still settling, Control UI HTTP routes can
+return `503 Gateway is still starting; retry shortly.` Refresh after the
+Gateway reaches ready state.
 
 Auth is supplied during the WebSocket handshake via:
 

@@ -52,6 +52,7 @@ import {
 } from "./http-utils.js";
 import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
 import { resolveRequestClientIp } from "./net.js";
+import type { ReadinessChecker } from "./server/readiness.js";
 
 const ROOT_PREFIX = "/";
 const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__genesis__/assistant-media";
@@ -69,6 +70,7 @@ export type ControlUiRequestOptions = {
   trustedProxies?: string[];
   allowRealIpFallback?: boolean;
   rateLimiter?: AuthRateLimiter;
+  getReadiness?: ReadinessChecker;
 };
 
 export type ControlUiRootState =
@@ -167,6 +169,30 @@ function respondControlUiAssetsUnavailable(
     return;
   }
   respondPlainText(res, 503, CONTROL_UI_ASSETS_MISSING_MESSAGE);
+}
+
+function respondControlUiStartupPending(req: IncomingMessage, res: ServerResponse) {
+  res.statusCode = 503;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Retry-After", "1");
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  res.end("Gateway is still starting; retry shortly.");
+}
+
+function isGatewayStartupPending(getReadiness: ReadinessChecker | undefined): boolean {
+  if (!getReadiness) {
+    return false;
+  }
+  try {
+    const readiness = getReadiness();
+    return !readiness.ready && readiness.failing.includes("startup-sidecars");
+  } catch {
+    return false;
+  }
 }
 
 function respondHeadForFile(req: IncomingMessage, res: ServerResponse, filePath: string): boolean {
@@ -720,6 +746,10 @@ export async function handleControlUiHttpRequest(
   }
 
   applyControlUiSecurityHeaders(res);
+  if (isGatewayStartupPending(opts?.getReadiness)) {
+    respondControlUiStartupPending(req, res);
+    return true;
+  }
 
   const bootstrapConfigPath = basePath
     ? `${basePath}${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`
