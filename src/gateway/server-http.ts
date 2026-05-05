@@ -1146,6 +1146,7 @@ export function createGatewayHttpServer(opts: {
               trustedProxies,
               allowRealIpFallback,
               rateLimiter,
+              getReadiness,
             }),
         });
       }

@@ -56,6 +56,7 @@ describe("handleControlUiHttpRequest", () => {
     rootPath: string;
     basePath?: string;
     rootKind?: "resolved" | "bundled";
+    getReadiness?: () => { ready: boolean; failing: string[]; uptimeMs: number };
   }) {
     const { res, end } = makeMockHttpResponse();
     const handled = await handleControlUiHttpRequest(
@@ -64,6 +65,7 @@ describe("handleControlUiHttpRequest", () => {
       {
         ...(params.basePath ? { basePath: params.basePath } : {}),
         root: { kind: params.rootKind ?? "resolved", path: params.rootPath },
+        getReadiness: params.getReadiness,
       },
     );
     return { res, end, handled };
@@ -686,6 +688,48 @@ describe("handleControlUiHttpRequest", () => {
         expect(parsed.assistantAvatar).toBe("/genesis/avatar/main");
         expect(parsed.assistantAgentId).toBe("main");
         expect(Array.isArray(parsed.localMediaPreviewRoots)).toBe(true);
+      },
+    });
+  });
+
+  it("returns startup 503 for Control UI routes while startup sidecars are pending", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const { res, end, handled } = await runControlUiRequest({
+          url: "/",
+          method: "GET",
+          rootPath: tmp,
+          getReadiness: () => ({
+            ready: false,
+            failing: ["startup-sidecars"],
+            uptimeMs: 120,
+          }),
+        });
+
+        expect(handled).toBe(true);
+        expect(res.statusCode).toBe(503);
+        expect(end).toHaveBeenCalledWith("Gateway is still starting; retry shortly.");
+      },
+    });
+  });
+
+  it("serves Control UI routes when readiness failures are not startup pending", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const { res, end, handled } = await runControlUiRequest({
+          url: "/",
+          method: "GET",
+          rootPath: tmp,
+          getReadiness: () => ({
+            ready: false,
+            failing: ["discord"],
+            uptimeMs: 5_000,
+          }),
+        });
+
+        expect(handled).toBe(true);
+        expect(res.statusCode).toBe(200);
+        expect(String(end.mock.calls[0]?.[0] ?? "")).toBe("<html></html>\n");
       },
     });
   });
