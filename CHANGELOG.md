@@ -7,6 +7,7 @@ Docs: https://docs.genesis.ai
 ### Fixes
 
 - Control UI: run installed Vite and Vitest directly when `pnpm` is unavailable, and prefer an external Node binary over app-bundled Node on macOS so source checkouts can still build and test the browser UI.
+- Update: keep legacy SDK alias inventory entries in release packages so stable updates from `2026.5.3-5` do not fail package dist verification after postinstall repairs the alias.
 - Packaging: tighten stable release tarball validation on Blacksmith so missing Control UI assets or bundled plugin runtime mirrors are caught before npm publishes to `latest`.
 
 ## 2026.5.3-5
