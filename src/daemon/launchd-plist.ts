@@ -13,8 +13,6 @@ const LAUNCH_AGENT_KEEP_ALIVE_XML = [
   "    <dict>",
   "      <key>SuccessfulExit</key>",
   "      <true/>",
-  "      <key>Crashed</key>",
-  "      <true/>",
   "    </dict>",
 ].join("\n");
 

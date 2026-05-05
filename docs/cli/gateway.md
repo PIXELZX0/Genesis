@@ -42,7 +42,7 @@ Notes:
 - `SIGUSR1` triggers an in-process restart when authorized (`commands.restart` is enabled by default; set `commands.restart: false` to block manual restart, while gateway tool/config apply/update remain allowed).
 - `SIGINT`/`SIGTERM` handlers stop the gateway process, but they don’t restore any custom terminal state. If you wrap the CLI with a TUI or raw-mode input, restore the terminal before exit.
 - macOS LaunchAgent installs use a guarded `KeepAlive` policy: intentional clean restarts
-  relaunch the Gateway, while startup/config failures stop instead of looping forever. After
+  relaunch the Gateway, while startup/config failures and repeated crashes stop instead of looping forever. After
   fixing the failure, run `genesis gateway restart`.
 
 ### Options

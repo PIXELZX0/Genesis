@@ -190,7 +190,7 @@ async function auditLaunchdPlist(
     issues.push({
       code: SERVICE_AUDIT_CODES.launchdKeepAlive,
       message:
-        "LaunchAgent KeepAlive policy can restart on startup failures; reinstall service to use guarded restart policy",
+        "LaunchAgent KeepAlive policy can restart on gateway failures; reinstall service to use guarded restart policy",
       detail: plistPath,
       level: "recommended",
     });
@@ -203,10 +203,10 @@ function hasPreferredLaunchdKeepAlivePolicy(content: string): boolean {
     return false;
   }
   const body = keepAliveDict[1] ?? "";
-  return (
-    /<key>SuccessfulExit<\/key>\s*<true\s*\/>/i.test(body) &&
-    /<key>Crashed<\/key>\s*<true\s*\/>/i.test(body)
-  );
+  if (!/<key>SuccessfulExit<\/key>\s*<true\s*\/>/i.test(body)) {
+    return false;
+  }
+  return !/<key>Crashed<\/key>\s*<true\s*\/>/i.test(body);
 }
 
 function auditGatewayCommand(programArguments: string[] | undefined, issues: ServiceConfigIssue[]) {

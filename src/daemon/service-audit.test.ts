@@ -139,7 +139,7 @@ describe("auditGatewayServiceConfig", () => {
     ).toBe(false);
   });
 
-  it("accepts guarded launchd KeepAlive policy", async () => {
+  it("accepts clean-exit-only launchd KeepAlive policy", async () => {
     await withTempHome(async (home) => {
       await fs.writeFile(
         path.join(home, "Library", "LaunchAgents", "ai.genesis.gateway.plist"),
@@ -154,6 +154,36 @@ describe("auditGatewayServiceConfig", () => {
       const audit = await createDarwinGatewayAudit(home);
 
       expect(hasIssue(audit, SERVICE_AUDIT_CODES.launchdKeepAlive)).toBe(false);
+    });
+  });
+
+  it("flags launchd KeepAlive policies that restart crashed gateway processes", async () => {
+    await withTempHome(async (home) => {
+      await fs.writeFile(
+        path.join(home, "Library", "LaunchAgents", "ai.genesis.gateway.plist"),
+        [
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<plist version="1.0">',
+          "<dict>",
+          "<key>Label</key>",
+          "<string>ai.genesis.gateway</string>",
+          "<key>RunAtLoad</key>",
+          "<true/>",
+          "<key>KeepAlive</key>",
+          "<dict>",
+          "<key>SuccessfulExit</key>",
+          "<true/>",
+          "<key>Crashed</key>",
+          "<true/>",
+          "</dict>",
+          "</dict>",
+          "</plist>",
+        ].join("\n"),
+      );
+
+      const audit = await createDarwinGatewayAudit(home);
+
+      expect(hasIssue(audit, SERVICE_AUDIT_CODES.launchdKeepAlive)).toBe(true);
     });
   });
 
