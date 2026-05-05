@@ -2,6 +2,7 @@ export type ComparableSemver = {
   major: number;
   minor: number;
   patch: number;
+  revision: number | null;
   prerelease: string[] | null;
 };
 
@@ -36,11 +37,14 @@ export function parseComparableSemver(
   if (!major || !minor || !patch) {
     return null;
   }
+  const revision =
+    prereleaseRaw && /^[0-9]+$/.test(prereleaseRaw) ? Number.parseInt(prereleaseRaw, 10) : null;
   return {
     major: Number.parseInt(major, 10),
     minor: Number.parseInt(minor, 10),
     patch: Number.parseInt(patch, 10),
-    prerelease: prereleaseRaw ? prereleaseRaw.split(".").filter(Boolean) : null,
+    revision,
+    prerelease: prereleaseRaw && revision == null ? prereleaseRaw.split(".").filter(Boolean) : null,
   };
 }
 
@@ -107,5 +111,26 @@ export function compareComparableSemver(
   if (a.patch !== b.patch) {
     return a.patch < b.patch ? -1 : 1;
   }
+
+  const rankA = releaseRank(a);
+  const rankB = releaseRank(b);
+  if (rankA !== rankB) {
+    return rankA < rankB ? -1 : 1;
+  }
+
+  if (a.revision != null && b.revision != null && a.revision !== b.revision) {
+    return a.revision < b.revision ? -1 : 1;
+  }
+
   return comparePrereleaseIdentifiers(a.prerelease, b.prerelease);
+}
+
+function releaseRank(version: ComparableSemver): number {
+  if (version.prerelease?.length) {
+    return 0;
+  }
+  if (version.revision != null) {
+    return 2;
+  }
+  return 1;
 }

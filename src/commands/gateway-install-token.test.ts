@@ -193,6 +193,7 @@ describe("resolveGatewayInstallToken", () => {
     expect(writeConfigFileMock).toHaveBeenCalledWith(
       expect.objectContaining({
         gateway: {
+          mode: "local",
           auth: {
             mode: "token",
             token: "generated-token",

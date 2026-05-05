@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../config/config.js";
+import { resolveMainSessionKey } from "../config/sessions/main-session.js";
 import {
   resolveStorePath,
   resolveSessionTranscriptsDirForAgent,
@@ -337,6 +338,48 @@ describe("doctor state integrity oauth dir checks", () => {
     );
     expect(text).not.toContain("--active");
     expect(text).not.toContain(" ls ");
+  });
+
+  it("checks main transcript history without reading the whole transcript", async () => {
+    const cfg: GenesisConfig = {};
+    const sessionId = "large-main";
+    writeSessionStore(cfg, {
+      [resolveMainSessionKey(cfg)]: {
+        sessionId,
+        updatedAt: Date.now(),
+      },
+    });
+    const sessionsDir = resolveSessionTranscriptsDirForAgent("main", process.env, () => tempHome);
+    const transcriptPath = path.join(sessionsDir, `${sessionId}.jsonl`);
+    fs.writeFileSync(transcriptPath, `{"event":1}\n{"event":2}\n${"x".repeat(1024 * 1024)}`);
+
+    const openSync = fs.openSync.bind(fs);
+    const readSync = fs.readSync.bind(fs);
+    const transcriptFds = new Set<number>();
+    let transcriptBytesRead = 0;
+    const openSpy = vi.spyOn(fs, "openSync").mockImplementation((...args) => {
+      const fd = openSync(...args);
+      if (String(args[0]) === transcriptPath) {
+        transcriptFds.add(fd);
+      }
+      return fd;
+    });
+    const readSpy = vi.spyOn(fs, "readSync").mockImplementation((...args) => {
+      const bytesRead = readSync(...args);
+      if (transcriptFds.has(args[0])) {
+        transcriptBytesRead += bytesRead;
+      }
+      return bytesRead;
+    });
+
+    try {
+      const text = await runStateIntegrityText(cfg);
+      expect(text).not.toContain("Main session transcript has only");
+      expect(transcriptBytesRead).toBeLessThan(128 * 1024);
+    } finally {
+      readSpy.mockRestore();
+      openSpy.mockRestore();
+    }
   });
 
   it("ignores slash-routing sessions for recent missing transcript warnings", async () => {

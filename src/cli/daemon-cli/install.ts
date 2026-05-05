@@ -5,8 +5,9 @@ import {
   isGatewayDaemonRuntime,
 } from "../../commands/daemon-runtime.js";
 import { resolveGatewayInstallToken } from "../../commands/gateway-install-token.js";
-import { readConfigFileSnapshotForWrite } from "../../config/io.js";
+import { readConfigFileSnapshotForWrite, writeConfigFile } from "../../config/io.js";
 import { resolveGatewayPort } from "../../config/paths.js";
+import type { GenesisConfig } from "../../config/types.js";
 import { resolveGatewayService } from "../../daemon/service.js";
 import { isNonFatalSystemdInstallProbeError } from "../../daemon/systemd.js";
 import {
@@ -59,6 +60,46 @@ function mergeInstallInvocationEnv(params: {
     ...preservedServiceEnv,
     ...params.env,
   };
+}
+
+async function ensureGatewayModeForLocalServiceInstall(params: {
+  cfg: GenesisConfig;
+  warnings: string[];
+  generatedTokenPersisted?: boolean;
+}): Promise<void> {
+  if (params.cfg.gateway?.mode || params.generatedTokenPersisted) {
+    return;
+  }
+  try {
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    if (snapshot.exists && !snapshot.valid) {
+      params.warnings.push(
+        "Warning: config file exists but is invalid; skipping gateway.mode=local persistence.",
+      );
+      return;
+    }
+    const baseConfig = snapshot.exists ? (snapshot.sourceConfig ?? snapshot.config) : {};
+    if (baseConfig.gateway?.mode) {
+      return;
+    }
+    await writeConfigFile(
+      {
+        ...baseConfig,
+        gateway: {
+          ...baseConfig.gateway,
+          mode: "local",
+        },
+      },
+      {
+        baseSnapshot: snapshot,
+        ...writeOptions,
+        skipRuntimeSnapshotRefresh: true,
+      },
+    );
+    params.warnings.push("gateway.mode was missing; set gateway.mode=local for service install.");
+  } catch (err) {
+    params.warnings.push(`Warning: could not persist gateway.mode=local to config: ${String(err)}`);
+  }
 }
 
 export async function runDaemonInstall(opts: DaemonInstallOptions) {
@@ -153,6 +194,11 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
       defaultRuntime.log(warning);
     }
   }
+  await ensureGatewayModeForLocalServiceInstall({
+    cfg,
+    warnings,
+    generatedTokenPersisted: tokenResolution.generatedTokenPersisted,
+  });
 
   const { programArguments, workingDirectory, environment } = await buildGatewayInstallPlan({
     env: installEnv,

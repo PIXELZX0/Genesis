@@ -84,10 +84,13 @@ function createPipedExitedProcess(params: {
   };
 }
 
-function createFakeProcess() {
+function createFakeProcess(
+  options: { pid?: number; kill?: (pid: number, signal?: string | 0) => boolean } = {},
+) {
   return Object.assign(new EventEmitter(), {
-    pid: 4242,
+    pid: options.pid ?? 4242,
     execPath: process.execPath,
+    kill: options.kill ?? vi.fn(() => true),
   }) as unknown as NodeJS.Process;
 }
 
@@ -1284,6 +1287,46 @@ describe("run-node script", () => {
       fs: fsSync,
       process: fakeProcess,
       stderr: { write: () => true } as unknown as NodeJS.WriteStream,
+    });
+
+    it("removes a lock owned by a dead process before waiting for stale timeout", async () => {
+      await withTempDir({ prefix: "genesis-run-node-" }, async (tmp) => {
+        const lockDir = path.join(tmp, ".artifacts", "run-node-build.lock");
+        await fs.mkdir(lockDir, { recursive: true });
+        await fs.writeFile(
+          path.join(lockDir, "owner.json"),
+          `${JSON.stringify({ pid: 1111, startedAt: "2026-05-05T04:35:40.920Z" })}\n`,
+          "utf-8",
+        );
+
+        const kill = vi.fn((pid: number, signal?: string | 0) => {
+          if (pid === 1111 && signal === 0) {
+            const error = new Error("process not found") as NodeJS.ErrnoException;
+            error.code = "ESRCH";
+            throw error;
+          }
+          return true;
+        });
+        const fakeProcess = createFakeProcess({ pid: 2222, kill });
+
+        const release = await acquireRunNodeBuildLock({
+          ...lockDeps(tmp, fakeProcess),
+          env: {
+            GENESIS_RUNNER_LOG: "0",
+            GENESIS_RUN_NODE_BUILD_LOCK_STALE_MS: "600000",
+            GENESIS_RUN_NODE_BUILD_LOCK_TIMEOUT_MS: "1000",
+            GENESIS_RUN_NODE_BUILD_LOCK_POLL_MS: "1",
+          },
+        });
+
+        expect(kill).toHaveBeenCalledWith(1111, 0);
+        await expect(fs.readFile(path.join(lockDir, "owner.json"), "utf-8")).resolves.toContain(
+          '"pid": 2222',
+        );
+
+        release();
+        expect(fsSync.existsSync(lockDir)).toBe(false);
+      });
     });
 
     it("releases the lock directory when the wrapper receives SIGINT", async () => {

@@ -22,8 +22,11 @@ describe("compareSemverStrings", () => {
     expect(compareSemverStrings("1.0.0", "1.0.0-beta.1")).toBe(1);
     expect(compareSemverStrings("1.0.0-beta.2", "1.0.0-beta.1")).toBe(1);
 
+    expect(compareSemverStrings("1.0.0", "1.0.0-1")).toBe(-1);
+    expect(compareSemverStrings("1.0.0-1", "1.0.0")).toBe(1);
     expect(compareSemverStrings("1.0.0-2", "1.0.0-1")).toBe(1);
-    expect(compareSemverStrings("1.0.0-1", "1.0.0-beta.1")).toBe(-1);
+    expect(compareSemverStrings("1.0.0-1", "1.0.0-beta.1")).toBe(1);
+    expect(compareSemverStrings("2026.5.5", "2026.5.5-1")).toBe(-1);
     expect(compareSemverStrings("1.0.0.beta.2", "1.0.0-beta.1")).toBe(1);
     expect(compareSemverStrings("1.0.0", "1.0.0.beta.1")).toBe(1);
   });

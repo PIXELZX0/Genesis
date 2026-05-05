@@ -623,6 +623,51 @@ const removeStaleBuildLock = (deps, lockDir, staleMs) => {
   }
 };
 
+const readBuildLockOwnerPid = (deps, lockDir) => {
+  try {
+    const raw = deps.fs.readFileSync(path.join(lockDir, "owner.json"), "utf8");
+    const owner = JSON.parse(raw);
+    const pid = Number(owner?.pid);
+    if (!Number.isSafeInteger(pid) || pid <= 0) {
+      return null;
+    }
+    return pid;
+  } catch {
+    return null;
+  }
+};
+
+const isBuildLockOwnerAlive = (deps, pid) => {
+  if (typeof deps.process.kill !== "function") {
+    return true;
+  }
+  try {
+    deps.process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error?.code === "ESRCH") {
+      return false;
+    }
+    return true;
+  }
+};
+
+const removeDeadOwnerBuildLock = (deps, lockDir) => {
+  const ownerPid = readBuildLockOwnerPid(deps, lockDir);
+  if (ownerPid == null || ownerPid === deps.process.pid) {
+    return false;
+  }
+  if (isBuildLockOwnerAlive(deps, ownerPid)) {
+    return false;
+  }
+  try {
+    deps.fs.rmSync(lockDir, { recursive: true, force: true });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const acquireRunNodeBuildLock = async (deps) => {
   const lockRoot = path.join(deps.cwd, ".artifacts");
   const lockDir = path.join(lockRoot, "run-node-build.lock");
@@ -692,6 +737,9 @@ export const acquireRunNodeBuildLock = async (deps) => {
     } catch (error) {
       if (error?.code !== "EEXIST") {
         throw error;
+      }
+      if (removeDeadOwnerBuildLock(deps, lockDir)) {
+        continue;
       }
       if (removeStaleBuildLock(deps, lockDir, staleMs)) {
         continue;
