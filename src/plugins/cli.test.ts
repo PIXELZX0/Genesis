@@ -180,6 +180,18 @@ describe("registerPluginCliCommands", () => {
     );
   });
 
+  it("forwards bundled runtime dependency install policy to plugin loading", async () => {
+    await registerPluginCliCommands(createProgram(), {} as GenesisConfig, undefined, {
+      installBundledRuntimeDeps: false,
+    });
+
+    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
+      expect.objectContaining({
+        installBundledRuntimeDeps: false,
+      }),
+    );
+  });
+
   it("injects gateway-backed node runtime into plugin CLI commands", async () => {
     await registerPluginCliCommands(createProgram(), {} as GenesisConfig);
 
@@ -261,7 +273,9 @@ describe("registerPluginCliCommands", () => {
       ],
     });
 
-    await expect(getPluginCliCommandDescriptors(rawConfig)).resolves.toEqual([
+    await expect(
+      getPluginCliCommandDescriptors(rawConfig, undefined, { installBundledRuntimeDeps: false }),
+    ).resolves.toEqual([
       {
         name: "matrix",
         description: "Matrix channel utilities",
@@ -272,6 +286,7 @@ describe("registerPluginCliCommands", () => {
       expect.objectContaining({
         config: autoEnabledConfig,
         activationSourceConfig: rawConfig,
+        installBundledRuntimeDeps: false,
         autoEnabledReasons: {
           demo: ["demo configured"],
         },

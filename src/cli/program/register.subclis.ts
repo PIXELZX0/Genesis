@@ -17,6 +17,7 @@ import {
 import {
   registerSubCliByName as registerSubCliByNameCore,
   registerSubCliCommands as registerSubCliCommandsCore,
+  type SubCliRegistrationOptions,
 } from "./register.subclis-core.js";
 import {
   getSubCliCommandsWithSubcommands,
@@ -46,8 +47,12 @@ export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
   return getSubCliEntryDescriptors();
 }
 
-export async function registerSubCliByName(program: Command, name: string): Promise<boolean> {
-  if (await registerSubCliByNameCore(program, name)) {
+export async function registerSubCliByName(
+  program: Command,
+  name: string,
+  options?: SubCliRegistrationOptions,
+): Promise<boolean> {
+  if (await registerSubCliByNameCore(program, name, options)) {
     return true;
   }
   return registerCommandGroupByName(program, resolveSubCliCommandGroups(), name);

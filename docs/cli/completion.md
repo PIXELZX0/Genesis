@@ -32,7 +32,7 @@ genesis completion --shell bash --write-state
 
 - `--install` writes a small "Genesis Completion" block into your shell profile and points it at the cached script.
 - Without `--install` or `--write-state`, the command prints the script to stdout.
-- Completion generation eagerly loads command trees so nested subcommands are included.
+- Completion generation includes available nested subcommands where they can be registered quickly, and uses command metadata for heavyweight or plugin-provided surfaces so cache refresh stays bounded.
 
 ## Related
 
