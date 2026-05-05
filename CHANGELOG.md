@@ -10,6 +10,7 @@ Docs: https://docs.genesis.ai
 - Control UI: return a clear startup `503` while Gateway sidecars are still settling, so browsers retry instead of loading the dashboard against a not-ready Gateway.
 - Control UI: run installed Vite and Vitest directly when `pnpm` is unavailable, and prefer an external Node binary over app-bundled Node on macOS so source checkouts can still build and test the browser UI.
 - Doctor: avoid reading the entire main session transcript just to decide whether history is appending, keeping checks fast for large active sessions.
+- Gateway: stop macOS LaunchAgent installs from looping forever after startup/config failures while still relaunching intentional clean restarts.
 - Update: keep legacy SDK alias inventory entries in release packages so stable updates from `2026.5.3-5` do not fail package dist verification after postinstall repairs the alias.
 - Update: treat stable correction releases like `2026.5.5-1` as newer than their base stable release so `genesis update` no longer prompts for a downgrade.
 - Packaging: tighten stable release tarball validation on Blacksmith so missing Control UI assets or bundled plugin runtime mirrors are caught before npm publishes to `latest`.
