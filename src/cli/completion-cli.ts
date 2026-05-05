@@ -16,8 +16,7 @@ import {
   resolveShellFromEnv,
   type CompletionShell,
 } from "./completion-runtime.js";
-import { getCoreCliCommandNames, registerCoreCliByName } from "./program/command-registry-core.js";
-import { getProgramContext } from "./program/program-context.js";
+import { getCoreCliCommandDescriptors } from "./program/command-registry-core.js";
 import { getSubCliEntries, registerSubCliByName } from "./program/register.subclis-core.js";
 
 export function getCompletionScript(shell: CompletionShell, program: Command): string {
@@ -59,12 +58,49 @@ async function registerSubcommandsForCompletion(program: Command): Promise<void>
       continue;
     }
     try {
-      await registerSubCliByName(program, entry.name);
+      await registerSubCliByName(program, entry.name, { registerPluginCliCommands: false });
     } catch (error) {
       writeCompletionRegistrationWarning(
         `skipping subcommand \`${entry.name}\` while building completion cache: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+}
+
+function hasCommand(program: Command, name: string): boolean {
+  return program.commands.some(
+    (command) => command.name() === name || command.aliases().includes(name),
+  );
+}
+
+function registerCommandPlaceholder(
+  program: Command,
+  descriptor: { name: string; description: string },
+): void {
+  if (hasCommand(program, descriptor.name)) {
+    return;
+  }
+  program.command(descriptor.name).description(descriptor.description);
+}
+
+function registerCoreCommandPlaceholdersForCompletion(program: Command): void {
+  for (const descriptor of getCoreCliCommandDescriptors()) {
+    registerCommandPlaceholder(program, descriptor);
+  }
+}
+
+async function registerPluginCommandPlaceholdersForCompletion(program: Command): Promise<void> {
+  const { getPluginCliCommandDescriptors, loadValidatedConfigForPluginRegistration } =
+    await import("../plugins/cli.js");
+  const config = await loadValidatedConfigForPluginRegistration();
+  if (!config) {
+    return;
+  }
+  const descriptors = await getPluginCliCommandDescriptors(config, undefined, {
+    installBundledRuntimeDeps: false,
+  });
+  for (const descriptor of descriptors) {
+    registerCommandPlaceholder(program, descriptor);
   }
 }
 
@@ -94,22 +130,14 @@ export function registerCompletionCli(program: Command) {
       routeLogsToStderr();
       const shell = options.shell ?? "zsh";
 
-      // Completion needs the full Commander command tree (including nested subcommands).
-      // Our CLI defaults to lazy registration for perf; force-register core commands here.
-      const ctx = getProgramContext(program);
-      if (ctx) {
-        for (const name of getCoreCliCommandNames()) {
-          await registerCoreCliByName(program, ctx, name);
-        }
-      }
+      // Keep cache generation bounded: heavyweight registrars may touch setup,
+      // provider, or bundled plugin runtime paths before the user runs them.
+      registerCoreCommandPlaceholdersForCompletion(program);
 
       // Eagerly register all subcommands except completion itself to build the full tree.
       await registerSubcommandsForCompletion(program);
 
-      const { registerPluginCliCommandsFromValidatedConfig } = await import("../plugins/cli.js");
-      await registerPluginCliCommandsFromValidatedConfig(program, undefined, undefined, {
-        mode: "eager",
-      });
+      await registerPluginCommandPlaceholdersForCompletion(program);
 
       if (options.writeState) {
         const writeShells = options.shell ? [shell] : [...COMPLETION_SHELLS];

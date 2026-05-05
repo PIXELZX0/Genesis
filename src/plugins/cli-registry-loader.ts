@@ -17,7 +17,10 @@ import type {
   PluginLogger,
 } from "./types.js";
 
-export type PluginCliLoaderOptions = Pick<PluginLoadOptions, "pluginSdkResolution">;
+export type PluginCliLoaderOptions = Pick<
+  PluginLoadOptions,
+  "installBundledRuntimeDeps" | "pluginSdkResolution"
+>;
 
 export type PluginCliPublicLoadParams = {
   cfg?: GenesisConfig;

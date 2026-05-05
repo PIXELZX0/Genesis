@@ -37,9 +37,20 @@ const { inferAction, registerCapabilityCli } = vi.hoisted(() => {
   return { inferAction: action, registerCapabilityCli: register };
 });
 
+const { registerPluginsCli, registerPluginCliCommandsFromValidatedConfig } = vi.hoisted(() => ({
+  registerPluginsCli: vi.fn((program: Command) => {
+    program.command("plugins");
+  }),
+  registerPluginCliCommandsFromValidatedConfig: vi.fn(async () => null),
+}));
+
 vi.mock("../acp-cli.js", () => ({ registerAcpCli }));
 vi.mock("../nodes-cli.js", () => ({ registerNodesCli }));
 vi.mock("../capability-cli.js", () => ({ registerCapabilityCli }));
+vi.mock("../plugins-cli.js", () => ({ registerPluginsCli }));
+vi.mock("../../plugins/cli.js", () => ({
+  registerPluginCliCommandsFromValidatedConfig,
+}));
 vi.mock("./private-qa-cli.js", async () => {
   const actual = await vi.importActual<typeof import("./private-qa-cli.js")>("./private-qa-cli.js");
   return {
@@ -78,6 +89,8 @@ describe("registerSubCliCommands", () => {
     loadPrivateQaCliModule.mockClear();
     registerCapabilityCli.mockClear();
     inferAction.mockClear();
+    registerPluginsCli.mockClear();
+    registerPluginCliCommandsFromValidatedConfig.mockClear();
   });
 
   afterEach(() => {
@@ -157,5 +170,14 @@ describe("registerSubCliCommands", () => {
     await program.parseAsync(["acp"], { from: "user" });
     expect(registerAcpCli).toHaveBeenCalledTimes(1);
     expect(acpAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips plugin command registration when requested for completion generation", async () => {
+    const program = createRegisteredProgram(["node", "genesis", "plugins"], "genesis");
+
+    await registerSubCliByName(program, "plugins", { registerPluginCliCommands: false });
+
+    expect(registerPluginsCli).toHaveBeenCalledTimes(1);
+    expect(registerPluginCliCommandsFromValidatedConfig).not.toHaveBeenCalled();
   });
 });

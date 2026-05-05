@@ -5,9 +5,15 @@ import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const stderrWrites = vi.hoisted(() => vi.fn());
-const getCoreCliCommandNamesMock = vi.hoisted(() => vi.fn(() => []));
-const registerCoreCliByNameMock = vi.hoisted(() => vi.fn());
-const getProgramContextMock = vi.hoisted(() => vi.fn(() => null));
+const getCoreCliCommandDescriptorsMock = vi.hoisted(() =>
+  vi.fn(() => [
+    {
+      name: "onboard",
+      description: "Interactive onboarding",
+      hasSubcommands: false,
+    },
+  ]),
+);
 const getSubCliEntriesMock = vi.hoisted(() =>
   vi.fn(() => [
     { name: "qa", description: "QA commands", hasSubcommands: true },
@@ -23,15 +29,21 @@ const registerSubCliByNameMock = vi.hoisted(() =>
     return true;
   }),
 );
-const registerPluginCliCommandsFromValidatedConfigMock = vi.hoisted(() => vi.fn(async () => null));
+const loadValidatedConfigForPluginRegistrationMock = vi.hoisted(() =>
+  vi.fn(async () => ({ plugins: {} })),
+);
+const getPluginCliCommandDescriptorsMock = vi.hoisted(() =>
+  vi.fn(async () => [
+    {
+      name: "memory",
+      description: "Memory commands",
+      hasSubcommands: true,
+    },
+  ]),
+);
 
 vi.mock("./program/command-registry-core.js", () => ({
-  getCoreCliCommandNames: getCoreCliCommandNamesMock,
-  registerCoreCliByName: registerCoreCliByNameMock,
-}));
-
-vi.mock("./program/program-context.js", () => ({
-  getProgramContext: getProgramContextMock,
+  getCoreCliCommandDescriptors: getCoreCliCommandDescriptorsMock,
 }));
 
 vi.mock("./program/register.subclis-core.js", () => ({
@@ -40,7 +52,8 @@ vi.mock("./program/register.subclis-core.js", () => ({
 }));
 
 vi.mock("../plugins/cli.js", () => ({
-  registerPluginCliCommandsFromValidatedConfig: registerPluginCliCommandsFromValidatedConfigMock,
+  getPluginCliCommandDescriptors: getPluginCliCommandDescriptorsMock,
+  loadValidatedConfigForPluginRegistration: loadValidatedConfigForPluginRegistrationMock,
 }));
 
 describe("completion-cli write-state", () => {
@@ -50,12 +63,11 @@ describe("completion-cli write-state", () => {
 
   beforeEach(() => {
     stderrWrites.mockReset();
-    getCoreCliCommandNamesMock.mockClear();
-    registerCoreCliByNameMock.mockClear();
-    getProgramContextMock.mockClear();
+    getCoreCliCommandDescriptorsMock.mockClear();
     getSubCliEntriesMock.mockClear();
     registerSubCliByNameMock.mockClear();
-    registerPluginCliCommandsFromValidatedConfigMock.mockClear();
+    loadValidatedConfigForPluginRegistrationMock.mockClear();
+    getPluginCliCommandDescriptorsMock.mockClear();
     const stderrWriteSpy = vi.spyOn(process.stderr, "write").mockImplementation(((
       chunk: string | Uint8Array,
     ) => {
@@ -97,8 +109,15 @@ describe("completion-cli write-state", () => {
     expect(await fs.readdir(cacheDir)).toEqual(
       expect.arrayContaining(["genesis.bash", "genesis.fish", "genesis.ps1", "genesis.zsh"]),
     );
-    expect(registerSubCliByNameMock).toHaveBeenCalledWith(program, "qa");
-    expect(registerPluginCliCommandsFromValidatedConfigMock).toHaveBeenCalledTimes(1);
+    expect(registerSubCliByNameMock).toHaveBeenCalledWith(program, "qa", {
+      registerPluginCliCommands: false,
+    });
+    expect(getPluginCliCommandDescriptorsMock).toHaveBeenCalledWith({ plugins: {} }, undefined, {
+      installBundledRuntimeDeps: false,
+    });
+    const bashCompletion = await fs.readFile(path.join(cacheDir, "genesis.bash"), "utf-8");
+    expect(bashCompletion).toContain("onboard");
+    expect(bashCompletion).toContain("memory");
     expect(stderrWrites).toHaveBeenCalledWith(
       expect.stringContaining("skipping subcommand `qa` while building completion cache"),
     );
