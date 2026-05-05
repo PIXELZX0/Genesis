@@ -17,21 +17,22 @@ function usage() {
   process.stderr.write("Usage: node scripts/ui.js <install|dev|build|test> [...args]\n");
 }
 
-function which(cmd) {
+function which(cmd, opts = {}) {
   try {
-    const key = process.platform === "win32" ? "Path" : "PATH";
-    const paths = (process.env[key] ?? process.env.PATH ?? "")
-      .split(path.delimiter)
-      .filter(Boolean);
+    const platform = opts.platform ?? process.platform;
+    const key = platform === "win32" ? "Path" : "PATH";
+    const env = opts.env ?? process.env;
+    const existsSync = opts.existsSync ?? fs.existsSync;
+    const paths = (env[key] ?? env.PATH ?? "").split(path.delimiter).filter(Boolean);
     const extensions =
-      process.platform === "win32"
-        ? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM").split(";").filter(Boolean)
+      platform === "win32"
+        ? (env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM").split(";").filter(Boolean)
         : [""];
     for (const entry of paths) {
       for (const ext of extensions) {
-        const candidate = path.join(entry, process.platform === "win32" ? `${cmd}${ext}` : cmd);
+        const candidate = path.join(entry, platform === "win32" ? `${cmd}${ext}` : cmd);
         try {
-          if (fs.existsSync(candidate)) {
+          if (existsSync(candidate)) {
             return candidate;
           }
         } catch {
@@ -45,12 +46,99 @@ function which(cmd) {
   return null;
 }
 
+function isMacAppBundledNode(execPath) {
+  const normalized = String(execPath ?? "").replaceAll("\\", "/");
+  return normalized.includes(".app/Contents/Resources/node");
+}
+
+export function resolveDirectNodeExecPath(opts = {}) {
+  const env = opts.env ?? process.env;
+  const existsSync = opts.existsSync ?? fs.existsSync;
+  const execPath = opts.nodeExecPath ?? process.execPath;
+  const platform = opts.platform ?? process.platform;
+  const explicit = env.GENESIS_UI_NODE?.trim();
+  const candidates = [
+    explicit || null,
+    which("node", { env, existsSync, platform }),
+    platform === "darwin" ? "/opt/homebrew/bin/node" : null,
+    platform === "darwin" ? "/usr/local/bin/node" : null,
+    execPath,
+  ];
+  const seen = new Set();
+  const existing = candidates.filter((candidate) => {
+    if (!candidate || seen.has(candidate)) {
+      return false;
+    }
+    seen.add(candidate);
+    try {
+      return existsSync(candidate);
+    } catch {
+      return false;
+    }
+  });
+  if (explicit && existing.includes(explicit)) {
+    return explicit;
+  }
+  if (platform === "darwin" && isMacAppBundledNode(execPath)) {
+    const external = existing.find((candidate) => !isMacAppBundledNode(candidate));
+    if (external) {
+      return external;
+    }
+  }
+  return existing[0] ?? execPath;
+}
+
 function resolveRunner() {
   const pnpm = which("pnpm");
   if (pnpm) {
     return { cmd: pnpm, kind: "pnpm" };
   }
   return null;
+}
+
+function resolvePackageBin(packageName, binName, opts = {}) {
+  const requireResolve =
+    opts.requireResolve ?? createRequire(path.join(uiDir, "package.json")).resolve;
+  const fsImpl = opts.fsImpl ?? fs;
+  const packageJsonPath = requireResolve(`${packageName}/package.json`);
+  const parsed = JSON.parse(fsImpl.readFileSync(packageJsonPath, "utf8"));
+  const binEntry =
+    typeof parsed.bin === "string"
+      ? parsed.bin
+      : (parsed.bin?.[binName] ?? parsed.bin?.[packageName]);
+  if (typeof binEntry !== "string" || !binEntry.trim()) {
+    throw new Error(`Unable to resolve ${packageName} binary "${binName}".`);
+  }
+  return path.resolve(path.dirname(packageJsonPath), binEntry);
+}
+
+export function resolveDirectScriptSpawnSpec(action, rest = [], opts = {}) {
+  const nodeExecPath = opts.nodeExecPath ?? resolveDirectNodeExecPath(opts);
+  switch (action) {
+    case "dev":
+      return {
+        cmd: nodeExecPath,
+        args: [resolvePackageBin("vite", "vite", opts), ...rest],
+      };
+    case "build":
+      return {
+        cmd: nodeExecPath,
+        args: [resolvePackageBin("vite", "vite", opts), "build", ...rest],
+      };
+    case "test":
+      return {
+        cmd: nodeExecPath,
+        args: [
+          resolvePackageBin("vitest", "vitest", opts),
+          "run",
+          "--config",
+          "vitest.config.ts",
+          ...rest,
+        ],
+      };
+    default:
+      return null;
+  }
 }
 
 export function shouldUseShellForCommand(cmd, platform = process.platform) {
@@ -143,7 +231,7 @@ function depsInstalled(kind) {
   }
 }
 
-function resolveScriptAction(action) {
+export function resolveScriptAction(action) {
   if (action === "install") {
     return null;
   }
@@ -166,16 +254,25 @@ export function main(argv = process.argv.slice(2)) {
     process.exit(2);
   }
 
-  const runner = resolveRunner();
-  if (!runner) {
-    process.stderr.write("Missing UI runner: install pnpm, then retry.\n");
-    process.exit(1);
-  }
-
   const script = resolveScriptAction(action);
   if (action !== "install" && !script) {
     usage();
     process.exit(2);
+  }
+
+  const runner = resolveRunner();
+  if (!runner) {
+    if (action === "install" || !depsInstalled(action === "test" ? "test" : "build")) {
+      process.stderr.write("Missing UI runner: install pnpm, then retry.\n");
+      process.exit(1);
+    }
+    const directSpec = resolveDirectScriptSpawnSpec(action, rest);
+    if (!directSpec) {
+      usage();
+      process.exit(2);
+    }
+    run(directSpec.cmd, directSpec.args);
+    return;
   }
 
   if (action === "install") {
