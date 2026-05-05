@@ -177,7 +177,7 @@ async function auditLaunchdPlist(
   }
 
   const hasRunAtLoad = /<key>RunAtLoad<\/key>\s*<true\s*\/>/i.test(content);
-  const hasKeepAlive = /<key>KeepAlive<\/key>\s*<true\s*\/>/i.test(content);
+  const hasKeepAlive = hasPreferredLaunchdKeepAlivePolicy(content);
   if (!hasRunAtLoad) {
     issues.push({
       code: SERVICE_AUDIT_CODES.launchdRunAtLoad,
@@ -189,11 +189,24 @@ async function auditLaunchdPlist(
   if (!hasKeepAlive) {
     issues.push({
       code: SERVICE_AUDIT_CODES.launchdKeepAlive,
-      message: "LaunchAgent is missing KeepAlive=true",
+      message:
+        "LaunchAgent KeepAlive policy can restart on startup failures; reinstall service to use guarded restart policy",
       detail: plistPath,
       level: "recommended",
     });
   }
+}
+
+function hasPreferredLaunchdKeepAlivePolicy(content: string): boolean {
+  const keepAliveDict = content.match(/<key>KeepAlive<\/key>\s*<dict>([\s\S]*?)<\/dict>/i);
+  if (!keepAliveDict) {
+    return false;
+  }
+  const body = keepAliveDict[1] ?? "";
+  return (
+    /<key>SuccessfulExit<\/key>\s*<true\s*\/>/i.test(body) &&
+    /<key>Crashed<\/key>\s*<true\s*\/>/i.test(body)
+  );
 }
 
 function auditGatewayCommand(programArguments: string[] | undefined, issues: ServiceConfigIssue[]) {

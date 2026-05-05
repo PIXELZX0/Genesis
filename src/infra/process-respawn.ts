@@ -29,7 +29,7 @@ export function restartGatewayProcessWithFreshPid(): GatewayRespawnResult {
   }
   const supervisor = detectRespawnSupervisor(process.env);
   if (supervisor) {
-    // On macOS launchd, exit cleanly and let KeepAlive relaunch the service.
+    // On macOS launchd, exit cleanly and let the guarded KeepAlive policy relaunch the service.
     // Avoid detached kickstart/start handoffs here so restart timing stays tied
     // to launchd's native supervision rather than a second helper process.
     if (supervisor === "schtasks") {

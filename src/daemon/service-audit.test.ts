@@ -1,4 +1,8 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { buildLaunchAgentPlist } from "./launchd-plist.js";
 import {
   auditGatewayServiceConfig,
   checkTokenDrift,
@@ -35,6 +39,29 @@ function createGatewayAudit({
         ...(serviceToken ? { GENESIS_GATEWAY_TOKEN: serviceToken } : {}),
       },
       ...(environmentValueSources ? { environmentValueSources } : {}),
+    },
+  });
+}
+
+async function withTempHome<T>(run: (home: string) => Promise<T>): Promise<T> {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-service-audit-"));
+  try {
+    await fs.mkdir(path.join(home, "Library", "LaunchAgents"), { recursive: true });
+    return await run(home);
+  } finally {
+    await fs.rm(home, { recursive: true, force: true });
+  }
+}
+
+async function createDarwinGatewayAudit(home: string) {
+  return auditGatewayServiceConfig({
+    env: { HOME: home },
+    platform: "darwin",
+    command: {
+      programArguments: ["/usr/bin/node", "gateway"],
+      environment: {
+        PATH: buildMinimalServicePath({ platform: "darwin", env: { HOME: home } }),
+      },
     },
   });
 }
@@ -110,6 +137,49 @@ describe("auditGatewayServiceConfig", () => {
     expect(
       audit.issues.some((issue) => issue.code === SERVICE_AUDIT_CODES.gatewayPathMissingDirs),
     ).toBe(false);
+  });
+
+  it("accepts guarded launchd KeepAlive policy", async () => {
+    await withTempHome(async (home) => {
+      await fs.writeFile(
+        path.join(home, "Library", "LaunchAgents", "ai.genesis.gateway.plist"),
+        buildLaunchAgentPlist({
+          label: "ai.genesis.gateway",
+          programArguments: ["/usr/bin/node", "gateway"],
+          stdoutPath: path.join(home, "gateway.log"),
+          stderrPath: path.join(home, "gateway.err.log"),
+        }),
+      );
+
+      const audit = await createDarwinGatewayAudit(home);
+
+      expect(hasIssue(audit, SERVICE_AUDIT_CODES.launchdKeepAlive)).toBe(false);
+    });
+  });
+
+  it("flags unconditional launchd KeepAlive policy", async () => {
+    await withTempHome(async (home) => {
+      await fs.writeFile(
+        path.join(home, "Library", "LaunchAgents", "ai.genesis.gateway.plist"),
+        [
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<plist version="1.0">',
+          "<dict>",
+          "<key>Label</key>",
+          "<string>ai.genesis.gateway</string>",
+          "<key>RunAtLoad</key>",
+          "<true/>",
+          "<key>KeepAlive</key>",
+          "<true/>",
+          "</dict>",
+          "</plist>",
+        ].join("\n"),
+      );
+
+      const audit = await createDarwinGatewayAudit(home);
+
+      expect(hasIssue(audit, SERVICE_AUDIT_CODES.launchdKeepAlive)).toBe(true);
+    });
   });
 
   it("flags gateway token mismatch when service token is stale", async () => {
