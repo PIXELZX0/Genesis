@@ -133,6 +133,14 @@ function appendNodeModulesBinCandidates(
   appendDistCandidates(candidates, seen, packageRoot);
 }
 
+function resolveDistEntrypointWorkingDirectory(cliEntrypointPath: string): string | undefined {
+  const distDir = path.dirname(cliEntrypointPath);
+  if (path.basename(distDir) !== "dist") {
+    return undefined;
+  }
+  return path.dirname(distDir);
+}
+
 function resolveRepoRootForDev(): string {
   const argv1 = process.argv[1];
   if (!argv1) {
@@ -192,6 +200,7 @@ async function resolveCliProgramArguments(params: {
     const cliEntrypointPath = await resolveCliEntrypointPathForService();
     return {
       programArguments: [nodePath, cliEntrypointPath, ...params.args],
+      workingDirectory: resolveDistEntrypointWorkingDirectory(cliEntrypointPath),
     };
   }
 
@@ -211,6 +220,7 @@ async function resolveCliProgramArguments(params: {
     const cliEntrypointPath = await resolveCliEntrypointPathForService();
     return {
       programArguments: [bunPath, cliEntrypointPath, ...params.args],
+      workingDirectory: resolveDistEntrypointWorkingDirectory(cliEntrypointPath),
     };
   }
 
@@ -219,6 +229,7 @@ async function resolveCliProgramArguments(params: {
       const cliEntrypointPath = await resolveCliEntrypointPathForService();
       return {
         programArguments: [execPath, cliEntrypointPath, ...params.args],
+        workingDirectory: resolveDistEntrypointWorkingDirectory(cliEntrypointPath),
       };
     } catch (error) {
       // If running under bun or another runtime that can execute TS directly

@@ -50,15 +50,16 @@ export async function noteSessionLockHealth(params?: { shouldRepair?: boolean; s
     return;
   }
 
-  const allLocks: SessionLockInspection[] = [];
-  for (const sessionsDir of sessionDirs) {
-    const result = await cleanStaleLockFiles({
-      sessionsDir,
-      staleMs,
-      removeStale: shouldRepair,
-    });
-    allLocks.push(...result.locks);
-  }
+  const results = await Promise.all(
+    sessionDirs.map((sessionsDir) =>
+      cleanStaleLockFiles({
+        sessionsDir,
+        staleMs,
+        removeStale: shouldRepair,
+      }),
+    ),
+  );
+  const allLocks = results.flatMap((result) => result.locks);
 
   if (allLocks.length === 0) {
     return;

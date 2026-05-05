@@ -181,25 +181,52 @@ function addUserRwx(mode: number): number {
   return perms | 0o700;
 }
 
-function countJsonlLines(filePath: string): number {
-  try {
-    const raw = fs.readFileSync(filePath, "utf-8");
-    if (!raw) {
-      return 0;
-    }
-    let count = 0;
-    for (let i = 0; i < raw.length; i += 1) {
-      if (raw[i] === "\n") {
-        count += 1;
-      }
-    }
-    if (!raw.endsWith("\n")) {
-      count += 1;
-    }
-    return count;
-  } catch {
+function countJsonlLinesUpTo(filePath: string, limit: number): number {
+  if (limit <= 0) {
     return 0;
   }
+  let handle: number | undefined;
+  try {
+    handle = fs.openSync(filePath, "r");
+    const buffer = Buffer.allocUnsafe(64 * 1024);
+    let count = 0;
+    let sawBytes = false;
+    let lastByte = 0;
+    while (count < limit) {
+      const bytesRead = fs.readSync(handle, buffer, 0, buffer.length, null);
+      if (bytesRead === 0) {
+        break;
+      }
+      sawBytes = true;
+      lastByte = buffer[bytesRead - 1] ?? 0;
+      for (let i = 0; i < bytesRead; i += 1) {
+        if (buffer[i] === 10) {
+          count += 1;
+          if (count >= limit) {
+            return limit;
+          }
+        }
+      }
+    }
+    if (sawBytes && lastByte !== 10) {
+      count += 1;
+    }
+    return Math.min(count, limit);
+  } catch {
+    return 0;
+  } finally {
+    if (handle !== undefined) {
+      try {
+        fs.closeSync(handle);
+      } catch {
+        // Ignore close failures in best-effort doctor diagnostics.
+      }
+    }
+  }
+}
+
+function countMainTranscriptLinesForWarning(filePath: string): 0 | 1 | 2 {
+  return countJsonlLinesUpTo(filePath, 2) as 0 | 1 | 2;
 }
 
 function findOtherStateDirs(stateDir: string): string[] {
@@ -870,7 +897,7 @@ export async function noteStateIntegrity(
           `- Main session transcript missing (${shortenHomePath(transcriptPath)}). History will appear to reset.`,
         );
       } else {
-        const lineCount = countJsonlLines(transcriptPath);
+        const lineCount = countMainTranscriptLinesForWarning(transcriptPath);
         if (lineCount <= 1) {
           warnings.push(
             `- Main session transcript has only ${lineCount} line. Session history may not be appending.`,

@@ -58,6 +58,7 @@ describe("resolveGatewayProgramArguments", () => {
       "--port",
       "18789",
     ]);
+    expect(result.workingDirectory).toBe(path.resolve("/opt/genesis"));
   });
 
   it("keeps entry.js when index.js is missing", async () => {
@@ -127,6 +128,9 @@ describe("resolveGatewayProgramArguments", () => {
       path.resolve("/Users/test/Library/pnpm/global/5/node_modules/genesis/dist/index.js"),
     );
     expect(result.programArguments[1]).not.toContain("@2026.1.21-2");
+    expect(result.workingDirectory).toBe(
+      path.resolve("/Users/test/Library/pnpm/global/5/node_modules/genesis"),
+    );
   });
 
   it("falls back to node_modules package dist when .bin path is not resolved", async () => {
