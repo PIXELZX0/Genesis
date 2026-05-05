@@ -101,10 +101,9 @@ describe("scripts/test-report-utils runVitestJsonReport", () => {
     ).toBe(reportPath);
 
     expect(spawnSyncMock).toHaveBeenCalledWith(
-      "pnpm",
+      process.execPath,
       [
-        "exec",
-        "vitest",
+        "scripts/run-vitest.mjs",
         "run",
         "--config",
         "test/vitest/vitest.unit.config.ts",
@@ -117,5 +116,41 @@ describe("scripts/test-report-utils runVitestJsonReport", () => {
         env: process.env,
       }),
     );
+  });
+
+  it("throws spawn errors instead of treating them as allowed test failures", async () => {
+    const error = new Error("spawn failed");
+    spawnSyncMock.mockReturnValue({ error, status: null });
+    const reportPath = path.join(os.tmpdir(), `genesis-vitest-json-spawn-error-${Date.now()}.json`);
+    const { runVitestJsonReport } = await import("../../scripts/test-report-utils.mjs");
+
+    expect(() =>
+      runVitestJsonReport({
+        allowFailures: true,
+        config: "test/vitest/vitest.unit.config.ts",
+        reportPath,
+      }),
+    ).toThrow(error);
+  });
+
+  it("keeps a failed report path when failures are allowed", async () => {
+    spawnSyncMock.mockReturnValue({ status: 7 });
+    const originalExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const reportPath = path.join(os.tmpdir(), `genesis-vitest-json-failed-${Date.now()}.json`);
+    const { runVitestJsonReport } = await import("../../scripts/test-report-utils.mjs");
+
+    try {
+      expect(
+        runVitestJsonReport({
+          allowFailures: true,
+          config: "test/vitest/vitest.unit.config.ts",
+          reportPath,
+        }),
+      ).toBe(reportPath);
+      expect(process.exitCode).toBe(7);
+    } finally {
+      process.exitCode = originalExitCode;
+    }
   });
 });

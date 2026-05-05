@@ -31,7 +31,9 @@ const opts = parseVitestReportArgs(process.argv.slice(2), {
   config: "test/vitest/vitest.unit.config.ts",
   limit: 20,
 });
-const report = loadVitestReportFromArgs(opts, "genesis-vitest-hotspots");
+const report = loadVitestReportFromArgs(opts, "genesis-vitest-hotspots", {
+  allowFailures: true,
+});
 const fileResults = collectVitestFileDurations(report).toSorted(
   (a, b) => b.durationMs - a.durationMs,
 );

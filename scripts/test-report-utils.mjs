@@ -33,15 +33,19 @@ export function writeJsonFile(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-export function runVitestJsonReport({ config, reportPath = "", prefix = "genesis-vitest-report" }) {
+export function runVitestJsonReport({
+  allowFailures = false,
+  config,
+  reportPath = "",
+  prefix = "genesis-vitest-report",
+}) {
   const resolvedReportPath = reportPath || path.join(os.tmpdir(), `${prefix}-${Date.now()}.json`);
 
   if (!(reportPath && fs.existsSync(resolvedReportPath))) {
     const run = spawnSync(
-      "pnpm",
+      process.execPath,
       [
-        "exec",
-        "vitest",
+        "scripts/run-vitest.mjs",
         "run",
         "--config",
         config,
@@ -55,8 +59,15 @@ export function runVitestJsonReport({ config, reportPath = "", prefix = "genesis
       },
     );
 
-    if (run.status !== 0) {
+    if (run.error) {
+      throw run.error;
+    }
+
+    if (run.status !== 0 && !allowFailures) {
       process.exit(run.status ?? 1);
+    }
+    if (run.status !== 0) {
+      process.exitCode = run.status ?? 1;
     }
   }
 

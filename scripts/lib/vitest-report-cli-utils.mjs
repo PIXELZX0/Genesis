@@ -17,8 +17,9 @@ export function parseVitestReportArgs(argv, defaults) {
   );
 }
 
-export function loadVitestReportFromArgs(args, prefix) {
+export function loadVitestReportFromArgs(args, prefix, options = {}) {
   const reportPath = runVitestJsonReport({
+    allowFailures: options.allowFailures ?? false,
     config: args.config,
     reportPath: args.reportPath,
     prefix,
