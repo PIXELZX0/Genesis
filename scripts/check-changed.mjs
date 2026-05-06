@@ -1,7 +1,9 @@
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import {
+  RELEASE_METADATA_PATHS,
   detectChangedLanes,
   listChangedPathsFromGit,
   listStagedChangedPaths,
@@ -15,6 +17,48 @@ import { resolveChangedTestTargetPlan } from "./test-projects.test-support.mjs";
 export const CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS = "600000";
 const VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS";
 const VITEST_NO_OUTPUT_RETRY_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_RETRY";
+
+function releaseMetadataCheckArgs(options = {}, paths = []) {
+  return [
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "check-release-metadata-only.mjs"),
+    ...(options.staged
+      ? ["--staged"]
+      : ["--base", options.base ?? "origin/main", "--head", options.head ?? "HEAD"]),
+    ...paths,
+  ];
+}
+
+function isReleaseMetadataOnlyChange(paths, options = {}) {
+  if (paths.length === 0) {
+    return false;
+  }
+  try {
+    execFileSync(process.execPath, releaseMetadataCheckArgs(options, paths), {
+      cwd: options.cwd ?? process.cwd(),
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function prepareChangedCheckInputs(paths, options = {}) {
+  const normalizedPaths = [...new Set(paths.map(normalizeChangedPath).filter(Boolean))].toSorted(
+    (left, right) => left.localeCompare(right),
+  );
+  const releaseMetadataPaths = normalizedPaths.filter((changedPath) =>
+    RELEASE_METADATA_PATHS.has(changedPath),
+  );
+  if (!isReleaseMetadataOnlyChange(releaseMetadataPaths, options)) {
+    return { paths: normalizedPaths, releaseMetadataPaths: [] };
+  }
+  const releaseMetadataPathSet = new Set(releaseMetadataPaths);
+  return {
+    paths: normalizedPaths.filter((changedPath) => !releaseMetadataPathSet.has(changedPath)),
+    releaseMetadataPaths,
+  };
+}
 
 export function createChangedCheckVitestEnv(baseEnv = process.env) {
   return {
@@ -33,8 +77,25 @@ export function createChangedCheckPlan(result, options = {}) {
       commands.push({ name, args });
     }
   };
+  const addReleaseMetadataCommands = (paths = []) => {
+    add("release metadata guard", [
+      "release-metadata:check",
+      "--",
+      ...(options.staged
+        ? ["--staged"]
+        : ["--base", options.base ?? "origin/main", "--head", options.head ?? "HEAD"]),
+      ...paths,
+    ]);
+    add("iOS version sync", ["ios:version:check"]);
+    add("config schema baseline", ["config:schema:check"]);
+    add("config docs baseline", ["config:docs:check"]);
+    add("root dependency ownership", ["deps:root-ownership:check"]);
+  };
 
   add("conflict markers", ["check:no-conflict-markers"]);
+  if (options.releaseMetadataPaths?.length > 0) {
+    addReleaseMetadataCommands(options.releaseMetadataPaths);
+  }
 
   if (result.docsOnly) {
     return {
@@ -51,17 +112,7 @@ export function createChangedCheckPlan(result, options = {}) {
   const runAll = lanes.all;
 
   if (lanes.releaseMetadata) {
-    add("release metadata guard", [
-      "release-metadata:check",
-      "--",
-      ...(options.staged
-        ? ["--staged"]
-        : ["--base", options.base ?? "origin/main", "--head", options.head ?? "HEAD"]),
-    ]);
-    add("iOS version sync", ["ios:version:check"]);
-    add("config schema baseline", ["config:schema:check"]);
-    add("config docs baseline", ["config:docs:check"]);
-    add("root dependency ownership", ["deps:root-ownership:check"]);
+    addReleaseMetadataCommands();
     return {
       commands,
       testTargets: [],
@@ -226,6 +277,11 @@ function printPlan(result, plan, options) {
   if (result.extensionImpactFromCore) {
     console.error(`${prefix} core contract changed; extension tests included`);
   }
+  if (options.releaseMetadataPaths?.length > 0) {
+    console.error(
+      `${prefix} release metadata paths verified=${options.releaseMetadataPaths.length}`,
+    );
+  }
   if (plan.runChangedTestsBroad) {
     console.error(`${prefix} broad changed tests included`);
   }
@@ -308,9 +364,11 @@ if (isDirectRun()) {
       : args.staged
         ? listStagedChangedPaths()
         : listChangedPathsFromGit({ base: args.base, head: args.head });
-  const result = detectChangedLanes(paths);
+  const prepared = prepareChangedCheckInputs(paths, args);
+  const result = detectChangedLanes(prepared.paths);
   process.exitCode = await runChangedCheck(result, {
     ...args,
     explicitPaths: args.paths.length > 0,
+    releaseMetadataPaths: prepared.releaseMetadataPaths,
   });
 }

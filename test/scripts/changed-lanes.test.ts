@@ -7,6 +7,7 @@ import {
   CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS,
   createChangedCheckPlan,
   createChangedCheckVitestEnv,
+  prepareChangedCheckInputs,
 } from "../../scripts/check-changed.mjs";
 import { cleanupTempDirs, makeTempRepoRoot } from "../helpers/temp-repo.js";
 
@@ -278,6 +279,102 @@ describe("scripts/changed-lanes", () => {
         },
       ),
     ).toThrow();
+  });
+
+  it("keeps version-only release metadata from forcing full tests in mixed diffs", () => {
+    const dir = makeTempRepoRoot(tempDirs, "genesis-mixed-release-metadata-");
+    git(dir, ["init", "-q", "--initial-branch=main"]);
+    mkdirSync(path.join(dir, "src", "shared"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "package.json"),
+      `${JSON.stringify({ name: "fixture", version: "2026.4.20" }, null, 2)}\n`,
+      "utf8",
+    );
+    writeFileSync(path.join(dir, "src", "shared", "feature.ts"), "export const value = 1;\n");
+    git(dir, ["add", "package.json", "src/shared/feature.ts"]);
+    git(dir, [
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "user.name=Test User",
+      "commit",
+      "-q",
+      "-m",
+      "initial",
+    ]);
+
+    writeFileSync(
+      path.join(dir, "package.json"),
+      `${JSON.stringify({ name: "fixture", version: "2026.4.21" }, null, 2)}\n`,
+      "utf8",
+    );
+    writeFileSync(path.join(dir, "src", "shared", "feature.ts"), "export const value = 2;\n");
+
+    const prepared = prepareChangedCheckInputs(["package.json", "src/shared/feature.ts"], {
+      base: "HEAD",
+      cwd: dir,
+      head: "HEAD",
+    });
+    const result = detectChangedLanes(prepared.paths);
+    const plan = createChangedCheckPlan(result, {
+      base: "HEAD",
+      head: "HEAD",
+      releaseMetadataPaths: prepared.releaseMetadataPaths,
+    });
+
+    expect(prepared).toEqual({
+      paths: ["src/shared/feature.ts"],
+      releaseMetadataPaths: ["package.json"],
+    });
+    expect(result.lanes.all).toBe(false);
+    expect(plan.runFullTests).toBe(false);
+    expect(plan.commands.map((command) => command.args[0])).toContain("release-metadata:check");
+    expect(plan.commands.map((command) => command.args[0])).toContain("tsgo:core");
+  });
+
+  it("keeps non-version package edits on the full changed gate in mixed diffs", () => {
+    const dir = makeTempRepoRoot(tempDirs, "genesis-mixed-package-config-");
+    git(dir, ["init", "-q", "--initial-branch=main"]);
+    mkdirSync(path.join(dir, "src", "shared"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "package.json"),
+      `${JSON.stringify({ name: "fixture", version: "2026.4.20", dependencies: { leftpad: "1.0.0" } }, null, 2)}\n`,
+      "utf8",
+    );
+    writeFileSync(path.join(dir, "src", "shared", "feature.ts"), "export const value = 1;\n");
+    git(dir, ["add", "package.json", "src/shared/feature.ts"]);
+    git(dir, [
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "user.name=Test User",
+      "commit",
+      "-q",
+      "-m",
+      "initial",
+    ]);
+
+    writeFileSync(
+      path.join(dir, "package.json"),
+      `${JSON.stringify({ name: "fixture", version: "2026.4.21", dependencies: { leftpad: "1.0.1" } }, null, 2)}\n`,
+      "utf8",
+    );
+    writeFileSync(path.join(dir, "src", "shared", "feature.ts"), "export const value = 2;\n");
+
+    const prepared = prepareChangedCheckInputs(["package.json", "src/shared/feature.ts"], {
+      base: "HEAD",
+      cwd: dir,
+      head: "HEAD",
+    });
+    const result = detectChangedLanes(prepared.paths);
+    const plan = createChangedCheckPlan(result);
+
+    expect(prepared).toEqual({
+      paths: ["package.json", "src/shared/feature.ts"],
+      releaseMetadataPaths: [],
+    });
+    expect(result.lanes.all).toBe(true);
+    expect(plan.runFullTests).toBe(true);
   });
 
   it("routes root test/support changes to the tooling test lane instead of all lanes", () => {
