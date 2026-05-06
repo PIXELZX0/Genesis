@@ -437,7 +437,7 @@ export async function promptDefaultModel(
   const catalogProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg, useCache: false });
+    catalog = await loadModelCatalog({ config: cfg });
   } finally {
     catalogProgress.stop();
   }
@@ -627,7 +627,7 @@ export async function promptModelAllowlist(params: {
   const allowlistProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg, useCache: false });
+    catalog = await loadModelCatalog({ config: cfg });
   } finally {
     allowlistProgress.stop();
   }

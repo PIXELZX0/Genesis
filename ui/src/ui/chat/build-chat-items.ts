@@ -6,6 +6,40 @@ import { extractToolCards, extractToolPreview } from "./tool-cards.ts";
 
 const CHAT_HISTORY_RENDER_LIMIT = 200;
 
+// Single-entry memo cache — avoids rebuilding on every keystroke render when inputs are stable.
+type MemoEntry = { signature: string; result: Array<ChatItem | MessageGroup> };
+let _memoEntry: MemoEntry | null = null;
+
+function readTimestamp(record: unknown): number {
+  const r = record as Record<string, unknown>;
+  return typeof r.timestamp === "number" ? r.timestamp : 0;
+}
+
+function buildSignature(props: BuildChatItemsProps): string {
+  const msgs = Array.isArray(props.messages) ? props.messages : [];
+  const tools = Array.isArray(props.toolMessages) ? props.toolMessages : [];
+  const segs = props.streamSegments ?? [];
+  const lastMsgTs = msgs.length > 0 ? readTimestamp(msgs[msgs.length - 1]) : 0;
+  const lastToolTs = tools.length > 0 ? readTimestamp(tools[tools.length - 1]) : 0;
+  const lastSegLen = segs.length > 0 ? (segs[segs.length - 1]?.text.length ?? 0) : 0;
+  const streamLen = props.stream !== null && props.stream !== undefined ? props.stream.length : -1;
+  const startedAt =
+    props.streamStartedAt !== null && props.streamStartedAt !== undefined
+      ? props.streamStartedAt
+      : -1;
+  return (
+    `${msgs.length}|${lastMsgTs}|${tools.length}|${lastToolTs}|` +
+    `${segs.length}|${lastSegLen}|${streamLen}|` +
+    `${startedAt}|${props.sessionKey}|` +
+    `${props.searchOpen ? 1 : 0}|${props.searchQuery ?? ""}|${props.showToolCalls ? 1 : 0}`
+  );
+}
+
+/** Reset the memo cache. Exported for tests. */
+export function __resetBuildChatItemsCache(): void {
+  _memoEntry = null;
+}
+
 export type BuildChatItemsProps = {
   sessionKey: string;
   messages: unknown[];
@@ -195,6 +229,10 @@ function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
 }
 
 export function buildChatItems(props: BuildChatItemsProps): Array<ChatItem | MessageGroup> {
+  const sig = buildSignature(props);
+  if (_memoEntry && _memoEntry.signature === sig) {
+    return _memoEntry.result;
+  }
   const items: ChatItem[] = [];
   const history = Array.isArray(props.messages) ? props.messages : [];
   const tools = Array.isArray(props.toolMessages) ? props.toolMessages : [];
@@ -302,7 +340,9 @@ export function buildChatItems(props: BuildChatItemsProps): Array<ChatItem | Mes
     }
   }
 
-  return groupMessages(items);
+  const result = groupMessages(items);
+  _memoEntry = { signature: sig, result };
+  return result;
 }
 
 function messageKey(message: unknown, index: number): string {

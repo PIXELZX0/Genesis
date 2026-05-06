@@ -224,6 +224,11 @@ Use `trusted` only when the embedded document genuinely needs same-origin
 behavior. For most agent-generated games and interactive canvases, `scripts` is
 the safer choice.
 
+Agents can create these hosted documents through the built-in `canvas` tool with
+`action: "create"` and inline `html`, a gateway-local `path`, or a `url`. The
+tool returns a hosted document id plus an `[embed ref="..."]` shortcode for the
+assistant reply; it does not require a paired canvas-capable node.
+
 Absolute external `http(s)` embed URLs stay blocked by default. If you
 intentionally want `[embed url="https://..."]` to load third-party pages, set
 `gateway.controlUi.allowExternalEmbedUrls: true`.

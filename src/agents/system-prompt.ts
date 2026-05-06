@@ -285,6 +285,7 @@ function buildWebchatCanvasSection(params: {
     "Use `[embed ...]` only in Control UI/webchat sessions for inline rich rendering inside the assistant bubble.",
     "- Do not use `[embed ...]` for non-web channels.",
     "- `[embed ...]` is separate from `MEDIA:`. Use `MEDIA:` for attachments; use `[embed ...]` for web-only rich rendering.",
+    '- Prefer the `canvas` tool with `action: "create"` to materialize inline HTML, a local path, or a URL as a hosted embed document before replying.',
     '- Use self-closing form for hosted embed documents: `[embed ref="cv_123" title="Status" height="320" /]`.',
     '- You may also use an explicit hosted URL: `[embed url="/__genesis__/canvas/documents/cv_123/index.html" title="Status" height="320" /]`.',
     '- Never use local filesystem paths or `file://...` URLs in `[embed ...]`. Hosted embeds must point at `/__genesis__/canvas/...` URLs or use `ref="..."`.',

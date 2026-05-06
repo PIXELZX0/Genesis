@@ -35,6 +35,7 @@ Rules:
 - `[view ...]` is no longer valid for new output.
 - Embed shortcodes render in the assistant message surface only.
 - Only URL-backed embeds are rendered. Use `ref="..."` or `url="..."`.
+- Agents should use the `canvas` tool with `action: "create"` to create hosted embed documents before replying with `[embed ref="..."]`.
 - Block-form inline HTML embed shortcodes are not rendered.
 - The web UI strips the shortcode from visible text and renders the embed inline.
 - `MEDIA:` is not an embed alias and should not be used for rich embed rendering.

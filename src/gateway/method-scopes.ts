@@ -137,6 +137,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "tts.setProvider",
     "voicewake.set",
     "node.invoke",
+    "canvas.document.create",
     "chat.send",
     "chat.abort",
     "sessions.create",

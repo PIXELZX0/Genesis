@@ -8,6 +8,8 @@ import {
   validatePluginsStatusParams,
   validatePluginsUninstallParams,
   validatePluginsUpdateParams,
+  validateCanvasDocumentCreateParams,
+  validateCanvasDocumentCreateResult,
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
   validateWakeParams,
@@ -147,6 +149,49 @@ describe("validateTalkRealtimeSessionParams", () => {
     expect(formatValidationErrors(validateTalkRealtimeSessionParams.errors)).toContain(
       "unexpected property 'instructions'",
     );
+  });
+});
+
+describe("validateCanvasDocumentCreateParams", () => {
+  it("accepts hosted Control UI document creation params and results", () => {
+    expect(
+      validateCanvasDocumentCreateParams({
+        id: "status-card",
+        title: "Status",
+        preferredHeight: 320,
+        html: "<div>ok</div>",
+        assets: [
+          {
+            logicalPath: "assets/app.css",
+            sourcePath: "assets/app.css",
+            contentType: "text/css",
+          },
+        ],
+      }),
+    ).toBe(true);
+
+    expect(
+      validateCanvasDocumentCreateResult({
+        id: "status-card",
+        kind: "html_bundle",
+        title: "Status",
+        preferredHeight: 320,
+        createdAt: "2026-05-05T00:00:00.000Z",
+        entryUrl: "/__genesis__/canvas/documents/status-card/index.html",
+        localEntrypoint: "index.html",
+        surface: "assistant_message",
+        assets: [],
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects unexpected canvas document fields", () => {
+    expect(
+      validateCanvasDocumentCreateParams({
+        html: "<div>ok</div>",
+        script: "alert(1)",
+      }),
+    ).toBe(false);
   });
 });
 

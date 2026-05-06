@@ -8,6 +8,8 @@ title: "Updating"
 
 Keep Genesis up to date.
 
+Current stable release: `2026.5.5-5`.
+
 ## Recommended: `genesis update`
 
 The fastest way to update. It detects your install type (npm or git), fetches the latest version, runs `genesis doctor`, and restarts the gateway.

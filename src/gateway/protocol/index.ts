@@ -48,6 +48,10 @@ import {
   ChannelsStartParamsSchema,
   type ChannelsLogoutParams,
   ChannelsLogoutParamsSchema,
+  type CanvasDocumentCreateParams,
+  CanvasDocumentCreateParamsSchema,
+  type CanvasDocumentCreateResult,
+  CanvasDocumentCreateResultSchema,
   type TalkConfigParams,
   TalkConfigParamsSchema,
   type TalkConfigResult,
@@ -399,6 +403,12 @@ export const validateNodePendingDrainParams = ajv.compile<NodePendingDrainParams
 export const validateNodePendingEnqueueParams = ajv.compile<NodePendingEnqueueParams>(
   NodePendingEnqueueParamsSchema,
 );
+export const validateCanvasDocumentCreateParams = ajv.compile<CanvasDocumentCreateParams>(
+  CanvasDocumentCreateParamsSchema,
+);
+export const validateCanvasDocumentCreateResult = ajv.compile<CanvasDocumentCreateResult>(
+  CanvasDocumentCreateResultSchema,
+);
 export const validatePushTestParams = ajv.compile<PushTestParams>(PushTestParamsSchema);
 export const validateSecretsResolveParams = ajv.compile<SecretsResolveParams>(
   SecretsResolveParamsSchema,
@@ -651,6 +661,8 @@ export {
   NodePendingDrainResultSchema,
   NodePendingEnqueueParamsSchema,
   NodePendingEnqueueResultSchema,
+  CanvasDocumentCreateParamsSchema,
+  CanvasDocumentCreateResultSchema,
   SessionsListParamsSchema,
   SessionsPreviewParamsSchema,
   SessionsResolveParamsSchema,
@@ -873,6 +885,8 @@ export type {
   NodePendingDrainResult,
   NodePendingEnqueueParams,
   NodePendingEnqueueResult,
+  CanvasDocumentCreateParams,
+  CanvasDocumentCreateResult,
   SessionsListParams,
   SessionsPreviewParams,
   SessionsResolveParams,
