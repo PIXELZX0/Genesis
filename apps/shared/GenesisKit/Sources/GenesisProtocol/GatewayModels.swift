@@ -1151,6 +1151,106 @@ public struct NodeInvokeRequestEvent: Codable, Sendable {
     }
 }
 
+public struct CanvasDocumentCreateParams: Codable, Sendable {
+    public let id: String?
+    public let kind: String?
+    public let title: String?
+    public let preferredheight: Double?
+    public let surface: String?
+    public let html: String?
+    public let path: String?
+    public let url: String?
+    public let workspacedir: String?
+    public let assets: [[String: AnyCodable]]?
+
+    public init(
+        id: String?,
+        kind: String?,
+        title: String?,
+        preferredheight: Double?,
+        surface: String?,
+        html: String?,
+        path: String?,
+        url: String?,
+        workspacedir: String?,
+        assets: [[String: AnyCodable]]?)
+    {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.preferredheight = preferredheight
+        self.surface = surface
+        self.html = html
+        self.path = path
+        self.url = url
+        self.workspacedir = workspacedir
+        self.assets = assets
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case title
+        case preferredheight = "preferredHeight"
+        case surface
+        case html
+        case path
+        case url
+        case workspacedir = "workspaceDir"
+        case assets
+    }
+}
+
+public struct CanvasDocumentCreateResult: Codable, Sendable {
+    public let id: String
+    public let kind: String
+    public let title: String?
+    public let preferredheight: Double?
+    public let createdat: String
+    public let entryurl: String
+    public let localentrypoint: String?
+    public let externalurl: String?
+    public let surface: String?
+    public let assets: [[String: AnyCodable]]
+
+    public init(
+        id: String,
+        kind: String,
+        title: String?,
+        preferredheight: Double?,
+        createdat: String,
+        entryurl: String,
+        localentrypoint: String?,
+        externalurl: String?,
+        surface: String?,
+        assets: [[String: AnyCodable]])
+    {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.preferredheight = preferredheight
+        self.createdat = createdat
+        self.entryurl = entryurl
+        self.localentrypoint = localentrypoint
+        self.externalurl = externalurl
+        self.surface = surface
+        self.assets = assets
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case title
+        case preferredheight = "preferredHeight"
+        case createdat = "createdAt"
+        case entryurl = "entryUrl"
+        case localentrypoint = "localEntrypoint"
+        case externalurl = "externalUrl"
+        case surface
+        case assets
+    }
+}
+
 public struct PushTestParams: Codable, Sendable {
     public let nodeid: String
     public let title: String?
@@ -2096,20 +2196,40 @@ public struct ConfigSchemaLookupResult: Codable, Sendable {
 }
 
 public struct WizardStartParams: Codable, Sendable {
+    public let target: AnyCodable?
     public let mode: AnyCodable?
     public let workspace: String?
+    public let channel: String?
+    public let provider: String?
+    public let authmethod: String?
+    public let setdefault: Bool?
 
     public init(
+        target: AnyCodable?,
         mode: AnyCodable?,
-        workspace: String?)
+        workspace: String?,
+        channel: String?,
+        provider: String?,
+        authmethod: String?,
+        setdefault: Bool?)
     {
+        self.target = target
         self.mode = mode
         self.workspace = workspace
+        self.channel = channel
+        self.provider = provider
+        self.authmethod = authmethod
+        self.setdefault = setdefault
     }
 
     private enum CodingKeys: String, CodingKey {
+        case target
         case mode
         case workspace
+        case channel
+        case provider
+        case authmethod = "authMethod"
+        case setdefault = "setDefault"
     }
 }
 
@@ -4294,6 +4414,458 @@ public struct PluginApprovalResolveParams: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id
         case decision
+    }
+}
+
+public struct PluginInstallRecord: Codable, Sendable {
+    public let source: String
+    public let spec: String?
+    public let sourcepath: String?
+    public let installpath: String?
+    public let version: String?
+    public let resolvedname: String?
+    public let resolvedversion: String?
+    public let resolvedspec: String?
+    public let marketplacename: String?
+    public let marketplacesource: String?
+    public let marketplaceplugin: String?
+    public let clawhuburl: String?
+    public let clawhubpackage: String?
+    public let clawhubfamily: String?
+    public let clawhubchannel: String?
+    public let installedat: String?
+    public let resolvedat: String?
+
+    public init(
+        source: String,
+        spec: String?,
+        sourcepath: String?,
+        installpath: String?,
+        version: String?,
+        resolvedname: String?,
+        resolvedversion: String?,
+        resolvedspec: String?,
+        marketplacename: String?,
+        marketplacesource: String?,
+        marketplaceplugin: String?,
+        clawhuburl: String?,
+        clawhubpackage: String?,
+        clawhubfamily: String?,
+        clawhubchannel: String?,
+        installedat: String?,
+        resolvedat: String?)
+    {
+        self.source = source
+        self.spec = spec
+        self.sourcepath = sourcepath
+        self.installpath = installpath
+        self.version = version
+        self.resolvedname = resolvedname
+        self.resolvedversion = resolvedversion
+        self.resolvedspec = resolvedspec
+        self.marketplacename = marketplacename
+        self.marketplacesource = marketplacesource
+        self.marketplaceplugin = marketplaceplugin
+        self.clawhuburl = clawhuburl
+        self.clawhubpackage = clawhubpackage
+        self.clawhubfamily = clawhubfamily
+        self.clawhubchannel = clawhubchannel
+        self.installedat = installedat
+        self.resolvedat = resolvedat
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case source
+        case spec
+        case sourcepath = "sourcePath"
+        case installpath = "installPath"
+        case version
+        case resolvedname = "resolvedName"
+        case resolvedversion = "resolvedVersion"
+        case resolvedspec = "resolvedSpec"
+        case marketplacename = "marketplaceName"
+        case marketplacesource = "marketplaceSource"
+        case marketplaceplugin = "marketplacePlugin"
+        case clawhuburl = "clawhubUrl"
+        case clawhubpackage = "clawhubPackage"
+        case clawhubfamily = "clawhubFamily"
+        case clawhubchannel = "clawhubChannel"
+        case installedat = "installedAt"
+        case resolvedat = "resolvedAt"
+    }
+}
+
+public struct PluginStatusEntry: Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let status: AnyCodable
+    public let source: String
+    public let origin: String
+    public let enabled: Bool
+    public let explicitlyenabled: Bool?
+    public let imported: Bool?
+    public let description: String?
+    public let version: String?
+    public let format: String?
+    public let bundleformat: String?
+    public let kind: AnyCodable?
+    public let rootdir: String?
+    public let activationreason: String?
+    public let error: String?
+    public let configschema: Bool
+    public let install: [String: AnyCodable]?
+    public let toolnames: [String]
+    public let channelids: [String]
+    public let providerids: [String]
+    public let speechproviderids: [String]
+    public let websearchproviderids: [String]
+    public let webfetchproviderids: [String]
+    public let agentharnessids: [String]
+    public let commands: [String]
+    public let gatewaymethods: [String]
+    public let services: [String]
+    public let httproutes: Int
+
+    public init(
+        id: String,
+        name: String,
+        status: AnyCodable,
+        source: String,
+        origin: String,
+        enabled: Bool,
+        explicitlyenabled: Bool?,
+        imported: Bool?,
+        description: String?,
+        version: String?,
+        format: String?,
+        bundleformat: String?,
+        kind: AnyCodable?,
+        rootdir: String?,
+        activationreason: String?,
+        error: String?,
+        configschema: Bool,
+        install: [String: AnyCodable]?,
+        toolnames: [String],
+        channelids: [String],
+        providerids: [String],
+        speechproviderids: [String],
+        websearchproviderids: [String],
+        webfetchproviderids: [String],
+        agentharnessids: [String],
+        commands: [String],
+        gatewaymethods: [String],
+        services: [String],
+        httproutes: Int)
+    {
+        self.id = id
+        self.name = name
+        self.status = status
+        self.source = source
+        self.origin = origin
+        self.enabled = enabled
+        self.explicitlyenabled = explicitlyenabled
+        self.imported = imported
+        self.description = description
+        self.version = version
+        self.format = format
+        self.bundleformat = bundleformat
+        self.kind = kind
+        self.rootdir = rootdir
+        self.activationreason = activationreason
+        self.error = error
+        self.configschema = configschema
+        self.install = install
+        self.toolnames = toolnames
+        self.channelids = channelids
+        self.providerids = providerids
+        self.speechproviderids = speechproviderids
+        self.websearchproviderids = websearchproviderids
+        self.webfetchproviderids = webfetchproviderids
+        self.agentharnessids = agentharnessids
+        self.commands = commands
+        self.gatewaymethods = gatewaymethods
+        self.services = services
+        self.httproutes = httproutes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case status
+        case source
+        case origin
+        case enabled
+        case explicitlyenabled = "explicitlyEnabled"
+        case imported
+        case description
+        case version
+        case format
+        case bundleformat = "bundleFormat"
+        case kind
+        case rootdir = "rootDir"
+        case activationreason = "activationReason"
+        case error
+        case configschema = "configSchema"
+        case install
+        case toolnames = "toolNames"
+        case channelids = "channelIds"
+        case providerids = "providerIds"
+        case speechproviderids = "speechProviderIds"
+        case websearchproviderids = "webSearchProviderIds"
+        case webfetchproviderids = "webFetchProviderIds"
+        case agentharnessids = "agentHarnessIds"
+        case commands
+        case gatewaymethods = "gatewayMethods"
+        case services
+        case httproutes = "httpRoutes"
+    }
+}
+
+public struct PluginsStatusParams: Codable, Sendable {}
+
+public struct PluginsStatusResult: Codable, Sendable {
+    public let workspacedir: String?
+    public let plugins: [PluginStatusEntry]
+    public let diagnostics: [[String: AnyCodable]]
+
+    public init(
+        workspacedir: String?,
+        plugins: [PluginStatusEntry],
+        diagnostics: [[String: AnyCodable]])
+    {
+        self.workspacedir = workspacedir
+        self.plugins = plugins
+        self.diagnostics = diagnostics
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case workspacedir = "workspaceDir"
+        case plugins
+        case diagnostics
+    }
+}
+
+public struct PluginsSearchParams: Codable, Sendable {
+    public let query: String
+    public let limit: Int?
+
+    public init(
+        query: String,
+        limit: Int?)
+    {
+        self.query = query
+        self.limit = limit
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case query
+        case limit
+    }
+}
+
+public struct PluginsSearchResult: Codable, Sendable {
+    public let results: [[String: AnyCodable]]
+
+    public init(
+        results: [[String: AnyCodable]])
+    {
+        self.results = results
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case results
+    }
+}
+
+public struct PluginsDetailParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct PluginsDetailResult: Codable, Sendable {
+    public let package: AnyCodable
+    public let owner: AnyCodable?
+
+    public init(
+        package: AnyCodable,
+        owner: AnyCodable?)
+    {
+        self.package = package
+        self.owner = owner
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case package
+        case owner
+    }
+}
+
+public struct PluginsInstallParams: Codable, Sendable {
+    public let source: String
+    public let name: String
+    public let version: String?
+    public let force: Bool?
+    public let dangerouslyforceunsafeinstall: Bool?
+
+    public init(
+        source: String,
+        name: String,
+        version: String?,
+        force: Bool?,
+        dangerouslyforceunsafeinstall: Bool?)
+    {
+        self.source = source
+        self.name = name
+        self.version = version
+        self.force = force
+        self.dangerouslyforceunsafeinstall = dangerouslyforceunsafeinstall
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case source
+        case name
+        case version
+        case force
+        case dangerouslyforceunsafeinstall = "dangerouslyForceUnsafeInstall"
+    }
+}
+
+public struct PluginsInstallResult: Codable, Sendable {
+    public let ok: Bool
+    public let message: String
+    public let pluginid: String
+    public let version: String?
+    public let installpath: String?
+    public let warnings: [String]
+
+    public init(
+        ok: Bool,
+        message: String,
+        pluginid: String,
+        version: String?,
+        installpath: String?,
+        warnings: [String])
+    {
+        self.ok = ok
+        self.message = message
+        self.pluginid = pluginid
+        self.version = version
+        self.installpath = installpath
+        self.warnings = warnings
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case message
+        case pluginid = "pluginId"
+        case version
+        case installpath = "installPath"
+        case warnings
+    }
+}
+
+public struct PluginsUpdateParams: Codable, Sendable {
+    public let pluginid: String
+    public let enabled: Bool
+
+    public init(
+        pluginid: String,
+        enabled: Bool)
+    {
+        self.pluginid = pluginid
+        self.enabled = enabled
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case pluginid = "pluginId"
+        case enabled
+    }
+}
+
+public struct PluginsUpdateResult: Codable, Sendable {
+    public let ok: Bool
+    public let pluginid: String
+    public let enabled: Bool
+    public let message: String
+    public let warnings: [String]
+
+    public init(
+        ok: Bool,
+        pluginid: String,
+        enabled: Bool,
+        message: String,
+        warnings: [String])
+    {
+        self.ok = ok
+        self.pluginid = pluginid
+        self.enabled = enabled
+        self.message = message
+        self.warnings = warnings
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case pluginid = "pluginId"
+        case enabled
+        case message
+        case warnings
+    }
+}
+
+public struct PluginsUninstallParams: Codable, Sendable {
+    public let pluginid: String
+    public let keepfiles: Bool?
+
+    public init(
+        pluginid: String,
+        keepfiles: Bool?)
+    {
+        self.pluginid = pluginid
+        self.keepfiles = keepfiles
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case pluginid = "pluginId"
+        case keepfiles = "keepFiles"
+    }
+}
+
+public struct PluginsUninstallResult: Codable, Sendable {
+    public let ok: Bool
+    public let pluginid: String
+    public let removed: [String]
+    public let warnings: [String]
+    public let message: String
+
+    public init(
+        ok: Bool,
+        pluginid: String,
+        removed: [String],
+        warnings: [String],
+        message: String)
+    {
+        self.ok = ok
+        self.pluginid = pluginid
+        self.removed = removed
+        self.warnings = warnings
+        self.message = message
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case pluginid = "pluginId"
+        case removed
+        case warnings
+        case message
     }
 }
 

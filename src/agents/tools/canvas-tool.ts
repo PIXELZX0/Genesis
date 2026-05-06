@@ -5,6 +5,7 @@ import { Type } from "typebox";
 import { writeBase64ToFile } from "../../cli/nodes-camera.js";
 import { canvasSnapshotTempPath, parseCanvasSnapshotPayload } from "../../cli/nodes-canvas.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import type { CanvasDocumentCreateResult } from "../../gateway/protocol/index.js";
 import { logVerbose, shouldLogVerbose } from "../../globals.js";
 import { isInboundPathAllowed } from "../../media/inbound-path-policy.js";
 import { getDefaultMediaLocalRoots } from "../../media/local-roots.js";
@@ -12,11 +13,20 @@ import { imageMimeFromFormat } from "../../media/mime.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import { resolveImageSanitizationLimits } from "../image-sanitization.js";
 import { optionalStringEnum, stringEnum } from "../schema/typebox.js";
-import { type AnyAgentTool, imageResult, jsonResult, readStringParam } from "./common.js";
+import {
+  type AnyAgentTool,
+  ToolInputError,
+  imageResult,
+  jsonResult,
+  readNumberParam,
+  readStringParam,
+  textResult,
+} from "./common.js";
 import { callGatewayTool, readGatewayCallOptions } from "./gateway.js";
 import { resolveNodeId } from "./nodes-utils.js";
 
 const CANVAS_ACTIONS = [
+  "create",
   "present",
   "hide",
   "navigate",
@@ -27,6 +37,22 @@ const CANVAS_ACTIONS = [
 ] as const;
 
 const CANVAS_SNAPSHOT_FORMATS = ["png", "jpg", "jpeg"] as const;
+const CANVAS_DOCUMENT_KINDS = [
+  "html_bundle",
+  "url_embed",
+  "document",
+  "image",
+  "video_asset",
+] as const;
+const CANVAS_DOCUMENT_SURFACES = ["assistant_message", "tool_card", "sidebar"] as const;
+
+type CanvasDocumentKind = (typeof CANVAS_DOCUMENT_KINDS)[number];
+type CanvasDocumentSurface = (typeof CANVAS_DOCUMENT_SURFACES)[number];
+type CanvasDocumentAssetParam = {
+  logicalPath: string;
+  sourcePath: string;
+  contentType?: string;
+};
 
 async function readJsonlFromPath(jsonlPath: string): Promise<string> {
   const trimmed = jsonlPath.trim();
@@ -58,6 +84,24 @@ const CanvasToolSchema = Type.Object({
   gatewayToken: Type.Optional(Type.String()),
   timeoutMs: Type.Optional(Type.Number()),
   node: Type.Optional(Type.String()),
+  // create
+  id: Type.Optional(Type.String()),
+  kind: optionalStringEnum(CANVAS_DOCUMENT_KINDS),
+  title: Type.Optional(Type.String()),
+  preferredHeight: Type.Optional(Type.Number()),
+  surface: optionalStringEnum(CANVAS_DOCUMENT_SURFACES),
+  html: Type.Optional(Type.String()),
+  path: Type.Optional(Type.String()),
+  workspaceDir: Type.Optional(Type.String()),
+  assets: Type.Optional(
+    Type.Array(
+      Type.Object({
+        logicalPath: Type.String(),
+        sourcePath: Type.String(),
+        contentType: Type.Optional(Type.String()),
+      }),
+    ),
+  ),
   // present
   target: Type.Optional(Type.String()),
   x: Type.Optional(Type.Number()),
@@ -78,18 +122,151 @@ const CanvasToolSchema = Type.Object({
   jsonlPath: Type.Optional(Type.String()),
 });
 
+function readCanvasDocumentKind(params: Record<string, unknown>): CanvasDocumentKind | undefined {
+  const value = readStringParam(params, "kind", { trim: true });
+  if (!value) {
+    return undefined;
+  }
+  if ((CANVAS_DOCUMENT_KINDS as readonly string[]).includes(value)) {
+    return value as CanvasDocumentKind;
+  }
+  throw new ToolInputError(`kind must be one of ${CANVAS_DOCUMENT_KINDS.join(", ")}`);
+}
+
+function readCanvasDocumentSurface(
+  params: Record<string, unknown>,
+): CanvasDocumentSurface | undefined {
+  const value = readStringParam(params, "surface", { trim: true });
+  if (!value) {
+    return undefined;
+  }
+  if ((CANVAS_DOCUMENT_SURFACES as readonly string[]).includes(value)) {
+    return value as CanvasDocumentSurface;
+  }
+  throw new ToolInputError(`surface must be one of ${CANVAS_DOCUMENT_SURFACES.join(", ")}`);
+}
+
+function readCanvasDocumentAssets(
+  params: Record<string, unknown>,
+): CanvasDocumentAssetParam[] | undefined {
+  if (params.assets === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(params.assets)) {
+    throw new ToolInputError("assets must be an array");
+  }
+  return params.assets.map((asset, index) => {
+    if (!asset || typeof asset !== "object" || Array.isArray(asset)) {
+      throw new ToolInputError(`assets[${index}] must be an object`);
+    }
+    const record = asset as Record<string, unknown>;
+    const logicalPath = readStringParam(record, "logicalPath", {
+      required: true,
+      trim: true,
+      label: `assets[${index}].logicalPath`,
+    });
+    const sourcePath = readStringParam(record, "sourcePath", {
+      required: true,
+      trim: true,
+      label: `assets[${index}].sourcePath`,
+    });
+    const contentType = readStringParam(record, "contentType", {
+      trim: true,
+      label: `assets[${index}].contentType`,
+    });
+    return {
+      logicalPath,
+      sourcePath,
+      ...(contentType ? { contentType } : {}),
+    };
+  });
+}
+
+function escapeEmbedAttribute(value: string): string {
+  return value
+    .replace(/["\n\r]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildCanvasEmbedShortcode(manifest: CanvasDocumentCreateResult): string {
+  const attrs = [`ref="${escapeEmbedAttribute(manifest.id)}"`];
+  if (manifest.title) {
+    attrs.push(`title="${escapeEmbedAttribute(manifest.title)}"`);
+  }
+  if (typeof manifest.preferredHeight === "number" && Number.isFinite(manifest.preferredHeight)) {
+    attrs.push(`height="${Math.trunc(manifest.preferredHeight)}"`);
+  }
+  return `[embed ${attrs.join(" ")} /]`;
+}
+
+function buildCanvasPreviewPayload(manifest: CanvasDocumentCreateResult) {
+  return {
+    kind: "canvas",
+    presentation: {
+      target: "assistant_message",
+      ...(manifest.title ? { title: manifest.title } : {}),
+      ...(typeof manifest.preferredHeight === "number" && Number.isFinite(manifest.preferredHeight)
+        ? { preferred_height: manifest.preferredHeight }
+        : {}),
+    },
+    view: {
+      id: manifest.id,
+      url: manifest.entryUrl,
+      ...(manifest.title ? { title: manifest.title } : {}),
+    },
+    document: manifest,
+    embed: buildCanvasEmbedShortcode(manifest),
+  };
+}
+
 export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgentTool {
   const imageSanitization = resolveImageSanitizationLimits(options?.config);
   return {
     label: "Canvas",
     name: "canvas",
     description:
-      "Control node canvases (present/hide/navigate/eval/snapshot/A2UI). Use snapshot to capture the rendered UI.",
+      "Create hosted Control UI embeds and control node canvases (present/hide/navigate/eval/snapshot/A2UI).",
     parameters: CanvasToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
       const action = readStringParam(params, "action", { required: true });
       const gatewayOpts = readGatewayCallOptions(params);
+
+      if (action === "create") {
+        const preferredHeight =
+          readNumberParam(params, "preferredHeight") ?? readNumberParam(params, "height");
+        const id = readStringParam(params, "id", { trim: true });
+        const kind = readCanvasDocumentKind(params);
+        const title = readStringParam(params, "title", { trim: true });
+        const surface = readCanvasDocumentSurface(params);
+        const html = readStringParam(params, "html", { trim: false });
+        const filePath = readStringParam(params, "path", { trim: true });
+        const url = readStringParam(params, "url", { trim: true });
+        const workspaceDir = readStringParam(params, "workspaceDir", { trim: true });
+        const assets = readCanvasDocumentAssets(params);
+        const createParams = {
+          ...(id ? { id } : {}),
+          ...(kind ? { kind } : {}),
+          ...(title ? { title } : {}),
+          ...(typeof preferredHeight === "number" && Number.isFinite(preferredHeight)
+            ? { preferredHeight }
+            : {}),
+          ...(surface ? { surface } : {}),
+          ...(html ? { html } : {}),
+          ...(filePath ? { path: filePath } : {}),
+          ...(url ? { url } : {}),
+          workspaceDir: workspaceDir ?? process.cwd(),
+          ...(assets ? { assets } : {}),
+        };
+        const manifest = await callGatewayTool<CanvasDocumentCreateResult>(
+          "canvas.document.create",
+          gatewayOpts,
+          createParams,
+        );
+        const preview = buildCanvasPreviewPayload(manifest);
+        return textResult(JSON.stringify(preview, null, 2), preview);
+      }
 
       const nodeId = await resolveNodeId(
         gatewayOpts,

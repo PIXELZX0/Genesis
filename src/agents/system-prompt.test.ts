@@ -260,6 +260,7 @@ describe("buildAgentSystemPrompt", () => {
 
     expect(prompt).toContain("## Control UI Embed");
     expect(prompt).toContain("Use `[embed ...]` only in Control UI/webchat sessions");
+    expect(prompt).toContain('`canvas` tool with `action: "create"`');
     expect(prompt).toContain('[embed ref="cv_123" title="Status" height="320" /]');
     expect(prompt).toContain(
       '[embed url="/__genesis__/canvas/documents/cv_123/index.html" title="Status" height="320" /]',
