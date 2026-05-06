@@ -183,6 +183,42 @@ function createChatEphemeralState(): ChatEphemeralState {
 
 const vs = createChatEphemeralState();
 
+// Module-level RAF coalescing for chat input. One pending update across renders;
+// `renderChat` is invoked per render so closure-local state would reset and
+// scheduled frames could not be cancelled by the next render.
+let draftRaf: number | null = null;
+let draftPending: string | null = null;
+let draftCallback: ((value: string) => void) | null = null;
+
+function flushDraftChange(): void {
+  if (draftRaf !== null) {
+    cancelAnimationFrame(draftRaf);
+    draftRaf = null;
+  }
+  if (draftPending !== null && draftCallback !== null) {
+    const cb = draftCallback;
+    const value = draftPending;
+    draftPending = null;
+    cb(value);
+  }
+}
+
+function scheduleDraftChange(value: string, callback: (value: string) => void): void {
+  draftPending = value;
+  draftCallback = callback;
+  if (draftRaf === null) {
+    draftRaf = requestAnimationFrame(() => {
+      draftRaf = null;
+      if (draftPending !== null && draftCallback !== null) {
+        const cb = draftCallback;
+        const v = draftPending;
+        draftPending = null;
+        cb(v);
+      }
+    });
+  }
+}
+
 /**
  * Reset chat view ephemeral state when navigating away.
  * Stops STT recording and clears search/slash UI that should not survive navigation.
@@ -1063,6 +1099,8 @@ export function renderChat(props: ChatProps) {
       }
       e.preventDefault();
       if (canCompose) {
+        // Flush any pending draft update before sending so the parent has the latest value.
+        flushDraftChange();
         if (props.draft.trim()) {
           inputHistory.push(props.draft);
         }
@@ -1073,10 +1111,13 @@ export function renderChat(props: ChatProps) {
 
   const handleInput = (e: Event) => {
     const target = e.target as HTMLTextAreaElement;
+    // DOM measurement — must be synchronous.
     adjustTextareaHeight(target);
+    // Slash menu stays synchronous for instant command navigation.
     updateSlashMenu(target.value, requestUpdate);
     inputHistory.reset();
-    props.onDraftChange(target.value);
+    // Coalesce draft updates to one per animation frame across renders.
+    scheduleDraftChange(target.value, props.onDraftChange);
   };
 
   return html`
