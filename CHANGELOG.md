@@ -6,6 +6,7 @@ Docs: https://docs.genesis.ai
 
 ### Fixes
 
+- Gateway: let web chat agents create hosted UI documents directly through the Gateway canvas API, so Control UI sessions can produce interactive UI instead of failing before a canvas node exists.
 - CLI/completion: keep `genesis completion --write-state` cache refresh bounded by using command metadata for heavyweight and plugin-provided surfaces while preserving cached command names.
 - Control UI: return a clear startup `503` while Gateway sidecars are still settling, so browsers retry instead of loading the dashboard against a not-ready Gateway.
 - Control UI: run installed Vite and Vitest directly when `pnpm` is unavailable, and prefer an external Node binary over app-bundled Node on macOS so source checkouts can still build and test the browser UI.
