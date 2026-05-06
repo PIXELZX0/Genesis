@@ -43,6 +43,38 @@ function isSilentReplyStream(text: string): boolean {
   return SILENT_REPLY_PATTERN.test(text);
 }
 
+// RAF coalescing for streaming delta updates — collapses N chunks per frame into one
+// Lit reactive write. Terminal states (final/aborted/error) flush before clearing.
+let streamRaf: number | null = null;
+let streamPending: { state: ChatState; text: string } | null = null;
+
+function applyPendingStream(): void {
+  if (streamPending) {
+    const { state, text } = streamPending;
+    streamPending = null;
+    state.chatStream = text;
+  }
+}
+
+/** Cancel any pending RAF and apply the buffered stream value synchronously. Exposed for tests. */
+export function flushPendingStream(): void {
+  if (streamRaf !== null) {
+    cancelAnimationFrame(streamRaf);
+    streamRaf = null;
+  }
+  applyPendingStream();
+}
+
+function scheduleStreamUpdate(state: ChatState, text: string): void {
+  streamPending = { state, text };
+  if (streamRaf === null) {
+    streamRaf = requestAnimationFrame(() => {
+      streamRaf = null;
+      applyPendingStream();
+    });
+  }
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -679,9 +711,10 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   if (payload.state === "delta") {
     const next = extractText(payload.message);
     if (typeof next === "string" && !isSilentReplyStream(next)) {
-      state.chatStream = next;
+      scheduleStreamUpdate(state, next);
     }
   } else if (payload.state === "final") {
+    flushPendingStream();
     const finalMessage = normalizeFinalAssistantMessage(payload.message);
     if (finalMessage && !isAssistantSilentReply(finalMessage)) {
       state.chatMessages = [...state.chatMessages, finalMessage];
@@ -699,6 +732,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "aborted") {
+    flushPendingStream();
     const normalizedMessage = normalizeAbortedAssistantMessage(payload.message);
     if (normalizedMessage && !isAssistantSilentReply(normalizedMessage)) {
       state.chatMessages = [...state.chatMessages, normalizedMessage];
@@ -719,6 +753,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "error") {
+    flushPendingStream();
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;

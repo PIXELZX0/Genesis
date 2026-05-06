@@ -18,7 +18,6 @@ export async function warnIfModelConfigLooksOff(
   const warnings: string[] = [];
   const catalog = await loadModelCatalog({
     config,
-    useCache: false,
   });
   if (catalog.length > 0) {
     const known = catalog.some(

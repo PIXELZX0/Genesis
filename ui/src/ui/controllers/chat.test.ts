@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { GatewayRequestError } from "../gateway.ts";
 import {
   abortChatRun,
+  flushPendingStream,
   handleChatEvent,
   loadChatHistory,
   sendChatMessage,
@@ -160,6 +161,7 @@ describe("handleChatEvent", () => {
       },
     };
     expect(handleChatEvent(state, payload)).toBe("delta");
+    flushPendingStream();
     expect(state.chatStream).toBe("Alpha");
   });
 
