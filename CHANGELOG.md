@@ -2,6 +2,21 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.7
+
+### Changes
+
+- Control UI: coalesce chat input and streaming renders and reuse chat/model-picker work so busy sessions stay responsive.
+- Provider/model setup: keep read-only model pickers, provider auth prompts, and doctor/status checks from installing bundled plugin runtime dependencies unless a repair or runtime path actually needs them.
+- Telegram: move setup and account inspection onto a lightweight plugin surface, preserving multi-account defaults and allowlist prompts without importing the full channel runtime.
+
+### Fixes
+
+- Control UI: keep lazy-loaded views retryable on load/render errors and keep Agents, Channels, Cron, Sessions, Config, and Usage pages working in browsers that do not provide Array copy helpers.
+- OpenAI Codex: show the device pairing code in the local runtime output during remote login, while keeping forwarded prompts redacted.
+- Models CLI: keep list/status rows from plugin-normalizing canonical provider ids or synthesizing stale auth-backed entries in read-only mode.
+- Doctor: avoid a second bundled plugin runtime-deps scan after config loading already checked them, and check memory backend status without installing runtime deps.
+
 ## 2026.5.5
 
 ### Fixes
