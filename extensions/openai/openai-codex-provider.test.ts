@@ -234,7 +234,7 @@ describe("openai codex provider", () => {
     expect(result?.profiles[0]?.credential).not.toHaveProperty("accountId");
   });
 
-  it("does not log the device pairing code in remote mode", async () => {
+  it("logs the device pairing code locally but keeps the remote prompt redacted", async () => {
     const provider = buildOpenAICodexProviderPlugin();
     const deviceCodeMethod = provider.auth?.find((method) => method.id === "device-code");
     const note = vi.fn(async () => {});
@@ -275,7 +275,7 @@ describe("openai codex provider", () => {
 
     const logOutput = runtime.log.mock.calls.flat().join("\n");
     expect(logOutput).toContain("https://auth.openai.com/codex/device");
-    expect(logOutput).not.toContain("CODE-12345");
+    expect(logOutput).toContain("Code: CODE-12345");
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining("Code: [shown on the local device only]"),
       "OpenAI Codex device code",

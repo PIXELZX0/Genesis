@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import type {
@@ -44,18 +45,19 @@ export function renderChannels(props: ChannelsProps) {
   const imessage = (channels?.imessage ?? null) as IMessageStatus | null;
   const nostr = (channels?.nostr ?? null) as NostrStatus | null;
   const channelOrder = resolveChannelOrder(props.snapshot);
-  const orderedChannels = channelOrder
-    .map((key, index) => ({
+  const orderedChannels = sortCopy(
+    channelOrder.map((key, index) => ({
       key,
       enabled: channelEnabled(key, props),
       order: index,
-    }))
-    .toSorted((a, b) => {
+    })),
+    (a, b) => {
       if (a.enabled !== b.enabled) {
         return a.enabled ? -1 : 1;
       }
       return a.order - b.order;
-    });
+    },
+  );
 
   return html`
     <section class="channels-toolbar">

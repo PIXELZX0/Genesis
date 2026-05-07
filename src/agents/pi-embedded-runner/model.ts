@@ -409,10 +409,12 @@ function resolveExplicitModelWithRegistry(params: {
   cfg?: GenesisConfig;
   agentDir?: string;
   runtimeHooks?: ProviderRuntimeHooks;
+  skipProviderRuntimeHooks?: boolean;
 }): { kind: "resolved"; model: Model<Api> } | { kind: "suppressed" } | undefined {
   const { provider, modelId, modelRegistry, cfg, agentDir, runtimeHooks } = params;
   const providerConfig = resolveConfiguredProviderConfig(cfg, provider);
   if (
+    !params.skipProviderRuntimeHooks &&
     shouldSuppressBuiltInModel({
       provider,
       id: modelId,
@@ -652,6 +654,7 @@ export function resolveModelWithRegistry(params: {
   cfg?: GenesisConfig;
   agentDir?: string;
   runtimeHooks?: ProviderRuntimeHooks;
+  skipProviderRuntimeHooks?: boolean;
 }): Model<Api> | undefined {
   const normalizedRef = {
     provider: params.provider,
@@ -662,9 +665,12 @@ export function resolveModelWithRegistry(params: {
     provider: normalizedRef.provider,
     modelId: normalizedRef.model,
   };
-  const runtimeHooks = params.runtimeHooks ?? DEFAULT_PROVIDER_RUNTIME_HOOKS;
+  const runtimeHooks = resolveRuntimeHooks(params);
   const workspaceDir = normalizedParams.cfg?.agents?.defaults?.workspace;
-  const explicitModel = resolveExplicitModelWithRegistry(normalizedParams);
+  const explicitModel = resolveExplicitModelWithRegistry({
+    ...normalizedParams,
+    runtimeHooks,
+  });
   if (explicitModel?.kind === "suppressed") {
     return undefined;
   }
@@ -684,13 +690,17 @@ export function resolveModelWithRegistry(params: {
     const pluginDynamicModel = resolvePluginDynamicModelWithRegistry({
       ...normalizedParams,
       workspaceDir,
+      runtimeHooks,
     });
     return preferProviderRuntimeResolvedModel({
       explicitModel: explicitModel.model,
       runtimeResolvedModel: pluginDynamicModel,
     });
   }
-  const pluginDynamicModel = resolvePluginDynamicModelWithRegistry(normalizedParams);
+  const pluginDynamicModel = resolvePluginDynamicModelWithRegistry({
+    ...normalizedParams,
+    runtimeHooks,
+  });
   if (pluginDynamicModel) {
     return pluginDynamicModel;
   }

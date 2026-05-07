@@ -108,6 +108,7 @@ function resolveProviderPluginsForCatalogHooks(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): ProviderPlugin[] {
   const workspaceDir = params.workspaceDir ?? getActivePluginRegistryWorkspaceDirFromState();
   const onlyPluginIds = resolveCatalogHookProviderPluginIds({
@@ -122,6 +123,7 @@ function resolveProviderPluginsForCatalogHooks(params: {
     ...params,
     workspaceDir,
     onlyPluginIds,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
   });
 }
 
@@ -870,6 +872,7 @@ export function resolveProviderBuiltInModelSuppression(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
   context: ProviderBuiltInModelSuppressionContext;
 }) {
   for (const plugin of resolveProviderPluginsForCatalogHooks(params)) {
@@ -885,6 +888,7 @@ export async function augmentModelCatalogWithProviderPlugins(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
   context: ProviderAugmentModelCatalogContext;
 }) {
   const supplemental = [] as ProviderAugmentModelCatalogContext["entries"];

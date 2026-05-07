@@ -138,6 +138,11 @@ describe("promptDefaultModel", () => {
     });
 
     const options = select.mock.calls[0]?.[0]?.options ?? [];
+    expect(loadModelCatalog).toHaveBeenCalledWith({
+      config: { agents: { defaults: {} } },
+      readOnly: true,
+      installBundledRuntimeDeps: false,
+    });
     expect(options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -353,6 +358,12 @@ describe("promptDefaultModel", () => {
     });
 
     expect(providerModelPickerContributionRuntime.resolve).toHaveBeenCalledOnce();
+    expect(providerModelPickerContributionRuntime.resolve).toHaveBeenCalledWith({
+      config: { agents: { defaults: {} } },
+      workspaceDir: undefined,
+      env: undefined,
+      installBundledRuntimeDeps: false,
+    });
     expect(select.mock.calls[0]?.[0]?.options).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: "ollama", label: "Ollama" })]),
     );
@@ -392,6 +403,11 @@ describe("promptModelAllowlist", () => {
       allowedKeys: ["anthropic/claude-opus-4-6"],
     });
 
+    expect(loadModelCatalog).toHaveBeenCalledWith({
+      config,
+      readOnly: true,
+      installBundledRuntimeDeps: false,
+    });
     const options = multiselect.mock.calls[0]?.[0]?.options ?? [];
     expect(options.map((opt: { value: string }) => opt.value)).toEqual([
       "anthropic/claude-opus-4-6",

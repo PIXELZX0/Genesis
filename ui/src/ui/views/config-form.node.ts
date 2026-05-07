@@ -1,4 +1,5 @@
 import { html, nothing, type TemplateResult } from "lit";
+import { sortCopy } from "../array.ts";
 import { formatUnknownText } from "../format.ts";
 import { icons as sharedIcons } from "../icons.ts";
 import {
@@ -975,7 +976,7 @@ function renderObject(params: {
   const entries = Object.entries(props);
 
   // Sort by hint order
-  const sorted = entries.toSorted((a, b) => {
+  const sorted = sortCopy(entries, (a, b) => {
     const orderA = hintForPath([...path, a[0]], hints)?.order ?? 0;
     const orderB = hintForPath([...path, b[0]], hints)?.order ?? 0;
     if (orderA !== orderB) {

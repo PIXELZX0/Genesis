@@ -13,6 +13,7 @@ export async function promptAuthChoiceGrouped(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): Promise<AuthChoice> {
   const { groups, skipOption } = buildAuthChoiceGroups(params);
   const availableGroups = groups.filter((group) => group.options.length > 0);

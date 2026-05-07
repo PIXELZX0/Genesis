@@ -10,11 +10,8 @@ import {
   normalizeSecretInputString,
 } from "genesis/plugin-sdk/secret-input";
 import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
-import {
-  mergeTelegramAccountConfig,
-  resolveDefaultTelegramAccountId,
-  resolveTelegramAccountConfig,
-} from "./accounts.js";
+import { mergeTelegramAccountConfig, resolveTelegramAccountConfig } from "./account-config.js";
+import { resolveDefaultTelegramAccountId } from "./account-selection.js";
 
 export type TelegramCredentialStatus = "available" | "configured_unavailable" | "missing";
 

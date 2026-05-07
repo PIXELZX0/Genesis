@@ -670,6 +670,33 @@ function hasDependencySentinel(
   });
 }
 
+function createDependencySentinelChecker(): typeof hasDependencySentinel {
+  const installedVersionCache = new Map<string, string | null>();
+  return (searchRoots, dep) => {
+    const seenRoots = new Set<string>();
+    for (const rootDir of searchRoots) {
+      const resolvedRoot = path.resolve(rootDir);
+      if (seenRoots.has(resolvedRoot)) {
+        continue;
+      }
+      seenRoots.add(resolvedRoot);
+      const cacheKey = `${resolvedRoot}\0${dep.name}`;
+      let installedVersion = installedVersionCache.get(cacheKey);
+      if (!installedVersionCache.has(cacheKey)) {
+        installedVersion = readInstalledDependencyVersion(resolvedRoot, dep.name);
+        installedVersionCache.set(cacheKey, installedVersion);
+      }
+      if (
+        typeof installedVersion === "string" &&
+        isInstalledDependencyVersionSatisfied(installedVersion, dep.version)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
 function replaceNodeModulesDir(targetDir: string, sourceDir: string): void {
   const parentDir = path.dirname(targetDir);
   const tempDir = fs.mkdtempSync(path.join(parentDir, ".genesis-runtime-deps-copy-"));
@@ -1040,18 +1067,24 @@ export function scanBundledPluginRuntimeDeps(params: {
   const packageInstallRoot = resolveBundledRuntimeDependencyPackageInstallRoot(params.packageRoot, {
     env: params.env,
   });
-  const packageSearchRoots = [packageInstallRoot];
-  const missing = deps.filter(
-    (dep) =>
-      !hasDependencySentinel(packageSearchRoots, dep) &&
-      dep.pluginIds.every((pluginId) => {
-        const pluginRoot = path.join(extensionsDir, pluginId);
-        const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
-          env: params.env,
-        });
-        return !hasDependencySentinel([installRoot], dep);
-      }),
-  );
+  const hasCachedDependencySentinel = createDependencySentinelChecker();
+  const pluginInstallRootsById = new Map<string, string>();
+  const resolvePluginInstallRoot = (pluginId: string): string => {
+    const cached = pluginInstallRootsById.get(pluginId);
+    if (cached) {
+      return cached;
+    }
+    const pluginRoot = path.join(extensionsDir, pluginId);
+    const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
+      env: params.env,
+    });
+    pluginInstallRootsById.set(pluginId, installRoot);
+    return installRoot;
+  };
+  const missing = deps.filter((dep) => {
+    const searchRoots = [packageInstallRoot, ...dep.pluginIds.map(resolvePluginInstallRoot)];
+    return !hasCachedDependencySentinel(searchRoots, dep);
+  });
   return { deps, missing, conflicts };
 }
 

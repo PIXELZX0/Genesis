@@ -1,6 +1,7 @@
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_CRON_FORM } from "../app-defaults.ts";
+import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import type { CronJob } from "../types.ts";
 import { renderCron, type CronProps } from "./cron.ts";
 
@@ -84,6 +85,27 @@ function getButtonByText(container: Element, text: string) {
 }
 
 describe("cron view", () => {
+  it("renders cron jobs and runs when browser array copy methods are unavailable", () => {
+    const container = document.createElement("div");
+    withoutArrayCopyMethods(() =>
+      render(
+        renderCron(
+          createProps({
+            jobs: [createJob("job-1")],
+            runs: [
+              { ts: 1, jobId: "job-1", status: "ok", summary: "older run" },
+              { ts: 2, jobId: "job-1", status: "ok", summary: "newer run" },
+            ],
+          }),
+        ),
+        container,
+      ),
+    );
+
+    expect(container.textContent).toContain("Daily ping");
+    expect(container.textContent).toContain("newer run");
+  });
+
   it("shows all-job history mode and wires run/job filters", () => {
     const container = document.createElement("div");
     const onRunsFiltersChange = vi.fn();

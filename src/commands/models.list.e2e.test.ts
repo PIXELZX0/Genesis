@@ -29,6 +29,7 @@ const modelRegistryState = {
   getAllError: undefined as unknown,
   getAvailableError: undefined as unknown,
   findError: undefined as unknown,
+  discoverModelsCalls: [] as unknown[][],
 };
 let previousExitCode: typeof process.exitCode;
 
@@ -90,7 +91,10 @@ vi.mock("./models/list.runtime.js", () => {
     loadModelCatalog,
     loadProviderCatalogModelsForList,
     discoverAuthStorage: () => ({}) as unknown,
-    discoverModels: () => new MockModelRegistry() as unknown,
+    discoverModels: (...args: unknown[]) => {
+      modelRegistryState.discoverModelsCalls.push(args);
+      return new MockModelRegistry() as unknown;
+    },
     resolveModelWithRegistry: ({
       provider,
       modelId,
@@ -154,6 +158,7 @@ beforeEach(() => {
   modelRegistryState.getAllError = undefined;
   modelRegistryState.getAvailableError = undefined;
   modelRegistryState.findError = undefined;
+  modelRegistryState.discoverModelsCalls = [];
   getRuntimeConfig.mockReset();
   getRuntimeConfig.mockReturnValue({});
   listProfilesForProvider.mockReturnValue([]);
@@ -327,6 +332,9 @@ describe("models list/status", () => {
 
     expect(runtime.log).toHaveBeenCalledTimes(1);
     expect(runtime.log.mock.calls[0]?.[0]).toBe("zai/glm-4.7");
+    expect(modelRegistryState.discoverModelsCalls[0]?.[2]).toMatchObject({
+      allowPluginNormalization: false,
+    });
   });
 
   it("models list plain keeps canonical OpenRouter native ids", async () => {

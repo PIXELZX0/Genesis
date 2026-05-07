@@ -12,6 +12,7 @@ export async function resolvePreferredProviderForAuthChoice(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   includeUntrustedWorkspacePlugins?: boolean;
+  installBundledRuntimeDeps?: boolean;
 }): Promise<string | undefined> {
   const choice = normalizeLegacyAuthChoice(params.choice, params.env) ?? params.choice;
   const manifestResolved = resolveManifestProviderAuthChoice(choice, params);
@@ -27,6 +28,7 @@ export async function resolvePreferredProviderForAuthChoice(params: {
     env: params.env,
     mode: "setup",
     includeUntrustedWorkspacePlugins: params.includeUntrustedWorkspacePlugins,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
   });
   const pluginResolved = resolveProviderPluginChoice({
     providers,

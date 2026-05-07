@@ -64,6 +64,20 @@ function expectMemoryRuntimeLoaded(rawConfig: unknown, autoEnabledConfig: unknow
   );
 }
 
+function expectMemoryRuntimeLoadedWithRuntimeDepsMode(params: {
+  rawConfig: unknown;
+  autoEnabledConfig: unknown;
+  installBundledRuntimeDeps: boolean;
+}) {
+  expect(resolveRuntimePluginRegistryMock).toHaveBeenCalledWith(
+    expect.objectContaining({
+      config: params.autoEnabledConfig,
+      activationSourceConfig: params.rawConfig,
+      installBundledRuntimeDeps: params.installBundledRuntimeDeps,
+    }),
+  );
+}
+
 function expectMemoryAutoEnableApplied(rawConfig: unknown, autoEnabledConfig: unknown) {
   expect(applyPluginAutoEnableMock).toHaveBeenCalledWith({
     config: rawConfig,
@@ -157,6 +171,39 @@ describe("memory runtime auto-enable loading", () => {
     },
   ] as const)("$name", async ({ run, expectedResult }) => {
     await expectAutoEnabledMemoryRuntimeCase({ run, expectedResult });
+  });
+
+  it("loads status memory manager without installing bundled runtime deps", async () => {
+    const { rawConfig, autoEnabledConfig } = setAutoEnabledMemoryRuntime();
+
+    await getActiveMemorySearchManager({
+      cfg: rawConfig as never,
+      agentId: "main",
+      purpose: "status",
+    });
+
+    expectMemoryRuntimeLoadedWithRuntimeDepsMode({
+      rawConfig,
+      autoEnabledConfig,
+      installBundledRuntimeDeps: false,
+    });
+  });
+
+  it("passes explicit bundled runtime deps mode for backend config checks", () => {
+    const { rawConfig, autoEnabledConfig } = setAutoEnabledMemoryRuntime();
+
+    const result = resolveActiveMemoryBackendConfig({
+      cfg: rawConfig as never,
+      agentId: "main",
+      installBundledRuntimeDeps: false,
+    });
+
+    expect(result).toEqual({ backend: "builtin" });
+    expectMemoryRuntimeLoadedWithRuntimeDepsMode({
+      rawConfig,
+      autoEnabledConfig,
+      installBundledRuntimeDeps: false,
+    });
   });
 
   it.each([

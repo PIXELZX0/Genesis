@@ -1,19 +1,14 @@
+import type { ChannelSetupDmPolicy, GenesisConfig } from "genesis/plugin-sdk/setup-runtime";
+import { formatCliCommand, formatDocsLink } from "genesis/plugin-sdk/setup-tools";
+import { mergeTelegramAccountConfig } from "./account-config.js";
+import { resolveDefaultTelegramAccountId } from "./account-selection.js";
+import { promptTelegramAllowFromForAccount } from "./setup-core.js";
 import {
   addWildcardAllowFrom,
-  applySetupAccountConfigPatch,
-  type ChannelSetupDmPolicy,
   DEFAULT_ACCOUNT_ID,
-  type GenesisConfig,
-  patchChannelConfigForAccount,
-} from "genesis/plugin-sdk/setup";
-import { formatCliCommand, formatDocsLink } from "genesis/plugin-sdk/setup-tools";
-import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
-import {
-  mergeTelegramAccountConfig,
-  resolveDefaultTelegramAccountId,
-  resolveTelegramAccount,
-} from "./accounts.js";
-import { promptTelegramAllowFromForAccount } from "./setup-core.js";
+  normalizeTelegramSetupString,
+  patchTelegramConfigForAccount,
+} from "./setup-local.js";
 
 const channel = "telegram" as const;
 
@@ -21,18 +16,17 @@ export function ensureTelegramDefaultGroupMentionGate(
   cfg: GenesisConfig,
   accountId: string,
 ): GenesisConfig {
-  const resolved = resolveTelegramAccount({ cfg, accountId });
-  const wildcardGroup = resolved.config.groups?.["*"];
+  const resolved = mergeTelegramAccountConfig(cfg, accountId);
+  const wildcardGroup = resolved.groups?.["*"];
   if (wildcardGroup?.requireMention !== undefined) {
     return cfg;
   }
-  return patchChannelConfigForAccount({
+  return patchTelegramConfigForAccount({
     cfg,
-    channel,
     accountId,
     patch: {
       groups: {
-        ...resolved.config.groups,
+        ...resolved.groups,
         "*": {
           ...wildcardGroup,
           requireMention: true,
@@ -47,7 +41,7 @@ export function shouldShowTelegramDmAccessWarning(cfg: GenesisConfig, accountId:
   const policy = merged.dmPolicy ?? "pairing";
   const hasAllowFrom =
     Array.isArray(merged.allowFrom) &&
-    merged.allowFrom.some((entry) => normalizeOptionalString(String(entry)));
+    merged.allowFrom.some((entry) => normalizeTelegramSetupString(String(entry)));
   return policy === "pairing" && !hasAllowFrom;
 }
 
@@ -71,7 +65,7 @@ export const telegramSetupDmPolicy: ChannelSetupDmPolicy = {
   channel,
   policyKey: "channels.telegram.dmPolicy",
   allowFromKey: "channels.telegram.allowFrom",
-  resolveConfigKeys: (cfg, accountId) =>
+  resolveConfigKeys: (cfg: GenesisConfig, accountId?: string) =>
     (accountId ?? resolveDefaultTelegramAccountId(cfg)) !== DEFAULT_ACCOUNT_ID
       ? {
           policyKey: `channels.telegram.accounts.${accountId ?? resolveDefaultTelegramAccountId(cfg)}.dmPolicy`,
@@ -81,7 +75,7 @@ export const telegramSetupDmPolicy: ChannelSetupDmPolicy = {
           policyKey: "channels.telegram.dmPolicy",
           allowFromKey: "channels.telegram.allowFrom",
         },
-  getCurrent: (cfg, accountId) =>
+  getCurrent: (cfg: GenesisConfig, accountId?: string) =>
     mergeTelegramAccountConfig(cfg, accountId ?? resolveDefaultTelegramAccountId(cfg)).dmPolicy ??
     "pairing",
   setPolicy: (cfg, policy, accountId) => {
@@ -92,15 +86,14 @@ export const telegramSetupDmPolicy: ChannelSetupDmPolicy = {
       ...(policy === "open" ? { allowFrom: addWildcardAllowFrom(merged.allowFrom) } : {}),
     };
     return accountId == null && resolvedAccountId !== DEFAULT_ACCOUNT_ID
-      ? applySetupAccountConfigPatch({
+      ? patchTelegramConfigForAccount({
           cfg,
-          channelKey: channel,
           accountId: resolvedAccountId,
           patch,
+          ensureEnabled: false,
         })
-      : patchChannelConfigForAccount({
+      : patchTelegramConfigForAccount({
           cfg,
-          channel,
           accountId: resolvedAccountId,
           patch,
         });

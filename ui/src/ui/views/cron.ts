@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import type {
   CronFieldErrors,
   CronFieldKey,
@@ -363,7 +364,7 @@ export function renderCron(props: CronProps) {
     props.runsScope === "all"
       ? t("cron.jobList.allJobs")
       : (selectedJob?.name ?? props.runsJobId ?? t("cron.jobList.selectJob"));
-  const runs = props.runs.toSorted((a, b) =>
+  const runs = sortCopy(props.runs, (a, b) =>
     props.runsSortDir === "asc" ? a.ts - b.ts : b.ts - a.ts,
   );
   const runStatusOptions = getRunStatusOptions();

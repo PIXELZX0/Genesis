@@ -68,13 +68,16 @@ function buildHookProviderCacheKey(params: {
   onlyPluginIds?: string[];
   providerRefs?: string[];
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }) {
   const { roots } = resolvePluginCacheInputs({
     workspaceDir: params.workspaceDir,
     env: params.env,
   });
   const onlyPluginIds = normalizePluginIdScope(params.onlyPluginIds);
-  return `${roots.workspace ?? ""}::${roots.global}::${roots.stock ?? ""}::${JSON.stringify(params.config ?? null)}::${serializePluginIdScope(onlyPluginIds)}::${JSON.stringify(params.providerRefs ?? [])}`;
+  const bundledRuntimeDepsMode =
+    params.installBundledRuntimeDeps === false ? "skip-runtime-deps" : "install-runtime-deps";
+  return `${roots.workspace ?? ""}::${roots.global}::${roots.stock ?? ""}::${JSON.stringify(params.config ?? null)}::${serializePluginIdScope(onlyPluginIds)}::${JSON.stringify(params.providerRefs ?? [])}::${bundledRuntimeDepsMode}`;
 }
 
 export function clearProviderRuntimeHookCache(): void {
@@ -102,6 +105,7 @@ export function resolveProviderPluginsForHooks(params: {
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
   providerRefs?: string[];
+  installBundledRuntimeDeps?: boolean;
 }): ProviderPlugin[] {
   const env = params.env ?? process.env;
   const workspaceDir = params.workspaceDir ?? getActivePluginRegistryWorkspaceDirFromState();
@@ -115,6 +119,7 @@ export function resolveProviderPluginsForHooks(params: {
     onlyPluginIds: params.onlyPluginIds,
     providerRefs: params.providerRefs,
     env,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
   });
   const cached = cacheBucket.get(cacheKey);
   if (cached) {
@@ -129,6 +134,7 @@ export function resolveProviderPluginsForHooks(params: {
       cache: false,
       bundledProviderAllowlistCompat: true,
       bundledProviderVitestCompat: true,
+      installBundledRuntimeDeps: params.installBundledRuntimeDeps,
     })
   ) {
     return [];
@@ -141,6 +147,7 @@ export function resolveProviderPluginsForHooks(params: {
     cache: false,
     bundledProviderAllowlistCompat: true,
     bundledProviderVitestCompat: true,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
   });
   cacheBucket.set(cacheKey, resolved);
   return resolved;

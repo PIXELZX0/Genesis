@@ -51,6 +51,7 @@ function resolveProviderDocsById(params?: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): Map<string, string> {
   return new Map(
     resolvePluginProviders({
@@ -58,6 +59,7 @@ function resolveProviderDocsById(params?: {
       workspaceDir: params?.workspaceDir,
       env: params?.env,
       mode: "setup",
+      installBundledRuntimeDeps: params?.installBundledRuntimeDeps,
     })
       .filter((provider): provider is ProviderPlugin & { docsPath: string } =>
         Boolean(normalizeOptionalString(provider.docsPath)),
@@ -172,6 +174,7 @@ export function resolveProviderSetupFlowContributions(params?: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   scope?: ProviderFlowScope;
+  installBundledRuntimeDeps?: boolean;
 }): ProviderSetupFlowContribution[] {
   const scope = params?.scope ?? DEFAULT_PROVIDER_FLOW_SCOPE;
   const docsByProvider = resolveProviderDocsById(params ?? {});
@@ -234,6 +237,7 @@ export function resolveProviderModelPickerFlowEntries(params?: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): ProviderModelPickerFlowEntry[] {
   return resolveProviderModelPickerFlowContributions(params).map(
     (contribution) => contribution.option,
@@ -244,6 +248,7 @@ export function resolveProviderModelPickerFlowContributions(params?: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): ProviderModelPickerFlowContribution[] {
   const docsByProvider = resolveProviderDocsById(params ?? {});
   return sortFlowContributionsByLabel(

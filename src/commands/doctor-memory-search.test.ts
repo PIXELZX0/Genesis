@@ -258,6 +258,22 @@ describe("noteMemorySearchHealth", () => {
     );
   });
 
+  it("checks memory backend status without installing bundled runtime deps", async () => {
+    resolveMemorySearchConfig.mockReturnValue({
+      provider: "auto",
+      local: {},
+      remote: {},
+    });
+
+    await noteMemorySearchHealth(cfg, {});
+
+    expect(resolveActiveMemoryBackendConfig).toHaveBeenCalledWith({
+      cfg,
+      agentId: "agent-default",
+      installBundledRuntimeDeps: false,
+    });
+  });
+
   it("does not warn when QMD backend is active", async () => {
     const qmdCfg = { memory: { backend: "qmd", qmd: { command: "qmd" } } } as GenesisConfig;
     resolveMemorySearchConfig.mockReturnValue({
@@ -620,6 +636,11 @@ describe("memory recall doctor integration", () => {
 
     await noteMemoryRecallHealth(cfg);
 
+    expect(getActiveMemorySearchManager).toHaveBeenCalledWith({
+      cfg,
+      agentId: "agent-default",
+      purpose: "status",
+    });
     expect(auditShortTermPromotionArtifacts).toHaveBeenCalledWith({
       workspaceDir: "/tmp/agent-default/workspace",
       qmd: undefined,

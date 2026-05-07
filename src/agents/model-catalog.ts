@@ -82,6 +82,7 @@ export async function loadModelCatalog(params?: {
   config?: GenesisConfig;
   useCache?: boolean;
   readOnly?: boolean;
+  installBundledRuntimeDeps?: boolean;
 }): Promise<ModelCatalogEntry[]> {
   const readOnly = params?.readOnly === true;
   if (!readOnly && params?.useCache === false) {
@@ -112,6 +113,8 @@ export async function loadModelCatalog(params?: {
       });
     try {
       const cfg = params?.config ?? loadConfig();
+      const skipProviderRuntimeCatalogHooks =
+        readOnly && params?.installBundledRuntimeDeps === false;
       if (!readOnly) {
         await ensureGenesisModelsJson(cfg);
         logStage("models-json-ready");
@@ -127,7 +130,7 @@ export async function loadModelCatalog(params?: {
       logStage("catalog-deps-ready");
       const authStorage = piSdk.discoverAuthStorage(
         agentDir,
-        readOnly ? { readOnly: true } : undefined,
+        readOnly ? { readOnly: true, resolveSyntheticAuth: false } : undefined,
       );
       logStage("auth-storage-ready");
       const registry = instantiatePiModelRegistry(
@@ -147,7 +150,15 @@ export async function loadModelCatalog(params?: {
         if (!provider) {
           continue;
         }
-        if (shouldSuppressBuiltInModel({ provider, id, config: cfg })) {
+        if (
+          !(readOnly && params?.installBundledRuntimeDeps === false) &&
+          shouldSuppressBuiltInModel({
+            provider,
+            id,
+            config: cfg,
+            installBundledRuntimeDeps: params?.installBundledRuntimeDeps,
+          })
+        ) {
           continue;
         }
         const name = normalizeOptionalString(entry?.name ?? id) || id;
@@ -159,30 +170,33 @@ export async function loadModelCatalog(params?: {
         const input = Array.isArray(entry?.input) ? entry.input : undefined;
         models.push({ id, name, provider, contextWindow, reasoning, input });
       }
-      const supplemental = await augmentModelCatalogWithProviderPlugins({
-        config: cfg,
-        env: process.env,
-        context: {
+      if (!skipProviderRuntimeCatalogHooks) {
+        const supplemental = await augmentModelCatalogWithProviderPlugins({
           config: cfg,
-          agentDir,
           env: process.env,
-          entries: [...models],
-        },
-      });
-      if (supplemental.length > 0) {
-        const seen = new Set(
-          models.map(
-            (entry) =>
-              `${normalizeLowercaseStringOrEmpty(entry.provider)}::${normalizeLowercaseStringOrEmpty(entry.id)}`,
-          ),
-        );
-        for (const entry of supplemental) {
-          const key = `${normalizeLowercaseStringOrEmpty(entry.provider)}::${normalizeLowercaseStringOrEmpty(entry.id)}`;
-          if (seen.has(key)) {
-            continue;
+          installBundledRuntimeDeps: params?.installBundledRuntimeDeps,
+          context: {
+            config: cfg,
+            agentDir,
+            env: process.env,
+            entries: [...models],
+          },
+        });
+        if (supplemental.length > 0) {
+          const seen = new Set(
+            models.map(
+              (entry) =>
+                `${normalizeLowercaseStringOrEmpty(entry.provider)}::${normalizeLowercaseStringOrEmpty(entry.id)}`,
+            ),
+          );
+          for (const entry of supplemental) {
+            const key = `${normalizeLowercaseStringOrEmpty(entry.provider)}::${normalizeLowercaseStringOrEmpty(entry.id)}`;
+            if (seen.has(key)) {
+              continue;
+            }
+            models.push(entry);
+            seen.add(key);
           }
-          models.push(entry);
-          seen.add(key);
         }
       }
       logStage("plugin-models-merged", `entries=${models.length}`);

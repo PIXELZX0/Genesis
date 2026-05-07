@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
+import { reverseCopy, sortCopy } from "../array.ts";
 import type {
   DreamingEntry,
   WikiImportInsights,
@@ -79,7 +80,7 @@ function formatDiaryChipLabel(date: string): string {
 }
 
 function buildDiaryNavigation(entries: DiaryEntry[]): DiaryEntryNav[] {
-  const reversed = [...entries].toReversed();
+  const reversed = reverseCopy(entries);
   return reversed.map((entry, page) => Object.assign({}, entry, { page }));
 }
 
@@ -674,8 +675,8 @@ function compareWaitingEntryBySignals(a: DreamingEntry, b: DreamingEntry): numbe
 
 function sortWaitingEntries(entries: DreamingEntry[], sort: AdvancedWaitingSort): DreamingEntry[] {
   return sort === "signals"
-    ? entries.toSorted(compareWaitingEntryBySignals)
-    : entries.toSorted(compareWaitingEntryByRecency);
+    ? sortCopy(entries, compareWaitingEntryBySignals)
+    : sortCopy(entries, compareWaitingEntryByRecency);
 }
 
 function describeWaitingEntryOrigin(entry: DreamingEntry): string {

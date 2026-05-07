@@ -17,6 +17,7 @@ import {
 } from "./app-render.helpers.ts";
 import { warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
+import { sortCopy } from "./array.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -168,24 +169,61 @@ import { renderOverview } from "./views/overview.ts";
 
 // Lazy-loaded view modules – deferred so the initial bundle stays small.
 // Each loader resolves once; subsequent calls return the cached module.
-type LazyState<T> = { mod: T | null; promise: Promise<T> | null };
+type LazyState<T> = { mod: T | null; promise: Promise<void> | null };
+type LazyLoadResult<T> =
+  | { status: "ready"; mod: T }
+  | { status: "loading" }
+  | { status: "error"; message: string; retry: () => void };
 
 let _pendingUpdate: (() => void) | undefined;
 
-function createLazy<T>(loader: () => Promise<T>): () => T | null {
-  const s: LazyState<T> = { mod: null, promise: null };
+function formatLazyError(err: unknown): string {
+  return err instanceof Error && err.message ? err.message : String(err);
+}
+
+function createLazy<T>(loader: () => Promise<T>): () => LazyLoadResult<T> {
+  const s: LazyState<T> & { error: string | null } = {
+    mod: null,
+    promise: null,
+    error: null,
+  };
+  const start = () => {
+    if (s.promise || s.mod) {
+      return;
+    }
+    s.error = null;
+    s.promise = loader()
+      .then((m) => {
+        s.mod = m;
+      })
+      .catch((err: unknown) => {
+        s.error = formatLazyError(err);
+        console.error("[genesis] failed to load Control UI view:", err);
+      })
+      .finally(() => {
+        s.promise = null;
+        _pendingUpdate?.();
+      });
+  };
   return () => {
     if (s.mod) {
-      return s.mod;
+      return { status: "ready", mod: s.mod };
     }
-    if (!s.promise) {
-      s.promise = loader().then((m) => {
-        s.mod = m;
-        _pendingUpdate?.();
-        return m;
-      });
+    if (!s.promise && !s.error) {
+      start();
     }
-    return null;
+    if (s.error) {
+      return {
+        status: "error",
+        message: s.error,
+        retry: () => {
+          s.error = null;
+          start();
+          _pendingUpdate?.();
+        },
+      };
+    }
+    return { status: "loading" };
   };
 }
 
@@ -231,9 +269,38 @@ function resolveDreamingNextCycle(
 
 let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let pluginClawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
-function lazyRender<M>(getter: () => M | null, render: (mod: M) => unknown) {
-  const mod = getter();
-  return mod ? render(mod) : nothing;
+function renderLazyPlaceholder() {
+  return html`
+    <section class="card">
+      <div class="muted">${t("common.loading")}</div>
+    </section>
+  `;
+}
+
+function renderLazyError(message: string, retry?: () => void) {
+  return html`
+    <section class="card">
+      <div class="callout danger">${message}</div>
+      ${retry
+        ? html` <button class="btn" style="margin-top: 12px;" @click=${retry}>Retry</button> `
+        : nothing}
+    </section>
+  `;
+}
+
+function lazyRender<M>(getter: () => LazyLoadResult<M>, render: (mod: M) => unknown) {
+  const loaded = getter();
+  if (loaded.status === "loading") {
+    return renderLazyPlaceholder();
+  }
+  if (loaded.status === "error") {
+    return renderLazyError(loaded.message, loaded.retry);
+  }
+  try {
+    return render(loaded.mod);
+  } catch (err) {
+    return renderLazyError(formatLazyError(err));
+  }
 }
 
 const UPDATE_BANNER_DISMISS_KEY = "genesis:control-ui:update-banner-dismissed:v1";
@@ -478,7 +545,7 @@ function extractQuickSettingsChannels(state: AppViewState): QuickSettingsChannel
   const configuredIds = Object.keys(channelsConfig).filter((id) => id.trim().length > 0);
   const channelIds =
     configuredIds.length > 0
-      ? configuredIds.toSorted((a, b) => a.localeCompare(b))
+      ? sortCopy(configuredIds, (a, b) => a.localeCompare(b))
       : KNOWN_CHANNEL_IDS.map(({ id }) => id);
   const knownLabels = new Map<string, string>(
     KNOWN_CHANNEL_IDS.map(({ id, label }) => [id, label]),
@@ -2475,7 +2542,7 @@ export function renderApp(state: AppViewState) {
                 models: state.debugModels,
                 heartbeat: state.debugHeartbeat,
                 eventLog: state.eventLog,
-                methods: (state.hello?.features?.methods ?? []).toSorted(),
+                methods: sortCopy(state.hello?.features?.methods ?? []),
                 callMethod: state.debugCallMethod,
                 callParams: state.debugCallParams,
                 callResult: state.debugCallResult,

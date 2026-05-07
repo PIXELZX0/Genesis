@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import { normalizeToolName } from "../../../../src/agents/tool-policy-shared.js";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type {
   SkillStatusEntry,
@@ -273,7 +274,7 @@ export function renderAgentTools(params: {
   const activeToolIds = new Set(activeToolMap.keys());
 
   const sortSectionTools = (tools: AgentToolEntry[]) =>
-    tools.toSorted((left, right) => {
+    sortCopy(tools, (left, right) => {
       const leftId = normalizeToolName(left.id);
       const rightId = normalizeToolName(right.id);
       const leftActive = activeToolIds.has(leftId) ? 1 : 0;

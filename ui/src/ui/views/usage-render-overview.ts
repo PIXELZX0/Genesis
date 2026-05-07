@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import { formatDurationCompact } from "../../../../src/infra/format-time/format-duration.ts";
 import { t } from "../../i18n/index.ts";
+import { reverseCopy, sortCopy } from "../array.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import {
   formatCost,
@@ -523,18 +524,20 @@ function renderUsageInsights(
     ? t("usage.overview.avgCostHintMissing")
     : t("usage.overview.avgCostHint");
 
-  const errorDays = aggregates.daily
-    .filter((day) => day.messages > 0 && day.errors > 0)
-    .map((day) => {
-      const rate = day.errors / day.messages;
-      return {
-        label: formatDayLabel(day.date),
-        value: `${(rate * 100).toFixed(2)}%`,
-        sub: `${day.errors} ${normalizeLowercaseStringOrEmpty(t("usage.overview.errors"))} · ${day.messages} ${t("usage.overview.messagesAbbrev")} · ${formatTokens(day.tokens)}`,
-        rate,
-      };
-    })
-    .toSorted((a, b) => b.rate - a.rate)
+  const errorDays = sortCopy(
+    aggregates.daily
+      .filter((day) => day.messages > 0 && day.errors > 0)
+      .map((day) => {
+        const rate = day.errors / day.messages;
+        return {
+          label: formatDayLabel(day.date),
+          value: `${(rate * 100).toFixed(2)}%`,
+          sub: `${day.errors} ${normalizeLowercaseStringOrEmpty(t("usage.overview.errors"))} · ${day.messages} ${t("usage.overview.messagesAbbrev")} · ${formatTokens(day.tokens)}`,
+          rate,
+        };
+      }),
+    (a, b) => b.rate - a.rate,
+  )
     .slice(0, 5)
     .map(({ rate: _rate, ...rest }) => rest);
 
@@ -767,7 +770,7 @@ function renderSessionsCard(
     return isTokenMode ? (usage.totalTokens ?? 0) : (usage.totalCost ?? 0);
   };
 
-  const sortedSessions = [...sessions].toSorted((a, b) => {
+  const sortedSessions = sortCopy(sessions, (a, b) => {
     switch (sessionSort) {
       case "recent":
         return (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
@@ -782,7 +785,7 @@ function renderSessionsCard(
         return getSessionValue(b) - getSessionValue(a);
     }
   });
-  const sortedWithDir = sessionSortDir === "asc" ? sortedSessions.toReversed() : sortedSessions;
+  const sortedWithDir = sessionSortDir === "asc" ? reverseCopy(sortedSessions) : sortedSessions;
 
   const totalValue = sortedWithDir.reduce((sum, session) => sum + getSessionValue(session), 0);
   const avgValue = sortedWithDir.length ? totalValue / sortedWithDir.length : 0;

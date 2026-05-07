@@ -93,7 +93,8 @@ function normalizeThinkingProfile(profile: ProviderThinkingProfile): ResolvedThi
       byId.set(level.id, level);
     }
   }
-  const levels = [...byId.values()].toSorted((a, b) => a.rank - b.rank);
+  const levels = Array.from(byId.values());
+  levels.sort((a, b) => a.rank - b.rank);
   const rawDefaultLevel = profile.defaultLevel
     ? normalizeThinkLevel(profile.defaultLevel)
     : undefined;
@@ -127,7 +128,7 @@ function appendProfileLevel(profile: ResolvedThinkingProfile, id: ThinkLevel) {
     return;
   }
   profile.levels.push({ id, label: id, rank: THINKING_LEVEL_RANKS[id] });
-  profile.levels = profile.levels.toSorted((a, b) => a.rank - b.rank);
+  profile.levels.sort((a, b) => a.rank - b.rank);
 }
 
 export function resolveThinkingProfile(params: {
@@ -252,10 +253,9 @@ export function resolveLargestSupportedThinkingLevel(
   model?: string | null,
 ): ThinkLevel {
   const profile = resolveThinkingProfile({ provider, model });
-  return (
-    profile.levels.filter((level) => level.id !== "off").toSorted((a, b) => b.rank - a.rank)[0]
-      ?.id ?? "off"
-  );
+  const ranked = profile.levels.filter((level) => level.id !== "off");
+  ranked.sort((a, b) => b.rank - a.rank);
+  return ranked[0]?.id ?? "off";
 }
 
 export function isThinkingLevelSupported(params: {
@@ -274,7 +274,8 @@ function resolveSupportedThinkingLevelFromProfile(
     return level;
   }
   const requestedRank = THINKING_LEVEL_RANKS[level];
-  const ranked = profile.levels.toSorted((a, b) => b.rank - a.rank);
+  const ranked = [...profile.levels];
+  ranked.sort((a, b) => b.rank - a.rank);
   return (
     ranked.find((entry) => entry.id !== "off" && entry.rank <= requestedRank)?.id ??
     ranked.find((entry) => entry.id !== "off")?.id ??

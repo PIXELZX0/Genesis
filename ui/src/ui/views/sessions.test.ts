@@ -2,6 +2,7 @@
 
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
+import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import type { SessionsListResult } from "../types.ts";
 import { renderSessions, type SessionsProps } from "./sessions.ts";
 
@@ -65,6 +66,28 @@ function buildProps(result: SessionsListResult): SessionsProps {
 }
 
 describe("sessions view", () => {
+  it("renders sessions when browser array copy methods are unavailable", async () => {
+    const container = document.createElement("div");
+
+    withoutArrayCopyMethods(() =>
+      render(
+        renderSessions(
+          buildProps(
+            buildMultiResult([
+              { key: "older", kind: "direct", updatedAt: 10 },
+              { key: "newer", kind: "direct", updatedAt: 20 },
+            ]),
+          ),
+        ),
+        container,
+      ),
+    );
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Sessions");
+    expect(container.textContent).toContain("newer");
+  });
+
   it("renders and patches provider-owned thinking ids", async () => {
     const container = document.createElement("div");
     const onPatch = vi.fn();

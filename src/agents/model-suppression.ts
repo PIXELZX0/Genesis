@@ -8,6 +8,7 @@ function resolveBuiltInModelSuppression(params: {
   id?: string | null;
   baseUrl?: string | null;
   config?: GenesisConfig;
+  installBundledRuntimeDeps?: boolean;
 }) {
   const provider = normalizeProviderId(params.provider ?? "");
   const modelId = normalizeLowercaseStringOrEmpty(params.id);
@@ -17,6 +18,7 @@ function resolveBuiltInModelSuppression(params: {
   return resolveProviderBuiltInModelSuppression({
     ...(params.config ? { config: params.config } : {}),
     env: process.env,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
     context: {
       ...(params.config ? { config: params.config } : {}),
       env: process.env,
@@ -32,6 +34,7 @@ export function shouldSuppressBuiltInModel(params: {
   id?: string | null;
   baseUrl?: string | null;
   config?: GenesisConfig;
+  installBundledRuntimeDeps?: boolean;
 }) {
   return resolveBuiltInModelSuppression(params)?.suppress ?? false;
 }
@@ -41,6 +44,7 @@ export function buildSuppressedBuiltInModelError(params: {
   id?: string | null;
   baseUrl?: string | null;
   config?: GenesisConfig;
+  installBundledRuntimeDeps?: boolean;
 }): string | undefined {
   return resolveBuiltInModelSuppression(params)?.errorMessage;
 }

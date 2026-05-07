@@ -142,7 +142,7 @@ export async function modelsListCommand(
       rows,
       entries,
       modelRegistry: registry,
-      context: buildRowContext(false),
+      context: buildRowContext(true),
     });
   }
 

@@ -280,6 +280,7 @@ export async function agentsAddCommand(
           store: authStore,
           includeSkip: true,
           config: nextConfig,
+          installBundledRuntimeDeps: false,
         });
 
         const authResult = await applyAuthChoice({

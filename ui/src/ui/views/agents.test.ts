@@ -1,5 +1,6 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
+import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import { renderAgents, type AgentsProps } from "./agents.ts";
 
 function createSkill() {
@@ -133,6 +134,56 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
 }
 
 describe("renderAgents", () => {
+  it("renders the tools panel when browser array copy methods are unavailable", async () => {
+    const container = document.createElement("div");
+
+    withoutArrayCopyMethods(() =>
+      render(
+        renderAgents(
+          createProps({
+            activePanel: "tools",
+            toolsCatalog: {
+              loading: false,
+              error: null,
+              result: {
+                agentId: "beta",
+                profiles: [],
+                groups: [
+                  {
+                    id: "core",
+                    label: "Core",
+                    source: "core",
+                    tools: [
+                      {
+                        id: "write",
+                        label: "write",
+                        description: "Write files",
+                        source: "core",
+                        defaultProfiles: [],
+                      },
+                      {
+                        id: "read",
+                        label: "read",
+                        description: "Read files",
+                        source: "core",
+                        defaultProfiles: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          }),
+        ),
+        container,
+      ),
+    );
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Tool Access");
+    expect(container.textContent).toContain("read");
+  });
+
   it("shows the skills count only for the selected agent's report", async () => {
     const container = document.createElement("div");
     render(

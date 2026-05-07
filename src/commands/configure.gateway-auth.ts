@@ -49,6 +49,7 @@ function resolveProviderChoiceModelAllowlist(params: {
     workspaceDir: params.workspaceDir,
     env: params.env,
     mode: "setup",
+    installBundledRuntimeDeps: false,
   });
   return resolveProviderPluginChoice({
     providers,
@@ -110,6 +111,9 @@ export async function promptAuthConfig(
       }),
       includeSkip: true,
       config: next,
+      workspaceDir: resolveDefaultAgentWorkspaceDir(),
+      env: process.env,
+      installBundledRuntimeDeps: false,
     });
 
     preferredProvider =
@@ -118,6 +122,9 @@ export async function promptAuthConfig(
         : await resolvePreferredProviderForAuthChoice({
             choice: authChoice,
             config: next,
+            workspaceDir: resolveDefaultAgentWorkspaceDir(),
+            env: process.env,
+            installBundledRuntimeDeps: false,
           });
 
     if (authChoice === "custom-api-key") {

@@ -9,6 +9,7 @@ import { addEnvBackedPiCredentials } from "./pi-auth-discovery-core.js";
 
 export type DiscoverAuthStorageOptions = {
   readOnly?: boolean;
+  resolveSyntheticAuth?: boolean;
 };
 
 export function resolvePiCredentialsForDiscovery(
@@ -20,6 +21,9 @@ export function resolvePiCredentialsForDiscovery(
       ? loadAuthProfileStoreForSecretsRuntime(agentDir)
       : ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
   const credentials = addEnvBackedPiCredentials(resolvePiCredentialMapFromStore(store));
+  if (options?.resolveSyntheticAuth === false) {
+    return credentials;
+  }
   for (const provider of resolveRuntimeSyntheticAuthProviderRefs()) {
     if (credentials[provider]) {
       continue;

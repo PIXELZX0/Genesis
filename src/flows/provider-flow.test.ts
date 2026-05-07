@@ -344,6 +344,24 @@ describe("provider flow install catalog contributions", () => {
     ]);
   });
 
+  it("forwards no-install runtime dependency policy to setup runtime lookups", () => {
+    resolveProviderSetupFlowContributions({
+      installBundledRuntimeDeps: false,
+    });
+
+    expect(resolvePluginProviders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "setup",
+        installBundledRuntimeDeps: false,
+      }),
+    );
+    expect(resolveProviderWizardOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        installBundledRuntimeDeps: false,
+      }),
+    );
+  });
+
   it("keeps docs attached to runtime model-picker contributions", () => {
     resolvePluginProviders.mockReturnValue([
       {

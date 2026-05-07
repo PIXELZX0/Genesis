@@ -61,7 +61,9 @@ function normalizeRoleList(...items: Array<string | string[] | undefined>): stri
       roles.add(trimmed);
     }
   }
-  return [...roles].toSorted();
+  const sorted = Array.from(roles);
+  sorted.sort();
+  return sorted;
 }
 
 function includesAll(allowed: readonly string[], requested: readonly string[]): boolean {

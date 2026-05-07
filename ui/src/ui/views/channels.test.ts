@@ -2,6 +2,7 @@
 
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
+import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import {
   channelEnabled,
   resolveChannelConfigured,
@@ -138,6 +139,25 @@ describe("channel display selectors", () => {
 });
 
 describe("channel setup wizard rendering", () => {
+  it("renders channels when browser array copy methods are unavailable", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["quietchat", "guildchat"],
+      channelLabels: { quietchat: "Quiet Chat", guildchat: "Guild Chat" },
+      channels: { quietchat: {}, guildchat: { running: true } },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    withoutArrayCopyMethods(() => render(renderChannels(createProps(snapshot)), container));
+
+    expect(container.textContent).toContain("Channels");
+    expect(container.textContent).toContain("Guild Chat");
+  });
+
   it("starts the guided add flow from the channel toolbar", () => {
     const onChannelWizardStart = vi.fn();
     const container = document.createElement("div");

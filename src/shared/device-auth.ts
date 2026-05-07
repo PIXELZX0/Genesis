@@ -32,5 +32,7 @@ export function normalizeDeviceAuthScopes(scopes: string[] | undefined): string[
   } else if (out.has("operator.write")) {
     out.add("operator.read");
   }
-  return [...out].toSorted();
+  const sorted = Array.from(out);
+  sorted.sort();
+  return sorted;
 }

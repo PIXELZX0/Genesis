@@ -13,6 +13,7 @@ export type DoctorConfigResult = {
   path?: string;
   shouldWriteConfig?: boolean;
   sourceConfigValid?: boolean;
+  bundledPluginRuntimeDepsChecked?: boolean;
 };
 
 export type DoctorHealthFlowContext = {
@@ -224,6 +225,9 @@ async function runLegacyPluginManifestHealth(ctx: DoctorHealthFlowContext): Prom
 }
 
 async function runBundledPluginRuntimeDepsHealth(ctx: DoctorHealthFlowContext): Promise<void> {
+  if (ctx.configResult.bundledPluginRuntimeDepsChecked === true) {
+    return;
+  }
   const { maybeRepairBundledPluginRuntimeDeps } =
     await import("../commands/doctor-bundled-plugin-runtime-deps.js");
   await maybeRepairBundledPluginRuntimeDeps({

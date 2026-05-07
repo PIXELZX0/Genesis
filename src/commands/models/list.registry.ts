@@ -101,6 +101,7 @@ function loadAvailableModels(registry: ModelRegistry, cfg: GenesisConfig): Model
           id: model.id,
           baseUrl: model.baseUrl,
           config: cfg,
+          installBundledRuntimeDeps: false,
         }),
     );
   } catch (err) {
@@ -110,9 +111,13 @@ function loadAvailableModels(registry: ModelRegistry, cfg: GenesisConfig): Model
 
 export async function loadModelRegistry(cfg: GenesisConfig, opts?: { providerFilter?: string }) {
   const agentDir = resolveGenesisAgentDir();
-  const authStorage = discoverAuthStorage(agentDir, { readOnly: true });
+  const authStorage = discoverAuthStorage(agentDir, {
+    readOnly: true,
+    resolveSyntheticAuth: false,
+  });
   const registry = discoverModels(authStorage, agentDir, {
     providerFilter: opts?.providerFilter,
+    allowPluginNormalization: false,
   });
   const models = registry.getAll().filter(
     (model) =>
@@ -121,6 +126,7 @@ export async function loadModelRegistry(cfg: GenesisConfig, opts?: { providerFil
         id: model.id,
         baseUrl: model.baseUrl,
         config: cfg,
+        installBundledRuntimeDeps: false,
       }),
   );
   let availableKeys: Set<string> | undefined;

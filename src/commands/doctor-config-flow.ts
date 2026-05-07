@@ -51,6 +51,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
   let candidate = structuredClone(baseCfg);
   let pendingChanges = false;
   let fixHints: string[] = [];
+  let bundledPluginRuntimeDepsChecked = false;
   const doctorFixCommand = formatCliCommand("genesis doctor --fix");
 
   const legacyStep = applyLegacyCompatibilityStep({
@@ -144,6 +145,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
       config: candidate,
       includeConfiguredChannels: true,
     });
+    bundledPluginRuntimeDepsChecked = true;
   }
 
   const hasConfiguredChannels = collectConfiguredChannelIds(candidate).length > 0;
@@ -255,5 +257,6 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     path: snapshot.path ?? CONFIG_PATH,
     shouldWriteConfig: finalized.shouldWriteConfig,
     sourceConfigValid: snapshot.valid,
+    bundledPluginRuntimeDepsChecked,
   };
 }

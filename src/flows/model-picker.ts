@@ -319,12 +319,14 @@ async function resolveProviderPluginSetupOptions(params: {
             config: params.cfg,
             workspaceDir: params.workspaceDir,
             env: params.env,
+            installBundledRuntimeDeps: false,
           })
           .map((contribution) => contribution.option)
       : runtime.resolveProviderModelPickerEntries({
           config: params.cfg,
           workspaceDir: params.workspaceDir,
           env: params.env,
+          installBundledRuntimeDeps: false,
         });
   return providerModelPickerOptions.map((entry) =>
     Object.assign(
@@ -437,7 +439,11 @@ export async function promptDefaultModel(
   const catalogProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg });
+    catalog = await loadModelCatalog({
+      config: cfg,
+      readOnly: true,
+      installBundledRuntimeDeps: false,
+    });
   } finally {
     catalogProgress.stop();
   }
@@ -588,6 +594,7 @@ export async function promptDefaultModel(
     agentDir: params.agentDir,
     workspaceDir: params.workspaceDir,
     env: params.env,
+    installBundledRuntimeDeps: false,
   });
   return { model };
 }
@@ -627,7 +634,11 @@ export async function promptModelAllowlist(params: {
   const allowlistProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg });
+    catalog = await loadModelCatalog({
+      config: cfg,
+      readOnly: true,
+      installBundledRuntimeDeps: false,
+    });
   } finally {
     allowlistProgress.stop();
   }

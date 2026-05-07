@@ -75,6 +75,7 @@ function shouldSuppressListModel(params: {
     id: params.model.id,
     baseUrl: params.model.baseUrl,
     config: params.context.cfg,
+    installBundledRuntimeDeps: false,
   });
 }
 
@@ -165,6 +166,7 @@ export function appendDiscoveredRows(params: {
           modelRegistry: params.modelRegistry,
           cfg: params.context.cfg,
           agentDir: params.context.agentDir,
+          skipProviderRuntimeHooks: true,
         })
       : undefined;
     const rowModel =
@@ -233,6 +235,7 @@ export async function appendCatalogSupplementRows(params: {
       modelId: entry.id,
       modelRegistry: params.modelRegistry,
       cfg: params.context.cfg,
+      skipProviderRuntimeHooks: true,
     });
     if (!model) {
       continue;
@@ -306,6 +309,7 @@ export function appendConfiguredRows(params: {
       modelId: entry.ref.model,
       modelRegistry: params.modelRegistry,
       cfg: params.context.cfg,
+      skipProviderRuntimeHooks: true,
     });
     if (params.context.filter.local && model && !isLocalBaseUrl(model.baseUrl ?? "")) {
       continue;

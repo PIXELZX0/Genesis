@@ -1,3 +1,6 @@
+import { sortCopy } from "./array.ts";
+import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
+
 export type UsageQueryTerm = {
   key?: string;
   value: string;
@@ -304,7 +307,7 @@ export function parseToolSummary(content: string) {
     }
     nonToolLines.push(line);
   }
-  const sortedTools = Array.from(toolCounts.entries()).toSorted((a, b) => b[1] - a[1]);
+  const sortedTools = sortCopy(toolCounts.entries(), (a, b) => b[1] - a[1]);
   const totalCalls = sortedTools.reduce((sum, [, count]) => sum + count, 0);
   const summary =
     sortedTools.length > 0
@@ -318,4 +321,3 @@ export function parseToolSummary(content: string) {
     cleanContent: nonToolLines.join("\n").trim(),
   };
 }
-import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";

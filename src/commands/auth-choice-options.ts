@@ -27,6 +27,7 @@ function resolveProviderChoiceOptions(params?: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): AuthChoiceOption[] {
   return resolveProviderSetupFlowContributions({
     ...params,
@@ -61,12 +62,14 @@ export function formatAuthChoiceChoicesForCli(params?: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): string {
   const values = [
     ...formatStaticAuthChoiceChoicesForCli(params).split("|"),
     ...resolveProviderSetupFlowContributions({
       ...params,
       scope: "text-inference",
+      installBundledRuntimeDeps: params?.installBundledRuntimeDeps ?? false,
     }).map((contribution) => contribution.option.value),
   ];
 
@@ -80,6 +83,7 @@ export function buildAuthChoiceOptions(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): AuthChoiceOption[] {
   void params.store;
   const optionByValue = new Map<AuthChoice, AuthChoiceOption>();
@@ -90,6 +94,7 @@ export function buildAuthChoiceOptions(params: {
     config: params.config,
     workspaceDir: params.workspaceDir,
     env: params.env,
+    installBundledRuntimeDeps: params.installBundledRuntimeDeps,
   })) {
     optionByValue.set(option.value, option);
   }
@@ -113,6 +118,7 @@ export function buildAuthChoiceGroups(params: {
   config?: GenesisConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
 }): {
   groups: AuthChoiceGroup[];
   skipOption?: AuthChoiceOption;

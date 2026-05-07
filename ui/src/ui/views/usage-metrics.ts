@@ -5,6 +5,7 @@ import {
   mergeUsageLatency,
 } from "../../../../src/shared/usage-aggregates.js";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import { UsageSessionEntry, UsageTotals, UsageAggregates } from "./usageTypes.ts";
 
@@ -89,19 +90,21 @@ function buildPeakErrorHours(sessions: UsageSessionEntry[], timeZone: "local" | 
     });
   }
 
-  return hourMsgs
-    .map((msgs, hour) => {
-      const errors = hourErrors[hour];
-      const rate = msgs > 0 ? errors / msgs : 0;
-      return {
-        hour,
-        rate,
-        errors,
-        msgs,
-      };
-    })
-    .filter((entry) => entry.msgs > 0 && entry.errors > 0)
-    .toSorted((a, b) => b.rate - a.rate)
+  return sortCopy(
+    hourMsgs
+      .map((msgs, hour) => {
+        const errors = hourErrors[hour];
+        const rate = msgs > 0 ? errors / msgs : 0;
+        return {
+          hour,
+          rate,
+          errors,
+          msgs,
+        };
+      })
+      .filter((entry) => entry.msgs > 0 && entry.errors > 0),
+    (a, b) => b.rate - a.rate,
+  )
     .slice(0, 5)
     .map((entry) => ({
       label: formatHourLabel(entry.hour),
@@ -528,19 +531,17 @@ const buildAggregatesFromSessions = (
     tools: {
       totalCalls: Array.from(toolMap.values()).reduce((sum, count) => sum + count, 0),
       uniqueTools: toolMap.size,
-      tools: Array.from(toolMap.entries())
-        .map(([name, count]) => ({ name, count }))
-        .toSorted((a, b) => b.count - a.count),
+      tools: sortCopy(
+        Array.from(toolMap.entries()).map(([name, count]) => ({ name, count })),
+        (a, b) => b.count - a.count,
+      ),
     },
-    byModel: Array.from(modelMap.values()).toSorted(
+    byModel: sortCopy(modelMap.values(), (a, b) => b.totals.totalCost - a.totals.totalCost),
+    byProvider: sortCopy(providerMap.values(), (a, b) => b.totals.totalCost - a.totals.totalCost),
+    byAgent: sortCopy(
+      Array.from(agentMap.entries()).map(([agentId, totals]) => ({ agentId, totals })),
       (a, b) => b.totals.totalCost - a.totals.totalCost,
     ),
-    byProvider: Array.from(providerMap.values()).toSorted(
-      (a, b) => b.totals.totalCost - a.totals.totalCost,
-    ),
-    byAgent: Array.from(agentMap.entries())
-      .map(([agentId, totals]) => ({ agentId, totals }))
-      .toSorted((a, b) => b.totals.totalCost - a.totals.totalCost),
     ...tail,
   };
 };

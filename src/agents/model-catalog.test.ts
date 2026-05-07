@@ -168,7 +168,10 @@ describe("loadModelCatalog", () => {
 
     expect(result).toEqual([{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }]);
     expect(ensureGenesisModelsJsonMock).not.toHaveBeenCalled();
-    expect(discoverAuthStorage).toHaveBeenCalledWith("/tmp/genesis", { readOnly: true });
+    expect(discoverAuthStorage).toHaveBeenCalledWith("/tmp/genesis", {
+      readOnly: true,
+      resolveSyntheticAuth: false,
+    });
   });
 
   it("does not synthesize stale openai-codex/gpt-5.3-codex-spark entries from gpt-5.4", async () => {

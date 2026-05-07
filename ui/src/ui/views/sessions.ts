@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import { pathForTab } from "../navigation.ts";
@@ -152,7 +153,7 @@ function sortRows(
   dir: "asc" | "desc",
 ): GatewaySessionRow[] {
   const cmp = dir === "asc" ? 1 : -1;
-  return [...rows].toSorted((a, b) => {
+  return sortCopy(rows, (a, b) => {
     let diff = 0;
     switch (column) {
       case "key":

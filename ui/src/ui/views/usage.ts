@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
+import { sortCopy } from "../array.ts";
 import { extractQueryTerms, filterSessionsByQuery } from "../usage-helpers.ts";
 import {
   buildAggregatesFromSessions,
@@ -149,7 +150,7 @@ export function renderUsage(props: UsageProps) {
   const hasDraftQuery = filters.queryDraft.trim().length > 0;
 
   // Sort sessions by tokens or cost depending on mode
-  const sortedSessions = [...data.sessions].toSorted((a, b) => {
+  const sortedSessions = sortCopy(data.sessions, (a, b) => {
     const valA = isTokenMode ? (a.usage?.totalTokens ?? 0) : (a.usage?.totalCost ?? 0);
     const valB = isTokenMode ? (b.usage?.totalTokens ?? 0) : (b.usage?.totalCost ?? 0);
     return valB - valA;

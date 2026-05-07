@@ -35,6 +35,7 @@ type DiscoveredProviderRuntimeModelLike = Omit<ProviderRuntimeModelLike, "api"> 
 
 type DiscoverModelsOptions = {
   providerFilter?: string;
+  allowPluginNormalization?: boolean;
 };
 
 type InMemoryAuthStorageBackendLike = {
@@ -66,7 +67,11 @@ function createInMemoryAuthStorageBackend(
   };
 }
 
-export function normalizeDiscoveredPiModel<T>(value: T, agentDir: string): T {
+export function normalizeDiscoveredPiModel<T>(
+  value: T,
+  agentDir: string,
+  options?: Pick<DiscoverModelsOptions, "allowPluginNormalization">,
+): T {
   if (!isRecord(value)) {
     return value;
   }
@@ -75,6 +80,9 @@ export function normalizeDiscoveredPiModel<T>(value: T, agentDir: string): T {
     typeof value.name !== "string" ||
     typeof value.provider !== "string"
   ) {
+    return value;
+  }
+  if (options?.allowPluginNormalization === false) {
     return value;
   }
   const model = value as unknown as DiscoveredProviderRuntimeModelLike;
@@ -153,13 +161,13 @@ function createGenesisModelRegistry(
   registry.getAll = () =>
     getAll()
       .filter((entry: Model<Api>) => matchesProviderFilter(entry))
-      .map((entry: Model<Api>) => normalizeDiscoveredPiModel(entry, agentDir));
+      .map((entry: Model<Api>) => normalizeDiscoveredPiModel(entry, agentDir, options));
   registry.getAvailable = () =>
     getAvailable()
       .filter((entry: Model<Api>) => matchesProviderFilter(entry))
-      .map((entry: Model<Api>) => normalizeDiscoveredPiModel(entry, agentDir));
+      .map((entry: Model<Api>) => normalizeDiscoveredPiModel(entry, agentDir, options));
   registry.find = (provider: string, modelId: string) =>
-    normalizeDiscoveredPiModel(find(provider, modelId), agentDir);
+    normalizeDiscoveredPiModel(find(provider, modelId), agentDir, options);
 
   return registry;
 }

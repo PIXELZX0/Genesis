@@ -385,7 +385,17 @@ async function runOpenAICodexDeviceCode(ctx: ProviderAuthContext) {
           "OpenAI Codex device code",
         );
         if (ctx.isRemote) {
-          ctx.runtime.log(`\nOpen this URL in your LOCAL browser:\n\n${verificationUrl}\n`);
+          ctx.runtime.log(
+            [
+              "",
+              "Open this URL in your LOCAL browser and enter the code below.",
+              "",
+              verificationUrl,
+              "",
+              `Code: ${userCode}`,
+              "",
+            ].join("\n"),
+          );
           return;
         }
         try {

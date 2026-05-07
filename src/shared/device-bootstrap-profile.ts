@@ -47,7 +47,9 @@ function normalizeBootstrapRoles(roles: readonly string[] | undefined): string[]
       out.add(normalized);
     }
   }
-  return [...out].toSorted();
+  const sorted = Array.from(out);
+  sorted.sort();
+  return sorted;
 }
 
 export function normalizeDeviceBootstrapProfile(

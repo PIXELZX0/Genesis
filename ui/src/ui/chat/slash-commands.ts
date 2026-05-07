@@ -1,5 +1,6 @@
 import { buildBuiltinChatCommands } from "../../../../src/auto-reply/commands-registry.shared.js";
 import type { CommandEntry, CommandsListResult } from "../../../../src/gateway/protocol/index.js";
+import { sortCopy } from "../array.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { IconName } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
@@ -499,7 +500,7 @@ export function getSlashCommandCompletions(
     commands = commands.filter((cmd) => (cmd.tier ?? "standard") !== "power");
   }
 
-  return commands.toSorted((a, b) => {
+  return sortCopy(commands, (a, b) => {
     // Sort by tier first (essential → standard → power)
     const aTier = TIER_ORDER[a.tier ?? "standard"] ?? 1;
     const bTier = TIER_ORDER[b.tier ?? "standard"] ?? 1;

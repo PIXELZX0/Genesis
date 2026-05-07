@@ -1,17 +1,16 @@
-import type { ChannelSetupAdapter } from "genesis/plugin-sdk/setup-runtime";
-import {
-  createEnvPatchedAccountSetupAdapter,
-  patchChannelConfigForAccount,
-  promptResolvedAllowFrom,
-  splitSetupEntries,
-  type GenesisConfig,
-  type WizardPrompter,
-} from "genesis/plugin-sdk/setup-runtime";
 import { formatCliCommand, formatDocsLink } from "genesis/plugin-sdk/setup-tools";
-import { resolveDefaultTelegramAccountId, resolveTelegramAccount } from "./accounts.js";
+import { mergeTelegramAccountConfig } from "./account-config.js";
+import { resolveDefaultTelegramAccountId } from "./account-selection.js";
 import { isNumericTelegramSenderUserId } from "./allow-from.js";
-
-const channel = "telegram" as const;
+import {
+  type ChannelSetupAdapter,
+  createTelegramTokenSetupAdapter,
+  type GenesisConfig,
+  patchTelegramConfigForAccount,
+  promptResolvedTelegramAllowFrom,
+  splitTelegramSetupEntries,
+  type WizardPrompter,
+} from "./setup-local.js";
 
 export const TELEGRAM_TOKEN_HELP_LINES = [
   "1) Open Telegram and chat with @BotFather",
@@ -48,15 +47,15 @@ export async function promptTelegramAllowFromForAccount(params: {
   accountId?: string;
 }) {
   const accountId = params.accountId ?? resolveDefaultTelegramAccountId(params.cfg);
-  const resolved = resolveTelegramAccount({ cfg: params.cfg, accountId });
+  const accountConfig = mergeTelegramAccountConfig(params.cfg, accountId);
   await params.prompter.note(TELEGRAM_USER_ID_HELP_LINES.join("\n"), "Telegram user id");
-  const unique = await promptResolvedAllowFrom({
+  const unique = await promptResolvedTelegramAllowFrom({
     prompter: params.prompter,
-    existing: resolved.config.allowFrom ?? [],
+    existing: accountConfig.allowFrom ?? [],
     message: "Telegram allowFrom (numeric sender id)",
     placeholder: "123456789",
     label: "Telegram allowlist",
-    parseInputs: splitSetupEntries,
+    parseInputs: splitTelegramSetupEntries,
     parseId: parseTelegramAllowFromId,
     invalidWithoutTokenNote:
       "Telegram allowFrom requires numeric sender ids. DM your bot first, then copy from.id from logs or getUpdates.",
@@ -66,16 +65,14 @@ export async function promptTelegramAllowFromForAccount(params: {
         return { input: entry, resolved: Boolean(id), id };
       }),
   });
-  return patchChannelConfigForAccount({
+  return patchTelegramConfigForAccount({
     cfg: params.cfg,
-    channel,
     accountId,
     patch: { dmPolicy: "allowlist", allowFrom: unique },
   });
 }
 
-export const telegramSetupAdapter: ChannelSetupAdapter = createEnvPatchedAccountSetupAdapter({
-  channelKey: channel,
+export const telegramSetupAdapter: ChannelSetupAdapter = createTelegramTokenSetupAdapter({
   defaultAccountOnlyEnvError: "TELEGRAM_BOT_TOKEN can only be used for the default account.",
   missingCredentialError: "Telegram requires token or --token-file (or --use-env).",
   hasCredentials: (input) => Boolean(input.token || input.tokenFile),
