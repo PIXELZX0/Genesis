@@ -608,6 +608,10 @@ Validation and safety notes:
 - Injects live-reload client into served HTML.
 - Auto-creates starter `index.html` when empty.
 - Also serves A2UI at `/__genesis__/a2ui/`.
+- Hosted documents can import HTML, PDF, images, video, PPT/PPTX, SVG, and 3D
+  model assets. PPT preview is best-effort through optional local
+  `soffice`/LibreOffice conversion; PPTX, SVG, GLB/GLTF, OBJ, and STL have
+  first-class browser viewers.
 - Changes require a gateway restart.
 - Disable live reload for large directories or `EMFILE` errors.
 

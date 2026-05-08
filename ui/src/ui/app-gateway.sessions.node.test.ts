@@ -125,6 +125,23 @@ describe("handleGatewayEvent sessions.changed", () => {
     expect(loadSessionsMock).toHaveBeenCalledTimes(1);
     expect(loadSessionsMock).toHaveBeenCalledWith(host);
   });
+
+  it("preserves the active Sessions tab search when reloading after sessions.changed", () => {
+    loadSessionsMock.mockReset();
+    const host = createHost() as ReturnType<typeof createHost> & { sessionsSearchQuery: string };
+    host.tab = "sessions";
+    host.sessionsSearchQuery = "long-running";
+
+    handleGatewayEvent(host, {
+      type: "event",
+      event: "sessions.changed",
+      payload: { sessionKey: "agent:main:main", reason: "patch" },
+      seq: 1,
+    });
+
+    expect(loadSessionsMock).toHaveBeenCalledTimes(1);
+    expect(loadSessionsMock).toHaveBeenCalledWith(host, { search: "long-running" });
+  });
 });
 
 describe("handleGatewayEvent session.message", () => {

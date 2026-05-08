@@ -1,27 +1,36 @@
 import { loadConfig } from "../../config/config.js";
 import type {
+  CanvasDocumentAsset,
   CanvasDocumentCreateInput,
   CanvasDocumentEntrypoint,
   CanvasDocumentKind,
 } from "../canvas-documents.js";
-import { createCanvasDocument } from "../canvas-documents.js";
+import {
+  createCanvasDocument,
+  inferCanvasDocumentKindFromSource,
+  updateCanvasDocument,
+} from "../canvas-documents.js";
 import {
   ErrorCodes,
   errorShape,
   validateCanvasDocumentCreateParams,
+  validateCanvasDocumentUpdateParams,
   type CanvasDocumentCreateParams,
+  type CanvasDocumentUpdateParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers, RespondFn } from "./types.js";
 import { assertValidParams } from "./validation.js";
 
 type CanvasDocumentSurface = NonNullable<CanvasDocumentCreateInput["surface"]>;
+type CanvasDocumentAssetRole = NonNullable<CanvasDocumentAsset["role"]>;
 
 function normalizeString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
 }
 
 function resolveEntrypoint(
-  params: CanvasDocumentCreateParams,
+  method: "canvas.document.create" | "canvas.document.update",
+  params: CanvasDocumentCreateParams | CanvasDocumentUpdateParams,
   respond: RespondFn,
 ): CanvasDocumentEntrypoint | null {
   const candidates = [
@@ -36,7 +45,7 @@ function resolveEntrypoint(
       undefined,
       errorShape(
         ErrorCodes.INVALID_REQUEST,
-        "canvas.document.create requires exactly one of html, path, or url",
+        `${method} requires exactly one of html, path, or url`,
       ),
     );
     return null;
@@ -45,29 +54,35 @@ function resolveEntrypoint(
 }
 
 function inferDocumentKind(
-  params: CanvasDocumentCreateParams,
+  params: CanvasDocumentCreateParams | CanvasDocumentUpdateParams,
   entrypoint: CanvasDocumentEntrypoint,
 ): CanvasDocumentKind {
   if (params.kind) {
     return params.kind as CanvasDocumentKind;
   }
-  if (entrypoint.type === "html") {
-    return "html_bundle";
-  }
-  if (entrypoint.type === "url") {
-    return /\.pdf(?:[?#].*)?$/i.test(entrypoint.value.trim()) ? "document" : "url_embed";
-  }
-  if (/\.(?:png|jpe?g|webp|gif|heic|heif)(?:[?#].*)?$/i.test(entrypoint.value.trim())) {
-    return "image";
-  }
-  if (/\.(?:mp4|mov|webm|m4v)(?:[?#].*)?$/i.test(entrypoint.value.trim())) {
-    return "video_asset";
-  }
-  return /\.pdf(?:[?#].*)?$/i.test(entrypoint.value.trim()) ? "document" : "html_bundle";
+  return inferCanvasDocumentKindFromSource(entrypoint.value, entrypoint.type);
+}
+
+function normalizeAssetRole(value: unknown): CanvasDocumentAssetRole | undefined {
+  return value === "source" || value === "sidecar" || value === "texture" ? value : undefined;
+}
+
+function buildCanvasDocumentAssets(
+  assets: (CanvasDocumentCreateParams | CanvasDocumentUpdateParams)["assets"],
+): CanvasDocumentAsset[] | undefined {
+  return assets?.map((asset) => {
+    const role = normalizeAssetRole(asset.role);
+    return {
+      logicalPath: asset.logicalPath,
+      sourcePath: asset.sourcePath,
+      ...(asset.contentType ? { contentType: asset.contentType } : {}),
+      ...(role ? { role } : {}),
+    };
+  });
 }
 
 function buildCreateInput(
-  params: CanvasDocumentCreateParams,
+  params: CanvasDocumentCreateParams | CanvasDocumentUpdateParams,
   entrypoint: CanvasDocumentEntrypoint,
 ): CanvasDocumentCreateInput {
   return {
@@ -79,8 +94,22 @@ function buildCreateInput(
       : {}),
     surface: (params.surface as CanvasDocumentSurface | undefined) ?? "assistant_message",
     entrypoint,
-    ...(params.assets ? { assets: params.assets } : {}),
+    ...(params.assets ? { assets: buildCanvasDocumentAssets(params.assets) } : {}),
+    ...(params.sourceMime ? { sourceMime: params.sourceMime } : {}),
+    ...(params.sourceFileName ? { sourceFileName: params.sourceFileName } : {}),
+    ...(params.viewerOptions ? { viewerOptions: params.viewerOptions } : {}),
   };
+}
+
+function rejectDisabledCanvasHost(
+  config: ReturnType<typeof loadConfig>,
+  respond: RespondFn,
+): boolean {
+  if (process.env.GENESIS_SKIP_CANVAS_HOST === "1" || config.canvasHost?.enabled === false) {
+    respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "canvas host is disabled"));
+    return true;
+  }
+  return false;
 }
 
 export const canvasHandlers: GatewayRequestHandlers = {
@@ -96,11 +125,10 @@ export const canvasHandlers: GatewayRequestHandlers = {
       return;
     }
     const config = loadConfig();
-    if (process.env.GENESIS_SKIP_CANVAS_HOST === "1" || config.canvasHost?.enabled === false) {
-      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "canvas host is disabled"));
+    if (rejectDisabledCanvasHost(config, respond)) {
       return;
     }
-    const entrypoint = resolveEntrypoint(params, respond);
+    const entrypoint = resolveEntrypoint("canvas.document.create", params, respond);
     if (!entrypoint) {
       return;
     }
@@ -110,6 +138,39 @@ export const canvasHandlers: GatewayRequestHandlers = {
         canvasRootDir: config.canvasHost?.root,
         workspaceDir: params.workspaceDir,
       });
+      respond(true, manifest, undefined);
+    } catch (err) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));
+    }
+  },
+  "canvas.document.update": async ({ params, respond }) => {
+    if (
+      !assertValidParams(
+        params,
+        validateCanvasDocumentUpdateParams,
+        "canvas.document.update",
+        respond,
+      )
+    ) {
+      return;
+    }
+    const config = loadConfig();
+    if (rejectDisabledCanvasHost(config, respond)) {
+      return;
+    }
+    const entrypoint = resolveEntrypoint("canvas.document.update", params, respond);
+    if (!entrypoint) {
+      return;
+    }
+
+    try {
+      const manifest = await updateCanvasDocument(
+        buildCreateInput(params, entrypoint) as CanvasDocumentCreateInput & { id: string },
+        {
+          canvasRootDir: config.canvasHost?.root,
+          workspaceDir: params.workspaceDir,
+        },
+      );
       respond(true, manifest, undefined);
     } catch (err) {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));

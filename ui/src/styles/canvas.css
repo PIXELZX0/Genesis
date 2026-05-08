@@ -1,0 +1,122 @@
+.canvas-page {
+  display: grid;
+  gap: 16px;
+}
+
+.canvas-header {
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.canvas-header-actions,
+.canvas-preview-actions {
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.canvas-status-grid,
+.canvas-format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.canvas-status-item,
+.canvas-format-card {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
+  padding: 12px;
+}
+
+.canvas-status-label,
+.canvas-format-sub,
+.canvas-format-viewer {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.canvas-status-value,
+.canvas-format-title {
+  overflow: hidden;
+  margin-top: 6px;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-status-value.is-danger {
+  color: var(--danger);
+}
+
+.canvas-format-viewer {
+  margin-top: 8px;
+}
+
+.canvas-preview-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.canvas-entry-field {
+  min-width: 0;
+}
+
+.canvas-entry-field input {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-mono);
+}
+
+.canvas-preview-error {
+  margin-top: 14px;
+}
+
+.canvas-preview-frame {
+  display: block;
+  width: 100%;
+  min-height: 480px;
+  height: min(72vh, 760px);
+  margin-top: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.canvas-preview-empty {
+  min-height: 260px;
+  margin-top: 16px;
+  border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 720px) {
+  .canvas-preview-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-preview-actions {
+    justify-content: stretch;
+  }
+
+  .canvas-preview-actions .btn,
+  .canvas-preview-actions a.btn {
+    flex: 1 1 140px;
+  }
+
+  .canvas-preview-frame {
+    min-height: 360px;
+    height: 62vh;
+  }
+}

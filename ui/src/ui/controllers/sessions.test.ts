@@ -321,6 +321,33 @@ describe("loadSessions", () => {
       state.sessionsCheckpointItemsByKey["agent:main:main"]?.map((item) => item.checkpointId),
     ).toEqual(["checkpoint-new"]);
   });
+
+  it("passes search to sessions.list so filtered loads are server-side", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method !== "sessions.list") {
+        throw new Error(`unexpected method: ${method}`);
+      }
+      return {
+        ts: 1,
+        path: "(multiple)",
+        count: 0,
+        defaults: {},
+        sessions: [],
+      };
+    });
+    const state = createState(request, {
+      sessionsFilterLimit: "120",
+    });
+
+    await loadSessions(state, { search: "  long-running " });
+
+    expect(request).toHaveBeenCalledWith("sessions.list", {
+      includeGlobal: true,
+      includeUnknown: true,
+      limit: 120,
+      search: "long-running",
+    });
+  });
 });
 
 describe("applySessionsChangedEvent", () => {

@@ -18,15 +18,19 @@ import {
   resolveDefaultModelForAgent,
   resolvePersistedSelectedModelRef,
 } from "../agents/model-selection.js";
+import { countActiveDescendantRunsFromRuns } from "../agents/subagent-registry-queries.js";
 import {
   countActiveDescendantRuns,
+  getSubagentRunsSnapshotForBulkRead,
   getSessionDisplaySubagentRunByChildSessionKey,
   getSubagentSessionRuntimeMs,
   getSubagentSessionStartedAt,
   isSubagentRunLive,
+  listSessionDisplaySubagentRunsByChildSessionKey,
   listSubagentRunsForController,
   resolveSubagentSessionStatus,
 } from "../agents/subagent-registry-read.js";
+import type { SubagentRunRecord } from "../agents/subagent-registry.types.js";
 import {
   RECENT_ENDED_SUBAGENT_CHILD_SESSION_MS,
   shouldKeepSubagentRunChildLink,
@@ -390,6 +394,90 @@ function resolveChildSessionKeys(
   return childSessions.length > 0 ? childSessions : undefined;
 }
 
+type SessionListIndexes = {
+  readonly displaySubagentRunByChildSessionKey: Map<string, SubagentRunRecord>;
+  readonly childSessionsByControllerKey: Map<string, string[]>;
+  countActiveDescendantRuns(childSessionKey: string): number;
+};
+
+function normalizeControllerSessionKey(run: SubagentRunRecord): string {
+  return (
+    normalizeOptionalString(run.controllerSessionKey) ||
+    normalizeOptionalString(run.requesterSessionKey) ||
+    ""
+  );
+}
+
+function createSessionListIndexes(
+  store: Record<string, SessionEntry>,
+  now: number,
+): SessionListIndexes {
+  const displaySubagentRunByChildSessionKey = listSessionDisplaySubagentRunsByChildSessionKey();
+  const subagentRunsSnapshot = getSubagentRunsSnapshotForBulkRead();
+  const activeDescendantCountBySessionKey = new Map<string, number>();
+  const childSessionsByControllerKey = new Map<string, string[]>();
+
+  const countActiveDescendantRunsCached = (childSessionKey: string) => {
+    const key = childSessionKey.trim();
+    if (!key) {
+      return 0;
+    }
+    const cached = activeDescendantCountBySessionKey.get(key);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const count = countActiveDescendantRunsFromRuns(subagentRunsSnapshot, key);
+    activeDescendantCountBySessionKey.set(key, count);
+    return count;
+  };
+
+  const addChildSession = (controllerSessionKey: string | undefined, childSessionKey: string) => {
+    const controllerKey = normalizeOptionalString(controllerSessionKey) ?? "";
+    const childKey = normalizeOptionalString(childSessionKey) ?? "";
+    if (!controllerKey || !childKey || controllerKey === childKey) {
+      return;
+    }
+    const existing = childSessionsByControllerKey.get(controllerKey);
+    if (existing) {
+      if (!existing.includes(childKey)) {
+        existing.push(childKey);
+      }
+      return;
+    }
+    childSessionsByControllerKey.set(controllerKey, [childKey]);
+  };
+
+  for (const [childSessionKey, latest] of displaySubagentRunByChildSessionKey.entries()) {
+    const controllerSessionKey = normalizeControllerSessionKey(latest);
+    if (
+      controllerSessionKey &&
+      shouldKeepSubagentRunChildLink(latest, {
+        activeDescendants: countActiveDescendantRunsCached(childSessionKey),
+        now,
+      })
+    ) {
+      addChildSession(controllerSessionKey, childSessionKey);
+    }
+  }
+
+  for (const [childSessionKey, entry] of Object.entries(store)) {
+    if (!entry || displaySubagentRunByChildSessionKey.has(childSessionKey)) {
+      continue;
+    }
+    if (!shouldKeepStoreOnlyChildLink(entry, now)) {
+      continue;
+    }
+    addChildSession(entry.spawnedBy, childSessionKey);
+    addChildSession(entry.parentSessionKey, childSessionKey);
+  }
+
+  return {
+    displaySubagentRunByChildSessionKey,
+    childSessionsByControllerKey,
+    countActiveDescendantRuns: countActiveDescendantRunsCached,
+  };
+}
+
 function resolveTranscriptUsageFallback(params: {
   cfg: GenesisConfig;
   key: string;
@@ -658,6 +746,45 @@ export function parseGroupKey(
     }
   }
   return null;
+}
+
+function resolveSessionRowDisplayName(key: string, entry?: SessionEntry): string | undefined {
+  const parsed = parseGroupKey(key);
+  const channel = entry?.channel ?? parsed?.channel;
+  const subject = entry?.subject;
+  const groupChannel = entry?.groupChannel;
+  const space = entry?.space;
+  const id = parsed?.id;
+  const originLabel = entry?.origin?.label;
+  return (
+    entry?.displayName ??
+    (channel
+      ? buildGroupDisplayName({
+          provider: channel,
+          subject,
+          groupChannel,
+          space,
+          id,
+          key,
+        })
+      : undefined) ??
+    entry?.label ??
+    originLabel
+  );
+}
+
+function sessionEntryMatchesSearch(key: string, entry: SessionEntry, search: string): boolean {
+  const fields = [
+    resolveSessionRowDisplayName(key, entry),
+    entry.label,
+    classifySessionKey(key, entry),
+    entry.subject,
+    entry.sessionId,
+    key,
+  ];
+  return fields.some(
+    (field) => typeof field === "string" && normalizeLowercaseStringOrEmpty(field).includes(search),
+  );
 }
 
 function isStorePathTemplate(store?: string): boolean {
@@ -1225,6 +1352,8 @@ export function buildGatewaySessionRow(params: {
   now?: number;
   includeDerivedTitles?: boolean;
   includeLastMessage?: boolean;
+  subagentRun?: SubagentRunRecord | null;
+  childSessions?: string[];
 }): GatewaySessionRow {
   const { cfg, storePath, store, key, entry } = params;
   const now = params.now ?? Date.now();
@@ -1234,27 +1363,15 @@ export function buildGatewaySessionRow(params: {
   const subject = entry?.subject;
   const groupChannel = entry?.groupChannel;
   const space = entry?.space;
-  const id = parsed?.id;
   const origin = entry?.origin;
-  const originLabel = origin?.label;
-  const displayName =
-    entry?.displayName ??
-    (channel
-      ? buildGroupDisplayName({
-          provider: channel,
-          subject,
-          groupChannel,
-          space,
-          id,
-          key,
-        })
-      : undefined) ??
-    entry?.label ??
-    originLabel;
+  const displayName = resolveSessionRowDisplayName(key, entry);
   const deliveryFields = normalizeSessionDeliveryFields(entry);
   const parsedAgent = parseAgentSessionKey(key);
   const sessionAgentId = normalizeAgentId(parsedAgent?.agentId ?? resolveDefaultAgentId(cfg));
-  const subagentRun = getSessionDisplaySubagentRunByChildSessionKey(key);
+  const subagentRun =
+    "subagentRun" in params
+      ? (params.subagentRun ?? null)
+      : getSessionDisplaySubagentRunByChildSessionKey(key);
   const subagentOwner =
     normalizeOptionalString(subagentRun?.controllerSessionKey) ||
     normalizeOptionalString(subagentRun?.requesterSessionKey);
@@ -1360,7 +1477,8 @@ export function buildGatewaySessionRow(params: {
     typeof totalTokens === "number" && Number.isFinite(totalTokens) && totalTokens > 0
       ? true
       : transcriptUsage?.totalTokensFresh === true;
-  const childSessions = resolveChildSessionKeys(key, store, now);
+  const childSessions =
+    "childSessions" in params ? params.childSessions : resolveChildSessionKeys(key, store, now);
   const latestCompactionCheckpoint = resolveLatestCompactionCheckpoint(entry);
   const estimatedCostUsd =
     resolveEstimatedSessionCostUsd({
@@ -1509,8 +1627,9 @@ export function listSessionsFromStore(params: {
     typeof opts.activeMinutes === "number" && Number.isFinite(opts.activeMinutes)
       ? Math.max(1, Math.floor(opts.activeMinutes))
       : undefined;
+  const indexes = createSessionListIndexes(store, now);
 
-  let sessions = Object.entries(store)
+  let sessionEntries = Object.entries(store)
     .filter(([key]) => {
       if (isCronRunSessionKey(key)) {
         return false;
@@ -1540,15 +1659,13 @@ export function listSessionsFromStore(params: {
       if (key === "unknown" || key === "global") {
         return false;
       }
-      const latest = getSessionDisplaySubagentRunByChildSessionKey(key);
+      const latest = indexes.displaySubagentRunByChildSessionKey.get(key);
       if (latest) {
-        const latestControllerSessionKey =
-          normalizeOptionalString(latest.controllerSessionKey) ||
-          normalizeOptionalString(latest.requesterSessionKey);
+        const latestControllerSessionKey = normalizeControllerSessionKey(latest);
         return (
           latestControllerSessionKey === spawnedBy &&
           shouldKeepSubagentRunChildLink(latest, {
-            activeDescendants: countActiveDescendantRuns(key),
+            activeDescendants: indexes.countActiveDescendantRuns(key),
             now,
           })
         );
@@ -1563,33 +1680,50 @@ export function listSessionsFromStore(params: {
         return true;
       }
       return entry?.label === label;
-    })
-    .map(([key, entry]) =>
-      buildGatewaySessionRow({
-        cfg,
-        storePath,
-        store,
-        key,
-        entry,
-        now,
-        includeDerivedTitles,
-        includeLastMessage,
-      }),
-    )
-    .toSorted((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+    });
+
+  if (activeMinutes !== undefined) {
+    const cutoff = now - activeMinutes * 60_000;
+    sessionEntries = sessionEntries.filter(([, entry]) => (entry?.updatedAt ?? 0) >= cutoff);
+  }
+
+  if (search) {
+    sessionEntries = sessionEntries.filter(([key, entry]) =>
+      sessionEntryMatchesSearch(key, entry, search),
+    );
+  }
+
+  sessionEntries = sessionEntries.toSorted(
+    (a, b) => (b[1]?.updatedAt ?? 0) - (a[1]?.updatedAt ?? 0),
+  );
+
+  if (!search && typeof opts.limit === "number" && Number.isFinite(opts.limit)) {
+    const limit = Math.max(1, Math.floor(opts.limit));
+    sessionEntries = sessionEntries.slice(0, limit);
+  }
+
+  let sessions = sessionEntries.map(([key, entry]) =>
+    buildGatewaySessionRow({
+      cfg,
+      storePath,
+      store,
+      key,
+      entry,
+      now,
+      includeDerivedTitles,
+      includeLastMessage,
+      subagentRun: indexes.displaySubagentRunByChildSessionKey.get(key) ?? null,
+      childSessions: indexes.childSessionsByControllerKey.get(key),
+    }),
+  );
 
   if (search) {
     sessions = sessions.filter((s) => {
-      const fields = [s.displayName, s.label, s.subject, s.sessionId, s.key];
+      const fields = [s.displayName, s.label, s.kind, s.subject, s.sessionId, s.key];
       return fields.some(
         (f) => typeof f === "string" && normalizeLowercaseStringOrEmpty(f).includes(search),
       );
     });
-  }
-
-  if (activeMinutes !== undefined) {
-    const cutoff = now - activeMinutes * 60_000;
-    sessions = sessions.filter((s) => (s.updatedAt ?? 0) >= cutoff);
   }
 
   if (typeof opts.limit === "number" && Number.isFinite(opts.limit)) {

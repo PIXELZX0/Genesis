@@ -25,8 +25,9 @@ export {
   setRuntimeConfigSnapshotRefreshHandler,
   setRuntimeConfigSnapshot,
   writeConfigFile,
+  writeConfigFileWithResult,
 } from "./io.js";
-export type { ConfigWriteNotification } from "./io.js";
+export type { ConfigWriteNotification, ConfigWriteResult } from "./io.js";
 export { ConfigMutationConflictError, mutateConfigFile, replaceConfigFile } from "./mutate.js";
 export * from "./paths.js";
 export * from "./recovery-policy.js";

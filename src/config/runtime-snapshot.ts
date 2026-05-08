@@ -2,6 +2,7 @@ import type { GenesisConfig } from "./types.js";
 
 export type RuntimeConfigSnapshotRefreshParams = {
   sourceConfig: GenesisConfig;
+  includeAuthStoreRefs?: boolean;
 };
 
 export type RuntimeConfigSnapshotRefreshHandler = {
@@ -140,6 +141,7 @@ export async function finalizeRuntimeSnapshotWrite(params: {
   nextSourceConfig: GenesisConfig;
   hadRuntimeSnapshot: boolean;
   hadBothSnapshots: boolean;
+  includeAuthStoreRefs?: boolean;
   loadFreshConfig: () => GenesisConfig;
   notifyCommittedWrite: () => void;
   createRefreshError: (detail: string, cause: unknown) => Error;
@@ -148,7 +150,10 @@ export async function finalizeRuntimeSnapshotWrite(params: {
   const refreshHandler = getRuntimeConfigSnapshotRefreshHandler();
   if (refreshHandler) {
     try {
-      const refreshed = await refreshHandler.refresh({ sourceConfig: params.nextSourceConfig });
+      const refreshed = await refreshHandler.refresh({
+        sourceConfig: params.nextSourceConfig,
+        includeAuthStoreRefs: params.includeAuthStoreRefs,
+      });
       if (refreshed) {
         params.notifyCommittedWrite();
         return;

@@ -175,11 +175,21 @@ export type ConfigWriteOptions = {
    * Useful when the caller wants machine-readable output only (--json mode).
    */
   skipOutputLogs?: boolean;
+  /**
+   * Internal runtime refresh scope for writes that already preflight only the
+   * submitted config payload.
+   */
+  runtimeRefreshIncludeAuthStoreRefs?: boolean;
 };
 
 export type ReadConfigFileSnapshotForWriteResult = {
   snapshot: ConfigFileSnapshot;
   writeOptions: ConfigWriteOptions;
+};
+
+export type ConfigWriteResult = {
+  persistedHash: string;
+  persistedConfig: GenesisConfig;
 };
 
 export type ConfigWriteNotification = RuntimeConfigWriteNotification;
@@ -1618,7 +1628,7 @@ export function createConfigIO(
   async function writeConfigFile(
     cfg: GenesisConfig,
     options: ConfigWriteOptions = {},
-  ): Promise<{ persistedHash: string; persistedConfig: GenesisConfig }> {
+  ): Promise<ConfigWriteResult> {
     clearConfigCache();
     let persistCandidate: unknown = cfg;
     const snapshot = options.baseSnapshot ?? (await readConfigFileSnapshotInternal()).snapshot;
@@ -2044,6 +2054,13 @@ export async function writeConfigFile(
   cfg: GenesisConfig,
   options: ConfigWriteOptions = {},
 ): Promise<void> {
+  await writeConfigFileWithResult(cfg, options);
+}
+
+export async function writeConfigFileWithResult(
+  cfg: GenesisConfig,
+  options: ConfigWriteOptions = {},
+): Promise<ConfigWriteResult> {
   const io = createConfigIO();
   let nextCfg = cfg;
   const runtimeConfigSnapshot = getRuntimeConfigSnapshotState();
@@ -2060,6 +2077,7 @@ export async function writeConfigFile(
       expectedConfigPath: options.expectedConfigPath,
       envSnapshotForRestore: options.envSnapshotForRestore,
     }),
+    baseSnapshot: options.baseSnapshot,
     unsetPaths: options.unsetPaths,
     allowDestructiveWrite: options.allowDestructiveWrite,
     skipRuntimeSnapshotRefresh: options.skipRuntimeSnapshotRefresh,
@@ -2070,7 +2088,7 @@ export async function writeConfigFile(
     !hadRuntimeSnapshot &&
     !getRuntimeConfigSnapshotRefreshHandlerState()
   ) {
-    return;
+    return writeResult;
   }
   const notifyCommittedWrite = () => {
     const currentRuntimeConfig = getRuntimeConfigSnapshotState();
@@ -2091,6 +2109,7 @@ export async function writeConfigFile(
     nextSourceConfig: nextCfg,
     hadRuntimeSnapshot,
     hadBothSnapshots,
+    includeAuthStoreRefs: options.runtimeRefreshIncludeAuthStoreRefs,
     loadFreshConfig: () => io.loadConfig(),
     notifyCommittedWrite,
     formatRefreshError: (error) => formatErrorMessage(error),
@@ -2100,4 +2119,5 @@ export async function writeConfigFile(
         { cause },
       ),
   });
+  return writeResult;
 }

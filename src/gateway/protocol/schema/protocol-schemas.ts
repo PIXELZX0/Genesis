@@ -49,7 +49,11 @@ import {
   ToolsEffectiveParamsSchema,
   ToolsEffectiveResultSchema,
 } from "./agents-models-skills.js";
-import { CanvasDocumentCreateParamsSchema, CanvasDocumentCreateResultSchema } from "./canvas.js";
+import {
+  CanvasDocumentCreateParamsSchema,
+  CanvasDocumentCreateResultSchema,
+  CanvasDocumentUpdateParamsSchema,
+} from "./canvas.js";
 import {
   ChannelsStartParamsSchema,
   ChannelsLogoutParamsSchema,
@@ -260,6 +264,7 @@ export const ProtocolSchemas = {
   NodePendingEnqueueResult: NodePendingEnqueueResultSchema,
   NodeInvokeRequestEvent: NodeInvokeRequestEventSchema,
   CanvasDocumentCreateParams: CanvasDocumentCreateParamsSchema,
+  CanvasDocumentUpdateParams: CanvasDocumentUpdateParamsSchema,
   CanvasDocumentCreateResult: CanvasDocumentCreateResultSchema,
   PushTestParams: PushTestParamsSchema,
   PushTestResult: PushTestResultSchema,

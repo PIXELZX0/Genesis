@@ -384,7 +384,7 @@ export function activateSecretsRuntimeSnapshot(snapshot: PreparedSecretsRuntimeS
   activeRefreshContext = cloneRefreshContext(refreshContext);
   setActiveRuntimeWebToolsMetadata(next.webTools);
   setRuntimeConfigSnapshotRefreshHandler({
-    refresh: async ({ sourceConfig }) => {
+    refresh: async ({ sourceConfig, includeAuthStoreRefs }) => {
       if (!activeSnapshot || !activeRefreshContext) {
         return false;
       }
@@ -392,6 +392,7 @@ export function activateSecretsRuntimeSnapshot(snapshot: PreparedSecretsRuntimeS
         config: sourceConfig,
         env: activeRefreshContext.env,
         agentDirs: resolveRefreshAgentDirs(sourceConfig, activeRefreshContext),
+        includeAuthStoreRefs,
         loadAuthStore: activeRefreshContext.loadAuthStore,
         loadablePluginOrigins: activeRefreshContext.loadablePluginOrigins,
       });

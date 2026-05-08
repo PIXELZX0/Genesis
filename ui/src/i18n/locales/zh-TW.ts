@@ -157,6 +157,7 @@ export const zh_TW: TranslationMap = {
   tabs: {
     agents: "代理",
     overview: "概覽",
+    canvas: "Canvas",
     channels: "頻道",
     instances: "實例",
     sessions: "會話",
@@ -164,6 +165,7 @@ export const zh_TW: TranslationMap = {
     wallet: "Wallet",
     cron: "定時任務",
     skills: "技能",
+    plugins: "Plugins",
     nodes: "節點",
     chat: "聊天",
     config: "配置",
@@ -179,6 +181,7 @@ export const zh_TW: TranslationMap = {
   subtitles: {
     agents: "工作區、工具、身份。",
     overview: "狀態、入口點、健康。",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "頻道和設置。",
     instances: "已連接客戶端和節點。",
     sessions: "活動會話和默認設置。",
@@ -186,6 +189,7 @@ export const zh_TW: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "喚醒和重複運行。",
     skills: "技能和 API 密鑰。",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "配對設備和命令。",
     chat: "網關聊天，快速干預。",
     config: "編輯 genesis.json。",

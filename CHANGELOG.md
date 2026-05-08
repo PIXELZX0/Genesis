@@ -2,6 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.8
+
+### Changes
+
+- Canvas: add a Control UI tab plus hosted previews for PPTX/PPT, SVG, and GLB/GLTF/OBJ/STL assets, with stable revisioned URLs and confirmed agent-run prompts from trusted embeds.
+
+### Fixes
+
+- Browser plugin: keep tracked Control UI tabs open when starting a new session, so the web UI no longer disappears during session cleanup.
+- Control UI: keep lazy-loaded tabs such as Sessions and Wallet from getting stuck on the loading placeholder after their view bundle finishes loading.
+
 ## 2026.5.7
 
 ### Changes

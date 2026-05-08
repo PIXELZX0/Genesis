@@ -56,6 +56,52 @@ describe("session tab registry", () => {
     expect(__countTrackedSessionBrowserTabsForTests()).toBe(0);
   });
 
+  it("does not close tracked Control UI tabs during session cleanup", async () => {
+    trackSessionBrowserTab({
+      sessionKey: "agent:main:main",
+      targetId: "control-ui",
+      url: "http://127.0.0.1:18789/chat?session=agent%3Amain%3Amain",
+    });
+    trackSessionBrowserTab({
+      sessionKey: "agent:main:main",
+      targetId: "app-tab",
+      url: "https://example.com",
+    });
+
+    const closeTab = vi.fn(async () => {});
+    const closed = await closeTrackedBrowserTabsForSessions({
+      sessionKeys: ["agent:main:main"],
+      closeTab,
+    });
+
+    expect(closed).toBe(1);
+    expect(closeTab).toHaveBeenCalledTimes(1);
+    expect(closeTab).toHaveBeenCalledWith({
+      targetId: "app-tab",
+      baseUrl: undefined,
+      profile: undefined,
+    });
+    expect(__countTrackedSessionBrowserTabsForTests()).toBe(0);
+  });
+
+  it("does not close base-path mounted Control UI tabs", async () => {
+    trackSessionBrowserTab({
+      sessionKey: "agent:main:main",
+      targetId: "control-ui",
+      url: "http://127.0.0.1:18789/genesis/sessions",
+    });
+
+    const closeTab = vi.fn(async () => {});
+    const closed = await closeTrackedBrowserTabsForSessions({
+      sessionKeys: ["agent:main:main"],
+      closeTab,
+    });
+
+    expect(closed).toBe(0);
+    expect(closeTab).not.toHaveBeenCalled();
+    expect(__countTrackedSessionBrowserTabsForTests()).toBe(0);
+  });
+
   it("untracks specific tabs", async () => {
     trackSessionBrowserTab({
       sessionKey: "agent:main:main",

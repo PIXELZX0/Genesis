@@ -8,6 +8,12 @@ describe("resolveCanvasIframeUrl", () => {
     );
   });
 
+  it("allows same-origin hosted canvas viewer assets", () => {
+    expect(resolveCanvasIframeUrl("/__genesis__/canvas/viewers/pptx/index.html")).toBe(
+      "/__genesis__/canvas/viewers/pptx/index.html",
+    );
+  });
+
   it("rewrites safe canvas paths through the scoped canvas host", () => {
     expect(
       resolveCanvasIframeUrl(

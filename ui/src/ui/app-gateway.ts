@@ -126,6 +126,10 @@ type GatewayHostWithSideResults = GatewayHost & {
   chatSideResultTerminalRuns?: Set<string>;
 };
 
+type GatewayHostWithSessionsViewFilters = GatewayHost & {
+  sessionsSearchQuery?: string;
+};
+
 function enqueueApprovalRequest(host: GatewayHost, entry: ExecApprovalRequest | null) {
   if (!entry) {
     return;
@@ -575,7 +579,15 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
 
   if (evt.event === "sessions.changed") {
     applySessionsChangedEvent(host as unknown as SessionsState, evt.payload);
-    void loadSessions(host as unknown as SessionsState);
+    const sessionsSearchQuery =
+      host.tab === "sessions"
+        ? (host as GatewayHostWithSessionsViewFilters).sessionsSearchQuery
+        : undefined;
+    if (sessionsSearchQuery?.trim()) {
+      void loadSessions(host as unknown as SessionsState, { search: sessionsSearchQuery });
+    } else {
+      void loadSessions(host as unknown as SessionsState);
+    }
     return;
   }
 

@@ -224,6 +224,15 @@ export function getConfigRestartRequiredPaths(state: ConfigState): string[] {
 type ConfigSubmitMethod = "config.set" | "config.apply";
 type ConfigSubmitBusyKey = "configSaving" | "configApplying";
 
+function isConfigSnapshotResponse(value: unknown): value is ConfigSnapshot {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const snapshot = value as ConfigSnapshot;
+  const hash = typeof snapshot.hash === "string" ? snapshot.hash.trim() : "";
+  return Boolean(hash && (isConfigRecord(snapshot.config) || typeof snapshot.raw === "string"));
+}
+
 async function submitConfigChange(
   state: ConfigState,
   method: ConfigSubmitMethod,
@@ -242,8 +251,16 @@ async function submitConfigChange(
       state.lastError = "Config hash missing; reload and retry.";
       return;
     }
-    await state.client.request(method, { raw, baseHash, ...extraParams });
+    const res = await state.client.request<ConfigSnapshot>(method, {
+      raw,
+      baseHash,
+      ...extraParams,
+    });
     state.configFormDirty = false;
+    if (isConfigSnapshotResponse(res)) {
+      applyConfigSnapshot(state, res);
+      return;
+    }
     await loadConfig(state);
   } catch (err) {
     state.lastError = String(err);

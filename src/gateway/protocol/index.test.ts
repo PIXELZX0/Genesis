@@ -10,6 +10,7 @@ import {
   validatePluginsUpdateParams,
   validateCanvasDocumentCreateParams,
   validateCanvasDocumentCreateResult,
+  validateCanvasDocumentUpdateParams,
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
   validateWakeParams,
@@ -165,8 +166,10 @@ describe("validateCanvasDocumentCreateParams", () => {
             logicalPath: "assets/app.css",
             sourcePath: "assets/app.css",
             contentType: "text/css",
+            role: "sidecar",
           },
         ],
+        viewerOptions: { mode: "fit" },
       }),
     ).toBe(true);
 
@@ -177,10 +180,47 @@ describe("validateCanvasDocumentCreateParams", () => {
         title: "Status",
         preferredHeight: 320,
         createdAt: "2026-05-05T00:00:00.000Z",
+        revision: 1,
         entryUrl: "/__genesis__/canvas/documents/status-card/index.html",
         localEntrypoint: "index.html",
+        sourceMime: "text/html",
+        viewer: "html",
+        viewerOptions: { mode: "fit" },
         surface: "assistant_message",
-        assets: [],
+        assets: [
+          {
+            logicalPath: "assets/app.css",
+            contentType: "text/css",
+            sourceFileName: "app.css",
+            sizeBytes: 42,
+            role: "sidecar",
+          },
+        ],
+      }),
+    ).toBe(true);
+  });
+
+  it("accepts rich asset document kinds and update params", () => {
+    expect(
+      validateCanvasDocumentUpdateParams({
+        id: "status-card",
+        kind: "presentation_asset",
+        path: "deck.pptx",
+        sourceMime: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        sourceFileName: "deck.pptx",
+      }),
+    ).toBe(true);
+    expect(validateCanvasDocumentUpdateParams({ path: "deck.pptx" })).toBe(false);
+    expect(
+      validateCanvasDocumentCreateParams({
+        kind: "model_3d",
+        path: "mesh.stl",
+      }),
+    ).toBe(true);
+    expect(
+      validateCanvasDocumentCreateParams({
+        kind: "vector_image",
+        path: "diagram.svg",
       }),
     ).toBe(true);
   });

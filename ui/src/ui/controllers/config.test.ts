@@ -474,6 +474,43 @@ describe("restart-required config changes", () => {
 });
 
 describe("saveConfig", () => {
+  it("uses config.set snapshot responses without a follow-up config.get", async () => {
+    const request = vi.fn().mockResolvedValue({
+      hash: "hash-save-2",
+      raw: '{\n  "gateway": {\n    "port": 18789\n  }\n}\n',
+      config: { gateway: { port: 18789 } },
+      valid: true,
+      issues: [],
+    });
+    const state = createState();
+    state.connected = true;
+    state.client = { request } as unknown as ConfigState["client"];
+    state.configFormMode = "form";
+    state.configForm = { gateway: { port: "18789" } };
+    state.configFormDirty = true;
+    state.configSnapshot = { hash: "hash-save-1" };
+    state.configSchema = {
+      type: "object",
+      properties: {
+        gateway: {
+          type: "object",
+          properties: {
+            port: { type: "number" },
+          },
+        },
+      },
+    };
+
+    await saveConfig(state);
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0]?.[0]).toBe("config.set");
+    expect(state.configSnapshot?.hash).toBe("hash-save-2");
+    expect(state.configFormDirty).toBe(false);
+    expect(state.configFormOriginal).toEqual({ gateway: { port: 18789 } });
+    expect(state.configRawOriginal).toBe('{\n  "gateway": {\n    "port": 18789\n  }\n}\n');
+  });
+
   it("coerces schema-typed values before config.set in form mode", async () => {
     const request = createRequestWithConfigGet();
     const state = createState();

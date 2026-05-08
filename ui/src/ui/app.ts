@@ -69,6 +69,7 @@ import {
 } from "./app-tool-stream.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { normalizeAssistantIdentity } from "./assistant-identity.ts";
+import { handleCanvasAgentRunMessage } from "./canvas-agent-run.ts";
 import { exportChatMarkdown } from "./chat/export.ts";
 import { RealtimeTalkSession, type RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
@@ -608,6 +609,12 @@ export class GenesisApp extends LitElement {
       }
     }
   };
+  private canvasAgentRunMessageHandler = (event: MessageEvent) => {
+    void handleCanvasAgentRunMessage(
+      this as unknown as Parameters<typeof handleCanvasAgentRunMessage>[0],
+      event,
+    );
+  };
 
   createRenderRoot() {
     return this;
@@ -633,6 +640,7 @@ export class GenesisApp extends LitElement {
       }
     };
     document.addEventListener("keydown", this.globalKeydownHandler);
+    window.addEventListener("message", this.canvasAgentRunMessageHandler);
     handleConnected(this as unknown as Parameters<typeof handleConnected>[0]);
   }
 
@@ -642,6 +650,7 @@ export class GenesisApp extends LitElement {
 
   disconnectedCallback() {
     document.removeEventListener("keydown", this.globalKeydownHandler);
+    window.removeEventListener("message", this.canvasAgentRunMessageHandler);
     handleDisconnected(this as unknown as Parameters<typeof handleDisconnected>[0]);
     super.disconnectedCallback();
   }

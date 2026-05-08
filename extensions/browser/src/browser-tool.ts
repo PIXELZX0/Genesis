@@ -519,7 +519,7 @@ export function createBrowserTool(opts?: {
         (usesExistingSessionManageFlow({ action, profileName: profile })
           ? DEFAULT_EXISTING_SESSION_MANAGE_TIMEOUT_MS
           : undefined);
-      const touchTrackedTab = (targetId: string | undefined) => {
+      const touchTrackedTab = (targetId: string | undefined, url?: string) => {
         if (proxyRequest || !targetId) {
           return;
         }
@@ -528,6 +528,7 @@ export function createBrowserTool(opts?: {
           targetId,
           baseUrl,
           profile,
+          url,
         });
       };
 
@@ -641,6 +642,7 @@ export function createBrowserTool(opts?: {
             targetId: opened.targetId,
             baseUrl,
             profile,
+            url: readStringValue(opened.url) ?? targetUrl,
           });
           return jsonResult(opened);
         }
@@ -753,7 +755,10 @@ export function createBrowserTool(opts?: {
                 timeoutMs: effectiveTimeoutMs,
                 profile,
               });
-          touchTrackedTab(readStringValue(result.targetId) ?? targetId);
+          touchTrackedTab(
+            readStringValue(result.targetId) ?? targetId,
+            readStringValue(result.url),
+          );
           return await browserToolDeps.imageResultFromFile({
             label: "browser:screenshot",
             path: result.path,
@@ -780,7 +785,10 @@ export function createBrowserTool(opts?: {
             targetId,
             profile,
           });
-          touchTrackedTab(readStringValue(result.targetId) ?? targetId);
+          touchTrackedTab(
+            readStringValue(result.targetId) ?? targetId,
+            readStringValue(result.url) ?? targetUrl,
+          );
           return jsonResult(result);
         }
         case "console":
@@ -800,7 +808,10 @@ export function createBrowserTool(opts?: {
                 body: { targetId },
               })) as Awaited<ReturnType<typeof browserPdfSave>>)
             : await browserToolDeps.browserPdfSave(baseUrl, { targetId, profile });
-          touchTrackedTab(readStringValue(result.targetId) ?? targetId);
+          touchTrackedTab(
+            readStringValue(result.targetId) ?? targetId,
+            readStringValue(result.url),
+          );
           return {
             content: [{ type: "text" as const, text: `FILE:${result.path}` }],
             details: result,
@@ -849,7 +860,10 @@ export function createBrowserTool(opts?: {
             timeoutMs,
             profile,
           });
-          touchTrackedTab(readStringValue((result as { targetId?: unknown }).targetId) ?? targetId);
+          touchTrackedTab(
+            readStringValue((result as { targetId?: unknown }).targetId) ?? targetId,
+            readStringValue((result as { url?: unknown }).url),
+          );
           return jsonResult(result);
         }
         case "dialog": {
@@ -877,7 +891,10 @@ export function createBrowserTool(opts?: {
             timeoutMs,
             profile,
           });
-          touchTrackedTab(readStringValue((result as { targetId?: unknown }).targetId) ?? targetId);
+          touchTrackedTab(
+            readStringValue((result as { targetId?: unknown }).targetId) ?? targetId,
+            readStringValue((result as { url?: unknown }).url),
+          );
           return jsonResult(result);
         }
         case "act": {

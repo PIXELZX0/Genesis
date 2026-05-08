@@ -161,6 +161,7 @@ export const ja_JP: TranslationMap = {
   tabs: {
     agents: "エージェント",
     overview: "概要",
+    canvas: "Canvas",
     channels: "チャンネル",
     instances: "インスタンス",
     sessions: "セッション",
@@ -168,6 +169,7 @@ export const ja_JP: TranslationMap = {
     wallet: "Wallet",
     cron: "Cron ジョブ",
     skills: "Skills",
+    plugins: "Plugins",
     nodes: "ノード",
     chat: "チャット",
     config: "設定",
@@ -183,6 +185,7 @@ export const ja_JP: TranslationMap = {
   subtitles: {
     agents: "ワークスペース、ツール、ID。",
     overview: "ステータス、エントリーポイント、健全性。",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "チャンネルと設定。",
     instances: "接続されたクライアントとノード。",
     sessions: "アクティブなセッションとデフォルト。",
@@ -190,6 +193,7 @@ export const ja_JP: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "ウェイクアップと定期実行。",
     skills: "Skills と API キー。",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "ペアリング済みデバイスとコマンド。",
     chat: "すばやく介入するための Gateway チャット。",
     config: "genesis.json を編集。",

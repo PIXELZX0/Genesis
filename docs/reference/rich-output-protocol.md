@@ -36,6 +36,7 @@ Rules:
 - Embed shortcodes render in the assistant message surface only.
 - Only URL-backed embeds are rendered. Use `ref="..."` or `url="..."`.
 - Agents should use the `canvas` tool with `action: "create"` to create hosted embed documents before replying with `[embed ref="..."]`.
+- Agents can use `canvas` with `action: "update"` and the same `id` to publish a new revision while keeping the embed URL stable.
 - Block-form inline HTML embed shortcodes are not rendered.
 - The web UI strips the shortcode from visible text and renders the embed inline.
 - `MEDIA:` is not an embed alias and should not be used for rich embed rendering.
@@ -60,6 +61,23 @@ The normalized/stored assistant content block is a structured `canvas` item:
 ```
 
 Stored/rendered rich blocks use this `canvas` shape directly. `present_view` is not recognized.
+
+## Hosted Canvas Assets
+
+Hosted Canvas documents keep stable entry URLs like
+`/__genesis__/canvas/documents/<id>/index.html`. Updates are stored under
+`documents/<id>/revisions/<n>/` and the latest revision is republished into the
+stable document root so existing embeds can live-reload.
+
+Canvas v1 is view/import first. Supported rich asset kinds are:
+
+- `presentation_asset`: `.pptx` browser preview; `.ppt` accepted with optional
+  local `soffice`/LibreOffice conversion or a safe fallback.
+- `model_3d`: `.glb`, `.gltf`, `.obj`, and `.stl` via a Three.js viewer.
+- `vector_image`: `.svg` through an `<img>` wrapper instead of inline SVG.
+
+Manifests include `revision`, `sourceMime`, `sourceFileName`, `viewer`,
+`viewerOptions`, and copied asset metadata.
 
 ## Related
 

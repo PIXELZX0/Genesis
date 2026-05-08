@@ -119,6 +119,26 @@ export function injectCanvasLiveReload(html: string): string {
   globalThis.Genesis.sendUserAction = sendUserAction;
   globalThis.genesisPostMessage = postToNode;
   globalThis.genesisSendUserAction = sendUserAction;
+  globalThis.GenesisCanvas = globalThis.GenesisCanvas ?? {};
+  globalThis.GenesisCanvas.requestAgentRun = (input) => {
+    const record = input && typeof input === "object" ? input : {};
+    const message = typeof record.message === "string" ? record.message.trim() : "";
+    if (!message) return false;
+    try {
+      globalThis.parent?.postMessage(
+        {
+          type: "genesis:canvas:agent-run-request",
+          version: 1,
+          message,
+          context: record.context && typeof record.context === "object" ? record.context : null,
+        },
+        "*",
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   try {
     const cap = new URLSearchParams(location.search).get("oc_cap");

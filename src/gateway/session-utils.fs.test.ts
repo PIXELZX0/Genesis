@@ -459,6 +459,63 @@ describe("readSessionTitleFieldsFromTranscript cache", () => {
   });
 });
 
+describe("readLatestSessionUsageFromTranscript cache", () => {
+  let tmpDir: string;
+  let storePath: string;
+
+  registerTempSessionStore("genesis-session-fs-test-", (nextTmpDir, nextStorePath) => {
+    tmpDir = nextTmpDir;
+    storePath = nextStorePath;
+  });
+
+  test("returns cached values without re-reading unchanged transcript contents", () => {
+    const sessionId = "test-usage-cache-1";
+    writeTranscript(tmpDir, sessionId, [
+      { type: "session", version: 1, id: sessionId },
+      { message: { role: "assistant", usage: { input: 10, output: 5 } } },
+    ]);
+
+    const readSpy = vi.spyOn(fs, "readFileSync");
+
+    const first = readLatestSessionUsageFromTranscript(sessionId, storePath);
+    const readsAfterFirst = readSpy.mock.calls.length;
+    expect(readsAfterFirst).toBeGreaterThan(0);
+    expect(first?.inputTokens).toBe(10);
+    expect(first?.outputTokens).toBe(5);
+
+    const second = readLatestSessionUsageFromTranscript(sessionId, storePath);
+    expect(second).toEqual(first);
+    expect(readSpy.mock.calls.length).toBe(readsAfterFirst);
+    readSpy.mockRestore();
+  });
+
+  test("invalidates cached usage when transcript size changes", () => {
+    const sessionId = "test-usage-cache-2";
+    const transcriptPath = writeTranscript(tmpDir, sessionId, [
+      { type: "session", version: 1, id: sessionId },
+      { message: { role: "assistant", usage: { input: 2, output: 3 } } },
+    ]);
+
+    const readSpy = vi.spyOn(fs, "readFileSync");
+
+    const first = readLatestSessionUsageFromTranscript(sessionId, storePath);
+    const readsAfterFirst = readSpy.mock.calls.length;
+    expect(first?.inputTokens).toBe(2);
+
+    fs.appendFileSync(
+      transcriptPath,
+      `\n${JSON.stringify({ message: { role: "assistant", usage: { input: 5, output: 7 } } })}`,
+      "utf-8",
+    );
+
+    const second = readLatestSessionUsageFromTranscript(sessionId, storePath);
+    expect(second?.inputTokens).toBe(7);
+    expect(second?.outputTokens).toBe(10);
+    expect(readSpy.mock.calls.length).toBeGreaterThan(readsAfterFirst);
+    readSpy.mockRestore();
+  });
+});
+
 describe("readSessionMessages", () => {
   let tmpDir: string;
   let storePath: string;

@@ -10,6 +10,7 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/png": ".png",
   "image/webp": ".webp",
   "image/gif": ".gif",
+  "image/svg+xml": ".svg",
   "audio/ogg": ".ogg",
   "audio/mpeg": ".mp3",
   "audio/wav": ".wav",
@@ -33,6 +34,10 @@ const EXT_BY_MIME: Record<string, string> = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+  "model/gltf+json": ".gltf",
+  "model/gltf-binary": ".glb",
+  "model/obj": ".obj",
+  "model/stl": ".stl",
   "text/csv": ".csv",
   "text/plain": ".txt",
   "text/markdown": ".md",
@@ -49,6 +54,11 @@ const MIME_BY_EXT: Record<string, string> = {
   ".js": "text/javascript",
   ".htm": "text/html",
   ".xml": "text/xml",
+  ".glb": "model/gltf-binary",
+  ".gltf": "model/gltf+json",
+  ".mtl": "text/plain",
+  ".obj": "model/obj",
+  ".stl": "model/stl",
 };
 
 const AUDIO_FILE_EXTENSIONS = new Set([

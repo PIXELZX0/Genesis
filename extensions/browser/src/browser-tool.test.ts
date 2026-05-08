@@ -959,6 +959,7 @@ describe("browser tool url alias support", () => {
       targetId: "tab-123",
       baseUrl: undefined,
       profile: undefined,
+      url: "https://example.com",
     });
   });
 
@@ -981,6 +982,7 @@ describe("browser tool url alias support", () => {
       targetId: "tab-live",
       baseUrl: undefined,
       profile: undefined,
+      url: "https://example.com",
     });
   });
 

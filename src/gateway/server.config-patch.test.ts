@@ -146,6 +146,8 @@ describe("gateway config methods", () => {
     const res = await rpcReq<{
       ok?: boolean;
       path?: string;
+      raw?: string | null;
+      hash?: string | null;
       config?: Record<string, unknown>;
     }>(requireWs(), "config.set", {
       raw: JSON.stringify(current.payload?.config ?? {}, null, 2),
@@ -154,6 +156,8 @@ describe("gateway config methods", () => {
 
     expect(res.ok).toBe(true);
     expect(res.payload?.path).toBe(createConfigIO().configPath);
+    expect(typeof res.payload?.hash).toBe("string");
+    expect(res.payload?.raw === null || typeof res.payload?.raw === "string").toBe(true);
     expect(res.payload?.config).toBeTruthy();
   });
 
@@ -232,8 +236,8 @@ describe("gateway config methods", () => {
       },
     );
 
-    expect(res.ok).toBe(true);
     expect(res.error).toBeUndefined();
+    expect(res.ok).toBe(true);
   });
 
   it("returns config.set validation details in the top-level error message", async () => {

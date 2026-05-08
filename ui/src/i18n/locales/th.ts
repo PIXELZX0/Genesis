@@ -157,6 +157,7 @@ export const th: TranslationMap = {
   tabs: {
     agents: "เอเจนต์",
     overview: "ภาพรวม",
+    canvas: "Canvas",
     channels: "ช่องทาง",
     instances: "อินสแตนซ์",
     sessions: "เซสชัน",
@@ -164,6 +165,7 @@ export const th: TranslationMap = {
     wallet: "Wallet",
     cron: "งาน Cron",
     skills: "ทักษะ",
+    plugins: "Plugins",
     nodes: "โหนด",
     chat: "แชต",
     config: "Config",
@@ -179,6 +181,7 @@ export const th: TranslationMap = {
   subtitles: {
     agents: "เวิร์กสเปซ เครื่องมือ และข้อมูลประจำตัว",
     overview: "สถานะ จุดเข้าใช้งาน และความพร้อมใช้งาน",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "ช่องทางและการตั้งค่า",
     instances: "ไคลเอนต์และโหนดที่เชื่อมต่อ",
     sessions: "เซสชันที่ใช้งานอยู่และค่าเริ่มต้น",
@@ -186,6 +189,7 @@ export const th: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "การปลุกและการทำงานตามรอบ",
     skills: "ทักษะและคีย์ API",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "อุปกรณ์ที่จับคู่และคำสั่ง",
     chat: "แชตเกตเวย์สำหรับการดำเนินการอย่างรวดเร็ว",
     config: "แก้ไข genesis.json",

@@ -159,6 +159,7 @@ export const uk: TranslationMap = {
   tabs: {
     agents: "Агенти",
     overview: "Огляд",
+    canvas: "Canvas",
     channels: "Канали",
     instances: "Екземпляри",
     sessions: "Сеанси",
@@ -166,6 +167,7 @@ export const uk: TranslationMap = {
     wallet: "Wallet",
     cron: "Завдання Cron",
     skills: "Навички",
+    plugins: "Plugins",
     nodes: "Вузли",
     chat: "Чат",
     config: "Конфігурація",
@@ -181,6 +183,7 @@ export const uk: TranslationMap = {
   subtitles: {
     agents: "Робочі простори, інструменти, ідентичності.",
     overview: "Стан, точки входу, справність.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "Канали та налаштування.",
     instances: "Підключені клієнти та вузли.",
     sessions: "Активні сеанси та типові значення.",
@@ -188,6 +191,7 @@ export const uk: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "Пробудження та повторювані запуски.",
     skills: "Навички та API-ключі.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "Спарені пристрої та команди.",
     chat: "Чат шлюзу для швидких втручань.",
     config: "Редагування genesis.json.",

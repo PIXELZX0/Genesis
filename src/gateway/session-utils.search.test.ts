@@ -189,6 +189,20 @@ describe("listSessionsFromStore search", () => {
     }
   });
 
+  test("filters sessions by row kind for Control UI server-side search", () => {
+    const result = listSessionsFromStore({
+      cfg: baseCfg,
+      storePath: "/tmp/sessions.json",
+      store: makeStore(),
+      opts: { search: "direct" },
+    });
+
+    expect(result.sessions.map((session) => session.key)).toEqual([
+      "agent:main:work-project",
+      "agent:main:personal-chat",
+    ]);
+  });
+
   test("hides cron run alias session keys from sessions list", () => {
     const now = Date.now();
     const store: Record<string, SessionEntry> = {

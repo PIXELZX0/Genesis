@@ -35,6 +35,7 @@ type LoadSessionsOverrides = {
   limit?: number;
   includeGlobal?: boolean;
   includeUnknown?: boolean;
+  search?: string;
 };
 
 type SessionsLoadControl = {
@@ -349,6 +350,10 @@ async function loadSessionsOnce(
     }
     if (limit > 0) {
       params.limit = limit;
+    }
+    const search = overrides?.search !== undefined ? overrides.search.trim() : "";
+    if (search) {
+      params.search = search;
     }
     const res = await client.request<SessionsListResult | undefined>("sessions.list", params);
     if (res) {

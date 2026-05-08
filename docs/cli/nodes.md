@@ -68,6 +68,14 @@ For shell execution on a node, use the `exec` tool with `host=node` instead of `
 The `nodes` CLI is now capability-focused: direct RPC via `nodes invoke`, plus pairing, camera,
 screen, location, canvas, and notifications.
 
+## Canvas previews
+
+Hosted Canvas documents use stable same-origin entry URLs such as
+`/__genesis__/canvas/documents/<id>/index.html`. Rich asset previews support PPTX
+presentations, best-effort legacy PPT fallback, SVG wrappers, and GLB/GLTF/OBJ/STL
+3D model viewers. Updating a hosted document keeps the same URL and publishes a
+new revision for live reload.
+
 ## Related
 
 - [CLI reference](/cli)

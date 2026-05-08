@@ -180,6 +180,8 @@ describe("canvas host", () => {
     expect(out).toContain("location.reload");
     expect(out).toContain("genesisCanvasA2UIAction");
     expect(out).toContain("genesisSendUserAction");
+    expect(out).toContain("GenesisCanvas.requestAgentRun");
+    expect(out).toContain("genesis:canvas:agent-run-request");
   });
 
   it("creates a default index.html when missing", async () => {
@@ -253,6 +255,29 @@ describe("canvas host", () => {
       }
     } finally {
       await originalClose();
+    }
+  });
+
+  it("serves allowlisted bundled viewer vendor assets", async () => {
+    const dir = await createCaseDir();
+    const handler = await createTestCanvasHostHandler(dir);
+
+    try {
+      const response = await captureHandlerResponse(
+        handler,
+        `${CANVAS_HOST_PATH}/viewers/vendor/three/build/three.module.js`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("text/javascript");
+      expect(response.body).toContain("Three.js");
+
+      const blocked = await captureHandlerResponse(
+        handler,
+        `${CANVAS_HOST_PATH}/viewers/vendor/three/package.json`,
+      );
+      expect(blocked.status).toBe(404);
+    } finally {
+      await handler.close();
     }
   });
 

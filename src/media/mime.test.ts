@@ -82,6 +82,13 @@ describe("mime detection", () => {
       }),
       expected: "text/javascript",
     },
+    {
+      name: "uses extension mapping for rich canvas assets",
+      input: async () => ({
+        filePath: "/tmp/model.glb",
+      }),
+      expected: "model/gltf-binary",
+    },
   ] as const)("$name", async ({ input, expected }) => {
     await expectDetectedMime({
       input: await input(),
@@ -115,6 +122,22 @@ describe("mime detection", () => {
     const mime = await detectMime({ buffer: Buffer.alloc(16), filePath: "voice.aac" });
     expect(mime).toBe("audio/aac");
   });
+
+  it.each([
+    { filePath: "/tmp/deck.ppt", expected: "application/vnd.ms-powerpoint" },
+    {
+      filePath: "/tmp/deck.pptx",
+      expected: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    },
+    { filePath: "/tmp/art.svg", expected: "image/svg+xml" },
+    { filePath: "/tmp/scene.gltf", expected: "model/gltf+json" },
+    { filePath: "/tmp/scene.glb", expected: "model/gltf-binary" },
+    { filePath: "/tmp/mesh.obj", expected: "model/obj" },
+    { filePath: "/tmp/mesh.stl", expected: "model/stl" },
+    { filePath: "/tmp/materials.mtl", expected: "text/plain" },
+  ] as const)("detects rich canvas file type for $filePath", async ({ filePath, expected }) => {
+    expect(await detectMime({ filePath })).toBe(expected);
+  });
 });
 
 describe("extensionForMime", () => {
@@ -131,6 +154,7 @@ describe("extensionForMime", () => {
     { mime: "image/webp", expected: ".webp" },
     { mime: "image/gif", expected: ".gif" },
     { mime: "image/heic", expected: ".heic" },
+    { mime: "image/svg+xml", expected: ".svg" },
     { mime: "audio/mpeg", expected: ".mp3" },
     { mime: "audio/ogg", expected: ".ogg" },
     { mime: "audio/x-m4a", expected: ".m4a" },
@@ -144,6 +168,15 @@ describe("extensionForMime", () => {
     { mime: "text/xml", expected: ".xml" },
     { mime: "text/css", expected: ".css" },
     { mime: "application/xml", expected: ".xml" },
+    { mime: "application/vnd.ms-powerpoint", expected: ".ppt" },
+    {
+      mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      expected: ".pptx",
+    },
+    { mime: "model/gltf+json", expected: ".gltf" },
+    { mime: "model/gltf-binary", expected: ".glb" },
+    { mime: "model/obj", expected: ".obj" },
+    { mime: "model/stl", expected: ".stl" },
     { mime: "IMAGE/JPEG", expected: ".jpg" },
     { mime: "Audio/X-M4A", expected: ".m4a" },
     { mime: "Video/QuickTime", expected: ".mov" },

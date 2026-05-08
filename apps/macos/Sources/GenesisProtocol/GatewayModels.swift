@@ -1162,6 +1162,9 @@ public struct CanvasDocumentCreateParams: Codable, Sendable {
     public let url: String?
     public let workspacedir: String?
     public let assets: [[String: AnyCodable]]?
+    public let sourcemime: String?
+    public let sourcefilename: String?
+    public let vieweroptions: [String: AnyCodable]?
 
     public init(
         id: String?,
@@ -1173,7 +1176,10 @@ public struct CanvasDocumentCreateParams: Codable, Sendable {
         path: String?,
         url: String?,
         workspacedir: String?,
-        assets: [[String: AnyCodable]]?)
+        assets: [[String: AnyCodable]]?,
+        sourcemime: String?,
+        sourcefilename: String?,
+        vieweroptions: [String: AnyCodable]?)
     {
         self.id = id
         self.kind = kind
@@ -1185,6 +1191,9 @@ public struct CanvasDocumentCreateParams: Codable, Sendable {
         self.url = url
         self.workspacedir = workspacedir
         self.assets = assets
+        self.sourcemime = sourcemime
+        self.sourcefilename = sourcefilename
+        self.vieweroptions = vieweroptions
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -1198,6 +1207,71 @@ public struct CanvasDocumentCreateParams: Codable, Sendable {
         case url
         case workspacedir = "workspaceDir"
         case assets
+        case sourcemime = "sourceMime"
+        case sourcefilename = "sourceFileName"
+        case vieweroptions = "viewerOptions"
+    }
+}
+
+public struct CanvasDocumentUpdateParams: Codable, Sendable {
+    public let id: String
+    public let kind: String?
+    public let title: String?
+    public let preferredheight: Double?
+    public let surface: String?
+    public let html: String?
+    public let path: String?
+    public let url: String?
+    public let workspacedir: String?
+    public let assets: [[String: AnyCodable]]?
+    public let sourcemime: String?
+    public let sourcefilename: String?
+    public let vieweroptions: [String: AnyCodable]?
+
+    public init(
+        id: String,
+        kind: String?,
+        title: String?,
+        preferredheight: Double?,
+        surface: String?,
+        html: String?,
+        path: String?,
+        url: String?,
+        workspacedir: String?,
+        assets: [[String: AnyCodable]]?,
+        sourcemime: String?,
+        sourcefilename: String?,
+        vieweroptions: [String: AnyCodable]?)
+    {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.preferredheight = preferredheight
+        self.surface = surface
+        self.html = html
+        self.path = path
+        self.url = url
+        self.workspacedir = workspacedir
+        self.assets = assets
+        self.sourcemime = sourcemime
+        self.sourcefilename = sourcefilename
+        self.vieweroptions = vieweroptions
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case title
+        case preferredheight = "preferredHeight"
+        case surface
+        case html
+        case path
+        case url
+        case workspacedir = "workspaceDir"
+        case assets
+        case sourcemime = "sourceMime"
+        case sourcefilename = "sourceFileName"
+        case vieweroptions = "viewerOptions"
     }
 }
 
@@ -1207,9 +1281,15 @@ public struct CanvasDocumentCreateResult: Codable, Sendable {
     public let title: String?
     public let preferredheight: Double?
     public let createdat: String
+    public let updatedat: String?
+    public let revision: Double
     public let entryurl: String
     public let localentrypoint: String?
     public let externalurl: String?
+    public let sourcemime: String?
+    public let sourcefilename: String?
+    public let viewer: String?
+    public let vieweroptions: [String: AnyCodable]?
     public let surface: String?
     public let assets: [[String: AnyCodable]]
 
@@ -1219,9 +1299,15 @@ public struct CanvasDocumentCreateResult: Codable, Sendable {
         title: String?,
         preferredheight: Double?,
         createdat: String,
+        updatedat: String?,
+        revision: Double,
         entryurl: String,
         localentrypoint: String?,
         externalurl: String?,
+        sourcemime: String?,
+        sourcefilename: String?,
+        viewer: String?,
+        vieweroptions: [String: AnyCodable]?,
         surface: String?,
         assets: [[String: AnyCodable]])
     {
@@ -1230,9 +1316,15 @@ public struct CanvasDocumentCreateResult: Codable, Sendable {
         self.title = title
         self.preferredheight = preferredheight
         self.createdat = createdat
+        self.updatedat = updatedat
+        self.revision = revision
         self.entryurl = entryurl
         self.localentrypoint = localentrypoint
         self.externalurl = externalurl
+        self.sourcemime = sourcemime
+        self.sourcefilename = sourcefilename
+        self.viewer = viewer
+        self.vieweroptions = vieweroptions
         self.surface = surface
         self.assets = assets
     }
@@ -1243,9 +1335,15 @@ public struct CanvasDocumentCreateResult: Codable, Sendable {
         case title
         case preferredheight = "preferredHeight"
         case createdat = "createdAt"
+        case updatedat = "updatedAt"
+        case revision
         case entryurl = "entryUrl"
         case localentrypoint = "localEntrypoint"
         case externalurl = "externalUrl"
+        case sourcemime = "sourceMime"
+        case sourcefilename = "sourceFileName"
+        case viewer
+        case vieweroptions = "viewerOptions"
         case surface
         case assets
     }

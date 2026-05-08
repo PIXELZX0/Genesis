@@ -27,6 +27,7 @@ import { resolveNodeId } from "./nodes-utils.js";
 
 const CANVAS_ACTIONS = [
   "create",
+  "update",
   "present",
   "hide",
   "navigate",
@@ -43,8 +44,12 @@ const CANVAS_DOCUMENT_KINDS = [
   "document",
   "image",
   "video_asset",
+  "presentation_asset",
+  "model_3d",
+  "vector_image",
 ] as const;
 const CANVAS_DOCUMENT_SURFACES = ["assistant_message", "tool_card", "sidebar"] as const;
+const CANVAS_DOCUMENT_ASSET_ROLES = ["source", "sidecar", "texture"] as const;
 
 type CanvasDocumentKind = (typeof CANVAS_DOCUMENT_KINDS)[number];
 type CanvasDocumentSurface = (typeof CANVAS_DOCUMENT_SURFACES)[number];
@@ -52,6 +57,7 @@ type CanvasDocumentAssetParam = {
   logicalPath: string;
   sourcePath: string;
   contentType?: string;
+  role?: (typeof CANVAS_DOCUMENT_ASSET_ROLES)[number];
 };
 
 async function readJsonlFromPath(jsonlPath: string): Promise<string> {
@@ -92,13 +98,18 @@ const CanvasToolSchema = Type.Object({
   surface: optionalStringEnum(CANVAS_DOCUMENT_SURFACES),
   html: Type.Optional(Type.String()),
   path: Type.Optional(Type.String()),
+  url: Type.Optional(Type.String()),
   workspaceDir: Type.Optional(Type.String()),
+  sourceMime: Type.Optional(Type.String()),
+  sourceFileName: Type.Optional(Type.String()),
+  viewerOptions: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
   assets: Type.Optional(
     Type.Array(
       Type.Object({
         logicalPath: Type.String(),
         sourcePath: Type.String(),
         contentType: Type.Optional(Type.String()),
+        role: optionalStringEnum(CANVAS_DOCUMENT_ASSET_ROLES),
       }),
     ),
   ),
@@ -108,8 +119,7 @@ const CanvasToolSchema = Type.Object({
   y: Type.Optional(Type.Number()),
   width: Type.Optional(Type.Number()),
   height: Type.Optional(Type.Number()),
-  // navigate
-  url: Type.Optional(Type.String()),
+  // navigate uses `url` above so create/update can share the same field.
   // eval
   javaScript: Type.Optional(Type.String()),
   // snapshot
@@ -174,10 +184,20 @@ function readCanvasDocumentAssets(
       trim: true,
       label: `assets[${index}].contentType`,
     });
+    const role = readStringParam(record, "role", {
+      trim: true,
+      label: `assets[${index}].role`,
+    });
+    if (role && !(CANVAS_DOCUMENT_ASSET_ROLES as readonly string[]).includes(role)) {
+      throw new ToolInputError(
+        `assets[${index}].role must be one of ${CANVAS_DOCUMENT_ASSET_ROLES.join(", ")}`,
+      );
+    }
     return {
       logicalPath,
       sourcePath,
       ...(contentType ? { contentType } : {}),
+      ...(role ? { role: role as CanvasDocumentAssetParam["role"] } : {}),
     };
   });
 }
@@ -226,17 +246,17 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
     label: "Canvas",
     name: "canvas",
     description:
-      "Create hosted Control UI embeds and control node canvases (present/hide/navigate/eval/snapshot/A2UI).",
+      "Create or update hosted Control UI embeds and control node canvases (present/hide/navigate/eval/snapshot/A2UI).",
     parameters: CanvasToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
       const action = readStringParam(params, "action", { required: true });
       const gatewayOpts = readGatewayCallOptions(params);
 
-      if (action === "create") {
+      if (action === "create" || action === "update") {
         const preferredHeight =
           readNumberParam(params, "preferredHeight") ?? readNumberParam(params, "height");
-        const id = readStringParam(params, "id", { trim: true });
+        const id = readStringParam(params, "id", { required: action === "update", trim: true });
         const kind = readCanvasDocumentKind(params);
         const title = readStringParam(params, "title", { trim: true });
         const surface = readCanvasDocumentSurface(params);
@@ -244,7 +264,15 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
         const filePath = readStringParam(params, "path", { trim: true });
         const url = readStringParam(params, "url", { trim: true });
         const workspaceDir = readStringParam(params, "workspaceDir", { trim: true });
+        const sourceMime = readStringParam(params, "sourceMime", { trim: true });
+        const sourceFileName = readStringParam(params, "sourceFileName", { trim: true });
         const assets = readCanvasDocumentAssets(params);
+        const viewerOptions =
+          params.viewerOptions &&
+          typeof params.viewerOptions === "object" &&
+          !Array.isArray(params.viewerOptions)
+            ? (params.viewerOptions as Record<string, unknown>)
+            : undefined;
         const createParams = {
           ...(id ? { id } : {}),
           ...(kind ? { kind } : {}),
@@ -257,10 +285,13 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
           ...(filePath ? { path: filePath } : {}),
           ...(url ? { url } : {}),
           workspaceDir: workspaceDir ?? process.cwd(),
+          ...(sourceMime ? { sourceMime } : {}),
+          ...(sourceFileName ? { sourceFileName } : {}),
+          ...(viewerOptions ? { viewerOptions } : {}),
           ...(assets ? { assets } : {}),
         };
         const manifest = await callGatewayTool<CanvasDocumentCreateResult>(
-          "canvas.document.create",
+          action === "update" ? "canvas.document.update" : "canvas.document.create",
           gatewayOpts,
           createParams,
         );

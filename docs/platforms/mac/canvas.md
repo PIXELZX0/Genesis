@@ -116,6 +116,18 @@ window.location.href = "genesis://agent?message=Review%20this%20design";
 
 The app prompts for confirmation unless a valid key is provided.
 
+Hosted Gateway Canvas wrappers can also request a confirmed Control UI run:
+
+```js
+window.GenesisCanvas.requestAgentRun({
+  message: "Review this deck",
+  context: { documentId: "cv_123" },
+});
+```
+
+The Control UI accepts this only from trusted Canvas iframe URLs and asks before
+sending the message through `chat.send`.
+
 ## Security notes
 
 - Canvas scheme blocks directory traversal; files must live under the session root.

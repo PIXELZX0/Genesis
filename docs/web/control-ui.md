@@ -114,6 +114,8 @@ locale picker lives in the Gateway Access card, not under Appearance.
   `genesis_agent_consult` tool calls back through `chat.send` for the larger
   configured Genesis model.
 - Stream tool calls + live tool output cards in Chat (agent events)
+- Canvas: dedicated Control tab for hosted Canvas document previews, same-origin
+  entry URLs, sandboxed rich asset viewers, and quick navigation back to Chat
 - Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
@@ -228,6 +230,29 @@ Agents can create these hosted documents through the built-in `canvas` tool with
 `action: "create"` and inline `html`, a gateway-local `path`, or a `url`. The
 tool returns a hosted document id plus an `[embed ref="..."]` shortcode for the
 assistant reply; it does not require a paired canvas-capable node.
+
+Use `action: "update"` with the existing `id` to publish the next revision of a
+hosted document. The iframe keeps the same stable URL under
+`/__genesis__/canvas/documents/<id>/index.html`; Genesis writes revision files
+under `documents/<id>/revisions/<n>/` and republishes the latest revision into
+the stable document root so live reload can refresh open embeds.
+
+Canvas rich asset viewers are view/import only in v1:
+
+- PPTX decks render client-side with slide navigation, keyboard arrows,
+  fit/zoom controls, and deterministic fallback errors. Legacy PPT imports are
+  accepted, but preview needs optional local `soffice`/LibreOffice conversion;
+  otherwise the embed shows open/download links and conversion guidance.
+- 3D model files (`.glb`, `.gltf`, `.obj`, `.stl`) render through a bundled
+  Three.js viewer with orbit controls, reset camera, lighting and wireframe
+  toggles, and auto-fit bounds.
+- SVG files render through a wrapper page using `<img src="...">`, not inline
+  SVG, with zoom, pan, reset, open, and download controls.
+
+Hosted Canvas wrappers expose
+`window.GenesisCanvas.requestAgentRun({ message, context })`. The Control UI
+accepts this only from trusted same-origin Canvas iframe URLs, shows a browser
+confirmation prompt, and sends the confirmed text through `chat.send`.
 
 Absolute external `http(s)` embed URLs stay blocked by default. If you
 intentionally want `[embed url="https://..."]` to load third-party pages, set

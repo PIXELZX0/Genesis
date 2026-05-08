@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { TAB_GROUPS, tabFromPath } from "./navigation.ts";
 
 describe("TAB_GROUPS", () => {
+  it("publishes Canvas in the Control group", () => {
+    const control = TAB_GROUPS.find((group) => group.label === "control");
+    expect(control?.tabs).toContain("canvas");
+    expect(tabFromPath("/canvas")).toBe("canvas");
+  });
+
   it("does not expose unfinished settings slices in the sidebar", () => {
     const settings = TAB_GROUPS.find((group) => group.label === "settings");
     expect(settings?.tabs).toEqual([

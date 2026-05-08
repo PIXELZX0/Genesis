@@ -13,7 +13,11 @@
     "overview.wallet.noAccounts",
     "overview.wallet.subtitle",
     "overview.wallet.title",
+    "subtitles.canvas",
+    "subtitles.plugins",
     "subtitles.wallet",
+    "tabs.canvas",
+    "tabs.plugins",
     "tabs.wallet",
     "wallet.accounts.accountId",
     "wallet.accounts.balance",
@@ -62,12 +66,12 @@
     "wallet.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-05-03T14:35:00.922Z",
+  "generatedAt": "2026-05-07T22:54:41.868Z",
   "locale": "zh-CN",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "fe53131546da8c0886c961e8bfd04d02f30df95ec4283fce918ede0ed4262ac0",
-  "totalKeys": 795,
+  "sourceHash": "489a4b9a03c6df7fefd90b9c8773030cd08b00e409d15a06c844856bd923af94",
+  "totalKeys": 799,
   "translatedKeys": 734,
   "workflow": 1
 }

@@ -161,6 +161,7 @@ export const de: TranslationMap = {
   tabs: {
     agents: "Agenten",
     overview: "Übersicht",
+    canvas: "Canvas",
     channels: "Kanäle",
     instances: "Instanzen",
     sessions: "Sitzungen",
@@ -168,6 +169,7 @@ export const de: TranslationMap = {
     wallet: "Wallet",
     cron: "Cron-Aufgaben",
     skills: "Fähigkeiten",
+    plugins: "Plugins",
     nodes: "Geräte",
     chat: "Chat",
     config: "Konfiguration",
@@ -183,6 +185,7 @@ export const de: TranslationMap = {
   subtitles: {
     agents: "Agent-Arbeitsbereiche, Tools und Identitäten verwalten.",
     overview: "Gateway-Status, Einstiegspunkte und eine schnelle Zustandsprüfung.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "Kanäle und Einstellungen verwalten.",
     instances: "Präsenzsignale von verbundenen Clients und Geräten.",
     sessions: "Aktive Sitzungen inspizieren und Standardeinstellungen pro Sitzung anpassen.",
@@ -190,6 +193,7 @@ export const de: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "Aufweckzeiten und wiederkehrende Agent-Läufe planen.",
     skills: "Skill-Verfügbarkeit und API-Schlüsselinjektion verwalten.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "Gekoppelte Geräte, Fähigkeiten und Befehlsfreigabe.",
     chat: "Direkte Gateway-Chat-Sitzung für schnelle Eingriffe.",
     config: "~/.genesis/genesis.json sicher bearbeiten.",

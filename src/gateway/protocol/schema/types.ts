@@ -38,6 +38,7 @@ export type NodePendingDrainResult = SchemaType<"NodePendingDrainResult">;
 export type NodePendingEnqueueParams = SchemaType<"NodePendingEnqueueParams">;
 export type NodePendingEnqueueResult = SchemaType<"NodePendingEnqueueResult">;
 export type CanvasDocumentCreateParams = SchemaType<"CanvasDocumentCreateParams">;
+export type CanvasDocumentUpdateParams = SchemaType<"CanvasDocumentUpdateParams">;
 export type CanvasDocumentCreateResult = SchemaType<"CanvasDocumentCreateResult">;
 export type PushTestParams = SchemaType<"PushTestParams">;
 export type PushTestResult = SchemaType<"PushTestResult">;

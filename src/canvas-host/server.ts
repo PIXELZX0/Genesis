@@ -193,6 +193,105 @@ function normalizeBasePath(rawPath: string | undefined) {
   return normalized.replace(/\/+$/, "");
 }
 
+const VIEWER_VENDOR_PREFIX = "/viewers/vendor/";
+
+type ViewerVendorPackage = "chart.js" | "jszip" | "pptxviewjs" | "three";
+
+const viewerVendorRoots = new Map<ViewerVendorPackage, Promise<string | null>>();
+
+function isViewerVendorPackage(value: string): value is ViewerVendorPackage {
+  return value === "chart.js" || value === "jszip" || value === "pptxviewjs" || value === "three";
+}
+
+async function resolveViewerVendorRoot(packageName: ViewerVendorPackage): Promise<string | null> {
+  const cached = viewerVendorRoots.get(packageName);
+  if (cached) {
+    return await cached;
+  }
+  const promise = (async () => {
+    try {
+      const require = createRequire(import.meta.url);
+      const anchorSpecifier =
+        packageName === "jszip"
+          ? "jszip/dist/jszip.min.js"
+          : packageName === "pptxviewjs"
+            ? "pptxviewjs/dist/PptxViewJS.min.js"
+            : packageName;
+      let packageRoot = path.dirname(require.resolve(anchorSpecifier));
+      while (path.basename(packageRoot) !== packageName) {
+        const parent = path.dirname(packageRoot);
+        if (parent === packageRoot) {
+          return null;
+        }
+        packageRoot = parent;
+      }
+      return await fs.realpath(packageRoot);
+    } catch {
+      return null;
+    }
+  })();
+  viewerVendorRoots.set(packageName, promise);
+  return await promise;
+}
+
+function isAllowedViewerVendorFile(
+  packageName: ViewerVendorPackage,
+  relativePath: string,
+): boolean {
+  if (!relativePath.endsWith(".js")) {
+    return false;
+  }
+  if (packageName === "three") {
+    return relativePath.startsWith("build/") || relativePath.startsWith("examples/jsm/");
+  }
+  if (packageName === "jszip") {
+    return relativePath === "dist/jszip.min.js";
+  }
+  if (packageName === "chart.js") {
+    return relativePath === "dist/chart.umd.js";
+  }
+  return relativePath === "dist/PptxViewJS.min.js";
+}
+
+async function resolveCanvasViewerVendorFile(
+  urlPath: string,
+): Promise<{ data: Buffer; mime: string } | null> {
+  const normalized = normalizeUrlPath(urlPath);
+  if (!normalized.startsWith(VIEWER_VENDOR_PREFIX)) {
+    return null;
+  }
+  const relative = normalized.slice(VIEWER_VENDOR_PREFIX.length);
+  const [rawPackageName, ...rest] = relative.split("/");
+  if (!rawPackageName || !isViewerVendorPackage(rawPackageName)) {
+    return null;
+  }
+  const relativePath = rest.join("/");
+  if (
+    !relativePath ||
+    relativePath.split("/").some((part) => part === "." || part === "..") ||
+    !isAllowedViewerVendorFile(rawPackageName, relativePath)
+  ) {
+    return null;
+  }
+  const packageRoot = await resolveViewerVendorRoot(rawPackageName);
+  if (!packageRoot) {
+    return null;
+  }
+  const candidate = path.resolve(packageRoot, relativePath);
+  const rootWithSep = `${packageRoot}${path.sep}`;
+  if (!(candidate === packageRoot || candidate.startsWith(rootWithSep))) {
+    return null;
+  }
+  const realPath = await fs.realpath(candidate).catch(() => null);
+  if (!realPath || !(realPath === packageRoot || realPath.startsWith(rootWithSep))) {
+    return null;
+  }
+  return {
+    data: await fs.readFile(realPath),
+    mime: "text/javascript",
+  };
+}
+
 async function prepareCanvasRoot(rootDir: string) {
   await ensureDir(rootDir);
   const rootReal = await fs.realpath(rootDir);
@@ -367,6 +466,14 @@ export async function createCanvasHostHandler(
         res.statusCode = 405;
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.end("Method Not Allowed");
+        return true;
+      }
+
+      const viewerVendorFile = await resolveCanvasViewerVendorFile(urlPath);
+      if (viewerVendorFile) {
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("Content-Type", viewerVendorFile.mime);
+        res.end(req.method === "HEAD" ? undefined : viewerVendorFile.data);
         return true;
       }
 

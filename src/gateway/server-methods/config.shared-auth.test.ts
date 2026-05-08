@@ -31,6 +31,7 @@ vi.mock("../../config/config.js", async () => {
     readConfigFileSnapshotForWrite: readConfigFileSnapshotForWriteMock,
     validateConfigObjectWithPlugins: validateConfigObjectWithPluginsMock,
     writeConfigFile: writeConfigFileMock,
+    writeConfigFileWithResult: writeConfigFileMock,
   };
 });
 
@@ -102,7 +103,13 @@ describe("config shared auth disconnects", () => {
     await configHandlers["config.set"](options);
     await flushConfigHandlerMicrotasks();
 
-    expect(writeConfigFileMock).toHaveBeenCalledWith(nextConfig, {});
+    expect(writeConfigFileMock).toHaveBeenCalledWith(
+      nextConfig,
+      expect.objectContaining({
+        baseSnapshot: expect.any(Object),
+        runtimeRefreshIncludeAuthStoreRefs: false,
+      }),
+    );
     expect(disconnectClientsUsingSharedGatewayAuth).not.toHaveBeenCalled();
     expect(scheduleGatewaySigusr1RestartMock).not.toHaveBeenCalled();
   });
@@ -131,6 +138,36 @@ describe("config shared auth disconnects", () => {
     await flushConfigHandlerMicrotasks();
 
     expect(scheduleGatewaySigusr1RestartMock).not.toHaveBeenCalled();
+    expect(disconnectClientsUsingSharedGatewayAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it("disconnects shared-auth clients when config.apply rewrites SecretRef auth", async () => {
+    const config: GenesisConfig = {
+      gateway: {
+        auth: {
+          mode: "token",
+          token: {
+            source: "env",
+            provider: "default",
+            id: "GENESIS_GATEWAY_TOKEN_REF",
+          },
+        },
+      },
+    };
+    readConfigFileSnapshotForWriteMock.mockResolvedValue(createConfigWriteSnapshot(config));
+
+    const { options, disconnectClientsUsingSharedGatewayAuth } = createConfigHandlerHarness({
+      method: "config.apply",
+      params: {
+        baseHash: "base-hash",
+        raw: JSON.stringify(config, null, 2),
+        restartDelayMs: 1_000,
+      },
+    });
+
+    await configHandlers["config.apply"](options);
+    await flushConfigHandlerMicrotasks();
+
     expect(disconnectClientsUsingSharedGatewayAuth).toHaveBeenCalledTimes(1);
   });
 

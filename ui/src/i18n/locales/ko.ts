@@ -157,6 +157,7 @@ export const ko: TranslationMap = {
   tabs: {
     agents: "에이전트",
     overview: "개요",
+    canvas: "Canvas",
     channels: "채널",
     instances: "인스턴스",
     sessions: "세션",
@@ -164,6 +165,7 @@ export const ko: TranslationMap = {
     wallet: "Wallet",
     cron: "Cron 작업",
     skills: "Skills",
+    plugins: "Plugins",
     nodes: "노드",
     chat: "채팅",
     config: "구성",
@@ -179,6 +181,7 @@ export const ko: TranslationMap = {
   subtitles: {
     agents: "워크스페이스, 도구, 정체성.",
     overview: "상태, 진입점, 상태 정보.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "채널 및 설정.",
     instances: "연결된 클라이언트와 노드.",
     sessions: "활성 세션 및 기본값.",
@@ -186,6 +189,7 @@ export const ko: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "웨이크업 및 반복 실행.",
     skills: "Skills 및 API 키.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "페어링된 디바이스 및 명령.",
     chat: "빠른 개입을 위한 Gateway 채팅.",
     config: "genesis.json 편집.",

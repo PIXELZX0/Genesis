@@ -7,19 +7,20 @@ import {
   readConfigFileSnapshotForWrite,
   resolveConfigSnapshotHash,
   validateConfigObjectWithPlugins,
-  writeConfigFile,
+  writeConfigFileWithResult,
 } from "../../config/config.js";
 import { formatConfigIssueLines } from "../../config/issue-format.js";
 import { applyMergePatch } from "../../config/merge-patch.js";
-import {
-  redactConfigObject,
-  redactConfigSnapshot,
-  restoreRedactedValues,
-} from "../../config/redact-snapshot.js";
+import { redactConfigSnapshot, restoreRedactedValues } from "../../config/redact-snapshot.js";
 import { loadGatewayRuntimeConfigSchema } from "../../config/runtime-schema.js";
 import { lookupConfigSchema, type ConfigSchemaResponse } from "../../config/schema.js";
 import { extractDeliveryInfo } from "../../config/sessions.js";
-import type { ConfigValidationIssue, GenesisConfig } from "../../config/types.genesis.js";
+import type {
+  ConfigFileSnapshot,
+  ConfigValidationIssue,
+  GenesisConfig,
+} from "../../config/types.genesis.js";
+import { resolveSecretInputRef } from "../../config/types.secrets.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import {
   formatDoctorNonInteractiveHint,
@@ -193,7 +194,7 @@ function parseValidateConfigFromRawOrRespond(
   requestName: string,
   snapshot: Awaited<ReturnType<typeof readConfigFileSnapshot>>,
   respond: RespondFn,
-): { config: GenesisConfig; schema: ConfigSchemaResponse } | null {
+): { config: GenesisConfig; raw: string; schema: ConfigSchemaResponse } | null {
   const rawValue = parseRawConfigOrRespond(params, requestName, respond);
   if (!rawValue) {
     return null;
@@ -224,7 +225,54 @@ function parseValidateConfigFromRawOrRespond(
     );
     return null;
   }
-  return { config: validated.config, schema };
+  return { config: validated.config, raw: rawValue, schema };
+}
+
+function serializePersistedConfig(config: GenesisConfig): string {
+  return JSON.stringify(config, null, 2).trimEnd().concat("\n");
+}
+
+function buildConfigWriteSnapshot(params: {
+  path: string;
+  raw: string;
+  config: GenesisConfig;
+  writeResult?: Awaited<ReturnType<typeof writeConfigFileWithResult>>;
+}): ConfigFileSnapshot {
+  const sourceConfig = (params.writeResult?.persistedConfig ??
+    params.config) as ConfigFileSnapshot["sourceConfig"];
+  const runtimeConfig = params.config as ConfigFileSnapshot["runtimeConfig"];
+  return {
+    path: params.path,
+    exists: true,
+    raw: params.writeResult
+      ? serializePersistedConfig(params.writeResult.persistedConfig)
+      : params.raw,
+    parsed: params.writeResult?.persistedConfig ?? params.config,
+    sourceConfig,
+    resolved: sourceConfig,
+    valid: true,
+    runtimeConfig,
+    config: runtimeConfig,
+    hash: params.writeResult?.persistedHash,
+    issues: [],
+    warnings: [],
+    legacyIssues: [],
+  };
+}
+
+function buildConfigWriteResponse(params: {
+  snapshot: ConfigFileSnapshot;
+  schema: ConfigSchemaResponse;
+  extra?: Record<string, unknown>;
+}): Record<string, unknown> {
+  const redacted = redactConfigSnapshot(params.snapshot, params.schema.uiHints);
+  const response = {
+    ok: true,
+    ...redacted,
+    path: redacted.path,
+    config: redacted.config,
+  };
+  return params.extra ? { ...response, ...params.extra } : response;
 }
 
 function didSharedGatewayAuthChange(prev: GenesisConfig, next: GenesisConfig): boolean {
@@ -242,6 +290,23 @@ function didSharedGatewayAuthChange(prev: GenesisConfig, next: GenesisConfig): b
     return prevAuth !== nextAuth;
   }
   return prevAuth.mode !== nextAuth.mode || !isDeepStrictEqual(prevAuth.secret, nextAuth.secret);
+}
+
+function hasSharedGatewayAuthSecretRef(config: GenesisConfig): boolean {
+  const auth = config.gateway?.auth;
+  if (!auth || auth.mode === "none" || auth.mode === "trusted-proxy") {
+    return false;
+  }
+  if (auth.mode === "password") {
+    return Boolean(resolveSecretInputRef({ value: auth.password }).ref);
+  }
+  if (auth.mode === "token") {
+    return Boolean(resolveSecretInputRef({ value: auth.token }).ref);
+  }
+  return Boolean(
+    resolveSecretInputRef({ value: auth.password }).ref ||
+    resolveSecretInputRef({ value: auth.token }).ref,
+  );
 }
 
 function queueSharedGatewayAuthDisconnect(
@@ -460,14 +525,22 @@ export const configHandlers: GatewayRequestHandlers = {
     if (!(await ensureResolvableSecretRefsOrRespond({ config: parsed.config, respond }))) {
       return;
     }
-    await writeConfigFile(parsed.config, writeOptions);
+    const writeResult = await writeConfigFileWithResult(parsed.config, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
     respond(
       true,
-      {
-        ok: true,
-        path: createConfigIO().configPath,
-        config: redactConfigObject(parsed.config, parsed.schema.uiHints),
-      },
+      buildConfigWriteResponse({
+        snapshot: buildConfigWriteSnapshot({
+          path: snapshot.path,
+          raw: parsed.raw,
+          config: parsed.config,
+          writeResult,
+        }),
+        schema: parsed.schema,
+      }),
       undefined,
     );
     queueSharedGatewayAuthGenerationRefresh(true, parsed.config, context);
@@ -560,12 +633,11 @@ export const configHandlers: GatewayRequestHandlers = {
       );
       respond(
         true,
-        {
-          ok: true,
-          noop: true,
-          path: createConfigIO().configPath,
-          config: redactConfigObject(validated.config, schemaPatch.uiHints),
-        },
+        buildConfigWriteResponse({
+          snapshot,
+          schema: schemaPatch,
+          extra: { noop: true },
+        }),
         undefined,
       );
       return;
@@ -580,7 +652,11 @@ export const configHandlers: GatewayRequestHandlers = {
       snapshot.config,
       validated.config,
     );
-    await writeConfigFile(validated.config, writeOptions);
+    const writeResult = await writeConfigFileWithResult(validated.config, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
 
     const { sessionKey, note, restartDelayMs, deliveryContext, threadId } =
       resolveConfigRestartRequest(params);
@@ -615,16 +691,22 @@ export const configHandlers: GatewayRequestHandlers = {
     }
     respond(
       true,
-      {
-        ok: true,
-        path: createConfigIO().configPath,
-        config: redactConfigObject(validated.config, schemaPatch.uiHints),
-        restart,
-        sentinel: {
-          path: sentinelPath,
-          payload,
+      buildConfigWriteResponse({
+        snapshot: buildConfigWriteSnapshot({
+          path: snapshot.path,
+          raw: serializePersistedConfig(validated.config),
+          config: validated.config,
+          writeResult,
+        }),
+        schema: schemaPatch,
+        extra: {
+          restart,
+          sentinel: {
+            path: sentinelPath,
+            payload,
+          },
         },
-      },
+      }),
       undefined,
     );
     queueSharedGatewayAuthGenerationRefresh(true, validated.config, context);
@@ -651,9 +733,18 @@ export const configHandlers: GatewayRequestHandlers = {
       `config.apply write ${formatControlPlaneActor(actor)} changedPaths=${summarizeChangedPaths(changedPaths)} restartReason=config.apply`,
     );
     // Compare before the write so we invalidate clients authenticated against the
-    // previous shared secret immediately after the config update succeeds.
-    const disconnectSharedAuthClients = didSharedGatewayAuthChange(snapshot.config, parsed.config);
-    await writeConfigFile(parsed.config, writeOptions);
+    // previous shared secret immediately after the config update succeeds. SecretRef
+    // backed auth is also invalidated on full apply because source/runtime
+    // projection can rewrite the auth surface without changing the submitted value.
+    const disconnectSharedAuthClients =
+      didSharedGatewayAuthChange(snapshot.config, parsed.config) ||
+      hasSharedGatewayAuthSecretRef(snapshot.config) ||
+      hasSharedGatewayAuthSecretRef(parsed.config);
+    const writeResult = await writeConfigFileWithResult(parsed.config, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
 
     const { sessionKey, note, restartDelayMs, deliveryContext, threadId } =
       resolveConfigRestartRequest(params);
@@ -688,16 +779,22 @@ export const configHandlers: GatewayRequestHandlers = {
     }
     respond(
       true,
-      {
-        ok: true,
-        path: createConfigIO().configPath,
-        config: redactConfigObject(parsed.config, parsed.schema.uiHints),
-        restart,
-        sentinel: {
-          path: sentinelPath,
-          payload,
+      buildConfigWriteResponse({
+        snapshot: buildConfigWriteSnapshot({
+          path: snapshot.path,
+          raw: parsed.raw,
+          config: parsed.config,
+          writeResult,
+        }),
+        schema: parsed.schema,
+        extra: {
+          restart,
+          sentinel: {
+            path: sentinelPath,
+            payload,
+          },
         },
-      },
+      }),
       undefined,
     );
     queueSharedGatewayAuthGenerationRefresh(true, parsed.config, context);

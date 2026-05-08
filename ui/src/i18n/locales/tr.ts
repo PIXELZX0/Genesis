@@ -160,6 +160,7 @@ export const tr: TranslationMap = {
   tabs: {
     agents: "Aracılar",
     overview: "Genel Bakış",
+    canvas: "Canvas",
     channels: "Kanallar",
     instances: "Örnekler",
     sessions: "Oturumlar",
@@ -167,6 +168,7 @@ export const tr: TranslationMap = {
     wallet: "Wallet",
     cron: "Cron İşleri",
     skills: "Skills",
+    plugins: "Plugins",
     nodes: "Düğümler",
     chat: "Sohbet",
     config: "Yapılandırma",
@@ -182,6 +184,7 @@ export const tr: TranslationMap = {
   subtitles: {
     agents: "Çalışma alanları, araçlar, kimlikler.",
     overview: "Durum, giriş noktaları, sağlık.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "Kanallar ve ayarlar.",
     instances: "Bağlı istemciler ve düğümler.",
     sessions: "Etkin oturumlar ve varsayılanlar.",
@@ -189,6 +192,7 @@ export const tr: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "Uyandırmalar ve yinelenen çalıştırmalar.",
     skills: "Skills ve API anahtarları.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "Eşleştirilmiş cihazlar ve komutlar.",
     chat: "Hızlı müdahaleler için Gateway sohbeti.",
     config: "genesis.json dosyasını düzenleyin.",

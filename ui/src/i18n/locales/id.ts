@@ -158,6 +158,7 @@ export const id: TranslationMap = {
   tabs: {
     agents: "Agen",
     overview: "Ikhtisar",
+    canvas: "Canvas",
     channels: "Saluran",
     instances: "Instans",
     sessions: "Sesi",
@@ -165,6 +166,7 @@ export const id: TranslationMap = {
     wallet: "Wallet",
     cron: "Tugas Cron",
     skills: "Skills",
+    plugins: "Plugins",
     nodes: "Node",
     chat: "Chat",
     config: "Konfigurasi",
@@ -180,6 +182,7 @@ export const id: TranslationMap = {
   subtitles: {
     agents: "Ruang kerja, alat, identitas.",
     overview: "Status, titik masuk, kesehatan.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "Saluran dan pengaturan.",
     instances: "Klien dan node yang terhubung.",
     sessions: "Sesi aktif dan default.",
@@ -187,6 +190,7 @@ export const id: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "Bangun dan proses berulang.",
     skills: "Skills dan kunci API.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "Perangkat yang dipasangkan dan perintah.",
     chat: "Chat Gateway untuk intervensi cepat.",
     config: "Edit genesis.json.",

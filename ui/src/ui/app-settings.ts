@@ -133,6 +133,7 @@ type SettingsAppHost = SettingsHost &
     overviewLogCursor: number | null;
     overviewLogLines: string[];
     attentionItems: AttentionItem[];
+    sessionsSearchQuery: string;
     hello: { auth?: { role?: string; scopes?: string[] } } | null;
   };
 
@@ -351,6 +352,8 @@ export async function refreshActiveTab(host: SettingsHost) {
     case "overview":
       await loadOverview(host);
       return;
+    case "canvas":
+      return;
     case "channels":
       await loadChannelsTab(host);
       return;
@@ -361,7 +364,7 @@ export async function refreshActiveTab(host: SettingsHost) {
       await loadUsage(app);
       return;
     case "sessions":
-      await loadSessions(app);
+      await loadSessions(app, { search: app.sessionsSearchQuery });
       return;
     case "cron":
       await loadCron(host);

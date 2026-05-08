@@ -28,6 +28,15 @@ type SessionTitleFieldsCacheEntry = SessionTitleFields & {
 const sessionTitleFieldsCache = new Map<string, SessionTitleFieldsCacheEntry>();
 const MAX_SESSION_TITLE_FIELDS_CACHE_ENTRIES = 5000;
 
+type SessionUsageCacheEntry = {
+  mtimeMs: number;
+  size: number;
+  snapshot: SessionTranscriptUsageSnapshot | null;
+};
+
+const sessionUsageCache = new Map<string, SessionUsageCacheEntry>();
+const MAX_SESSION_USAGE_CACHE_ENTRIES = 5000;
+
 function readSessionTitleFieldsCacheKey(
   filePath: string,
   opts?: { includeInterSession?: boolean },
@@ -66,6 +75,48 @@ function setCachedSessionTitleFields(cacheKey: string, stat: fs.Stats, value: Se
       break;
     }
     sessionTitleFieldsCache.delete(oldestKey);
+  }
+}
+
+function cloneSessionUsageSnapshot(
+  snapshot: SessionTranscriptUsageSnapshot | null,
+): SessionTranscriptUsageSnapshot | null {
+  return snapshot ? { ...snapshot } : null;
+}
+
+function getCachedSessionUsageSnapshot(
+  cacheKey: string,
+  stat: fs.Stats,
+): SessionTranscriptUsageSnapshot | null | undefined {
+  const cached = sessionUsageCache.get(cacheKey);
+  if (!cached) {
+    return undefined;
+  }
+  if (cached.mtimeMs !== stat.mtimeMs || cached.size !== stat.size) {
+    sessionUsageCache.delete(cacheKey);
+    return undefined;
+  }
+  sessionUsageCache.delete(cacheKey);
+  sessionUsageCache.set(cacheKey, cached);
+  return cloneSessionUsageSnapshot(cached.snapshot);
+}
+
+function setCachedSessionUsageSnapshot(
+  cacheKey: string,
+  stat: fs.Stats,
+  snapshot: SessionTranscriptUsageSnapshot | null,
+) {
+  sessionUsageCache.set(cacheKey, {
+    mtimeMs: stat.mtimeMs,
+    size: stat.size,
+    snapshot: cloneSessionUsageSnapshot(snapshot),
+  });
+  while (sessionUsageCache.size > MAX_SESSION_USAGE_CACHE_ENTRIES) {
+    const oldestKey = sessionUsageCache.keys().next().value;
+    if (typeof oldestKey !== "string" || !oldestKey) {
+      break;
+    }
+    sessionUsageCache.delete(oldestKey);
   }
 }
 
@@ -576,13 +627,28 @@ export function readLatestSessionUsageFromTranscript(
     return null;
   }
 
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(filePath);
+  } catch {
+    return null;
+  }
+
+  const cached = getCachedSessionUsageSnapshot(filePath, stat);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  if (stat.size === 0) {
+    setCachedSessionUsageSnapshot(filePath, stat, null);
+    return null;
+  }
+
   return withOpenTranscriptFd(filePath, (fd) => {
-    const stat = fs.fstatSync(fd);
-    if (stat.size === 0) {
-      return null;
-    }
     const chunk = fs.readFileSync(fd, "utf-8");
-    return extractLatestUsageFromTranscriptChunk(chunk);
+    const snapshot = extractLatestUsageFromTranscriptChunk(chunk);
+    setCachedSessionUsageSnapshot(filePath, stat, snapshot);
+    return cloneSessionUsageSnapshot(snapshot);
   });
 }
 

@@ -50,6 +50,8 @@ import {
   ChannelsLogoutParamsSchema,
   type CanvasDocumentCreateParams,
   CanvasDocumentCreateParamsSchema,
+  type CanvasDocumentUpdateParams,
+  CanvasDocumentUpdateParamsSchema,
   type CanvasDocumentCreateResult,
   CanvasDocumentCreateResultSchema,
   type TalkConfigParams,
@@ -406,6 +408,9 @@ export const validateNodePendingEnqueueParams = ajv.compile<NodePendingEnqueuePa
 export const validateCanvasDocumentCreateParams = ajv.compile<CanvasDocumentCreateParams>(
   CanvasDocumentCreateParamsSchema,
 );
+export const validateCanvasDocumentUpdateParams = ajv.compile<CanvasDocumentUpdateParams>(
+  CanvasDocumentUpdateParamsSchema,
+);
 export const validateCanvasDocumentCreateResult = ajv.compile<CanvasDocumentCreateResult>(
   CanvasDocumentCreateResultSchema,
 );
@@ -662,6 +667,7 @@ export {
   NodePendingEnqueueParamsSchema,
   NodePendingEnqueueResultSchema,
   CanvasDocumentCreateParamsSchema,
+  CanvasDocumentUpdateParamsSchema,
   CanvasDocumentCreateResultSchema,
   SessionsListParamsSchema,
   SessionsPreviewParamsSchema,
@@ -886,6 +892,7 @@ export type {
   NodePendingEnqueueParams,
   NodePendingEnqueueResult,
   CanvasDocumentCreateParams,
+  CanvasDocumentUpdateParams,
   CanvasDocumentCreateResult,
   SessionsListParams,
   SessionsPreviewParams,

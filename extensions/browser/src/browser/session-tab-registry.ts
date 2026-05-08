@@ -2,6 +2,8 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
 } from "genesis/plugin-sdk/text-runtime";
+import { loadConfig, type GenesisConfig } from "../config/config.js";
+import { resolveGatewayPort } from "../config/paths.js";
 import { browserCloseTab } from "./client.js";
 
 export type TrackedSessionBrowserTab = {
@@ -9,11 +11,39 @@ export type TrackedSessionBrowserTab = {
   targetId: string;
   baseUrl?: string;
   profile?: string;
+  url?: string;
   trackedAt: number;
   lastUsedAt: number;
 };
 
 const trackedTabsBySession = new Map<string, Map<string, TrackedSessionBrowserTab>>();
+const DEFAULT_GATEWAY_PORT = 18789;
+const CONTROL_UI_TAB_PATHS = new Set([
+  "/",
+  "/agents",
+  "/overview",
+  "/canvas",
+  "/channels",
+  "/instances",
+  "/sessions",
+  "/usage",
+  "/wallet",
+  "/cron",
+  "/skills",
+  "/plugins",
+  "/nodes",
+  "/chat",
+  "/config",
+  "/communications",
+  "/appearance",
+  "/automation",
+  "/infrastructure",
+  "/ai-agents",
+  "/debug",
+  "/logs",
+  "/dreaming",
+  "/dreams",
+]);
 
 function normalizeSessionKey(raw: string): string {
   return normalizeOptionalLowercaseString(raw) ?? "";
@@ -35,6 +65,10 @@ function normalizeBaseUrl(raw?: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+function normalizeUrl(raw?: string): string | undefined {
+  return normalizeBaseUrl(raw);
+}
+
 function toTrackedTabId(params: { targetId: string; baseUrl?: string; profile?: string }): string {
   return `${params.targetId}\u0000${params.baseUrl ?? ""}\u0000${params.profile ?? ""}`;
 }
@@ -44,6 +78,7 @@ function resolveTrackedTabIdentity(params: {
   targetId?: string;
   baseUrl?: string;
   profile?: string;
+  url?: string;
 }): Omit<TrackedSessionBrowserTab, "trackedAt" | "lastUsedAt"> | undefined {
   const sessionKeyRaw = params.sessionKey?.trim();
   const targetIdRaw = params.targetId?.trim();
@@ -55,7 +90,103 @@ function resolveTrackedTabIdentity(params: {
     targetId: normalizeTargetId(targetIdRaw),
     baseUrl: normalizeBaseUrl(params.baseUrl),
     profile: normalizeProfile(params.profile),
+    url: normalizeUrl(params.url),
   };
+}
+
+function normalizeControlUiBasePath(basePath?: string): string {
+  if (!basePath) {
+    return "";
+  }
+  let normalized = basePath.trim();
+  if (!normalized) {
+    return "";
+  }
+  if (!normalized.startsWith("/")) {
+    normalized = `/${normalized}`;
+  }
+  if (normalized === "/") {
+    return "";
+  }
+  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+function normalizePathname(pathname: string): string {
+  let normalized = pathname || "/";
+  if (!normalized.startsWith("/")) {
+    normalized = `/${normalized}`;
+  }
+  if (normalized.endsWith("/index.html")) {
+    normalized = normalized.slice(0, -"/index.html".length) || "/";
+  }
+  if (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
+}
+
+function loadConfigBestEffort(): GenesisConfig | undefined {
+  try {
+    return loadConfig();
+  } catch {
+    return undefined;
+  }
+}
+
+function resolveControlUiPorts(cfg: GenesisConfig | undefined): Set<number> {
+  const ports = new Set<number>([DEFAULT_GATEWAY_PORT]);
+  try {
+    ports.add(resolveGatewayPort(cfg));
+  } catch {
+    // Keep the default-port guard even when config loading is unavailable during cleanup.
+  }
+  return ports;
+}
+
+function urlPort(url: URL): number {
+  if (url.port) {
+    return Number(url.port);
+  }
+  return url.protocol === "https:" ? 443 : 80;
+}
+
+function isGatewayControlUiUrl(rawUrl?: string): boolean {
+  if (!rawUrl) {
+    return false;
+  }
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return false;
+  }
+  const cfg = loadConfigBestEffort();
+  if (!resolveControlUiPorts(cfg).has(urlPort(url))) {
+    return false;
+  }
+
+  const basePath = normalizeControlUiBasePath(cfg?.gateway?.controlUi?.basePath);
+  let pathname = normalizePathname(url.pathname);
+  if (basePath) {
+    if (pathname === basePath) {
+      pathname = "/";
+    } else if (pathname.startsWith(`${basePath}/`)) {
+      pathname = normalizePathname(pathname.slice(basePath.length));
+    }
+  }
+  if (CONTROL_UI_TAB_PATHS.has(pathname)) {
+    return true;
+  }
+  const segments = pathname.split("/").filter(Boolean);
+  for (let i = 1; i < segments.length; i += 1) {
+    if (CONTROL_UI_TAB_PATHS.has(normalizePathname(`/${segments.slice(i).join("/")}`))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function isIgnorableCloseError(err: unknown): boolean {
@@ -73,6 +204,7 @@ export function trackSessionBrowserTab(params: {
   targetId?: string;
   baseUrl?: string;
   profile?: string;
+  url?: string;
 }): void {
   const identity = resolveTrackedTabIdentity(params);
   if (!identity) {
@@ -102,6 +234,7 @@ export function touchSessionBrowserTab(params: {
   targetId?: string;
   baseUrl?: string;
   profile?: string;
+  url?: string;
   now?: number;
 }): void {
   const identity = resolveTrackedTabIdentity(params);
@@ -119,6 +252,7 @@ export function touchSessionBrowserTab(params: {
   }
   trackedForSession.set(trackedId, {
     ...tracked,
+    url: identity.url ?? tracked.url,
     lastUsedAt: params.now ?? Date.now(),
   });
 }
@@ -182,7 +316,8 @@ async function closeTrackedTabs(params: {
   closeTab?: (tab: { targetId: string; baseUrl?: string; profile?: string }) => Promise<void>;
   onWarn?: (message: string) => void;
 }): Promise<number> {
-  if (params.tabs.length === 0) {
+  const closableTabs = params.tabs.filter((tab) => !isGatewayControlUiUrl(tab.url));
+  if (closableTabs.length === 0) {
     return 0;
   }
   const closeTab =
@@ -193,7 +328,7 @@ async function closeTrackedTabs(params: {
       });
     });
   let closed = 0;
-  for (const tab of params.tabs) {
+  for (const tab of closableTabs) {
     try {
       await closeTab({
         targetId: tab.targetId,

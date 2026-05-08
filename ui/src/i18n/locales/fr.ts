@@ -160,6 +160,7 @@ export const fr: TranslationMap = {
   tabs: {
     agents: "Agents",
     overview: "Aperçu",
+    canvas: "Canvas",
     channels: "Canaux",
     instances: "Instances",
     sessions: "Sessions",
@@ -167,6 +168,7 @@ export const fr: TranslationMap = {
     wallet: "Wallet",
     cron: "Tâches cron",
     skills: "Skills",
+    plugins: "Plugins",
     nodes: "Nœuds",
     chat: "Chat",
     config: "Configuration",
@@ -182,6 +184,7 @@ export const fr: TranslationMap = {
   subtitles: {
     agents: "Espaces de travail, outils, identités.",
     overview: "Statut, points d’entrée, santé.",
+    canvas: "Hosted Canvas documents and rich previews.",
     channels: "Canaux et paramètres.",
     instances: "Clients et nœuds connectés.",
     sessions: "Sessions actives et valeurs par défaut.",
@@ -189,6 +192,7 @@ export const fr: TranslationMap = {
     wallet: "Addresses, balances, and wallet settings.",
     cron: "Réveils et exécutions récurrentes.",
     skills: "Skills et clés API.",
+    plugins: "Install and manage Gateway plugins.",
     nodes: "Appareils appairés et commandes.",
     chat: "Chat Gateway pour les interventions rapides.",
     config: "Modifier genesis.json.",

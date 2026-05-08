@@ -321,7 +321,7 @@ export async function executeSnapshotAction(params: {
   baseUrl?: string;
   profile?: string;
   proxyRequest: BrowserProxyRequest | null;
-  onTabActivity?: (targetId: string | undefined) => void;
+  onTabActivity?: (targetId: string | undefined, url?: string) => void;
 }): Promise<AgentToolResult<unknown>> {
   const { input, baseUrl, profile, proxyRequest } = params;
   const snapshotDefaults = browserToolActionDeps.loadConfig().browser?.snapshotDefaults;
@@ -400,7 +400,7 @@ export async function executeSnapshotAction(params: {
     refsFallback = "role";
     snapshot = await readSnapshot(withRoleRefsFallback(snapshotQuery));
   }
-  params.onTabActivity?.(readStringValue(snapshot.targetId) ?? targetId);
+  params.onTabActivity?.(readStringValue(snapshot.targetId) ?? targetId, snapshot.url);
   if (snapshot.format === "ai") {
     const extractedText = snapshot.snapshot ?? "";
     const wrappedSnapshot = wrapExternalContent(extractedText, {
@@ -501,7 +501,7 @@ export async function executeActAction(params: {
   baseUrl?: string;
   profile?: string;
   proxyRequest: BrowserProxyRequest | null;
-  onTabActivity?: (targetId: string | undefined) => void;
+  onTabActivity?: (targetId: string | undefined, url?: string) => void;
 }): Promise<AgentToolResult<unknown>> {
   const { request, baseUrl, profile, proxyRequest } = params;
   const effectiveRequest = withConfiguredActTimeout(request, profile);
@@ -520,6 +520,7 @@ export async function executeActAction(params: {
     params.onTabActivity?.(
       readStringValue((result as { targetId?: unknown }).targetId) ??
         readStringValue(effectiveRequest.targetId),
+      readStringValue((result as { url?: unknown }).url),
     );
     return jsonResult(result);
   } catch (err) {
@@ -552,6 +553,7 @@ export async function executeActAction(params: {
           params.onTabActivity?.(
             readStringValue((retryResult as { targetId?: unknown }).targetId) ??
               readStringValue(retryRequest.targetId),
+            readStringValue((retryResult as { url?: unknown }).url),
           );
           return jsonResult(retryResult);
         } catch {

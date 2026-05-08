@@ -1,4 +1,5 @@
 import { html, nothing } from "lit";
+import { until } from "lit/directives/until.js";
 import { applyMergePatch } from "../../../src/config/merge-patch.ts";
 import { t } from "../i18n/index.ts";
 import { getSafeLocalStorage } from "../local-storage.ts";
@@ -167,12 +168,16 @@ import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.t
 import { renderLoginGate } from "./views/login-gate.ts";
 import { renderOverview } from "./views/overview.ts";
 
+function loadSessionsForSessionView(state: AppViewState): Promise<void> {
+  return loadSessions(state, { search: state.sessionsSearchQuery });
+}
+
 // Lazy-loaded view modules – deferred so the initial bundle stays small.
 // Each loader resolves once; subsequent calls return the cached module.
 type LazyState<T> = { mod: T | null; promise: Promise<void> | null };
 type LazyLoadResult<T> =
   | { status: "ready"; mod: T }
-  | { status: "loading" }
+  | { status: "loading"; promise: Promise<void> }
   | { status: "error"; message: string; retry: () => void };
 
 let _pendingUpdate: (() => void) | undefined;
@@ -187,9 +192,12 @@ function createLazy<T>(loader: () => Promise<T>): () => LazyLoadResult<T> {
     promise: null,
     error: null,
   };
-  const start = () => {
-    if (s.promise || s.mod) {
-      return;
+  const start = (): Promise<void> => {
+    if (s.promise) {
+      return s.promise;
+    }
+    if (s.mod) {
+      return Promise.resolve();
     }
     s.error = null;
     s.promise = loader()
@@ -204,13 +212,14 @@ function createLazy<T>(loader: () => Promise<T>): () => LazyLoadResult<T> {
         s.promise = null;
         _pendingUpdate?.();
       });
+    return s.promise;
   };
   return () => {
     if (s.mod) {
       return { status: "ready", mod: s.mod };
     }
     if (!s.promise && !s.error) {
-      start();
+      void start();
     }
     if (s.error) {
       return {
@@ -218,16 +227,17 @@ function createLazy<T>(loader: () => Promise<T>): () => LazyLoadResult<T> {
         message: s.error,
         retry: () => {
           s.error = null;
-          start();
+          void start();
           _pendingUpdate?.();
         },
       };
     }
-    return { status: "loading" };
+    return { status: "loading", promise: s.promise ?? start() };
   };
 }
 
 const lazyAgents = createLazy(() => import("./views/agents.ts"));
+const lazyCanvas = createLazy(() => import("./views/canvas.ts"));
 const lazyChannels = createLazy(() => import("./views/channels.ts"));
 const lazyCron = createLazy(() => import("./views/cron.ts"));
 const lazyDebug = createLazy(() => import("./views/debug.ts"));
@@ -291,7 +301,25 @@ function renderLazyError(message: string, retry?: () => void) {
 function lazyRender<M>(getter: () => LazyLoadResult<M>, render: (mod: M) => unknown) {
   const loaded = getter();
   if (loaded.status === "loading") {
-    return renderLazyPlaceholder();
+    return until(
+      loaded.promise
+        .then(() => {
+          const next = getter();
+          if (next.status === "ready") {
+            try {
+              return render(next.mod);
+            } catch (err) {
+              return renderLazyError(formatLazyError(err));
+            }
+          }
+          if (next.status === "error") {
+            return renderLazyError(next.message, next.retry);
+          }
+          return renderLazyPlaceholder();
+        })
+        .catch((err: unknown) => renderLazyError(formatLazyError(err))),
+      renderLazyPlaceholder(),
+    );
   }
   if (loaded.status === "error") {
     return renderLazyError(loaded.message, loaded.retry);
@@ -1619,6 +1647,18 @@ export function renderApp(state: AppViewState) {
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
             })
           : nothing}
+        ${state.tab === "canvas"
+          ? lazyRender(lazyCanvas, (m) =>
+              m.renderCanvas({
+                connected: state.connected,
+                canvasHostUrl: state.hello?.canvasHostUrl ?? null,
+                embedSandboxMode: state.embedSandboxMode,
+                allowExternalEmbedUrls: state.allowExternalEmbedUrls,
+                onNavigateToChat: () => state.setTab("chat" as import("./navigation.ts").Tab),
+                onRequestUpdate: requestHostUpdate,
+              }),
+            )
+          : nothing}
         ${state.tab === "channels"
           ? lazyRender(lazyChannels, (m) =>
               m.renderChannels({
@@ -1705,10 +1745,13 @@ export function renderApp(state: AppViewState) {
                   state.sessionsFilterLimit = next.limit;
                   state.sessionsIncludeGlobal = next.includeGlobal;
                   state.sessionsIncludeUnknown = next.includeUnknown;
+                  state.sessionsPage = 0;
+                  void loadSessionsForSessionView(state);
                 },
                 onSearchChange: (q) => {
                   state.sessionsSearchQuery = q;
                   state.sessionsPage = 0;
+                  void loadSessionsForSessionView(state);
                 },
                 onSortChange: (col, dir) => {
                   state.sessionsSortColumn = col;
@@ -1722,7 +1765,7 @@ export function renderApp(state: AppViewState) {
                   state.sessionsPageSize = s;
                   state.sessionsPage = 0;
                 },
-                onRefresh: () => loadSessions(state),
+                onRefresh: () => loadSessionsForSessionView(state),
                 onPatch: (key, patch) => patchSession(state, key, patch),
                 onToggleSelect: (key) => {
                   const next = new Set(state.sessionsSelectedKeys);
