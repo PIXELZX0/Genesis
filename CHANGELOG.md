@@ -2,13 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.9
+
+### Changes
+
+- Control UI: let humans create, upload, update, list, and reopen hosted Canvas documents from the Canvas tab.
+
 ## 2026.5.8
 
 ### Changes
 
 - Canvas: add a Control UI tab plus hosted previews for PPTX/PPT, SVG, and GLB/GLTF/OBJ/STL assets, with stable revisioned URLs and confirmed agent-run prompts from trusted embeds.
-- Control UI: let humans create, upload, update, list, and reopen hosted Canvas
-  documents from the Canvas tab.
 
 ### Fixes
 
