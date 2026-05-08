@@ -54,6 +54,10 @@ import {
   CanvasDocumentUpdateParamsSchema,
   type CanvasDocumentCreateResult,
   CanvasDocumentCreateResultSchema,
+  type CanvasDocumentListParams,
+  CanvasDocumentListParamsSchema,
+  type CanvasDocumentListResult,
+  CanvasDocumentListResultSchema,
   type TalkConfigParams,
   TalkConfigParamsSchema,
   type TalkConfigResult,
@@ -414,6 +418,12 @@ export const validateCanvasDocumentUpdateParams = ajv.compile<CanvasDocumentUpda
 export const validateCanvasDocumentCreateResult = ajv.compile<CanvasDocumentCreateResult>(
   CanvasDocumentCreateResultSchema,
 );
+export const validateCanvasDocumentListParams = ajv.compile<CanvasDocumentListParams>(
+  CanvasDocumentListParamsSchema,
+);
+export const validateCanvasDocumentListResult = ajv.compile<CanvasDocumentListResult>(
+  CanvasDocumentListResultSchema,
+);
 export const validatePushTestParams = ajv.compile<PushTestParams>(PushTestParamsSchema);
 export const validateSecretsResolveParams = ajv.compile<SecretsResolveParams>(
   SecretsResolveParamsSchema,
@@ -669,6 +679,8 @@ export {
   CanvasDocumentCreateParamsSchema,
   CanvasDocumentUpdateParamsSchema,
   CanvasDocumentCreateResultSchema,
+  CanvasDocumentListParamsSchema,
+  CanvasDocumentListResultSchema,
   SessionsListParamsSchema,
   SessionsPreviewParamsSchema,
   SessionsResolveParamsSchema,
@@ -894,6 +906,8 @@ export type {
   CanvasDocumentCreateParams,
   CanvasDocumentUpdateParams,
   CanvasDocumentCreateResult,
+  CanvasDocumentListParams,
+  CanvasDocumentListResult,
   SessionsListParams,
   SessionsPreviewParams,
   SessionsResolveParams,

@@ -23,7 +23,9 @@ const mockState = vi.hoisted(() => ({
   finalPayload: null as {
     text?: string;
     mediaUrl?: string;
+    mediaUrls?: string[];
     sensitiveMedia?: boolean;
+    audioAsVoice?: boolean;
     replyToId?: string;
     replyToCurrent?: boolean;
   } | null,
@@ -111,7 +113,9 @@ vi.mock("../../auto-reply/dispatch.js", () => ({
         sendFinalReply: (payload: {
           text?: string;
           mediaUrl?: string;
+          mediaUrls?: string[];
           sensitiveMedia?: boolean;
+          audioAsVoice?: boolean;
           replyToId?: string;
           replyToCurrent?: boolean;
         }) => boolean;
@@ -120,6 +124,7 @@ vi.mock("../../auto-reply/dispatch.js", () => ({
           mediaUrl?: string;
           mediaUrls?: string[];
           trustedLocalMedia?: boolean;
+          audioAsVoice?: boolean;
           replyToId?: string;
           replyToCurrent?: boolean;
         }) => boolean;
@@ -128,6 +133,7 @@ vi.mock("../../auto-reply/dispatch.js", () => ({
           mediaUrl?: string;
           mediaUrls?: string[];
           trustedLocalMedia?: boolean;
+          audioAsVoice?: boolean;
           replyToId?: string;
           replyToCurrent?: boolean;
         }) => boolean;
@@ -597,6 +603,60 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       ],
     });
     expect(JSON.stringify(payload?.message)).not.toContain("MEDIA:data:image/png;base64,cG5n");
+  });
+
+  it("broadcasts text plus audio, video, and document reply payloads as renderable attachments", async () => {
+    createTranscriptFixture("genesis-chat-send-agent-media-attachments-");
+    mockState.finalPayload = {
+      text: "Rendered media",
+      mediaUrls: [
+        "https://example.com/voice.ogg",
+        "https://example.com/demo.mp4",
+        "https://example.com/report.pdf",
+      ],
+      audioAsVoice: true,
+    };
+    const respond = vi.fn();
+    const context = createChatContext();
+
+    const payload = await runNonStreamingChatSend({
+      context,
+      respond,
+      idempotencyKey: "idem-agent-media-attachments",
+    });
+
+    expect(payload?.message).toMatchObject({
+      role: "assistant",
+      content: [
+        { type: "text", text: "Rendered media" },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/voice.ogg",
+            kind: "audio",
+            mimeType: "audio/ogg",
+            isVoiceNote: true,
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/demo.mp4",
+            kind: "video",
+            mimeType: "video/mp4",
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/report.pdf",
+            kind: "document",
+            mimeType: "application/pdf",
+          },
+        },
+      ],
+    });
+    expect(JSON.stringify(payload?.message)).not.toContain("MEDIA:https://example.com/demo.mp4");
   });
 
   it("chat.inject keeps message defined when directive tag is the only content", async () => {

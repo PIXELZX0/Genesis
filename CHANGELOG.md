@@ -7,6 +7,8 @@ Docs: https://docs.genesis.ai
 ### Changes
 
 - Canvas: add a Control UI tab plus hosted previews for PPTX/PPT, SVG, and GLB/GLTF/OBJ/STL assets, with stable revisioned URLs and confirmed agent-run prompts from trusted embeds.
+- Control UI: let humans create, upload, update, list, and reopen hosted Canvas
+  documents from the Canvas tab.
 
 ### Fixes
 

@@ -1651,6 +1651,11 @@ export function renderApp(state: AppViewState) {
           ? lazyRender(lazyCanvas, (m) =>
               m.renderCanvas({
                 connected: state.connected,
+                client: state.client,
+                gatewayUrl: state.settings.gatewayUrl,
+                authToken: state.settings.token,
+                password: state.password,
+                basePath: state.basePath,
                 canvasHostUrl: state.hello?.canvasHostUrl ?? null,
                 embedSandboxMode: state.embedSandboxMode,
                 allowExternalEmbedUrls: state.allowExternalEmbedUrls,

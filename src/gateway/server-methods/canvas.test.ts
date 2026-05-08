@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     return "html_bundle";
   }),
   loadConfig: vi.fn(),
+  listCanvasDocumentManifests: vi.fn(),
   updateCanvasDocument: vi.fn(),
 }));
 
@@ -22,6 +23,7 @@ vi.mock("../../config/config.js", () => ({
 vi.mock("../canvas-documents.js", () => ({
   createCanvasDocument: mocks.createCanvasDocument,
   inferCanvasDocumentKindFromSource: mocks.inferCanvasDocumentKindFromSource,
+  listCanvasDocumentManifests: mocks.listCanvasDocumentManifests,
   updateCanvasDocument: mocks.updateCanvasDocument,
 }));
 
@@ -49,12 +51,56 @@ async function invokeCanvasUpdate(params: Record<string, unknown>) {
   return response;
 }
 
+async function invokeCanvasList(params: Record<string, unknown> = {}) {
+  let response: unknown[] | undefined;
+  await canvasHandlers["canvas.document.list"]({
+    params,
+    respond: (...args: unknown[]) => {
+      response = args;
+    },
+  } as never);
+  return response;
+}
+
 describe("canvas document gateway methods", () => {
   beforeEach(() => {
     mocks.createCanvasDocument.mockReset();
     mocks.updateCanvasDocument.mockReset();
+    mocks.listCanvasDocumentManifests.mockReset();
     mocks.loadConfig.mockReset();
     mocks.loadConfig.mockReturnValue({ canvasHost: { root: "/tmp/genesis-canvas-root" } });
+  });
+
+  it("lists hosted canvas documents from the configured canvas root", async () => {
+    const documents = [
+      {
+        id: "status-card",
+        kind: "html_bundle",
+        createdAt: "2026-05-05T00:00:00.000Z",
+        revision: 1,
+        entryUrl: "/__genesis__/canvas/documents/status-card/index.html",
+        assets: [],
+      },
+    ];
+    mocks.listCanvasDocumentManifests.mockResolvedValue(documents);
+
+    const response = await invokeCanvasList({ limit: 10 });
+
+    expect(response).toEqual([true, { documents }, undefined]);
+    expect(mocks.listCanvasDocumentManifests).toHaveBeenCalledWith({
+      canvasRootDir: "/tmp/genesis-canvas-root",
+      limit: 10,
+    });
+  });
+
+  it("rejects document listing when the canvas host is disabled", async () => {
+    mocks.loadConfig.mockReturnValue({ canvasHost: { enabled: false } });
+
+    const response = await invokeCanvasList();
+
+    expect(response?.[0]).toBe(false);
+    expect(JSON.stringify(response?.[2])).toContain("canvas host is disabled");
+    expect(mocks.listCanvasDocumentManifests).not.toHaveBeenCalled();
   });
 
   it("creates hosted html documents in the configured canvas root", async () => {

@@ -90,6 +90,7 @@ export type CanvasDocumentResolvedAsset = {
 
 const CANVAS_DOCUMENTS_DIR_NAME = "documents";
 const CANVAS_REVISIONS_DIR_NAME = "revisions";
+const DEFAULT_CANVAS_DOCUMENT_LIST_LIMIT = 50;
 
 const PPT_MIME = "application/vnd.ms-powerpoint";
 const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
@@ -1130,6 +1131,48 @@ export async function loadCanvasDocumentManifest(
   } catch {
     return null;
   }
+}
+
+function canvasDocumentUpdatedMs(manifest: CanvasDocumentManifest): number {
+  const raw = manifest.updatedAt ?? manifest.createdAt;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export async function listCanvasDocumentManifests(options?: {
+  stateDir?: string;
+  canvasRootDir?: string;
+  limit?: number;
+}): Promise<CanvasDocumentManifest[]> {
+  const limit =
+    typeof options?.limit === "number" && Number.isFinite(options.limit)
+      ? Math.min(100, Math.max(1, Math.floor(options.limit)))
+      : DEFAULT_CANVAS_DOCUMENT_LIST_LIMIT;
+  const documentsDir = resolveCanvasDocumentsDir(options?.canvasRootDir, options?.stateDir);
+  let entries: import("node:fs").Dirent[];
+  try {
+    entries = await fs.readdir(documentsDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const manifests = await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map(async (entry) => {
+        try {
+          return await loadCanvasDocumentManifest(entry.name, {
+            stateDir: options?.stateDir,
+            canvasRootDir: options?.canvasRootDir,
+          });
+        } catch {
+          return null;
+        }
+      }),
+  );
+  return manifests
+    .filter((manifest): manifest is CanvasDocumentManifest => manifest !== null)
+    .toSorted((a, b) => canvasDocumentUpdatedMs(b) - canvasDocumentUpdatedMs(a))
+    .slice(0, limit);
 }
 
 export function resolveCanvasDocumentAssets(

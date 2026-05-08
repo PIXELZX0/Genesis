@@ -20,6 +20,19 @@ turn. If the same media URL is sent in a streamed block and repeated in the fina
 assistant payload, Genesis delivers the attachment once and strips the duplicate
 from the final payload.
 
+## `MEDIA:`
+
+Use `MEDIA:<path-or-url>` on its own line when the assistant should attach a
+file instead of showing a raw URL as prose. Control UI renders supported media
+inline: images as previews, audio and video with browser controls, and safe
+documents as links. The `[[audio_as_voice]]` hint marks audio attachments as
+voice-note style where the surface supports that presentation.
+
+Local host paths are never opened directly by the browser. Control UI proxies
+allowed local media through `/__genesis__/assistant-media` after Gateway auth,
+agent-scoped media-root checks, and MIME sniffing. Paths outside the allowed
+roots remain visible only as unavailable attachments.
+
 ## `[embed ...]`
 
 `[embed ...]` is the only agent-facing rich render syntax for the Control UI.
@@ -37,6 +50,8 @@ Rules:
 - Only URL-backed embeds are rendered. Use `ref="..."` or `url="..."`.
 - Agents should use the `canvas` tool with `action: "create"` to create hosted embed documents before replying with `[embed ref="..."]`.
 - Agents can use `canvas` with `action: "update"` and the same `id` to publish a new revision while keeping the embed URL stable.
+- Humans can use the Control UI Canvas tab to create, upload, update, list, and
+  preview the same hosted documents without a node canvas device.
 - Block-form inline HTML embed shortcodes are not rendered.
 - The web UI strips the shortcode from visible text and renders the embed inline.
 - `MEDIA:` is not an embed alias and should not be used for rich embed rendering.
@@ -68,6 +83,18 @@ Hosted Canvas documents keep stable entry URLs like
 `/__genesis__/canvas/documents/<id>/index.html`. Updates are stored under
 `documents/<id>/revisions/<n>/` and the latest revision is republished into the
 stable document root so existing embeds can live-reload.
+
+The human-facing Control UI workflow uses the same manifest and revision
+contract:
+
+- `canvas.document.list` returns recent document manifests sorted by latest
+  update/create time.
+- `POST {controlUiBasePath}/__genesis__/canvas-upload` accepts one primary file
+  as the raw request body. Query params are `mode=create|update`, optional `id`,
+  `title`, `preferredHeight`, and `kind`; `X-Genesis-File-Name` is required and
+  `Content-Type` is a MIME hint.
+- The upload route requires Control UI operator write auth and enforces the
+  existing 100 MB document-size ceiling.
 
 Canvas v1 is view/import first. Supported rich asset kinds are:
 

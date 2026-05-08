@@ -205,6 +205,44 @@ describe("message-normalizer", () => {
       ]);
     });
 
+    it("infers common audio, video, and document attachment kinds from MEDIA filenames", () => {
+      const result = normalizeMessage({
+        role: "assistant",
+        content:
+          "MEDIA:https://example.com/voice.weba\nMEDIA:https://example.com/movie.webm\nMEDIA:https://example.com/report.pdf",
+      });
+
+      expect(result.content).toEqual([
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/voice.weba",
+            kind: "audio",
+            label: "voice.weba",
+            mimeType: "audio/webm",
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/movie.webm",
+            kind: "video",
+            label: "movie.webm",
+            mimeType: "video/webm",
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/report.pdf",
+            kind: "document",
+            label: "report.pdf",
+            mimeType: "application/pdf",
+          },
+        },
+      ]);
+    });
+
     it("keeps valid local MEDIA paths as assistant attachments", () => {
       const result = normalizeMessage({
         role: "assistant",

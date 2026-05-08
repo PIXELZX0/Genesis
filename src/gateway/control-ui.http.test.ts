@@ -3,15 +3,18 @@ import fs from "node:fs/promises";
 import type { IncomingMessage } from "node:http";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 import { resolveStateDir } from "../config/paths.js";
 import { approveDevicePairing, requestDevicePairing } from "../infra/device-pairing.js";
 import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
+import { MAX_DOCUMENT_BYTES } from "../media/constants.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import { CONTROL_UI_BOOTSTRAP_CONFIG_PATH } from "./control-ui-contract.js";
 import {
   handleControlUiAssistantMediaRequest,
   handleControlUiAvatarRequest,
+  handleControlUiCanvasUploadRequest,
   handleControlUiHttpRequest,
 } from "./control-ui.js";
 import { makeMockHttpResponse } from "./test-http-response.js";
@@ -154,6 +157,48 @@ describe("handleControlUiHttpRequest", () => {
     return { res, end, handled };
   }
 
+  async function runCanvasUploadRequest(params: {
+    url?: string;
+    method?: "GET" | "POST";
+    body?: Buffer | string;
+    basePath?: string;
+    auth?: ResolvedGatewayAuth;
+    headers?: IncomingMessage["headers"];
+    trustedProxies?: string[];
+    remoteAddress?: string;
+    canvasRoot?: string;
+    canvasEnabled?: boolean;
+  }) {
+    const { res, end } = makeMockHttpResponse();
+    const req = Readable.from(params.body === undefined ? [] : [params.body]) as IncomingMessage;
+    Object.assign(req, {
+      url: params.url ?? "/__genesis__/canvas-upload?mode=create",
+      method: params.method ?? "POST",
+      headers: params.headers ?? {},
+      socket: { remoteAddress: params.remoteAddress ?? "127.0.0.1" },
+    });
+    const handled = await handleControlUiCanvasUploadRequest(req, res, {
+      ...(params.basePath ? { basePath: params.basePath } : {}),
+      ...(params.auth ? { auth: params.auth } : {}),
+      ...(params.trustedProxies ? { trustedProxies: params.trustedProxies } : {}),
+      config: {
+        canvasHost: {
+          ...(params.canvasRoot ? { root: params.canvasRoot } : {}),
+          ...(params.canvasEnabled === false ? { enabled: false } : {}),
+        },
+      },
+    });
+    return { res, end, handled };
+  }
+
+  async function listCanvasUploadTempDirs(): Promise<string[]> {
+    const entries = await fs.readdir(os.tmpdir(), { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory() && entry.name.startsWith("genesis-canvas-upload-"))
+      .map((entry) => path.join(os.tmpdir(), entry.name))
+      .toSorted();
+  }
+
   function createTrustedProxyAuth(): ResolvedGatewayAuth {
     return {
       mode: "trusted-proxy",
@@ -268,21 +313,25 @@ describe("handleControlUiHttpRequest", () => {
     }
   }
 
-  async function withPairedOperatorDeviceToken<T>(params: { fn: (token: string) => Promise<T> }) {
+  async function withPairedOperatorDeviceToken<T>(params: {
+    scopes?: string[];
+    fn: (token: string) => Promise<T>;
+  }) {
     const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-ui-device-token-"));
     vi.stubEnv("GENESIS_HOME", tempHome);
     try {
+      const scopes = params.scopes ?? ["operator.read"];
       const deviceId = "control-ui-device";
       const requested = await requestDevicePairing({
         deviceId,
         publicKey: "test-public-key",
         role: "operator",
-        scopes: ["operator.read"],
+        scopes,
         clientId: "genesis-control-ui",
         clientMode: "webchat",
       });
       const approved = await approveDevicePairing(requested.request.requestId, {
-        callerScopes: ["operator.read"],
+        callerScopes: scopes,
       });
       expect(approved?.status).toBe("approved");
       const operatorToken =
@@ -294,6 +343,183 @@ describe("handleControlUiHttpRequest", () => {
       await fs.rm(tempHome, { recursive: true, force: true });
     }
   }
+
+  it("creates hosted Canvas documents from Control UI uploads", async () => {
+    const canvasRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-canvas-upload-root-"));
+    try {
+      const { res, handled, end } = await runCanvasUploadRequest({
+        canvasRoot,
+        body: "<h1>hello</h1>",
+        headers: {
+          "x-genesis-file-name": "hello.html",
+          "content-type": "text/html",
+        },
+      });
+
+      expect(handled).toBe(true);
+      expect(res.statusCode).toBe(200);
+      const payload = JSON.parse(String(end.mock.calls[0]?.[0] ?? "")) as {
+        ok: boolean;
+        document: { id: string; entryUrl: string; revision: number; sourceFileName?: string };
+      };
+      expect(payload.ok).toBe(true);
+      expect(payload.document.revision).toBe(1);
+      expect(payload.document.sourceFileName).toBe("hello.html");
+      expect(payload.document.entryUrl).toContain(
+        `/__genesis__/canvas/documents/${payload.document.id}/`,
+      );
+      await expect(
+        fs.stat(path.join(canvasRoot, "documents", payload.document.id, "manifest.json")),
+      ).resolves.toBeTruthy();
+    } finally {
+      await fs.rm(canvasRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("updates hosted Canvas documents from Control UI uploads", async () => {
+    const canvasRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-canvas-upload-root-"));
+    try {
+      const first = await runCanvasUploadRequest({
+        canvasRoot,
+        body: "<h1>first</h1>",
+        headers: {
+          "x-genesis-file-name": "first.html",
+          "content-type": "text/html",
+        },
+      });
+      const created = JSON.parse(String(first.end.mock.calls[0]?.[0] ?? "")) as {
+        document: { id: string };
+      };
+
+      const second = await runCanvasUploadRequest({
+        canvasRoot,
+        url: `/__genesis__/canvas-upload?mode=update&id=${created.document.id}`,
+        body: "<h1>second</h1>",
+        headers: {
+          "x-genesis-file-name": "second.html",
+          "content-type": "text/html",
+        },
+      });
+
+      expect(second.handled).toBe(true);
+      expect(second.res.statusCode).toBe(200);
+      const updated = JSON.parse(String(second.end.mock.calls[0]?.[0] ?? "")) as {
+        document: { id: string; revision: number; sourceFileName?: string };
+      };
+      expect(updated.document.id).toBe(created.document.id);
+      expect(updated.document.revision).toBe(2);
+      expect(updated.document.sourceFileName).toBe("second.html");
+    } finally {
+      await fs.rm(canvasRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("accepts paired operator write device tokens for Canvas uploads", async () => {
+    await withPairedOperatorDeviceToken({
+      scopes: ["operator.write"],
+      fn: async (operatorToken) => {
+        const canvasRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-canvas-upload-root-"));
+        try {
+          const { res, handled } = await runCanvasUploadRequest({
+            canvasRoot,
+            auth: { mode: "token", token: "shared-token", allowTailscale: false },
+            body: "<h1>hello</h1>",
+            headers: {
+              authorization: `Bearer ${operatorToken}`,
+              "x-genesis-file-name": "hello.html",
+              "content-type": "text/html",
+            },
+          });
+
+          expect(handled).toBe(true);
+          expect(res.statusCode).toBe(200);
+        } finally {
+          await fs.rm(canvasRoot, { recursive: true, force: true });
+        }
+      },
+    });
+  });
+
+  it("rejects trusted-proxy Canvas uploads without operator.write scope", async () => {
+    const { res, handled, end } = await runCanvasUploadRequest({
+      auth: createTrustedProxyAuth(),
+      trustedProxies: ["10.0.0.1"],
+      remoteAddress: "10.0.0.1",
+      body: "<h1>hello</h1>",
+      headers: createTrustedProxyHeaders({
+        "x-genesis-scopes": "operator.read",
+        "x-genesis-file-name": "hello.html",
+        "content-type": "text/html",
+      }),
+    });
+
+    expect(handled).toBe(true);
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(String(end.mock.calls[0]?.[0] ?? ""))).toMatchObject({
+      ok: false,
+      error: {
+        type: "forbidden",
+        message: "missing scope: operator.write",
+      },
+    });
+  });
+
+  it("rejects Canvas uploads when the canvas host is disabled", async () => {
+    const { res, handled, end } = await runCanvasUploadRequest({
+      canvasEnabled: false,
+      body: "<h1>hello</h1>",
+      headers: {
+        "x-genesis-file-name": "hello.html",
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(String(end.mock.calls[0]?.[0] ?? ""))).toMatchObject({
+      ok: false,
+      error: { type: "unavailable" },
+    });
+  });
+
+  it("rejects oversized Canvas uploads before writing a temp file", async () => {
+    const before = await listCanvasUploadTempDirs();
+    const { res, handled, end } = await runCanvasUploadRequest({
+      body: "",
+      headers: {
+        "x-genesis-file-name": "huge.html",
+        "content-length": String(MAX_DOCUMENT_BYTES + 1),
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(res.statusCode).toBe(413);
+    expect(JSON.parse(String(end.mock.calls[0]?.[0] ?? ""))).toMatchObject({
+      ok: false,
+      error: { type: "payload_too_large" },
+    });
+    await expect(listCanvasUploadTempDirs()).resolves.toEqual(before);
+  });
+
+  it("rejects Canvas uploads without a filename or body and cleans temp files", async () => {
+    const missingName = await runCanvasUploadRequest({ body: "<h1>hello</h1>" });
+    expect(missingName.handled).toBe(true);
+    expect(missingName.res.statusCode).toBe(400);
+
+    const before = await listCanvasUploadTempDirs();
+    const emptyBody = await runCanvasUploadRequest({
+      headers: {
+        "x-genesis-file-name": "empty.html",
+      },
+    });
+
+    expect(emptyBody.handled).toBe(true);
+    expect(emptyBody.res.statusCode).toBe(400);
+    expect(JSON.parse(String(emptyBody.end.mock.calls[0]?.[0] ?? ""))).toMatchObject({
+      ok: false,
+      error: { type: "invalid_request_error" },
+    });
+    await expect(listCanvasUploadTempDirs()).resolves.toEqual(before);
+  });
 
   it("sets security headers for Control UI responses", async () => {
     await withControlUiRoot({

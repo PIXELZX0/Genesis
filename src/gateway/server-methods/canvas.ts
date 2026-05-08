@@ -8,14 +8,17 @@ import type {
 import {
   createCanvasDocument,
   inferCanvasDocumentKindFromSource,
+  listCanvasDocumentManifests,
   updateCanvasDocument,
 } from "../canvas-documents.js";
 import {
   ErrorCodes,
   errorShape,
   validateCanvasDocumentCreateParams,
+  validateCanvasDocumentListParams,
   validateCanvasDocumentUpdateParams,
   type CanvasDocumentCreateParams,
+  type CanvasDocumentListParams,
   type CanvasDocumentUpdateParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers, RespondFn } from "./types.js";
@@ -113,6 +116,32 @@ function rejectDisabledCanvasHost(
 }
 
 export const canvasHandlers: GatewayRequestHandlers = {
+  "canvas.document.list": async ({ params, respond }) => {
+    if (
+      !assertValidParams(
+        params ?? {},
+        validateCanvasDocumentListParams,
+        "canvas.document.list",
+        respond,
+      )
+    ) {
+      return;
+    }
+    const config = loadConfig();
+    if (rejectDisabledCanvasHost(config, respond)) {
+      return;
+    }
+    try {
+      const listParams = (params ?? {}) as CanvasDocumentListParams;
+      const documents = await listCanvasDocumentManifests({
+        canvasRootDir: config.canvasHost?.root,
+        limit: listParams.limit,
+      });
+      respond(true, { documents }, undefined);
+    } catch (err) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));
+    }
+  },
   "canvas.document.create": async ({ params, respond }) => {
     if (
       !assertValidParams(

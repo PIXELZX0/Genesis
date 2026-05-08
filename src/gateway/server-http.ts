@@ -1119,6 +1119,18 @@ export function createGatewayHttpServer(opts: {
             }),
         });
         requestStages.push({
+          name: "control-ui-canvas-upload",
+          run: async () =>
+            (await getControlUiModule()).handleControlUiCanvasUploadRequest(req, res, {
+              basePath: controlUiBasePath,
+              config: configSnapshot,
+              auth: resolvedAuth,
+              trustedProxies,
+              allowRealIpFallback,
+              rateLimiter,
+            }),
+        });
+        requestStages.push({
           name: "control-ui-avatar",
           run: async () => {
             const { handleControlUiAvatarRequest } = await getControlUiModule();

@@ -2,8 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import { assertNoWindowsNetworkPath, safeFileURLToPath } from "../../infra/local-file-access.js";
+import { mediaKindFromMime, type MediaKind } from "../../media/constants.js";
 import { assertLocalMediaAllowed, LocalMediaAccessError } from "../../media/local-media-access.js";
-import { isAudioFileName } from "../../media/mime.js";
+import { isAudioFileName, mimeTypeFromFilePath, normalizeMimeType } from "../../media/mime.js";
 import { resolveSendableOutboundReplyParts } from "../../plugin-sdk/reply-payload.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import { sanitizeReplyDirectiveId } from "../../utils/directive-tags.js";
@@ -31,7 +32,11 @@ const MIME_BY_EXT: Record<string, string> = {
   ".ogg": "audio/ogg",
   ".opus": "audio/opus",
   ".wav": "audio/wav",
+  ".weba": "audio/webm",
   ".webm": "audio/webm",
+  ".aif": "audio/aiff",
+  ".aiff": "audio/aiff",
+  ".caf": "audio/x-caf",
 };
 
 type WebchatAudioEmbeddingOptions = {
@@ -140,6 +145,59 @@ function resolveEmbeddableImageUrl(url: string): string | null {
   return trimmed;
 }
 
+function inferDataUrlMimeType(source: string): string | undefined {
+  const match = /^data:([^;,]+)/i.exec(source.trim());
+  return normalizeMimeType(match?.[1]);
+}
+
+function inferAssistantAttachmentMimeType(source: string): string | undefined {
+  if (/^data:/i.test(source)) {
+    return inferDataUrlMimeType(source);
+  }
+  return mimeTypeFromFilePath(source);
+}
+
+function inferAssistantAttachmentLabel(source: string, kind: Exclude<MediaKind, "image">): string {
+  const fallback =
+    kind === "audio" ? "Audio attachment" : kind === "video" ? "Video attachment" : "Attachment";
+  const trimmed = source.trim();
+  if (/^data:/i.test(trimmed)) {
+    return fallback;
+  }
+  try {
+    if (/^https?:\/\//i.test(trimmed)) {
+      const parsed = new URL(trimmed);
+      const decodedName = decodeURIComponent(parsed.pathname.split("/").pop() ?? "").trim();
+      return decodedName || parsed.hostname || fallback;
+    }
+  } catch {
+    // Fall through to local path parsing.
+  }
+  const base = path.basename(trimmed).trim();
+  return base || fallback;
+}
+
+function buildGenericAssistantAttachmentBlock(
+  payload: ReplyPayload,
+  source: string,
+): Record<string, unknown> | null {
+  const mimeType = inferAssistantAttachmentMimeType(source);
+  const kind = mediaKindFromMime(mimeType);
+  if (!kind || kind === "image") {
+    return null;
+  }
+  return {
+    type: "attachment",
+    attachment: {
+      url: source,
+      kind,
+      label: inferAssistantAttachmentLabel(source, kind),
+      ...(mimeType ? { mimeType } : {}),
+      ...(kind === "audio" && payload.audioAsVoice === true ? { isVoiceNote: true } : {}),
+    },
+  };
+}
+
 function resolveReplyDirectivePrefix(payload: ReplyPayload): string {
   const replyToId = sanitizeReplyDirectiveId(payload.replyToId);
   if (replyToId) {
@@ -190,8 +248,11 @@ export async function buildWebchatAssistantMessageFromReplyPayloads(
   const transcriptTextParts: string[] = [];
   const seenAudio = new Set<string>();
   const seenImages = new Set<string>();
+  const seenGenericMedia = new Set<string>();
   let hasAudio = false;
   let hasImage = false;
+  let hasVideo = false;
+  let hasDocument = false;
 
   for (const payload of payloads) {
     const visibleText = payload.text?.trim();
@@ -200,6 +261,8 @@ export async function buildWebchatAssistantMessageFromReplyPayloads(
     const replyDirectivePrefix = resolveReplyDirectivePrefix(payload);
     let payloadHasAudio = false;
     let payloadHasImage = false;
+    let payloadHasVideo = false;
+    let payloadHasDocument = false;
     const payloadMediaBlocks: Array<Record<string, unknown>> = [];
     const parts = resolveSendableOutboundReplyParts(payload);
     for (const raw of parts.mediaUrls) {
@@ -222,24 +285,53 @@ export async function buildWebchatAssistantMessageFromReplyPayloads(
         continue;
       }
       const imageUrl = resolveEmbeddableImageUrl(url);
-      if (!imageUrl || seenImages.has(imageUrl)) {
+      if (imageUrl) {
+        if (seenImages.has(imageUrl)) {
+          continue;
+        }
+        seenImages.add(imageUrl);
+        payloadMediaBlocks.push({ type: "input_image", image_url: imageUrl });
+        hasImage = true;
+        payloadHasImage = true;
         continue;
       }
-      seenImages.add(imageUrl);
-      payloadMediaBlocks.push({ type: "input_image", image_url: imageUrl });
-      hasImage = true;
-      payloadHasImage = true;
+
+      if (seenGenericMedia.has(url)) {
+        continue;
+      }
+      const attachmentBlock = buildGenericAssistantAttachmentBlock(payload, url);
+      if (!attachmentBlock) {
+        continue;
+      }
+      seenGenericMedia.add(url);
+      payloadMediaBlocks.push(attachmentBlock);
+      const attachment = attachmentBlock.attachment as { kind?: unknown };
+      if (attachment.kind === "audio") {
+        hasAudio = true;
+        payloadHasAudio = true;
+      } else if (attachment.kind === "video") {
+        hasVideo = true;
+        payloadHasVideo = true;
+      } else if (attachment.kind === "document") {
+        hasDocument = true;
+        payloadHasDocument = true;
+      }
     }
     const needsSyntheticText =
       payloadMediaBlocks.length > 0 &&
       (!text || replyDirectivePrefix) &&
       transcriptTextParts.length === 0;
     const syntheticText = needsSyntheticText
-      ? payloadHasAudio && payloadHasImage
+      ? [payloadHasAudio, payloadHasImage, payloadHasVideo, payloadHasDocument].filter(Boolean)
+          .length > 1
         ? "Media reply"
         : payloadHasAudio
           ? "Audio reply"
-          : "Image reply"
+          : payloadHasImage
+            ? "Image reply"
+            : payloadHasVideo
+              ? "Video reply"
+              : "File reply"
       : undefined;
     const blockText = text ?? syntheticText;
     if (blockText) {
@@ -253,12 +345,20 @@ export async function buildWebchatAssistantMessageFromReplyPayloads(
     content.push(...payloadMediaBlocks);
   }
 
-  if (!hasAudio && !hasImage) {
+  if (!hasAudio && !hasImage && !hasVideo && !hasDocument) {
     return null;
   }
   const transcriptText =
     transcriptTextParts.join("\n\n").trim() ||
-    (hasAudio && hasImage ? "Media reply" : hasAudio ? "Audio reply" : "Image reply");
+    ([hasAudio, hasImage, hasVideo, hasDocument].filter(Boolean).length > 1
+      ? "Media reply"
+      : hasAudio
+        ? "Audio reply"
+        : hasImage
+          ? "Image reply"
+          : hasVideo
+            ? "Video reply"
+            : "File reply");
   if (transcriptTextParts.length === 0) {
     content.unshift({ type: "text", text: transcriptText });
   }

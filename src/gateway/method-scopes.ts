@@ -114,6 +114,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "node.list",
     "node.describe",
     "chat.history",
+    "canvas.document.list",
     "config.get",
     "config.schema.lookup",
     "wallet.summary",

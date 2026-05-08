@@ -615,7 +615,7 @@ describe("grouped chat rendering", () => {
         id: "assistant-media-inline",
         role: "assistant",
         content:
-          "[[reply_to_current]]Here is the image.\nMEDIA:https://example.com/photo.png\nMEDIA:https://example.com/voice.ogg\n[[audio_as_voice]]",
+          "[[reply_to_current]]Here is the image.\nMEDIA:https://example.com/photo.png\nMEDIA:https://example.com/voice.ogg\nMEDIA:https://example.com/demo.mp4\nMEDIA:https://example.com/report.pdf\n[[audio_as_voice]]",
         timestamp: Date.now(),
       },
       { showToolCalls: false },
@@ -626,6 +626,12 @@ describe("grouped chat rendering", () => {
     );
     expect(container.querySelector(".chat-message-image")).not.toBeNull();
     expect(container.querySelector("audio")).not.toBeNull();
+    expect(container.querySelector("video")).not.toBeNull();
+    expect(
+      [...container.querySelectorAll<HTMLAnchorElement>(".chat-assistant-attachment-card__link")]
+        .map((link) => link.getAttribute("href"))
+        .includes("https://example.com/report.pdf"),
+    ).toBe(true);
     expect(container.querySelector(".chat-assistant-attachment-badge")?.textContent).toContain(
       "Voice note",
     );
@@ -633,6 +639,7 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).not.toContain("[[reply_to_current]]");
     expect(container.textContent).not.toContain("[[audio_as_voice]]");
     expect(container.textContent).not.toContain("MEDIA:https://example.com/photo.png");
+    expect(container.textContent).not.toContain("MEDIA:https://example.com/demo.mp4");
   });
 
   it("renders allowed transcript images and skips blocked/non-image media", () => {

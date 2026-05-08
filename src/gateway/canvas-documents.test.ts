@@ -7,6 +7,7 @@ import {
   buildCanvasDocumentEntryUrl,
   createCanvasDocument,
   inferCanvasDocumentKindFromSource,
+  listCanvasDocumentManifests,
   resolveCanvasDocumentAssets,
   resolveCanvasDocumentDir,
   resolveCanvasDocumentRevisionDir,
@@ -74,6 +75,46 @@ describe("canvas documents", () => {
   it("encodes special characters in hosted entrypoint path segments", () => {
     const url = buildCanvasDocumentEntryUrl("cv_example", "bundle#1/entry%20point?.html");
     expect(url).toBe("/__genesis__/canvas/documents/cv_example/bundle%231/entry%2520point%3F.html");
+  });
+
+  it("lists hosted document manifests by latest update time", async () => {
+    const stateDir = await mkdtemp(path.join(tmpdir(), "genesis-canvas-documents-"));
+    tempDirs.push(stateDir);
+
+    const first = await createCanvasDocument(
+      {
+        id: "first-card",
+        kind: "html_bundle",
+        entrypoint: { type: "html", value: "<div>first</div>" },
+      },
+      { stateDir },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const second = await createCanvasDocument(
+      {
+        id: "second-card",
+        kind: "html_bundle",
+        entrypoint: { type: "html", value: "<div>second</div>" },
+      },
+      { stateDir },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await updateCanvasDocument(
+      {
+        id: first.id,
+        kind: "html_bundle",
+        entrypoint: { type: "html", value: "<div>first updated</div>" },
+      },
+      { stateDir },
+    );
+
+    const documents = await listCanvasDocumentManifests({ stateDir });
+
+    expect(documents.map((document) => document.id)).toEqual([first.id, second.id]);
+    await expect(listCanvasDocumentManifests({ stateDir, limit: 1 })).resolves.toHaveLength(1);
+    await expect(
+      listCanvasDocumentManifests({ stateDir: path.join(stateDir, "missing") }),
+    ).resolves.toEqual([]);
   });
 
   it("materializes inline html bundles as index documents", async () => {

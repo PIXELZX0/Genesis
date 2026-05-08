@@ -114,8 +114,9 @@ locale picker lives in the Gateway Access card, not under Appearance.
   `genesis_agent_consult` tool calls back through `chat.send` for the larger
   configured Genesis model.
 - Stream tool calls + live tool output cards in Chat (agent events)
-- Canvas: dedicated Control tab for hosted Canvas document previews, same-origin
-  entry URLs, sandboxed rich asset viewers, and quick navigation back to Chat
+- Canvas: dedicated Control tab for creating, uploading, updating, listing, and
+  previewing hosted Canvas documents, with same-origin entry URLs, sandboxed rich
+  asset viewers, and quick navigation back to Chat
 - Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
@@ -163,6 +164,11 @@ Cron jobs panel notes:
 - `chat.send` is **non-blocking**: it acks immediately with `{ runId, status: "started" }` and the response streams via `chat` events.
 - Re-sending with the same `idempotencyKey` returns `{ status: "in_flight" }` while running, and `{ status: "ok" }` after completion.
 - `chat.history` responses are size-bounded for UI safety. When transcript entries are too large, Gateway may truncate long text fields, omit heavy metadata blocks, and replace oversized messages with a placeholder (`[chat.history omitted: message too large]`).
+- Assistant `MEDIA:` replies render inline in Chat: images show as previews,
+  audio and video use browser playback controls, and documents render as
+  authenticated links. Host-local paths are served only through the Gateway's
+  Control UI media route when they are under the agent-scoped allowed media
+  roots; otherwise the UI shows the attachment as unavailable.
 - Assistant/generated images are persisted as managed media references and served back through authenticated Gateway media URLs, so reloads do not depend on raw base64 image payloads staying in the chat history response.
 - `chat.history` also strips display-only inline directive tags from visible assistant text (for example `[[reply_to_*]]` and `[[audio_as_voice]]`), plain-text tool-call XML payloads (including `<tool_call>...</tool_call>`, `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`, `<function_calls>...</function_calls>`, and truncated tool-call blocks), and leaked ASCII/full-width model control tokens, and omits assistant entries whose whole visible text is only the exact silent token `NO_REPLY` / `no_reply`.
 - During an active send and the final history refresh, the chat view keeps local
@@ -236,6 +242,25 @@ hosted document. The iframe keeps the same stable URL under
 `/__genesis__/canvas/documents/<id>/index.html`; Genesis writes revision files
 under `documents/<id>/revisions/<n>/` and republishes the latest revision into
 the stable document root so live reload can refresh open embeds.
+
+Humans can use the Control UI Canvas tab for the same document workflow:
+
+- **File** uploads one primary file through
+  `POST {controlUiBasePath}/__genesis__/canvas-upload`. The raw request body is
+  the file, `X-Genesis-File-Name` carries the original name, and `Content-Type`
+  is used as a MIME hint. Query params are `mode=create|update`, optional `id`,
+  `title`, `preferredHeight`, and `kind`.
+- **HTML**, **URL**, and **Path** sources call the Gateway RPC methods directly.
+  Gateway-local paths can import sidecars already available to the Gateway
+  process.
+- The tab lists recent manifests through `canvas.document.list`, selects any
+  document into the preview, and keeps successful updates on the stable
+  `entryUrl`.
+
+The upload route requires Control UI operator write auth. Shared token/password
+auth, trusted-proxy write scopes, and paired device tokens with
+`operator.write` are accepted. Uploads use the existing Canvas document storage,
+revision behavior, and 100 MB document-size ceiling.
 
 Canvas rich asset viewers are view/import only in v1:
 

@@ -212,6 +212,79 @@ describe("buildWebchatAssistantMessageFromReplyPayloads", () => {
     });
   });
 
+  it("preserves remote audio, video, and documents as renderable webchat attachments", async () => {
+    const message = await buildWebchatAssistantMessageFromReplyPayloads([
+      {
+        text: "Here are the files:",
+        mediaUrls: [
+          "https://example.com/voice.ogg",
+          "https://example.com/demo.mp4",
+          "https://example.com/report.pdf",
+        ],
+        audioAsVoice: true,
+      },
+    ]);
+
+    expect(message).toEqual({
+      transcriptText: "Here are the files:",
+      content: [
+        { type: "text", text: "Here are the files:" },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/voice.ogg",
+            kind: "audio",
+            label: "voice.ogg",
+            mimeType: "audio/ogg",
+            isVoiceNote: true,
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/demo.mp4",
+            kind: "video",
+            label: "demo.mp4",
+            mimeType: "video/mp4",
+          },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/report.pdf",
+            kind: "document",
+            label: "report.pdf",
+            mimeType: "application/pdf",
+          },
+        },
+      ],
+    });
+  });
+
+  it("uses synthetic text for media-only video replies", async () => {
+    const message = await buildWebchatAssistantMessageFromReplyPayloads([
+      {
+        mediaUrl: "https://example.com/demo.webm",
+      },
+    ]);
+
+    expect(message).toEqual({
+      transcriptText: "Video reply",
+      content: [
+        { type: "text", text: "Video reply" },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/demo.webm",
+            kind: "video",
+            label: "demo.webm",
+            mimeType: "video/webm",
+          },
+        },
+      ],
+    });
+  });
+
   it("suppresses control tokens and falls back to synthetic image text", async () => {
     const message = await buildWebchatAssistantMessageFromReplyPayloads([
       {

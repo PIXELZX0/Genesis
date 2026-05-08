@@ -70,7 +70,7 @@ export const CanvasDocumentManifestAssetSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const CanvasDocumentCreateResultSchema = Type.Object(
+export const CanvasDocumentManifestSchema = Type.Object(
   {
     id: NonEmptyString,
     kind: CanvasDocumentKindSchema,
@@ -103,6 +103,22 @@ export const CanvasDocumentCreateResultSchema = Type.Object(
     viewerOptions: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
     surface: Type.Optional(CanvasDocumentSurfaceSchema),
     assets: Type.Array(CanvasDocumentManifestAssetSchema),
+  },
+  { additionalProperties: false },
+);
+
+export const CanvasDocumentCreateResultSchema = CanvasDocumentManifestSchema;
+
+export const CanvasDocumentListParamsSchema = Type.Object(
+  {
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),
+  },
+  { additionalProperties: false },
+);
+
+export const CanvasDocumentListResultSchema = Type.Object(
+  {
+    documents: Type.Array(CanvasDocumentManifestSchema),
   },
   { additionalProperties: false },
 );

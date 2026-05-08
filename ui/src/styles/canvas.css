@@ -10,22 +10,21 @@
 }
 
 .canvas-header-actions,
-.canvas-preview-actions {
+.canvas-preview-actions,
+.canvas-mutation-actions {
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.canvas-status-grid,
-.canvas-format-grid {
+.canvas-status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
 
-.canvas-status-item,
-.canvas-format-card {
+.canvas-status-item {
   min-width: 0;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: var(--radius-md);
@@ -33,16 +32,13 @@
   padding: 12px;
 }
 
-.canvas-status-label,
-.canvas-format-sub,
-.canvas-format-viewer {
+.canvas-status-label {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.4;
 }
 
-.canvas-status-value,
-.canvas-format-title {
+.canvas-status-value {
   overflow: hidden;
   margin-top: 6px;
   color: var(--text-strong);
@@ -56,8 +52,149 @@
   color: var(--danger);
 }
 
-.canvas-format-viewer {
-  margin-top: 8px;
+.canvas-workspace-card {
+  overflow: hidden;
+}
+
+.canvas-workspace-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 20px;
+}
+
+.canvas-editor-panel,
+.canvas-recent-panel {
+  min-width: 0;
+}
+
+.canvas-recent-panel {
+  border-left: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  padding-left: 20px;
+}
+
+.canvas-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.canvas-recent-heading {
+  margin-bottom: 12px;
+}
+
+.canvas-source-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.canvas-source-tab {
+  min-width: 74px;
+}
+
+.canvas-document-form {
+  margin-top: 16px;
+}
+
+.canvas-document-form .full {
+  grid-column: 1 / -1;
+}
+
+.canvas-source-textarea {
+  min-height: 220px;
+}
+
+.canvas-file-field input[type="file"] {
+  min-height: 42px;
+}
+
+.canvas-file-selected {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.canvas-file-selected span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-mutation-actions {
+  margin-top: 16px;
+}
+
+.canvas-workspace-message {
+  margin-top: 14px;
+}
+
+.canvas-empty-list {
+  display: grid;
+  min-height: 160px;
+  place-items: center;
+  border: 1px dashed color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.canvas-document-list {
+  display: grid;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.canvas-document-row {
+  display: grid;
+  width: 100%;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.canvas-document-row:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
+.canvas-document-row.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.canvas-document-title,
+.canvas-document-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-document-title {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.canvas-document-meta {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
 }
 
 .canvas-preview-toolbar {
@@ -102,6 +239,17 @@
 }
 
 @media (max-width: 720px) {
+  .canvas-workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-recent-panel {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    padding-top: 20px;
+    padding-left: 0;
+  }
+
   .canvas-preview-toolbar {
     grid-template-columns: 1fr;
   }

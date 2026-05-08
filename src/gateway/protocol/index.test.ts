@@ -10,6 +10,8 @@ import {
   validatePluginsUpdateParams,
   validateCanvasDocumentCreateParams,
   validateCanvasDocumentCreateResult,
+  validateCanvasDocumentListParams,
+  validateCanvasDocumentListResult,
   validateCanvasDocumentUpdateParams,
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
@@ -232,6 +234,32 @@ describe("validateCanvasDocumentCreateParams", () => {
         script: "alert(1)",
       }),
     ).toBe(false);
+  });
+
+  it("accepts Canvas document list params and results", () => {
+    expect(validateCanvasDocumentListParams({ limit: 25 })).toBe(true);
+    expect(validateCanvasDocumentListParams({ limit: 0 })).toBe(false);
+    expect(
+      validateCanvasDocumentListResult({
+        documents: [
+          {
+            id: "status-card",
+            kind: "html_bundle",
+            title: "Status",
+            createdAt: "2026-05-05T00:00:00.000Z",
+            updatedAt: "2026-05-05T00:01:00.000Z",
+            revision: 2,
+            entryUrl: "/__genesis__/canvas/documents/status-card/index.html",
+            localEntrypoint: "index.html",
+            sourceMime: "text/html",
+            sourceFileName: "status.html",
+            viewer: "html",
+            surface: "assistant_message",
+            assets: [],
+          },
+        ],
+      }),
+    ).toBe(true);
   });
 });
 

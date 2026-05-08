@@ -36,6 +36,7 @@ describe("method scope resolution", () => {
     ["sessions.messages.subscribe", ["operator.read"]],
     ["sessions.messages.unsubscribe", ["operator.read"]],
     ["diagnostics.stability", ["operator.read"]],
+    ["canvas.document.list", ["operator.read"]],
     ["node.pair.approve", ["operator.pairing"]],
     ["poll", ["operator.write"]],
     ["canvas.document.create", ["operator.write"]],

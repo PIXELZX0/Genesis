@@ -1,6 +1,9 @@
 import fs from "node:fs";
+import fsp from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import os from "node:os";
 import path from "node:path";
+import { setTimeout as setNodeTimeout, clearTimeout as clearNodeTimeout } from "node:timers";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import {
@@ -9,10 +12,16 @@ import {
 } from "../infra/control-ui-assets.js";
 import { listDevicePairing, verifyDeviceToken } from "../infra/device-pairing.js";
 import { openLocalFileSafely, SafeOpenError } from "../infra/fs-safe.js";
+import {
+  isRequestBodyLimitError,
+  RequestBodyLimitError,
+  requestBodyErrorToText,
+} from "../infra/http-body.js";
 import { safeFileURLToPath } from "../infra/local-file-access.js";
 import { verifyPairingToken } from "../infra/pairing-token.js";
 import { isWithinDir } from "../infra/path-safety.js";
 import { openVerifiedFileSync } from "../infra/safe-open-sync.js";
+import { MAX_DOCUMENT_BYTES } from "../media/constants.js";
 import { assertLocalMediaAllowed, getDefaultLocalRoots } from "../media/local-media-access.js";
 import { getAgentScopedMediaLocalRoots } from "../media/local-roots.js";
 import { resolveMediaReferenceLocalPath } from "../media/media-reference.js";
@@ -27,6 +36,12 @@ import {
   type AuthRateLimiter,
 } from "./auth-rate-limit.js";
 import { authorizeHttpGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
+import {
+  createCanvasDocument,
+  inferCanvasDocumentKindFromSource,
+  updateCanvasDocument,
+  type CanvasDocumentKind,
+} from "./canvas-documents.js";
 import {
   CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
   type ControlUiBootstrapConfig,
@@ -56,10 +71,13 @@ import type { ReadinessChecker } from "./server/readiness.js";
 
 const ROOT_PREFIX = "/";
 const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__genesis__/assistant-media";
+const CONTROL_UI_CANVAS_UPLOAD_PREFIX = "/__genesis__/canvas-upload";
 const CONTROL_UI_ASSETS_MISSING_MESSAGE =
   "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.";
 const CONTROL_UI_OPERATOR_READ_SCOPE = "operator.read";
+const CONTROL_UI_OPERATOR_WRITE_SCOPE = "operator.write";
 const CONTROL_UI_OPERATOR_ROLE = "operator";
+const CANVAS_UPLOAD_BODY_TIMEOUT_MS = 30_000;
 
 export type ControlUiRequestOptions = {
   basePath?: string;
@@ -233,6 +251,185 @@ function resolveAssistantMediaRoutePath(basePath?: string): string {
   return `${normalizedBasePath}${CONTROL_UI_ASSISTANT_MEDIA_PREFIX}`;
 }
 
+function resolveCanvasUploadRoutePath(basePath?: string): string {
+  const normalizedBasePath = normalizeControlUiBasePath(basePath);
+  return `${normalizedBasePath}${CONTROL_UI_CANVAS_UPLOAD_PREFIX}`;
+}
+
+function parseContentLength(req: IncomingMessage): number | null {
+  const raw = req.headers["content-length"];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof value !== "string") {
+    return null;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function headerValue(req: IncomingMessage, name: string): string | undefined {
+  const raw = req.headers[name.toLowerCase()];
+  if (typeof raw === "string") {
+    return raw;
+  }
+  return Array.isArray(raw) ? raw[0] : undefined;
+}
+
+function decodeHeaderFileName(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function normalizeUploadFileName(raw: string | undefined): string | null {
+  const decoded = decodeHeaderFileName(raw?.trim() ?? "");
+  if (!decoded || decoded.includes("\0")) {
+    return null;
+  }
+  const baseName = path.basename(path.win32.basename(decoded)).trim();
+  return baseName && baseName !== "." && baseName !== ".." ? baseName : null;
+}
+
+function normalizeCanvasDocumentKind(raw: string | null): CanvasDocumentKind | null {
+  if (!raw) {
+    return null;
+  }
+  switch (raw) {
+    case "html_bundle":
+    case "url_embed":
+    case "document":
+    case "image":
+    case "video_asset":
+    case "presentation_asset":
+    case "model_3d":
+    case "vector_image":
+      return raw;
+    default:
+      return null;
+  }
+}
+
+function normalizeSourceMime(raw: string | undefined): string | undefined {
+  const value = raw?.split(";")[0]?.trim();
+  return value || undefined;
+}
+
+function normalizePreferredHeight(raw: string | null): number | undefined {
+  if (!raw?.trim()) {
+    return undefined;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+async function writeRequestBodyToFile(
+  req: IncomingMessage,
+  filePath: string,
+  opts: { maxBytes: number; timeoutMs: number },
+): Promise<{ bytes: number }> {
+  const declaredLength = parseContentLength(req);
+  if (declaredLength !== null && declaredLength > opts.maxBytes) {
+    if (!req.destroyed) {
+      req.destroy();
+    }
+    throw new RequestBodyLimitError({ code: "PAYLOAD_TOO_LARGE" });
+  }
+
+  await fsp.mkdir(path.dirname(filePath), { recursive: true });
+  const output = fs.createWriteStream(filePath, { flags: "wx" });
+  return await new Promise((resolve, reject) => {
+    let done = false;
+    let ended = false;
+    let bytes = 0;
+
+    const cleanup = () => {
+      req.removeListener("data", onData);
+      req.removeListener("end", onEnd);
+      req.removeListener("error", onError);
+      req.removeListener("close", onClose);
+      output.removeListener("drain", onDrain);
+      output.removeListener("finish", onFinish);
+      output.removeListener("error", onError);
+      clearNodeTimeout(timer);
+    };
+
+    const finish = (cb: () => void) => {
+      if (done) {
+        return;
+      }
+      done = true;
+      cleanup();
+      cb();
+    };
+
+    const fail = (error: Error) => {
+      finish(() => {
+        output.destroy();
+        reject(error);
+      });
+    };
+
+    const timer = setNodeTimeout(() => {
+      if (!req.destroyed) {
+        req.destroy();
+      }
+      fail(new RequestBodyLimitError({ code: "REQUEST_BODY_TIMEOUT" }));
+    }, opts.timeoutMs);
+
+    function onData(chunk: Buffer | string) {
+      if (done) {
+        return;
+      }
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      bytes += buffer.length;
+      if (bytes > opts.maxBytes) {
+        if (!req.destroyed) {
+          req.destroy();
+        }
+        fail(new RequestBodyLimitError({ code: "PAYLOAD_TOO_LARGE" }));
+        return;
+      }
+      if (!output.write(buffer)) {
+        req.pause();
+      }
+    }
+
+    function onDrain() {
+      if (!done) {
+        req.resume();
+      }
+    }
+
+    function onEnd() {
+      ended = true;
+      output.end();
+    }
+
+    function onFinish() {
+      finish(() => resolve({ bytes }));
+    }
+
+    function onError(error: Error) {
+      fail(error);
+    }
+
+    function onClose() {
+      if (!done && !ended) {
+        fail(new RequestBodyLimitError({ code: "CONNECTION_CLOSED" }));
+      }
+    }
+
+    req.on("data", onData);
+    req.on("end", onEnd);
+    req.on("error", onError);
+    req.on("close", onClose);
+    output.on("drain", onDrain);
+    output.on("finish", onFinish);
+    output.on("error", onError);
+  });
+}
+
 function resolveAssistantMediaAuthToken(req: IncomingMessage): string | undefined {
   const bearer = getBearerToken(req);
   if (bearer) {
@@ -351,7 +548,95 @@ async function authorizeControlUiReadRequest(
   return true;
 }
 
-async function authorizeControlUiDeviceReadToken(token: string): Promise<boolean> {
+async function authorizeControlUiWriteRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  opts: {
+    auth?: ResolvedGatewayAuth;
+    trustedProxies?: string[];
+    allowRealIpFallback?: boolean;
+    rateLimiter?: AuthRateLimiter;
+    operatorMethod: "canvas.document.create" | "canvas.document.update";
+  },
+): Promise<boolean> {
+  if (!opts.auth) {
+    return true;
+  }
+
+  const token = resolveControlUiReadAuthToken(req);
+  const clientIp =
+    resolveRequestClientIp(req, opts.trustedProxies, opts.allowRealIpFallback === true) ??
+    req.socket?.remoteAddress;
+  const authResult = await authorizeHttpGatewayConnect({
+    auth: opts.auth,
+    connectAuth: token ? { token, password: token } : null,
+    req,
+    browserOriginPolicy: resolveHttpBrowserOriginPolicy(req),
+    trustedProxies: opts.trustedProxies,
+    allowRealIpFallback: opts.allowRealIpFallback,
+    rateLimiter: token ? opts.rateLimiter : undefined,
+    clientIp,
+    rateLimitScope: AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET,
+  });
+  let resolvedAuthResult = authResult;
+  if (
+    !resolvedAuthResult.ok &&
+    token &&
+    opts.auth.mode !== "trusted-proxy" &&
+    opts.auth.mode !== "none"
+  ) {
+    const deviceRateCheck = opts.rateLimiter?.check(clientIp, AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN);
+    if (deviceRateCheck && !deviceRateCheck.allowed) {
+      resolvedAuthResult = {
+        ok: false,
+        reason: "rate_limited",
+        rateLimited: true,
+        retryAfterMs: deviceRateCheck.retryAfterMs,
+      };
+    } else {
+      const deviceTokenOk = await authorizeControlUiDeviceToken(token, [
+        CONTROL_UI_OPERATOR_WRITE_SCOPE,
+      ]);
+      if (deviceTokenOk) {
+        opts.rateLimiter?.reset(clientIp, AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN);
+        opts.rateLimiter?.reset(clientIp, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+        resolvedAuthResult = { ok: true, method: "device-token" };
+      } else {
+        opts.rateLimiter?.recordFailure(clientIp, AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN);
+      }
+    }
+  }
+  if (!resolvedAuthResult.ok) {
+    sendGatewayAuthFailure(res, resolvedAuthResult);
+    return false;
+  }
+
+  if (resolvedAuthResult.method !== "trusted-proxy") {
+    return true;
+  }
+
+  const requestedScopes = resolveTrustedHttpOperatorScopes(req, {
+    trustDeclaredOperatorScopes: true,
+  });
+  const scopeAuth = authorizeOperatorScopesForMethod(opts.operatorMethod, requestedScopes);
+  if (!scopeAuth.allowed) {
+    sendJson(res, 403, {
+      ok: false,
+      error: {
+        type: "forbidden",
+        message: `missing scope: ${scopeAuth.missingScope}`,
+      },
+    });
+    return false;
+  }
+
+  return true;
+}
+
+async function authorizeControlUiDeviceToken(
+  token: string,
+  scopes: readonly string[],
+): Promise<boolean> {
   const pairing = await listDevicePairing();
   for (const device of pairing.paired) {
     const operatorToken = device.tokens?.[CONTROL_UI_OPERATOR_ROLE];
@@ -365,13 +650,17 @@ async function authorizeControlUiDeviceReadToken(token: string): Promise<boolean
       deviceId: device.deviceId,
       token,
       role: CONTROL_UI_OPERATOR_ROLE,
-      scopes: [CONTROL_UI_OPERATOR_READ_SCOPE],
+      scopes: [...scopes],
     });
     if (verified.ok) {
       return true;
     }
   }
   return false;
+}
+
+async function authorizeControlUiDeviceReadToken(token: string): Promise<boolean> {
+  return await authorizeControlUiDeviceToken(token, [CONTROL_UI_OPERATOR_READ_SCOPE]);
 }
 
 type AssistantMediaAvailability =
@@ -539,6 +828,174 @@ export async function handleControlUiAssistantMediaRequest(
     await closeOpenedHandle();
     respondControlUiNotFound(res);
     return true;
+  }
+}
+
+export async function handleControlUiCanvasUploadRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  opts?: {
+    basePath?: string;
+    config?: GenesisConfig;
+    auth?: ResolvedGatewayAuth;
+    trustedProxies?: string[];
+    allowRealIpFallback?: boolean;
+    rateLimiter?: AuthRateLimiter;
+  },
+): Promise<boolean> {
+  const urlRaw = req.url;
+  if (!urlRaw) {
+    return false;
+  }
+  const url = new URL(urlRaw, "http://localhost");
+  if (url.pathname !== resolveCanvasUploadRoutePath(opts?.basePath)) {
+    return false;
+  }
+
+  applyControlUiSecurityHeaders(res);
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    sendJson(res, 405, {
+      ok: false,
+      error: { type: "method_not_allowed", message: "Method Not Allowed" },
+    });
+    return true;
+  }
+
+  const config = opts?.config;
+  if (process.env.GENESIS_SKIP_CANVAS_HOST === "1" || config?.canvasHost?.enabled === false) {
+    sendJson(res, 503, {
+      ok: false,
+      error: { type: "unavailable", message: "canvas host is disabled" },
+    });
+    return true;
+  }
+
+  const rawMode = url.searchParams.get("mode")?.trim() || "create";
+  if (rawMode !== "create" && rawMode !== "update") {
+    sendJson(res, 400, {
+      ok: false,
+      error: { type: "invalid_request_error", message: "mode must be create or update" },
+    });
+    return true;
+  }
+  const mode = rawMode;
+  if (
+    !(await authorizeControlUiWriteRequest(req, res, {
+      auth: opts?.auth,
+      trustedProxies: opts?.trustedProxies,
+      allowRealIpFallback: opts?.allowRealIpFallback,
+      rateLimiter: opts?.rateLimiter,
+      operatorMethod: mode === "update" ? "canvas.document.update" : "canvas.document.create",
+    }))
+  ) {
+    return true;
+  }
+
+  const sourceFileName = normalizeUploadFileName(headerValue(req, "x-genesis-file-name"));
+  if (!sourceFileName) {
+    sendJson(res, 400, {
+      ok: false,
+      error: { type: "invalid_request_error", message: "X-Genesis-File-Name header required" },
+    });
+    return true;
+  }
+
+  const id = url.searchParams.get("id")?.trim() || undefined;
+  if (mode === "update" && !id) {
+    sendJson(res, 400, {
+      ok: false,
+      error: { type: "invalid_request_error", message: "id is required for canvas updates" },
+    });
+    return true;
+  }
+
+  const rawKind = url.searchParams.get("kind");
+  const requestedKind = normalizeCanvasDocumentKind(rawKind);
+  if (rawKind && !requestedKind) {
+    sendJson(res, 400, {
+      ok: false,
+      error: { type: "invalid_request_error", message: "invalid canvas document kind" },
+    });
+    return true;
+  }
+
+  const uploadDir = await fsp.mkdtemp(path.join(os.tmpdir(), "genesis-canvas-upload-"));
+  const ext = path
+    .extname(sourceFileName)
+    .replace(/[^.A-Za-z0-9_-]/g, "")
+    .slice(0, 32);
+  const uploadPath = path.join(uploadDir, `source${ext}`);
+  try {
+    const written = await writeRequestBodyToFile(req, uploadPath, {
+      maxBytes: MAX_DOCUMENT_BYTES,
+      timeoutMs: CANVAS_UPLOAD_BODY_TIMEOUT_MS,
+    });
+    if (written.bytes <= 0) {
+      sendJson(res, 400, {
+        ok: false,
+        error: { type: "invalid_request_error", message: "upload body required" },
+      });
+      return true;
+    }
+
+    const title = url.searchParams.get("title")?.trim() || undefined;
+    const rawPreferredHeight = url.searchParams.get("preferredHeight");
+    const preferredHeight = normalizePreferredHeight(rawPreferredHeight);
+    if (rawPreferredHeight?.trim() && typeof preferredHeight !== "number") {
+      sendJson(res, 400, {
+        ok: false,
+        error: { type: "invalid_request_error", message: "preferredHeight must be positive" },
+      });
+      return true;
+    }
+    const sourceMime = normalizeSourceMime(headerValue(req, "content-type"));
+    const kind = requestedKind ?? inferCanvasDocumentKindFromSource(sourceFileName, "path");
+    const input = {
+      ...(id ? { id } : {}),
+      kind,
+      ...(title ? { title } : {}),
+      ...(typeof preferredHeight === "number" ? { preferredHeight } : {}),
+      entrypoint: { type: "path" as const, value: uploadPath },
+      ...(sourceMime ? { sourceMime } : {}),
+      sourceFileName,
+      surface: "assistant_message" as const,
+    };
+    const document =
+      mode === "update" && id
+        ? await updateCanvasDocument(
+            { ...input, id },
+            { canvasRootDir: config?.canvasHost?.root, workspaceDir: uploadDir },
+          )
+        : await createCanvasDocument(input, {
+            canvasRootDir: config?.canvasHost?.root,
+            workspaceDir: uploadDir,
+          });
+    sendJson(res, 200, { ok: true, document });
+    return true;
+  } catch (err) {
+    if (isRequestBodyLimitError(err)) {
+      sendJson(res, err.statusCode, {
+        ok: false,
+        error: {
+          type:
+            err.code === "PAYLOAD_TOO_LARGE"
+              ? "payload_too_large"
+              : err.code === "REQUEST_BODY_TIMEOUT"
+                ? "request_timeout"
+                : "invalid_request_error",
+          message: requestBodyErrorToText(err.code),
+        },
+      });
+      return true;
+    }
+    sendJson(res, 500, {
+      ok: false,
+      error: { type: "unavailable", message: String(err) },
+    });
+    return true;
+  } finally {
+    await fsp.rm(uploadDir, { recursive: true, force: true }).catch(() => undefined);
   }
 }
 

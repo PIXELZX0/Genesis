@@ -52,6 +52,8 @@ import {
 import {
   CanvasDocumentCreateParamsSchema,
   CanvasDocumentCreateResultSchema,
+  CanvasDocumentListParamsSchema,
+  CanvasDocumentListResultSchema,
   CanvasDocumentUpdateParamsSchema,
 } from "./canvas.js";
 import {
@@ -266,6 +268,8 @@ export const ProtocolSchemas = {
   CanvasDocumentCreateParams: CanvasDocumentCreateParamsSchema,
   CanvasDocumentUpdateParams: CanvasDocumentUpdateParamsSchema,
   CanvasDocumentCreateResult: CanvasDocumentCreateResultSchema,
+  CanvasDocumentListParams: CanvasDocumentListParamsSchema,
+  CanvasDocumentListResult: CanvasDocumentListResultSchema,
   PushTestParams: PushTestParamsSchema,
   PushTestResult: PushTestResultSchema,
   SecretsReloadParams: SecretsReloadParamsSchema,

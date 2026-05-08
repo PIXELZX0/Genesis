@@ -347,7 +347,8 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `sessions.reset`, `sessions.delete`, and `sessions.compact` perform session maintenance.
     - `sessions.get` returns the full stored session row.
     - Chat execution still uses `chat.history`, `chat.send`, `chat.abort`, and `chat.inject`. `chat.history` is display-normalized for UI clients: inline directive tags are stripped from visible text, plain-text tool-call XML payloads (including `<tool_call>...</tool_call>`, `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`, `<function_calls>...</function_calls>`, and truncated tool-call blocks) and leaked ASCII/full-width model control tokens are stripped, pure silent-token assistant rows such as exact `NO_REPLY` / `no_reply` are omitted, and oversized rows can be replaced with placeholders.
-    - `canvas.document.create` materializes a hosted Control UI embed document from inline HTML, a gateway-local path, or a URL. `canvas.document.update` reuses an existing id, writes the next revision, and republishes the stable entry URL.
+    - `canvas.document.list` returns recent hosted Canvas document manifests sorted by latest update/create time.
+    - `canvas.document.create` materializes a hosted Control UI embed document from inline HTML, a gateway-local path, or a URL. `canvas.document.update` reuses an existing id, writes the next revision, and republishes the stable entry URL. Human file uploads use the authenticated Control UI HTTP route `POST {controlUiBasePath}/__genesis__/canvas-upload` and return the same manifest shape.
   </Accordion>
 
   <Accordion title="Device pairing and device tokens">
