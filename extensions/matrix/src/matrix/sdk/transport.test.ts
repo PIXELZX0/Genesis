@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MatrixMediaSizeLimitError } from "../media-errors.js";
-import { performMatrixRequest } from "./transport.js";
+import { createMatrixGuardedFetch, performMatrixRequest } from "./transport.js";
 
 const TEST_UNDICI_RUNTIME_DEPS_KEY = "__GENESIS_TEST_UNDICI_RUNTIME_DEPS__";
 
@@ -124,6 +124,72 @@ describe("performMatrixRequest", () => {
       vi.useRealTimers();
     }
   }, 5_000);
+
+  it("normalizes Matrix request timeout aborts without leaking query params", async () => {
+    vi.useFakeTimers();
+    try {
+      stubRuntimeFetch(
+        vi.fn(
+          async (_input: RequestInfo | URL, init?: RequestInit) =>
+            await new Promise<Response>((_resolve, reject) => {
+              const signal = init?.signal;
+              const rejectAbort = () =>
+                reject(new DOMException("This operation was aborted", "AbortError"));
+              if (signal?.aborted) {
+                rejectAbort();
+                return;
+              }
+              signal?.addEventListener("abort", rejectAbort, { once: true });
+            }),
+        ),
+      );
+
+      const requestPromise = performMatrixRequest({
+        homeserver: "http://127.0.0.1:8008",
+        accessToken: "token",
+        method: "GET",
+        endpoint: "/_matrix/client/v3/account/whoami",
+        qs: { access_token: "secret" },
+        timeoutMs: 50,
+        ssrfPolicy: { allowPrivateNetwork: true },
+      });
+
+      const rejection = expect(requestPromise).rejects.toMatchObject({
+        name: "AbortError",
+        message:
+          "Matrix request timed out after 50ms: http://127.0.0.1:8008/_matrix/client/v3/account/whoami",
+      });
+      await vi.advanceTimersByTimeAsync(60);
+      await rejection;
+    } finally {
+      vi.useRealTimers();
+    }
+  }, 5_000);
+
+  it("normalizes Matrix SDK aborts without misclassifying them as generic fetch errors", async () => {
+    const abortController = new AbortController();
+    abortController.abort();
+    stubRuntimeFetch(
+      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        expect(init?.signal?.aborted).toBe(true);
+        throw new DOMException("This operation was aborted", "AbortError");
+      }),
+    );
+
+    const guardedFetch = createMatrixGuardedFetch({
+      ssrfPolicy: { allowPrivateNetwork: true },
+    });
+
+    await expect(
+      guardedFetch("http://127.0.0.1:8008/_matrix/client/v3/sync?access_token=secret", {
+        signal: abortController.signal,
+      }),
+    ).rejects.toMatchObject({
+      name: "AbortError",
+      message:
+        "Matrix request aborted before completion: http://127.0.0.1:8008/_matrix/client/v3/sync",
+    });
+  });
 
   it("uses undici runtime fetch for pinned Matrix requests so the dispatcher stays bound", async () => {
     let ambientFetchCalls = 0;

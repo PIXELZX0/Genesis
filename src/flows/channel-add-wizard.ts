@@ -22,6 +22,7 @@ export type InteractiveChannelsAddWizardParams = {
   runtime: RuntimeEnv;
   prompter: WizardPrompter;
   initialSelection?: ChannelChoice[];
+  skipIntro?: boolean;
 };
 
 export type InteractiveChannelsAddWizardResult = {
@@ -55,13 +56,16 @@ export async function runInteractiveChannelsAddWizard({
   runtime,
   prompter,
   initialSelection,
+  skipIntro,
 }: InteractiveChannelsAddWizardParams): Promise<InteractiveChannelsAddWizardResult> {
   const postWriteHooks = createChannelOnboardingPostWriteHookCollector();
   let selection: ChannelChoice[] = [];
   const accountIds: Partial<Record<ChannelChoice, string>> = {};
   const resolvedPlugins = new Map<ChannelChoice, ChannelSetupPlugin>();
 
-  await prompter.intro("Channel setup");
+  if (!skipIntro) {
+    await prompter.intro("Channel setup");
+  }
   let nextConfig = await setupChannels(cfg, runtime, prompter, {
     allowDisable: false,
     allowSignalInstall: true,

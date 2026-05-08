@@ -36,33 +36,37 @@ export async function checkGatewayHealth(params: {
     }
   }
 
-  if (healthOk) {
-    try {
-      const status = await callGateway({
-        method: "channels.status",
-        params: { probe: true, timeoutMs: 5000 },
-        timeoutMs: 6000,
-      });
-      const issues = collectChannelStatusIssues(status);
-      if (issues.length > 0) {
-        note(
-          issues
-            .map(
-              (issue) =>
-                `- ${issue.channel} ${issue.accountId}: ${issue.message}${
-                  issue.fix ? ` (${issue.fix})` : ""
-                }`,
-            )
-            .join("\n"),
-          "Channel warnings",
-        );
-      }
-    } catch {
-      // ignore: doctor already reported gateway health
-    }
-  }
-
   return { healthOk };
+}
+
+export async function noteGatewayChannelStatusIssues(params?: {
+  probeTimeoutMs?: number;
+  callTimeoutMs?: number;
+}) {
+  try {
+    const status = await callGateway({
+      method: "channels.status",
+      params: { probe: true, timeoutMs: params?.probeTimeoutMs ?? 5000 },
+      timeoutMs: params?.callTimeoutMs ?? 6000,
+    });
+    const issues = collectChannelStatusIssues(status);
+    if (issues.length === 0) {
+      return;
+    }
+    note(
+      issues
+        .map(
+          (issue) =>
+            `- ${issue.channel} ${issue.accountId}: ${issue.message}${
+              issue.fix ? ` (${issue.fix})` : ""
+            }`,
+        )
+        .join("\n"),
+      "Channel warnings",
+    );
+  } catch {
+    // ignore: doctor already reported gateway health
+  }
 }
 
 export async function probeGatewayMemoryStatus(params: {

@@ -19,6 +19,7 @@ import type { GatewayRequestContext, GatewayRequestHandlers, RespondFn } from ".
 import { assertValidParams } from "./validation.js";
 
 async function runChannelsWizard(params: { channel?: unknown; prompter: WizardPrompter }) {
+  await params.prompter.intro("Channel setup");
   const snapshot = await readConfigFileSnapshot();
   if (snapshot.exists && !snapshot.valid) {
     throw new Error("config invalid; fix it before running channel setup");
@@ -34,7 +35,25 @@ async function runChannelsWizard(params: { channel?: unknown; prompter: WizardPr
     ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),
     runtime: defaultRuntime,
     prompter: params.prompter,
+    skipIntro: true,
     ...(initialChannel ? { initialSelection: [initialChannel] } : {}),
+  });
+}
+
+async function runModelsWizard(params: {
+  provider?: unknown;
+  authMethod?: unknown;
+  setDefault?: unknown;
+  prompter: WizardPrompter;
+}) {
+  await params.prompter.intro("Model provider setup");
+  const { runModelProviderWizard } = await import("./wizard-models.js");
+  await runModelProviderWizard({
+    provider: params.provider,
+    authMethod: params.authMethod,
+    setDefault: params.setDefault,
+    prompter: params.prompter,
+    skipIntro: true,
   });
 }
 
@@ -75,14 +94,12 @@ export const wizardHandlers: GatewayRequestHandlers = {
         return runChannelsWizard({ channel: params.channel, prompter });
       }
       if (target === "models") {
-        return import("./wizard-models.js").then(({ runModelProviderWizard }) =>
-          runModelProviderWizard({
-            provider: params.provider,
-            authMethod: params.authMethod,
-            setDefault: params.setDefault,
-            prompter,
-          }),
-        );
+        return runModelsWizard({
+          provider: params.provider,
+          authMethod: params.authMethod,
+          setDefault: params.setDefault,
+          prompter,
+        });
       }
       const opts = {
         mode: params.mode,

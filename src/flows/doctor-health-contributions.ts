@@ -406,20 +406,27 @@ async function runShellCompletionHealth(ctx: DoctorHealthFlowContext): Promise<v
 }
 
 async function runGatewayHealthChecks(ctx: DoctorHealthFlowContext): Promise<void> {
-  const { checkGatewayHealth, probeGatewayMemoryStatus } =
+  const { checkGatewayHealth, noteGatewayChannelStatusIssues, probeGatewayMemoryStatus } =
     await import("../commands/doctor-gateway-health.js");
+  const timeoutMs = ctx.options.nonInteractive === true ? 3000 : 10_000;
   const { healthOk } = await checkGatewayHealth({
     runtime: ctx.runtime,
     cfg: ctx.cfg,
-    timeoutMs: ctx.options.nonInteractive === true ? 3000 : 10_000,
+    timeoutMs,
   });
   ctx.healthOk = healthOk;
-  ctx.gatewayMemoryProbe = healthOk
-    ? await probeGatewayMemoryStatus({
-        cfg: ctx.cfg,
-        timeoutMs: ctx.options.nonInteractive === true ? 3000 : 10_000,
-      })
-    : { checked: false, ready: false };
+  if (!healthOk) {
+    ctx.gatewayMemoryProbe = { checked: false, ready: false };
+    return;
+  }
+  const [gatewayMemoryProbe] = await Promise.all([
+    probeGatewayMemoryStatus({
+      cfg: ctx.cfg,
+      timeoutMs,
+    }),
+    noteGatewayChannelStatusIssues(),
+  ]);
+  ctx.gatewayMemoryProbe = gatewayMemoryProbe;
 }
 
 async function runMemorySearchHealthContribution(ctx: DoctorHealthFlowContext): Promise<void> {

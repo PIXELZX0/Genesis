@@ -85,8 +85,10 @@ describe("wizardHandlers channel setup target", () => {
     mocks.normalizeAnyChannelId.mockImplementation((value: string | null | undefined) =>
       value ? value : null,
     );
-    mocks.runInteractiveChannelsAddWizard.mockImplementation(async ({ prompter }) => {
-      await prompter.intro("Channel setup");
+    mocks.runInteractiveChannelsAddWizard.mockImplementation(async ({ prompter, skipIntro }) => {
+      if (!skipIntro) {
+        await prompter.intro("Channel setup");
+      }
       const selected = await prompter.select({
         message: "Select a channel",
         options: [{ value: "telegram", label: "Telegram" }],
@@ -105,18 +107,21 @@ describe("wizardHandlers channel setup target", () => {
 
     expect(start.sessionId).toEqual(expect.any(String));
     expect(start.step).toMatchObject({ type: "note", title: "Channel setup" });
-    expect(mocks.runInteractiveChannelsAddWizard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cfg: { channels: {} },
-        baseHash: "hash-1",
-        initialSelection: ["telegram"],
-      }),
-    );
+    expect(mocks.readConfigFileSnapshot).not.toHaveBeenCalled();
+    expect(mocks.runInteractiveChannelsAddWizard).not.toHaveBeenCalled();
 
     const select = await callWizard(
       "wizard.next",
       { sessionId: start.sessionId, answer: { stepId: start.step?.id, value: true } },
       context,
+    );
+    expect(mocks.runInteractiveChannelsAddWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cfg: { channels: {} },
+        baseHash: "hash-1",
+        initialSelection: ["telegram"],
+        skipIntro: true,
+      }),
     );
     expect(select.step).toMatchObject({ type: "select", message: "Select a channel" });
 
@@ -139,8 +144,10 @@ describe("wizardHandlers channel setup target", () => {
 describe("wizardHandlers model provider setup target", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.runModelProviderWizard.mockImplementation(async ({ prompter }) => {
-      await prompter.intro("Model provider setup");
+    mocks.runModelProviderWizard.mockImplementation(async ({ prompter, skipIntro }) => {
+      if (!skipIntro) {
+        await prompter.intro("Model provider setup");
+      }
       const selected = await prompter.select({
         message: "Select a model provider",
         options: [{ value: "openai", label: "OpenAI" }],
@@ -159,18 +166,20 @@ describe("wizardHandlers model provider setup target", () => {
 
     expect(start.sessionId).toEqual(expect.any(String));
     expect(start.step).toMatchObject({ type: "note", title: "Model provider setup" });
-    expect(mocks.runModelProviderWizard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        provider: "openai",
-        authMethod: "api-key",
-        setDefault: true,
-      }),
-    );
+    expect(mocks.runModelProviderWizard).not.toHaveBeenCalled();
 
     const select = await callWizard(
       "wizard.next",
       { sessionId: start.sessionId, answer: { stepId: start.step?.id, value: true } },
       context,
+    );
+    expect(mocks.runModelProviderWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "openai",
+        authMethod: "api-key",
+        setDefault: true,
+        skipIntro: true,
+      }),
     );
     expect(select.step).toMatchObject({ type: "select", message: "Select a model provider" });
   });

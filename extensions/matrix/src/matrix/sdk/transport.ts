@@ -89,6 +89,46 @@ function buildBufferedResponse(params: {
   return response;
 }
 
+function isAbortError(error: unknown): error is Error {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+function formatMatrixRequestTarget(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    const queryIndex = url.indexOf("?");
+    return queryIndex === -1 ? url : url.slice(0, queryIndex);
+  }
+}
+
+function normalizeMatrixRequestAbortError(params: {
+  error: unknown;
+  url: string;
+  timeoutMs?: number;
+}): unknown {
+  if (!isAbortError(params.error)) {
+    return params.error;
+  }
+
+  const timeoutMs =
+    typeof params.timeoutMs === "number" &&
+    Number.isFinite(params.timeoutMs) &&
+    params.timeoutMs > 0
+      ? Math.floor(params.timeoutMs)
+      : undefined;
+  const target = formatMatrixRequestTarget(params.url);
+  const error = new Error(
+    timeoutMs
+      ? `Matrix request timed out after ${timeoutMs}ms: ${target}`
+      : `Matrix request aborted before completion: ${target}`,
+  );
+  error.name = "AbortError";
+  (error as Error & { cause?: unknown }).cause = params.error;
+  return error;
+}
+
 async function fetchWithMatrixDispatcher(params: {
   url: string;
   init: MatrixDispatcherRequestInit;
@@ -198,7 +238,11 @@ async function fetchWithMatrixGuardedRedirects(params: {
     } catch (error) {
       cleanup();
       await closeDispatcher(dispatcher);
-      throw error;
+      throw normalizeMatrixRequestAbortError({
+        error,
+        url: currentUrl.toString(),
+        timeoutMs: params.timeoutMs,
+      });
     }
   }
 
@@ -213,7 +257,7 @@ export function createMatrixGuardedFetch(params: {
   return (async (resource: RequestInfo | URL, init?: RequestInit) => {
     const url = toFetchUrl(resource);
     const { signal, ...requestInit } = init ?? {};
-    const { response, release } = await fetchWithMatrixGuardedRedirects({
+    const { response, release, finalUrl } = await fetchWithMatrixGuardedRedirects({
       url,
       init: requestInit,
       signal: signal ?? undefined,
@@ -222,11 +266,13 @@ export function createMatrixGuardedFetch(params: {
     });
 
     try {
-      const body = await response.arrayBuffer();
+      const body = await response.arrayBuffer().catch((error: unknown) => {
+        throw normalizeMatrixRequestAbortError({ error, url: finalUrl });
+      });
       return buildBufferedResponse({
         source: response,
         body,
-        url,
+        url: finalUrl,
       });
     } finally {
       await release();
@@ -282,7 +328,7 @@ export async function performMatrixRequest(params: {
     }
   }
 
-  const { response, release } = await fetchWithMatrixGuardedRedirects({
+  const { response, release, finalUrl } = await fetchWithMatrixGuardedRedirects({
     url: baseUrl.toString(),
     init: {
       method: params.method,
@@ -326,6 +372,12 @@ export async function performMatrixRequest(params: {
       text,
       buffer: Buffer.from(text, "utf8"),
     };
+  } catch (error) {
+    throw normalizeMatrixRequestAbortError({
+      error,
+      url: finalUrl,
+      timeoutMs: params.timeoutMs,
+    });
   } finally {
     await release();
   }

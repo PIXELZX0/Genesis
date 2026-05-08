@@ -128,7 +128,12 @@ export async function runModelProviderWizard(params: {
   authMethod?: unknown;
   setDefault?: unknown;
   prompter: WizardPrompter;
+  skipIntro?: boolean;
 }): Promise<void> {
+  if (!params.skipIntro) {
+    await params.prompter.intro("Model provider setup");
+  }
+
   const snapshot = await readConfigFileSnapshot();
   if (snapshot.exists && !snapshot.valid) {
     throw new Error(formatInvalidConfigMessage(snapshot));
@@ -156,7 +161,6 @@ export async function runModelProviderWizard(params: {
     throw new Error("No model provider auth plugins are available.");
   }
 
-  await params.prompter.intro("Model provider setup");
   const provider = await selectProvider({
     providers,
     requestedProvider,

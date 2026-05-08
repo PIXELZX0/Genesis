@@ -12,6 +12,9 @@ Docs: https://docs.genesis.ai
 
 - Browser plugin: keep tracked Control UI tabs open when starting a new session, so the web UI no longer disappears during session cleanup.
 - Control UI: keep lazy-loaded tabs such as Sessions and Wallet from getting stuck on the loading placeholder after their view bundle finishes loading.
+- Doctor: run gateway channel-status and memory probes in parallel after health succeeds, reducing repeated wait time during checks.
+- Gateway wizard: show the initial channel/model setup step before loading setup plugins, keeping browser-based setup flows responsive.
+- Matrix plugin: normalize request abort and timeout errors without leaking access tokens from query strings.
 
 ## 2026.5.7
 
