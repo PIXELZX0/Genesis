@@ -698,7 +698,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "string",
                 title: "Browser Tor Executable Path",
                 description:
-                  'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+                  'Tor executable path for managed mode. Leave unset to use "tor" from PATH or automatically install host Tor when managed mode starts.',
               },
               socksHost: {
                 type: "string",
@@ -890,7 +890,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       type: "string",
                       title: "Browser Profile Tor Executable Path",
                       description:
-                        'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+                        'Per-profile Tor executable path for managed mode. Leave unset to use the global browser.tor value, "tor" from PATH, or automatically install host Tor when managed mode starts.',
                     },
                     socksHost: {
                       type: "string",
@@ -24920,7 +24920,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.tor.executablePath": {
       label: "Browser Tor Executable Path",
-      help: 'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+      help: 'Tor executable path for managed mode. Leave unset to use "tor" from PATH or automatically install host Tor when managed mode starts.',
       tags: ["storage"],
     },
     "browser.tor.socksHost": {
@@ -25000,7 +25000,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.profiles.*.tor.executablePath": {
       label: "Browser Profile Tor Executable Path",
-      help: 'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+      help: 'Per-profile Tor executable path for managed mode. Leave unset to use the global browser.tor value, "tor" from PATH, or automatically install host Tor when managed mode starts.',
       tags: ["storage"],
     },
     "browser.profiles.*.tor.socksHost": {

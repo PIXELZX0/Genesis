@@ -282,9 +282,13 @@ genesis browser --browser-profile onion open http://examplehiddenservice.onion
 The optional `--tor` shortcut persists explicit `tor: { enabled: true, mode:
 "managed" }` on the profile. The default route mode is `onion-only`: regular
 domains and IP literals stay on clearnet, while `.onion` HTTP(S) URLs use the
-Tor SOCKS endpoint automatically. Managed mode runs `tor` from PATH unless you
-configure `browser.tor.executablePath` or
-`browser.profiles.<name>.tor.executablePath`.
+Tor SOCKS endpoint automatically. Managed mode uses `tor` from PATH when
+available. If `tor` is missing and no explicit Tor executable path is
+configured, Genesis tries to install the host Tor package automatically before
+starting the browser sidecar. Configure `browser.tor.executablePath` or
+`browser.profiles.<name>.tor.executablePath` to use a specific binary instead.
+Automatic install supports Homebrew and common Linux package managers
+(`apt-get`, `dnf`, `yum`, `pacman`, `apk`) when they can run non-interactively.
 
 To opt out for all local managed browser profiles:
 
@@ -342,8 +346,9 @@ Security notes:
   `onion-only` route mode, those URLs use direct clearnet routing.
 - Set `routeMode: "all"` only when the whole managed browser profile should use
   Tor for every HTTP(S) request.
-- Genesis does not vendor a Tor binary; managed mode starts the `tor` executable
-  available on the host.
+- Genesis does not vendor a Tor binary; managed mode uses the host `tor`
+  executable and can install it automatically when a supported host package
+  manager is available.
 
 ## Local vs remote control
 

@@ -283,7 +283,7 @@ export const FIELD_HELP: Record<string, string> = {
   "browser.tor.routeMode":
     'Tor browser routing policy. Default "onion-only" sends only .onion HTTP(S) URLs through Tor and leaves regular domains/IPs direct; use "all" to route every browser HTTP(S) request through Tor.',
   "browser.tor.executablePath":
-    'Tor executable path for managed mode. Leave unset to use "tor" from PATH.',
+    'Tor executable path for managed mode. Leave unset to use "tor" from PATH or automatically install host Tor when managed mode starts.',
   "browser.tor.socksHost":
     "Tor SOCKS host used by Chromium proxy routing. Keep this on loopback unless you explicitly operate a trusted remote Tor endpoint.",
   "browser.tor.socksPort":
@@ -315,7 +315,7 @@ export const FIELD_HELP: Record<string, string> = {
   "browser.profiles.*.tor.routeMode":
     'Per-profile Tor routing policy. Default "onion-only" keeps clearnet URLs direct and sends .onion HTTP(S) URLs through Tor; use "all" for whole-profile Tor routing.',
   "browser.profiles.*.tor.executablePath":
-    'Per-profile Tor executable path for managed mode. Leave unset to use "tor" from PATH or the global browser.tor value.',
+    'Per-profile Tor executable path for managed mode. Leave unset to use the global browser.tor value, "tor" from PATH, or automatically install host Tor when managed mode starts.',
   "browser.profiles.*.tor.socksHost": "Per-profile Tor SOCKS host used by Chromium proxy routing.",
   "browser.profiles.*.tor.socksPort": "Per-profile Tor SOCKS port used by Chromium proxy routing.",
   "browser.profiles.*.tor.dataDir": "Per-profile Tor data directory for managed mode.",

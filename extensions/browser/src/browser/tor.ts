@@ -7,6 +7,7 @@ import { ensurePortAvailable } from "../infra/ports.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { CONFIG_DIR } from "../utils.js";
 import type { ResolvedBrowserTorConfig } from "./config.js";
+import { resolveManagedTorExecutable } from "./tor-install.js";
 
 const log = createSubsystemLogger("browser").child("tor");
 const TOR_READY_TIMEOUT_MS = 30_000;
@@ -132,7 +133,13 @@ export async function startManagedTor(
   const dataDir = tor.dataDir ?? resolveGenesisTorDataDir(profileName);
   fs.mkdirSync(dataDir, { recursive: true });
 
-  const executablePath = tor.executablePath ?? "tor";
+  const executableResolution = await resolveManagedTorExecutable(tor);
+  const executablePath = executableResolution.executablePath;
+  if (executableResolution.installed) {
+    log.info(
+      `Tor installed via ${executableResolution.installLabel ?? "automatic installer"} for browser profile "${profileName}"`,
+    );
+  }
   const args = [
     "--SocksPort",
     `${tor.socksHost}:${tor.socksPort}`,

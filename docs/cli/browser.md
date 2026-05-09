@@ -123,12 +123,14 @@ genesis browser --browser-profile onion start
 genesis browser --browser-profile onion open http://examplehiddenservice.onion
 ```
 
-Managed mode uses `tor` from PATH by default. The optional `--tor` flag
-persists an explicit per-profile Tor setting, which is useful when the global
-default is disabled. By default, regular domains and IP literals stay on
-clearnet and only `.onion` HTTP(S) URLs use Tor. To point at a specific
-executable, an existing SOCKS endpoint, or whole-browser Tor routing, configure
-`browser.profiles.<name>.tor` in `~/.genesis/genesis.json`.
+Managed mode uses `tor` from PATH by default and, when no explicit executable
+path is configured, tries to install the host Tor package automatically if it is
+missing. The optional `--tor` flag persists an explicit per-profile Tor setting,
+which is useful when the global default is disabled. By default, regular
+domains and IP literals stay on clearnet and only `.onion` HTTP(S) URLs use Tor.
+To point at a specific executable, an existing SOCKS endpoint, or whole-browser
+Tor routing, configure `browser.profiles.<name>.tor` in
+`~/.genesis/genesis.json`.
 Details: [Browser tool](/tools/browser#tor-and-onion-services).
 
 ## Tabs

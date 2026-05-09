@@ -30,7 +30,7 @@ export type BrowserTorConfig = {
    * Default: "onion-only".
    */
   routeMode?: "onion-only" | "all";
-  /** Tor executable path for managed mode. Defaults to "tor" on PATH. */
+  /** Tor executable path for managed mode. Leave unset to use or automatically install host Tor. */
   executablePath?: string;
   /** SOCKS listen/connect host. Default: 127.0.0.1 */
   socksHost?: string;
