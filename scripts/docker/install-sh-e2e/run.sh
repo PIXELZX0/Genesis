@@ -9,7 +9,7 @@ fi
 # shellcheck source=../install-sh-common/version-parse.sh
 source "$VERIFY_HELPER_PATH"
 
-INSTALL_URL="${GENESIS_INSTALL_URL:-https://genesis.bot/install.sh}"
+INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"
 PACKAGE_NAME="${GENESIS_INSTALL_PACKAGE:-@pixelzx/genesis}"
 MODELS_MODE="${GENESIS_E2E_MODELS:-both}" # both|openai|anthropic
 INSTALL_TAG="${GENESIS_INSTALL_TAG:-latest}"

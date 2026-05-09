@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE_NAME="${GENESIS_INSTALL_E2E_IMAGE:-genesis-install-e2e:local}"
-INSTALL_URL="${GENESIS_INSTALL_URL:-https://genesis.bot/install.sh}"
+INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"

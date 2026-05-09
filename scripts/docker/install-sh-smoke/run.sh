@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_URL="${GENESIS_INSTALL_URL:-https://genesis.bot/install.sh}"
+INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"
 SMOKE_MODE="${GENESIS_INSTALL_SMOKE_MODE:-install}"
 SMOKE_PREVIOUS_VERSION="${GENESIS_INSTALL_SMOKE_PREVIOUS:-}"
 SKIP_PREVIOUS="${GENESIS_INSTALL_SMOKE_SKIP_PREVIOUS:-0}"

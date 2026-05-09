@@ -140,8 +140,8 @@ SMOKE_IMAGE="${GENESIS_INSTALL_SMOKE_IMAGE:-genesis-install-smoke:local}"
 NONROOT_IMAGE="${GENESIS_INSTALL_NONROOT_IMAGE:-genesis-install-nonroot:local}"
 SMOKE_PLATFORM="$(resolve_default_smoke_platform)"
 NONROOT_PLATFORM="${GENESIS_INSTALL_NONROOT_PLATFORM:-$SMOKE_PLATFORM}"
-INSTALL_URL="${GENESIS_INSTALL_URL:-https://genesis.bot/install.sh}"
-CLI_INSTALL_URL="${GENESIS_INSTALL_CLI_URL:-https://genesis.bot/install-cli.sh}"
+INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"
+CLI_INSTALL_URL="${GENESIS_INSTALL_CLI_URL:-$INSTALL_URL}"
 PACKAGE_NAME="${GENESIS_INSTALL_PACKAGE:-@pixelzx/genesis}"
 SKIP_NONROOT="${GENESIS_INSTALL_SMOKE_SKIP_NONROOT:-0}"
 SKIP_SMOKE_IMAGE_BUILD="${GENESIS_INSTALL_SMOKE_SKIP_IMAGE_BUILD:-0}"
@@ -454,6 +454,7 @@ else
     -e GENESIS_INSTALL_URL="$INSTALL_URL" \
     -e GENESIS_INSTALL_PACKAGE="$PACKAGE_NAME" \
     -e GENESIS_INSTALL_METHOD=npm \
+    -e GENESIS_VERSION="${FRESH_TAG_URL:-latest}" \
     -e GENESIS_INSTALL_EXPECT_VERSION="$LATEST_VERSION" \
     -e GENESIS_NO_ONBOARD=1 \
     -e GENESIS_NO_PROMPT=1 \
@@ -480,4 +481,4 @@ docker run --rm -t \
   -e GENESIS_NO_ONBOARD=1 \
   -e GENESIS_NO_PROMPT=1 \
   -e DEBIAN_FRONTEND=noninteractive \
-  "$NONROOT_IMAGE" -lc "curl -fsSL \"$CLI_INSTALL_URL\" | bash -s -- --set-npm-prefix --no-onboard"
+  "$NONROOT_IMAGE" -lc "curl -fsSL \"$CLI_INSTALL_URL\" | bash -s -- --set-npm-prefix --no-onboard --version \"${FRESH_TAG_URL:-latest}\""

@@ -81,9 +81,29 @@ describe("test-install-sh-docker", () => {
     expect(script).toContain("node --import tsx scripts/write-package-dist-inventory.ts");
     expect(script).toContain("quiet_npm pack --ignore-scripts");
   });
+
+  it("defaults installer smoke URLs to the checked-in GitHub installer", () => {
+    const script = readFileSync(SCRIPT_PATH, "utf8");
+
+    expect(script).toContain(
+      'INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"',
+    );
+    expect(script).toContain('CLI_INSTALL_URL="${GENESIS_INSTALL_CLI_URL:-$INSTALL_URL}"');
+    expect(script).toContain('-e GENESIS_VERSION="${FRESH_TAG_URL:-latest}"');
+    expect(script).not.toContain("genesis.bot");
+  });
 });
 
 describe("install-sh smoke runner", () => {
+  it("defaults the container runner to the checked-in GitHub installer", () => {
+    const runner = readFileSync(SMOKE_RUNNER_PATH, "utf8");
+
+    expect(runner).toContain(
+      'INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"',
+    );
+    expect(runner).not.toContain("genesis.bot");
+  });
+
   it("wraps long npm/update operations with heartbeat and install-size audits", () => {
     const script = readFileSync(SMOKE_RUNNER_PATH, "utf8");
 
