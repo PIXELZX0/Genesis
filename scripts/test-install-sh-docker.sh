@@ -451,6 +451,7 @@ else
   echo "==> Run installer non-root test: $INSTALL_URL"
   docker run --rm -t \
     --platform "$NONROOT_PLATFORM" \
+    ${UPDATE_DOCKER_HOST_ARGS[@]+"${UPDATE_DOCKER_HOST_ARGS[@]}"} \
     -e GENESIS_INSTALL_URL="$INSTALL_URL" \
     -e GENESIS_INSTALL_PACKAGE="$PACKAGE_NAME" \
     -e GENESIS_INSTALL_METHOD=npm \
@@ -475,6 +476,7 @@ fi
 echo "==> Run CLI installer non-root test (same image)"
 docker run --rm -t \
   --platform "$NONROOT_PLATFORM" \
+  ${UPDATE_DOCKER_HOST_ARGS[@]+"${UPDATE_DOCKER_HOST_ARGS[@]}"} \
   --entrypoint /bin/bash \
   -e GENESIS_INSTALL_URL="$INSTALL_URL" \
   -e GENESIS_INSTALL_CLI_URL="$CLI_INSTALL_URL" \

@@ -90,6 +90,12 @@ describe("test-install-sh-docker", () => {
     );
     expect(script).toContain('CLI_INSTALL_URL="${GENESIS_INSTALL_CLI_URL:-$INSTALL_URL}"');
     expect(script).toContain('-e GENESIS_VERSION="${FRESH_TAG_URL:-latest}"');
+    expect(script).toMatch(
+      /Run installer non-root test:[\s\S]*\$\{UPDATE_DOCKER_HOST_ARGS\[@\]\+"\$\{UPDATE_DOCKER_HOST_ARGS\[@\]\}"\}/,
+    );
+    expect(script).toMatch(
+      /Run CLI installer non-root test[\s\S]*\$\{UPDATE_DOCKER_HOST_ARGS\[@\]\+"\$\{UPDATE_DOCKER_HOST_ARGS\[@\]\}"\}/,
+    );
     expect(script).not.toContain("genesis.bot");
   });
 });
