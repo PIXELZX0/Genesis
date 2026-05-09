@@ -1,5 +1,4 @@
 import type { Command } from "commander";
-import type { HealthSummary } from "../../commands/health.js";
 import type { CostUsageSummary } from "../../infra/session-cost-usage.js";
 import type {
   DiagnosticStabilityBundle,
@@ -29,6 +28,7 @@ import {
   pickGatewayPort,
   renderBeaconLines,
 } from "./discover.js";
+import { runGatewayHealthRoute } from "./health-route.js";
 import { addGatewayRunCommand } from "./run.js";
 
 let configModulePromise:
@@ -37,12 +37,10 @@ let configModulePromise:
 let gatewayStatusModulePromise:
   | Promise<typeof import("../../commands/gateway-status.js")>
   | undefined;
-let gatewayHealthModulePromise: Promise<typeof import("../../commands/health.js")> | undefined;
 let bonjourDiscoveryModulePromise:
   | Promise<typeof import("../../infra/bonjour-discovery.js")>
   | undefined;
 let wideAreaDnsModulePromise: Promise<typeof import("../../infra/widearea-dns.js")> | undefined;
-let healthStyleModulePromise: Promise<typeof import("../../terminal/health-style.js")> | undefined;
 let usageFormatModulePromise: Promise<typeof import("../../utils/usage-format.js")> | undefined;
 let stabilityBundleModulePromise:
   | Promise<typeof import("../../logging/diagnostic-stability-bundle.js")>
@@ -64,11 +62,6 @@ function loadGatewayStatusModule() {
   return gatewayStatusModulePromise;
 }
 
-function loadGatewayHealthModule() {
-  gatewayHealthModulePromise ??= import("../../commands/health.js");
-  return gatewayHealthModulePromise;
-}
-
 function loadBonjourDiscoveryModule() {
   bonjourDiscoveryModulePromise ??= import("../../infra/bonjour-discovery.js");
   return bonjourDiscoveryModulePromise;
@@ -77,11 +70,6 @@ function loadBonjourDiscoveryModule() {
 function loadWideAreaDnsModule() {
   wideAreaDnsModulePromise ??= import("../../infra/widearea-dns.js");
   return wideAreaDnsModulePromise;
-}
-
-function loadHealthStyleModule() {
-  healthStyleModulePromise ??= import("../../terminal/health-style.js");
-  return healthStyleModulePromise;
 }
 
 function loadUsageFormatModule() {
@@ -468,27 +456,7 @@ export function registerGatewayCli(program: Command) {
       .action(async (opts, command) => {
         await runGatewayCommand(async () => {
           const rpcOpts = resolveGatewayRpcOptions(opts, command);
-          const [{ formatHealthChannelLines }, { styleHealthChannelLine }] = await Promise.all([
-            loadGatewayHealthModule(),
-            loadHealthStyleModule(),
-          ]);
-          const result = await callGatewayCli("health", rpcOpts);
-          if (rpcOpts.json) {
-            defaultRuntime.writeJson(result);
-            return;
-          }
-          const rich = isRich();
-          const obj: Record<string, unknown> = result && typeof result === "object" ? result : {};
-          const durationMs = typeof obj.durationMs === "number" ? obj.durationMs : null;
-          defaultRuntime.log(colorize(rich, theme.heading, "Gateway Health"));
-          defaultRuntime.log(
-            `${colorize(rich, theme.success, "OK")}${durationMs != null ? ` (${durationMs}ms)` : ""}`,
-          );
-          if (obj.channels && typeof obj.channels === "object") {
-            for (const line of formatHealthChannelLines(obj as HealthSummary)) {
-              defaultRuntime.log(styleHealthChannelLine(line, rich));
-            }
-          }
+          await runGatewayHealthRoute(rpcOpts);
         });
       }),
   );

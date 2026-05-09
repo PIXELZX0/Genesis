@@ -65,6 +65,20 @@ describe("command-path-policy", () => {
       hideBanner: false,
       ensureCliPath: true,
     });
+    expect(resolveCliCommandPathPolicy(["gateway", "health"])).toEqual({
+      bypassConfigGuard: false,
+      routeConfigGuard: "always",
+      loadPlugins: "never",
+      hideBanner: false,
+      ensureCliPath: false,
+    });
+    expect(resolveCliCommandPathPolicy(["dashboard"])).toEqual({
+      bypassConfigGuard: false,
+      routeConfigGuard: "never",
+      loadPlugins: "never",
+      hideBanner: false,
+      ensureCliPath: false,
+    });
     expect(resolveCliCommandPathPolicy(["plugins", "update"])).toEqual({
       bypassConfigGuard: false,
       routeConfigGuard: "never",

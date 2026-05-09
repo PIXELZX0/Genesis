@@ -3,6 +3,8 @@ import {
   parseAgentsListRouteArgs,
   parseConfigGetRouteArgs,
   parseConfigUnsetRouteArgs,
+  parseDashboardRouteArgs,
+  parseGatewayHealthRouteArgs,
   parseGatewayStatusRouteArgs,
   parseHealthRouteArgs,
   parseModelsListRouteArgs,
@@ -43,6 +45,13 @@ describe("route-args", () => {
     expect(parseStatusRouteArgs(["node", "genesis", "status", "--timeout"])).toBeNull();
   });
 
+  it("parses dashboard route args", () => {
+    expect(parseDashboardRouteArgs(["node", "genesis", "dashboard", "--no-open"])).toEqual({
+      noOpen: true,
+    });
+    expect(parseDashboardRouteArgs(["node", "genesis", "dashboard", "--json"])).toBeNull();
+  });
+
   it("parses gateway status route args and rejects probe-only ssh flags", () => {
     expect(
       parseGatewayStatusRouteArgs([
@@ -79,6 +88,42 @@ describe("route-args", () => {
     ).toBeNull();
     expect(
       parseGatewayStatusRouteArgs(["node", "genesis", "gateway", "status", "--ssh-auto"]),
+    ).toBeNull();
+  });
+
+  it("parses gateway health route args", () => {
+    expect(
+      parseGatewayHealthRouteArgs([
+        "node",
+        "genesis",
+        "--profile",
+        "work",
+        "gateway",
+        "--token",
+        "abc",
+        "health",
+        "--url",
+        "ws://127.0.0.1:18789",
+        "--password",
+        "def",
+        "--timeout",
+        "5000",
+        "--expect-final",
+        "--json",
+      ]),
+    ).toEqual({
+      url: "ws://127.0.0.1:18789",
+      token: "abc",
+      password: "def",
+      timeout: "5000",
+      expectFinal: true,
+      json: true,
+    });
+    expect(
+      parseGatewayHealthRouteArgs(["node", "genesis", "gateway", "health", "--url"]),
+    ).toBeNull();
+    expect(
+      parseGatewayHealthRouteArgs(["node", "genesis", "gateway", "health", "--deep"]),
     ).toBeNull();
   });
 

@@ -31,6 +31,12 @@ describe("command-startup-policy", () => {
     ).toBe(true);
     expect(
       shouldSkipRouteConfigGuardForCommandPath({
+        commandPath: ["gateway", "health"],
+        suppressDoctorStdout: false,
+      }),
+    ).toBe(true);
+    expect(
+      shouldSkipRouteConfigGuardForCommandPath({
         commandPath: ["status"],
         suppressDoctorStdout: false,
       }),
@@ -97,6 +103,8 @@ describe("command-startup-policy", () => {
   it("matches CLI PATH bootstrap policy", () => {
     expect(shouldEnsureCliPathForCommandPath(["status"])).toBe(false);
     expect(shouldEnsureCliPathForCommandPath(["sessions"])).toBe(false);
+    expect(shouldEnsureCliPathForCommandPath(["dashboard"])).toBe(false);
+    expect(shouldEnsureCliPathForCommandPath(["gateway", "health"])).toBe(false);
     expect(shouldEnsureCliPathForCommandPath(["config", "get"])).toBe(false);
     expect(shouldEnsureCliPathForCommandPath(["models", "status"])).toBe(false);
     expect(shouldEnsureCliPathForCommandPath(["message", "send"])).toBe(true);

@@ -1,8 +1,10 @@
 export type CliCommandPluginLoadPolicy = "never" | "always" | "text-only";
 export type CliRouteConfigGuardPolicy = "never" | "always" | "when-suppressed";
 export type CliRoutedCommandId =
+  | "dashboard"
   | "health"
   | "status"
+  | "gateway-health"
   | "gateway-status"
   | "sessions"
   | "agents-list"
@@ -60,6 +62,25 @@ export const cliCommandCatalog: readonly CliCommandCatalogEntry[] = [
       loadPlugins: "never",
     },
     route: { id: "gateway-status" },
+  },
+  {
+    commandPath: ["gateway", "health"],
+    exact: true,
+    policy: {
+      routeConfigGuard: "always",
+      loadPlugins: "never",
+      ensureCliPath: false,
+    },
+    route: { id: "gateway-health" },
+  },
+  {
+    commandPath: ["dashboard"],
+    exact: true,
+    policy: {
+      loadPlugins: "never",
+      ensureCliPath: false,
+    },
+    route: { id: "dashboard" },
   },
   {
     commandPath: ["sessions"],

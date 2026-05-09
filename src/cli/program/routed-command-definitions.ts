@@ -5,6 +5,8 @@ import {
   parseChannelsStatusRouteArgs,
   parseConfigGetRouteArgs,
   parseConfigUnsetRouteArgs,
+  parseDashboardRouteArgs,
+  parseGatewayHealthRouteArgs,
   parseGatewayStatusRouteArgs,
   parseHealthRouteArgs,
   parseModelsListRouteArgs,
@@ -49,6 +51,13 @@ function loadModelsList(): Promise<ModelsListModule> {
 }
 
 export const routedCommandDefinitions = {
+  dashboard: defineRoutedCommand({
+    parseArgs: parseDashboardRouteArgs,
+    runParsedArgs: async (args) => {
+      const { dashboardCommand } = await import("../../commands/dashboard.js");
+      await dashboardCommand(defaultRuntime, args);
+    },
+  }),
   health: defineRoutedCommand({
     parseArgs: parseHealthRouteArgs,
     runParsedArgs: async (args) => {
@@ -81,6 +90,13 @@ export const routedCommandDefinitions = {
     runParsedArgs: async (args) => {
       const { runDaemonStatus } = await import("../daemon-cli/status.js");
       await runDaemonStatus(args);
+    },
+  }),
+  "gateway-health": defineRoutedCommand({
+    parseArgs: parseGatewayHealthRouteArgs,
+    runParsedArgs: async (args) => {
+      const { runGatewayHealthRoute } = await import("../gateway-cli/health-route.js");
+      await runGatewayHealthRoute(args);
     },
   }),
   sessions: defineRoutedCommand({

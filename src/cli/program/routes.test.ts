@@ -6,6 +6,8 @@ const runConfigUnsetMock = vi.hoisted(() => vi.fn(async () => {}));
 const modelsListCommandMock = vi.hoisted(() => vi.fn(async () => {}));
 const modelsStatusCommandMock = vi.hoisted(() => vi.fn(async () => {}));
 const runDaemonStatusMock = vi.hoisted(() => vi.fn(async () => {}));
+const dashboardCommandMock = vi.hoisted(() => vi.fn(async () => {}));
+const runGatewayHealthRouteMock = vi.hoisted(() => vi.fn(async () => {}));
 const statusJsonCommandMock = vi.hoisted(() => vi.fn(async () => {}));
 const channelsListCommandMock = vi.hoisted(() => vi.fn(async () => {}));
 const channelsStatusCommandMock = vi.hoisted(() => vi.fn(async () => {}));
@@ -26,6 +28,14 @@ vi.mock("../../commands/models/list.js", () => ({
 
 vi.mock("../daemon-cli/status.js", () => ({
   runDaemonStatus: runDaemonStatusMock,
+}));
+
+vi.mock("../../commands/dashboard.js", () => ({
+  dashboardCommand: dashboardCommandMock,
+}));
+
+vi.mock("../gateway-cli/health-route.js", () => ({
+  runGatewayHealthRoute: runGatewayHealthRouteMock,
 }));
 
 vi.mock("../../commands/status-json.js", () => ({
@@ -66,6 +76,11 @@ describe("program routes", () => {
     expect(route?.loadPlugins).toBeUndefined();
   });
 
+  it("matches dashboard route without plugin preload", () => {
+    const route = expectRoute(["dashboard"]);
+    expect(route?.loadPlugins).toBeUndefined();
+  });
+
   it("matches channel read-only routes without plugin preload", () => {
     expect(expectRoute(["channels", "list"])?.loadPlugins).toBeUndefined();
     expect(expectRoute(["channels", "status"])?.loadPlugins).toBeUndefined();
@@ -103,6 +118,47 @@ describe("program routes", () => {
   it("matches gateway status route without plugin preload", () => {
     const route = expectRoute(["gateway", "status"]);
     expect(route?.loadPlugins).toBeUndefined();
+  });
+
+  it("matches gateway health route without plugin preload", () => {
+    const route = expectRoute(["gateway", "health"]);
+    expect(route?.loadPlugins).toBeUndefined();
+  });
+
+  it("passes parsed dashboard flags through", async () => {
+    const route = expectRoute(["dashboard"]);
+    await expect(route?.run(["node", "genesis", "dashboard", "--no-open"])).resolves.toBe(true);
+    expect(dashboardCommandMock).toHaveBeenCalledWith(expect.any(Object), { noOpen: true });
+  });
+
+  it("passes parsed gateway health flags through", async () => {
+    const route = expectRoute(["gateway", "health"]);
+    await expect(
+      route?.run([
+        "node",
+        "genesis",
+        "gateway",
+        "--token",
+        "abc",
+        "health",
+        "--url",
+        "ws://127.0.0.1:18789",
+        "--password",
+        "def",
+        "--timeout",
+        "5000",
+        "--expect-final",
+        "--json",
+      ]),
+    ).resolves.toBe(true);
+    expect(runGatewayHealthRouteMock).toHaveBeenCalledWith({
+      url: "ws://127.0.0.1:18789",
+      token: "abc",
+      password: "def",
+      timeout: "5000",
+      expectFinal: true,
+      json: true,
+    });
   });
 
   it("returns false for gateway status route when option values are missing", async () => {

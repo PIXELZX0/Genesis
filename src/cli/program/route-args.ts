@@ -89,6 +89,19 @@ export function parseStatusRouteArgs(argv: string[]) {
   };
 }
 
+export function parseDashboardRouteArgs(argv: string[]) {
+  const positionals = getCommandPositionalsWithRootOptions(argv, {
+    commandPath: ["dashboard"],
+    booleanFlags: ["--no-open"],
+  });
+  if (!positionals || positionals.length > 0) {
+    return null;
+  }
+  return {
+    noOpen: hasFlag(argv, "--no-open"),
+  };
+}
+
 export function parseGatewayStatusRouteArgs(argv: string[]) {
   const url = parseOptionalFlagValue(argv, "--url");
   if (!url.ok) {
@@ -128,6 +141,41 @@ export function parseGatewayStatusRouteArgs(argv: string[]) {
     json: hasFlag(argv, "--json"),
     requireRpc: hasFlag(argv, "--require-rpc"),
     probe: !hasFlag(argv, "--no-probe"),
+  };
+}
+
+export function parseGatewayHealthRouteArgs(argv: string[]) {
+  const positionals = getCommandPositionalsWithRootOptions(argv, {
+    commandPath: ["gateway", "health"],
+    booleanFlags: ["--json", "--expect-final"],
+    valueFlags: ["--url", "--token", "--password", "--timeout"],
+  });
+  if (!positionals || positionals.length > 0) {
+    return null;
+  }
+  const url = parseOptionalFlagValue(argv, "--url");
+  if (!url.ok) {
+    return null;
+  }
+  const token = parseOptionalFlagValue(argv, "--token");
+  if (!token.ok) {
+    return null;
+  }
+  const password = parseOptionalFlagValue(argv, "--password");
+  if (!password.ok) {
+    return null;
+  }
+  const timeout = parseOptionalFlagValue(argv, "--timeout");
+  if (!timeout.ok) {
+    return null;
+  }
+  return {
+    url: url.value,
+    token: token.value,
+    password: password.value,
+    timeout: timeout.value,
+    expectFinal: hasFlag(argv, "--expect-final"),
+    json: hasFlag(argv, "--json"),
   };
 }
 
