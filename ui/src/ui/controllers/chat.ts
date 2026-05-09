@@ -340,6 +340,80 @@ function messageDisplaySignature(message: unknown): string | null {
   }
 }
 
+function readTranscriptMessageMeta(message: unknown): Record<string, unknown> | null {
+  if (!message || typeof message !== "object") {
+    return null;
+  }
+  const meta = (message as { __genesis?: unknown }).__genesis;
+  return meta && typeof meta === "object" && !Array.isArray(meta)
+    ? (meta as Record<string, unknown>)
+    : null;
+}
+
+function transcriptMessageIdentity(message: unknown): string | null {
+  const meta = readTranscriptMessageMeta(message);
+  const id = meta?.id;
+  if (typeof id === "string" && id.trim()) {
+    return `id:${id.trim()}`;
+  }
+  const seq = meta?.seq;
+  if (typeof seq === "number" && Number.isFinite(seq)) {
+    return `seq:${seq}`;
+  }
+  return null;
+}
+
+function findMatchingHistoryMessageIndex(messages: unknown[], message: unknown): number {
+  const identity = transcriptMessageIdentity(message);
+  if (identity) {
+    const identityIndex = messages.findIndex(
+      (existing) => transcriptMessageIdentity(existing) === identity,
+    );
+    if (identityIndex >= 0) {
+      return identityIndex;
+    }
+  }
+  const signature = messageDisplaySignature(message);
+  if (!signature) {
+    return -1;
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const existing = messages[index];
+    if (!isLocallyOptimisticHistoryMessage(existing)) {
+      continue;
+    }
+    if (messageDisplaySignature(existing) === signature) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+export function applyChatHistoryMessageEvent(
+  state: ChatState,
+  message: unknown,
+  options?: { appendIfMissing?: boolean },
+): boolean {
+  if (message === undefined || shouldHideHistoryMessage(message)) {
+    return message !== undefined;
+  }
+  const existingIndex = findMatchingHistoryMessageIndex(state.chatMessages, message);
+  if (existingIndex >= 0) {
+    if (state.chatMessages[existingIndex] === message) {
+      return true;
+    }
+    state.chatMessages = state.chatMessages.map((existing, index) =>
+      index === existingIndex ? message : existing,
+    );
+    return true;
+  }
+  if (options?.appendIfMissing === false) {
+    return false;
+  }
+  state.chatMessages = [...state.chatMessages, message];
+  return true;
+}
+
 function preserveOptimisticTailMessages(
   historyMessages: unknown[],
   previousMessages: unknown[],

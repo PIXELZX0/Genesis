@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 
-const loadSessionsMock = vi.fn();
-const loadChatHistoryMock = vi.fn();
-const applySessionsChangedEventMock = vi.fn();
+const loadSessionsMock = vi.hoisted(() => vi.fn());
+const loadChatHistoryMock = vi.hoisted(() => vi.fn());
+const applyChatHistoryMessageEventMock = vi.hoisted(() => vi.fn(() => false));
+const applySessionsChangedEventMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./app-chat.ts", () => ({
   CHAT_SESSIONS_ACTIVE_MINUTES: 10,
@@ -27,6 +28,7 @@ vi.mock("./controllers/assistant-identity.ts", () => ({
   loadAssistantIdentity: vi.fn(),
 }));
 vi.mock("./controllers/chat.ts", () => ({
+  applyChatHistoryMessageEvent: applyChatHistoryMessageEventMock,
   loadChatHistory: loadChatHistoryMock,
   handleChatEvent: vi.fn(() => "idle"),
 }));

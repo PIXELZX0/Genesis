@@ -25,6 +25,7 @@ import {
   type AssistantIdentityState,
 } from "./controllers/assistant-identity.ts";
 import {
+  applyChatHistoryMessageEvent,
   loadChatHistory,
   handleChatEvent,
   type ChatEventPayload,
@@ -157,6 +158,14 @@ function isTerminalChatState(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object");
+}
+
+function isUserSessionMessage(message: unknown): boolean {
+  if (!isRecord(message)) {
+    return false;
+  }
+  const role = message.role;
+  return typeof role === "string" && role.trim().toLowerCase() === "user";
 }
 
 const SESSION_CHANGED_LOCAL_PATCH_FIELDS = [
@@ -536,7 +545,7 @@ function handleChatGatewayEvent(host: GatewayHost, payload: ChatEventPayload | u
 
 function handleSessionMessageGatewayEvent(
   host: GatewayHost,
-  payload: { sessionKey?: string } | undefined,
+  payload: { sessionKey?: string; message?: unknown } | undefined,
 ) {
   applySessionsChangedEvent(host as unknown as SessionsState, payload);
   const deferredReloadHost = host as GatewayHostWithDeferredSessionMessageReload;
@@ -550,10 +559,25 @@ function handleSessionMessageGatewayEvent(
   // chatStream, which delays the user message card from appearing until the
   // first LLM delta arrives.
   if (host.chatRunId) {
+    if (
+      isUserSessionMessage(payload?.message) &&
+      applyChatHistoryMessageEvent(host as unknown as ChatState, payload?.message, {
+        appendIfMissing: false,
+      })
+    ) {
+      return;
+    }
     deferredReloadHost.pendingSessionMessageReloadSessionKey = sessionKey;
     return;
   }
   deferredReloadHost.pendingSessionMessageReloadSessionKey = null;
+  if (
+    applyChatHistoryMessageEvent(host as unknown as ChatState, payload?.message, {
+      appendIfMissing: true,
+    })
+  ) {
+    return;
+  }
   void loadChatHistory(host as unknown as ChatState);
 }
 
@@ -594,7 +618,10 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
   }
 
   if (evt.event === "session.message") {
-    handleSessionMessageGatewayEvent(host, evt.payload as { sessionKey?: string } | undefined);
+    handleSessionMessageGatewayEvent(
+      host,
+      evt.payload as { sessionKey?: string; message?: unknown } | undefined,
+    );
     return;
   }
 

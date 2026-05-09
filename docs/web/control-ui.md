@@ -171,10 +171,11 @@ Cron jobs panel notes:
   roots; otherwise the UI shows the attachment as unavailable.
 - Assistant/generated images are persisted as managed media references and served back through authenticated Gateway media URLs, so reloads do not depend on raw base64 image payloads staying in the chat history response.
 - `chat.history` also strips display-only inline directive tags from visible assistant text (for example `[[reply_to_*]]` and `[[audio_as_voice]]`), plain-text tool-call XML payloads (including `<tool_call>...</tool_call>`, `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`, `<function_calls>...</function_calls>`, and truncated tool-call blocks), and leaked ASCII/full-width model control tokens, and omits assistant entries whose whole visible text is only the exact silent token `NO_REPLY` / `no_reply`.
-- During an active send and the final history refresh, the chat view keeps local
-  optimistic user/assistant messages visible if `chat.history` briefly returns
-  an older snapshot; the canonical transcript replaces those local messages once
-  the Gateway history catches up.
+- During active sends, the chat view reconciles live `session.message` payloads
+  into the local transcript when possible and skips redundant final
+  `chat.history` reloads when the final assistant payload is already complete.
+  If a fallback history reload is still needed, local optimistic user/assistant
+  messages stay visible until the canonical transcript catches up.
 - `chat.inject` appends an assistant note to the session transcript and broadcasts a `chat` event for UI-only updates (no agent run, no channel delivery).
 - The chat header model and thinking pickers patch the active session immediately through `sessions.patch`; they are persistent session overrides, not one-turn-only send options.
 - When fresh Gateway session usage reports show high context pressure, the chat

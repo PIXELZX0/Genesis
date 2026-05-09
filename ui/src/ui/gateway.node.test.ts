@@ -239,6 +239,25 @@ describe("GatewayBrowserClient", () => {
     expect(connectFrame.params?.scopes).toEqual([...CONTROL_UI_OPERATOR_SCOPES]);
   });
 
+  it("closes and reconnects when the connect response times out", async () => {
+    vi.useFakeTimers();
+    const client = new GatewayBrowserClient({
+      url: "ws://127.0.0.1:18789",
+      token: "shared-auth-token",
+    });
+
+    const { ws: firstWs } = await startConnect(client);
+    expect(firstWs.sent).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expectSocketClosed(firstWs);
+
+    firstWs.emitClose(4008, "connect failed");
+    await vi.advanceTimersByTimeAsync(800);
+    const secondWs = getLatestWebSocket();
+    expect(secondWs).not.toBe(firstWs);
+  });
+
   it("prefers explicit shared auth over cached device tokens", async () => {
     const client = new GatewayBrowserClient({
       url: "ws://127.0.0.1:18789",

@@ -112,6 +112,7 @@ vi.mock("./controllers/control-ui-bootstrap.ts", () => ({
 type TestGatewayHost = Parameters<typeof connectGateway>[0] & {
   chatSideResult: unknown;
   chatSideResultTerminalRuns: Set<string>;
+  chatMessages: unknown[];
   chatStream: string | null;
   chatToolMessages: Record<string, unknown>[];
   toolStreamById: Map<string, unknown>;
@@ -753,6 +754,82 @@ describe("connectGateway", () => {
       expect(loadChatHistoryMock).toHaveBeenCalledWith(host);
     },
   );
+
+  it("applies session.message payloads without a full history reload", () => {
+    const { host, client } = connectHostGateway();
+    loadChatHistoryMock.mockClear();
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Saved note" }],
+          __genesis: { id: "msg-1", seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    expect(host.chatMessages).toHaveLength(1);
+    expect(host.chatMessages[0]).toMatchObject({
+      role: "assistant",
+      __genesis: { id: "msg-1", seq: 1 },
+    });
+  });
+
+  it("reconciles active-run user transcript events and skips complete final reloads", () => {
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "main-run-4";
+    host.chatMessages = [
+      {
+        role: "user",
+        content: [{ type: "text", text: "hello" }],
+      },
+    ];
+    loadChatHistoryMock.mockClear();
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { id: "msg-user-1", seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    expect(host.chatMessages).toHaveLength(1);
+    expect(host.chatMessages[0]).toMatchObject({
+      role: "user",
+      __genesis: { id: "msg-user-1", seq: 1 },
+    });
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-4",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    expect(host.chatRunId).toBeNull();
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    expect(host.chatMessages).toHaveLength(2);
+    expect(host.chatMessages[1]).toMatchObject({
+      role: "assistant",
+      content: [{ type: "text", text: "Done" }],
+    });
+  });
 
   it("clears tracked BTW terminal runs after reconnect hello", () => {
     const host = createHost();
