@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.10-1
+
+### Fixes
+
+- Matrix plugin: keep the gateway monitor's shared Matrix client alive when one-off Matrix sends reuse the same client, avoiding restart loops after outbound sends.
+
 ## 2026.5.10
 
 ### Changes
@@ -13,7 +19,6 @@ Docs: https://docs.genesis.ai
 
 - Gateway: avoid restarting for skill allowlist-only config reloads while still refreshing cached skill prompts.
 - Matrix plugin: downgrade transient `/sync` abort noise to debug logs while keeping real sync failures visible.
-- Matrix plugin: keep the gateway monitor's shared Matrix client alive when one-off Matrix sends reuse the same client, avoiding restart loops after outbound sends.
 - Agent tools: log missing `read` files as warnings instead of runtime errors while preserving the tool failure result.
 
 ## 2026.5.9-2
