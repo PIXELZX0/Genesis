@@ -36,6 +36,14 @@ function createSyncLifecycleHarness(options?: { withStopping?: boolean }) {
   };
 }
 
+function createMatrixSyncAbortError(): Error {
+  const error = new Error(
+    "Matrix request aborted before completion: https://matrix.example.org/_matrix/client/v3/sync",
+  );
+  error.name = "AbortError";
+  return error;
+}
+
 describe("createMatrixMonitorSyncLifecycle", () => {
   it("rejects the channel wait on unexpected sync errors", async () => {
     const { client, lifecycle, setStatus } = createSyncLifecycleHarness();
@@ -125,6 +133,41 @@ describe("createMatrixMonitorSyncLifecycle", () => {
         accountId: "default",
         healthState: "stopped",
         lastError: null,
+      }),
+    );
+  });
+
+  it("keeps transient Matrix sync aborts out of reconnecting lastError", async () => {
+    const { client, lifecycle, setStatus } = createSyncLifecycleHarness();
+
+    client.emit("sync.state", "RECONNECTING", "SYNCING", createMatrixSyncAbortError());
+    lifecycle.dispose();
+
+    expect(setStatus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        accountId: "default",
+        connected: false,
+        healthState: "reconnecting",
+        lastError: null,
+        lastDisconnect: expect.not.objectContaining({
+          error: expect.any(String),
+        }),
+      }),
+    );
+  });
+
+  it("summarizes repeated Matrix sync aborts when the SDK enters error state", async () => {
+    const { client, lifecycle, setStatus } = createSyncLifecycleHarness();
+
+    client.emit("sync.state", "ERROR", "RECONNECTING", createMatrixSyncAbortError());
+    lifecycle.dispose();
+
+    expect(setStatus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        accountId: "default",
+        connected: false,
+        healthState: "error",
+        lastError: "Matrix sync request was canceled before the homeserver replied",
       }),
     );
   });

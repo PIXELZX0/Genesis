@@ -21,9 +21,31 @@ function cloneLastDisconnect(
   return { ...value };
 }
 
-function formatSyncError(error: unknown): string | null {
+function isMatrixSyncRequestAbort(error: unknown): boolean {
+  if (!(error instanceof Error) || error.name !== "AbortError") {
+    return false;
+  }
+  const prefix = "Matrix request aborted before completion: ";
+  if (!error.message.startsWith(prefix)) {
+    return false;
+  }
+  try {
+    const url = new URL(error.message.slice(prefix.length));
+    return /^\/_matrix\/client\/v\d+\/sync$/.test(url.pathname);
+  } catch {
+    return error.message.includes("/_matrix/client/v3/sync");
+  }
+}
+
+function formatSyncError(error: unknown, state?: MatrixSyncState): string | null {
   if (!error) {
     return null;
+  }
+  if (isMatrixSyncRequestAbort(error)) {
+    if (state === "RECONNECTING") {
+      return null;
+    }
+    return "Matrix sync request was canceled before the homeserver replied";
   }
   if (error instanceof Error) {
     return error.message || error.name || "unknown";
@@ -72,7 +94,7 @@ export function createMatrixMonitorStatusController(params: {
 
   const noteDisconnected = (params: { state: MatrixSyncState; at?: number; error?: unknown }) => {
     const at = params.at ?? Date.now();
-    const error = formatSyncError(params.error);
+    const error = formatSyncError(params.error, params.state);
     status.connected = false;
     status.lastEventAt = at;
     status.lastDisconnect = {
