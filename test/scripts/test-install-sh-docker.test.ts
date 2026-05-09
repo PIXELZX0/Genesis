@@ -108,6 +108,9 @@ describe("install-sh smoke runner", () => {
       'INSTALL_URL="${GENESIS_INSTALL_URL:-https://raw.githubusercontent.com/PIXELZX0/Genesis/main/scripts/install.sh}"',
     );
     expect(runner).not.toContain("genesis.bot");
+    expect(runner).toMatch(
+      /Install latest release tarball[\s\S]*if \[\[ -n "\$\{GENESIS_INSTALL_LATEST_OUT:-\}" \]\]; then\s+printf "%s" "\$FRESH_VERSION" > "\$\{GENESIS_INSTALL_LATEST_OUT:-\}"/,
+    );
   });
 
   it("wraps long npm/update operations with heartbeat and install-size audits", () => {
