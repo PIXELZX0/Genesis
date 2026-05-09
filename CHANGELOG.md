@@ -2,6 +2,14 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.9-2
+
+### Fixes
+
+- Browser plugin: automatically install host Tor for managed Tor browser profiles when `tor` is missing and no explicit executable path is configured.
+- CLI: route `genesis dashboard` and `genesis gateway health` through the lightweight startup path to reduce command startup overhead.
+- Control UI/chat: reconcile live transcript message events and skip redundant final history reloads on normal turns, so web chat messages appear sooner without flicker.
+
 ## 2026.5.9-1
 
 ### Fixes
