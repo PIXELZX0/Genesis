@@ -194,6 +194,32 @@ describe("config view", () => {
     expect(onFormModeChange).toHaveBeenCalledWith("raw");
   });
 
+  it("keeps the current form visible while refreshing an existing schema", () => {
+    const { container } = renderConfigView({
+      schemaLoading: true,
+      schema: {
+        type: "object",
+        properties: {
+          gateway: {
+            type: "object",
+            properties: {
+              port: { type: "number" },
+            },
+          },
+        },
+      },
+      formValue: { gateway: { port: 18789 } },
+      originalValue: { gateway: { port: 18789 } },
+    });
+
+    expect(normalizedText(container)).not.toContain("Loading schema");
+    expect(normalizedText(container)).toContain("Gateway");
+    const formButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent?.trim() === "Form",
+    );
+    expect(formButton?.disabled).toBe(false);
+  });
+
   it("renders restart-required changes prompt actions", () => {
     const onRestartNow = vi.fn();
     const onRestartLater = vi.fn();

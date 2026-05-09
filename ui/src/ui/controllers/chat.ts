@@ -19,6 +19,8 @@ const STARTUP_CHAT_HISTORY_RETRY_TIMEOUT_MS = 60_000;
 const STARTUP_CHAT_HISTORY_DEFAULT_RETRY_MS = 500;
 const STARTUP_CHAT_HISTORY_MAX_RETRY_MS = 5_000;
 const chatHistoryRequestVersions = new WeakMap<object, number>();
+const handledTerminalChatEvents = new WeakMap<object, Map<string, number>>();
+const MAX_HANDLED_TERMINAL_CHAT_EVENTS = 256;
 
 function beginChatHistoryRequest(state: ChatState): number {
   const key = state as object;
@@ -41,6 +43,48 @@ function shouldApplyChatHistoryResult(
 
 function isSilentReplyStream(text: string): boolean {
   return SILENT_REPLY_PATTERN.test(text);
+}
+
+function isTerminalChatEventState(state: ChatEventPayload["state"]): boolean {
+  return state === "final" || state === "aborted" || state === "error";
+}
+
+function terminalChatEventKey(payload: ChatEventPayload): string | null {
+  if (!isTerminalChatEventState(payload.state)) {
+    return null;
+  }
+  const runId = typeof payload.runId === "string" ? payload.runId.trim() : "";
+  const sessionKey = typeof payload.sessionKey === "string" ? payload.sessionKey.trim() : "";
+  return runId && sessionKey ? `${sessionKey}\u0000${runId}` : null;
+}
+
+function hasHandledTerminalChatEvent(state: ChatState, payload: ChatEventPayload): boolean {
+  const key = terminalChatEventKey(payload);
+  if (!key) {
+    return false;
+  }
+  return handledTerminalChatEvents.get(state as object)?.has(key) ?? false;
+}
+
+function markTerminalChatEventHandled(state: ChatState, payload: ChatEventPayload): void {
+  const key = terminalChatEventKey(payload);
+  if (!key) {
+    return;
+  }
+  const stateKey = state as object;
+  let events = handledTerminalChatEvents.get(stateKey);
+  if (!events) {
+    events = new Map();
+    handledTerminalChatEvents.set(stateKey, events);
+  }
+  events.set(key, Date.now());
+  while (events.size > MAX_HANDLED_TERMINAL_CHAT_EVENTS) {
+    const oldestKey = events.keys().next().value;
+    if (typeof oldestKey !== "string") {
+      break;
+    }
+    events.delete(oldestKey);
+  }
 }
 
 // RAF coalescing for streaming delta updates — collapses N chunks per frame into one
@@ -693,6 +737,10 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   if (payload.sessionKey !== state.sessionKey) {
     return null;
   }
+  if (hasHandledTerminalChatEvent(state, payload)) {
+    return null;
+  }
+  markTerminalChatEventHandled(state, payload);
 
   // Final from another run (e.g. sub-agent announce): refresh history to show new message.
   // See https://github.com/PIXELZX0/Genesis/issues/1909

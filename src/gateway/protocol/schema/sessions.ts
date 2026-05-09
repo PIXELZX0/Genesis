@@ -51,6 +51,12 @@ export const SessionsListParamsSchema = Type.Object(
      * Performs a file read per session - use `limit` to bound result set on large stores.
      */
     includeLastMessage: Type.Optional(Type.Boolean()),
+    /**
+     * Read transcript files to backfill stale/missing usage and cost metadata.
+     * Enabled by default for API compatibility; large browser refreshes can set
+     * this to false to avoid one transcript scan per listed session.
+     */
+    includeTranscriptUsage: Type.Optional(Type.Boolean()),
     label: Type.Optional(SessionLabelString),
     spawnedBy: Type.Optional(NonEmptyString),
     agentId: Type.Optional(NonEmptyString),

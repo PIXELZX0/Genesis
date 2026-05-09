@@ -587,6 +587,9 @@ should use `resolveInboundMentionDecision({ facts, policy })`.
       Inbound message handling is channel-specific. Each channel plugin owns
       its own inbound pipeline. Look at bundled channel plugins
       (for example the Microsoft Teams or Google Chat plugin package) for real patterns.
+      Long-lived `gateway.startAccount` monitors stop through `ctx.abortSignal`;
+      if clean shutdown has bounded work that can exceed the default stop
+      window, such as encrypted state persistence, set `gateway.stopGraceMs`.
     </Note>
 
   </Step>

@@ -82,6 +82,7 @@ describe("deleteSessionsAndRefresh", () => {
     expect(request).toHaveBeenNthCalledWith(3, "sessions.list", {
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
     });
     expect(state.sessionsLoading).toBe(false);
   });
@@ -176,6 +177,7 @@ describe("deleteSessionsAndRefresh", () => {
     expect(request).toHaveBeenNthCalledWith(2, "sessions.list", {
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
     });
     expect(state.sessionsLoading).toBe(false);
   });
@@ -227,10 +229,12 @@ describe("loadSessions", () => {
       limit: 10,
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
     });
     expect(request).toHaveBeenNthCalledWith(2, "sessions.list", {
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
     });
     expect(state.sessionsResult?.ts).toBe(2);
     expect(state.sessionsLoading).toBe(false);
@@ -313,6 +317,7 @@ describe("loadSessions", () => {
     expect(request).toHaveBeenNthCalledWith(1, "sessions.list", {
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
     });
     expect(request).toHaveBeenNthCalledWith(2, "sessions.compaction.list", {
       key: "agent:main:main",
@@ -344,8 +349,33 @@ describe("loadSessions", () => {
     expect(request).toHaveBeenCalledWith("sessions.list", {
       includeGlobal: true,
       includeUnknown: true,
+      includeTranscriptUsage: false,
       limit: 120,
       search: "long-running",
+    });
+  });
+
+  it("allows callers to request transcript usage backfill when needed", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method !== "sessions.list") {
+        throw new Error(`unexpected method: ${method}`);
+      }
+      return {
+        ts: 1,
+        path: "(multiple)",
+        count: 0,
+        defaults: {},
+        sessions: [],
+      };
+    });
+    const state = createState(request);
+
+    await loadSessions(state, { includeTranscriptUsage: true });
+
+    expect(request).toHaveBeenCalledWith("sessions.list", {
+      includeGlobal: true,
+      includeUnknown: true,
+      includeTranscriptUsage: true,
     });
   });
 });

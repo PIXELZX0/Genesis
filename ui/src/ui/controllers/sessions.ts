@@ -35,6 +35,7 @@ type LoadSessionsOverrides = {
   limit?: number;
   includeGlobal?: boolean;
   includeUnknown?: boolean;
+  includeTranscriptUsage?: boolean;
   search?: string;
 };
 
@@ -344,6 +345,7 @@ async function loadSessionsOnce(
     const params: Record<string, unknown> = {
       includeGlobal,
       includeUnknown,
+      includeTranscriptUsage: overrides?.includeTranscriptUsage ?? false,
     };
     if (activeMinutes > 0) {
       params.activeMinutes = activeMinutes;

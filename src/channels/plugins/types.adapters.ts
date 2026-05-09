@@ -335,6 +335,17 @@ export type ChannelLogoutContext<ResolvedAccount = unknown> = {
 };
 
 export type ChannelGatewayAdapter<ResolvedAccount = unknown> = {
+  /**
+   * Optional graceful-stop window for long-lived channel tasks.
+   *
+   * Gateway shutdown first aborts `startAccount`, then waits for its task to
+   * settle before reporting a stop timeout. Most channels should use the
+   * gateway default. Set this only when a channel has bounded, intentional
+   * cleanup work such as encrypted store persistence.
+   *
+   * @since 2026.5.9-1
+   */
+  stopGraceMs?: number;
   startAccount?: (ctx: ChannelGatewayContext<ResolvedAccount>) => Promise<unknown>;
   stopAccount?: (ctx: ChannelGatewayContext<ResolvedAccount>) => Promise<void>;
   /** Keep gateway auth bypass resolution mirrored through a lightweight top-level `gateway-auth-api.ts` artifact. */

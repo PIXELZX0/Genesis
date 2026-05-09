@@ -334,7 +334,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
   </Accordion>
 
   <Accordion title="Session control">
-    - `sessions.list` returns the current session index.
+    - `sessions.list` returns the current session index. It backfills stale usage from transcripts by default; browser clients that only need a fast index refresh can pass `includeTranscriptUsage: false`.
     - `sessions.subscribe` and `sessions.unsubscribe` toggle session change event subscriptions for the current WS client.
     - `sessions.messages.subscribe` and `sessions.messages.unsubscribe` toggle transcript/message event subscriptions for one session.
     - `sessions.preview` returns bounded transcript previews for specific session keys.

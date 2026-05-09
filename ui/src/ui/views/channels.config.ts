@@ -114,10 +114,11 @@ export function renderChannelConfigForm(props: ChannelConfigFormProps) {
 
 export function renderChannelConfigSection(params: { channelId: string; props: ChannelsProps }) {
   const { channelId, props } = params;
-  const disabled = props.configSaving || props.configSchemaLoading;
+  const showSchemaLoading = props.configSchemaLoading && !props.configSchema;
+  const disabled = props.configSaving || showSchemaLoading;
   return html`
     <div style="margin-top: 16px;">
-      ${props.configSchemaLoading
+      ${showSchemaLoading
         ? html` <div class="muted">Loading config schema…</div> `
         : renderChannelConfigForm({
             channelId,

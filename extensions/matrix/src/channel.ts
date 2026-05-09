@@ -74,6 +74,8 @@ import type { CoreConfig } from "./types.js";
 // Mutex for serializing account startup (workaround for concurrent dynamic import race condition)
 let matrixStartupLock: Promise<void> = Promise.resolve();
 
+const MATRIX_GATEWAY_STOP_GRACE_MS = 90_000;
+
 const loadMatrixSetupWizard = createLazyRuntimeNamedExport(
   () => import("./setup-surface.js"),
   "matrixSetupWizard",
@@ -470,6 +472,8 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount, MatrixProbe> =
         }),
       }),
       gateway: {
+        // E2EE shutdown can wait on in-flight handlers plus a final encrypted-store snapshot.
+        stopGraceMs: MATRIX_GATEWAY_STOP_GRACE_MS,
         startAccount: async (ctx) => {
           const account = ctx.account;
           ctx.setStatus({

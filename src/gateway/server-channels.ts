@@ -27,6 +27,7 @@ const CHANNEL_RESTART_POLICY: BackoffPolicy = {
 };
 const MAX_RESTART_ATTEMPTS = 10;
 const CHANNEL_STOP_ABORT_TIMEOUT_MS = 5_000;
+const CHANNEL_STOP_TIMEOUT_ERROR_PREFIX = "channel stop timed out after ";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -96,6 +97,24 @@ async function waitForChannelStopGracefully(task: Promise<unknown> | undefined, 
     };
     void task.then(resolveSettled, resolveSettled);
   });
+}
+
+function resolveChannelStopAbortTimeoutMs(
+  plugin: { gateway?: { stopGraceMs?: number } } | undefined,
+): number {
+  const stopGraceMs = plugin?.gateway?.stopGraceMs;
+  if (typeof stopGraceMs !== "number" || !Number.isFinite(stopGraceMs) || stopGraceMs <= 0) {
+    return CHANNEL_STOP_ABORT_TIMEOUT_MS;
+  }
+  return Math.max(1, Math.trunc(stopGraceMs));
+}
+
+function formatChannelStopTimeoutError(timeoutMs: number): string {
+  return `${CHANNEL_STOP_TIMEOUT_ERROR_PREFIX}${timeoutMs}ms`;
+}
+
+function isChannelStopTimeoutError(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith(CHANNEL_STOP_TIMEOUT_ERROR_PREFIX);
 }
 
 function applyDescribedAccountFields(
@@ -436,10 +455,12 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
             })
             .finally(async () => {
               await cleanupTaskScopedApprovalRuntime("channel cleanup failed");
+              const current = getRuntime(channelId, id);
               setRuntime(channelId, id, {
                 accountId: id,
                 running: false,
                 lastStopAt: Date.now(),
+                ...(isChannelStopTimeoutError(current.lastError) ? { lastError: null } : {}),
               });
             })
             .then(async () => {
@@ -539,6 +560,7 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
       ...store.tasks.keys(),
       ...(plugin ? plugin.config.listAccountIds(cfg) : []),
     ]);
+    const stopAbortTimeoutMs = resolveChannelStopAbortTimeoutMs(plugin);
     if (accountId) {
       knownIds.clear();
       knownIds.add(accountId);
@@ -567,19 +589,16 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
             setStatus: (next) => setRuntime(channelId, id, next),
           });
         }
-        const stoppedCleanly = await waitForChannelStopGracefully(
-          task,
-          CHANNEL_STOP_ABORT_TIMEOUT_MS,
-        );
+        const stoppedCleanly = await waitForChannelStopGracefully(task, stopAbortTimeoutMs);
         if (!stoppedCleanly) {
           log.warn?.(
-            `[${id}] channel stop exceeded ${CHANNEL_STOP_ABORT_TIMEOUT_MS}ms after abort; continuing shutdown`,
+            `[${id}] channel stop exceeded ${stopAbortTimeoutMs}ms after abort; continuing shutdown`,
           );
           setRuntime(channelId, id, {
             accountId: id,
             running: true,
             restartPending: false,
-            lastError: `channel stop timed out after ${CHANNEL_STOP_ABORT_TIMEOUT_MS}ms`,
+            lastError: formatChannelStopTimeoutError(stopAbortTimeoutMs),
           });
           return;
         }

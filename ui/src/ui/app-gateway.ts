@@ -155,6 +155,53 @@ function isTerminalChatState(
   return state === "final" || state === "aborted" || state === "error";
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object");
+}
+
+const SESSION_CHANGED_LOCAL_PATCH_FIELDS = [
+  "session",
+  "updatedAt",
+  "sessionId",
+  "kind",
+  "label",
+  "displayName",
+  "status",
+  "childSessions",
+  "totalTokens",
+  "totalTokensFresh",
+  "contextTokens",
+  "modelProvider",
+  "model",
+  "compactionCheckpointCount",
+  "latestCompactionCheckpoint",
+] as const;
+
+function hasLocalSessionPatchPayload(payload: unknown): boolean {
+  if (!isRecord(payload)) {
+    return false;
+  }
+  return SESSION_CHANGED_LOCAL_PATCH_FIELDS.some((field) => field in payload);
+}
+
+function resolveSessionsChangedRefreshOptions(
+  host: GatewayHost,
+  payload: unknown,
+  applied: boolean,
+): { search?: string } | null {
+  const sessionsSearchQuery =
+    host.tab === "sessions"
+      ? (host as GatewayHostWithSessionsViewFilters).sessionsSearchQuery?.trim()
+      : "";
+  if (sessionsSearchQuery) {
+    return { search: sessionsSearchQuery };
+  }
+  if (!applied || !hasLocalSessionPatchPayload(payload)) {
+    return {};
+  }
+  return null;
+}
+
 type ConnectGatewayOptions = {
   reason?: "initial" | "seq-gap";
 };
@@ -578,15 +625,10 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
   }
 
   if (evt.event === "sessions.changed") {
-    applySessionsChangedEvent(host as unknown as SessionsState, evt.payload);
-    const sessionsSearchQuery =
-      host.tab === "sessions"
-        ? (host as GatewayHostWithSessionsViewFilters).sessionsSearchQuery
-        : undefined;
-    if (sessionsSearchQuery?.trim()) {
-      void loadSessions(host as unknown as SessionsState, { search: sessionsSearchQuery });
-    } else {
-      void loadSessions(host as unknown as SessionsState);
+    const applied = applySessionsChangedEvent(host as unknown as SessionsState, evt.payload);
+    const refreshOptions = resolveSessionsChangedRefreshOptions(host, evt.payload, applied);
+    if (refreshOptions) {
+      void loadSessions(host as unknown as SessionsState, refreshOptions);
     }
     return;
   }

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   addSubagentRunForTests,
   resetSubagentRegistryForTests,
@@ -483,6 +483,56 @@ describe("listSessionsFromStore search", () => {
         expect(result.sessions[0]?.totalTokensFresh).toBe(true);
         expect(result.sessions[0]?.contextTokens).toBe(1_048_576);
         expect(result.sessions[0]?.estimatedCostUsd).toBeCloseTo(0.007725, 8);
+      },
+    });
+  });
+
+  test("skips transcript usage fallback when the caller requests a fast list", () => {
+    withTranscriptStoreFixture({
+      prefix: "genesis-session-utils-fast-list-",
+      transcriptId: "sess-main",
+      provider: "anthropic",
+      model: "claude-sonnet-4-6",
+      input: 2_000,
+      output: 500,
+      cacheRead: 1_200,
+      costTotal: 0.007725,
+      run: ({ storePath, now }) => {
+        const readSpy = vi.spyOn(fs, "readFileSync");
+        try {
+          const result = listSessionsFromStore({
+            cfg: createAnthropicContext1mConfig(),
+            storePath,
+            store: {
+              "agent:main:main": {
+                sessionId: "sess-main",
+                updatedAt: now,
+                modelProvider: "anthropic",
+                model: "claude-sonnet-4-6",
+                totalTokens: 0,
+                totalTokensFresh: false,
+                inputTokens: 0,
+                outputTokens: 0,
+                cacheRead: 0,
+                cacheWrite: 0,
+              } as SessionEntry,
+            },
+            opts: { includeTranscriptUsage: false },
+          });
+          const transcriptReads = readSpy.mock.calls.filter(([target]) => {
+            if (typeof target === "number") {
+              return true;
+            }
+            return typeof target === "string" && target.endsWith("sess-main.jsonl");
+          });
+
+          expect(result.sessions[0]?.totalTokens).toBeUndefined();
+          expect(result.sessions[0]?.totalTokensFresh).toBe(false);
+          expect(result.sessions[0]?.estimatedCostUsd).toBeUndefined();
+          expect(transcriptReads).toHaveLength(0);
+        } finally {
+          readSpy.mockRestore();
+        }
       },
     });
   });

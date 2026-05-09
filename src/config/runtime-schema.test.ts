@@ -12,14 +12,19 @@ import type { ConfigFileSnapshot, GenesisConfig } from "./types.js";
 const mockLoadConfig = vi.hoisted(() => vi.fn<() => GenesisConfig>());
 const mockReadConfigFileSnapshot = vi.hoisted(() => vi.fn<() => Promise<ConfigFileSnapshot>>());
 const mockLoadPluginManifestRegistry = vi.hoisted(() => vi.fn());
+const mockRegisterConfigWriteListener = vi.hoisted(() =>
+  vi.fn<(listener: unknown) => () => void>(() => () => {}),
+);
 
 let readBestEffortRuntimeConfigSchema: typeof import("./runtime-schema.js").readBestEffortRuntimeConfigSchema;
 let loadGatewayRuntimeConfigSchema: typeof import("./runtime-schema.js").loadGatewayRuntimeConfigSchema;
+let clearRuntimeConfigSchemaCache: typeof import("./runtime-schema.js").clearRuntimeConfigSchemaCache;
 
 vi.mock("./config.js", () => {
   return {
     loadConfig: () => mockLoadConfig(),
     readConfigFileSnapshot: () => mockReadConfigFileSnapshot(),
+    registerConfigWriteListener: (listener: unknown) => mockRegisterConfigWriteListener(listener),
   };
 });
 
@@ -148,11 +153,15 @@ async function readSchemaNodes() {
 }
 
 beforeAll(async () => {
-  ({ readBestEffortRuntimeConfigSchema, loadGatewayRuntimeConfigSchema } =
-    await import("./runtime-schema.js"));
+  ({
+    readBestEffortRuntimeConfigSchema,
+    loadGatewayRuntimeConfigSchema,
+    clearRuntimeConfigSchemaCache,
+  } = await import("./runtime-schema.js"));
 });
 
 afterEach(() => {
+  clearRuntimeConfigSchemaCache();
   resetPluginRuntimeStateForTest();
 });
 
@@ -238,7 +247,7 @@ describe("loadGatewayRuntimeConfigSchema", () => {
     loadGatewayRuntimeConfigSchema();
     loadGatewayRuntimeConfigSchema();
 
-    expect(mockLoadPluginManifestRegistry).toHaveBeenCalledTimes(3);
+    expect(mockLoadPluginManifestRegistry).toHaveBeenCalledTimes(1);
     for (const call of mockLoadPluginManifestRegistry.mock.calls) {
       expect(call[0]).toMatchObject({ cache: false });
     }

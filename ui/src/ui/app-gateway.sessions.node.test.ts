@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const loadSessionsMock = vi.fn();
 const loadChatHistoryMock = vi.fn();
+const applySessionsChangedEventMock = vi.fn();
 
 vi.mock("./app-chat.ts", () => ({
   CHAT_SESSIONS_ACTIVE_MINUTES: 10,
@@ -42,7 +43,7 @@ vi.mock("./controllers/nodes.ts", () => ({
   loadNodes: vi.fn(),
 }));
 vi.mock("./controllers/sessions.ts", () => ({
-  applySessionsChangedEvent: vi.fn(),
+  applySessionsChangedEvent: applySessionsChangedEventMock,
   loadSessions: loadSessionsMock,
   subscribeSessions: vi.fn(),
 }));
@@ -111,22 +112,48 @@ function createHost() {
 }
 
 describe("handleGatewayEvent sessions.changed", () => {
-  it("reloads sessions when the gateway pushes a sessions.changed event", () => {
+  it("uses local session row updates without reloading the full list", () => {
+    applySessionsChangedEventMock.mockReset();
+    applySessionsChangedEventMock.mockReturnValue(true);
     loadSessionsMock.mockReset();
     const host = createHost();
 
     handleGatewayEvent(host, {
       type: "event",
       event: "sessions.changed",
-      payload: { sessionKey: "agent:main:main", reason: "patch" },
+      payload: {
+        sessionKey: "agent:main:main",
+        reason: "patch",
+        kind: "direct",
+        updatedAt: 1,
+      },
+      seq: 1,
+    });
+
+    expect(applySessionsChangedEventMock).toHaveBeenCalledTimes(1);
+    expect(loadSessionsMock).not.toHaveBeenCalled();
+  });
+
+  it("reloads sessions when an event cannot be applied locally", () => {
+    applySessionsChangedEventMock.mockReset();
+    applySessionsChangedEventMock.mockReturnValue(false);
+    loadSessionsMock.mockReset();
+    const host = createHost();
+
+    handleGatewayEvent(host, {
+      type: "event",
+      event: "sessions.changed",
+      payload: { sessionKey: "agent:main:main", reason: "delete" },
       seq: 1,
     });
 
     expect(loadSessionsMock).toHaveBeenCalledTimes(1);
-    expect(loadSessionsMock).toHaveBeenCalledWith(host);
+    expect(loadSessionsMock).toHaveBeenCalledWith(host, {});
   });
 
   it("preserves the active Sessions tab search when reloading after sessions.changed", () => {
+    applySessionsChangedEventMock.mockReset();
+    applySessionsChangedEventMock.mockReturnValue(true);
     loadSessionsMock.mockReset();
     const host = createHost() as ReturnType<typeof createHost> & { sessionsSearchQuery: string };
     host.tab = "sessions";
@@ -135,7 +162,12 @@ describe("handleGatewayEvent sessions.changed", () => {
     handleGatewayEvent(host, {
       type: "event",
       event: "sessions.changed",
-      payload: { sessionKey: "agent:main:main", reason: "patch" },
+      payload: {
+        sessionKey: "agent:main:main",
+        reason: "patch",
+        kind: "direct",
+        updatedAt: 1,
+      },
       seq: 1,
     });
 

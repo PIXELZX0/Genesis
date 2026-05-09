@@ -857,6 +857,7 @@ export function renderConfig(props: ConfigProps) {
     schema: scopeSchemaSections(rawAnalysis.schema, { include, exclude }),
     unsupportedPaths: scopeUnsupportedPaths(rawAnalysis.unsupportedPaths, { include, exclude }),
   };
+  const showSchemaLoading = props.schemaLoading && !analysis.schema;
   const formUnsafe = analysis.schema ? analysis.unsupportedPaths.length > 0 : false;
   const rawAvailable = props.rawAvailable ?? true;
   const formMode = showModeToggle && rawAvailable ? props.formMode : "form";
@@ -1088,7 +1089,7 @@ export function renderConfig(props: ConfigProps) {
                   <div class="config-mode-toggle">
                     <button
                       class="config-mode-toggle__btn ${formMode === "form" ? "active" : ""}"
-                      ?disabled=${props.schemaLoading || !props.schema}
+                      ?disabled=${!analysis.schema}
                       title=${formUnsafe ? "Form view can't safely edit some fields" : ""}
                       @click=${() => props.onFormModeChange("form")}
                     >
@@ -1353,7 +1354,7 @@ export function renderConfig(props: ConfigProps) {
             : formMode === "form"
               ? html`
                   ${showAppearanceOnRoot ? renderAppearanceSection(props) : nothing}
-                  ${props.schemaLoading
+                  ${showSchemaLoading
                     ? html`
                         <div class="config-loading">
                           <div class="config-loading__spinner"></div>

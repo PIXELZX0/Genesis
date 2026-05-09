@@ -2,6 +2,14 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.9-1
+
+### Fixes
+
+- Matrix plugin: suppress transient sync-abort noise while reconnecting, while still reporting repeated aborts when the homeserver leaves sync in an error state.
+- Channel status: reuse configured-account checks across live probes, audits, and snapshots so `genesis channels status --probe` reports auto-enabled accounts consistently without repeating setup checks.
+- Control UI/config: keep the current form visible while refreshing schema metadata and cache repeated runtime schema loads so settings pages stop lingering on "Loading schema...".
+
 ## 2026.5.9
 
 ### Changes

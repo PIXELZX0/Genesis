@@ -50,6 +50,7 @@ function createTestPlugin(params?: {
   order?: number;
   account?: TestAccount;
   startAccount?: NonNullable<ChannelPlugin<TestAccount>["gateway"]>["startAccount"];
+  stopGraceMs?: NonNullable<ChannelPlugin<TestAccount>["gateway"]>["stopGraceMs"];
   includeDescribeAccount?: boolean;
   describeAccount?: ChannelPlugin<TestAccount>["config"]["describeAccount"];
   resolveAccount?: ChannelPlugin<TestAccount>["config"]["resolveAccount"];
@@ -76,6 +77,9 @@ function createTestPlugin(params?: {
   const gateway: NonNullable<ChannelPlugin<TestAccount>["gateway"]> = {};
   if (params?.startAccount) {
     gateway.startAccount = params.startAccount;
+  }
+  if (params?.stopGraceMs !== undefined) {
+    gateway.stopGraceMs = params.stopGraceMs;
   }
   return {
     id,
@@ -253,6 +257,67 @@ describe("server-channels auto restart", () => {
     expect(account?.running).toBe(true);
     expect(account?.restartPending).toBe(false);
     expect(account?.lastError).toContain("channel stop timed out");
+  });
+
+  it("uses the plugin stop grace before marking stop timed out", async () => {
+    const startAccount = vi.fn(
+      async ({ abortSignal }: { abortSignal: AbortSignal }) =>
+        await new Promise<void>(() => {
+          abortSignal.addEventListener("abort", () => {}, { once: true });
+        }),
+    );
+    installTestRegistry(
+      createTestPlugin({
+        startAccount,
+        stopGraceMs: 10_000,
+      }),
+    );
+    const manager = createManager();
+
+    await manager.startChannels();
+    let stopResolved = false;
+    const stopTask = manager.stopChannel("discord", DEFAULT_ACCOUNT_ID).then(() => {
+      stopResolved = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await Promise.resolve();
+    expect(stopResolved).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await stopTask;
+
+    const snapshot = manager.getRuntimeSnapshot();
+    const account = snapshot.channelAccounts.discord?.[DEFAULT_ACCOUNT_ID];
+    expect(account?.lastError).toContain("channel stop timed out after 10000ms");
+  });
+
+  it("clears a stop-timeout status after the channel task later settles", async () => {
+    const stopRelease = createDeferred();
+    const startAccount = vi.fn(async () => await stopRelease.promise);
+    installTestRegistry(
+      createTestPlugin({
+        startAccount,
+      }),
+    );
+    const manager = createManager();
+
+    await manager.startChannels();
+    const stopTask = manager.stopChannel("discord", DEFAULT_ACCOUNT_ID);
+    await vi.advanceTimersByTimeAsync(5_000);
+    await stopTask;
+
+    let snapshot = manager.getRuntimeSnapshot();
+    let account = snapshot.channelAccounts.discord?.[DEFAULT_ACCOUNT_ID];
+    expect(account?.lastError).toContain("channel stop timed out");
+
+    stopRelease.resolve();
+    await vi.waitFor(() => {
+      snapshot = manager.getRuntimeSnapshot();
+      account = snapshot.channelAccounts.discord?.[DEFAULT_ACCOUNT_ID];
+      expect(account?.running).toBe(false);
+      expect(account?.lastError).toBeNull();
+    });
   });
 
   it("marks enabled/configured when account descriptors omit them", () => {
