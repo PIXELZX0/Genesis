@@ -1,9 +1,15 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { verifyMessage } from "ethers";
 import { describe, expect, it } from "vitest";
 import { resolveWalletKeystorePaths } from "./keystore.js";
-import { initWallet, setWalletRecoveryPhrase, unlockWalletMnemonic } from "./service.js";
+import {
+  initWallet,
+  setWalletRecoveryPhrase,
+  signWalletMessage,
+  unlockWalletMnemonic,
+} from "./service.js";
 
 const MNEMONIC =
   "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
@@ -22,11 +28,13 @@ describe("wallet keystore", () => {
       passphrase: "correct horse battery staple",
     });
 
-    expect(result.summary.accounts.map((account) => account.chain)).toEqual([
-      "btc",
-      "evm",
-      "sol",
-      "trx",
+    expect(result.summary.accounts.map((account) => account.id)).toEqual([
+      "btc:default",
+      "evm:ethereum",
+      "evm:base",
+      "evm:monad",
+      "sol:default",
+      "trx:default",
     ]);
 
     const { filePath } = resolveWalletKeystorePaths(env);
@@ -67,11 +75,13 @@ describe("wallet keystore", () => {
 
     expect(generated.mnemonicGenerated).toBe(true);
     expect(generated.mnemonic?.split(/\s+/)).toHaveLength(24);
-    expect(generated.summary.accounts.map((account) => account.chain)).toEqual([
-      "btc",
-      "evm",
-      "sol",
-      "trx",
+    expect(generated.summary.accounts.map((account) => account.id)).toEqual([
+      "btc:default",
+      "evm:ethereum",
+      "evm:base",
+      "evm:monad",
+      "sol:default",
+      "trx:default",
     ]);
 
     const imported = await setWalletRecoveryPhrase({
@@ -84,11 +94,13 @@ describe("wallet keystore", () => {
 
     expect(imported.mnemonicGenerated).toBe(false);
     expect(imported.mnemonic).toBeUndefined();
-    expect(imported.summary.accounts.map((account) => account.chain)).toEqual([
-      "btc",
-      "evm",
-      "sol",
-      "trx",
+    expect(imported.summary.accounts.map((account) => account.id)).toEqual([
+      "btc:default",
+      "evm:ethereum",
+      "evm:base",
+      "evm:monad",
+      "sol:default",
+      "trx:default",
     ]);
     expect(JSON.stringify(imported)).not.toContain("abandon");
 
@@ -119,5 +131,28 @@ describe("wallet keystore", () => {
     expect(imported.mnemonicGenerated).toBe(false);
     expect(imported.mnemonic).toBeUndefined();
     await expect(unlockWalletMnemonic({ env, passphrase: "" })).resolves.toBe(MNEMONIC);
+  });
+
+  it("signs a message without exposing private material", async () => {
+    const { env } = await tempEnv();
+    await initWallet({
+      env,
+      mnemonic: MNEMONIC,
+      passphrase: "correct horse battery staple",
+    });
+
+    const result = await signWalletMessage({
+      env,
+      chain: "evm",
+      accountId: "evm:base",
+      message: "hello",
+      passphrase: "correct horse battery staple",
+      guard: { yes: true },
+    });
+
+    expect(result.accountId).toBe("evm:base");
+    expect(result.network).toBe("base");
+    expect(verifyMessage("hello", result.signature)).toBe(result.address);
+    expect(JSON.stringify(result)).not.toContain("abandon");
   });
 });

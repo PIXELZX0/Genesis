@@ -1,13 +1,18 @@
 import { loadConfig } from "../config/config.js";
 import type { WalletChain, WalletConfig } from "../config/types.wallet.js";
-import { compareDecimalAmounts } from "./amounts.js";
+import { compareDecimalAmounts, formatAtomicAmount } from "./amounts.js";
 import {
   assertValidWalletMnemonic,
+  broadcastWalletRawTransactionPayload,
   derivePublicAccounts,
+  expandEvmPublicAccounts,
   generateWalletMnemonic,
   getWalletBalance,
   isLocalKeystoreWalletChain,
   quoteWalletSend,
+  signWalletDigestPayload,
+  signWalletMessagePayload,
+  signWalletRawTransactionPayload,
   sendWalletTransaction,
 } from "./chains.js";
 import {
@@ -19,10 +24,13 @@ import {
 import type {
   LocalKeystoreWalletChain,
   WalletBalance,
+  WalletBroadcastResult,
   WalletPrivatePayload,
   WalletPublicAccount,
   WalletQuote,
   WalletSendResult,
+  WalletSignatureResult,
+  WalletSignedRawTransaction,
   WalletSummary,
 } from "./types.js";
 import { getXmrAddress, getXmrBalance, quoteXmrSend, sendXmrTransaction } from "./xmr-rpc.js";
@@ -53,6 +61,10 @@ export type WalletSendGuard = {
   allowEnv?: NodeJS.ProcessEnv;
 };
 
+export type WalletSignGuard = {
+  yes?: boolean;
+};
+
 function resolveConfig(config?: WalletConfig): WalletConfig | undefined {
   return config ?? loadConfig().wallet;
 }
@@ -66,10 +78,23 @@ function primaryAccount(
   config?: WalletConfig,
 ): string | undefined {
   const configured = config?.primaryAccount?.trim();
+  if (configured === "evm:default" && accounts.some((account) => account.id === "evm:ethereum")) {
+    return "evm:ethereum";
+  }
   if (configured && accounts.some((account) => account.id === configured)) {
     return configured;
   }
   return accounts[0]?.id;
+}
+
+function normalizePrimaryAccount(
+  primary: string | undefined,
+  accounts: readonly WalletPublicAccount[],
+) {
+  if (primary === "evm:default" && accounts.some((account) => account.id === "evm:ethereum")) {
+    return "evm:ethereum";
+  }
+  return primary;
 }
 
 function nativeAssetDecimals(chain: WalletChain): number {
@@ -92,7 +117,10 @@ export async function getWalletSummary(options: WalletServiceOptions = {}): Prom
   const config = resolveConfig(options.config);
   const warnings: string[] = [];
   const keystore = await readWalletKeystore(options.env);
-  const accounts = keystore?.public.accounts ? [...keystore.public.accounts] : [];
+  const accounts = expandEvmPublicAccounts(
+    keystore?.public.accounts ? [...keystore.public.accounts] : [],
+    config,
+  );
   if (!walletEnabled(config)) {
     warnings.push("wallet disabled by config");
   }
@@ -114,7 +142,10 @@ export async function getWalletSummary(options: WalletServiceOptions = {}): Prom
   return {
     enabled: walletEnabled(config),
     keystore: { exists: Boolean(keystore), locked: true },
-    primaryAccount: keystore?.public.primaryAccount ?? primaryAccount(accounts, config),
+    primaryAccount: normalizePrimaryAccount(
+      keystore?.public.primaryAccount ?? primaryAccount(accounts, config),
+      accounts,
+    ),
     accounts,
     warnings,
   };
@@ -217,7 +248,7 @@ export async function getWalletBalanceForChain(
 
 function assertSpendGuard(params: {
   chain: WalletChain;
-  amount: string;
+  amount?: string;
   config?: WalletConfig;
   guard?: WalletSendGuard;
 }) {
@@ -234,13 +265,56 @@ function assertSpendGuard(params: {
   ) {
     throw new Error("Wallet send requires GENESIS_WALLET_ALLOW_SPEND=1.");
   }
-  if (spending.maxNativeAmount) {
+  if (params.amount !== undefined && spending.maxNativeAmount) {
     const decimals = nativeAssetDecimals(params.chain);
     if (compareDecimalAmounts(params.amount, spending.maxNativeAmount, decimals) > 0) {
       throw new Error(
         `Wallet send exceeds wallet.spending.maxNativeAmount (${spending.maxNativeAmount}).`,
       );
     }
+  }
+}
+
+function parseAtomicNumberish(value: unknown, label: string): bigint | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!/^(0x[0-9a-fA-F]+|[0-9]+)$/.test(trimmed)) {
+      throw new Error(`${label} must be a non-negative integer or 0x-prefixed integer.`);
+    }
+    return BigInt(trimmed);
+  }
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(`${label} must be a non-negative safe integer.`);
+    }
+    return BigInt(value);
+  }
+  if (typeof value === "bigint") {
+    if (value < 0n) {
+      throw new Error(`${label} must be non-negative.`);
+    }
+    return value;
+  }
+  throw new Error(`${label} must be a non-negative integer.`);
+}
+
+function nativeAmountFromRawTransaction(
+  chain: WalletChain,
+  transaction: Record<string, unknown>,
+): string | undefined {
+  if (chain !== "evm") {
+    return undefined;
+  }
+  const value = parseAtomicNumberish(transaction.value, "transaction.value");
+  return value === undefined ? undefined : formatAtomicAmount(value, nativeAssetDecimals(chain));
+}
+
+function assertSignGuard(params: { guard?: WalletSignGuard }) {
+  if (params.guard?.yes !== true) {
+    throw new Error("Wallet signing requires --yes.");
   }
 }
 
@@ -306,6 +380,120 @@ export async function sendWallet(
     to: params.to,
     amount: params.amount,
     mnemonic,
+    config,
+  });
+}
+
+export async function signWalletMessage(
+  params: WalletServiceOptions & {
+    chain: WalletChain;
+    accountId?: string;
+    message?: string;
+    messageHex?: string;
+    passphrase: string;
+    guard?: WalletSignGuard;
+  },
+): Promise<WalletSignatureResult> {
+  assertSignGuard({ guard: params.guard });
+  if (!isLocalKeystoreWalletChain(params.chain)) {
+    throw unsupportedWalletChainError(params.chain);
+  }
+  const config = resolveConfig(params.config);
+  const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return signWalletMessagePayload({
+    chain: params.chain,
+    accounts,
+    accountId: params.accountId,
+    mnemonic,
+    message: params.message,
+    messageHex: params.messageHex,
+    config,
+  });
+}
+
+export async function signWalletDigest(
+  params: WalletServiceOptions & {
+    chain: WalletChain;
+    accountId?: string;
+    digest: string;
+    passphrase: string;
+    guard?: WalletSignGuard;
+  },
+): Promise<WalletSignatureResult> {
+  assertSignGuard({ guard: params.guard });
+  if (!isLocalKeystoreWalletChain(params.chain)) {
+    throw unsupportedWalletChainError(params.chain);
+  }
+  const config = resolveConfig(params.config);
+  const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return signWalletDigestPayload({
+    chain: params.chain,
+    accounts,
+    accountId: params.accountId,
+    mnemonic,
+    digest: params.digest,
+    config,
+  });
+}
+
+export async function signWalletRawTransaction(
+  params: WalletServiceOptions & {
+    chain: WalletChain;
+    accountId?: string;
+    transaction: Record<string, unknown>;
+    passphrase: string;
+    guard?: WalletSendGuard;
+  },
+): Promise<WalletSignedRawTransaction> {
+  const config = resolveConfig(params.config);
+  assertSpendGuard({
+    chain: params.chain,
+    amount: nativeAmountFromRawTransaction(params.chain, params.transaction),
+    config,
+    guard: params.guard,
+  });
+  if (!isLocalKeystoreWalletChain(params.chain)) {
+    throw unsupportedWalletChainError(params.chain);
+  }
+  const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return signWalletRawTransactionPayload({
+    chain: params.chain,
+    accounts,
+    accountId: params.accountId,
+    mnemonic,
+    transaction: params.transaction,
+    config,
+  });
+}
+
+export async function broadcastWalletRawTransaction(
+  params: WalletServiceOptions & {
+    chain: WalletChain;
+    accountId?: string;
+    rawTransaction: string;
+    passphrase: string;
+    guard?: WalletSendGuard;
+  },
+): Promise<WalletBroadcastResult> {
+  const config = resolveConfig(params.config);
+  assertSpendGuard({
+    chain: params.chain,
+    config,
+    guard: params.guard,
+  });
+  if (!isLocalKeystoreWalletChain(params.chain)) {
+    throw unsupportedWalletChainError(params.chain);
+  }
+  await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return broadcastWalletRawTransactionPayload({
+    chain: params.chain,
+    accounts,
+    accountId: params.accountId,
+    rawTransaction: params.rawTransaction,
     config,
   });
 }

@@ -39,7 +39,7 @@ describe("diffConfigPaths", () => {
     const prev = { messages: { groupChat: { mentionPatterns: ["a"] } } };
     const next = { messages: { groupChat: { mentionPatterns: ["b"] } } };
     const paths = diffConfigPaths(prev, next);
-    expect(paths).toContain("messages.groupChat.mentionPatterns");
+    expect(paths).toContain("messages.groupChat.mentionPatterns[0]");
   });
 
   it("does not report unchanged arrays of objects as changed", () => {
@@ -81,10 +81,10 @@ describe("diffConfigPaths", () => {
         },
       },
     };
-    expect(diffConfigPaths(prev, next)).toContain("memory.qmd.paths");
+    expect(diffConfigPaths(prev, next)).toContain("memory.qmd.paths[0].pattern");
   });
 
-  it("collapses changed agents.list heartbeat entries to agents.list", () => {
+  it("reports changed agents.list heartbeat fields below the array item", () => {
     const prev = {
       agents: {
         list: [{ id: "ops", heartbeat: { every: "5m", lightContext: false } }],
@@ -96,7 +96,37 @@ describe("diffConfigPaths", () => {
       },
     };
 
-    expect(diffConfigPaths(prev, next)).toEqual(["agents.list"]);
+    expect(diffConfigPaths(prev, next)).toEqual(["agents.list[0].heartbeat.lightContext"]);
+  });
+
+  it("reports changed agents.list skill allowlists below the array item", () => {
+    const prev = {
+      agents: {
+        list: [{ id: "ops", skills: ["github"] }],
+      },
+    };
+    const next = {
+      agents: {
+        list: [{ id: "ops", skills: [] }],
+      },
+    };
+
+    expect(diffConfigPaths(prev, next)).toEqual(["agents.list[0].skills[0]"]);
+  });
+
+  it("reports newly added skill-only agent entries by leaf paths", () => {
+    const prev = {
+      agents: {
+        list: [],
+      },
+    };
+    const next = {
+      agents: {
+        list: [{ id: "ops", skills: [] }],
+      },
+    };
+
+    expect(diffConfigPaths(prev, next)).toEqual(["agents.list[0].id", "agents.list[0].skills"]);
   });
 
   it("can emit duplicate path strings for install timestamp and dotted install id add", () => {
@@ -338,6 +368,52 @@ describe("buildGatewayReloadPlan", () => {
     const plan = buildGatewayReloadPlan(["skills.entries.github.enabled"]);
     expect(plan.restartGateway).toBe(false);
     expect(plan.noopPaths).toContain("skills.entries.github.enabled");
+  });
+
+  it("treats agent skill allowlist changes as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan(["agents.list[0].skills[0]"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual([]);
+    expect(plan.restartHeartbeat).toBe(false);
+    expect(plan.noopPaths).toContain("agents.list[0].skills[0]");
+  });
+
+  it("keeps agent id changes hot when only changed paths are available", () => {
+    const plan = buildGatewayReloadPlan(["agents.list[0].id", "agents.list[0].skills"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.restartHeartbeat).toBe(true);
+    expect(plan.hotReasons).toEqual(["agents.list[0].id"]);
+    expect(plan.noopPaths).toEqual(["agents.list[0].skills"]);
+  });
+
+  it("keeps plugin timestamp no-ops alongside hot agent id changes", () => {
+    const plan = buildGatewayReloadPlan([
+      "agents.list[0].id",
+      "agents.list[0].skills",
+      "plugins.installs.lossless-claw.resolvedAt",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(["agents.list[0].id"]);
+    expect(plan.restartHeartbeat).toBe(true);
+    expect(plan.noopPaths).toEqual([
+      "agents.list[0].skills",
+      "plugins.installs.lossless-claw.resolvedAt",
+    ]);
+  });
+
+  it("still hot-reloads agent id changes outside skill-only entry edits", () => {
+    const plan = buildGatewayReloadPlan(["agents.list[0].id"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.restartHeartbeat).toBe(true);
+    expect(plan.hotReasons).toContain("agents.list[0].id");
+    expect(plan.noopPaths).toEqual([]);
+  });
+
+  it("still hot-reloads non-skill agent list changes", () => {
+    const plan = buildGatewayReloadPlan(["agents.list[0].heartbeat.lightContext"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.restartHeartbeat).toBe(true);
+    expect(plan.hotReasons).toContain("agents.list[0].heartbeat.lightContext");
   });
 
   it("treats diagnostics.stuckSessionWarnMs as no-op for gateway restart planning", () => {
@@ -1158,6 +1234,10 @@ describe("shouldInvalidateSkillsSnapshotForPaths", () => {
     "skills.entries.himalaya",
     "skills.entries.himalaya.enabled",
     "skills.profile",
+    "agents.defaults.skills",
+    "agents.defaults.skills[0]",
+    "agents.list[0].skills",
+    "agents.list[0].skills[0]",
   ])("returns true for skills path %s", (path) => {
     expect(shouldInvalidateSkillsSnapshotForPaths([path])).toBe(true);
   });
@@ -1165,6 +1245,10 @@ describe("shouldInvalidateSkillsSnapshotForPaths", () => {
   it.each([
     "tools.profile",
     "agents.defaults.model",
+    "agents.defaults.skillsLimits",
+    "agents.list[0].skillsLimits.maxSkillsPromptChars",
+    "agents.list[0].id",
+    "agents.list[0].model",
     "gateway.port",
     "skillset.allowBundled",
     "channels.telegram.enabled",
@@ -1220,6 +1304,173 @@ describe("startGatewayConfigReloader skills invalidation", () => {
     expect(log.info).toHaveBeenCalledWith(
       expect.stringContaining("skills snapshot invalidated by config change"),
     );
+
+    await reloader.stop();
+  });
+
+  it("does not restart for per-agent skill allowlist changes even in restart reload mode", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      agents: { list: [{ id: "main", skills: ["github"] }] },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          agents: { list: [{ id: "main", skills: [] }] },
+        },
+        hash: "agent-skills-change-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, log, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(log.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "skills snapshot invalidated by config change (agents.list[0].skills[0])",
+      ),
+    );
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).not.toHaveBeenCalled();
+
+    await reloader.stop();
+  });
+
+  it("does not restart when creating a skill-only agent allowlist in restart reload mode", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      agents: { list: [] },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          agents: { list: [{ id: "main", skills: [] }] },
+        },
+        hash: "agent-skills-entry-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, log, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(log.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "skills snapshot invalidated by config change (agents.list[0].skills)",
+      ),
+    );
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).not.toHaveBeenCalled();
+
+    await reloader.stop();
+  });
+
+  it("does not restart when creating a non-empty skill-only agent allowlist", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      agents: { list: [] },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          agents: { list: [{ id: "main", skills: ["github"] }] },
+        },
+        hash: "agent-skills-entry-nonempty-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, log, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(log.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "skills snapshot invalidated by config change (agents.list[0].skills[0])",
+      ),
+    );
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).not.toHaveBeenCalled();
+
+    await reloader.stop();
+  });
+
+  it("still restarts when a skill-only agent entry changes the default agent", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      agents: { list: [] },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          agents: { list: [{ id: "ops", skills: [] }] },
+        },
+        hash: "agent-skills-default-change-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, log, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(log.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "skills snapshot invalidated by config change (agents.list[0].skills)",
+      ),
+    );
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).toHaveBeenCalledTimes(1);
+
+    await reloader.stop();
+  });
+
+  it("still restarts when an existing heartbeat agent id changes with skills", async () => {
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      agents: {
+        list: [{ id: "main", skills: ["github"], heartbeat: { every: "30m" } }],
+      },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          agents: {
+            list: [{ id: "ops", skills: [], heartbeat: { every: "30m" } }],
+          },
+        },
+        hash: "agent-rename-skills-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).toHaveBeenCalledTimes(1);
 
     await reloader.stop();
   });

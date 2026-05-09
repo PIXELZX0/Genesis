@@ -524,7 +524,7 @@ for the recovery checklist.
 | ---------------------- | --------------------------------------------------------------------------------------- |
 | **`hybrid`** (default) | Hot-applies safe changes instantly. Automatically restarts for critical ones.           |
 | **`hot`**              | Hot-applies safe changes only. Logs a warning when a restart is needed — you handle it. |
-| **`restart`**          | Restarts the Gateway on any config change, safe or not.                                 |
+| **`restart`**          | Restarts the Gateway for reload-relevant config changes, including hot-safe ones.       |
 | **`off`**              | Disables file watching. Changes take effect on the next manual restart.                 |
 
 ```json5
@@ -552,6 +552,9 @@ Most fields hot-apply without downtime. In `hybrid` mode, restart-required chang
 
 <Note>
 `gateway.reload` and `gateway.remote` are exceptions — changing them does **not** trigger a restart.
+Skill allowlist-only edits (`skills`, `agents.defaults.skills`, and
+`agents.list[].skills`) refresh cached skill prompts without restarting the
+Gateway, unless the edit also changes the default agent identity.
 </Note>
 
 ### Reload planning

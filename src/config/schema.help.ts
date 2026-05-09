@@ -680,9 +680,13 @@ export const FIELD_HELP: Record<string, string> = {
   "wallet.networks.btc.esploraUrl":
     "Base URL for an Esplora-compatible Bitcoin API used for UTXO lookup and transaction broadcast.",
   "wallet.networks.evm":
-    "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+    "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers. Defaults include Ethereum, Base, and Monad public RPC endpoints when no legacy single-chain EVM RPC is configured.",
   "wallet.networks.evm.rpcUrl":
-    "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
+    "Legacy HTTP JSON-RPC endpoint for a single configured EVM chain. Omit this to use the built-in public endpoint when the legacy chain is Ethereum, Base, or Monad, or use wallet.networks.evm.chains for per-chain overrides.",
+  "wallet.networks.evm.chains":
+    "Optional EVM chain overrides keyed by chain id slug. Built-in ethereum, base, and monad entries are enabled by default and can be overridden or disabled here.",
+  "wallet.networks.evm.chains.*.rpcUrl":
+    "HTTP JSON-RPC endpoint for this EVM chain. Public defaults are rate-limited; use a private endpoint or secret-backed value for production or high-volume use.",
   "wallet.networks.sol": "Solana wallet settings for RPC balance lookup and native SOL transfers.",
   "wallet.networks.sol.rpcUrl":
     "Solana JSON-RPC endpoint. Defaults to the configured cluster public endpoint when omitted.",

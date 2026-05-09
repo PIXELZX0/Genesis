@@ -78,6 +78,40 @@ export type WalletSendResult = {
   raw?: unknown;
 };
 
+export type WalletSignaturePayloadKind = "message" | "message-hex" | "digest";
+
+export type WalletSignatureResult = {
+  chain: WalletChain;
+  accountId: string;
+  address: string;
+  network?: string;
+  payloadKind: WalletSignaturePayloadKind;
+  signature: string;
+  r?: string;
+  s?: string;
+  v?: number;
+  yParity?: 0 | 1;
+  digest?: string;
+  messageHex?: string;
+};
+
+export type WalletSignedRawTransaction = {
+  chain: WalletChain;
+  accountId: string;
+  address: string;
+  network?: string;
+  rawTransaction: string;
+  txId?: string;
+};
+
+export type WalletBroadcastResult = {
+  chain: WalletChain;
+  accountId: string;
+  address: string;
+  network?: string;
+  txId: string;
+};
+
 export type WalletPrivatePayload = {
   version: 1;
   mnemonic: string;

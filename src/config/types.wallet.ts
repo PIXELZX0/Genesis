@@ -13,14 +13,18 @@ export type WalletBtcNetworkConfig = {
   derivationPath?: string;
 };
 
-export type WalletEvmNetworkConfig = {
+export type WalletEvmChainConfig = {
   enabled?: boolean;
   chainId?: number;
   name?: string;
   rpcUrl?: SecretInput;
   currencySymbol?: string;
-  derivationPath?: string;
   explorerTxUrl?: string;
+};
+
+export type WalletEvmNetworkConfig = WalletEvmChainConfig & {
+  derivationPath?: string;
+  chains?: Record<string, WalletEvmChainConfig>;
 };
 
 export type WalletSolNetworkConfig = {

@@ -18170,7 +18170,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     ],
                     title: "EVM RPC URL",
                     description:
-                      "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
+                      "Legacy HTTP JSON-RPC endpoint for a single configured EVM chain. Omit this to use the built-in public endpoint when the legacy chain is Ethereum, Base, or Monad, or use wallet.networks.evm.chains for per-chain overrides.",
                   },
                   currencySymbol: {
                     type: "string",
@@ -18178,21 +18178,132 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     maxLength: 16,
                     title: "EVM Currency Symbol",
                   },
-                  derivationPath: {
-                    type: "string",
-                    pattern: "^m(\\/[0-9]+'?)+$",
-                    title: "EVM Derivation Path",
-                  },
                   explorerTxUrl: {
                     type: "string",
                     format: "uri",
                     title: "EVM Explorer Transaction URL",
                   },
+                  derivationPath: {
+                    type: "string",
+                    pattern: "^m(\\/[0-9]+'?)+$",
+                    title: "EVM Derivation Path",
+                  },
+                  chains: {
+                    type: "object",
+                    propertyNames: {
+                      type: "string",
+                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                    },
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                          title: "EVM Chain Enabled",
+                        },
+                        chainId: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                          title: "EVM Chain ID",
+                        },
+                        name: {
+                          type: "string",
+                          minLength: 1,
+                          title: "EVM Chain Name",
+                        },
+                        rpcUrl: {
+                          anyOf: [
+                            {
+                              type: "string",
+                            },
+                            {
+                              oneOf: [
+                                {
+                                  type: "object",
+                                  properties: {
+                                    source: {
+                                      type: "string",
+                                      const: "env",
+                                    },
+                                    provider: {
+                                      type: "string",
+                                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                    },
+                                    id: {
+                                      type: "string",
+                                      pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                                    },
+                                  },
+                                  required: ["source", "provider", "id"],
+                                  additionalProperties: false,
+                                },
+                                {
+                                  type: "object",
+                                  properties: {
+                                    source: {
+                                      type: "string",
+                                      const: "file",
+                                    },
+                                    provider: {
+                                      type: "string",
+                                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                    },
+                                    id: {
+                                      type: "string",
+                                    },
+                                  },
+                                  required: ["source", "provider", "id"],
+                                  additionalProperties: false,
+                                },
+                                {
+                                  type: "object",
+                                  properties: {
+                                    source: {
+                                      type: "string",
+                                      const: "exec",
+                                    },
+                                    provider: {
+                                      type: "string",
+                                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                    },
+                                    id: {
+                                      type: "string",
+                                    },
+                                  },
+                                  required: ["source", "provider", "id"],
+                                  additionalProperties: false,
+                                },
+                              ],
+                            },
+                          ],
+                          title: "EVM Chain RPC URL",
+                          description:
+                            "HTTP JSON-RPC endpoint for this EVM chain. Public defaults are rate-limited; use a private endpoint or secret-backed value for production or high-volume use.",
+                        },
+                        currencySymbol: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 16,
+                          title: "EVM Chain Currency Symbol",
+                        },
+                        explorerTxUrl: {
+                          type: "string",
+                          format: "uri",
+                          title: "EVM Chain Explorer Transaction URL",
+                        },
+                      },
+                      additionalProperties: false,
+                    },
+                    title: "EVM Wallet Chains",
+                    description:
+                      "Optional EVM chain overrides keyed by chain id slug. Built-in ethereum, base, and monad entries are enabled by default and can be overridden or disabled here.",
+                  },
                 },
                 additionalProperties: false,
                 title: "EVM Wallet Network",
                 description:
-                  "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+                  "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers. Defaults include Ethereum, Base, and Monad public RPC endpoints when no legacy single-chain EVM RPC is configured.",
               },
               sol: {
                 type: "object",
@@ -25365,7 +25476,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wallet.networks.evm": {
       label: "EVM Wallet Network",
-      help: "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers.",
+      help: "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers. Defaults include Ethereum, Base, and Monad public RPC endpoints when no legacy single-chain EVM RPC is configured.",
       tags: ["advanced"],
     },
     "wallet.networks.evm.enabled": {
@@ -25382,8 +25493,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wallet.networks.evm.rpcUrl": {
       label: "EVM RPC URL",
-      help: "HTTP JSON-RPC endpoint for the configured EVM chain. Prefer a private endpoint or secret-backed value.",
-      placeholder: "https://rpc.example.com",
+      help: "Legacy HTTP JSON-RPC endpoint for a single configured EVM chain. Omit this to use the built-in public endpoint when the legacy chain is Ethereum, Base, or Monad, or use wallet.networks.evm.chains for per-chain overrides.",
+      placeholder: "https://ethereum-rpc.publicnode.com",
       tags: ["security", "advanced"],
       sensitive: true,
     },
@@ -25397,6 +25508,38 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wallet.networks.evm.explorerTxUrl": {
       label: "EVM Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains": {
+      label: "EVM Wallet Chains",
+      help: "Optional EVM chain overrides keyed by chain id slug. Built-in ethereum, base, and monad entries are enabled by default and can be overridden or disabled here.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.enabled": {
+      label: "EVM Chain Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.chainId": {
+      label: "EVM Chain ID",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.name": {
+      label: "EVM Chain Name",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.rpcUrl": {
+      label: "EVM Chain RPC URL",
+      help: "HTTP JSON-RPC endpoint for this EVM chain. Public defaults are rate-limited; use a private endpoint or secret-backed value for production or high-volume use.",
+      placeholder: "https://mainnet.base.org",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.evm.chains.*.currencySymbol": {
+      label: "EVM Chain Currency Symbol",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.explorerTxUrl": {
+      label: "EVM Chain Explorer Transaction URL",
       tags: ["advanced"],
     },
     "wallet.networks.sol": {
@@ -29160,6 +29303,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2026.5.9-2",
+  version: "2026.5.10",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };

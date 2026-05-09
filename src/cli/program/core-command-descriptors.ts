@@ -31,6 +31,11 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: true,
   },
   {
+    name: "migrate",
+    description: "Import config and local state from OpenClaw or Hermes Agent",
+    hasSubcommands: false,
+  },
+  {
     name: "doctor",
     description: "Health checks + quick fixes for the gateway and channels",
     hasSubcommands: false,

@@ -4,7 +4,7 @@ import type {
   AgentToolUpdateCallback,
 } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
-import { logDebug, logError } from "../logger.js";
+import { logDebug, logError, logWarn } from "../logger.js";
 import { redactToolDetail } from "../logging/redact.js";
 import { isPlainObject } from "../utils.js";
 import { sanitizeForConsole } from "./console-sanitize.js";
@@ -113,6 +113,30 @@ function describeToolFailureInputs(params: {
     parts.push(formatToolParamPreview("effective_params", params.effectiveParams));
   }
   return parts.join(" ");
+}
+
+function isReadFileNotFoundFailure(params: {
+  toolName: string;
+  error: unknown;
+  message: string;
+}): boolean {
+  if (params.toolName !== "read") {
+    return false;
+  }
+  const code =
+    params.error && typeof params.error === "object" && "code" in params.error
+      ? String((params.error as { code?: unknown }).code)
+      : "";
+  if (code === "ENOENT") {
+    return true;
+  }
+  const message = params.message.toLowerCase();
+  return (
+    message.includes("enoent") ||
+    message.includes("no such file or directory") ||
+    message.includes("file not found") ||
+    message.includes("file was not found")
+  );
 }
 
 function normalizeToolExecutionResult(params: {
@@ -263,7 +287,18 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             rawParams: params,
             effectiveParams: executeParams,
           });
-          logError(`[tools] ${normalizedName} failed: ${described.message} ${inputPreview}`);
+          const logMessage = `[tools] ${normalizedName} failed: ${described.message} ${inputPreview}`;
+          if (
+            isReadFileNotFoundFailure({
+              toolName: normalizedName,
+              error: err,
+              message: described.message,
+            })
+          ) {
+            logWarn(logMessage);
+          } else {
+            logError(logMessage);
+          }
 
           return buildToolExecutionErrorResult({
             toolName: normalizedName,

@@ -3,6 +3,7 @@ import { defaultRuntime, writeRuntimeJson } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";
 import { generateWalletMnemonic } from "../../wallet/chains.js";
 import {
+  broadcastWalletRawTransaction,
   getWalletAccounts,
   getWalletBalanceForChain,
   getWalletSummary,
@@ -10,6 +11,9 @@ import {
   initWallet,
   quoteWalletTransaction,
   sendWallet,
+  signWalletDigest,
+  signWalletMessage,
+  signWalletRawTransaction,
 } from "../../wallet/service.js";
 import {
   LOCAL_KEYSTORE_WALLET_CHAINS,
@@ -57,12 +61,64 @@ async function readPassphrase(opts: WalletPassphraseOpts): Promise<string> {
   throw new Error("Set GENESIS_WALLET_PASSPHRASE or pass --passphrase-stdin.");
 }
 
+async function readPassphraseWithDataStdin(
+  opts: WalletPassphraseOpts,
+  dataUsesStdin: boolean,
+  dataFlag: string,
+): Promise<string> {
+  const fromEnv = process.env.GENESIS_WALLET_PASSPHRASE?.trim();
+  if (dataUsesStdin && opts.passphraseStdin && !fromEnv) {
+    throw new Error(
+      `${dataFlag} and --passphrase-stdin cannot both read stdin; set GENESIS_WALLET_PASSPHRASE instead.`,
+    );
+  }
+  return readPassphrase({ passphraseStdin: dataUsesStdin ? false : opts.passphraseStdin });
+}
+
 function parseChain(value: unknown): WalletChain {
   const chain = typeof value === "string" ? value.trim() : "";
   if (!WALLET_CHAIN_SET.has(chain)) {
     throw new Error(`--chain must be one of ${WALLET_CHAINS.join(", ")}`);
   }
   return chain as WalletChain;
+}
+
+function parseJsonObject(value: string, label: string): Record<string, unknown> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch (error) {
+    throw new Error(`${label} must be valid JSON.`, { cause: error });
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`${label} must be a JSON object.`);
+  }
+  return parsed as Record<string, unknown>;
+}
+
+async function readRequiredOptionOrStdin(params: {
+  value: unknown;
+  useStdin: boolean;
+  valueFlag: string;
+  stdinFlag: string;
+  label: string;
+  maxBytes?: number;
+}): Promise<string> {
+  const direct = typeof params.value === "string" ? params.value : undefined;
+  if (direct !== undefined && params.useStdin) {
+    throw new Error(`${params.valueFlag} cannot be combined with ${params.stdinFlag}.`);
+  }
+  if (params.useStdin) {
+    const value = (await readStdin(params.maxBytes)).trim();
+    if (!value) {
+      throw new Error(`${params.stdinFlag} received empty ${params.label}.`);
+    }
+    return value;
+  }
+  if (direct === undefined) {
+    throw new Error(`Provide ${params.valueFlag} or ${params.stdinFlag}.`);
+  }
+  return direct;
 }
 
 function writeMaybeJson(opts: WalletOpts, payload: unknown, text: () => void) {
@@ -255,6 +311,135 @@ export function registerWalletCommand(program: Command) {
           if (quote.estimatedFee) {
             defaultRuntime.log(`Estimated fee: ${quote.estimatedFee} ${quote.asset}`);
           }
+        });
+      });
+    });
+
+  wallet
+    .command("sign-message")
+    .description("Sign an EVM personal-sign message")
+    .requiredOption("--chain <chain>", `Chain (${WALLET_CHAINS.join("|")})`)
+    .option("--account <id>", "Wallet account id")
+    .option("--message <text>", "UTF-8 message to sign")
+    .option("--message-hex <hex>", "0x-prefixed message bytes to sign")
+    .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--yes", "Confirm the signing request", false)
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const passphrase = await readPassphrase(opts);
+        const result = await signWalletMessage({
+          chain: parseChain(opts.chain),
+          accountId: opts.account,
+          message: opts.message,
+          messageHex: opts.messageHex,
+          passphrase,
+          guard: { yes: Boolean(opts.yes) },
+        });
+        writeMaybeJson(opts, result, () => {
+          defaultRuntime.log(result.signature);
+        });
+      });
+    });
+
+  wallet
+    .command("sign-digest")
+    .description("Sign a 32-byte EVM digest without message prefixing")
+    .requiredOption("--chain <chain>", `Chain (${WALLET_CHAINS.join("|")})`)
+    .requiredOption("--digest <hex>", "0x-prefixed 32-byte digest")
+    .option("--account <id>", "Wallet account id")
+    .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--yes", "Confirm the signing request", false)
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const passphrase = await readPassphrase(opts);
+        const result = await signWalletDigest({
+          chain: parseChain(opts.chain),
+          accountId: opts.account,
+          digest: opts.digest,
+          passphrase,
+          guard: { yes: Boolean(opts.yes) },
+        });
+        writeMaybeJson(opts, result, () => {
+          defaultRuntime.log(result.signature);
+        });
+      });
+    });
+
+  wallet
+    .command("sign-raw-transaction")
+    .description("Sign an EVM raw transaction JSON object without broadcasting")
+    .requiredOption("--chain <chain>", `Chain (${WALLET_CHAINS.join("|")})`)
+    .option("--account <id>", "Wallet account id")
+    .option("--tx-json <json>", "Unsigned EVM transaction request JSON")
+    .option("--tx-json-stdin", "Read unsigned EVM transaction request JSON from stdin", false)
+    .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--yes", "Confirm and sign the raw transaction", false)
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const txJsonStdin = Boolean(opts.txJsonStdin);
+        const passphrase = await readPassphraseWithDataStdin(opts, txJsonStdin, "--tx-json-stdin");
+        const txJson = await readRequiredOptionOrStdin({
+          value: opts.txJson,
+          useStdin: txJsonStdin,
+          valueFlag: "--tx-json",
+          stdinFlag: "--tx-json-stdin",
+          label: "transaction JSON",
+          maxBytes: 256 * 1024,
+        });
+        const result = await signWalletRawTransaction({
+          chain: parseChain(opts.chain),
+          accountId: opts.account,
+          transaction: parseJsonObject(txJson, "--tx-json"),
+          passphrase,
+          guard: { yes: Boolean(opts.yes), allowEnv: process.env },
+        });
+        writeMaybeJson(opts, result, () => {
+          defaultRuntime.log(result.rawTransaction);
+          if (result.txId) {
+            defaultRuntime.log(theme.muted(`txId: ${result.txId}`));
+          }
+        });
+      });
+    });
+
+  wallet
+    .command("broadcast-raw")
+    .description("Broadcast a signed EVM raw transaction")
+    .requiredOption("--chain <chain>", `Chain (${WALLET_CHAINS.join("|")})`)
+    .option("--account <id>", "Wallet account id")
+    .option("--raw-transaction <hex>", "Signed 0x-prefixed raw transaction")
+    .option("--raw-transaction-stdin", "Read signed raw transaction hex from stdin", false)
+    .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--yes", "Confirm and broadcast the raw transaction", false)
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const rawTransactionStdin = Boolean(opts.rawTransactionStdin);
+        const passphrase = await readPassphraseWithDataStdin(
+          opts,
+          rawTransactionStdin,
+          "--raw-transaction-stdin",
+        );
+        const rawTransaction = await readRequiredOptionOrStdin({
+          value: opts.rawTransaction,
+          useStdin: rawTransactionStdin,
+          valueFlag: "--raw-transaction",
+          stdinFlag: "--raw-transaction-stdin",
+          label: "raw transaction",
+          maxBytes: 512 * 1024,
+        });
+        const result = await broadcastWalletRawTransaction({
+          chain: parseChain(opts.chain),
+          accountId: opts.account,
+          rawTransaction,
+          passphrase,
+          guard: { yes: Boolean(opts.yes), allowEnv: process.env },
+        });
+        writeMaybeJson(opts, result, () => {
+          defaultRuntime.log(theme.success(`Broadcast ${result.chain} transaction ${result.txId}`));
         });
       });
     });

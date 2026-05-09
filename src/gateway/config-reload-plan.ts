@@ -63,6 +63,7 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
   { prefix: "diagnostics.stuckSessionWarnMs", kind: "none" },
   { prefix: "hooks.gmail", kind: "hot", actions: ["restart-gmail-watcher"] },
   { prefix: "hooks", kind: "hot", actions: ["reload-hooks"] },
+  { prefix: "agents.defaults.skills", kind: "none" },
   {
     prefix: "agents.defaults.heartbeat",
     kind: "hot",
@@ -83,6 +84,7 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
     kind: "hot",
     actions: ["restart-heartbeat"],
   },
+  { prefix: "agents.list[].skills", kind: "none" },
   {
     prefix: "agents.list",
     kind: "hot",
@@ -191,11 +193,25 @@ function listReloadRules(): ReloadRule[] {
 
 function matchRule(path: string): ReloadRule | null {
   for (const rule of listReloadRules()) {
-    if (path === rule.prefix || path.startsWith(`${rule.prefix}.`)) {
+    if (pathMatchesPrefix(path, rule.prefix)) {
       return rule;
     }
   }
   return null;
+}
+
+function normalizeArrayIndexes(path: string): string {
+  return path.replace(/\[\d+\]/g, "[]");
+}
+
+function pathMatchesPrefix(path: string, prefix: string): boolean {
+  const normalizedPath = normalizeArrayIndexes(path);
+  const normalizedPrefix = normalizeArrayIndexes(prefix);
+  return (
+    normalizedPath === normalizedPrefix ||
+    normalizedPath.startsWith(`${normalizedPrefix}.`) ||
+    normalizedPath.startsWith(`${normalizedPrefix}[`)
+  );
 }
 
 function isPluginInstallTimestampPath(path: string): boolean {
@@ -307,10 +323,10 @@ export function buildGatewayReloadPlan(
   };
 
   for (const path of changedPaths) {
-    const isTimestampNoop =
+    const isNoopPath =
       !forceChangedPaths.has(path) &&
       (noopPaths.size > 0 ? noopPaths.has(path) : isPluginInstallTimestampPath(path));
-    if (isTimestampNoop) {
+    if (isNoopPath) {
       plan.noopPaths.push(path);
       continue;
     }

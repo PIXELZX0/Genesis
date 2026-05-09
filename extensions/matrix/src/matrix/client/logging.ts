@@ -25,6 +25,36 @@ function shouldSuppressMatrixHttpNotFound(module: string, messageOrObject: unkno
   });
 }
 
+function isMatrixSyncRequestAbortError(value: unknown): boolean {
+  if (!(value instanceof Error) || value.name !== "AbortError") {
+    return false;
+  }
+  const message = value.message;
+  const match = /Matrix request aborted before completion:\s+(\S+)/.exec(message);
+  if (!match?.[1]) {
+    return false;
+  }
+  try {
+    const url = new URL(match[1]);
+    return /^\/_matrix\/client\/v\d+\/sync$/.test(url.pathname);
+  } catch {
+    return message.includes("/_matrix/client/v3/sync");
+  }
+}
+
+function shouldDowngradeMatrixSyncAbort(module: string, messageOrObject: unknown[]): boolean {
+  if (!module.includes("MatrixClient.sync")) {
+    return false;
+  }
+  const hasSyncErrorMessage = messageOrObject.some(
+    (entry) => typeof entry === "string" && entry.includes("/sync error"),
+  );
+  if (!hasSyncErrorMessage) {
+    return false;
+  }
+  return messageOrObject.some((entry) => isMatrixSyncRequestAbortError(entry));
+}
+
 export function ensureMatrixSdkLoggingConfigured(): void {
   if (!matrixSdkLoggingConfigured) {
     matrixSdkLoggingConfigured = true;
@@ -69,6 +99,10 @@ function applyMatrixSdkLogger(): void {
       if (shouldSuppressMatrixHttpNotFound(module, messageOrObject)) {
         return;
       }
+      if (shouldDowngradeMatrixSyncAbort(module, messageOrObject)) {
+        matrixSdkBaseLogger.debug(module, ...messageOrObject);
+        return;
+      }
       matrixSdkBaseLogger.error(module, ...messageOrObject);
     },
   });
@@ -92,6 +126,10 @@ function createMatrixJsSdkLoggerInstance(prefix: string): MatrixJsSdkLogger {
     warn: (...messageOrObject) => log("warn", ...messageOrObject),
     error: (...messageOrObject) => {
       if (shouldSuppressMatrixHttpNotFound(prefix, messageOrObject)) {
+        return;
+      }
+      if (shouldDowngradeMatrixSyncAbort(prefix, messageOrObject)) {
+        log("debug", ...messageOrObject);
         return;
       }
       log("error", ...messageOrObject);

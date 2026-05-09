@@ -2,6 +2,19 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.10
+
+### Changes
+
+- CLI: add `genesis migrate` for importing OpenClaw installs and portable Hermes Agent config, env, auth, skills, and archived state.
+- Wallet: add Ethereum, Base, and Monad EVM accounts with public RPC defaults, plus CLI-only EVM message, digest, and raw transaction signing with guarded raw transaction broadcast.
+
+### Fixes
+
+- Gateway: avoid restarting for skill allowlist-only config reloads while still refreshing cached skill prompts.
+- Matrix plugin: downgrade transient `/sync` abort noise to debug logs while keeping real sync failures visible.
+- Agent tools: log missing `read` files as warnings instead of runtime errors while preserving the tool failure result.
+
 ## 2026.5.9-2
 
 ### Fixes

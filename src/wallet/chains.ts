@@ -17,9 +17,14 @@ import { ECPairFactory } from "ecpair";
 import {
   HDNodeWallet,
   JsonRpcProvider,
+  Signature,
+  Transaction as EvmTransaction,
   Wallet as EvmWallet,
   formatEther,
+  getBytes,
+  hexlify,
   parseEther,
+  type TransactionRequest,
 } from "ethers";
 import * as ecc from "tiny-secp256k1";
 import { TronWeb } from "tronweb";
@@ -28,6 +33,7 @@ import type {
   WalletBtcNetworkConfig,
   WalletChain,
   WalletConfig,
+  WalletEvmChainConfig,
   WalletEvmNetworkConfig,
   WalletSolNetworkConfig,
   WalletTrxNetworkConfig,
@@ -38,10 +44,13 @@ import {
   LOCAL_KEYSTORE_WALLET_CHAINS,
   type LocalKeystoreWalletChain,
   type WalletBalance,
+  type WalletBroadcastResult,
   type WalletPrivateMaterial,
   type WalletPublicAccount,
   type WalletQuote,
   type WalletSendResult,
+  type WalletSignatureResult,
+  type WalletSignedRawTransaction,
 } from "./types.js";
 
 type Ed25519HdKeyModule = {
@@ -51,8 +60,71 @@ type Ed25519HdKeyModule = {
 const ECPair = ECPairFactory(ecc);
 bitcoin.initEccLib(ecc);
 
+const EVM_NETWORK_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
+const DEFAULT_EVM_NETWORK_ORDER = ["ethereum", "base", "monad"] as const;
+const DEFAULT_EVM_NETWORK_IDS = new Set<string>(DEFAULT_EVM_NETWORK_ORDER);
+const DEFAULT_EVM_NETWORKS: Record<
+  (typeof DEFAULT_EVM_NETWORK_ORDER)[number],
+  Required<Pick<WalletEvmChainConfig, "chainId" | "name" | "rpcUrl" | "currencySymbol">> &
+    Pick<WalletEvmChainConfig, "explorerTxUrl">
+> = {
+  ethereum: {
+    chainId: 1,
+    name: "ethereum",
+    rpcUrl: "https://ethereum-rpc.publicnode.com",
+    currencySymbol: "ETH",
+    explorerTxUrl: "https://etherscan.io/tx",
+  },
+  base: {
+    chainId: 8453,
+    name: "base",
+    rpcUrl: "https://mainnet.base.org",
+    currencySymbol: "ETH",
+    explorerTxUrl: "https://base.blockscout.com/tx",
+  },
+  monad: {
+    chainId: 143,
+    name: "monad",
+    rpcUrl: "https://rpc.monad.xyz",
+    currencySymbol: "MON",
+    explorerTxUrl: "https://monadscan.com/tx",
+  },
+};
+
+export type ResolvedEvmNetwork = {
+  id: string;
+  accountId: string;
+  chainId?: number;
+  name: string;
+  rpcUrl?: unknown;
+  rpcUrlPath: string;
+  currencySymbol: string;
+  explorerTxUrl?: string;
+};
+
 function normalizeAccountId(chain: WalletChain): string {
   return `${chain}:default`;
+}
+
+function normalizeEvmAccountId(networkId: string): string {
+  return `evm:${networkId}`;
+}
+
+function normalizeEvmNetworkId(id: string): string {
+  const normalized = id.trim().toLowerCase();
+  if (!EVM_NETWORK_ID_PATTERN.test(normalized)) {
+    throw new Error(`Invalid EVM network id: ${id}`);
+  }
+  return normalized;
+}
+
+function evmNetworkIdFromAccountId(accountId?: string): string | undefined {
+  const raw = accountId?.trim();
+  if (!raw?.startsWith("evm:")) {
+    return undefined;
+  }
+  const id = raw.slice("evm:".length);
+  return id ? normalizeEvmNetworkId(id) : undefined;
 }
 
 function nowIso(): string {
@@ -61,6 +133,113 @@ function nowIso(): string {
 
 function enabled(config: { enabled?: boolean } | undefined): boolean {
   return config?.enabled !== false;
+}
+
+function hasLegacyEvmNetworkConfig(config?: WalletEvmNetworkConfig): boolean {
+  return Boolean(
+    config?.chainId !== undefined ||
+    config?.name ||
+    config?.rpcUrl !== undefined ||
+    config?.currencySymbol ||
+    config?.explorerTxUrl,
+  );
+}
+
+function defaultEvmNetworkForConfig(
+  config: WalletEvmChainConfig,
+): WalletEvmChainConfig | undefined {
+  if (config.chainId !== undefined) {
+    return Object.values(DEFAULT_EVM_NETWORKS).find(
+      (network) => network.chainId === config.chainId,
+    );
+  }
+  const name = config.name?.trim().toLowerCase();
+  return name && DEFAULT_EVM_NETWORK_IDS.has(name)
+    ? DEFAULT_EVM_NETWORKS[name as keyof typeof DEFAULT_EVM_NETWORKS]
+    : undefined;
+}
+
+function withDefaultEvmRpc(config: WalletEvmChainConfig): WalletEvmChainConfig {
+  if (config.rpcUrl !== undefined) {
+    return config;
+  }
+  return { ...defaultEvmNetworkForConfig(config), ...config };
+}
+
+function resolveEvmNetwork(
+  id: string,
+  config: WalletEvmChainConfig,
+  rpcUrlPath: string,
+): ResolvedEvmNetwork | null {
+  if (!enabled(config)) {
+    return null;
+  }
+  const normalizedId = normalizeEvmNetworkId(id);
+  const name = config.name?.trim() || normalizedId;
+  return {
+    id: normalizedId,
+    accountId: normalizeEvmAccountId(normalizedId),
+    chainId: config.chainId,
+    name,
+    rpcUrl: config.rpcUrl,
+    rpcUrlPath,
+    currencySymbol: config.currencySymbol?.trim() || (normalizedId === "monad" ? "MON" : "ETH"),
+    explorerTxUrl: config.explorerTxUrl,
+  };
+}
+
+export function resolveEvmNetworks(config?: WalletEvmNetworkConfig): ResolvedEvmNetwork[] {
+  if (config?.enabled === false) {
+    return [];
+  }
+  if (!config?.chains && hasLegacyEvmNetworkConfig(config)) {
+    const legacy = resolveEvmNetwork(
+      "default",
+      withDefaultEvmRpc(config ?? {}),
+      "wallet.networks.evm.rpcUrl",
+    );
+    return legacy ? [legacy] : [];
+  }
+
+  const configuredChains = new Map(
+    Object.entries(config?.chains ?? {}).map(([id, chainConfig]) => [
+      normalizeEvmNetworkId(id),
+      chainConfig,
+    ]),
+  );
+  const configuredIds = [...configuredChains.keys()]
+    .filter((id) => !DEFAULT_EVM_NETWORK_IDS.has(id))
+    .toSorted();
+  const ids = [...DEFAULT_EVM_NETWORK_ORDER, ...configuredIds];
+  const networks: ResolvedEvmNetwork[] = [];
+  for (const id of ids) {
+    const defaults = DEFAULT_EVM_NETWORKS[id as keyof typeof DEFAULT_EVM_NETWORKS];
+    const chainConfig = configuredChains.get(id);
+    const merged = withDefaultEvmRpc({ ...defaults, ...chainConfig });
+    const network = resolveEvmNetwork(id, merged, `wallet.networks.evm.chains.${id}.rpcUrl`);
+    if (network) {
+      networks.push(network);
+    }
+  }
+  return networks;
+}
+
+function resolveEvmNetworkForAccount(
+  config: WalletEvmNetworkConfig | undefined,
+  accountId: string,
+): ResolvedEvmNetwork {
+  const networks = resolveEvmNetworks(config);
+  const requestedId = evmNetworkIdFromAccountId(accountId);
+  const requested =
+    requestedId === "default" && !networks.some((network) => network.id === "default")
+      ? "ethereum"
+      : requestedId;
+  const network =
+    (requested ? networks.find((entry) => entry.id === requested) : undefined) ?? networks[0];
+  if (!network) {
+    throw new Error("wallet.networks.evm has no enabled networks.");
+  }
+  return network;
 }
 
 function resolveBtcNetwork(config?: WalletBtcNetworkConfig) {
@@ -143,6 +322,7 @@ function deriveBtcMaterial(
 function deriveEvmMaterial(
   mnemonic: string,
   config?: WalletEvmNetworkConfig,
+  network?: ResolvedEvmNetwork,
 ): WalletPrivateMaterial {
   const path = resolveEvmPath(config);
   const wallet = HDNodeWallet.fromPhrase(mnemonic, undefined, path);
@@ -152,7 +332,8 @@ function deriveEvmMaterial(
     privateKey: wallet.privateKey,
     publicKey: wallet.publicKey ? Buffer.from(wallet.publicKey.slice(2), "hex") : undefined,
     derivationPath: path,
-    network: config?.name ?? (config?.chainId ? `chain-${config.chainId}` : "evm"),
+    network:
+      network?.name ?? config?.name ?? (config?.chainId ? `chain-${config.chainId}` : "ethereum"),
   };
 }
 
@@ -222,6 +403,25 @@ export async function derivePublicAccounts(params: {
     if (!enabled(networkConfig)) {
       continue;
     }
+    if (chain === "evm") {
+      for (const evmNetwork of resolveEvmNetworks(params.config?.networks?.evm)) {
+        const material = deriveEvmMaterial(
+          assertValidWalletMnemonic(params.mnemonic),
+          params.config?.networks?.evm,
+          evmNetwork,
+        );
+        accounts.push({
+          id: evmNetwork.accountId,
+          chain,
+          address: material.address,
+          derivationPath: material.derivationPath,
+          network: material.network,
+          createdAt,
+          updatedAt: createdAt,
+        });
+      }
+      continue;
+    }
     const material = await derivePrivateMaterial({
       mnemonic: params.mnemonic,
       chain,
@@ -240,25 +440,455 @@ export async function derivePublicAccounts(params: {
   return accounts;
 }
 
+function evmPublicAccountFromSource(
+  source: WalletPublicAccount,
+  network: ResolvedEvmNetwork,
+): WalletPublicAccount {
+  const account: WalletPublicAccount = {
+    id: network.accountId,
+    chain: source.chain,
+    address: source.address,
+    createdAt: source.createdAt,
+    updatedAt: source.updatedAt,
+    network: network.name,
+  };
+  if (source.label !== undefined) {
+    account.label = source.label;
+  }
+  if (source.derivationPath !== undefined) {
+    account.derivationPath = source.derivationPath;
+  }
+  return account;
+}
+
+export function expandEvmPublicAccounts(
+  accounts: readonly WalletPublicAccount[],
+  config?: WalletConfig,
+): WalletPublicAccount[] {
+  const evmNetworks = resolveEvmNetworks(config?.networks?.evm);
+  if (evmNetworks.length <= 1) {
+    return [...accounts];
+  }
+  const evmAccounts = accounts.filter((account) => account.chain === "evm");
+  const source =
+    evmAccounts.find((account) => account.id === normalizeAccountId("evm")) ?? evmAccounts[0];
+  if (!source) {
+    return [...accounts];
+  }
+  const expanded: WalletPublicAccount[] = [];
+  let insertedEvmNetworks = false;
+  const existingIds = new Set(accounts.map((account) => account.id));
+  existingIds.delete(normalizeAccountId("evm"));
+  for (const account of accounts) {
+    if (account.chain === "evm" && account.id === normalizeAccountId("evm")) {
+      if (!insertedEvmNetworks) {
+        expanded.push(
+          ...evmNetworks
+            .filter((network) => !existingIds.has(network.accountId))
+            .map((network) => evmPublicAccountFromSource(source, network)),
+        );
+        insertedEvmNetworks = true;
+      }
+      continue;
+    }
+    expanded.push(account);
+  }
+  if (!insertedEvmNetworks) {
+    const expandedIds = new Set(expanded.map((account) => account.id));
+    for (const network of evmNetworks) {
+      if (!expandedIds.has(network.accountId)) {
+        expanded.push(evmPublicAccountFromSource(source, network));
+      }
+    }
+  }
+  return expanded;
+}
+
 function requireAccount(
   accounts: readonly WalletPublicAccount[],
   chain: WalletChain,
   accountId?: string,
 ): WalletPublicAccount {
-  const id = accountId?.trim() || normalizeAccountId(chain);
-  const account = accounts.find((entry) => entry.id === id && entry.chain === chain);
+  const id = accountId?.trim();
+  const defaultIds =
+    chain === "evm" ? [normalizeEvmAccountId("ethereum"), normalizeAccountId(chain)] : [];
+  const candidateIds = id ? [id] : [...defaultIds, normalizeAccountId(chain)];
+  if (chain === "evm" && id === normalizeAccountId(chain)) {
+    candidateIds.push(normalizeEvmAccountId("ethereum"));
+  }
+  const account =
+    candidateIds
+      .map((candidateId) =>
+        accounts.find((entry) => entry.id === candidateId && entry.chain === chain),
+      )
+      .find((entry): entry is WalletPublicAccount => Boolean(entry)) ??
+    accounts.find((entry) => entry.chain === chain);
   if (!account) {
-    throw new Error(`Wallet account not found for ${chain}: ${id}`);
+    throw new Error(`Wallet account not found for ${chain}: ${id ?? normalizeAccountId(chain)}`);
   }
   return account;
 }
 
-function resolveEvmProvider(config?: WalletEvmNetworkConfig): JsonRpcProvider {
-  const rpcUrl = resolveSecretString(config?.rpcUrl, "wallet.networks.evm.rpcUrl");
+function resolveEvmProvider(network: ResolvedEvmNetwork): JsonRpcProvider {
+  const rpcUrl = resolveSecretString(network.rpcUrl, network.rpcUrlPath);
   if (!rpcUrl) {
-    throw new Error("wallet.networks.evm.rpcUrl is required for EVM balance and send.");
+    throw new Error(`${network.rpcUrlPath} is required for EVM balance and send.`);
   }
-  return new JsonRpcProvider(rpcUrl, config?.chainId);
+  return new JsonRpcProvider(rpcUrl, network.chainId);
+}
+
+function unsupportedLowLevelSigningChain(chain: LocalKeystoreWalletChain): never {
+  throw new Error(`Wallet low-level signing currently supports EVM only, not ${chain}.`);
+}
+
+function requireEvmLowLevelSigningChain(chain: LocalKeystoreWalletChain): asserts chain is "evm" {
+  if (chain !== "evm") {
+    unsupportedLowLevelSigningChain(chain);
+  }
+}
+
+function normalizeHexValue(
+  value: string,
+  label: string,
+  options: { byteLength?: number; allowEmpty?: boolean } = {},
+): string {
+  const normalized = value.trim().toLowerCase();
+  if (!/^0x[0-9a-f]*$/.test(normalized)) {
+    throw new Error(`${label} must be a 0x-prefixed hex string.`);
+  }
+  if (!options.allowEmpty && normalized.length === 2) {
+    throw new Error(`${label} must not be empty.`);
+  }
+  if (normalized.length % 2 !== 0) {
+    throw new Error(`${label} must contain full bytes.`);
+  }
+  if (options.byteLength !== undefined && normalized.length !== 2 + options.byteLength * 2) {
+    throw new Error(`${label} must be ${options.byteLength} bytes.`);
+  }
+  return normalized;
+}
+
+function parseIntegerString(value: string, label: string): bigint {
+  const normalized = value.trim();
+  if (!/^(0x[0-9a-fA-F]+|[0-9]+)$/.test(normalized)) {
+    throw new Error(`${label} must be a non-negative integer or 0x-prefixed integer.`);
+  }
+  return BigInt(normalized);
+}
+
+function parseBigNumberish(value: unknown, label: string): string | number | bigint | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value === "string") {
+    const parsed = parseIntegerString(value, label);
+    return value.trim().startsWith("0x") ? `0x${parsed.toString(16)}` : parsed.toString(10);
+  }
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(`${label} must be a non-negative safe integer.`);
+    }
+    return value;
+  }
+  if (typeof value === "bigint") {
+    if (value < 0n) {
+      throw new Error(`${label} must be non-negative.`);
+    }
+    return value;
+  }
+  throw new Error(`${label} must be a non-negative integer.`);
+}
+
+function parseNumberish(value: unknown, label: string): number | null {
+  if (value === null) {
+    return null;
+  }
+  const parsed =
+    typeof value === "string"
+      ? parseIntegerString(value, label)
+      : typeof value === "number" && Number.isSafeInteger(value) && value >= 0
+        ? BigInt(value)
+        : null;
+  if (parsed === null) {
+    throw new Error(`${label} must be a non-negative safe integer.`);
+  }
+  if (parsed > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error(`${label} is outside the supported integer range.`);
+  }
+  return Number(parsed);
+}
+
+function parseHexData(value: unknown, label: string): string | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== "string") {
+    throw new Error(`${label} must be a 0x-prefixed hex string.`);
+  }
+  return normalizeHexValue(value, label, { allowEmpty: true });
+}
+
+function parseAddressLike(value: unknown, label: string): string | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`${label} must be an address string.`);
+  }
+  return value.trim();
+}
+
+function bigintFromNumberish(value: TransactionRequest["chainId"]): bigint | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === "bigint") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return BigInt(value);
+  }
+  if (typeof value === "string") {
+    return parseIntegerString(value, "chainId");
+  }
+  return undefined;
+}
+
+function createEvmTransactionRequest(
+  input: Record<string, unknown>,
+  network: ResolvedEvmNetwork,
+  fromAddress: string,
+): TransactionRequest {
+  const allowedFields = new Set([
+    "accessList",
+    "chainId",
+    "customData",
+    "data",
+    "from",
+    "gas",
+    "gasLimit",
+    "gasPrice",
+    "maxFeePerGas",
+    "maxPriorityFeePerGas",
+    "nonce",
+    "to",
+    "type",
+    "value",
+  ]);
+  for (const field of Object.keys(input)) {
+    if (!allowedFields.has(field)) {
+      throw new Error(`Unsupported EVM transaction field: ${field}`);
+    }
+  }
+
+  const request: TransactionRequest = {};
+  if ("type" in input) {
+    request.type = parseNumberish(input.type, "type");
+  }
+  if ("to" in input) {
+    request.to = parseAddressLike(input.to, "to");
+  }
+  if ("from" in input) {
+    request.from = parseAddressLike(input.from, "from");
+  } else {
+    request.from = fromAddress;
+  }
+  if ("nonce" in input) {
+    request.nonce = parseNumberish(input.nonce, "nonce");
+  }
+  const gasLimit = input.gasLimit ?? input.gas;
+  if (gasLimit !== undefined) {
+    request.gasLimit = parseBigNumberish(gasLimit, "gasLimit");
+  }
+  if ("gasPrice" in input) {
+    request.gasPrice = parseBigNumberish(input.gasPrice, "gasPrice");
+  }
+  if ("maxPriorityFeePerGas" in input) {
+    request.maxPriorityFeePerGas = parseBigNumberish(
+      input.maxPriorityFeePerGas,
+      "maxPriorityFeePerGas",
+    );
+  }
+  if ("maxFeePerGas" in input) {
+    request.maxFeePerGas = parseBigNumberish(input.maxFeePerGas, "maxFeePerGas");
+  }
+  if ("data" in input) {
+    request.data = parseHexData(input.data, "data");
+  }
+  if ("value" in input) {
+    request.value = parseBigNumberish(input.value, "value");
+  }
+  if ("chainId" in input) {
+    request.chainId = parseBigNumberish(input.chainId, "chainId");
+  } else if (network.chainId !== undefined) {
+    request.chainId = network.chainId;
+  }
+  if ("accessList" in input) {
+    request.accessList = input.accessList as TransactionRequest["accessList"];
+  }
+  if ("customData" in input) {
+    request.customData = input.customData;
+  }
+
+  const expectedChainId = network.chainId === undefined ? undefined : BigInt(network.chainId);
+  const requestChainId = bigintFromNumberish(request.chainId);
+  if (
+    expectedChainId !== undefined &&
+    requestChainId !== undefined &&
+    requestChainId !== expectedChainId
+  ) {
+    throw new Error(
+      `EVM transaction chainId ${requestChainId.toString()} does not match ${network.name} (${expectedChainId.toString()}).`,
+    );
+  }
+  return request;
+}
+
+function resolveEvmSigningContext(params: {
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  mnemonic: string;
+  config?: WalletConfig;
+}) {
+  const account = requireAccount(params.accounts, "evm", params.accountId);
+  const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+  const material = deriveEvmMaterial(
+    assertValidWalletMnemonic(params.mnemonic),
+    params.config?.networks?.evm,
+    evmNetwork,
+  );
+  const wallet = new EvmWallet(material.privateKey as string);
+  return { account, evmNetwork, wallet };
+}
+
+function formatEvmSignatureResult(params: {
+  account: WalletPublicAccount;
+  network: ResolvedEvmNetwork;
+  payloadKind: "message" | "message-hex" | "digest";
+  signature: string;
+  digest?: string;
+  messageHex?: string;
+}): WalletSignatureResult {
+  const parsed = Signature.from(params.signature);
+  return {
+    chain: "evm",
+    accountId: params.account.id,
+    address: params.account.address,
+    network: params.network.name,
+    payloadKind: params.payloadKind,
+    signature: parsed.serialized,
+    r: parsed.r,
+    s: parsed.s,
+    v: parsed.v,
+    yParity: parsed.yParity,
+    ...(params.digest !== undefined ? { digest: params.digest } : {}),
+    ...(params.messageHex !== undefined ? { messageHex: params.messageHex } : {}),
+  };
+}
+
+export async function signWalletMessagePayload(params: {
+  chain: LocalKeystoreWalletChain;
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  mnemonic: string;
+  message?: string;
+  messageHex?: string;
+  config?: WalletConfig;
+}): Promise<WalletSignatureResult> {
+  requireEvmLowLevelSigningChain(params.chain);
+  const hasMessage = params.message !== undefined;
+  const hasMessageHex = params.messageHex !== undefined;
+  if (hasMessage === hasMessageHex) {
+    throw new Error("Provide exactly one of message or messageHex.");
+  }
+  const { account, evmNetwork, wallet } = resolveEvmSigningContext(params);
+  if (hasMessageHex) {
+    const messageHex = normalizeHexValue(params.messageHex ?? "", "messageHex", {
+      allowEmpty: true,
+    });
+    const signature = await wallet.signMessage(getBytes(messageHex));
+    return formatEvmSignatureResult({
+      account,
+      network: evmNetwork,
+      payloadKind: "message-hex",
+      signature,
+      messageHex: hexlify(getBytes(messageHex)),
+    });
+  }
+  const signature = await wallet.signMessage(params.message ?? "");
+  return formatEvmSignatureResult({
+    account,
+    network: evmNetwork,
+    payloadKind: "message",
+    signature,
+  });
+}
+
+export async function signWalletDigestPayload(params: {
+  chain: LocalKeystoreWalletChain;
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  mnemonic: string;
+  digest: string;
+  config?: WalletConfig;
+}): Promise<WalletSignatureResult> {
+  requireEvmLowLevelSigningChain(params.chain);
+  const { account, evmNetwork, wallet } = resolveEvmSigningContext(params);
+  const digest = normalizeHexValue(params.digest, "digest", { byteLength: 32 });
+  const signature = wallet.signingKey.sign(digest).serialized;
+  return formatEvmSignatureResult({
+    account,
+    network: evmNetwork,
+    payloadKind: "digest",
+    signature,
+    digest,
+  });
+}
+
+export async function signWalletRawTransactionPayload(params: {
+  chain: LocalKeystoreWalletChain;
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  mnemonic: string;
+  transaction: Record<string, unknown>;
+  config?: WalletConfig;
+}): Promise<WalletSignedRawTransaction> {
+  requireEvmLowLevelSigningChain(params.chain);
+  const { account, evmNetwork, wallet } = resolveEvmSigningContext(params);
+  const request = createEvmTransactionRequest(params.transaction, evmNetwork, account.address);
+  const rawTransaction = await wallet.signTransaction(request);
+  const parsed = EvmTransaction.from(rawTransaction);
+  return {
+    chain: "evm",
+    accountId: account.id,
+    address: account.address,
+    network: evmNetwork.name,
+    rawTransaction,
+    ...(parsed.hash ? { txId: parsed.hash } : {}),
+  };
+}
+
+export async function broadcastWalletRawTransactionPayload(params: {
+  chain: LocalKeystoreWalletChain;
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  rawTransaction: string;
+  config?: WalletConfig;
+}): Promise<WalletBroadcastResult> {
+  requireEvmLowLevelSigningChain(params.chain);
+  const account = requireAccount(params.accounts, "evm", params.accountId);
+  const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+  const provider = resolveEvmProvider(evmNetwork);
+  const response = await provider.broadcastTransaction(
+    normalizeHexValue(params.rawTransaction, "rawTransaction"),
+  );
+  return {
+    chain: "evm",
+    accountId: account.id,
+    address: account.address,
+    network: evmNetwork.name,
+    txId: response.hash,
+  };
 }
 
 function resolveSolConnection(config?: WalletSolNetworkConfig): Connection {
@@ -396,14 +1026,15 @@ export async function getWalletBalance(params: {
   }
   if (params.chain === "evm") {
     const account = requireAccount(params.accounts, "evm", params.accountId);
-    const provider = resolveEvmProvider(params.config?.networks?.evm);
+    const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+    const provider = resolveEvmProvider(evmNetwork);
     const balance = await provider.getBalance(account.address);
     return {
       chain: "evm",
       accountId: account.id,
       address: account.address,
-      network: account.network,
-      asset: params.config?.networks?.evm?.currencySymbol ?? "ETH",
+      network: evmNetwork.name,
+      asset: evmNetwork.currencySymbol,
       amountAtomic: balance.toString(),
       amount: formatEther(balance),
     };
@@ -458,7 +1089,8 @@ export async function quoteWalletSend(params: {
   }
   if (params.chain === "evm") {
     const account = requireAccount(params.accounts, "evm", params.accountId);
-    const provider = resolveEvmProvider(params.config?.networks?.evm);
+    const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+    const provider = resolveEvmProvider(evmNetwork);
     const amountAtomic = parseEther(params.amount);
     const fee = await provider.estimateGas({
       from: account.address,
@@ -471,10 +1103,10 @@ export async function quoteWalletSend(params: {
     return {
       chain: "evm",
       accountId: account.id,
-      network: account.network,
+      network: evmNetwork.name,
       from: account.address,
       to: params.to,
-      asset: params.config?.networks?.evm?.currencySymbol ?? "ETH",
+      asset: evmNetwork.currencySymbol,
       amountAtomic: amountAtomic.toString(),
       amount: formatEther(amountAtomic),
       estimatedFeeAtomic: estimatedFee.toString(),
@@ -577,14 +1209,16 @@ export async function sendWalletTransaction(params: {
     return { ...quote, txId: txId.trim(), explorerUrl: undefined };
   }
   if (params.chain === "evm") {
-    const provider = resolveEvmProvider(params.config?.networks?.evm);
+    const account = requireAccount(params.accounts, "evm", params.accountId);
+    const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+    const provider = resolveEvmProvider(evmNetwork);
     const wallet = new EvmWallet(material.privateKey as string, provider);
     const tx = await wallet.sendTransaction({ to: params.to, value: BigInt(quote.amountAtomic) });
     return {
       ...quote,
       txId: tx.hash,
-      explorerUrl: params.config?.networks?.evm?.explorerTxUrl
-        ? `${params.config.networks.evm.explorerTxUrl.replace(/\/+$/, "")}/${tx.hash}`
+      explorerUrl: evmNetwork.explorerTxUrl
+        ? `${evmNetwork.explorerTxUrl.replace(/\/+$/, "")}/${tx.hash}`
         : undefined,
     };
   }

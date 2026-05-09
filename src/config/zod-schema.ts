@@ -255,6 +255,15 @@ const WalletChainConfigEnabledShape = {
 };
 
 const WalletDerivationPathSchema = z.string().regex(/^m(\/[0-9]+'?)+$/, "invalid derivation path");
+const WalletEvmChainShape = {
+  ...WalletChainConfigEnabledShape,
+  chainId: z.number().int().positive().optional(),
+  name: z.string().min(1).optional(),
+  rpcUrl: SecretInputSchema.optional().register(sensitive),
+  currencySymbol: z.string().min(1).max(16).optional(),
+  explorerTxUrl: z.string().url().optional(),
+};
+const WalletEvmChainSchema = z.object(WalletEvmChainShape).strict();
 
 const WalletSchema = z
   .object({
@@ -274,13 +283,11 @@ const WalletSchema = z
           .optional(),
         evm: z
           .object({
-            ...WalletChainConfigEnabledShape,
-            chainId: z.number().int().positive().optional(),
-            name: z.string().min(1).optional(),
-            rpcUrl: SecretInputSchema.optional().register(sensitive),
-            currencySymbol: z.string().min(1).max(16).optional(),
+            ...WalletEvmChainShape,
             derivationPath: WalletDerivationPathSchema.optional(),
-            explorerTxUrl: z.string().url().optional(),
+            chains: z
+              .record(z.string().regex(/^[a-z][a-z0-9_-]{0,63}$/), WalletEvmChainSchema)
+              .optional(),
           })
           .strict()
           .optional(),

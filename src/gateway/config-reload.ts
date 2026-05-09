@@ -9,6 +9,7 @@ import type {
 } from "../config/config.js";
 import { shouldAttemptLastKnownGoodRecovery } from "../config/config.js";
 import { formatConfigIssueLines } from "../config/issue-format.js";
+import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
 import { isPlainObject } from "../utils.js";
 import {
   buildGatewayReloadPlan,
@@ -38,19 +39,34 @@ const DEFAULT_RELOAD_SETTINGS: GatewayReloadSettings = {
 const MISSING_CONFIG_RETRY_DELAY_MS = 150;
 const MISSING_CONFIG_MAX_RETRIES = 2;
 
+function normalizeArrayIndexes(path: string): string {
+  return path.replace(/\[\d+\]/g, "[]");
+}
+
+function pathMatchesPrefix(path: string, prefix: string): boolean {
+  const normalizedPath = normalizeArrayIndexes(path);
+  const normalizedPrefix = normalizeArrayIndexes(prefix);
+  return (
+    normalizedPath === normalizedPrefix ||
+    normalizedPath.startsWith(`${normalizedPrefix}.`) ||
+    normalizedPath.startsWith(`${normalizedPrefix}[`)
+  );
+}
+
 /**
- * Paths under `skills.*` always change the snapshot that sessions cache in
- * sessions.json. Any prefix match here (for example `skills.allowBundled`,
- * `skills.entries.X.enabled`, `skills.profile`) forces sessions to rebuild
- * their snapshot on the next turn rather than silently advertising stale
- * tools to the model.
+ * Paths that affect the skill catalog or an agent's visible skill set always
+ * change the snapshot that sessions cache in sessions.json. Any prefix match
+ * here forces sessions to rebuild their snapshot on the next turn rather than
+ * silently advertising stale tools to the model.
  */
-const SKILLS_INVALIDATION_PREFIXES = ["skills"] as const;
+const SKILLS_INVALIDATION_PREFIXES = [
+  "skills",
+  "agents.defaults.skills",
+  "agents.list[].skills",
+] as const;
 
 function matchesSkillsInvalidationPrefix(path: string): boolean {
-  return SKILLS_INVALIDATION_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}.`),
-  );
+  return SKILLS_INVALIDATION_PREFIXES.some((prefix) => pathMatchesPrefix(path, prefix));
 }
 
 function firstSkillsChangedPath(changedPaths: string[]): string | undefined {
@@ -61,9 +77,145 @@ export function shouldInvalidateSkillsSnapshotForPaths(changedPaths: string[]): 
   return firstSkillsChangedPath(changedPaths) !== undefined;
 }
 
+function collectChangedValuePaths(value: unknown, prefix: string): string[] {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return [prefix || "<root>"];
+    }
+    return value.flatMap((entry, index) => collectChangedValuePaths(entry, `${prefix}[${index}]`));
+  }
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (keys.length === 0) {
+      return [prefix || "<root>"];
+    }
+    return keys.flatMap((key) => {
+      const childPrefix = prefix ? `${prefix}.${key}` : key;
+      return collectChangedValuePaths(value[key], childPrefix);
+    });
+  }
+  return [prefix || "<root>"];
+}
+
+function parseAgentListPath(path: string): { index: number; field: string } | null {
+  const match = /^agents\.list\[(\d+)\]\.(.+)$/.exec(path);
+  if (!match) {
+    return null;
+  }
+  return { index: Number(match[1]), field: match[2] };
+}
+
+function getAgentListEntry(config: unknown, index: number): { exists: boolean; value: unknown } {
+  if (!isPlainObject(config)) {
+    return { exists: false, value: undefined };
+  }
+  const agents = config.agents;
+  if (!isPlainObject(agents) || !Array.isArray(agents.list)) {
+    return { exists: false, value: undefined };
+  }
+  return {
+    exists: index >= 0 && index < agents.list.length,
+    value: agents.list[index],
+  };
+}
+
+function hasOwnKey(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function isSkillOnlyAgentAllowlistEntry(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+  const keys = Object.keys(value);
+  return (
+    hasOwnKey(value, "id") &&
+    hasOwnKey(value, "skills") &&
+    keys.every((key) => key === "id" || key === "skills")
+  );
+}
+
+function listAgentEntriesForReloadPlan(config: unknown): Record<string, unknown>[] {
+  if (!isPlainObject(config)) {
+    return [];
+  }
+  const agents = config.agents;
+  if (!isPlainObject(agents) || !Array.isArray(agents.list)) {
+    return [];
+  }
+  return agents.list.filter((entry): entry is Record<string, unknown> => isPlainObject(entry));
+}
+
+function resolveDefaultAgentIdForReloadPlan(config: unknown): string {
+  const entries = listAgentEntriesForReloadPlan(config);
+  if (entries.length === 0) {
+    return DEFAULT_AGENT_ID;
+  }
+  const defaultEntry = entries.find((entry) => entry.default === true) ?? entries[0];
+  return normalizeAgentId(
+    typeof defaultEntry?.id === "string" ? defaultEntry.id : DEFAULT_AGENT_ID,
+  );
+}
+
+function listSkillOnlyAgentEntryNoopPaths(
+  prevConfig: unknown,
+  nextConfig: unknown,
+  changedPaths: string[],
+): string[] {
+  const defaultAgentChanged =
+    resolveDefaultAgentIdForReloadPlan(prevConfig) !==
+    resolveDefaultAgentIdForReloadPlan(nextConfig);
+  const noopPaths = new Set<string>();
+  for (const path of changedPaths) {
+    const parsed = parseAgentListPath(path);
+    if (!parsed || parsed.field !== "id") {
+      continue;
+    }
+    if (defaultAgentChanged) {
+      continue;
+    }
+    const prevEntry = getAgentListEntry(prevConfig, parsed.index);
+    const nextEntry = getAgentListEntry(nextConfig, parsed.index);
+    if (prevEntry.exists === nextEntry.exists) {
+      continue;
+    }
+    const changedEntry = nextEntry.exists ? nextEntry.value : prevEntry.value;
+    if (isSkillOnlyAgentAllowlistEntry(changedEntry)) {
+      noopPaths.add(path);
+    }
+  }
+  return [...noopPaths];
+}
+
 export function diffConfigPaths(prev: unknown, next: unknown, prefix = ""): string[] {
   if (prev === next) {
     return [];
+  }
+  if (Array.isArray(prev) && Array.isArray(next)) {
+    if (isDeepStrictEqual(prev, next)) {
+      return [];
+    }
+    const max = Math.max(prev.length, next.length);
+    const paths: string[] = [];
+    for (let index = 0; index < max; index += 1) {
+      const childPrefix = `${prefix}[${index}]`;
+      if (index >= prev.length) {
+        paths.push(...collectChangedValuePaths(next[index], childPrefix));
+        continue;
+      }
+      if (index >= next.length) {
+        paths.push(...collectChangedValuePaths(prev[index], childPrefix));
+        continue;
+      }
+      paths.push(...diffConfigPaths(prev[index], next[index], childPrefix));
+    }
+    return paths;
+  }
+  if (Array.isArray(prev)) {
+    return collectChangedValuePaths(prev, prefix);
+  }
+  if (Array.isArray(next)) {
+    return collectChangedValuePaths(next, prefix);
   }
   if (isPlainObject(prev) && isPlainObject(next)) {
     const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
@@ -81,13 +233,6 @@ export function diffConfigPaths(prev: unknown, next: unknown, prefix = ""): stri
       }
     }
     return paths;
-  }
-  if (Array.isArray(prev) && Array.isArray(next)) {
-    // Arrays can contain object entries (for example memory.qmd.paths/scope.rules);
-    // compare structurally so identical values are not reported as changed.
-    if (isDeepStrictEqual(prev, next)) {
-      return [];
-    }
   }
   return [prefix || "<root>"];
 }
@@ -247,6 +392,11 @@ export function startGatewayConfigReloader(opts: {
       currentCompareConfig,
       nextCompareConfig,
     );
+    const skillOnlyAgentEntryNoopPaths = listSkillOnlyAgentEntryNoopPaths(
+      currentCompareConfig,
+      nextCompareConfig,
+      changedPaths,
+    );
     currentConfig = nextConfig;
     currentCompareConfig = nextCompareConfig;
     settings = resolveGatewayReloadSettings(nextConfig);
@@ -266,7 +416,7 @@ export function startGatewayConfigReloader(opts: {
 
     opts.log.info(`config change detected; evaluating reload (${changedPaths.join(", ")})`);
     const plan = buildGatewayReloadPlan(changedPaths, {
-      noopPaths: pluginInstallTimestampNoopPaths,
+      noopPaths: [...pluginInstallTimestampNoopPaths, ...skillOnlyAgentEntryNoopPaths],
       forceChangedPaths: pluginInstallWholeRecordPaths,
     });
     if (isNoopGatewayReloadPlan(plan)) {
