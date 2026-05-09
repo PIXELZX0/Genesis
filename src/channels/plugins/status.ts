@@ -14,6 +14,8 @@ async function buildSnapshotFromAccount<ResolvedAccount>(params: {
   runtime?: ChannelAccountSnapshot;
   probe?: unknown;
   audit?: unknown;
+  enabled?: boolean;
+  configured?: boolean;
 }): Promise<ChannelAccountSnapshot> {
   if (params.plugin.status?.buildAccountSnapshot) {
     const snapshot = await params.plugin.status.buildAccountSnapshot({
@@ -30,17 +32,21 @@ async function buildSnapshotFromAccount<ResolvedAccount>(params: {
           accountId: params.accountId,
         };
   }
-  const enabled = params.plugin.config.isEnabled
-    ? params.plugin.config.isEnabled(params.account, params.cfg)
-    : params.account && typeof params.account === "object"
-      ? (params.account as { enabled?: boolean }).enabled
-      : undefined;
+  const enabled =
+    params.enabled ??
+    (params.plugin.config.isEnabled
+      ? params.plugin.config.isEnabled(params.account, params.cfg)
+      : params.account && typeof params.account === "object"
+        ? (params.account as { enabled?: boolean }).enabled
+        : undefined);
   const configured =
     params.account && typeof params.account === "object" && "configured" in params.account
       ? (params.account as { configured?: boolean }).configured
-      : params.plugin.config.isConfigured
-        ? await params.plugin.config.isConfigured(params.account, params.cfg)
-        : undefined;
+      : params.configured !== undefined
+        ? params.configured
+        : params.plugin.config.isConfigured
+          ? await params.plugin.config.isConfigured(params.account, params.cfg)
+          : undefined;
   return {
     accountId: params.accountId,
     enabled,
@@ -87,12 +93,26 @@ export async function buildChannelAccountSnapshot<ResolvedAccount>(params: {
   runtime?: ChannelAccountSnapshot;
   probe?: unknown;
   audit?: unknown;
+  fallbackAccount?: ResolvedAccount;
+  fallbackEnabled?: boolean;
+  fallbackConfigured?: boolean;
 }): Promise<ChannelAccountSnapshot> {
   const inspectedAccount = await inspectChannelAccount(params);
   const account =
-    inspectedAccount ?? params.plugin.config.resolveAccount(params.cfg, params.accountId);
+    inspectedAccount ??
+    params.fallbackAccount ??
+    params.plugin.config.resolveAccount(params.cfg, params.accountId);
+  const fallbackFields = inspectedAccount
+    ? {}
+    : {
+        ...(typeof params.fallbackEnabled === "boolean" ? { enabled: params.fallbackEnabled } : {}),
+        ...(typeof params.fallbackConfigured === "boolean"
+          ? { configured: params.fallbackConfigured }
+          : {}),
+      };
   return await buildSnapshotFromAccount({
     ...params,
     account,
+    ...fallbackFields,
   });
 }

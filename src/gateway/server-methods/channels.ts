@@ -194,14 +194,18 @@ export const channelsHandlers: GatewayRequestHandlers = {
     ) => {
       const account = plugin.config.resolveAccount(cfg, accountId);
       const enabled = isAccountEnabled(plugin, account);
+      let fallbackConfigured: boolean | undefined;
+      const resolveConfiguredForLiveCheck = async () => {
+        if (!plugin.config.isConfigured) {
+          return true;
+        }
+        fallbackConfigured ??= await plugin.config.isConfigured(account, cfg);
+        return fallbackConfigured;
+      };
       let probeResult: unknown;
       let lastProbeAt: number | null = null;
       if (probe && enabled && plugin.status?.probeAccount) {
-        let configured = true;
-        if (plugin.config.isConfigured) {
-          configured = await plugin.config.isConfigured(account, cfg);
-        }
-        if (configured) {
+        if (await resolveConfiguredForLiveCheck()) {
           probeResult = await plugin.status.probeAccount({
             account,
             timeoutMs,
@@ -212,11 +216,7 @@ export const channelsHandlers: GatewayRequestHandlers = {
       }
       let auditResult: unknown;
       if (probe && enabled && plugin.status?.auditAccount) {
-        let configured = true;
-        if (plugin.config.isConfigured) {
-          configured = await plugin.config.isConfigured(account, cfg);
-        }
-        if (configured) {
+        if (await resolveConfiguredForLiveCheck()) {
           auditResult = await plugin.status.auditAccount({
             account,
             timeoutMs,
@@ -233,6 +233,9 @@ export const channelsHandlers: GatewayRequestHandlers = {
         runtime: runtimeSnapshot,
         probe: probeResult,
         audit: auditResult,
+        fallbackAccount: account,
+        fallbackEnabled: enabled,
+        ...(typeof fallbackConfigured === "boolean" ? { fallbackConfigured } : {}),
       });
       if (lastProbeAt) {
         snapshot.lastProbeAt = lastProbeAt;

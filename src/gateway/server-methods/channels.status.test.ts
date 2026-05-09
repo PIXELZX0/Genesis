@@ -162,4 +162,46 @@ describe("channelsHandlers channels.status", () => {
       }),
     );
   });
+
+  it("reuses configured checks across live probe and audit", async () => {
+    const autoEnabledConfig = { autoEnabled: true };
+    const account = { accountId: "default" };
+    const resolveAccount = vi.fn(() => account);
+    const isConfigured = vi.fn(async () => true);
+    const probeAccount = vi.fn(async () => ({ ok: true }));
+    const auditAccount = vi.fn(async () => ({ ok: true }));
+    mocks.applyPluginAutoEnable.mockReturnValue({ config: autoEnabledConfig, changes: [] });
+    mocks.listChannelPlugins.mockReturnValue([
+      {
+        id: "whatsapp",
+        config: {
+          listAccountIds: () => ["default"],
+          resolveAccount,
+          isEnabled: () => true,
+          isConfigured,
+        },
+        status: {
+          probeAccount,
+          auditAccount,
+        },
+      },
+    ]);
+
+    await channelsHandlers["channels.status"](createOptions({ probe: true, timeoutMs: 2000 }));
+
+    expect(isConfigured).toHaveBeenCalledTimes(1);
+    expect(probeAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ account, cfg: autoEnabledConfig }),
+    );
+    expect(auditAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ account, cfg: autoEnabledConfig, probe: { ok: true } }),
+    );
+    expect(mocks.buildChannelAccountSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fallbackAccount: account,
+        fallbackEnabled: true,
+        fallbackConfigured: true,
+      }),
+    );
+  });
 });
