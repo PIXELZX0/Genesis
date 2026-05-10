@@ -28,6 +28,7 @@ function resolveProviderChoiceOptions(params?: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   installBundledRuntimeDeps?: boolean;
+  includeRuntimeContributions?: boolean;
 }): AuthChoiceOption[] {
   return resolveProviderSetupFlowContributions({
     ...params,
@@ -63,6 +64,7 @@ export function formatAuthChoiceChoicesForCli(params?: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   installBundledRuntimeDeps?: boolean;
+  includeRuntimeContributions?: boolean;
 }): string {
   const values = [
     ...formatStaticAuthChoiceChoicesForCli(params).split("|"),
@@ -70,6 +72,7 @@ export function formatAuthChoiceChoicesForCli(params?: {
       ...params,
       scope: "text-inference",
       installBundledRuntimeDeps: params?.installBundledRuntimeDeps ?? false,
+      includeRuntimeContributions: params?.includeRuntimeContributions ?? false,
     }).map((contribution) => contribution.option.value),
   ];
 
@@ -84,6 +87,7 @@ export function buildAuthChoiceOptions(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   installBundledRuntimeDeps?: boolean;
+  includeRuntimeContributions?: boolean;
 }): AuthChoiceOption[] {
   void params.store;
   const optionByValue = new Map<AuthChoice, AuthChoiceOption>();
@@ -95,6 +99,7 @@ export function buildAuthChoiceOptions(params: {
     workspaceDir: params.workspaceDir,
     env: params.env,
     installBundledRuntimeDeps: params.installBundledRuntimeDeps,
+    includeRuntimeContributions: params.includeRuntimeContributions ?? false,
   })) {
     optionByValue.set(option.value, option);
   }
@@ -119,6 +124,7 @@ export function buildAuthChoiceGroups(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   installBundledRuntimeDeps?: boolean;
+  includeRuntimeContributions?: boolean;
 }): {
   groups: AuthChoiceGroup[];
   skipOption?: AuthChoiceOption;

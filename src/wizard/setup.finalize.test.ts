@@ -271,6 +271,7 @@ describe("finalizeSetupWizard", () => {
     const previous = process.env.GENESIS_GATEWAY_PASSWORD;
     process.env.GENESIS_GATEWAY_PASSWORD = "resolved-gateway-password"; // pragma: allowlist secret
     resolveSetupSecretInputString.mockResolvedValueOnce("resolved-gateway-password");
+    waitForGatewayReachable.mockResolvedValueOnce({ ok: false });
     const select = vi.fn(async (params: { message: string }) => {
       if (params.message === "How do you want to hatch your bot?") {
         return "tui";
@@ -290,7 +291,7 @@ describe("finalizeSetupWizard", () => {
           acceptRisk: true,
           authChoice: "skip",
           installDaemon: false,
-          skipHealth: true,
+          skipHealth: false,
           skipUi: false,
         },
         baseConfig: {},
@@ -344,6 +345,23 @@ describe("finalizeSetupWizard", () => {
       deliver: false,
       message: undefined,
     });
+  });
+
+  it("does not probe the gateway when health checks are skipped", async () => {
+    const prompter = createLaterPrompter();
+
+    await finalizeSetupWizard(
+      createAdvancedFinalizeArgs({
+        prompter,
+      }),
+    );
+
+    expect(waitForGatewayReachable).not.toHaveBeenCalled();
+    expect(probeGatewayReachable).not.toHaveBeenCalled();
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("Gateway: not checked (--skip-health)"),
+      "Control UI",
+    );
   });
 
   it("restores terminal state after failed TUI hatch", async () => {

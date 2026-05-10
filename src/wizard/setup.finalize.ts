@@ -32,7 +32,6 @@ import type { RuntimeEnv } from "../runtime.js";
 import { restoreTerminalState } from "../terminal/restore.js";
 import { launchTuiCli } from "../tui/tui-launch.js";
 import { resolveUserPath } from "../utils.js";
-import { listConfiguredWebSearchProviders } from "../web-search/runtime.js";
 import type { WizardPrompter } from "./prompts.js";
 import { setupWizardShellCompletion } from "./setup.completion.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
@@ -62,7 +61,9 @@ export async function finalizeSetupWizard(
   options: FinalizeOnboardingOptions,
 ): Promise<{ launchedTui: boolean }> {
   const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime } = options;
-  let gatewayProbe: { ok: boolean; detail?: string } = { ok: true };
+  let gatewayProbe: { ok: boolean; detail?: string } = opts.skipHealth
+    ? { ok: false, detail: "not checked (--skip-health)" }
+    : { ok: true };
 
   const withWizardProgress = async <T>(
     label: string,
@@ -345,16 +346,18 @@ export async function finalizeSetupWizard(
     }
   }
 
-  if (opts.skipHealth || !gatewayProbe.ok) {
+  if (!opts.skipHealth && !gatewayProbe.ok) {
     gatewayProbe = await probeGatewayReachable({
       url: links.wsUrl,
       token: settings.authMode === "token" ? settings.gatewayToken : undefined,
       password: settings.authMode === "password" ? resolvedGatewayPassword : "",
     });
   }
-  const gatewayStatusLine = gatewayProbe.ok
-    ? "Gateway: reachable"
-    : `Gateway: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
+  const gatewayStatusLine = opts.skipHealth
+    ? "Gateway: not checked (--skip-health)"
+    : gatewayProbe.ok
+      ? "Gateway: reachable"
+      : `Gateway: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
   const bootstrapPath = path.join(
     resolveUserPath(options.workspaceDir),
     DEFAULT_BOOTSTRAP_FILENAME,
@@ -534,7 +537,12 @@ export async function finalizeSetupWizard(
   const codexNativeSummary = describeCodexNativeWebSearch(nextConfig);
   const webSearchProvider = nextConfig.tools?.web?.search?.provider;
   const webSearchEnabled = nextConfig.tools?.web?.search?.enabled;
-  const configuredSearchProviders = listConfiguredWebSearchProviders({ config: nextConfig });
+  const shouldResolveSearchProviders = Boolean(webSearchProvider) || !opts.skipSearch;
+  const configuredSearchProviders = shouldResolveSearchProviders
+    ? await import("../web-search/runtime.js").then(({ listConfiguredWebSearchProviders }) =>
+        listConfiguredWebSearchProviders({ config: nextConfig }),
+      )
+    : [];
   if (webSearchProvider) {
     const { resolveExistingKey, hasExistingKey, hasKeyInEnv } = await loadOnboardSearchModule();
     const entry = configuredSearchProviders.find((e) => e.id === webSearchProvider);
@@ -595,6 +603,16 @@ export async function finalizeSetupWizard(
         "Web search",
       );
     }
+  } else if (opts.skipSearch) {
+    await prompter.note(
+      [
+        "Web search was skipped. You can enable it later:",
+        `  ${formatCliCommand("genesis configure --section web")}`,
+        "",
+        "Docs: https://docs.genesis.ai/tools/web",
+      ].join("\n"),
+      "Web search",
+    );
   } else {
     // Legacy configs may have a working key (e.g. apiKey or BRAVE_API_KEY) without
     // an explicit provider. Runtime auto-detects these, so avoid saying "skipped".

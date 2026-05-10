@@ -112,6 +112,8 @@ function resolveProviderWizardProviders(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   installBundledRuntimeDeps?: boolean;
+  providerRefs?: readonly string[];
+  activate?: boolean;
 }): ProviderPlugin[] {
   return resolvePluginProviders({
     config: params.config,
@@ -119,6 +121,8 @@ function resolveProviderWizardProviders(params: {
     env: params.env,
     mode: "setup",
     installBundledRuntimeDeps: params.installBundledRuntimeDeps,
+    ...(params.providerRefs ? { providerRefs: params.providerRefs } : {}),
+    ...(params.activate !== undefined ? { activate: params.activate } : {}),
   });
 }
 
@@ -303,6 +307,8 @@ export async function runProviderModelSelectedHook(params: {
     workspaceDir: params.workspaceDir,
     env: params.env,
     installBundledRuntimeDeps: params.installBundledRuntimeDeps,
+    providerRefs: [selectedProviderId],
+    activate: true,
   });
   const provider = providers.find((entry) => normalizeProviderId(entry.id) === selectedProviderId);
   if (!provider?.onModelSelected) {

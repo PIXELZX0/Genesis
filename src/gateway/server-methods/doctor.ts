@@ -804,10 +804,14 @@ export const doctorHandlers: GatewayRequestHandlers = {
 
     try {
       const status = manager.status();
-      let embedding = await manager.probeEmbeddingAvailability();
-      if (!embedding.ok && !embedding.error) {
-        embedding = { ok: false, error: "memory embeddings unavailable" };
-      }
+      const vectorStatus = status.vector;
+      const vectorAvailable = vectorStatus?.enabled === true && vectorStatus.available === true;
+      const embedding = vectorAvailable
+        ? { ok: true }
+        : {
+            ok: false,
+            error: vectorStatus?.loadError ?? "memory vector search unavailable",
+          };
       const nowMs = Date.now();
       const dreamingConfig = resolveDreamingConfig(cfg);
       const workspaceDir = normalizeTrimmedString((status as Record<string, unknown>).workspaceDir);

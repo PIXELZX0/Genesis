@@ -836,6 +836,9 @@ describe("runSetupWizard", () => {
       if (opts.message === "Config handling") {
         return "keep";
       }
+      if (opts.message === "What do you want to set up?") {
+        return "local";
+      }
       return "quickstart";
     }) as unknown as WizardPrompter["select"];
     const prompter = buildWizardPrompter({ select });
@@ -845,8 +848,7 @@ describe("runSetupWizard", () => {
       await runSetupWizard(
         {
           acceptRisk: true,
-          flow: "quickstart",
-          mode: "local",
+          flow: "advanced",
           authChoice: "skip",
           installDaemon: false,
           skipProviders: true,

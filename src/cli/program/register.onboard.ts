@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { formatAuthChoiceChoicesForCli } from "../../commands/auth-choice-options.js";
+import { formatStaticAuthChoiceChoicesForCli } from "../../commands/auth-choice-options.static.js";
 import type { GatewayDaemonRuntime } from "../../commands/daemon-runtime.js";
 import { CORE_ONBOARD_AUTH_FLAGS } from "../../commands/onboard-core-auth-flags.js";
 import type {
@@ -11,8 +11,10 @@ import type {
   SecretInputMode,
   TailscaleMode,
 } from "../../commands/onboard-types.js";
-import { setupWizardCommand } from "../../commands/onboard.js";
-import { resolveManifestProviderOnboardAuthFlags } from "../../plugins/provider-auth-choices.js";
+import {
+  resolveManifestProviderAuthChoices,
+  resolveManifestProviderOnboardAuthFlags,
+} from "../../plugins/provider-auth-choices.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
@@ -42,10 +44,29 @@ function resolveInstallDaemonFlag(
   return undefined;
 }
 
-const AUTH_CHOICE_HELP = formatAuthChoiceChoicesForCli({
-  includeLegacyAliases: true,
-  includeSkip: true,
-});
+function includesTextInferenceScope(choice: {
+  onboardingScopes?: ("text-inference" | "image-generation")[];
+}): boolean {
+  return choice.onboardingScopes ? choice.onboardingScopes.includes("text-inference") : true;
+}
+
+function formatOnboardAuthChoiceHelp(): string {
+  const values = [
+    ...formatStaticAuthChoiceChoicesForCli({
+      includeLegacyAliases: true,
+      includeSkip: true,
+    }).split("|"),
+    ...resolveManifestProviderAuthChoices({
+      includeUntrustedWorkspacePlugins: false,
+    })
+      .filter(includesTextInferenceScope)
+      .map((choice) => choice.choiceId),
+  ];
+
+  return [...new Set(values)].join("|");
+}
+
+const AUTH_CHOICE_HELP = formatOnboardAuthChoiceHelp();
 
 const ONBOARD_AUTH_FLAGS = [
   ...CORE_ONBOARD_AUTH_FLAGS,
@@ -142,6 +163,7 @@ export function registerOnboardCommand(program: Command) {
 
   command.action(async (opts, commandRuntime) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
+      const { setupWizardCommand } = await import("../../commands/onboard.js");
       const installDaemon = resolveInstallDaemonFlag(commandRuntime, {
         installDaemon: Boolean(opts.installDaemon),
       });

@@ -30,7 +30,10 @@ function includesOnboardingScope(
 
 vi.mock("../flows/provider-flow.js", () => ({
   resolveProviderSetupFlowContributions: vi.fn(
-    (params?: { scope?: "text-inference" | "image-generation" }) => {
+    (params?: {
+      scope?: "text-inference" | "image-generation";
+      includeRuntimeContributions?: boolean;
+    }) => {
       const scope = params?.scope ?? "text-inference";
       return [
         ...resolveManifestProviderAuthChoices()
@@ -57,26 +60,28 @@ vi.mock("../flows/provider-flow.js", () => ({
                 : {}),
             },
           })),
-        ...resolveProviderWizardOptions()
-          .filter((option) => includesOnboardingScope(option.onboardingScopes, scope))
-          .map((option) => ({
-            option: {
-              value: option.value,
-              label: option.label,
-              ...(option.hint ? { hint: option.hint } : {}),
-              group: {
-                id: option.groupId,
-                label: option.groupLabel,
-                ...(option.groupHint ? { hint: option.groupHint } : {}),
-              },
-              ...(option.assistantPriority !== undefined
-                ? { assistantPriority: option.assistantPriority }
-                : {}),
-              ...(option.assistantVisibility
-                ? { assistantVisibility: option.assistantVisibility }
-                : {}),
-            },
-          })),
+        ...(params?.includeRuntimeContributions
+          ? resolveProviderWizardOptions()
+              .filter((option) => includesOnboardingScope(option.onboardingScopes, scope))
+              .map((option) => ({
+                option: {
+                  value: option.value,
+                  label: option.label,
+                  ...(option.hint ? { hint: option.hint } : {}),
+                  group: {
+                    id: option.groupId,
+                    label: option.groupLabel,
+                    ...(option.groupHint ? { hint: option.groupHint } : {}),
+                  },
+                  ...(option.assistantPriority !== undefined
+                    ? { assistantPriority: option.assistantPriority }
+                    : {}),
+                  ...(option.assistantVisibility
+                    ? { assistantVisibility: option.assistantVisibility }
+                    : {}),
+                },
+              }))
+          : []),
       ];
     },
   ),
@@ -84,10 +89,11 @@ vi.mock("../flows/provider-flow.js", () => ({
 
 const EMPTY_STORE: AuthProfileStore = { version: 1, profiles: {} };
 
-function getOptions(includeSkip = false) {
+function getOptions(includeSkip = false, includeRuntimeContributions = false) {
   return buildAuthChoiceOptions({
     store: EMPTY_STORE,
     includeSkip,
+    includeRuntimeContributions,
   });
 }
 
@@ -250,7 +256,7 @@ describe("buildAuthChoiceOptions", () => {
         groupLabel: "SGLang",
       },
     ]);
-    const options = getOptions();
+    const options = getOptions(false, true);
 
     for (const value of [
       "github-copilot",
@@ -306,10 +312,11 @@ describe("buildAuthChoiceOptions", () => {
         groupLabel: "Ollama",
       },
     ]);
-    const options = getOptions(true);
+    const options = getOptions(true, true);
     const cliChoices = formatAuthChoiceChoicesForCli({
       includeLegacyAliases: false,
       includeSkip: true,
+      includeRuntimeContributions: true,
     }).split("|");
 
     expect(cliChoices).toContain("openai-api-key");
@@ -399,6 +406,7 @@ describe("buildAuthChoiceOptions", () => {
     const { groups } = buildAuthChoiceGroups({
       store: EMPTY_STORE,
       includeSkip: false,
+      includeRuntimeContributions: true,
     });
     const chutesGroup = groups.find((group) => group.value === "chutes");
     const litellmGroup = groups.find((group) => group.value === "litellm");
@@ -437,6 +445,7 @@ describe("buildAuthChoiceOptions", () => {
     const { groups } = buildAuthChoiceGroups({
       store: EMPTY_STORE,
       includeSkip: false,
+      includeRuntimeContributions: true,
     });
     const anthropicGroup = groups.find((group) => group.value === "anthropic");
 
@@ -475,6 +484,7 @@ describe("buildAuthChoiceOptions", () => {
     const { groups } = buildAuthChoiceGroups({
       store: EMPTY_STORE,
       includeSkip: false,
+      includeRuntimeContributions: true,
     });
     const openAIGroup = groups.find((group) => group.value === "openai");
 
@@ -556,7 +566,7 @@ describe("buildAuthChoiceOptions", () => {
       },
     ]);
 
-    const options = getOptions();
+    const options = getOptions(false, true);
 
     expect(options.some((option) => option.value === "openai-api-key")).toBe(true);
     expect(options.some((option) => option.value === "ollama")).toBe(true);

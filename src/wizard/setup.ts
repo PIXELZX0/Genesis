@@ -10,10 +10,6 @@ import { readConfigFileSnapshot, resolveGatewayPort, writeConfigFile } from "../
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeSecretInputString } from "../config/types.secrets.js";
 import { formatErrorMessage } from "../infra/errors.js";
-import {
-  buildPluginCompatibilityNotices,
-  formatPluginCompatibilityNotice,
-} from "../plugins/status.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { resolveUserPath } from "../utils.js";
@@ -29,10 +25,12 @@ import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 type AuthChoiceModule = typeof import("../commands/auth-choice.js");
 type ConfigLoggingModule = typeof import("../config/logging.js");
 type ModelPickerModule = typeof import("../commands/model-picker.js");
+type PluginStatusModule = typeof import("../plugins/status.js");
 
 let authChoiceModulePromise: Promise<AuthChoiceModule> | undefined;
 let configLoggingModulePromise: Promise<ConfigLoggingModule> | undefined;
 let modelPickerModulePromise: Promise<ModelPickerModule> | undefined;
+let pluginStatusModulePromise: Promise<PluginStatusModule> | undefined;
 
 function loadAuthChoiceModule(): Promise<AuthChoiceModule> {
   authChoiceModulePromise ??= import("../commands/auth-choice.js");
@@ -47,6 +45,11 @@ function loadConfigLoggingModule(): Promise<ConfigLoggingModule> {
 function loadModelPickerModule(): Promise<ModelPickerModule> {
   modelPickerModulePromise ??= import("../commands/model-picker.js");
   return modelPickerModulePromise;
+}
+
+function loadPluginStatusModule(): Promise<PluginStatusModule> {
+  pluginStatusModulePromise ??= import("../plugins/status.js");
+  return pluginStatusModulePromise;
 }
 
 async function resolveAuthChoiceModelSelectionPolicy(params: {
@@ -160,10 +163,14 @@ export async function runSetupWizard(
     return;
   }
 
-  const compatibilityNotices = snapshot.valid
-    ? buildPluginCompatibilityNotices({ config: baseConfig })
-    : [];
+  const compatibilityNotices =
+    snapshot.exists && snapshot.valid
+      ? await loadPluginStatusModule().then(({ buildPluginCompatibilityNotices }) =>
+          buildPluginCompatibilityNotices({ config: baseConfig }),
+        )
+      : [];
   if (compatibilityNotices.length > 0) {
+    const { formatPluginCompatibilityNotice } = await loadPluginStatusModule();
     await prompter.note(
       [
         `Detected ${compatibilityNotices.length} plugin compatibility notice${compatibilityNotices.length === 1 ? "" : "s"} in the current config.`,
@@ -360,79 +367,88 @@ export async function runSetupWizard(
 
   const localPort = resolveGatewayPort(baseConfig);
   const localUrl = `ws://127.0.0.1:${localPort}`;
-  let localGatewayToken = process.env.GENESIS_GATEWAY_TOKEN;
-  try {
-    const resolvedGatewayToken = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.auth?.token,
-      path: "gateway.auth.token",
-      env: process.env,
-    });
-    if (resolvedGatewayToken) {
-      localGatewayToken = resolvedGatewayToken;
-    }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.auth.token SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
-  }
-  let localGatewayPassword = process.env.GENESIS_GATEWAY_PASSWORD;
-  try {
-    const resolvedGatewayPassword = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.auth?.password,
-      path: "gateway.auth.password",
-      env: process.env,
-    });
-    if (resolvedGatewayPassword) {
-      localGatewayPassword = resolvedGatewayPassword;
-    }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.auth.password SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
-  }
-
-  const localProbe = await onboardHelpers.probeGatewayReachable({
-    url: localUrl,
-    token: localGatewayToken,
-    password: localGatewayPassword,
-  });
   const remoteUrl = baseConfig.gateway?.remote?.url?.trim() ?? "";
-  let remoteGatewayToken = normalizeSecretInputString(baseConfig.gateway?.remote?.token);
-  try {
-    const resolvedRemoteGatewayToken = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.remote?.token,
-      path: "gateway.remote.token",
-      env: process.env,
-    });
-    if (resolvedRemoteGatewayToken) {
-      remoteGatewayToken = resolvedRemoteGatewayToken;
+  let localProbe: { ok: boolean; detail?: string } = { ok: false };
+  let remoteProbe: { ok: boolean; detail?: string } | null = null;
+  const shouldProbeModeChoices = opts.mode === undefined && flow !== "quickstart";
+
+  if (shouldProbeModeChoices) {
+    let localGatewayToken = process.env.GENESIS_GATEWAY_TOKEN;
+    try {
+      const resolvedGatewayToken = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.auth?.token,
+        path: "gateway.auth.token",
+        env: process.env,
+      });
+      if (resolvedGatewayToken) {
+        localGatewayToken = resolvedGatewayToken;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.auth.token SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
     }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.remote.token SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
+    let localGatewayPassword = process.env.GENESIS_GATEWAY_PASSWORD;
+    try {
+      const resolvedGatewayPassword = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.auth?.password,
+        path: "gateway.auth.password",
+        env: process.env,
+      });
+      if (resolvedGatewayPassword) {
+        localGatewayPassword = resolvedGatewayPassword;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.auth.password SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
+    }
+
+    let remoteGatewayToken = normalizeSecretInputString(baseConfig.gateway?.remote?.token);
+    try {
+      const resolvedRemoteGatewayToken = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.remote?.token,
+        path: "gateway.remote.token",
+        env: process.env,
+      });
+      if (resolvedRemoteGatewayToken) {
+        remoteGatewayToken = resolvedRemoteGatewayToken;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.remote.token SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
+    }
+
+    [localProbe, remoteProbe] = await Promise.all([
+      onboardHelpers.probeGatewayReachable({
+        url: localUrl,
+        token: localGatewayToken,
+        password: localGatewayPassword,
+      }),
+      remoteUrl
+        ? onboardHelpers.probeGatewayReachable({
+            url: remoteUrl,
+            token: remoteGatewayToken,
+          })
+        : Promise.resolve(null),
+    ]);
   }
-  const remoteProbe = remoteUrl
-    ? await onboardHelpers.probeGatewayReachable({
-        url: remoteUrl,
-        token: remoteGatewayToken,
-      })
-    : null;
 
   const mode =
     opts.mode ??

@@ -168,12 +168,15 @@ describe("doctor.memory.status", () => {
     repairDreamingArtifacts.mockReset();
   });
 
-  it("returns gateway embedding probe status for the default agent", async () => {
+  it("returns cached gateway vector readiness status for the default agent", async () => {
     const close = vi.fn().mockResolvedValue(undefined);
+    const probeEmbeddingAvailability = vi.fn().mockResolvedValue({ ok: true });
+    const probeVectorAvailability = vi.fn().mockRejectedValue(new Error("should not probe"));
     getMemorySearchManager.mockResolvedValue({
       manager: {
-        status: () => ({ provider: "gemini" }),
-        probeEmbeddingAvailability: vi.fn().mockResolvedValue({ ok: true }),
+        status: () => ({ provider: "gemini", vector: { enabled: true, available: true } }),
+        probeEmbeddingAvailability,
+        probeVectorAvailability,
         close,
       },
     });
@@ -211,6 +214,8 @@ describe("doctor.memory.status", () => {
       }),
       undefined,
     );
+    expect(probeVectorAvailability).not.toHaveBeenCalled();
+    expect(probeEmbeddingAvailability).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalled();
   });
 
@@ -226,12 +231,16 @@ describe("doctor.memory.status", () => {
     expectEmbeddingErrorResponse(respond, "memory search unavailable");
   });
 
-  it("returns probe failure when manager probe throws", async () => {
+  it("returns unavailable when cached vector status reports an error", async () => {
     const close = vi.fn().mockResolvedValue(undefined);
+    const probeVectorAvailability = vi.fn().mockRejectedValue(new Error("should not probe"));
     getMemorySearchManager.mockResolvedValue({
       manager: {
-        status: () => ({ provider: "openai" }),
-        probeEmbeddingAvailability: vi.fn().mockRejectedValue(new Error("timeout")),
+        status: () => ({
+          provider: "openai",
+          vector: { enabled: true, available: false, loadError: "sqlite-vec unavailable" },
+        }),
+        probeVectorAvailability,
         close,
       },
     });
@@ -239,7 +248,31 @@ describe("doctor.memory.status", () => {
 
     await invokeDoctorMemoryStatus(respond);
 
-    expectEmbeddingErrorResponse(respond, "gateway memory probe failed: timeout");
+    expectEmbeddingErrorResponse(respond, "sqlite-vec unavailable");
+    expect(probeVectorAvailability).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalled();
+  });
+
+  it("does not wait on slow vector probes", async () => {
+    const close = vi.fn().mockResolvedValue(undefined);
+    const probeVectorAvailability = vi.fn(() => new Promise<boolean>(() => {}));
+    getMemorySearchManager.mockResolvedValue({
+      manager: {
+        status: () => ({ provider: "openai", vector: { enabled: true, available: true } }),
+        probeVectorAvailability,
+        close,
+      },
+    });
+    const respond = vi.fn();
+
+    await invokeDoctorMemoryStatus(respond);
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ embedding: { ok: true } }),
+      undefined,
+    );
+    expect(probeVectorAvailability).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalled();
   });
 
@@ -430,8 +463,12 @@ describe("doctor.memory.status", () => {
     const close = vi.fn().mockResolvedValue(undefined);
     getMemorySearchManager.mockResolvedValue({
       manager: {
-        status: () => ({ provider: "gemini", workspaceDir: mainWorkspaceDir }),
-        probeEmbeddingAvailability: vi.fn().mockResolvedValue({ ok: true }),
+        status: () => ({
+          provider: "gemini",
+          workspaceDir: mainWorkspaceDir,
+          vector: { enabled: true, available: true },
+        }),
+        probeVectorAvailability: vi.fn().mockResolvedValue(true),
         close,
       },
     });
@@ -560,7 +597,7 @@ describe("doctor.memory.status", () => {
     getMemorySearchManager.mockResolvedValue({
       manager: {
         status: () => ({ provider: "gemini", workspaceDir }),
-        probeEmbeddingAvailability: vi.fn().mockResolvedValue({ ok: true }),
+        probeVectorAvailability: vi.fn().mockResolvedValue(true),
         close,
       },
     });
@@ -618,7 +655,7 @@ describe("doctor.memory.status", () => {
     getMemorySearchManager.mockResolvedValue({
       manager: {
         status: () => ({ provider: "gemini" }),
-        probeEmbeddingAvailability: vi.fn().mockResolvedValue({ ok: true }),
+        probeVectorAvailability: vi.fn().mockResolvedValue(true),
         close,
       },
     });
@@ -720,7 +757,7 @@ describe("doctor.memory.status", () => {
     getMemorySearchManager.mockResolvedValue({
       manager: {
         status: () => ({ provider: "gemini", workspaceDir: mainWorkspaceDir }),
-        probeEmbeddingAvailability: vi.fn().mockResolvedValue({ ok: true }),
+        probeVectorAvailability: vi.fn().mockResolvedValue(true),
         close,
       },
     });

@@ -3,16 +3,12 @@ import { readConfigFileSnapshot } from "../config/config.js";
 import { assertSupportedRuntime } from "../infra/runtime-guard.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
-import { resolveUserPath } from "../utils.js";
 import {
   formatDeprecatedNonInteractiveAuthChoiceError,
   isDeprecatedAuthChoice,
   normalizeLegacyOnboardAuthChoice,
   resolveDeprecatedAuthChoiceReplacement,
 } from "./auth-choice-legacy.js";
-import { DEFAULT_WORKSPACE, handleReset } from "./onboard-helpers.js";
-import { runInteractiveSetup } from "./onboard-interactive.js";
-import { runNonInteractiveSetup } from "./onboard-non-interactive.js";
 import type { OnboardOptions, ResetScope } from "./onboard-types.js";
 
 const VALID_RESET_SCOPES = new Set<ResetScope>(["config", "config+creds+sessions", "full"]);
@@ -74,6 +70,10 @@ export async function setupWizardCommand(
   }
 
   if (normalizedOpts.reset) {
+    const [{ DEFAULT_WORKSPACE, handleReset }, { resolveUserPath }] = await Promise.all([
+      import("./onboard-helpers.js"),
+      import("../utils.js"),
+    ]);
     const snapshot = await readConfigFileSnapshot();
     const baseConfig = snapshot.valid ? (snapshot.sourceConfig ?? snapshot.config) : {};
     const workspaceDefault =
@@ -94,10 +94,12 @@ export async function setupWizardCommand(
   }
 
   if (normalizedOpts.nonInteractive) {
+    const { runNonInteractiveSetup } = await import("./onboard-non-interactive.js");
     await runNonInteractiveSetup(normalizedOpts, runtime);
     return;
   }
 
+  const { runInteractiveSetup } = await import("./onboard-interactive.js");
   await runInteractiveSetup(normalizedOpts, runtime);
 }
 

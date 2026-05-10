@@ -106,6 +106,8 @@ describe("provider flow install catalog contributions", () => {
         includeUntrustedWorkspacePlugins: false,
       }),
     );
+    expect(resolveProviderWizardOptions).not.toHaveBeenCalled();
+    expect(resolvePluginProviders).not.toHaveBeenCalled();
   });
 
   it("prefers manifest setup contributions over duplicate runtime and install-catalog entries", () => {
@@ -325,7 +327,11 @@ describe("provider flow install catalog contributions", () => {
       },
     ]);
 
-    expect(resolveProviderSetupFlowContributions()).toEqual([
+    expect(
+      resolveProviderSetupFlowContributions({
+        includeRuntimeContributions: true,
+      }),
+    ).toEqual([
       {
         id: "provider:setup:openai-api-key",
         kind: "provider",
@@ -347,6 +353,7 @@ describe("provider flow install catalog contributions", () => {
   it("forwards no-install runtime dependency policy to setup runtime lookups", () => {
     resolveProviderSetupFlowContributions({
       installBundledRuntimeDeps: false,
+      includeRuntimeContributions: true,
     });
 
     expect(resolvePluginProviders).toHaveBeenCalledWith(

@@ -18,10 +18,6 @@ vi.mock("../../commands/auth-choice-options.static.js", () => ({
   formatStaticAuthChoiceChoicesForCli: () => "token|oauth",
 }));
 
-vi.mock("../../commands/auth-choice-options.js", () => ({
-  formatAuthChoiceChoicesForCli: () => "token|oauth|openai-api-key",
-}));
-
 vi.mock("../../commands/onboard-core-auth-flags.js", () => ({
   CORE_ONBOARD_AUTH_FLAGS: [
     {
@@ -33,6 +29,11 @@ vi.mock("../../commands/onboard-core-auth-flags.js", () => ({
 }));
 
 vi.mock("../../plugins/provider-auth-choices.js", () => ({
+  resolveManifestProviderAuthChoices: () => [
+    {
+      choiceId: "openai-api-key",
+    },
+  ],
   resolveManifestProviderOnboardAuthFlags: () => [
     {
       cliOption: "--openai-api-key <key>",

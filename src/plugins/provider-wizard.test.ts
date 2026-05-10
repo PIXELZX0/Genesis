@@ -85,11 +85,15 @@ function expectProviderResolutionCall(params?: {
   env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
   count?: number;
+  providerRefs?: readonly string[];
+  activate?: boolean;
 }) {
   expect(resolvePluginProviders).toHaveBeenCalledTimes(params?.count ?? 1);
   expect(resolvePluginProviders).toHaveBeenCalledWith({
     ...createWizardRuntimeParams(params),
     mode: "setup",
+    ...(params?.providerRefs ? { providerRefs: params.providerRefs } : {}),
+    ...(params?.activate !== undefined ? { activate: params.activate } : {}),
   });
 }
 
@@ -335,6 +339,8 @@ describe("provider wizard boundaries", () => {
     expectProviderResolutionCall({
       config: {},
       env,
+      providerRefs: ["vllm"],
+      activate: true,
     });
     expect(matchingHook).toHaveBeenCalledWith({
       config: {},
