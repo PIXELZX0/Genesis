@@ -1440,6 +1440,108 @@ describe("runCliAgent spawn path", () => {
     expect(supervisorSpawnMock).toHaveBeenCalledTimes(2);
   });
 
+  it("keeps Claude live sessions when only the skills snapshot version changes", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-live-skills-version-"));
+    const weatherDir = path.join(workspaceDir, "skills", "weather");
+    await fs.mkdir(weatherDir, { recursive: true });
+    await fs.writeFile(path.join(weatherDir, "SKILL.md"), "weather instructions\n", "utf-8");
+
+    const cancel = vi.fn();
+    const turnResults = ["version-1-ok", "version-2-ok"];
+    let turnIndex = 0;
+    supervisorSpawnMock.mockImplementation(async (...args: unknown[]) => {
+      const input = (args[0] ?? {}) as { onStdout?: (chunk: string) => void };
+      const stdin = {
+        write: vi.fn((_data: string, cb?: (err?: Error | null) => void) => {
+          const result = turnResults[turnIndex] ?? "ok";
+          turnIndex += 1;
+          input.onStdout?.(
+            [
+              JSON.stringify({ type: "system", subtype: "init", session_id: "live-version" }),
+              JSON.stringify({
+                type: "result",
+                session_id: "live-version",
+                result,
+              }),
+            ].join("\n") + "\n",
+          );
+          cb?.();
+        }),
+        end: vi.fn(),
+      };
+      return {
+        runId: "live-run-version",
+        pid: 2345,
+        startedAtMs: Date.now(),
+        stdin,
+        wait: vi.fn(() => new Promise(() => {})),
+        cancel,
+      };
+    });
+
+    const skillsSnapshot: NonNullable<PreparedCliRunContext["params"]["skillsSnapshot"]> = {
+      prompt: "weather",
+      skills: [{ name: "weather" }],
+      resolvedSkills: [
+        {
+          name: "weather",
+          description: "Weather instructions.",
+          filePath: path.join(weatherDir, "SKILL.md"),
+          baseDir: weatherDir,
+          source: "test",
+          sourceInfo: {
+            path: weatherDir,
+            source: "test",
+            scope: "project",
+            origin: "top-level",
+            baseDir: weatherDir,
+          },
+          disableModelInvocation: false,
+        },
+      ],
+      version: 1,
+    };
+
+    try {
+      const first = await executePreparedCliRun(
+        buildPreparedCliRunContext({
+          provider: "claude-cli",
+          model: "sonnet",
+          runId: "run-live-skills-version-1",
+          prompt: "first",
+          workspaceDir,
+          backend: {
+            liveSession: "claude-stdio",
+          },
+          skillsSnapshot,
+        }),
+      );
+      const second = await executePreparedCliRun(
+        buildPreparedCliRunContext({
+          provider: "claude-cli",
+          model: "sonnet",
+          runId: "run-live-skills-version-2",
+          prompt: "second",
+          workspaceDir,
+          backend: {
+            liveSession: "claude-stdio",
+          },
+          skillsSnapshot: {
+            ...skillsSnapshot,
+            version: 2,
+          },
+        }),
+      );
+
+      expect(first.text).toBe("version-1-ok");
+      expect(second.text).toBe("version-2-ok");
+      expect(supervisorSpawnMock).toHaveBeenCalledTimes(1);
+      expect(cancel).not.toHaveBeenCalled();
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
   it("restarts Claude live sessions when selected skills change", async () => {
     const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-live-skills-"));
     const weatherDir = path.join(workspaceDir, "skills", "weather");

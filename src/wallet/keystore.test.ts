@@ -5,6 +5,7 @@ import { verifyMessage } from "ethers";
 import { describe, expect, it } from "vitest";
 import { resolveWalletKeystorePaths } from "./keystore.js";
 import {
+  getWalletSummary,
   initWallet,
   setWalletRecoveryPhrase,
   signWalletMessage,
@@ -50,6 +51,42 @@ describe("wallet keystore", () => {
       passphrase: "correct horse battery staple",
     });
     expect(unlocked).toBe(MNEMONIC);
+  });
+
+  it("hides wallet accounts when the wallet or matching network is disabled", async () => {
+    const { env } = await tempEnv();
+    await initWallet({
+      env,
+      mnemonic: MNEMONIC,
+      passphrase: "correct horse battery staple",
+    });
+
+    const disabled = await getWalletSummary({
+      env,
+      config: { enabled: false },
+    });
+    expect(disabled.enabled).toBe(false);
+    expect(disabled.keystore.exists).toBe(true);
+    expect(disabled.accounts).toEqual([]);
+    expect(disabled.primaryAccount).toBeUndefined();
+    expect(disabled.warnings).toContain("wallet disabled by config");
+
+    const filtered = await getWalletSummary({
+      env,
+      config: {
+        networks: {
+          btc: { enabled: false },
+          evm: { chains: { base: { enabled: false } } },
+        },
+      },
+    });
+
+    expect(filtered.accounts.map((account) => account.id)).toEqual([
+      "evm:ethereum",
+      "evm:monad",
+      "sol:default",
+      "trx:default",
+    ]);
   });
 
   it("rejects an incorrect passphrase", async () => {

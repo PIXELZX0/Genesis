@@ -10,6 +10,7 @@ import {
   getWalletBalance,
   isLocalKeystoreWalletChain,
   quoteWalletSend,
+  resolveEvmNetworks,
   signWalletDigestPayload,
   signWalletMessagePayload,
   signWalletRawTransactionPayload,
@@ -73,6 +74,40 @@ function walletEnabled(config?: WalletConfig): boolean {
   return config?.enabled !== false;
 }
 
+function walletNetworkEnabled(config: WalletConfig | undefined, chain: WalletChain): boolean {
+  return config?.networks?.[chain]?.enabled !== false;
+}
+
+function assertWalletOperationEnabled(config: WalletConfig | undefined, chain?: WalletChain) {
+  if (!walletEnabled(config)) {
+    throw new Error("Wallet is disabled by config.");
+  }
+  if (chain && !walletNetworkEnabled(config, chain)) {
+    throw new Error(`Wallet network ${chain} is disabled by config.`);
+  }
+}
+
+function filterEnabledAccounts(
+  accounts: readonly WalletPublicAccount[],
+  config?: WalletConfig,
+): WalletPublicAccount[] {
+  if (!walletEnabled(config)) {
+    return [];
+  }
+  const evmAccountIds = new Set(
+    resolveEvmNetworks(config?.networks?.evm).map((network) => network.accountId),
+  );
+  return accounts.filter((account) => {
+    if (!walletNetworkEnabled(config, account.chain)) {
+      return false;
+    }
+    if (account.chain !== "evm") {
+      return true;
+    }
+    return evmAccountIds.size === 0 ? false : evmAccountIds.has(account.id);
+  });
+}
+
 function primaryAccount(
   accounts: readonly WalletPublicAccount[],
   config?: WalletConfig,
@@ -91,10 +126,13 @@ function normalizePrimaryAccount(
   primary: string | undefined,
   accounts: readonly WalletPublicAccount[],
 ) {
-  if (primary === "evm:default" && accounts.some((account) => account.id === "evm:ethereum")) {
-    return "evm:ethereum";
-  }
-  return primary;
+  const normalized =
+    primary === "evm:default" && accounts.some((account) => account.id === "evm:ethereum")
+      ? "evm:ethereum"
+      : primary;
+  return normalized && accounts.some((account) => account.id === normalized)
+    ? normalized
+    : undefined;
 }
 
 function nativeAssetDecimals(chain: WalletChain): number {
@@ -117,14 +155,18 @@ export async function getWalletSummary(options: WalletServiceOptions = {}): Prom
   const config = resolveConfig(options.config);
   const warnings: string[] = [];
   const keystore = await readWalletKeystore(options.env);
-  const accounts = expandEvmPublicAccounts(
-    keystore?.public.accounts ? [...keystore.public.accounts] : [],
+  const accounts = filterEnabledAccounts(
+    expandEvmPublicAccounts(keystore?.public.accounts ? [...keystore.public.accounts] : [], config),
     config,
   );
   if (!walletEnabled(config)) {
     warnings.push("wallet disabled by config");
   }
-  if (config?.networks?.xmr?.enabled !== false && config?.networks?.xmr?.walletRpcUrl) {
+  if (
+    walletEnabled(config) &&
+    config?.networks?.xmr?.enabled !== false &&
+    config?.networks?.xmr?.walletRpcUrl
+  ) {
     try {
       const address = await getXmrAddress(config);
       accounts.push({
@@ -155,11 +197,12 @@ export async function initWallet(params: WalletInitParams): Promise<{
   mnemonicGenerated: boolean;
   summary: WalletSummary;
 }> {
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config);
   const existing = await readWalletKeystore(params.env);
   if (existing && !params.overwrite) {
     throw new Error("Wallet keystore already exists. Pass --overwrite to replace it.");
   }
-  const config = resolveConfig(params.config);
   const mnemonic = params.mnemonic
     ? assertValidWalletMnemonic(params.mnemonic)
     : generateWalletMnemonic();
@@ -234,6 +277,7 @@ export async function getWalletBalanceForChain(
   },
 ): Promise<WalletBalance> {
   const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   if (params.chain === "xmr") {
     return getXmrBalance(config);
   }
@@ -331,6 +375,7 @@ export async function quoteWalletTransaction(
   },
 ): Promise<WalletQuote> {
   const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   if (params.chain === "xmr") {
     return quoteXmrSend({ to: params.to, amount: params.amount, config });
   }
@@ -359,6 +404,7 @@ export async function sendWallet(
   },
 ): Promise<WalletSendResult> {
   const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   assertSpendGuard({
     chain: params.chain,
     amount: params.amount,
@@ -395,10 +441,11 @@ export async function signWalletMessage(
   },
 ): Promise<WalletSignatureResult> {
   assertSignGuard({ guard: params.guard });
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   if (!isLocalKeystoreWalletChain(params.chain)) {
     throw unsupportedWalletChainError(params.chain);
   }
-  const config = resolveConfig(params.config);
   const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
   const accounts = await getWalletAccounts({ config, env: params.env });
   return signWalletMessagePayload({
@@ -422,10 +469,11 @@ export async function signWalletDigest(
   },
 ): Promise<WalletSignatureResult> {
   assertSignGuard({ guard: params.guard });
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   if (!isLocalKeystoreWalletChain(params.chain)) {
     throw unsupportedWalletChainError(params.chain);
   }
-  const config = resolveConfig(params.config);
   const mnemonic = await unlockWalletMnemonic({ passphrase: params.passphrase, env: params.env });
   const accounts = await getWalletAccounts({ config, env: params.env });
   return signWalletDigestPayload({
@@ -448,6 +496,7 @@ export async function signWalletRawTransaction(
   },
 ): Promise<WalletSignedRawTransaction> {
   const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   assertSpendGuard({
     chain: params.chain,
     amount: nativeAmountFromRawTransaction(params.chain, params.transaction),
@@ -479,6 +528,7 @@ export async function broadcastWalletRawTransaction(
   },
 ): Promise<WalletBroadcastResult> {
   const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, params.chain);
   assertSpendGuard({
     chain: params.chain,
     config,

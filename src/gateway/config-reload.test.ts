@@ -1308,6 +1308,40 @@ describe("startGatewayConfigReloader skills invalidation", () => {
     await reloader.stop();
   });
 
+  it("does not restart for skills entry enabled changes even in restart reload mode", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialCompareConfig: GenesisConfig = {
+      gateway: { reload: { mode: "restart", debounceMs: 0 } },
+      skills: { entries: { github: { enabled: true } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { mode: "restart", debounceMs: 0 } },
+          skills: { entries: { github: { enabled: false } } },
+        },
+        hash: "skills-entry-enabled-change-1",
+      }),
+    );
+    const { watcher, onHotReload, onRestart, log, reloader } = createReloaderHarness(readSnapshot, {
+      initialCompareConfig,
+    });
+
+    watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(log.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "skills snapshot invalidated by config change (skills.entries.github.enabled)",
+      ),
+    );
+    expect(onHotReload).not.toHaveBeenCalled();
+    expect(onRestart).not.toHaveBeenCalled();
+
+    await reloader.stop();
+  });
+
   it("does not restart for per-agent skill allowlist changes even in restart reload mode", async () => {
     const before = getSkillsSnapshotVersion();
     const initialCompareConfig: GenesisConfig = {

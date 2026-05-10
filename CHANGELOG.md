@@ -8,6 +8,7 @@ Docs: https://docs.genesis.ai
 
 - Setup: keep model provider setup, onboarding auth choices, and compatibility notices on lightweight plugin metadata until a provider is selected, avoiding unnecessary bundled runtime dependency installs during setup.
 - Doctor/setup: use cached memory vector readiness and honor skipped health/search checks without probing slow runtime paths, keeping setup summaries and memory status checks responsive.
+- Wallet: honor disabled wallet and network settings for summaries and operations, and reject missing or disabled explicit EVM account ids instead of falling back to another account.
 
 ## 2026.5.10-1
 

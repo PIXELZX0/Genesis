@@ -234,8 +234,14 @@ function resolveEvmNetworkForAccount(
     requestedId === "default" && !networks.some((network) => network.id === "default")
       ? "ethereum"
       : requestedId;
-  const network =
-    (requested ? networks.find((entry) => entry.id === requested) : undefined) ?? networks[0];
+  if (requested) {
+    const network = networks.find((entry) => entry.id === requested);
+    if (!network) {
+      throw new Error(`Wallet EVM network is not enabled for account ${accountId}.`);
+    }
+    return network;
+  }
+  const network = networks[0];
   if (!network) {
     throw new Error("wallet.networks.evm has no enabled networks.");
   }
@@ -510,12 +516,24 @@ function requireAccount(
   accountId?: string,
 ): WalletPublicAccount {
   const id = accountId?.trim();
+  if (id) {
+    const candidateIds =
+      chain === "evm" && id === normalizeAccountId(chain)
+        ? [id, normalizeEvmAccountId("ethereum")]
+        : [id];
+    const account = candidateIds
+      .map((candidateId) =>
+        accounts.find((entry) => entry.id === candidateId && entry.chain === chain),
+      )
+      .find((entry): entry is WalletPublicAccount => Boolean(entry));
+    if (!account) {
+      throw new Error(`Wallet account not found for ${chain}: ${id}`);
+    }
+    return account;
+  }
   const defaultIds =
     chain === "evm" ? [normalizeEvmAccountId("ethereum"), normalizeAccountId(chain)] : [];
-  const candidateIds = id ? [id] : [...defaultIds, normalizeAccountId(chain)];
-  if (chain === "evm" && id === normalizeAccountId(chain)) {
-    candidateIds.push(normalizeEvmAccountId("ethereum"));
-  }
+  const candidateIds = [...defaultIds, normalizeAccountId(chain)];
   const account =
     candidateIds
       .map((candidateId) =>

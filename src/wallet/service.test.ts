@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sendWallet, signWalletMessage, signWalletRawTransaction } from "./service.js";
+import {
+  getWalletBalanceForChain,
+  sendWallet,
+  signWalletMessage,
+  signWalletRawTransaction,
+} from "./service.js";
 
 describe("wallet send guard", () => {
   it("requires all explicit send gates before unlocking or broadcasting", async () => {
@@ -54,6 +59,22 @@ describe("wallet send guard", () => {
         guard: { yes: false },
       }),
     ).rejects.toThrow(/--yes/);
+  });
+
+  it("blocks operations when the wallet or selected network is disabled", async () => {
+    await expect(
+      getWalletBalanceForChain({
+        chain: "btc",
+        config: { enabled: false },
+      }),
+    ).rejects.toThrow(/Wallet is disabled by config/);
+
+    await expect(
+      getWalletBalanceForChain({
+        chain: "btc",
+        config: { networks: { btc: { enabled: false } } },
+      }),
+    ).rejects.toThrow(/Wallet network btc is disabled by config/);
   });
 
   it("enforces per-chain native amount limits", async () => {

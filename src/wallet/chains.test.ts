@@ -133,4 +133,29 @@ describe("wallet chain derivation", () => {
     expect(parsed.value).toBe(1n);
     expect(signed.txId).toBe(parsed.hash);
   });
+
+  it("rejects explicit EVM accounts that are missing or disabled", async () => {
+    const accounts = await derivePublicAccounts({ mnemonic: MNEMONIC });
+
+    await expect(
+      signWalletMessagePayload({
+        chain: "evm",
+        accounts,
+        accountId: "evm:missing",
+        mnemonic: MNEMONIC,
+        message: "hello",
+      }),
+    ).rejects.toThrow(/Wallet account not found for evm: evm:missing/);
+
+    await expect(
+      signWalletMessagePayload({
+        chain: "evm",
+        accounts,
+        accountId: "evm:base",
+        mnemonic: MNEMONIC,
+        message: "hello",
+        config: { networks: { evm: { chains: { base: { enabled: false } } } } },
+      }),
+    ).rejects.toThrow(/not enabled for account evm:base/);
+  });
 });

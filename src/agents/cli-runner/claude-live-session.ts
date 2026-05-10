@@ -184,15 +184,12 @@ function buildClaudeLiveFingerprint(params: {
     ? sha256(
         JSON.stringify({
           promptHash: sha256(skillSnapshot.prompt),
-          skillFilter: skillSnapshot.skillFilter,
-          skills: skillSnapshot.skills,
           resolvedSkills: (skillSnapshot.resolvedSkills ?? []).map((skill) => ({
             name: skill.name,
             description: skill.description,
             filePath: skill.filePath,
             sourceInfo: skill.sourceInfo,
           })),
-          version: skillSnapshot.version,
         }),
       )
     : undefined;
