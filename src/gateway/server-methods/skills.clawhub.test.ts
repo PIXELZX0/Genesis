@@ -9,7 +9,11 @@ const updateSkillsFromClawHubMock = vi.fn();
 
 vi.mock("../../config/config.js", () => ({
   loadConfig: () => loadConfigMock(),
-  writeConfigFile: vi.fn(),
+  readConfigFileSnapshotForWrite: vi.fn(async () => ({
+    snapshot: { config: loadConfigMock() },
+    writeOptions: {},
+  })),
+  writeConfigFileWithResult: vi.fn(),
 }));
 
 vi.mock("../../agents/agent-scope.js", () => ({

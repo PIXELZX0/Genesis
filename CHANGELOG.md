@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.10-4
+
+### Fixes
+
+- Skills: disabling or enabling a skill now updates only the persisted skill entry and no longer injects runtime-only gateway auth overrides that could trigger an unnecessary gateway restart.
+
 ## 2026.5.10-3
 
 ### Fixes

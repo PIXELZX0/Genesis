@@ -13,7 +13,11 @@ import { installSkill } from "../../agents/skills-install.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
 import { listAgentWorkspaceDirs } from "../../agents/workspace-dirs.js";
-import { loadConfig, writeConfigFile } from "../../config/config.js";
+import {
+  loadConfig,
+  readConfigFileSnapshotForWrite,
+  writeConfigFileWithResult,
+} from "../../config/config.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { fetchClawHubSkillDetail } from "../../infra/clawhub.js";
 import { formatErrorMessage } from "../../infra/errors.js";
@@ -303,7 +307,8 @@ export const skillsHandlers: GatewayRequestHandlers = {
       apiKey?: string;
       env?: Record<string, string>;
     };
-    const cfg = loadConfig();
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    const cfg = snapshot.config;
     const skills = cfg.skills ? { ...cfg.skills } : {};
     const entries = skills.entries ? { ...skills.entries } : {};
     const current = entries[p.skillKey] ? { ...entries[p.skillKey] } : {};
@@ -340,7 +345,11 @@ export const skillsHandlers: GatewayRequestHandlers = {
       ...cfg,
       skills,
     };
-    await writeConfigFile(nextConfig);
+    await writeConfigFileWithResult(nextConfig, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
     respond(true, { ok: true, skillKey: p.skillKey, config: current }, undefined);
   },
 };

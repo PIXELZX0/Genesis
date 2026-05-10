@@ -5,7 +5,11 @@ const fetchClawHubSkillDetailMock = vi.fn();
 
 vi.mock("../../config/config.js", () => ({
   loadConfig: vi.fn(() => ({})),
-  writeConfigFile: vi.fn(),
+  readConfigFileSnapshotForWrite: vi.fn(async () => ({
+    snapshot: { config: {} },
+    writeOptions: {},
+  })),
+  writeConfigFileWithResult: vi.fn(),
 }));
 
 vi.mock("../../agents/agent-scope.js", () => ({
