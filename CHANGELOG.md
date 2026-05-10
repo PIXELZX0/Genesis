@@ -2,6 +2,13 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.10-2
+
+### Fixes
+
+- Setup: keep model provider setup, onboarding auth choices, and compatibility notices on lightweight plugin metadata until a provider is selected, avoiding unnecessary bundled runtime dependency installs during setup.
+- Doctor/setup: use cached memory vector readiness and honor skipped health/search checks without probing slow runtime paths, keeping setup summaries and memory status checks responsive.
+
 ## 2026.5.10-1
 
 ### Fixes
