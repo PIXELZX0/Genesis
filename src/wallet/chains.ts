@@ -15,12 +15,14 @@ import {
 import * as bitcoin from "bitcoinjs-lib";
 import { ECPairFactory } from "ecpair";
 import {
+  Contract,
   HDNodeWallet,
   JsonRpcProvider,
   Signature,
   Transaction as EvmTransaction,
   Wallet as EvmWallet,
   formatEther,
+  formatUnits,
   getBytes,
   hexlify,
   parseEther,
@@ -34,7 +36,10 @@ import type {
   WalletChain,
   WalletConfig,
   WalletEvmChainConfig,
+  WalletEvmNftConfig,
+  WalletEvmNftStandard,
   WalletEvmNetworkConfig,
+  WalletEvmTokenConfig,
   WalletSolNetworkConfig,
   WalletTrxNetworkConfig,
 } from "../config/types.wallet.js";
@@ -45,12 +50,15 @@ import {
   type LocalKeystoreWalletChain,
   type WalletBalance,
   type WalletBroadcastResult,
+  type WalletNftCollection,
+  type WalletNftToken,
   type WalletPrivateMaterial,
   type WalletPublicAccount,
   type WalletQuote,
   type WalletSendResult,
   type WalletSignatureResult,
   type WalletSignedRawTransaction,
+  type WalletTokenBalance,
 } from "./types.js";
 
 type Ed25519HdKeyModule = {
@@ -100,7 +108,33 @@ export type ResolvedEvmNetwork = {
   rpcUrlPath: string;
   currencySymbol: string;
   explorerTxUrl?: string;
+  tokens: Record<string, WalletEvmTokenConfig>;
+  nfts: Record<string, WalletEvmNftConfig>;
 };
+
+type StaticContractMethod<Args extends unknown[], Result> = {
+  staticCall: (...args: Args) => Promise<Result>;
+};
+
+const ERC20_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function name() view returns (string)",
+] as const;
+
+const ERC721_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
+  "function symbol() view returns (string)",
+  "function name() view returns (string)",
+] as const;
+
+const ERC1155_ABI = [
+  "function balanceOf(address owner, uint256 tokenId) view returns (uint256)",
+  "function uri(uint256 tokenId) view returns (string)",
+] as const;
 
 function normalizeAccountId(chain: WalletChain): string {
   return `${chain}:default`;
@@ -116,6 +150,28 @@ function normalizeEvmNetworkId(id: string): string {
     throw new Error(`Invalid EVM network id: ${id}`);
   }
   return normalized;
+}
+
+function normalizeEvmAssetId(id: string, label: string): string {
+  const normalized = id.trim().toLowerCase();
+  if (!EVM_NETWORK_ID_PATTERN.test(normalized)) {
+    throw new Error(`Invalid EVM ${label} id: ${id}`);
+  }
+  return normalized;
+}
+
+function enabledRecord<T extends { enabled?: boolean }>(
+  entries: Record<string, T> | undefined,
+  label: string,
+): Record<string, T> {
+  const result: Record<string, T> = {};
+  for (const [id, config] of Object.entries(entries ?? {})) {
+    if (!enabled(config)) {
+      continue;
+    }
+    result[normalizeEvmAssetId(id, label)] = config;
+  }
+  return result;
 }
 
 function evmNetworkIdFromAccountId(accountId?: string): string | undefined {
@@ -185,6 +241,8 @@ function resolveEvmNetwork(
     rpcUrlPath,
     currencySymbol: config.currencySymbol?.trim() || (normalizedId === "monad" ? "MON" : "ETH"),
     explorerTxUrl: config.explorerTxUrl,
+    tokens: enabledRecord(config.tokens, "token"),
+    nfts: enabledRecord(config.nfts, "NFT collection"),
   };
 }
 
@@ -553,6 +611,273 @@ function resolveEvmProvider(network: ResolvedEvmNetwork): JsonRpcProvider {
     throw new Error(`${network.rpcUrlPath} is required for EVM balance and send.`);
   }
   return new JsonRpcProvider(rpcUrl, network.chainId);
+}
+
+function contractMethod<Args extends unknown[], Result>(
+  contract: Contract,
+  name: string,
+): StaticContractMethod<Args, Result> {
+  return contract.getFunction(name) as unknown as StaticContractMethod<Args, Result>;
+}
+
+function normalizeEvmAddress(address: string): string {
+  return address.trim().toLowerCase();
+}
+
+function parseContractUint(value: unknown, label: string): bigint {
+  if (typeof value === "bigint") {
+    if (value < 0n) {
+      throw new Error(`${label} returned a negative value.`);
+    }
+    return value;
+  }
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(`${label} returned an unsafe numeric value.`);
+    }
+    return BigInt(value);
+  }
+  if (typeof value === "string" && /^(0x[0-9a-fA-F]+|[0-9]+)$/.test(value.trim())) {
+    return BigInt(value.trim());
+  }
+  throw new Error(`${label} returned an unsupported value.`);
+}
+
+function parseContractNumber(value: unknown, label: string): number {
+  const parsed = parseContractUint(value, label);
+  if (parsed > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error(`${label} returned a value outside the supported range.`);
+  }
+  return Number(parsed);
+}
+
+function parseContractString(value: unknown, label: string): string {
+  if (typeof value !== "string") {
+    throw new Error(`${label} returned an unsupported value.`);
+  }
+  return value;
+}
+
+async function readOptionalContractString(
+  contract: Contract,
+  methodName: string,
+): Promise<string | undefined> {
+  try {
+    const value = await contractMethod<[], unknown>(contract, methodName).staticCall();
+    const normalized = parseContractString(value, methodName).trim();
+    return normalized || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function resolveErc20Decimals(
+  contract: Contract,
+  config: WalletEvmTokenConfig,
+  tokenId: string,
+): Promise<number> {
+  if (config.decimals !== undefined) {
+    if (!Number.isInteger(config.decimals) || config.decimals < 0 || config.decimals > 255) {
+      throw new Error(`wallet EVM token ${tokenId} decimals must be between 0 and 255.`);
+    }
+    return config.decimals;
+  }
+  const value = await contractMethod<[], unknown>(contract, "decimals").staticCall();
+  const decimals = parseContractNumber(value, "decimals");
+  if (decimals < 0 || decimals > 255) {
+    throw new Error(`wallet EVM token ${tokenId} decimals must be between 0 and 255.`);
+  }
+  return decimals;
+}
+
+function selectEvmAccounts(
+  accounts: readonly WalletPublicAccount[],
+  accountId?: string,
+): WalletPublicAccount[] {
+  if (accountId?.trim()) {
+    return [requireAccount(accounts, "evm", accountId)];
+  }
+  return accounts.filter((account) => account.chain === "evm");
+}
+
+export async function getWalletTokenBalances(params: {
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  config?: WalletConfig;
+}): Promise<WalletTokenBalance[]> {
+  const balances: WalletTokenBalance[] = [];
+  for (const account of selectEvmAccounts(params.accounts, params.accountId)) {
+    const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+    const tokenEntries = Object.entries(evmNetwork.tokens);
+    if (tokenEntries.length === 0) {
+      continue;
+    }
+    const provider = resolveEvmProvider(evmNetwork);
+    for (const [tokenId, tokenConfig] of tokenEntries) {
+      const contract = new Contract(tokenConfig.address, ERC20_ABI, provider);
+      const amountAtomic = parseContractUint(
+        await contractMethod<[string], unknown>(contract, "balanceOf").staticCall(account.address),
+        `EVM token ${tokenId} balanceOf`,
+      );
+      const decimals = await resolveErc20Decimals(contract, tokenConfig, tokenId);
+      const symbol =
+        tokenConfig.symbol?.trim() ||
+        (await readOptionalContractString(contract, "symbol")) ||
+        tokenId.toUpperCase();
+      const name = tokenConfig.name?.trim() || (await readOptionalContractString(contract, "name"));
+      balances.push({
+        chain: "evm",
+        accountId: account.id,
+        address: account.address,
+        network: evmNetwork.name,
+        tokenId,
+        contractAddress: tokenConfig.address,
+        asset: symbol,
+        ...(name ? { name } : {}),
+        decimals,
+        amountAtomic: amountAtomic.toString(),
+        amount: formatUnits(amountAtomic, decimals),
+      });
+    }
+  }
+  return balances;
+}
+
+async function readErc721Token(
+  contract: Contract,
+  account: WalletPublicAccount,
+  tokenId: string,
+): Promise<WalletNftToken | null> {
+  const owner = parseContractString(
+    await contractMethod<[string], unknown>(contract, "ownerOf").staticCall(tokenId),
+    `ERC-721 token ${tokenId} ownerOf`,
+  );
+  if (normalizeEvmAddress(owner) !== normalizeEvmAddress(account.address)) {
+    return null;
+  }
+  const tokenUri = await readOptionalTokenUri(contract, tokenId, "tokenURI");
+  return {
+    tokenId,
+    amount: "1",
+    ...(tokenUri ? { tokenUri } : {}),
+  };
+}
+
+async function readErc1155Token(
+  contract: Contract,
+  account: WalletPublicAccount,
+  tokenId: string,
+): Promise<WalletNftToken | null> {
+  const amount = parseContractUint(
+    await contractMethod<[string, string], unknown>(contract, "balanceOf").staticCall(
+      account.address,
+      tokenId,
+    ),
+    `ERC-1155 token ${tokenId} balanceOf`,
+  );
+  if (amount === 0n) {
+    return null;
+  }
+  const tokenUri = await readOptionalTokenUri(contract, tokenId, "uri");
+  return {
+    tokenId,
+    amount: amount.toString(),
+    ...(tokenUri ? { tokenUri } : {}),
+  };
+}
+
+async function readOptionalTokenUri(
+  contract: Contract,
+  tokenId: string,
+  methodName: "tokenURI" | "uri",
+): Promise<string | undefined> {
+  try {
+    const value = await contractMethod<[string], unknown>(contract, methodName).staticCall(tokenId);
+    const normalized = parseContractString(value, methodName).trim();
+    return normalized || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function nftAbiForStandard(standard: WalletEvmNftStandard): readonly string[] {
+  return standard === "erc1155" ? ERC1155_ABI : ERC721_ABI;
+}
+
+async function readNftCollectionBalance(params: {
+  contract: Contract;
+  account: WalletPublicAccount;
+  standard: WalletEvmNftStandard;
+  tokens: readonly WalletNftToken[];
+}): Promise<string | undefined> {
+  if (params.standard === "erc721") {
+    const balance = parseContractUint(
+      await contractMethod<[string], unknown>(params.contract, "balanceOf").staticCall(
+        params.account.address,
+      ),
+      "ERC-721 balanceOf",
+    );
+    return balance.toString();
+  }
+  if (params.tokens.length === 0) {
+    return undefined;
+  }
+  return params.tokens.reduce((sum, token) => sum + BigInt(token.amount ?? "0"), 0n).toString();
+}
+
+export async function getWalletNftCollections(params: {
+  accounts: readonly WalletPublicAccount[];
+  accountId?: string;
+  config?: WalletConfig;
+}): Promise<WalletNftCollection[]> {
+  const collections: WalletNftCollection[] = [];
+  for (const account of selectEvmAccounts(params.accounts, params.accountId)) {
+    const evmNetwork = resolveEvmNetworkForAccount(params.config?.networks?.evm, account.id);
+    const nftEntries = Object.entries(evmNetwork.nfts);
+    if (nftEntries.length === 0) {
+      continue;
+    }
+    const provider = resolveEvmProvider(evmNetwork);
+    for (const [collectionId, nftConfig] of nftEntries) {
+      const standard = nftConfig.standard ?? "erc721";
+      const contract = new Contract(nftConfig.address, nftAbiForStandard(standard), provider);
+      const tokens: WalletNftToken[] = [];
+      for (const tokenId of nftConfig.tokenIds ?? []) {
+        const token =
+          standard === "erc1155"
+            ? await readErc1155Token(contract, account, tokenId)
+            : await readErc721Token(contract, account, tokenId);
+        if (token) {
+          tokens.push(token);
+        }
+      }
+      const balance = await readNftCollectionBalance({
+        contract,
+        account,
+        standard,
+        tokens,
+      });
+      const name = nftConfig.name?.trim() || (await readOptionalContractString(contract, "name"));
+      const symbol =
+        standard === "erc721"
+          ? nftConfig.symbol?.trim() || (await readOptionalContractString(contract, "symbol"))
+          : nftConfig.symbol?.trim();
+      collections.push({
+        chain: "evm",
+        accountId: account.id,
+        address: account.address,
+        network: evmNetwork.name,
+        collectionId,
+        contractAddress: nftConfig.address,
+        standard,
+        ...(name ? { name } : {}),
+        ...(symbol ? { symbol } : {}),
+        ...(balance !== undefined ? { balance } : {}),
+        tokens,
+      });
+    }
+  }
+  return collections;
 }
 
 function unsupportedLowLevelSigningChain(chain: LocalKeystoreWalletChain): never {

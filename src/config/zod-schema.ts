@@ -255,6 +255,31 @@ const WalletChainConfigEnabledShape = {
 };
 
 const WalletDerivationPathSchema = z.string().regex(/^m(\/[0-9]+'?)+$/, "invalid derivation path");
+const WalletEvmContractAddressSchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]{40}$/, "invalid EVM contract address");
+const WalletEvmTokenIdSchema = z
+  .string()
+  .regex(/^(?:0x[0-9a-fA-F]+|[0-9]+)$/, "invalid EVM token id");
+const WalletEvmTokenSchema = z
+  .object({
+    ...WalletChainConfigEnabledShape,
+    address: WalletEvmContractAddressSchema,
+    symbol: z.string().min(1).max(32).optional(),
+    name: z.string().min(1).max(128).optional(),
+    decimals: z.number().int().min(0).max(255).optional(),
+  })
+  .strict();
+const WalletEvmNftSchema = z
+  .object({
+    ...WalletChainConfigEnabledShape,
+    address: WalletEvmContractAddressSchema,
+    standard: z.enum(["erc721", "erc1155"]).optional(),
+    name: z.string().min(1).max(128).optional(),
+    symbol: z.string().min(1).max(32).optional(),
+    tokenIds: z.array(WalletEvmTokenIdSchema).max(1024).optional(),
+  })
+  .strict();
 const WalletEvmChainShape = {
   ...WalletChainConfigEnabledShape,
   chainId: z.number().int().positive().optional(),
@@ -262,6 +287,8 @@ const WalletEvmChainShape = {
   rpcUrl: SecretInputSchema.optional().register(sensitive),
   currencySymbol: z.string().min(1).max(16).optional(),
   explorerTxUrl: z.string().url().optional(),
+  tokens: z.record(z.string().regex(/^[a-z][a-z0-9_-]{0,63}$/), WalletEvmTokenSchema).optional(),
+  nfts: z.record(z.string().regex(/^[a-z][a-z0-9_-]{0,63}$/), WalletEvmNftSchema).optional(),
 };
 const WalletEvmChainSchema = z.object(WalletEvmChainShape).strict();
 

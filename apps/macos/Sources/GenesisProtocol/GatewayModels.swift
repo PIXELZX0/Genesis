@@ -1349,6 +1349,34 @@ public struct CanvasDocumentCreateResult: Codable, Sendable {
     }
 }
 
+public struct CanvasDocumentListParams: Codable, Sendable {
+    public let limit: Int?
+
+    public init(
+        limit: Int?)
+    {
+        self.limit = limit
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case limit
+    }
+}
+
+public struct CanvasDocumentListResult: Codable, Sendable {
+    public let documents: [CanvasDocumentCreateResult]
+
+    public init(
+        documents: [CanvasDocumentCreateResult])
+    {
+        self.documents = documents
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case documents
+    }
+}
+
 public struct PushTestParams: Codable, Sendable {
     public let nodeid: String
     public let title: String?
@@ -1492,6 +1520,7 @@ public struct SessionsListParams: Codable, Sendable {
     public let includeunknown: Bool?
     public let includederivedtitles: Bool?
     public let includelastmessage: Bool?
+    public let includetranscriptusage: Bool?
     public let label: String?
     public let spawnedby: String?
     public let agentid: String?
@@ -1504,6 +1533,7 @@ public struct SessionsListParams: Codable, Sendable {
         includeunknown: Bool?,
         includederivedtitles: Bool?,
         includelastmessage: Bool?,
+        includetranscriptusage: Bool?,
         label: String?,
         spawnedby: String?,
         agentid: String?,
@@ -1515,6 +1545,7 @@ public struct SessionsListParams: Codable, Sendable {
         self.includeunknown = includeunknown
         self.includederivedtitles = includederivedtitles
         self.includelastmessage = includelastmessage
+        self.includetranscriptusage = includetranscriptusage
         self.label = label
         self.spawnedby = spawnedby
         self.agentid = agentid
@@ -1528,6 +1559,7 @@ public struct SessionsListParams: Codable, Sendable {
         case includeunknown = "includeUnknown"
         case includederivedtitles = "includeDerivedTitles"
         case includelastmessage = "includeLastMessage"
+        case includetranscriptusage = "includeTranscriptUsage"
         case label
         case spawnedby = "spawnedBy"
         case agentid = "agentId"
@@ -2585,6 +2617,136 @@ public struct WalletBalance: Codable, Sendable {
     }
 }
 
+public struct WalletTokenBalance: Codable, Sendable {
+    public let chain: String
+    public let accountid: String
+    public let address: String
+    public let network: String?
+    public let tokenid: String
+    public let contractaddress: String
+    public let asset: String
+    public let name: String?
+    public let decimals: Double
+    public let amountatomic: String
+    public let amount: String
+
+    public init(
+        chain: String,
+        accountid: String,
+        address: String,
+        network: String?,
+        tokenid: String,
+        contractaddress: String,
+        asset: String,
+        name: String?,
+        decimals: Double,
+        amountatomic: String,
+        amount: String)
+    {
+        self.chain = chain
+        self.accountid = accountid
+        self.address = address
+        self.network = network
+        self.tokenid = tokenid
+        self.contractaddress = contractaddress
+        self.asset = asset
+        self.name = name
+        self.decimals = decimals
+        self.amountatomic = amountatomic
+        self.amount = amount
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case chain
+        case accountid = "accountId"
+        case address
+        case network
+        case tokenid = "tokenId"
+        case contractaddress = "contractAddress"
+        case asset
+        case name
+        case decimals
+        case amountatomic = "amountAtomic"
+        case amount
+    }
+}
+
+public struct WalletNftToken: Codable, Sendable {
+    public let tokenid: String
+    public let amount: String?
+    public let tokenuri: String?
+
+    public init(
+        tokenid: String,
+        amount: String?,
+        tokenuri: String?)
+    {
+        self.tokenid = tokenid
+        self.amount = amount
+        self.tokenuri = tokenuri
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case tokenid = "tokenId"
+        case amount
+        case tokenuri = "tokenUri"
+    }
+}
+
+public struct WalletNftCollection: Codable, Sendable {
+    public let chain: String
+    public let accountid: String
+    public let address: String
+    public let network: String?
+    public let collectionid: String
+    public let contractaddress: String
+    public let standard: AnyCodable
+    public let name: String?
+    public let symbol: String?
+    public let balance: String?
+    public let tokens: [WalletNftToken]
+
+    public init(
+        chain: String,
+        accountid: String,
+        address: String,
+        network: String?,
+        collectionid: String,
+        contractaddress: String,
+        standard: AnyCodable,
+        name: String?,
+        symbol: String?,
+        balance: String?,
+        tokens: [WalletNftToken])
+    {
+        self.chain = chain
+        self.accountid = accountid
+        self.address = address
+        self.network = network
+        self.collectionid = collectionid
+        self.contractaddress = contractaddress
+        self.standard = standard
+        self.name = name
+        self.symbol = symbol
+        self.balance = balance
+        self.tokens = tokens
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case chain
+        case accountid = "accountId"
+        case address
+        case network
+        case collectionid = "collectionId"
+        case contractaddress = "contractAddress"
+        case standard
+        case name
+        case symbol
+        case balance
+        case tokens
+    }
+}
+
 public struct WalletRecoveryPhraseSetParams: Codable, Sendable {
     public let mode: AnyCodable
     public let passphrase: String?
@@ -2635,15 +2797,23 @@ public struct WalletRecoveryPhraseSetResult: Codable, Sendable {
 
 public struct WalletSummaryParams: Codable, Sendable {
     public let includebalances: Bool?
+    public let includetokens: Bool?
+    public let includenfts: Bool?
 
     public init(
-        includebalances: Bool?)
+        includebalances: Bool?,
+        includetokens: Bool?,
+        includenfts: Bool?)
     {
         self.includebalances = includebalances
+        self.includetokens = includetokens
+        self.includenfts = includenfts
     }
 
     private enum CodingKeys: String, CodingKey {
         case includebalances = "includeBalances"
+        case includetokens = "includeTokens"
+        case includenfts = "includeNfts"
     }
 }
 
@@ -2653,6 +2823,8 @@ public struct WalletSummaryResult: Codable, Sendable {
     public let primaryaccount: String?
     public let accounts: [WalletPublicAccount]
     public let balances: [WalletBalance]?
+    public let tokens: [WalletTokenBalance]?
+    public let nfts: [WalletNftCollection]?
     public let warnings: [String]
 
     public init(
@@ -2661,6 +2833,8 @@ public struct WalletSummaryResult: Codable, Sendable {
         primaryaccount: String?,
         accounts: [WalletPublicAccount],
         balances: [WalletBalance]?,
+        tokens: [WalletTokenBalance]?,
+        nfts: [WalletNftCollection]?,
         warnings: [String])
     {
         self.enabled = enabled
@@ -2668,6 +2842,8 @@ public struct WalletSummaryResult: Codable, Sendable {
         self.primaryaccount = primaryaccount
         self.accounts = accounts
         self.balances = balances
+        self.tokens = tokens
+        self.nfts = nfts
         self.warnings = warnings
     }
 
@@ -2677,6 +2853,8 @@ public struct WalletSummaryResult: Codable, Sendable {
         case primaryaccount = "primaryAccount"
         case accounts
         case balances
+        case tokens
+        case nfts
         case warnings
     }
 }

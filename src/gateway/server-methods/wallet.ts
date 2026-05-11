@@ -1,9 +1,12 @@
 import { loadConfig } from "../../config/config.js";
 import {
   getWalletBalanceForChain,
+  getWalletNftCollectionsForAccount,
   getWalletSummary,
+  getWalletTokenBalancesForAccount,
   setWalletRecoveryPhrase,
 } from "../../wallet/service.js";
+import type { WalletBalance, WalletNftCollection, WalletTokenBalance } from "../../wallet/types.js";
 import {
   ErrorCodes,
   errorShape,
@@ -22,24 +25,54 @@ export const walletHandlers: GatewayRequestHandlers = {
     try {
       const summary = await getWalletSummary({ config });
       if (!params.includeBalances) {
-        respond(true, summary, undefined);
-        return;
+        if (!params.includeTokens && !params.includeNfts) {
+          respond(true, summary, undefined);
+          return;
+        }
       }
-      const balances = [];
-      for (const account of summary.accounts) {
+      let balances: WalletBalance[] | undefined;
+      if (params.includeBalances) {
+        balances = [];
+        for (const account of summary.accounts) {
+          try {
+            balances.push(
+              await getWalletBalanceForChain({
+                config,
+                chain: account.chain,
+                accountId: account.id,
+              }),
+            );
+          } catch (error) {
+            summary.warnings.push(error instanceof Error ? error.message : String(error));
+          }
+        }
+      }
+      let tokens: WalletTokenBalance[] | undefined;
+      if (params.includeTokens) {
         try {
-          balances.push(
-            await getWalletBalanceForChain({
-              config,
-              chain: account.chain,
-              accountId: account.id,
-            }),
-          );
+          tokens = await getWalletTokenBalancesForAccount({ config });
         } catch (error) {
           summary.warnings.push(error instanceof Error ? error.message : String(error));
         }
       }
-      respond(true, { ...summary, balances }, undefined);
+      let nfts: WalletNftCollection[] | undefined;
+      if (params.includeNfts) {
+        try {
+          nfts = await getWalletNftCollectionsForAccount({ config });
+        } catch (error) {
+          summary.warnings.push(error instanceof Error ? error.message : String(error));
+        }
+      }
+      respond(
+        true,
+        {
+          ...summary,
+          ...(balances === undefined ? {} : { balances }),
+          ...(tokens === undefined ? {} : { tokens }),
+          ...(nfts === undefined ? {} : { nfts }),
+        },
+        undefined,
+      );
     } catch (error) {
       respond(
         false,

@@ -13,6 +13,25 @@ export type WalletBtcNetworkConfig = {
   derivationPath?: string;
 };
 
+export type WalletEvmTokenConfig = {
+  enabled?: boolean;
+  address: string;
+  symbol?: string;
+  name?: string;
+  decimals?: number;
+};
+
+export type WalletEvmNftStandard = "erc721" | "erc1155";
+
+export type WalletEvmNftConfig = {
+  enabled?: boolean;
+  address: string;
+  standard?: WalletEvmNftStandard;
+  name?: string;
+  symbol?: string;
+  tokenIds?: string[];
+};
+
 export type WalletEvmChainConfig = {
   enabled?: boolean;
   chainId?: number;
@@ -20,6 +39,8 @@ export type WalletEvmChainConfig = {
   rpcUrl?: SecretInput;
   currencySymbol?: string;
   explorerTxUrl?: string;
+  tokens?: Record<string, WalletEvmTokenConfig>;
+  nfts?: Record<string, WalletEvmNftConfig>;
 };
 
 export type WalletEvmNetworkConfig = WalletEvmChainConfig & {

@@ -211,11 +211,14 @@ import {
 import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import {
   WalletBalanceSchema,
+  WalletNftCollectionSchema,
+  WalletNftTokenSchema,
   WalletPublicAccountSchema,
   WalletRecoveryPhraseSetParamsSchema,
   WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
+  WalletTokenBalanceSchema,
 } from "./wallet.js";
 import {
   WizardCancelParamsSchema,
@@ -316,6 +319,9 @@ export const ProtocolSchemas = {
   WizardStatusResult: WizardStatusResultSchema,
   WalletPublicAccount: WalletPublicAccountSchema,
   WalletBalance: WalletBalanceSchema,
+  WalletTokenBalance: WalletTokenBalanceSchema,
+  WalletNftToken: WalletNftTokenSchema,
+  WalletNftCollection: WalletNftCollectionSchema,
   WalletRecoveryPhraseSetParams: WalletRecoveryPhraseSetParamsSchema,
   WalletRecoveryPhraseSetResult: WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParams: WalletSummaryParamsSchema,

@@ -1,8 +1,8 @@
 ---
-summary: "CLI reference for `genesis wallet` local wallet addresses, balances, quotes, signing, and guarded sends"
+summary: "CLI reference for `genesis wallet` local wallet addresses, native balances, configured EVM tokens/NFTs, quotes, signing, and guarded sends"
 read_when:
   - Managing local wallet public addresses
-  - Letting an agent inspect wallet addresses or balances through CLI JSON
+  - Letting an agent inspect wallet addresses, balances, tokens, or NFTs through CLI JSON
   - Reviewing wallet signing and send safety gates
 title: "Wallet"
 ---
@@ -75,12 +75,27 @@ genesis wallet address --chain evm
 genesis wallet address --json
 ```
 
-Balances:
+Native balances:
 
 ```bash
 genesis wallet balance --chain btc
 genesis wallet balance --chain evm --account evm:base --json
 ```
+
+Configured EVM tokens and NFT collections:
+
+```bash
+genesis wallet tokens --account evm:ethereum --json
+genesis wallet nfts --account evm:base --json
+```
+
+Token and NFT commands read the contracts configured under
+`wallet.networks.evm.chains.<chain>.tokens` and
+`wallet.networks.evm.chains.<chain>.nfts`. ERC-20 token balances use
+`balanceOf`; token metadata comes from config or from `symbol`, `name`, and
+`decimals` contract calls. ERC-721 collections can show `balanceOf` and can
+check configured `tokenIds` through `ownerOf`/`tokenURI`. ERC-1155 collections
+use configured `tokenIds` and `balanceOf(address, tokenId)`.
 
 Agents should prefer `--json` and treat the response as the stable automation
 surface.
@@ -176,6 +191,21 @@ Minimal example:
         chains: {
           ethereum: {
             rpcUrl: { source: "env", provider: "default", id: "ETH_RPC_URL" },
+            tokens: {
+              usdc: {
+                address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                symbol: "USDC",
+                name: "USD Coin",
+                decimals: 6,
+              },
+            },
+            nfts: {
+              badge: {
+                address: "0x0000000000000000000000000000000000000001",
+                standard: "erc721",
+                tokenIds: ["1"],
+              },
+            },
           },
           base: {
             rpcUrl: { source: "env", provider: "default", id: "BASE_RPC_URL" },

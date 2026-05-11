@@ -41,7 +41,9 @@ export async function loadWalletSummary(
   state.walletSummaryLoading = true;
   state.walletBalancesLoading = includeBalances;
   try {
-    const params = includeBalances ? { includeBalances: true } : {};
+    const params = includeBalances
+      ? { includeBalances: true, includeTokens: true, includeNfts: true }
+      : {};
     state.walletSummary = (await state.client.request(
       "wallet.summary",
       params,

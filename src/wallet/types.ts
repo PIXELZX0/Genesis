@@ -35,6 +35,9 @@ export type WalletSummary = {
   keystore: WalletKeystoreStatus;
   primaryAccount?: string;
   accounts: WalletPublicAccount[];
+  balances?: WalletBalance[];
+  tokens?: WalletTokenBalance[];
+  nfts?: WalletNftCollection[];
   warnings: string[];
 };
 
@@ -48,6 +51,40 @@ export type WalletBalance = {
   amount: string;
   confirmedAmountAtomic?: string;
   pendingAmountAtomic?: string;
+};
+
+export type WalletTokenBalance = {
+  chain: "evm";
+  accountId: string;
+  address: string;
+  network?: string;
+  tokenId: string;
+  contractAddress: string;
+  asset: string;
+  name?: string;
+  decimals: number;
+  amountAtomic: string;
+  amount: string;
+};
+
+export type WalletNftToken = {
+  tokenId: string;
+  amount?: string;
+  tokenUri?: string;
+};
+
+export type WalletNftCollection = {
+  chain: "evm";
+  accountId: string;
+  address: string;
+  network?: string;
+  collectionId: string;
+  contractAddress: string;
+  standard: "erc721" | "erc1155";
+  name?: string;
+  symbol?: string;
+  balance?: string;
+  tokens: WalletNftToken[];
 };
 
 export type WalletQuote = {

@@ -32,6 +32,35 @@ function createSummary(): WalletSummaryResult {
         amount: "1.25",
       },
     ],
+    tokens: [
+      {
+        chain: "evm",
+        accountId: "evm:default",
+        address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+        network: "ethereum",
+        tokenId: "usdc",
+        contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        asset: "USDC",
+        name: "USD Coin",
+        decimals: 6,
+        amountAtomic: "1500000",
+        amount: "1.5",
+      },
+    ],
+    nfts: [
+      {
+        chain: "evm",
+        accountId: "evm:default",
+        address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+        network: "ethereum",
+        collectionId: "badge",
+        contractAddress: "0x0000000000000000000000000000000000000001",
+        standard: "erc721",
+        name: "Badge",
+        balance: "1",
+        tokens: [{ tokenId: "1", amount: "1", tokenUri: "ipfs://badge/1" }],
+      },
+    ],
     warnings: [],
   };
 }
@@ -68,11 +97,16 @@ describe("wallet view", () => {
     expect(container.textContent).toContain("evm:default");
     expect(container.textContent).toContain("0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     expect(container.textContent).toContain("1.25 ETH");
+    expect(container.textContent).toContain("1.5 USDC");
+    expect(container.textContent).toContain("Badge");
+    expect(container.textContent).toContain("#1 x1");
     expect(container.textContent).toContain("Primary");
     expect(container.textContent).toContain("Secret Recovery Phrase");
     expect(container.textContent).toContain("Generate wallet");
     expect(container.textContent).not.toMatch(/private key|send/i);
     expect(container.querySelector("button[aria-label='Copy address']")).not.toBeNull();
+    expect(container.querySelector("button[aria-label='Copy token contract']")).not.toBeNull();
+    expect(container.querySelector("button[aria-label='Copy NFT contract']")).not.toBeNull();
   });
 
   it("shows the missing-keystore empty state", async () => {

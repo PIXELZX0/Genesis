@@ -3,7 +3,13 @@ import { t } from "../../i18n/index.ts";
 import type { WalletRecoveryPhraseInput, WalletRecoveryPhraseMode } from "../controllers/wallet.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
-import type { WalletBalance, WalletPublicAccount, WalletSummaryResult } from "../types.ts";
+import type {
+  WalletBalance,
+  WalletNftCollection,
+  WalletPublicAccount,
+  WalletSummaryResult,
+  WalletTokenBalance,
+} from "../types.ts";
 
 export type WalletProps = {
   connected: boolean;
@@ -211,6 +217,135 @@ function renderWalletAccounts(props: WalletProps) {
   `;
 }
 
+function renderToken(token: WalletTokenBalance) {
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">
+          ${token.asset} ${token.name ? html`<span class="chip">${token.name}</span>` : nothing}
+        </div>
+        <div class="list-sub">
+          ${t("wallet.accounts.accountId")}: <span class="mono">${token.accountId}</span>
+          ${token.network ? html` | ${t("wallet.accounts.network")}: ${token.network}` : nothing}
+        </div>
+        <div
+          class="mono"
+          title=${token.contractAddress}
+          style="margin-top: 8px; font-size: 12px; overflow-wrap: anywhere;"
+        >
+          ${token.contractAddress}
+        </div>
+      </div>
+      <div class="list-meta">
+        <div>
+          <div class="stat-label">${t("wallet.tokens.balance")}</div>
+          <div class="mono" style="margin-top: 6px;">${token.amount} ${token.asset}</div>
+        </div>
+        <button
+          class="btn btn--icon"
+          title=${t("wallet.tokens.copyContract")}
+          aria-label=${t("wallet.tokens.copyContract")}
+          @click=${() => copyText(token.contractAddress)}
+        >
+          ${icons.copy}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderWalletTokens(props: WalletProps) {
+  const tokens = props.summary?.tokens;
+  const loadingText = props.balancesLoading ? t("common.loading") : null;
+  const emptyText =
+    tokens === undefined ? t("wallet.tokens.refreshHint") : t("wallet.tokens.empty");
+  return html`
+    <section class="card">
+      <div class="card-title">${t("wallet.tokens.title")}</div>
+      <div class="card-sub">${t("wallet.tokens.subtitle")}</div>
+      <div class="list" style="margin-top: 16px;">
+        ${loadingText
+          ? html`<div class="callout">${loadingText}</div>`
+          : tokens && tokens.length > 0
+            ? tokens.map(renderToken)
+            : html`<div class="callout">${emptyText}</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function nftCollectionLabel(collection: WalletNftCollection): string {
+  return collection.name ?? collection.symbol ?? collection.collectionId;
+}
+
+function renderNftCollection(collection: WalletNftCollection) {
+  const tokenText =
+    collection.tokens.length === 0
+      ? t("wallet.nfts.noTrackedTokens")
+      : collection.tokens
+          .map((token) => `#${token.tokenId}${token.amount ? ` x${token.amount}` : ""}`)
+          .join(", ");
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">
+          ${nftCollectionLabel(collection)}
+          <span class="chip">${collection.standard.toUpperCase()}</span>
+        </div>
+        <div class="list-sub">
+          ${t("wallet.accounts.accountId")}: <span class="mono">${collection.accountId}</span>
+          ${collection.network
+            ? html` | ${t("wallet.accounts.network")}: ${collection.network}`
+            : nothing}
+        </div>
+        <div
+          class="mono"
+          title=${collection.contractAddress}
+          style="margin-top: 8px; font-size: 12px; overflow-wrap: anywhere;"
+        >
+          ${collection.contractAddress}
+        </div>
+        <div class="chip-row" style="margin-top: 10px;">
+          <span class="chip">${t("wallet.nfts.tokens")}: ${tokenText}</span>
+        </div>
+      </div>
+      <div class="list-meta">
+        <div>
+          <div class="stat-label">${t("wallet.nfts.balance")}</div>
+          <div class="mono" style="margin-top: 6px;">${collection.balance ?? t("common.na")}</div>
+        </div>
+        <button
+          class="btn btn--icon"
+          title=${t("wallet.nfts.copyContract")}
+          aria-label=${t("wallet.nfts.copyContract")}
+          @click=${() => copyText(collection.contractAddress)}
+        >
+          ${icons.copy}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderWalletNfts(props: WalletProps) {
+  const nfts = props.summary?.nfts;
+  const loadingText = props.balancesLoading ? t("common.loading") : null;
+  const emptyText = nfts === undefined ? t("wallet.nfts.refreshHint") : t("wallet.nfts.empty");
+  return html`
+    <section class="card">
+      <div class="card-title">${t("wallet.nfts.title")}</div>
+      <div class="card-sub">${t("wallet.nfts.subtitle")}</div>
+      <div class="list" style="margin-top: 16px;">
+        ${loadingText
+          ? html`<div class="callout">${loadingText}</div>`
+          : nfts && nfts.length > 0
+            ? nfts.map(renderNftCollection)
+            : html`<div class="callout">${emptyText}</div>`}
+      </div>
+    </section>
+  `;
+}
+
 function formValue(data: FormData, key: string): string {
   const value = data.get(key);
   return typeof value === "string" ? value : "";
@@ -392,6 +527,6 @@ function renderRecoveryPhraseManager(props: WalletProps) {
 export function renderWallet(props: WalletProps) {
   return html`
     ${renderWalletStatus(props)} ${renderRecoveryPhraseManager(props)}
-    ${renderWalletAccounts(props)}
+    ${renderWalletAccounts(props)} ${renderWalletTokens(props)} ${renderWalletNfts(props)}
   `;
 }

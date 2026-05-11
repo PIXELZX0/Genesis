@@ -18183,6 +18183,105 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     format: "uri",
                     title: "EVM Explorer Transaction URL",
                   },
+                  tokens: {
+                    type: "object",
+                    propertyNames: {
+                      type: "string",
+                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                    },
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                          title: "EVM Token Enabled",
+                        },
+                        address: {
+                          type: "string",
+                          pattern: "^0x[0-9a-fA-F]{40}$",
+                          title: "EVM Token Contract Address",
+                          description: "EVM token contract address used for balanceOf calls.",
+                        },
+                        symbol: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 32,
+                          title: "EVM Token Symbol",
+                        },
+                        name: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 128,
+                          title: "EVM Token Name",
+                        },
+                        decimals: {
+                          type: "integer",
+                          minimum: 0,
+                          maximum: 255,
+                          title: "EVM Token Decimals",
+                        },
+                      },
+                      required: ["address"],
+                      additionalProperties: false,
+                    },
+                    title: "EVM Token Watchlist",
+                    description:
+                      "Legacy single-chain ERC-20 token watchlist. Prefer wallet.networks.evm.chains.<chain>.tokens for multi-chain setups.",
+                  },
+                  nfts: {
+                    type: "object",
+                    propertyNames: {
+                      type: "string",
+                      pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                    },
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                          title: "EVM NFT Collection Enabled",
+                        },
+                        address: {
+                          type: "string",
+                          pattern: "^0x[0-9a-fA-F]{40}$",
+                          title: "EVM NFT Contract Address",
+                          description:
+                            "NFT contract address used for balance and ownership checks.",
+                        },
+                        standard: {
+                          type: "string",
+                          enum: ["erc721", "erc1155"],
+                          title: "EVM NFT Standard",
+                        },
+                        name: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 128,
+                          title: "EVM NFT Collection Name",
+                        },
+                        symbol: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 32,
+                          title: "EVM NFT Symbol",
+                        },
+                        tokenIds: {
+                          maxItems: 1024,
+                          type: "array",
+                          items: {
+                            type: "string",
+                            pattern: "^(?:0x[0-9a-fA-F]+|[0-9]+)$",
+                          },
+                          title: "EVM NFT Token IDs",
+                        },
+                      },
+                      required: ["address"],
+                      additionalProperties: false,
+                    },
+                    title: "EVM NFT Watchlist",
+                    description:
+                      "Legacy single-chain ERC-721 or ERC-1155 NFT watchlist. Prefer wallet.networks.evm.chains.<chain>.nfts for multi-chain setups.",
+                  },
                   derivationPath: {
                     type: "string",
                     pattern: "^m(\\/[0-9]+'?)+$",
@@ -18291,6 +18390,109 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           type: "string",
                           format: "uri",
                           title: "EVM Chain Explorer Transaction URL",
+                        },
+                        tokens: {
+                          type: "object",
+                          propertyNames: {
+                            type: "string",
+                            pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                          },
+                          additionalProperties: {
+                            type: "object",
+                            properties: {
+                              enabled: {
+                                type: "boolean",
+                                title: "EVM Token Enabled",
+                              },
+                              address: {
+                                type: "string",
+                                pattern: "^0x[0-9a-fA-F]{40}$",
+                                title: "EVM Token Contract Address",
+                                description: "EVM token contract address used for balanceOf calls.",
+                              },
+                              symbol: {
+                                type: "string",
+                                minLength: 1,
+                                maxLength: 32,
+                                title: "EVM Token Symbol",
+                              },
+                              name: {
+                                type: "string",
+                                minLength: 1,
+                                maxLength: 128,
+                                title: "EVM Token Name",
+                              },
+                              decimals: {
+                                type: "integer",
+                                minimum: 0,
+                                maximum: 255,
+                                title: "EVM Token Decimals",
+                                description:
+                                  "Token decimals. Omit to read decimals() from the token contract.",
+                              },
+                            },
+                            required: ["address"],
+                            additionalProperties: false,
+                          },
+                          title: "EVM Token Watchlist",
+                          description:
+                            "Configured ERC-20-compatible token contracts to show in wallet summaries, keyed by a stable token id such as usdc.",
+                        },
+                        nfts: {
+                          type: "object",
+                          propertyNames: {
+                            type: "string",
+                            pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                          },
+                          additionalProperties: {
+                            type: "object",
+                            properties: {
+                              enabled: {
+                                type: "boolean",
+                                title: "EVM NFT Collection Enabled",
+                              },
+                              address: {
+                                type: "string",
+                                pattern: "^0x[0-9a-fA-F]{40}$",
+                                title: "EVM NFT Contract Address",
+                                description:
+                                  "NFT contract address used for balance and ownership checks.",
+                              },
+                              standard: {
+                                type: "string",
+                                enum: ["erc721", "erc1155"],
+                                title: "EVM NFT Standard",
+                              },
+                              name: {
+                                type: "string",
+                                minLength: 1,
+                                maxLength: 128,
+                                title: "EVM NFT Collection Name",
+                              },
+                              symbol: {
+                                type: "string",
+                                minLength: 1,
+                                maxLength: 32,
+                                title: "EVM NFT Symbol",
+                              },
+                              tokenIds: {
+                                maxItems: 1024,
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                  pattern: "^(?:0x[0-9a-fA-F]+|[0-9]+)$",
+                                },
+                                title: "EVM NFT Token IDs",
+                                description:
+                                  "Optional token ids to check for ownership. ERC-721 collections can still show collection balance without token ids; ERC-1155 needs token ids for per-token balances.",
+                              },
+                            },
+                            required: ["address"],
+                            additionalProperties: false,
+                          },
+                          title: "EVM NFT Watchlist",
+                          description:
+                            "Configured ERC-721 or ERC-1155 NFT collections to show in wallet summaries, keyed by a stable collection id.",
                         },
                       },
                       additionalProperties: false,
@@ -25510,6 +25712,64 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "EVM Explorer Transaction URL",
       tags: ["advanced"],
     },
+    "wallet.networks.evm.tokens": {
+      label: "EVM Token Watchlist",
+      help: "Legacy single-chain ERC-20 token watchlist. Prefer wallet.networks.evm.chains.<chain>.tokens for multi-chain setups.",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.tokens.*.enabled": {
+      label: "EVM Token Enabled",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.tokens.*.address": {
+      label: "EVM Token Contract Address",
+      help: "EVM token contract address used for balanceOf calls.",
+      placeholder: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.tokens.*.symbol": {
+      label: "EVM Token Symbol",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.tokens.*.name": {
+      label: "EVM Token Name",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.tokens.*.decimals": {
+      label: "EVM Token Decimals",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.nfts": {
+      label: "EVM NFT Watchlist",
+      help: "Legacy single-chain ERC-721 or ERC-1155 NFT watchlist. Prefer wallet.networks.evm.chains.<chain>.nfts for multi-chain setups.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.enabled": {
+      label: "EVM NFT Collection Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.address": {
+      label: "EVM NFT Contract Address",
+      help: "NFT contract address used for balance and ownership checks.",
+      placeholder: "0x0000000000000000000000000000000000000000",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.standard": {
+      label: "EVM NFT Standard",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.name": {
+      label: "EVM NFT Collection Name",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.symbol": {
+      label: "EVM NFT Symbol",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.nfts.*.tokenIds": {
+      label: "EVM NFT Token IDs",
+      tags: ["security", "auth"],
+    },
     "wallet.networks.evm.chains": {
       label: "EVM Wallet Chains",
       help: "Optional EVM chain overrides keyed by chain id slug. Built-in ethereum, base, and monad entries are enabled by default and can be overridden or disabled here.",
@@ -25541,6 +25801,66 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "wallet.networks.evm.chains.*.explorerTxUrl": {
       label: "EVM Chain Explorer Transaction URL",
       tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.tokens": {
+      label: "EVM Token Watchlist",
+      help: "Configured ERC-20-compatible token contracts to show in wallet summaries, keyed by a stable token id such as usdc.",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.tokens.*.enabled": {
+      label: "EVM Token Enabled",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.tokens.*.address": {
+      label: "EVM Token Contract Address",
+      help: "EVM token contract address used for balanceOf calls.",
+      placeholder: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.tokens.*.symbol": {
+      label: "EVM Token Symbol",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.tokens.*.name": {
+      label: "EVM Token Name",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.tokens.*.decimals": {
+      label: "EVM Token Decimals",
+      help: "Token decimals. Omit to read decimals() from the token contract.",
+      tags: ["security", "auth"],
+    },
+    "wallet.networks.evm.chains.*.nfts": {
+      label: "EVM NFT Watchlist",
+      help: "Configured ERC-721 or ERC-1155 NFT collections to show in wallet summaries, keyed by a stable collection id.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.enabled": {
+      label: "EVM NFT Collection Enabled",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.address": {
+      label: "EVM NFT Contract Address",
+      help: "NFT contract address used for balance and ownership checks.",
+      placeholder: "0x0000000000000000000000000000000000000000",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.standard": {
+      label: "EVM NFT Standard",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.name": {
+      label: "EVM NFT Collection Name",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.symbol": {
+      label: "EVM NFT Symbol",
+      tags: ["advanced"],
+    },
+    "wallet.networks.evm.chains.*.nfts.*.tokenIds": {
+      label: "EVM NFT Token IDs",
+      help: "Optional token ids to check for ownership. ERC-721 collections can still show collection balance without token ids; ERC-1155 needs token ids for per-token balances.",
+      tags: ["security", "auth"],
     },
     "wallet.networks.sol": {
       label: "Solana Wallet Network",

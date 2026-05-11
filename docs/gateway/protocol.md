@@ -445,7 +445,8 @@ enumeration of `src/gateway/server-methods/*.ts`.
 - Operators may call `skills.search` and `skills.detail` (`operator.read`) for
   ClawHub discovery metadata.
 - Operators may call `wallet.summary` (`operator.read`) to fetch public wallet
-  metadata and optional balances. Operators may call
+  metadata plus optional native balances, configured EVM token balances, and
+  configured EVM NFT collection holdings. Operators may call
   `wallet.recoveryPhrase.set` (`operator.admin`) to generate or import the one
   BIP39 recovery phrase used for every local keystore chain account. The
   optional `passphrase` field can be omitted. The generate path returns the new

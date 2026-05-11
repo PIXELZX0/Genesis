@@ -1,7 +1,16 @@
-import { Transaction as EvmTransaction, recoverAddress, verifyMessage } from "ethers";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  AbiCoder,
+  Transaction as EvmTransaction,
+  ZeroAddress,
+  recoverAddress,
+  verifyMessage,
+} from "ethers";
 import { describe, expect, it } from "vitest";
 import {
   derivePublicAccounts,
+  getWalletNftCollections,
+  getWalletTokenBalances,
   resolveEvmNetworks,
   signWalletDigestPayload,
   signWalletMessagePayload,
@@ -10,6 +19,81 @@ import {
 
 const MNEMONIC =
   "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+const TEST_EVM_ADDRESS = "0x9858EfFD232B4033E47d90003D41EC34EcaEda94";
+const TEST_ERC20_CONTRACT = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const TEST_ERC721_CONTRACT = "0x0000000000000000000000000000000000000001";
+
+async function readRequestBody(request: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function withJsonRpcServer<T>(
+  handler: (method: string, params: unknown[] | Record<string, unknown>) => unknown,
+  run: (url: string) => Promise<T>,
+): Promise<T> {
+  const server = createServer((request: IncomingMessage, response: ServerResponse) => {
+    void (async () => {
+      const body = await readRequestBody(request);
+      const payload = JSON.parse(body) as
+        | { id: number; method: string; params: unknown[] | Record<string, unknown> }
+        | Array<{ id: number; method: string; params: unknown[] | Record<string, unknown> }>;
+      const requests = Array.isArray(payload) ? payload : [payload];
+      const results = requests.map((entry) => ({
+        jsonrpc: "2.0",
+        id: entry.id,
+        result: handler(entry.method, entry.params),
+      }));
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify(Array.isArray(payload) ? results : results[0]));
+    })().catch((error: unknown) => {
+      response.writeHead(500, { "content-type": "text/plain" });
+      response.end(error instanceof Error ? error.message : String(error));
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("test JSON-RPC server did not bind to a TCP port");
+  }
+  try {
+    return await run(`http://127.0.0.1:${address.port}`);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+  }
+}
+
+function jsonRpcAssetHandler(method: string, params: unknown[] | Record<string, unknown>) {
+  const abi = AbiCoder.defaultAbiCoder();
+  if (method === "eth_chainId") {
+    return "0x1";
+  }
+  if (method !== "eth_call" || !Array.isArray(params)) {
+    throw new Error(`unexpected JSON-RPC method ${method}`);
+  }
+  const call = params[0] as { to?: string; data?: string };
+  const to = call.to?.toLowerCase();
+  const data = call.data?.toLowerCase() ?? "";
+  if (to === TEST_ERC20_CONTRACT.toLowerCase() && data.startsWith("0x70a08231")) {
+    return abi.encode(["uint256"], [1_500_000n]);
+  }
+  if (to === TEST_ERC721_CONTRACT.toLowerCase() && data.startsWith("0x70a08231")) {
+    return abi.encode(["uint256"], [1n]);
+  }
+  if (to === TEST_ERC721_CONTRACT.toLowerCase() && data.startsWith("0x6352211e")) {
+    const tokenId = BigInt(`0x${data.slice(-64)}`);
+    return abi.encode(["address"], [tokenId === 1n ? TEST_EVM_ADDRESS : ZeroAddress]);
+  }
+  if (to === TEST_ERC721_CONTRACT.toLowerCase() && data.startsWith("0xc87b56dd")) {
+    return abi.encode(["string"], ["ipfs://badge/1"]);
+  }
+  throw new Error(`unexpected eth_call to ${to ?? "missing"} with ${data}`);
+}
 
 describe("wallet chain derivation", () => {
   it("derives deterministic public addresses for local keystore chains", async () => {
@@ -86,6 +170,103 @@ describe("wallet chain derivation", () => {
         rpcUrl: "https://rpc.monad.xyz",
       },
     ]);
+  });
+
+  it("reads configured EVM token balances and NFT holdings", async () => {
+    await withJsonRpcServer(jsonRpcAssetHandler, async (rpcUrl) => {
+      const accounts = await derivePublicAccounts({
+        mnemonic: MNEMONIC,
+        config: {
+          networks: {
+            evm: {
+              chains: {
+                ethereum: {
+                  rpcUrl,
+                  tokens: {
+                    usdc: {
+                      address: TEST_ERC20_CONTRACT,
+                      symbol: "USDC",
+                      name: "USD Coin",
+                      decimals: 6,
+                    },
+                  },
+                  nfts: {
+                    badge: {
+                      address: TEST_ERC721_CONTRACT,
+                      standard: "erc721",
+                      name: "Badge",
+                      tokenIds: ["1", "2"],
+                    },
+                  },
+                },
+                base: { enabled: false },
+                monad: { enabled: false },
+              },
+            },
+          },
+        },
+      });
+      const config = {
+        networks: {
+          evm: {
+            chains: {
+              ethereum: {
+                rpcUrl,
+                tokens: {
+                  usdc: {
+                    address: TEST_ERC20_CONTRACT,
+                    symbol: "USDC",
+                    name: "USD Coin",
+                    decimals: 6,
+                  },
+                },
+                nfts: {
+                  badge: {
+                    address: TEST_ERC721_CONTRACT,
+                    standard: "erc721" as const,
+                    name: "Badge",
+                    tokenIds: ["1", "2"],
+                  },
+                },
+              },
+              base: { enabled: false },
+              monad: { enabled: false },
+            },
+          },
+        },
+      };
+
+      await expect(getWalletTokenBalances({ accounts, config })).resolves.toEqual([
+        {
+          chain: "evm",
+          accountId: "evm:ethereum",
+          address: TEST_EVM_ADDRESS,
+          network: "ethereum",
+          tokenId: "usdc",
+          contractAddress: TEST_ERC20_CONTRACT,
+          asset: "USDC",
+          name: "USD Coin",
+          decimals: 6,
+          amountAtomic: "1500000",
+          amount: "1.5",
+        },
+      ]);
+
+      await expect(getWalletNftCollections({ accounts, config })).resolves.toEqual([
+        {
+          chain: "evm",
+          accountId: "evm:ethereum",
+          address: TEST_EVM_ADDRESS,
+          network: "ethereum",
+          collectionId: "badge",
+          contractAddress: TEST_ERC721_CONTRACT,
+          standard: "erc721",
+          name: "Badge",
+          balance: "1",
+          tokens: [{ tokenId: "1", amount: "1", tokenUri: "ipfs://badge/1" }],
+        },
+      ]);
+    });
   });
 
   it("signs EVM messages, digests, and raw transactions from wallet accounts", async () => {

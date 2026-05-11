@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WalletState } from "./wallet.ts";
-import { setWalletRecoveryPhrase } from "./wallet.ts";
+import { loadWalletSummary, setWalletRecoveryPhrase } from "./wallet.ts";
 
 function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState } {
   const request = vi.fn();
@@ -24,6 +24,29 @@ function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState 
 }
 
 describe("setWalletRecoveryPhrase", () => {
+  it("requests native balances, tokens, and NFTs during a full wallet refresh", async () => {
+    const { request, state } = createState();
+    request.mockResolvedValue({
+      enabled: true,
+      keystore: { exists: true, locked: true },
+      accounts: [],
+      balances: [],
+      tokens: [],
+      nfts: [],
+      warnings: [],
+    });
+
+    await loadWalletSummary(state, { includeBalances: true });
+
+    expect(request).toHaveBeenCalledWith("wallet.summary", {
+      includeBalances: true,
+      includeTokens: true,
+      includeNfts: true,
+    });
+    expect(state.walletSummary?.tokens).toEqual([]);
+    expect(state.walletSummary?.nfts).toEqual([]);
+  });
+
   it("validates generated passphrase confirmation before sending secret material", async () => {
     const { request, state } = createState();
 

@@ -17,6 +17,8 @@ import {
   validateTalkRealtimeSessionParams,
   validateWakeParams,
   validateWalletRecoveryPhraseSetParams,
+  validateWalletSummaryParams,
+  validateWalletSummaryResult,
 } from "./index.js";
 
 const makeError = (overrides: Partial<ErrorObject>): ErrorObject => ({
@@ -297,6 +299,59 @@ describe("validateWalletRecoveryPhraseSetParams", () => {
         privateKey: "not accepted",
       }),
     ).toBe(false);
+  });
+});
+
+describe("validateWalletSummaryParams", () => {
+  it("accepts optional token and NFT asset refresh flags", () => {
+    expect(
+      validateWalletSummaryParams({
+        includeBalances: true,
+        includeTokens: true,
+        includeNfts: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("accepts wallet summary token and NFT result payloads", () => {
+    expect(
+      validateWalletSummaryResult({
+        enabled: true,
+        keystore: { exists: true, locked: true },
+        accounts: [],
+        balances: [],
+        tokens: [
+          {
+            chain: "evm",
+            accountId: "evm:ethereum",
+            address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+            network: "ethereum",
+            tokenId: "usdc",
+            contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            asset: "USDC",
+            name: "USD Coin",
+            decimals: 6,
+            amountAtomic: "1500000",
+            amount: "1.5",
+          },
+        ],
+        nfts: [
+          {
+            chain: "evm",
+            accountId: "evm:ethereum",
+            address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+            network: "ethereum",
+            collectionId: "badge",
+            contractAddress: "0x0000000000000000000000000000000000000001",
+            standard: "erc721",
+            name: "Badge",
+            balance: "1",
+            tokens: [{ tokenId: "1", amount: "1", tokenUri: "ipfs://badge/1" }],
+          },
+        ],
+        warnings: [],
+      }),
+    ).toBe(true);
   });
 });
 

@@ -8,6 +8,8 @@ import {
   expandEvmPublicAccounts,
   generateWalletMnemonic,
   getWalletBalance,
+  getWalletNftCollections,
+  getWalletTokenBalances,
   isLocalKeystoreWalletChain,
   quoteWalletSend,
   resolveEvmNetworks,
@@ -26,6 +28,7 @@ import type {
   LocalKeystoreWalletChain,
   WalletBalance,
   WalletBroadcastResult,
+  WalletNftCollection,
   WalletPrivatePayload,
   WalletPublicAccount,
   WalletQuote,
@@ -33,6 +36,7 @@ import type {
   WalletSignatureResult,
   WalletSignedRawTransaction,
   WalletSummary,
+  WalletTokenBalance,
 } from "./types.js";
 import { getXmrAddress, getXmrBalance, quoteXmrSend, sendXmrTransaction } from "./xmr-rpc.js";
 
@@ -286,6 +290,36 @@ export async function getWalletBalanceForChain(
     chain: params.chain,
     accountId: params.accountId,
     accounts,
+    config,
+  });
+}
+
+export async function getWalletTokenBalancesForAccount(
+  params: WalletServiceOptions & {
+    accountId?: string;
+  } = {},
+): Promise<WalletTokenBalance[]> {
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, "evm");
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return getWalletTokenBalances({
+    accounts,
+    accountId: params.accountId,
+    config,
+  });
+}
+
+export async function getWalletNftCollectionsForAccount(
+  params: WalletServiceOptions & {
+    accountId?: string;
+  } = {},
+): Promise<WalletNftCollection[]> {
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, "evm");
+  const accounts = await getWalletAccounts({ config, env: params.env });
+  return getWalletNftCollections({
+    accounts,
+    accountId: params.accountId,
     config,
   });
 }

@@ -6,7 +6,9 @@ import {
   broadcastWalletRawTransaction,
   getWalletAccounts,
   getWalletBalanceForChain,
+  getWalletNftCollectionsForAccount,
   getWalletSummary,
+  getWalletTokenBalancesForAccount,
   importWallet,
   initWallet,
   quoteWalletTransaction,
@@ -286,6 +288,63 @@ export function registerWalletCommand(program: Command) {
           defaultRuntime.log(
             `${balance.chain} ${balance.address}: ${balance.amount} ${balance.asset}`,
           );
+        });
+      });
+    });
+
+  wallet
+    .command("tokens")
+    .description("Fetch configured EVM token balances")
+    .option("--account <id>", "Wallet EVM account id")
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const tokens = await getWalletTokenBalancesForAccount({ accountId: opts.account });
+        writeMaybeJson(opts, { tokens }, () => {
+          if (tokens.length === 0) {
+            defaultRuntime.log(theme.muted("No configured EVM token balances found."));
+            return;
+          }
+          for (const token of tokens) {
+            const name = token.name ? ` ${theme.muted(`(${token.name})`)}` : "";
+            defaultRuntime.log(
+              `${theme.command(token.network ?? "evm")} ${token.asset}: ${token.amount}${name}`,
+            );
+            defaultRuntime.log(
+              theme.muted(`  ${token.accountId} ${token.contractAddress} ${token.address}`),
+            );
+          }
+        });
+      });
+    });
+
+  wallet
+    .command("nfts")
+    .description("Fetch configured EVM NFT collection holdings")
+    .option("--account <id>", "Wallet EVM account id")
+    .option("--json", "Output JSON instead of text", false)
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        const nfts = await getWalletNftCollectionsForAccount({ accountId: opts.account });
+        writeMaybeJson(opts, { nfts }, () => {
+          if (nfts.length === 0) {
+            defaultRuntime.log(theme.muted("No configured EVM NFT holdings found."));
+            return;
+          }
+          for (const collection of nfts) {
+            const label = collection.name ?? collection.symbol ?? collection.collectionId;
+            const balance = collection.balance ? ` balance=${collection.balance}` : "";
+            defaultRuntime.log(`${theme.command(collection.network ?? "evm")} ${label}${balance}`);
+            defaultRuntime.log(
+              theme.muted(
+                `  ${collection.accountId} ${collection.standard} ${collection.contractAddress}`,
+              ),
+            );
+            for (const token of collection.tokens) {
+              const amount = token.amount ? ` x${token.amount}` : "";
+              defaultRuntime.log(theme.muted(`  #${token.tokenId}${amount}`));
+            }
+          }
         });
       });
     });

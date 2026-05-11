@@ -683,10 +683,29 @@ export const FIELD_HELP: Record<string, string> = {
     "EVM wallet settings for JSON-RPC balance, quote, and native currency transfers. Defaults include Ethereum, Base, and Monad public RPC endpoints when no legacy single-chain EVM RPC is configured.",
   "wallet.networks.evm.rpcUrl":
     "Legacy HTTP JSON-RPC endpoint for a single configured EVM chain. Omit this to use the built-in public endpoint when the legacy chain is Ethereum, Base, or Monad, or use wallet.networks.evm.chains for per-chain overrides.",
+  "wallet.networks.evm.tokens":
+    "Legacy single-chain ERC-20 token watchlist. Prefer wallet.networks.evm.chains.<chain>.tokens for multi-chain setups.",
+  "wallet.networks.evm.tokens.*.address": "EVM token contract address used for balanceOf calls.",
+  "wallet.networks.evm.nfts":
+    "Legacy single-chain ERC-721 or ERC-1155 NFT watchlist. Prefer wallet.networks.evm.chains.<chain>.nfts for multi-chain setups.",
+  "wallet.networks.evm.nfts.*.address":
+    "NFT contract address used for balance and ownership checks.",
   "wallet.networks.evm.chains":
     "Optional EVM chain overrides keyed by chain id slug. Built-in ethereum, base, and monad entries are enabled by default and can be overridden or disabled here.",
   "wallet.networks.evm.chains.*.rpcUrl":
     "HTTP JSON-RPC endpoint for this EVM chain. Public defaults are rate-limited; use a private endpoint or secret-backed value for production or high-volume use.",
+  "wallet.networks.evm.chains.*.tokens":
+    "Configured ERC-20-compatible token contracts to show in wallet summaries, keyed by a stable token id such as usdc.",
+  "wallet.networks.evm.chains.*.tokens.*.address":
+    "EVM token contract address used for balanceOf calls.",
+  "wallet.networks.evm.chains.*.tokens.*.decimals":
+    "Token decimals. Omit to read decimals() from the token contract.",
+  "wallet.networks.evm.chains.*.nfts":
+    "Configured ERC-721 or ERC-1155 NFT collections to show in wallet summaries, keyed by a stable collection id.",
+  "wallet.networks.evm.chains.*.nfts.*.address":
+    "NFT contract address used for balance and ownership checks.",
+  "wallet.networks.evm.chains.*.nfts.*.tokenIds":
+    "Optional token ids to check for ownership. ERC-721 collections can still show collection balance without token ids; ERC-1155 needs token ids for per-token balances.",
   "wallet.networks.sol": "Solana wallet settings for RPC balance lookup and native SOL transfers.",
   "wallet.networks.sol.rpcUrl":
     "Solana JSON-RPC endpoint. Defaults to the configured cluster public endpoint when omitted.",
