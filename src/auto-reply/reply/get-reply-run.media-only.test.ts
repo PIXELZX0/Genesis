@@ -501,7 +501,7 @@ describe("runPreparedReply media-only handling", () => {
     expect(call?.followupRun.prompt).toContain("[User sent media without caption]");
   });
 
-  it("does not send a standalone reset notice for reply-producing /new turns", async () => {
+  it("leaves hard reset announcements to reset command hooks", async () => {
     await runPreparedReply(
       baseParams({
         ctx: {

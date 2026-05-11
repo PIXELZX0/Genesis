@@ -513,6 +513,7 @@ export async function getReplyFromConfig(
       sessionEntry,
       previousSessionEntry,
       workspaceDir,
+      announceNewSession: command.softResetTriggered !== true,
     });
   };
 

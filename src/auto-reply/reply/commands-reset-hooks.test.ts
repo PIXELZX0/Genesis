@@ -172,6 +172,35 @@ describe("handleCommands reset hooks", () => {
     }
   });
 
+  it("announces hard session resets before the startup reply", async () => {
+    const params = buildResetParams("/new", {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as GenesisConfig);
+
+    await maybeHandleResetCommand(params);
+
+    expect(routeReplyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: { text: "✅ New session started." },
+        channel: "whatsapp",
+        to: "sender",
+        sessionKey: "agent:main:main",
+      }),
+    );
+  });
+
+  it("does not announce soft reset turns as new sessions", async () => {
+    const params = buildResetParams("/reset soft", {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as GenesisConfig);
+
+    await maybeHandleResetCommand(params);
+
+    expect(routeReplyMock).not.toHaveBeenCalled();
+  });
+
   it("uses gateway session reset for bound ACP sessions", async () => {
     resetMocks.resolveBoundAcpThreadSessionKey.mockReturnValue(
       "agent:claude:acp:binding:discord:default:9373ab192b2317f4",
@@ -255,6 +284,7 @@ describe("handleCommands reset hooks", () => {
 
     expect(routeReplyMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        payload: { text: "✅ New session started.\n\nReset hook says hi" },
         requesterSenderId: "id:whatsapp:123",
         requesterSenderName: "Alice",
         requesterSenderUsername: "alice_u",

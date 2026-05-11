@@ -14,6 +14,7 @@ function loadRouteReplyRuntime() {
 }
 
 export type ResetCommandAction = "new" | "reset";
+const NEW_SESSION_STARTED_NOTICE = "✅ New session started.";
 
 function parseTranscriptMessages(content: string): unknown[] {
   const messages: unknown[] = [];
@@ -104,6 +105,7 @@ export async function emitResetCommandHooks(params: {
   sessionEntry?: HandleCommandsParams["sessionEntry"];
   previousSessionEntry?: HandleCommandsParams["previousSessionEntry"];
   workspaceDir: string;
+  announceNewSession?: boolean;
 }): Promise<void> {
   const hookEvent = createInternalHookEvent("command", params.action, params.sessionKey ?? "", {
     sessionEntry: params.sessionEntry,
@@ -116,13 +118,17 @@ export async function emitResetCommandHooks(params: {
   await triggerInternalHook(hookEvent);
   params.command.resetHookTriggered = true;
 
-  if (hookEvent.messages.length > 0) {
+  const messages = [
+    ...(params.announceNewSession ? [NEW_SESSION_STARTED_NOTICE] : []),
+    ...hookEvent.messages,
+  ];
+  if (messages.length > 0) {
     const channel = params.ctx.OriginatingChannel || params.command.channel;
     const to = params.ctx.OriginatingTo || params.command.from || params.command.to;
     if (channel && to) {
       const { routeReply } = await loadRouteReplyRuntime();
       await routeReply({
-        payload: { text: hookEvent.messages.join("\n\n") },
+        payload: { text: messages.join("\n\n") },
         channel,
         to,
         sessionKey: params.sessionKey,

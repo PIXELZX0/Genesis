@@ -161,6 +161,7 @@ export async function maybeHandleResetCommand(
     sessionEntry: targetSessionEntry,
     previousSessionEntry: params.previousSessionEntry,
     workspaceDir: params.workspaceDir,
+    announceNewSession: true,
   });
   return null;
 }
