@@ -103,6 +103,11 @@ Skill Workshop writes only to `<workspace>/skills`, scans generated content,
 supports pending approval or automatic safe writes, quarantines unsafe
 proposals, and refreshes the skill snapshot after successful writes so new
 skills can become available without a Gateway restart.
+Its LLM reviewer follows the Hermes Agent self-improvement shape: update a
+loaded or existing class-level skill first, add concise support files under
+`references/`, `templates/`, or `scripts/` when detail is too bulky for
+`SKILL.md`, and create a new class-level skill only when no existing umbrella
+fits.
 
 Use it when you want corrections such as “next time, verify GIF attribution” or
 hard-won workflows such as media QA checklists to become durable procedural

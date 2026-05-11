@@ -687,6 +687,111 @@ describe("skill-workshop", () => {
     );
   });
 
+  it("uses the reviewer to propose support files under existing umbrella skills", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    await fs.mkdir(path.join(workspaceDir, "skills", "provider-debugging"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspaceDir, "skills", "provider-debugging", "SKILL.md"),
+      "---\nname: provider-debugging\ndescription: Provider debugging workflow.\n---\n\n## Workflow\n\n- Preserve the minimized repro.\n",
+    );
+    const runEmbeddedPiAgent = vi.fn(async (_params: { prompt?: string }) => ({
+      payloads: [
+        {
+          text: JSON.stringify({
+            action: "support_file",
+            skillName: "provider-debugging",
+            title: "Provider Debugging Evidence",
+            reason: "The turn found reusable timeout evidence that is too detailed for SKILL.md.",
+            relativePath: "references/provider-timeouts.md",
+            pointerSection: "Supporting Files",
+            pointerText: "- See `references/provider-timeouts.md` for timeout evidence patterns.",
+            body: "Use the provider request id and retry window to separate transient 429s from malformed payloads.",
+          }),
+        },
+      ],
+      meta: {},
+    }));
+    const api = createTestPluginApi({
+      runtime: {
+        agent: {
+          defaults: { provider: "openai", model: "gpt-5.4" },
+          resolveAgentDir: () => path.join(workspaceDir, ".agent"),
+          runEmbeddedPiAgent,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+    });
+
+    const proposal = await reviewTranscriptForProposal({
+      api,
+      config: {
+        enabled: true,
+        autoCapture: true,
+        approvalPolicy: "pending",
+        reviewMode: "llm",
+        reviewInterval: 1,
+        reviewMinToolCalls: 1,
+        reviewComplexTurnMinToolCalls: 5,
+        reviewTimeoutMs: 5_000,
+        maxPending: 50,
+        maxSkillBytes: 40_000,
+      },
+      ctx: { agentId: "main", workspaceDir },
+      messages: [{ role: "user", content: "Debug a provider timeout with reusable evidence." }],
+    });
+
+    expect(proposal).toMatchObject({
+      source: "reviewer",
+      skillName: "provider-debugging",
+      change: {
+        kind: "support_file",
+        relativePath: "references/provider-timeouts.md",
+      },
+    });
+    const prompt = runEmbeddedPiAgent.mock.calls[0]?.[0]?.prompt ?? "";
+    expect(prompt).toContain("Preference order");
+    expect(prompt).toContain("support_file");
+  });
+
+  it("applies support-file proposals and points the skill at the new file", async () => {
+    const workspaceDir = await makeTempDir();
+    await fs.mkdir(path.join(workspaceDir, "skills", "provider-debugging"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspaceDir, "skills", "provider-debugging", "SKILL.md"),
+      "---\nname: provider-debugging\ndescription: Provider debugging workflow.\n---\n\n## Workflow\n\n- Preserve the minimized repro.\n",
+    );
+    const proposal = createProposal(workspaceDir, {
+      skillName: "provider-debugging",
+      change: {
+        kind: "support_file",
+        relativePath: "references/provider-timeouts.md",
+        pointerText: "- See `references/provider-timeouts.md` before triaging provider timeouts.",
+        body: "Capture request ids, retry-after headers, and payload shape before changing code.",
+      },
+    });
+
+    await applyProposalToWorkspace({ proposal, maxSkillBytes: 40_000 });
+
+    await expect(
+      fs.readFile(
+        path.join(
+          workspaceDir,
+          "skills",
+          "provider-debugging",
+          "references",
+          "provider-timeouts.md",
+        ),
+        "utf8",
+      ),
+    ).resolves.toContain("retry-after headers");
+    await expect(
+      fs.readFile(path.join(workspaceDir, "skills", "provider-debugging", "SKILL.md"), "utf8"),
+    ).resolves.toContain("references/provider-timeouts.md");
+  });
+
   it("runs reviewer after threshold and queues the proposal", async () => {
     const workspaceDir = await makeTempDir();
     const stateDir = await makeTempDir();

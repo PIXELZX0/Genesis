@@ -49,6 +49,22 @@ function skillPath(workspaceDir: string, skillName: string): string {
   return path.join(skillDir(workspaceDir, skillName), "SKILL.md");
 }
 
+function supportFilePath(workspaceDir: string, skillName: string, relativePath: string): string {
+  const root = skillDir(workspaceDir, skillName);
+  const parts = relativePath.split(/[\\/]+/).filter(Boolean);
+  if (parts.length < 2 || !SUPPORT_DIRS.has(parts[0])) {
+    throw new Error(`support file path must start with ${Array.from(SUPPORT_DIRS).join(", ")}`);
+  }
+  if (parts.some((part) => part === "." || part === "..")) {
+    throw new Error("support file path escapes skill directory");
+  }
+  const target = path.resolve(root, ...parts);
+  if (!target.startsWith(`${root}${path.sep}`)) {
+    throw new Error("support file path escapes skill directory");
+  }
+  return target;
+}
+
 async function pathExists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath);
@@ -104,11 +120,15 @@ export async function prepareProposalWrite(params: {
   content: string;
   created: boolean;
   findings: SkillScanFinding[];
+  supportFilePath?: string;
+  supportFileContent?: string;
 }> {
   const name = assertValidSkillName(params.proposal.skillName);
   const target = skillPath(params.proposal.workspaceDir, name);
   const exists = await pathExists(target);
   let next: string;
+  let targetSupportFilePath: string | undefined;
+  let targetSupportFileContent: string | undefined;
   const change = params.proposal.change;
   if (change.kind === "create") {
     next = exists
@@ -123,7 +143,7 @@ export async function prepareProposalWrite(params: {
           body: "# Workflow\n",
         });
     next = appendSection(current, change.section, change.body);
-  } else {
+  } else if (change.kind === "replace") {
     if (!exists) {
       throw new Error(`skill does not exist: ${name}`);
     }
@@ -132,10 +152,38 @@ export async function prepareProposalWrite(params: {
       throw new Error("oldText not found");
     }
     next = current.replace(change.oldText, change.newText);
+  } else {
+    if (!exists) {
+      throw new Error(`skill does not exist: ${name}`);
+    }
+    targetSupportFilePath = supportFilePath(
+      params.proposal.workspaceDir,
+      name,
+      change.relativePath,
+    );
+    targetSupportFileContent = `${change.body.trimEnd()}\n`;
+    if (!targetSupportFileContent.trim()) {
+      throw new Error("support file body required");
+    }
+    ensureBodyUnderLimit(targetSupportFileContent, params.maxSkillBytes);
+    const current = await fs.readFile(target, "utf8");
+    const pointerText =
+      change.pointerText?.trim() || `- See \`${change.relativePath}\` for supporting details.`;
+    next = appendSection(current, change.pointerSection ?? "Supporting Files", pointerText);
   }
   ensureBodyUnderLimit(next, params.maxSkillBytes);
-  const findings = scanSkillContent(next);
-  return { skillPath: target, content: next, created: !exists, findings };
+  const findings = [
+    ...scanSkillContent(next),
+    ...(targetSupportFileContent ? scanSkillContent(targetSupportFileContent) : []),
+  ];
+  return {
+    skillPath: target,
+    content: next,
+    created: !exists,
+    findings,
+    ...(targetSupportFilePath ? { supportFilePath: targetSupportFilePath } : {}),
+    ...(targetSupportFileContent ? { supportFileContent: targetSupportFileContent } : {}),
+  };
 }
 
 export async function applyProposalToWorkspace(params: {
@@ -144,11 +192,17 @@ export async function applyProposalToWorkspace(params: {
 }): Promise<{ skillPath: string; created: boolean; findings: SkillScanFinding[] }> {
   const prepared = await prepareProposalWrite(params);
   assertSkillContentSafe(prepared.content);
+  if (prepared.supportFileContent) {
+    assertSkillContentSafe(prepared.supportFileContent);
+  }
+  if (prepared.supportFilePath && prepared.supportFileContent) {
+    await atomicWrite(prepared.supportFilePath, prepared.supportFileContent);
+  }
   await atomicWrite(prepared.skillPath, prepared.content);
   bumpSkillsSnapshotVersion({
     workspaceDir: params.proposal.workspaceDir,
     reason: "manual",
-    changedPath: prepared.skillPath,
+    changedPath: prepared.supportFilePath ?? prepared.skillPath,
   });
   return { skillPath: prepared.skillPath, created: prepared.created, findings: prepared.findings };
 }
@@ -161,22 +215,16 @@ export async function writeSupportFile(params: {
   maxBytes: number;
 }): Promise<string> {
   const name = assertValidSkillName(params.skillName);
-  const parts = params.relativePath.split(/[\\/]+/).filter(Boolean);
-  if (parts.length < 2 || !SUPPORT_DIRS.has(parts[0])) {
-    throw new Error(`support file path must start with ${Array.from(SUPPORT_DIRS).join(", ")}`);
-  }
-  if (parts.some((part) => part === "." || part === "..")) {
-    throw new Error("support file path escapes skill directory");
-  }
   if (Buffer.byteLength(params.content, "utf8") > params.maxBytes) {
     throw new Error(`support file exceeds ${params.maxBytes} bytes`);
   }
   assertSkillContentSafe(params.content);
-  const root = skillDir(params.workspaceDir, name);
-  const target = path.resolve(root, ...parts);
-  if (!target.startsWith(`${root}${path.sep}`)) {
-    throw new Error("support file path escapes skill directory");
-  }
+  const target = supportFilePath(params.workspaceDir, name, params.relativePath);
   await atomicWrite(target, `${params.content.trimEnd()}\n`);
+  bumpSkillsSnapshotVersion({
+    workspaceDir: params.workspaceDir,
+    reason: "manual",
+    changedPath: target,
+  });
   return target;
 }

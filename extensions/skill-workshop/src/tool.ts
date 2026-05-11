@@ -24,6 +24,7 @@ type ToolParams = {
   oldText?: string;
   newText?: string;
   relativePath?: string;
+  pointerText?: string;
   apply?: boolean;
 };
 
@@ -53,6 +54,19 @@ function buildProposal(params: {
       throw new Error("oldText and newText required for replace");
     }
     change = { kind: "replace", oldText, newText };
+  } else if (readString(params.raw.relativePath)) {
+    if (!body) {
+      throw new Error("body required");
+    }
+    change = {
+      kind: "support_file",
+      relativePath: readString(params.raw.relativePath) ?? "",
+      body,
+      ...(readString(params.raw.section) ? { pointerSection: readString(params.raw.section) } : {}),
+      ...(readString(params.raw.pointerText)
+        ? { pointerText: readString(params.raw.pointerText) }
+        : {}),
+    };
   } else if (readString(params.raw.section)) {
     if (!body) {
       throw new Error("body required");
@@ -92,7 +106,7 @@ export function createSkillWorkshopTool(params: {
     name: "skill_workshop",
     label: "Skill Workshop",
     description:
-      "Create, queue, inspect, approve, or safely apply workspace skill updates for repeatable workflows.",
+      "Create, queue, inspect, approve, or safely apply workspace skill updates and support files for repeatable workflows.",
     parameters: Type.Object({
       action: Type.String({
         enum: [
@@ -119,6 +133,7 @@ export function createSkillWorkshopTool(params: {
       oldText: Type.Optional(Type.String()),
       newText: Type.Optional(Type.String()),
       relativePath: Type.Optional(Type.String()),
+      pointerText: Type.Optional(Type.String()),
       apply: Type.Optional(Type.Boolean()),
     }),
     async execute(_toolCallId: string, rawParams: Record<string, unknown>) {

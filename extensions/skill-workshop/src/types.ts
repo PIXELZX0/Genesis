@@ -16,6 +16,13 @@ export type SkillChange =
       kind: "replace";
       oldText: string;
       newText: string;
+    }
+  | {
+      kind: "support_file";
+      relativePath: string;
+      body: string;
+      pointerSection?: string;
+      pointerText?: string;
     };
 
 export type SkillProposal = {

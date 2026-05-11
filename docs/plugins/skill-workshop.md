@@ -229,7 +229,13 @@ The reviewer has no tools:
 - `toolsAllow: []`
 - `disableMessageTool: true`
 
-The reviewer returns either `{ "action": "none" }` or one proposal. The `action` field is `create`, `append`, or `replace` — prefer `append`/`replace` when a relevant skill already exists; use `create` only when no existing skill fits.
+The reviewer returns either `{ "action": "none" }` or one proposal. The
+`action` field is `create`, `append`, `replace`, or `support_file` — prefer
+`append`/`replace` when a relevant skill already exists; use `support_file` for
+reusable detail that belongs under an existing umbrella; use `create` only when
+no existing skill fits. This mirrors the Hermes Agent loop's preference for
+class-level skills with supporting files instead of one-session-one-skill
+entries.
 
 Example `create`:
 
@@ -245,6 +251,24 @@ Example `create`:
 ```
 
 `append` adds `section` + `body`. `replace` swaps `oldText` for `newText` in the named skill.
+`support_file` writes `body` to `relativePath` under `references/`,
+`templates/`, `scripts/`, or `assets/`, then appends `pointerText` to
+`SKILL.md` under `pointerSection` (default: `Supporting Files`).
+
+Example `support_file`:
+
+```json
+{
+  "action": "support_file",
+  "skillName": "provider-debugging",
+  "title": "Provider Timeout Evidence",
+  "reason": "The turn found reusable provider timeout triage detail.",
+  "relativePath": "references/provider-timeouts.md",
+  "pointerSection": "Supporting Files",
+  "pointerText": "- See `references/provider-timeouts.md` before triaging provider timeouts.",
+  "body": "Capture request ids, retry-after headers, and payload shape before changing code."
+}
+```
 
 ## Proposal lifecycle
 

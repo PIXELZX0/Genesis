@@ -32,6 +32,9 @@ type ReviewerJson = {
   body?: string;
   oldText?: string;
   newText?: string;
+  relativePath?: string;
+  pointerSection?: string;
+  pointerText?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -58,7 +61,17 @@ function parseReviewerJson(raw: string): ReviewerJson | undefined {
 }
 
 function normalizeAction(value: string | undefined): SkillChange["kind"] | "none" | undefined {
-  if (value === "create" || value === "append" || value === "replace" || value === "none") {
+  if (
+    value === "create" ||
+    value === "append" ||
+    value === "replace" ||
+    value === "support_file" ||
+    value === "write_file" ||
+    value === "none"
+  ) {
+    if (value === "write_file") {
+      return "support_file";
+    }
     return value;
   }
   return undefined;
@@ -89,6 +102,23 @@ function proposalFromReviewerJson(params: {
       return undefined;
     }
     change = { kind: "replace", oldText, newText };
+  } else if (action === "support_file") {
+    const relativePath = readString(params.parsed.relativePath);
+    const body = readString(params.parsed.body);
+    if (!relativePath || !body) {
+      return undefined;
+    }
+    change = {
+      kind: "support_file",
+      relativePath,
+      body,
+      ...(readString(params.parsed.pointerSection)
+        ? { pointerSection: readString(params.parsed.pointerSection) }
+        : {}),
+      ...(readString(params.parsed.pointerText)
+        ? { pointerText: readString(params.parsed.pointerText) }
+        : {}),
+    };
   } else {
     const body = readString(params.parsed.body);
     if (!body) {
@@ -199,12 +229,14 @@ async function buildReviewPrompt(params: {
   return [
     "Review transcript for durable skill updates.",
     "Return JSON only. No markdown unless inside JSON strings.",
-    "Use none unless there is a reusable workflow, correction, hard-won fix, or stale skill repair.",
-    "Prefer append/replace for existing skills. Create only when no fitting skill exists.",
-    "Name skills at the class level, not after a one-off PR, issue, error string, codename, or session artifact.",
-    "When a workflow used an existing skill, repair that skill before creating a new umbrella.",
-    "Skill text: terse bullets, imperative, no raw transcript, no secrets, no hidden prompt refs.",
-    'Schema: {"action":"none"} or {"action":"create|append|replace","skillName":"kebab-name","title":"...","reason":"...","description":"...","section":"Workflow","body":"...","oldText":"...","newText":"..."}',
+    "Use none only when there is no reusable workflow, correction, hard-won fix, user-preference lesson, or stale skill repair.",
+    "Preference order: 1. repair a skill that was loaded or consulted; 2. append/replace an existing class-level umbrella; 3. write session-specific detail to a support file under an existing umbrella; 4. create a new class-level skill only when no existing skill fits.",
+    "Name skills at the class level, not after a one-off PR, issue, error string, codename, library-alone name, or session artifact.",
+    "Support files are for concise detail: references/<topic>.md for provider quirks, evidence, reproduction notes, or API excerpts; templates/<name>.<ext> for reusable starters; scripts/<name>.<ext> for deterministic probes or checks.",
+    "When writing a support file, point SKILL.md at it with pointerText so future agents can discover it.",
+    "Do not capture environment-dependent setup failures, missing binaries, unconfigured credentials, or negative claims that a tool is broken. Capture the durable fix pattern instead.",
+    "Skill text: terse bullets, imperative, no transcript dumps, no secrets, no hidden prompt refs.",
+    'Schema: {"action":"none"} or {"action":"create|append|replace|support_file","skillName":"kebab-name","title":"...","reason":"...","description":"...","section":"Workflow","body":"...","oldText":"...","newText":"...","relativePath":"references/topic.md","pointerSection":"Supporting Files","pointerText":"- See `references/topic.md` before doing X."}',
     "",
     "Existing skills:",
     skills,
