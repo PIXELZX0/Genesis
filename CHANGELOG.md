@@ -2,10 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
-## 2026.5.10-4
+## 2026.5.10-5
+
+### Changes
+
+- Skill Workshop: extend the Hermes-style self-improvement reviewer so it can store reusable session detail in skill support files and link them from existing workspace skills.
+- Control UI: manage nodes from the Nodes tab with rename, advertised command invocation, shell runs, update/status presets, node service restart, and executable discovery.
+- Wallet: show configured EVM token balances and NFT collection holdings in the CLI, Gateway summary, and Control UI.
 
 ### Fixes
 
+- Sessions: send `✅ New session started.` before the startup reply for hard `/new` and `/reset` commands.
 - Skills: disabling or enabling a skill now updates only the persisted skill entry and no longer injects runtime-only gateway auth overrides that could trigger an unnecessary gateway restart.
 
 ## 2026.5.10-3
