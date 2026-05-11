@@ -126,8 +126,11 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Skills: status, enable/disable, ClawHub search/browse/install, dependency installs, API key updates (`skills.*`)
 - Plugins: status, enable/disable, uninstall, and ClawHub search/browse/install
   (`plugins.*`)
-- Wallet: dedicated Control tab with public addresses, balance refresh, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; passphrases are optional, generated phrases are shown once, and existing phrases/private keys/passphrases/send controls are not exposed
-- Nodes: list + caps (`node.list`)
+- Wallet: dedicated Control tab with public addresses, native balance refresh, configured EVM token balances, configured EVM NFT holdings, warnings, config navigation from read-only `wallet.summary`, and admin-scoped secret recovery phrase create/import through `wallet.recoveryPhrase.set`; passphrases are optional, generated phrases are shown once, and existing phrases/private keys/passphrases/send controls are not exposed
+- Nodes: list + caps (`node.list`), rename (`node.rename`), invoke advertised
+  node commands (`node.invoke`), run node-host shell commands through
+  `system.run`, find executables with `system.which`, and use update/status/node
+  restart presets backed by the same node command policy and exec approvals
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
 - Config: view/edit `~/.genesis/genesis.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session

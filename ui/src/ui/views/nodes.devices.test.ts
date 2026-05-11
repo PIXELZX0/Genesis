@@ -7,6 +7,16 @@ function baseProps(overrides: Partial<NodesProps> = {}): NodesProps {
   return {
     loading: false,
     nodes: [],
+    nodeManagementSelectedId: null,
+    nodeManagementRename: "",
+    nodeManagementCommand: "",
+    nodeManagementParams: "{\n}",
+    nodeManagementShell: "genesis --version",
+    nodeManagementCwd: "",
+    nodeManagementTimeoutMs: "120000",
+    nodeManagementBusy: false,
+    nodeManagementError: null,
+    nodeManagementResult: null,
     devicesLoading: false,
     devicesError: null,
     devicesList: {
@@ -27,6 +37,17 @@ function baseProps(overrides: Partial<NodesProps> = {}): NodesProps {
     execApprovalsTarget: "gateway",
     execApprovalsTargetNodeId: null,
     onRefresh: () => undefined,
+    onNodeManagementSelect: () => undefined,
+    onNodeManagementRenameChange: () => undefined,
+    onNodeManagementCommandChange: () => undefined,
+    onNodeManagementParamsChange: () => undefined,
+    onNodeManagementShellChange: () => undefined,
+    onNodeManagementCwdChange: () => undefined,
+    onNodeManagementTimeoutChange: () => undefined,
+    onNodeManagementRename: () => undefined,
+    onNodeManagementInvoke: () => undefined,
+    onNodeManagementRunShell: () => undefined,
+    onNodeManagementPreset: () => undefined,
     onDevicesRefresh: () => undefined,
     onDeviceApprove: () => undefined,
     onDeviceReject: () => undefined,
@@ -53,6 +74,29 @@ function renderNodesText(overrides: Partial<NodesProps>): string {
 }
 
 describe("nodes devices pending rendering", () => {
+  it("shows node management controls for runnable node commands", () => {
+    const text = renderNodesText({
+      nodes: [
+        {
+          nodeId: "node-1",
+          displayName: "Build Box",
+          connected: true,
+          paired: true,
+          commands: ["system.run", "system.which", "device.status"],
+        },
+      ],
+      nodeManagementSelectedId: "node-1",
+      nodeManagementRename: "Build Box",
+      nodeManagementCommand: "device.status",
+      nodeManagementParams: "{\n}",
+    });
+
+    expect(text).toContain("Node Management");
+    expect(text).toContain("Update Status");
+    expect(text).toContain("Shell Command");
+    expect(text).toContain("device.status");
+  });
+
   it("shows requested and approved access for a scope upgrade", () => {
     const text = renderNodesText({
       devicesList: {

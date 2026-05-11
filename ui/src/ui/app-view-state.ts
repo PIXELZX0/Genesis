@@ -115,6 +115,16 @@ export type AppViewState = {
   chatManualRefreshInFlight: boolean;
   nodesLoading: boolean;
   nodes: Array<Record<string, unknown>>;
+  nodeManagementSelectedId: string | null;
+  nodeManagementRename: string;
+  nodeManagementCommand: string;
+  nodeManagementParams: string;
+  nodeManagementShell: string;
+  nodeManagementCwd: string;
+  nodeManagementTimeoutMs: string;
+  nodeManagementBusy: boolean;
+  nodeManagementError: string | null;
+  nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null;
   chatNewMessagesBelow: boolean;
   navDrawerOpen: boolean;
   sidebarOpen: boolean;

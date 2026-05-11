@@ -1,9 +1,20 @@
 import type { DevicePairingList } from "../controllers/devices.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "../controllers/exec-approvals.ts";
+import type { NodeManagementPreset, NodeManagementResult } from "../controllers/nodes.ts";
 
 export type NodesProps = {
   loading: boolean;
   nodes: Array<Record<string, unknown>>;
+  nodeManagementSelectedId: string | null;
+  nodeManagementRename: string;
+  nodeManagementCommand: string;
+  nodeManagementParams: string;
+  nodeManagementShell: string;
+  nodeManagementCwd: string;
+  nodeManagementTimeoutMs: string;
+  nodeManagementBusy: boolean;
+  nodeManagementError: string | null;
+  nodeManagementResult: NodeManagementResult | null;
   devicesLoading: boolean;
   devicesError: string | null;
   devicesList: DevicePairingList | null;
@@ -21,6 +32,17 @@ export type NodesProps = {
   execApprovalsTarget: "gateway" | "node";
   execApprovalsTargetNodeId: string | null;
   onRefresh: () => void;
+  onNodeManagementSelect: (nodeId: string) => void;
+  onNodeManagementRenameChange: (value: string) => void;
+  onNodeManagementCommandChange: (command: string) => void;
+  onNodeManagementParamsChange: (value: string) => void;
+  onNodeManagementShellChange: (value: string) => void;
+  onNodeManagementCwdChange: (value: string) => void;
+  onNodeManagementTimeoutChange: (value: string) => void;
+  onNodeManagementRename: () => void;
+  onNodeManagementInvoke: () => void;
+  onNodeManagementRunShell: () => void;
+  onNodeManagementPreset: (preset: NodeManagementPreset) => void;
   onDevicesRefresh: () => void;
   onDeviceApprove: (requestId: string) => void;
   onDeviceReject: (requestId: string) => void;

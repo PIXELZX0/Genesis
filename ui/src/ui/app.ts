@@ -232,6 +232,17 @@ export class GenesisApp extends LitElement {
 
   @state() nodesLoading = false;
   @state() nodes: Array<Record<string, unknown>> = [];
+  @state() nodeManagementSelectedId: string | null = null;
+  @state() nodeManagementRename = "";
+  @state() nodeManagementCommand = "";
+  @state() nodeManagementParams = "{\n}";
+  @state() nodeManagementShell = "genesis --version";
+  @state() nodeManagementCwd = "";
+  @state() nodeManagementTimeoutMs = "120000";
+  @state() nodeManagementBusy = false;
+  @state() nodeManagementError: string | null = null;
+  @state() nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null =
+    null;
   @state() devicesLoading = false;
   @state() devicesError: string | null = null;
   @state() devicesList: DevicePairingList | null = null;

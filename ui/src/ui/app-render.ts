@@ -96,7 +96,15 @@ import {
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
-import { loadNodes } from "./controllers/nodes.ts";
+import {
+  invokeSelectedNodeCommand,
+  loadNodes,
+  renameSelectedNode,
+  runSelectedNodePreset,
+  runSelectedNodeShellCommand,
+  selectNodeForManagement,
+  updateNodeManagementCommand,
+} from "./controllers/nodes.ts";
 import {
   closePluginClawHubDetail,
   installPluginFromClawHub,
@@ -2394,6 +2402,16 @@ export function renderApp(state: AppViewState) {
               m.renderNodes({
                 loading: state.nodesLoading,
                 nodes: state.nodes,
+                nodeManagementSelectedId: state.nodeManagementSelectedId,
+                nodeManagementRename: state.nodeManagementRename,
+                nodeManagementCommand: state.nodeManagementCommand,
+                nodeManagementParams: state.nodeManagementParams,
+                nodeManagementShell: state.nodeManagementShell,
+                nodeManagementCwd: state.nodeManagementCwd,
+                nodeManagementTimeoutMs: state.nodeManagementTimeoutMs,
+                nodeManagementBusy: state.nodeManagementBusy,
+                nodeManagementError: state.nodeManagementError,
+                nodeManagementResult: state.nodeManagementResult,
                 devicesLoading: state.devicesLoading,
                 devicesError: state.devicesError,
                 devicesList: state.devicesList,
@@ -2413,6 +2431,28 @@ export function renderApp(state: AppViewState) {
                 execApprovalsTarget: state.execApprovalsTarget,
                 execApprovalsTargetNodeId: state.execApprovalsTargetNodeId,
                 onRefresh: () => loadNodes(state),
+                onNodeManagementSelect: (nodeId) => selectNodeForManagement(state, nodeId),
+                onNodeManagementRenameChange: (value) => {
+                  state.nodeManagementRename = value;
+                },
+                onNodeManagementCommandChange: (command) =>
+                  updateNodeManagementCommand(state, command),
+                onNodeManagementParamsChange: (value) => {
+                  state.nodeManagementParams = value;
+                },
+                onNodeManagementShellChange: (value) => {
+                  state.nodeManagementShell = value;
+                },
+                onNodeManagementCwdChange: (value) => {
+                  state.nodeManagementCwd = value;
+                },
+                onNodeManagementTimeoutChange: (value) => {
+                  state.nodeManagementTimeoutMs = value;
+                },
+                onNodeManagementRename: () => renameSelectedNode(state),
+                onNodeManagementInvoke: () => invokeSelectedNodeCommand(state),
+                onNodeManagementRunShell: () => runSelectedNodeShellCommand(state),
+                onNodeManagementPreset: (preset) => runSelectedNodePreset(state, preset),
                 onDevicesRefresh: () => loadDevices(state),
                 onDeviceApprove: (requestId) => approveDevicePairing(state, requestId),
                 onDeviceReject: (requestId) => rejectDevicePairing(state, requestId),

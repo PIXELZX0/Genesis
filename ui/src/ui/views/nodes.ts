@@ -6,7 +6,8 @@ import {
 } from "../../../../src/shared/device-pairing-access.js";
 import { t } from "../../i18n/index.ts";
 import type { DeviceTokenSummary, PairedDevice, PendingDevice } from "../controllers/devices.ts";
-import { formatRelativeTimestamp, formatList } from "../format.ts";
+import { formatRelativeTimestamp, formatList, formatUnknownText } from "../format.ts";
+import { icons } from "../icons.ts";
 import { normalizeOptionalString } from "../string-coerce.ts";
 import { renderExecApprovals, resolveExecApprovalsState } from "./nodes-exec-approvals.ts";
 import { resolveConfigAgents, resolveNodeTargets, type NodeTargetOption } from "./nodes-shared.ts";
@@ -17,24 +18,362 @@ export function renderNodes(props: NodesProps) {
   const bindingState = resolveBindingsState(props);
   const approvalsState = resolveExecApprovalsState(props);
   return html`
+    ${renderNodeInventory(props)} ${renderNodeManagement(props)}
     ${renderExecApprovals(approvalsState)} ${renderBindings(bindingState)} ${renderDevices(props)}
+  `;
+}
+
+function renderNodeInventory(props: NodesProps) {
+  return html` <section class="card">
+    <div class="row" style="justify-content: space-between;">
+      <div>
+        <div class="card-title">Nodes</div>
+        <div class="card-sub">Paired devices and live links.</div>
+      </div>
+      <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+        ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
+      </button>
+    </div>
+    <div class="list" style="margin-top: 16px;">
+      ${props.nodes.length === 0
+        ? html` <div class="muted">No nodes found.</div> `
+        : props.nodes.map((n) => renderNode(n, props))}
+    </div>
+  </section>`;
+}
+
+function renderNodeManagement(props: NodesProps) {
+  const selected = resolveSelectedNode(props);
+  const nodeId = selected ? getNodeId(selected) : props.nodeManagementSelectedId;
+  const commands = selected ? getNodeCommands(selected) : [];
+  const commandOptions = commands.filter(
+    (command) =>
+      command !== "system.execApprovals.get" &&
+      command !== "system.execApprovals.set" &&
+      command !== "system.run.prepare",
+  );
+  const supportsSystemRun = commands.includes("system.run");
+  const supportsSystemWhich = commands.includes("system.which");
+  const busy = props.nodeManagementBusy;
+  return html`
     <section class="card">
-      <div class="row" style="justify-content: space-between;">
+      <div class="row" style="justify-content: space-between; align-items: center;">
         <div>
-          <div class="card-title">Nodes</div>
-          <div class="card-sub">Paired devices and live links.</div>
+          <div class="card-title">Node Management</div>
+          <div class="card-sub">Rename nodes, run advertised commands, and operate node hosts.</div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
+        <label class="field" style="min-width: min(320px, 100%);">
+          <span>Node</span>
+          <select
+            ?disabled=${busy || props.nodes.length === 0}
+            @change=${(event: Event) => {
+              const target = event.target as HTMLSelectElement;
+              props.onNodeManagementSelect(target.value);
+            }}
+          >
+            ${props.nodes.map((node) => {
+              const id = getNodeId(node);
+              if (!id) {
+                return nothing;
+              }
+              return html`<option value=${id} ?selected=${id === nodeId}>
+                ${getNodeTitle(node)}
+              </option>`;
+            })}
+          </select>
+        </label>
       </div>
-      <div class="list" style="margin-top: 16px;">
-        ${props.nodes.length === 0
-          ? html` <div class="muted">No nodes found.</div> `
-          : props.nodes.map((n) => renderNode(n))}
-      </div>
+
+      ${props.nodeManagementError
+        ? html`<div class="callout danger" style="margin-top: 12px;">
+            ${props.nodeManagementError}
+          </div>`
+        : nothing}
+      ${!selected
+        ? html`<div class="muted" style="margin-top: 16px;">No node selected.</div>`
+        : html`
+            <div class="list" style="margin-top: 16px;">
+              ${renderNodeRenameControls(props, selected)}
+              ${renderNodePresetControls({
+                busy,
+                supportsSystemRun,
+                supportsSystemWhich,
+                props,
+              })}
+              ${renderNodeShellControls({ busy, supportsSystemRun, props })}
+              ${renderNodeCommandControls({ busy, commandOptions, props })}
+              ${renderNodeManagementResult(props)}
+            </div>
+          `}
     </section>
   `;
+}
+
+function renderNodeRenameControls(props: NodesProps, node: Record<string, unknown>) {
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">Display Name</div>
+        <div class="list-sub">${getNodeId(node) ?? ""}</div>
+      </div>
+      <div class="list-meta" style="min-width: min(420px, 100%);">
+        <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+          <input
+            style="min-width: min(260px, 100%);"
+            .value=${props.nodeManagementRename}
+            ?disabled=${props.nodeManagementBusy}
+            @input=${(event: Event) =>
+              props.onNodeManagementRenameChange((event.target as HTMLInputElement).value)}
+          />
+          <button
+            class="btn btn--sm"
+            ?disabled=${props.nodeManagementBusy || !props.nodeManagementRename.trim()}
+            @click=${props.onNodeManagementRename}
+          >
+            ${icons.edit} Rename
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNodePresetControls(params: {
+  busy: boolean;
+  supportsSystemRun: boolean;
+  supportsSystemWhich: boolean;
+  props: NodesProps;
+}) {
+  const { busy, supportsSystemRun, supportsSystemWhich, props } = params;
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">Host Operations</div>
+        <div class="list-sub">Update status, update, restart, and executable discovery.</div>
+      </div>
+      <div class="list-meta">
+        <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+          ${renderPresetButton("which-genesis", "Find CLI", supportsSystemWhich, busy, props)}
+          ${renderPresetButton("update-status", "Update Status", supportsSystemRun, busy, props)}
+          ${renderPresetButton("update-run", "Update", supportsSystemRun, busy, props, true)}
+          ${renderPresetButton(
+            "restart-service",
+            "Restart Node",
+            supportsSystemRun,
+            busy,
+            props,
+            true,
+          )}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPresetButton(
+  preset: Parameters<NodesProps["onNodeManagementPreset"]>[0],
+  label: string,
+  enabled: boolean,
+  busy: boolean,
+  props: NodesProps,
+  danger = false,
+) {
+  return html`
+    <button
+      class="btn btn--sm ${danger ? "danger" : ""}"
+      ?disabled=${busy || !enabled}
+      @click=${() => props.onNodeManagementPreset(preset)}
+    >
+      ${preset === "which-genesis" ? icons.search : icons.refresh} ${label}
+    </button>
+  `;
+}
+
+function renderNodeShellControls(params: {
+  busy: boolean;
+  supportsSystemRun: boolean;
+  props: NodesProps;
+}) {
+  const { busy, supportsSystemRun, props } = params;
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">Shell Command</div>
+        <div class="list-sub">Runs through <code>system.run</code> on the selected node.</div>
+      </div>
+      <div class="list-meta" style="min-width: min(560px, 100%);">
+        <div style="display: grid; gap: 8px;">
+          <textarea
+            rows="3"
+            spellcheck="false"
+            .value=${props.nodeManagementShell}
+            ?disabled=${busy || !supportsSystemRun}
+            @input=${(event: Event) =>
+              props.onNodeManagementShellChange((event.target as HTMLTextAreaElement).value)}
+          ></textarea>
+          <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+            <input
+              placeholder="cwd"
+              style="min-width: 180px;"
+              .value=${props.nodeManagementCwd}
+              ?disabled=${busy || !supportsSystemRun}
+              @input=${(event: Event) =>
+                props.onNodeManagementCwdChange((event.target as HTMLInputElement).value)}
+            />
+            <input
+              placeholder="timeout ms"
+              style="width: 130px;"
+              inputmode="numeric"
+              .value=${props.nodeManagementTimeoutMs}
+              ?disabled=${busy || !supportsSystemRun}
+              @input=${(event: Event) =>
+                props.onNodeManagementTimeoutChange((event.target as HTMLInputElement).value)}
+            />
+            <button
+              class="btn btn--sm primary"
+              ?disabled=${busy || !supportsSystemRun || !props.nodeManagementShell.trim()}
+              @click=${props.onNodeManagementRunShell}
+            >
+              ${icons.terminal} ${busy ? "Running" : "Run"}
+            </button>
+          </div>
+          ${!supportsSystemRun
+            ? html`<div class="muted">This node does not advertise <code>system.run</code>.</div>`
+            : nothing}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNodeCommandControls(params: {
+  busy: boolean;
+  commandOptions: string[];
+  props: NodesProps;
+}) {
+  const { busy, commandOptions, props } = params;
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">Direct Command</div>
+        <div class="list-sub">Invokes an advertised node command with JSON params.</div>
+      </div>
+      <div class="list-meta" style="min-width: min(560px, 100%);">
+        <div style="display: grid; gap: 8px;">
+          <select
+            ?disabled=${busy || commandOptions.length === 0}
+            @change=${(event: Event) =>
+              props.onNodeManagementCommandChange((event.target as HTMLSelectElement).value)}
+          >
+            ${commandOptions.map(
+              (command) =>
+                html`<option value=${command} ?selected=${command === props.nodeManagementCommand}>
+                  ${command}
+                </option>`,
+            )}
+          </select>
+          <textarea
+            rows="5"
+            spellcheck="false"
+            .value=${props.nodeManagementParams}
+            ?disabled=${busy || commandOptions.length === 0}
+            @input=${(event: Event) =>
+              props.onNodeManagementParamsChange((event.target as HTMLTextAreaElement).value)}
+          ></textarea>
+          <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+            <button
+              class="btn btn--sm primary"
+              ?disabled=${busy || commandOptions.length === 0 || !props.nodeManagementCommand}
+              @click=${props.onNodeManagementInvoke}
+            >
+              ${icons.send} Invoke
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNodeManagementResult(props: NodesProps) {
+  const result = props.nodeManagementResult;
+  if (!result) {
+    return nothing;
+  }
+  const payload = formatNodeResultPayload(result.payload);
+  return html`
+    <div class="list-item">
+      <div class="list-main">
+        <div class="list-title">${result.label}</div>
+        <div class="list-sub">
+          ${result.nodeId} · ${result.command} · ${result.ok ? "ok" : "failed"} ·
+          ${formatRelativeTimestamp(result.completedAtMs)}
+        </div>
+        <pre class="code-block" style="margin-top: 10px; max-height: 360px; overflow: auto;">
+${payload}</pre
+        >
+      </div>
+    </div>
+  `;
+}
+
+function resolveSelectedNode(props: NodesProps): Record<string, unknown> | null {
+  const selectedId = normalizeOptionalString(props.nodeManagementSelectedId);
+  if (!selectedId) {
+    return null;
+  }
+  return props.nodes.find((node) => getNodeId(node) === selectedId) ?? null;
+}
+
+function getNodeId(node: Record<string, unknown>): string | null {
+  return normalizeOptionalString(node.nodeId) ?? null;
+}
+
+function getNodeCommands(node: Record<string, unknown>): string[] {
+  const commands = Array.isArray(node.commands) ? node.commands : [];
+  return Array.from(
+    new Set(
+      commands
+        .map((command) => normalizeOptionalString(command))
+        .filter((command): command is string => Boolean(command)),
+    ),
+  ).toSorted((left, right) => left.localeCompare(right));
+}
+
+function getNodeTitle(node: Record<string, unknown>): string {
+  return (
+    normalizeOptionalString(node.displayName) ?? normalizeOptionalString(node.nodeId) ?? "unknown"
+  );
+}
+
+function formatNodeResultPayload(payload: unknown): string {
+  if (payload && typeof payload === "object") {
+    const obj = payload as Record<string, unknown>;
+    const stdout = normalizeOptionalString(obj.stdout);
+    const stderr = normalizeOptionalString(obj.stderr);
+    const error = normalizeOptionalString(obj.error);
+    const exitCode =
+      typeof obj.exitCode === "number" || typeof obj.exitCode === "string"
+        ? String(obj.exitCode)
+        : null;
+    if (stdout || stderr || error || exitCode) {
+      const parts: string[] = [];
+      if (exitCode) {
+        parts.push(`exitCode: ${exitCode}`);
+      }
+      if (stdout) {
+        parts.push(`stdout:\n${stdout}`);
+      }
+      if (stderr) {
+        parts.push(`stderr:\n${stderr}`);
+      }
+      if (error) {
+        parts.push(`error:\n${error}`);
+      }
+      return parts.join("\n\n");
+    }
+  }
+  return formatUnknownText(payload, { pretty: true, fallback: "" });
 }
 
 function renderDevices(props: NodesProps) {
@@ -436,12 +775,14 @@ function resolveAgentBindings(config: Record<string, unknown> | null): {
   return { defaultBinding, agents };
 }
 
-function renderNode(node: Record<string, unknown>) {
+function renderNode(node: Record<string, unknown>, props: NodesProps) {
   const connected = Boolean(node.connected);
   const paired = Boolean(node.paired);
   const title =
     (typeof node.displayName === "string" && node.displayName.trim()) ||
     (typeof node.nodeId === "string" ? node.nodeId : "unknown");
+  const nodeId = typeof node.nodeId === "string" ? node.nodeId : "";
+  const selected = Boolean(nodeId && nodeId === props.nodeManagementSelectedId);
   const caps = Array.isArray(node.caps) ? (node.caps as unknown[]) : [];
   const commands = Array.isArray(node.commands) ? (node.commands as unknown[]) : [];
   return html`
@@ -461,6 +802,15 @@ function renderNode(node: Record<string, unknown>) {
           ${caps.slice(0, 12).map((c) => html`<span class="chip">${String(c)}</span>`)}
           ${commands.slice(0, 8).map((c) => html`<span class="chip">${String(c)}</span>`)}
         </div>
+      </div>
+      <div class="list-meta">
+        <button
+          class="btn btn--sm ${selected ? "primary" : ""}"
+          ?disabled=${!nodeId}
+          @click=${() => props.onNodeManagementSelect(nodeId)}
+        >
+          ${icons.settings} ${selected ? "Selected" : "Manage"}
+        </button>
       </div>
     </div>
   `;
