@@ -245,7 +245,7 @@ vi.mock("matrix-js-sdk/lib/matrix.js", async () => {
 });
 
 const { encodeRecoveryKey } = await import("matrix-js-sdk/lib/crypto-api/recovery-key.js");
-const { MatrixClient } = await import("./sdk.js");
+const { LogService, MatrixClient } = await import("./sdk.js");
 
 describe("MatrixClient request hardening", () => {
   beforeEach(() => {
@@ -1005,6 +1005,43 @@ describe("MatrixClient event bridge", () => {
     });
 
     expect(invites).toEqual(["!invite:example.org"]);
+  });
+
+  it("isolates room message listener failures from the Matrix sync event callback", async () => {
+    const warnSpy = vi.spyOn(LogService, "warn").mockImplementation(() => {});
+    const client = new MatrixClient("https://matrix.example.org", "token");
+    const delivered: string[] = [];
+
+    client.on("room.message", () => {
+      throw new Error("listener exploded");
+    });
+    client.on("room.message", (_roomId, event) => {
+      delivered.push(event.event_id);
+    });
+
+    await client.start();
+
+    const message = new FakeMatrixEvent({
+      roomId: "!room:example.org",
+      eventId: "$message",
+      sender: "@alice:example.org",
+      type: "m.room.message",
+      ts: Date.now(),
+      content: {
+        msgtype: "m.text",
+        body: "hello",
+      },
+    });
+
+    expect(() => {
+      matrixJsClient.emit("event", message);
+    }).not.toThrow();
+    expect(delivered).toEqual(["$message"]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "MatrixClientLite",
+      "Matrix listener for room.message failed:",
+      expect.any(Error),
+    );
   });
 
   it("waits for a ready sync state before resolving startup", async () => {

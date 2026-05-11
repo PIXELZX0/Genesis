@@ -12,6 +12,7 @@ Docs: https://docs.genesis.ai
 
 ### Fixes
 
+- Matrix plugin: keep inbound listener failures from bubbling into the Matrix sync loop, avoiding gateway channel restarts when a received Matrix event hits a handler error.
 - Sessions: send `✅ New session started.` before the startup reply for hard `/new` and `/reset` commands.
 - Skills: disabling or enabling a skill now updates only the persisted skill entry and no longer injects runtime-only gateway auth overrides that could trigger an unnecessary gateway restart.
 

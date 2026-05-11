@@ -339,6 +339,34 @@ export class MatrixClient {
     return this;
   }
 
+  private emitClientEvent<TEvent extends keyof MatrixClientEventMap>(
+    eventName: TEvent,
+    ...args: MatrixClientEventMap[TEvent]
+  ): void;
+  private emitClientEvent(eventName: string, ...args: unknown[]): void;
+  private emitClientEvent(eventName: string, ...args: unknown[]): void {
+    for (const listener of this.emitter.listeners(eventName)) {
+      try {
+        const result = (listener as (...args: unknown[]) => unknown)(...args);
+        if (result && typeof (result as { then?: unknown }).then === "function") {
+          void Promise.resolve(result).catch((err) => {
+            this.logClientEventListenerError(eventName, err);
+          });
+        }
+      } catch (err) {
+        this.logClientEventListenerError(eventName, err);
+      }
+    }
+  }
+
+  private logClientEventListenerError(eventName: string, err: unknown): void {
+    try {
+      LogService.warn("MatrixClientLite", `Matrix listener for ${eventName} failed:`, err);
+    } catch {
+      // Listener failures must stay isolated from the matrix-js-sdk sync loop.
+    }
+  }
+
   private idbPersistTimer: ReturnType<typeof setInterval> | null = null;
 
   private async ensureCryptoSupportInitialized(): Promise<void> {
@@ -355,13 +383,13 @@ export class MatrixClient {
       client: this.client,
       toRaw: (event) => matrixEventToRaw(event, { contentMode: "original" }),
       emitDecryptedEvent: (roomId, event) => {
-        this.emitter.emit("room.decrypted_event", roomId, event);
+        this.emitClientEvent("room.decrypted_event", roomId, event);
       },
       emitMessage: (roomId, event) => {
-        this.emitter.emit("room.message", roomId, event);
+        this.emitClientEvent("room.message", roomId, event);
       },
       emitFailedDecryption: (roomId, event, error) => {
-        this.emitter.emit("room.failed_decryption", roomId, event, error);
+        this.emitClientEvent("room.failed_decryption", roomId, event, error);
       },
     });
     if (!this.encryptionEnabled) {
@@ -398,7 +426,7 @@ export class MatrixClient {
     if (!this.verificationSummaryListenerBound) {
       this.verificationSummaryListenerBound = true;
       this.verificationManager.onSummaryChanged((summary: MatrixVerificationSummary) => {
-        this.emitter.emit("verification.summary", summary);
+        this.emitClientEvent("verification.summary", summary);
       });
     }
   }
@@ -1842,12 +1870,12 @@ export class MatrixClient {
 
       const raw = matrixEventToRaw(event, { contentMode: "original" });
       const isEncryptedEvent = raw.type === "m.room.encrypted";
-      this.emitter.emit("room.event", roomId, raw);
+      this.emitClientEvent("room.event", roomId, raw);
       if (isEncryptedEvent) {
-        this.emitter.emit("room.encrypted_event", roomId, raw);
+        this.emitClientEvent("room.encrypted_event", roomId, raw);
       } else {
         if (decryptBridge.shouldEmitUnencryptedMessage(roomId, raw.event_id)) {
-          this.emitter.emit("room.message", roomId, raw);
+          this.emitClientEvent("room.message", roomId, raw);
         }
       }
 
@@ -1859,9 +1887,9 @@ export class MatrixClient {
           : undefined;
       if (stateKey && selfUserId && stateKey === selfUserId) {
         if (membership === "invite") {
-          this.emitter.emit("room.invite", roomId, raw);
+          this.emitClientEvent("room.invite", roomId, raw);
         } else if (membership === "join") {
-          this.emitter.emit("room.join", roomId, raw);
+          this.emitClientEvent("room.join", roomId, raw);
         }
       }
 
@@ -1882,11 +1910,11 @@ export class MatrixClient {
           data && typeof data === "object" && "error" in data
             ? (data as { error?: unknown }).error
             : undefined;
-        this.emitter.emit("sync.state", state, prevState, error);
+        this.emitClientEvent("sync.state", state, prevState, error);
       },
     );
     this.client.on(ClientEvent.SyncUnexpectedError, (error: Error) => {
-      this.emitter.emit("sync.unexpected_error", error);
+      this.emitClientEvent("sync.unexpected_error", error);
     });
   }
 
@@ -1915,11 +1943,11 @@ export class MatrixClient {
       unsigned: { age: 0 },
     };
     if (membership === "invite") {
-      this.emitter.emit("room.invite", roomId, raw);
+      this.emitClientEvent("room.invite", roomId, raw);
       return;
     }
     if (membership === "join") {
-      this.emitter.emit("room.join", roomId, raw);
+      this.emitClientEvent("room.join", roomId, raw);
     }
   }
 
