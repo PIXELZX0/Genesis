@@ -2,6 +2,17 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.10-6
+
+### Changes
+
+- Canvas: let agents recover existing hosted Control UI embed previews with `canvas` `present` by id, and use the active workspace when creating hosted documents from relative paths.
+
+### Fixes
+
+- Control UI/chat: show Browser plugin screenshots from tool results in live tool cards and channel-visible media while preserving trusted local media checks.
+- Canvas: reject hosted document `create`/`update` calls unless exactly one of `html`, `path`, or `url` is provided, so agents get a clear error instead of an empty embed.
+
 ## 2026.5.10-5
 
 ### Changes
