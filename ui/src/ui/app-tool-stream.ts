@@ -1,3 +1,4 @@
+import { inferAttachmentKind, isRenderableAssistantAttachment } from "./chat/attachment-utils.ts";
 import { formatUnknownText, truncateText } from "./format.ts";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
@@ -21,6 +22,8 @@ export type ToolStreamEntry = {
   name: string;
   args?: unknown;
   output?: string;
+  mediaUrls?: string[];
+  audioAsVoice?: boolean;
   startedAt: number;
   updatedAt: number;
   message: Record<string, unknown>;
@@ -189,6 +192,22 @@ function buildToolStreamMessage(entry: ToolStreamEntry): Record<string, unknown>
       text: entry.output,
     });
   }
+  for (const mediaUrl of entry.mediaUrls ?? []) {
+    if (!isRenderableAssistantAttachment(mediaUrl)) {
+      continue;
+    }
+    const inferred = inferAttachmentKind(mediaUrl);
+    content.push({
+      type: "attachment",
+      attachment: {
+        url: mediaUrl,
+        kind: inferred.kind,
+        label: inferred.label,
+        ...(inferred.mimeType ? { mimeType: inferred.mimeType } : {}),
+        ...(entry.audioAsVoice && inferred.kind === "audio" ? { isVoiceNote: true } : {}),
+      },
+    });
+  }
   return {
     role: "assistant",
     toolCallId: entry.toolCallId,
@@ -196,6 +215,27 @@ function buildToolStreamMessage(entry: ToolStreamEntry): Record<string, unknown>
     content,
     timestamp: entry.startedAt,
   };
+}
+
+function readToolMediaUrls(data: Record<string, unknown>): string[] {
+  const mediaUrls = data.mediaUrls;
+  if (!Array.isArray(mediaUrls)) {
+    return [];
+  }
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const value of mediaUrls) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
 }
 
 function trimToolStream(host: ToolStreamHost) {
@@ -495,6 +535,8 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
       : phase === "result"
         ? formatToolOutput(data.result)
         : undefined;
+  const mediaUrls = phase === "result" || phase === "update" ? readToolMediaUrls(data) : [];
+  const audioAsVoice = data.audioAsVoice === true;
 
   const now = Date.now();
   let entry = host.toolStreamById.get(toolCallId);
@@ -513,6 +555,8 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
       name,
       args,
       output: output || undefined,
+      mediaUrls: mediaUrls.length ? mediaUrls : undefined,
+      audioAsVoice: audioAsVoice || undefined,
       startedAt: typeof payload.ts === "number" ? payload.ts : now,
       updatedAt: now,
       message: {},
@@ -526,6 +570,12 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
     }
     if (output !== undefined) {
       entry.output = output || undefined;
+    }
+    if (mediaUrls.length > 0) {
+      entry.mediaUrls = Array.from(new Set([...(entry.mediaUrls ?? []), ...mediaUrls]));
+    }
+    if (audioAsVoice) {
+      entry.audioAsVoice = true;
     }
     entry.updatedAt = now;
   }

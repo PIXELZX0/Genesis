@@ -327,6 +327,35 @@ function queuePendingToolMedia(
   }
 }
 
+function resolveDeliverableToolResultMedia(params: {
+  rawToolName: string;
+  result: unknown;
+  isToolError: boolean;
+  builtinToolNames?: ReadonlySet<string>;
+}): { mediaUrls: string[]; audioAsVoice?: boolean; trustedLocalMedia?: boolean } | undefined {
+  if (params.isToolError) {
+    return undefined;
+  }
+  const mediaReply = extractToolResultMediaArtifact(params.result);
+  if (!mediaReply) {
+    return undefined;
+  }
+  const mediaUrls = filterToolResultMediaUrls(
+    params.rawToolName,
+    mediaReply.mediaUrls,
+    params.result,
+    params.builtinToolNames,
+  );
+  if (mediaUrls.length === 0) {
+    return undefined;
+  }
+  return {
+    mediaUrls,
+    ...(mediaReply.audioAsVoice ? { audioAsVoice: true } : {}),
+    ...(mediaReply.trustedLocalMedia ? { trustedLocalMedia: true } : {}),
+  };
+}
+
 async function collectEmittedToolOutputMediaUrls(
   toolName: string,
   outputText: string,
@@ -528,10 +557,13 @@ async function emitToolResultOutput(params: {
   }
 
   const outputText = extractToolResultText(sanitizedResult);
-  const mediaReply = isToolError ? undefined : extractToolResultMediaArtifact(result);
-  const mediaUrls = mediaReply
-    ? filterToolResultMediaUrls(rawToolName, mediaReply.mediaUrls, result, ctx.builtinToolNames)
-    : [];
+  const mediaReply = resolveDeliverableToolResultMedia({
+    rawToolName,
+    result,
+    isToolError,
+    builtinToolNames: ctx.builtinToolNames,
+  });
+  const mediaUrls = mediaReply?.mediaUrls ?? [];
   const shouldEmitOutput =
     !shouldSuppressStructuredMediaToolOutput({
       toolName,
@@ -574,6 +606,7 @@ async function emitToolResultOutput(params: {
   queuePendingToolMedia(ctx, {
     mediaUrls: pendingMediaUrls,
     ...(mediaReply.audioAsVoice ? { audioAsVoice: true } : {}),
+    ...(mediaReply.trustedLocalMedia ? { trustedLocalMedia: true } : {}),
   });
 }
 
@@ -817,6 +850,12 @@ export async function handleToolExecutionEnd(
   const result = evt.result;
   const isToolError = isError || isToolResultError(result);
   const sanitizedResult = sanitizeToolResult(result);
+  const resultMedia = resolveDeliverableToolResultMedia({
+    rawToolName,
+    result,
+    isToolError,
+    builtinToolNames: ctx.builtinToolNames,
+  });
   const toolStartKey = buildToolStartKey(runId, toolCallId);
   const startData = toolStartData.get(toolStartKey);
   toolStartData.delete(toolStartKey);
@@ -913,6 +952,8 @@ export async function handleToolExecutionEnd(
       meta,
       isError: isToolError,
       result: sanitizedResult,
+      ...(resultMedia?.mediaUrls.length ? { mediaUrls: resultMedia.mediaUrls } : {}),
+      ...(resultMedia?.audioAsVoice ? { audioAsVoice: true } : {}),
     },
   });
   const endedAt = Date.now();
@@ -941,6 +982,8 @@ export async function handleToolExecutionEnd(
       toolCallId,
       meta,
       isError: isToolError,
+      ...(resultMedia?.mediaUrls.length ? { mediaUrls: resultMedia.mediaUrls } : {}),
+      ...(resultMedia?.audioAsVoice ? { audioAsVoice: true } : {}),
     },
   });
 

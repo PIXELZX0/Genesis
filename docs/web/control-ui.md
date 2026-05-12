@@ -172,6 +172,9 @@ Cron jobs panel notes:
   authenticated links. Host-local paths are served only through the Gateway's
   Control UI media route when they are under the agent-scoped allowed media
   roots; otherwise the UI shows the attachment as unavailable.
+- Media-bearing tool results, including Browser plugin screenshots, render in
+  the live tool output card with the same preview and local-path availability
+  checks as assistant media.
 - Assistant/generated images are persisted as managed media references and served back through authenticated Gateway media URLs, so reloads do not depend on raw base64 image payloads staying in the chat history response.
 - `chat.history` also strips display-only inline directive tags from visible assistant text (for example `[[reply_to_*]]` and `[[audio_as_voice]]`), plain-text tool-call XML payloads (including `<tool_call>...</tool_call>`, `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`, `<function_calls>...</function_calls>`, and truncated tool-call blocks), and leaked ASCII/full-width model control tokens, and omits assistant entries whose whole visible text is only the exact silent token `NO_REPLY` / `no_reply`.
 - During active sends, the chat view reconciles live `session.message` payloads

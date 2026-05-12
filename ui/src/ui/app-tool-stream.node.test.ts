@@ -71,6 +71,42 @@ describe("app-tool-stream fallback lifecycle handling", () => {
     }
   });
 
+  it("adds tool result media as structured attachments", () => {
+    const host = createHost();
+
+    handleAgentEvent(
+      host,
+      agentEvent("run-1", 1, "tool", {
+        phase: "result",
+        toolCallId: "tool-1",
+        name: "browser",
+        mediaUrls: ["/tmp/genesis/browser-shot.png", " /tmp/genesis/browser-shot.png ", "", 42],
+      }),
+    );
+
+    expect(host.chatToolMessages).toHaveLength(1);
+    expect(host.chatToolMessages[0]).toMatchObject({
+      role: "assistant",
+      toolCallId: "tool-1",
+      content: [
+        {
+          type: "toolcall",
+          name: "browser",
+          arguments: {},
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "/tmp/genesis/browser-shot.png",
+            kind: "image",
+            label: "browser-shot.png",
+            mimeType: "image/png",
+          },
+        },
+      ],
+    });
+  });
+
   it("accepts session-scoped fallback lifecycle events when no run is active", () => {
     vi.useFakeTimers();
     const host = createHost();

@@ -32,6 +32,7 @@ function createMockContext(overrides?: {
       pendingMessagingMediaUrls: new Map(),
       pendingToolMediaUrls: [],
       pendingToolAudioAsVoice: false,
+      pendingToolTrustedLocalMedia: false,
       messagingToolSentTexts: [],
       messagingToolSentTextsNormalized: [],
       messagingToolSentMediaUrls: [],
@@ -86,6 +87,24 @@ async function emitPngMediaToolResult(
         { type: "image", data: "base64", mimeType: "image/png" },
       ],
       details: { path: "/tmp/screenshot.png" },
+    },
+  });
+}
+
+async function emitStructuredBrowserScreenshotToolResult(ctx: EmbeddedPiSubscribeContext) {
+  await handleToolExecutionEnd(ctx, {
+    type: "tool_execution_end",
+    toolName: "browser",
+    toolCallId: "tc-1",
+    isError: false,
+    result: {
+      content: [{ type: "image", data: "base64", mimeType: "image/png" }],
+      details: {
+        path: "/tmp/screenshot.png",
+        media: {
+          mediaUrl: "/tmp/screenshot.png",
+        },
+      },
     },
   });
 }
@@ -165,6 +184,25 @@ describe("handleToolExecutionEnd media emission", () => {
     expect(ctx.state.pendingToolMediaUrls).toEqual(["/tmp/screenshot.png"]);
   });
 
+  it("includes trusted browser screenshot media on tool result events", async () => {
+    const ctx = createMockContext({ shouldEmitToolOutput: false, onToolResult: vi.fn() });
+
+    await emitStructuredBrowserScreenshotToolResult(ctx);
+
+    expect(ctx.state.pendingToolMediaUrls).toEqual(["/tmp/screenshot.png"]);
+    const onAgentEvent = ctx.params.onAgentEvent as ReturnType<typeof vi.fn>;
+    expect(onAgentEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stream: "tool",
+        data: expect.objectContaining({
+          phase: "result",
+          name: "browser",
+          mediaUrls: ["/tmp/screenshot.png"],
+        }),
+      }),
+    );
+  });
+
   it("does NOT emit local media for untrusted tools", async () => {
     const onToolResult = vi.fn();
     const ctx = createMockContext({ shouldEmitToolOutput: false, onToolResult });
@@ -173,6 +211,16 @@ describe("handleToolExecutionEnd media emission", () => {
 
     expect(onToolResult).not.toHaveBeenCalled();
     expect(ctx.state.pendingToolMediaUrls).toEqual([]);
+    const onAgentEvent = ctx.params.onAgentEvent as ReturnType<typeof vi.fn>;
+    expect(onAgentEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        stream: "tool",
+        data: expect.objectContaining({
+          phase: "result",
+          mediaUrls: ["/tmp/secret.png"],
+        }),
+      }),
+    );
   });
 
   it("emits remote media for untrusted tools", async () => {

@@ -471,6 +471,40 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).toContain("Opened page");
   });
 
+  it("renders media-bearing tool messages expanded by default", () => {
+    const container = document.createElement("div");
+    renderAssistantMessage(container, {
+      id: "assistant-browser-screenshot",
+      role: "assistant",
+      toolCallId: "call-browser-screenshot",
+      content: [
+        {
+          type: "toolcall",
+          id: "call-browser-screenshot",
+          name: "browser",
+          arguments: { action: "screenshot" },
+        },
+        {
+          type: "attachment",
+          attachment: {
+            url: "https://example.com/screenshot.png",
+            kind: "image",
+            label: "screenshot.png",
+            mimeType: "image/png",
+          },
+        },
+      ],
+      timestamp: Date.now(),
+    });
+
+    const summary = container.querySelector<HTMLElement>(".chat-tool-msg-summary");
+    const image = container.querySelector<HTMLImageElement>(".chat-message-image");
+
+    expect(summary?.getAttribute("aria-expanded")).toBe("true");
+    expect(container.textContent).toContain("Tool input");
+    expect(image?.getAttribute("src")).toBe("https://example.com/screenshot.png");
+  });
+
   it("renders expanded standalone tool-call rows", () => {
     const container = document.createElement("div");
     const message = {

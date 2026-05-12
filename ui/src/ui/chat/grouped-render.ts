@@ -1428,7 +1428,9 @@ function renderGroupedMessage(
   }
 
   const toolMessageDisclosureId = `toolmsg:${messageKey}`;
-  const toolMessageExpanded = opts.isToolMessageExpanded?.(toolMessageDisclosureId) ?? false;
+  const hasMediaToolOutput = hasImages || assistantAttachments.length > 0;
+  const toolMessageExpanded =
+    opts.isToolMessageExpanded?.(toolMessageDisclosureId) ?? hasMediaToolOutput;
   const toolNames = [...new Set(toolCards.map((c) => c.name))];
   const toolSummaryLabel =
     toolNames.length <= 3
@@ -1438,7 +1440,7 @@ function renderGroupedMessage(
     markdown && !toolSummaryLabel ? markdown.trim().replace(/\s+/g, " ").slice(0, 120) : "";
   const singleToolCard = toolCards.length === 1 ? toolCards[0] : null;
   const toolMessageLabel =
-    singleToolCard && !markdown && !hasImages
+    singleToolCard && !markdown && !hasMediaToolOutput
       ? singleToolCard.outputText?.trim()
         ? "Tool output"
         : "Tool call"
