@@ -5,7 +5,10 @@ import { Type } from "typebox";
 import { writeBase64ToFile } from "../../cli/nodes-camera.js";
 import { canvasSnapshotTempPath, parseCanvasSnapshotPayload } from "../../cli/nodes-canvas.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
-import type { CanvasDocumentCreateResult } from "../../gateway/protocol/index.js";
+import type {
+  CanvasDocumentCreateResult,
+  CanvasDocumentListResult,
+} from "../../gateway/protocol/index.js";
 import { logVerbose, shouldLogVerbose } from "../../globals.js";
 import { isInboundPathAllowed } from "../../media/inbound-path-policy.js";
 import { getDefaultMediaLocalRoots } from "../../media/local-roots.js";
@@ -240,13 +243,36 @@ function buildCanvasPreviewPayload(manifest: CanvasDocumentCreateResult) {
   };
 }
 
-export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgentTool {
+async function buildHostedDocumentPreviewPayload(
+  gatewayOpts: ReturnType<typeof readGatewayCallOptions>,
+  documentId: string,
+) {
+  const list = await callGatewayTool<CanvasDocumentListResult>(
+    "canvas.document.list",
+    gatewayOpts,
+    {
+      limit: 100,
+    },
+  );
+  const manifest = list.documents.find((document) => document.id === documentId);
+  if (manifest) {
+    return buildCanvasPreviewPayload(manifest);
+  }
+  throw new ToolInputError(
+    `hosted canvas document not found: ${documentId}. Use create with exactly one of html, path, or url first.`,
+  );
+}
+
+export function createCanvasTool(options?: {
+  config?: GenesisConfig;
+  workspaceDir?: string;
+}): AnyAgentTool {
   const imageSanitization = resolveImageSanitizationLimits(options?.config);
   return {
     label: "Canvas",
     name: "canvas",
     description:
-      "Create or update hosted Control UI embeds and control node canvases (present/hide/navigate/eval/snapshot/A2UI).",
+      "Create or update hosted Control UI embeds, or control node canvases. For hosted embeds, create/update require exactly one of html, path, or url; use present with id to return an existing hosted embed preview. Node canvas actions are present/hide/navigate/eval/snapshot/A2UI.",
     parameters: CanvasToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
@@ -264,6 +290,12 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
         const filePath = readStringParam(params, "path", { trim: true });
         const url = readStringParam(params, "url", { trim: true });
         const workspaceDir = readStringParam(params, "workspaceDir", { trim: true });
+        const entrypointCount = [html, filePath, url].filter((value) => value !== undefined).length;
+        if (entrypointCount !== 1) {
+          throw new ToolInputError(
+            `${action} requires exactly one of html, path, or url. For html_bundle, pass html with the complete markup.`,
+          );
+        }
         const sourceMime = readStringParam(params, "sourceMime", { trim: true });
         const sourceFileName = readStringParam(params, "sourceFileName", { trim: true });
         const assets = readCanvasDocumentAssets(params);
@@ -284,7 +316,7 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
           ...(html ? { html } : {}),
           ...(filePath ? { path: filePath } : {}),
           ...(url ? { url } : {}),
-          workspaceDir: workspaceDir ?? process.cwd(),
+          workspaceDir: workspaceDir ?? options?.workspaceDir ?? process.cwd(),
           ...(sourceMime ? { sourceMime } : {}),
           ...(sourceFileName ? { sourceFileName } : {}),
           ...(viewerOptions ? { viewerOptions } : {}),
@@ -299,11 +331,30 @@ export function createCanvasTool(options?: { config?: GenesisConfig }): AnyAgent
         return textResult(JSON.stringify(preview, null, 2), preview);
       }
 
-      const nodeId = await resolveNodeId(
-        gatewayOpts,
-        readStringParam(params, "node", { trim: true }),
-        true,
-      );
+      const hostedDocumentId = readStringParam(params, "id", { trim: true });
+      const nodeParam = readStringParam(params, "node", { trim: true });
+      if (
+        action === "present" &&
+        hostedDocumentId &&
+        !nodeParam &&
+        !readStringParam(params, "target", { trim: true }) &&
+        !readStringParam(params, "url", { trim: true }) &&
+        !(typeof params.x === "number" && Number.isFinite(params.x)) &&
+        !(typeof params.y === "number" && Number.isFinite(params.y)) &&
+        !(typeof params.width === "number" && Number.isFinite(params.width)) &&
+        !(typeof params.height === "number" && Number.isFinite(params.height))
+      ) {
+        const preview = await buildHostedDocumentPreviewPayload(gatewayOpts, hostedDocumentId);
+        return textResult(JSON.stringify(preview, null, 2), preview);
+      }
+
+      if (action === "snapshot" && hostedDocumentId && !nodeParam) {
+        throw new ToolInputError(
+          "snapshot requires a canvas-capable node. For hosted Control UI documents, reply with the embed shortcode from `present` or `create` instead of snapshotting by id.",
+        );
+      }
+
+      const nodeId = await resolveNodeId(gatewayOpts, nodeParam, true);
 
       const invoke = async (command: string, invokeParams?: Record<string, unknown>) =>
         await callGatewayTool("node.invoke", gatewayOpts, {

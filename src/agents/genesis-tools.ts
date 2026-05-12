@@ -237,7 +237,7 @@ export function createGenesisTools(
     ...(embedded
       ? []
       : [
-          createCanvasTool({ config: options?.config }),
+          createCanvasTool({ config: options?.config, workspaceDir }),
           nodesTool,
           createCronTool({
             agentSessionKey: options?.agentSessionKey,

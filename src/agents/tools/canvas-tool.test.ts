@@ -80,6 +80,37 @@ describe("createCanvasTool", () => {
     );
   });
 
+  it("uses the tool context workspace for hosted document paths", async () => {
+    gatewayMocks.callGatewayTool.mockResolvedValue({
+      id: "logo",
+      kind: "vector_image",
+      title: "Logo",
+      createdAt: "2026-05-05T00:00:00.000Z",
+      revision: 1,
+      entryUrl: "/__genesis__/canvas/documents/logo/index.html",
+      localEntrypoint: "index.html",
+      surface: "assistant_message",
+      assets: [],
+    });
+    const tool = createCanvasTool({ workspaceDir: "/tmp/genesis-workspace" });
+
+    await tool.execute("call-workspace", {
+      action: "create",
+      id: "logo",
+      title: "Logo",
+      path: "pixelzx-logo.svg",
+    });
+
+    expect(gatewayMocks.callGatewayTool).toHaveBeenCalledWith(
+      "canvas.document.create",
+      {},
+      expect.objectContaining({
+        path: "pixelzx-logo.svg",
+        workspaceDir: "/tmp/genesis-workspace",
+      }),
+    );
+  });
+
   it("updates existing hosted Control UI documents without requiring a node", async () => {
     gatewayMocks.callGatewayTool.mockResolvedValue({
       id: "status-card",
@@ -124,5 +155,61 @@ describe("createCanvasTool", () => {
     const preview = JSON.parse(text) as Record<string, unknown>;
     expect(preview.embed).toBe('[embed ref="status-card" title="Status" /]');
     expect(preview.document).toEqual(expect.objectContaining({ revision: 2 }));
+  });
+
+  it("returns an existing hosted document preview for present by id without requiring a node", async () => {
+    gatewayMocks.callGatewayTool.mockResolvedValue({
+      documents: [
+        {
+          id: "status-card",
+          kind: "html_bundle",
+          title: "Status",
+          preferredHeight: 320,
+          createdAt: "2026-05-05T00:00:00.000Z",
+          revision: 1,
+          entryUrl: "/__genesis__/canvas/documents/status-card/index.html",
+          localEntrypoint: "index.html",
+          surface: "assistant_message",
+          assets: [],
+        },
+      ],
+    });
+    const tool = createCanvasTool();
+
+    const result = await tool.execute("call-present", {
+      action: "present",
+      id: "status-card",
+    });
+
+    expect(nodeUtilsMocks.resolveNodeId).not.toHaveBeenCalled();
+    expect(gatewayMocks.callGatewayTool).toHaveBeenCalledWith(
+      "canvas.document.list",
+      {},
+      { limit: 100 },
+    );
+    const text = result?.content?.[0]?.type === "text" ? result.content[0].text : "";
+    const preview = JSON.parse(text) as Record<string, unknown>;
+    expect(preview.embed).toBe('[embed ref="status-card" title="Status" height="320" /]');
+    expect(preview.view).toEqual(
+      expect.objectContaining({
+        id: "status-card",
+        url: "/__genesis__/canvas/documents/status-card/index.html",
+      }),
+    );
+  });
+
+  it("reports a missing hosted document id before falling back to node presentation", async () => {
+    gatewayMocks.callGatewayTool.mockResolvedValue({ documents: [] });
+    const tool = createCanvasTool();
+
+    await expect(
+      tool.execute("call-present-missing", {
+        action: "present",
+        id: "missing-card",
+      }),
+    ).rejects.toThrow(
+      "hosted canvas document not found: missing-card. Use create with exactly one of html, path, or url first.",
+    );
+    expect(nodeUtilsMocks.resolveNodeId).not.toHaveBeenCalled();
   });
 });

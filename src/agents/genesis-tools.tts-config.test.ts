@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => {
     }) satisfies AnyAgentTool;
 
   return {
+    createCanvasTool: vi.fn((_options?: unknown) => stubTool("canvas")),
     stubTool,
     textToSpeech: vi.fn(async () => ({
       success: true,
@@ -37,7 +38,7 @@ vi.mock("./tools/agents-list-tool.js", () => ({
 }));
 
 vi.mock("./tools/canvas-tool.js", () => ({
-  createCanvasTool: () => mocks.stubTool("canvas"),
+  createCanvasTool: mocks.createCanvasTool,
 }));
 
 vi.mock("./tools/cron-tool.js", () => ({
@@ -119,6 +120,7 @@ vi.mock("../tts/tts.js", () => ({
 
 describe("createGenesisTools TTS config wiring", () => {
   beforeEach(() => {
+    mocks.createCanvasTool.mockClear();
     mocks.textToSpeech.mockClear();
   });
 
@@ -161,5 +163,21 @@ describe("createGenesisTools TTS config wiring", () => {
     } finally {
       __testing.setDepsForTest();
     }
+  });
+
+  it("passes the resolved workspace into the canvas tool", async () => {
+    const { createGenesisTools } = await import("./genesis-tools.js");
+
+    createGenesisTools({
+      disableMessageTool: true,
+      disablePluginTools: true,
+      workspaceDir: "/tmp/genesis-canvas-workspace",
+    });
+
+    expect(mocks.createCanvasTool).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceDir: "/tmp/genesis-canvas-workspace",
+      }),
+    );
   });
 });

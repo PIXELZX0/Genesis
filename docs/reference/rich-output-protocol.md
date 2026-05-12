@@ -49,7 +49,11 @@ Rules:
 - Embed shortcodes render in the assistant message surface only.
 - Only URL-backed embeds are rendered. Use `ref="..."` or `url="..."`.
 - Agents should use the `canvas` tool with `action: "create"` to create hosted embed documents before replying with `[embed ref="..."]`.
+- `canvas` `create`/`update` require exactly one source: `html`, `path`, or
+  `url`. `kind` and `title` are metadata only.
 - Agents can use `canvas` with `action: "update"` and the same `id` to publish a new revision while keeping the embed URL stable.
+- Agents can use `canvas` with `action: "present"` and an existing hosted
+  document `id` to recover the same embed preview without a canvas node.
 - Humans can use the Control UI Canvas tab to create, upload, update, list, and
   preview the same hosted documents without a node canvas device.
 - Block-form inline HTML embed shortcodes are not rendered.
