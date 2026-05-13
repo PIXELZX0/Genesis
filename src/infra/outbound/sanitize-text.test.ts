@@ -69,6 +69,26 @@ describe("sanitizeForPlainText", () => {
     );
   });
 
+  // --- embed shortcode stripping -----------------------------------------
+
+  it("strips self-closing [embed ref=...] shortcodes", () => {
+    expect(sanitizeForPlainText('[embed ref="pixelzx-logo-v4" /]')).toBe("");
+    expect(sanitizeForPlainText('[embed ref="cv_status" title="Status" height="320" /]')).toBe("");
+  });
+
+  it("strips block-form [embed] shortcodes", () => {
+    expect(
+      sanitizeForPlainText('[embed content_type="html" title="Status"]\n<div>x</div>\n[/embed]'),
+    ).toBe("");
+  });
+
+  it("strips embed shortcodes while preserving surrounding text", () => {
+    // The embed occupies its own line, so stripping it leaves a blank line (two \n).
+    expect(sanitizeForPlainText('Here is the logo:\n[embed ref="pixelzx-logo-v4" /]\nDone.')).toBe(
+      "Here is the logo:\n\nDone.",
+    );
+  });
+
   // --- passthrough --------------------------------------------------------
 
   it("passes through clean text unchanged", () => {

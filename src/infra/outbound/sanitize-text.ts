@@ -22,6 +22,10 @@
 export function sanitizeForPlainText(text: string): string {
   return (
     text
+      // Strip [embed ...] shortcodes — canvas/hosted embed documents cannot be
+      // rendered on plain-text channels. Block form first, then self-closing.
+      .replace(/\[embed\s[^\]]*?][\s\S]*?\[\/embed]/gi, "")
+      .replace(/\[embed\s[^\]]*?\/]/gi, "")
       // Preserve angle-bracket autolinks as plain URLs before tag stripping.
       .replace(/<((?:https?:\/\/|mailto:)[^<>\s]+)>/gi, "$1")
       // Line breaks
