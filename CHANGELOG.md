@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.14
+
+### Fixes
+
+- Channels: strip `[embed ...]` shortcodes from plain-text channel output so they no longer appear as literal text on Telegram and other messaging surfaces.
+
 ## 2026.5.10-6
 
 ### Changes
