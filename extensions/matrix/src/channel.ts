@@ -337,7 +337,12 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount, MatrixProbe> =
         threads: true,
         media: true,
       },
-      reload: { configPrefixes: ["channels.matrix"] },
+      reload: {
+        configPrefixes: ["channels.matrix"],
+        // avatarUrl is written back during startup when an HTTP URL is converted to mxc://.
+        // This is a self-write that must not restart the channel it originates from.
+        noopPrefixes: ["channels.matrix.avatarUrl", "channels.matrix.name"],
+      },
       configSchema: buildChannelConfigSchema(MatrixConfigSchema),
       config: {
         ...matrixConfigAdapter,
