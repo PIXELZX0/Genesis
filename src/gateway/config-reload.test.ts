@@ -254,7 +254,9 @@ describe("buildGatewayReloadPlan", () => {
 
     setActivePluginRegistry(activeOnlyRegistry);
     const beforePinPlan = buildGatewayReloadPlan(["channels.telegram.botToken"]);
-    expect(beforePinPlan.restartGateway).toBe(true);
+    // No channel plugin claims this prefix → noop (no restart, no channel restart).
+    expect(beforePinPlan.restartGateway).toBe(false);
+    expect(beforePinPlan.noopPaths).toContain("channels.telegram.botToken");
     expect(beforePinPlan.restartChannels).toEqual(new Set());
 
     pinActivePluginChannelRegistry(channelOnlyRegistry);
@@ -432,6 +434,42 @@ describe("buildGatewayReloadPlan", () => {
     const plan = buildGatewayReloadPlan(["gateway.auth.mode"]);
     expect(plan.restartGateway).toBe(true);
     expect(plan.restartReasons).toContain("gateway.auth.mode");
+  });
+
+  it("treats wallet config changes as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan(["wallet.enabled"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("wallet.enabled");
+  });
+
+  it("treats nested wallet config changes as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan([
+      "wallet.networks.evm.chainId",
+      "wallet.spending.maxNativeAmount",
+      "wallet.primaryAccount",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toEqual(
+      expect.arrayContaining([
+        "wallet.networks.evm.chainId",
+        "wallet.spending.maxNativeAmount",
+        "wallet.primaryAccount",
+      ]),
+    );
+  });
+
+  it("treats unknown channels config as no-op when no channel plugin claims the prefix", () => {
+    // Simulate a channel prefix not declared by any registered plugin.
+    const plan = buildGatewayReloadPlan(["channels.unknownPlugin.token"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toContain("channels.unknownPlugin.token");
+    expect(plan.restartChannels.size).toBe(0);
+  });
+
+  it("still hot-restarts a registered channel when its claimed prefix changes", () => {
+    const plan = buildGatewayReloadPlan(["channels.telegram.botToken"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.restartChannels).toContain("telegram");
   });
 
   it("defaults unknown paths to restart", () => {
