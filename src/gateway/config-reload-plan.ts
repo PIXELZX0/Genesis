@@ -110,6 +110,11 @@ const BASE_RELOAD_RULES_TAIL: ReloadRule[] = [
   { prefix: "talk", kind: "none" },
   { prefix: "skills", kind: "none" },
   { prefix: "secrets", kind: "none" },
+  // wallet config is read on-demand per request; no restart needed on config change.
+  { prefix: "wallet", kind: "none" },
+  // catch-all for channel prefixes not claimed by any registered channel plugin.
+  // Registered channels handle their own prefixes via channelReloadRules (kind: hot).
+  { prefix: "channels", kind: "none" },
   { prefix: "plugins", kind: "restart" },
   { prefix: "ui", kind: "none" },
   { prefix: "gateway", kind: "restart" },
