@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.16
+
+### Fixes
+
+- Agents: creating, updating, or deleting an agent no longer injects runtime-only gateway auth overrides that could trigger an unnecessary gateway restart.
+
 ## 2026.5.14
 
 ### Fixes
