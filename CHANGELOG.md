@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.16-1
+
+### Fixes
+
+- Gateway: writing wallet config or unregistered channel config no longer triggers a full gateway restart; both path prefixes are now treated as no-op reloads.
+
 ## 2026.5.16
 
 ### Fixes
