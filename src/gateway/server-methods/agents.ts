@@ -26,7 +26,11 @@ import {
   listAgentEntries,
   pruneAgentConfig,
 } from "../../commands/agents.config.js";
-import { loadConfig, writeConfigFile } from "../../config/config.js";
+import {
+  loadConfig,
+  readConfigFileSnapshotForWrite,
+  writeConfigFileWithResult,
+} from "../../config/config.js";
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
 import type { IdentityConfig } from "../../config/types.base.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
@@ -445,7 +449,8 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const cfg = loadConfig();
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    const cfg = snapshot.config;
     const rawName = params.name.trim();
     const agentId = normalizeAgentId(rawName);
     if (agentId === DEFAULT_AGENT_ID) {
@@ -518,7 +523,11 @@ export const agentsHandlers: GatewayRequestHandlers = {
         return;
       }
     }
-    await writeConfigFile(nextConfig);
+    await writeConfigFileWithResult(nextConfig, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
 
     respond(true, { ok: true, agentId, name: safeName, workspace: workspaceDir, model }, undefined);
   },
@@ -528,7 +537,8 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const cfg = loadConfig();
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    const cfg = snapshot.config;
     const agentId = normalizeAgentId(params.agentId);
     if (!isConfiguredAgent(cfg, agentId)) {
       respondAgentNotFound(respond, agentId);
@@ -606,7 +616,11 @@ export const agentsHandlers: GatewayRequestHandlers = {
       }
     }
 
-    await writeConfigFile(nextConfig);
+    await writeConfigFileWithResult(nextConfig, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
 
     respond(true, { ok: true, agentId }, undefined);
   },
@@ -616,7 +630,8 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const cfg = loadConfig();
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    const cfg = snapshot.config;
     const agentId = normalizeAgentId(params.agentId);
     if (agentId === DEFAULT_AGENT_ID) {
       respond(
@@ -637,7 +652,11 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
 
     const result = pruneAgentConfig(cfg, agentId);
-    await writeConfigFile(result.config);
+    await writeConfigFileWithResult(result.config, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
 
     // Purge session store entries so orphaned sessions cannot be targeted (#65524).
     await purgeAgentSessionStoreEntries(cfg, agentId);

@@ -48,7 +48,12 @@ vi.mock("../../config/config.js", async () => {
   return {
     ...actual,
     loadConfig: () => mocks.loadConfigReturn,
+    readConfigFileSnapshotForWrite: async () => ({
+      snapshot: { config: mocks.loadConfigReturn },
+      writeOptions: {},
+    }),
     writeConfigFile: mocks.writeConfigFile,
+    writeConfigFileWithResult: mocks.writeConfigFile,
   };
 });
 
