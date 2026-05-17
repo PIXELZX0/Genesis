@@ -2,6 +2,12 @@
 
 Docs: https://docs.genesis.ai
 
+## 2026.5.17
+
+### Fixes
+
+- Gateway: prevent Matrix channel avatar URL rewrites (HTTP→mxc conversion during startup) from triggering channel restarts; treat `channels.matrix.avatarUrl` and `channels.matrix.name` as no-op config paths.
+
 ## 2026.5.14
 
 ### Fixes
