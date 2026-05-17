@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { normalizeAccountId } from "genesis/plugin-sdk/account-id";
 import { formatZonedTimestamp } from "genesis/plugin-sdk/matrix-runtime-shared";
 import type { ChannelSetupInput } from "genesis/plugin-sdk/setup";
+import { ensureMatrixCliRuntime } from "./cli-runtime-bootstrap.js";
 import { resolveMatrixAccount, resolveMatrixAccountConfig } from "./matrix/accounts.js";
 import { listMatrixOwnDevices, pruneMatrixStaleGatewayDevices } from "./matrix/actions/devices.js";
 import { updateMatrixOwnProfile } from "./matrix/actions/profile.js";
@@ -1140,6 +1141,7 @@ function printVerificationStatus(
 }
 
 export function registerMatrixCli(params: { program: Command }): void {
+  ensureMatrixCliRuntime();
   const root = params.program
     .command("matrix")
     .description("Matrix channel utilities")

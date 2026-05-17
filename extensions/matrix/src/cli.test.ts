@@ -90,6 +90,13 @@ vi.mock("./runtime.js", () => ({
       writeConfigFile: (...args: unknown[]) => matrixRuntimeWriteConfigFileMock(...args),
     },
   }),
+  setMatrixRuntime: () => {},
+  tryGetMatrixRuntime: () => ({
+    config: {
+      loadConfig: (...args: unknown[]) => matrixRuntimeLoadConfigMock(...args),
+      writeConfigFile: (...args: unknown[]) => matrixRuntimeWriteConfigFileMock(...args),
+    },
+  }),
 }));
 
 function buildProgram(): Command {
