@@ -193,7 +193,10 @@ export async function loginOpenAICodexOAuth(params: {
     spin.stop("OpenAI OAuth failed");
     const rewrittenError = rewriteOpenAICodexOAuthError(err);
     runtime.error(String(rewrittenError));
-    await prompter.note("Trouble with OAuth? See https://docs.genesis.ai/start/faq", "OAuth help");
+    await prompter.note(
+      "Trouble with OAuth? See https://genesis.pixelzx.com/docs/start/faq",
+      "OAuth help",
+    );
     throw rewrittenError;
   } finally {
     markLoginSettled();

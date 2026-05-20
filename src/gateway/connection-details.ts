@@ -79,7 +79,7 @@ export function buildGatewayConnectionDetailsWithResolvers(
           ? undefined
           : "Break-glass (trusted private networks only): set GENESIS_ALLOW_INSECURE_PRIVATE_WS=1",
         "Doctor: genesis doctor --fix",
-        "Docs: https://docs.genesis.ai/gateway/remote",
+        "Docs: https://genesis.pixelzx.com/docs/gateway/remote",
       ].join("\n"),
     );
   }

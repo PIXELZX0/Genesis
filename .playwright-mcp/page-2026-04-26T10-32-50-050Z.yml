@@ -46,4 +46,4 @@
               - img [ref=e61]
       - listitem [ref=e63]: 위에 WebSocket URL과 토큰을 붙여넣거나, 토큰이 포함된 URL을 직접 여세요.
     - link "문서 읽기 →" [ref=e65] [cursor=pointer]:
-      - /url: https://docs.genesis.ai/web/dashboard
+      - /url: https://genesis.pixelzx.com/docs/web/dashboard

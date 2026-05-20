@@ -39,7 +39,7 @@ mkdir -p ~/.clawdock && curl -sL https://raw.githubusercontent.com/PIXELZX0/Gene
 echo 'source ~/.clawdock/clawdock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
 ```
 
-Canonical docs page: https://docs.genesis.ai/install/clawdock
+Canonical docs page: https://genesis.pixelzx.com/docs/install/clawdock
 
 If you previously installed ClawDock from `scripts/shell-helpers/clawdock-helpers.sh`, rerun the install command above. The old raw GitHub path has been removed.
 

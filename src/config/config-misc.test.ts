@@ -15,11 +15,11 @@ import { GenesisSchema } from "./zod-schema.js";
 describe("$schema key in config (#14998)", () => {
   it("accepts config with $schema string", () => {
     const result = GenesisSchema.safeParse({
-      $schema: "https://genesis.ai/config.json",
+      $schema: "https://genesis.pixelzx.com/config.json",
     });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.$schema).toBe("https://genesis.ai/config.json");
+      expect(result.data.$schema).toBe("https://genesis.pixelzx.com/config.json");
     }
   });
 
@@ -43,11 +43,11 @@ describe("$schema key in config (#14998)", () => {
 
   it("preserves $schema through validateConfigObject round-trip", () => {
     const res = validateConfigObject({
-      $schema: "https://genesis.ai/config.json",
+      $schema: "https://genesis.pixelzx.com/config.json",
     });
     expect(res.ok).toBe(true);
     if (res.ok) {
-      expect(res.config.$schema).toBe("https://genesis.ai/config.json");
+      expect(res.config.$schema).toBe("https://genesis.pixelzx.com/config.json");
     }
   });
 });

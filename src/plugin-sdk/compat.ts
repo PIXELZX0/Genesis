@@ -8,11 +8,11 @@ const shouldWarnCompatImport =
 
 if (shouldWarnCompatImport) {
   process.emitWarning(
-    "genesis/plugin-sdk/compat is deprecated for new plugins. Migrate to focused genesis/plugin-sdk/<subpath> imports. See https://docs.genesis.ai/plugins/sdk-migration",
+    "genesis/plugin-sdk/compat is deprecated for new plugins. Migrate to focused genesis/plugin-sdk/<subpath> imports. See https://genesis.pixelzx.com/docs/plugins/sdk-migration",
     {
       code: "GENESIS_PLUGIN_SDK_COMPAT_DEPRECATED",
       detail:
-        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://docs.genesis.ai/plugins/sdk-migration",
+        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://genesis.pixelzx.com/docs/plugins/sdk-migration",
     },
   );
 }

@@ -1525,7 +1525,7 @@ export function registerConfigCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/config", "docs.genesis.ai/cli/config")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/config", "genesis.pixelzx.com/docs/cli/config")}\n`,
     )
     .option(
       "--section <section>",

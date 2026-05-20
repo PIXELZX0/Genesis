@@ -258,7 +258,7 @@ describe("packNpmSpecToArchive", () => {
     expectPackError(result, [
       "Package not found on npm",
       "@genesis/whatsapp",
-      "docs.genesis.ai/tools/plugin",
+      "genesis.pixelzx.com/docs/tools/plugin",
     ]);
   });
 

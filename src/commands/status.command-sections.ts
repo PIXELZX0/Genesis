@@ -326,8 +326,8 @@ export function buildStatusFooterLines(params: {
   gatewayReachable: boolean;
 }) {
   return [
-    "FAQ: https://docs.genesis.ai/faq",
-    "Troubleshooting: https://docs.genesis.ai/troubleshooting",
+    "FAQ: https://genesis.pixelzx.com/docs/faq",
+    "Troubleshooting: https://genesis.pixelzx.com/docs/troubleshooting",
     ...(params.updateHint ? ["", params.warn(params.updateHint)] : []),
     "Next steps:",
     `  Need to share?      ${params.formatCliCommand("genesis status --all")}`,

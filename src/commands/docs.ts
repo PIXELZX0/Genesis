@@ -5,7 +5,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
 
-const SEARCH_TOOL = "https://docs.genesis.ai/mcp.SearchGenesis";
+const SEARCH_TOOL = "https://genesis.pixelzx.com/docs/mcp.SearchGenesis";
 const SEARCH_TIMEOUT_MS = 30_000;
 const DEFAULT_SNIPPET_MAX = 220;
 
@@ -161,12 +161,12 @@ async function renderMarkdown(markdown: string, runtime: RuntimeEnv) {
 export async function docsSearchCommand(queryParts: string[], runtime: RuntimeEnv) {
   const query = queryParts.join(" ").trim();
   if (!query) {
-    const docs = formatDocsLink("/", "docs.genesis.ai");
+    const docs = formatDocsLink("/", "genesis.pixelzx.com/docs");
     if (isRich()) {
       runtime.log(`${theme.muted("Docs:")} ${docs}`);
       runtime.log(`${theme.muted("Search:")} ${formatCliCommand('genesis docs "your query"')}`);
     } else {
-      runtime.log("Docs: https://docs.genesis.ai/");
+      runtime.log("Docs: https://genesis.pixelzx.com/docs/");
       runtime.log(`Search: ${formatCliCommand('genesis docs "your query"')}`);
     }
     return;

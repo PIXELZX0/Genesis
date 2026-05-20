@@ -266,7 +266,7 @@ describe("config io write", () => {
         configPath,
         `${JSON.stringify(
           {
-            $schema: "https://genesis.ai/config.json",
+            $schema: "https://genesis.pixelzx.com/config.json",
             gateway: { mode: "local" },
           },
           null,
@@ -276,7 +276,7 @@ describe("config io write", () => {
       );
 
       const persisted = await writeGatewayPortAndReadConfig(home, configPath);
-      expect(persisted.$schema).toBe("https://genesis.ai/config.json");
+      expect(persisted.$schema).toBe("https://genesis.pixelzx.com/config.json");
       expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
     });
   });
@@ -405,7 +405,7 @@ describe("config io write", () => {
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         includePath,
-        `${JSON.stringify({ $schema: "https://genesis.ai/config-from-include.json" }, null, 2)}\n`,
+        `${JSON.stringify({ $schema: "https://genesis.pixelzx.com/config-from-include.json" }, null, 2)}\n`,
         "utf-8",
       );
       await fs.writeFile(

@@ -452,7 +452,7 @@ export async function monitorTlonProvider(opts: MonitorTlonOpts = {}): Promise<v
             `This can leak conversation context between users.\n\n` +
             `Fix: Add to your Genesis config:\n` +
             `session:\n  dmScope: "per-channel-peer"\n\n` +
-            `Docs: https://docs.genesis.ai/concepts/session#secure-dm-mode`;
+            `Docs: https://genesis.pixelzx.com/docs/concepts/session#secure-dm-mode`;
 
           // Send async, don't block message processing
           sendDm({

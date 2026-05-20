@@ -113,7 +113,7 @@ function invalidContentsPayload(message: string) {
   return {
     error: "invalid_contents",
     message,
-    docs: "https://docs.genesis.ai/tools/web",
+    docs: "https://genesis.pixelzx.com/docs/tools/web",
   };
 }
 
@@ -374,7 +374,7 @@ function missingExaKeyPayload() {
     error: "missing_exa_api_key",
     message:
       "web_search (exa) needs an Exa API key. Set EXA_API_KEY in the Gateway environment, or configure tools.web.search.exa.apiKey.",
-    docs: "https://docs.genesis.ai/tools/web",
+    docs: "https://genesis.pixelzx.com/docs/tools/web",
   };
 }
 
@@ -407,7 +407,7 @@ export async function executeExaWebSearchProviderTool(
     return {
       error: "invalid_freshness",
       message: 'freshness must be one of "day", "week", "month", or "year".',
-      docs: "https://docs.genesis.ai/tools/web",
+      docs: "https://genesis.pixelzx.com/docs/tools/web",
     };
   }
 
@@ -418,7 +418,7 @@ export async function executeExaWebSearchProviderTool(
       error: "conflicting_time_filters",
       message:
         "freshness cannot be combined with date_after or date_before. Use one time-filter mode.",
-      docs: "https://docs.genesis.ai/tools/web",
+      docs: "https://genesis.pixelzx.com/docs/tools/web",
     };
   }
   const parsedDateRange = parseIsoDateRange({

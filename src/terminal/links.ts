@@ -1,7 +1,7 @@
 import { formatTerminalLink } from "./terminal-link.js";
 
 function resolveDocsRoot(): string {
-  return "https://docs.genesis.ai";
+  return "https://genesis.pixelzx.com/docs";
 }
 
 export function formatDocsLink(

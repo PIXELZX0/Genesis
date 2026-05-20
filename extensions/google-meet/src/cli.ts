@@ -689,7 +689,7 @@ export function registerGoogleMeetCli(params: {
   const root = params.program
     .command("googlemeet")
     .description("Google Meet participant utilities")
-    .addHelpText("after", () => `\nDocs: https://docs.genesis.ai/plugins/google-meet\n`);
+    .addHelpText("after", () => `\nDocs: https://genesis.pixelzx.com/docs/plugins/google-meet\n`);
 
   const auth = root.command("auth").description("Google Meet OAuth helpers");
 

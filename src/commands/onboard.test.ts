@@ -71,7 +71,7 @@ describe("setupWizardCommand", () => {
           "Windows detected - Genesis runs great on WSL2!",
           "Native Windows might be trickier.",
           "Quick setup: wsl --install (one command, one reboot)",
-          "Guide: https://docs.genesis.ai/windows",
+          "Guide: https://genesis.pixelzx.com/docs/windows",
         ].join("\n"),
       );
     } finally {

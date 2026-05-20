@@ -80,7 +80,7 @@ Multi-account config (advanced):
 
 ## Full documentation
 
-See https://docs.genesis.ai/channels/twitch for:
+See https://genesis.pixelzx.com/docs/channels/twitch for:
 
 - Token refresh setup
 - Access control patterns

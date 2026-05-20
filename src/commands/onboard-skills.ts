@@ -194,7 +194,7 @@ export async function setupSkills(
       runtime.log(
         `Tip: run \`${formatCliCommand("genesis doctor")}\` to review skills + requirements.`,
       );
-      runtime.log("Docs: https://docs.genesis.ai/skills");
+      runtime.log("Docs: https://genesis.pixelzx.com/docs/skills");
     }
   }
 

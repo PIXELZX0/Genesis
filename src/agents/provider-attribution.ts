@@ -410,7 +410,7 @@ function buildOpenRouterAttributionPolicy(
     reviewNote: "Documented app attribution headers. Verified in Genesis runtime wrapper.",
     ...identity,
     headers: {
-      "HTTP-Referer": "https://genesis.ai",
+      "HTTP-Referer": "https://genesis.pixelzx.com",
       "X-OpenRouter-Title": identity.product,
       "X-OpenRouter-Categories": "cli-agent",
     },

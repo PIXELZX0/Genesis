@@ -17,7 +17,7 @@ const report: HookStatusReport = {
       handlerPath: "/tmp/hooks/session-memory/handler.js",
       hookKey: "session-memory",
       emoji: "💾",
-      homepage: "https://docs.genesis.ai/automation/hooks#session-memory",
+      homepage: "https://genesis.pixelzx.com/docs/automation/hooks#session-memory",
       events: ["command:new"],
       always: false,
       enabledByConfig: true,

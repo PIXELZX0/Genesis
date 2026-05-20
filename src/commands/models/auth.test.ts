@@ -368,7 +368,7 @@ describe("modelsAuthLoginCommand", () => {
       "Default model available: openai-codex/gpt-5.5 (use --set-default to apply)",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "Tip: Codex-capable models can use native Codex web search. Enable it with genesis configure --section web (recommended mode: cached). Docs: https://docs.genesis.ai/tools/web",
+      "Tip: Codex-capable models can use native Codex web search. Enable it with genesis configure --section web (recommended mode: cached). Docs: https://genesis.pixelzx.com/docs/tools/web",
     );
   });
 

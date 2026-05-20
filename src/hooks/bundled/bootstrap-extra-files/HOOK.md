@@ -1,7 +1,7 @@
 ---
 name: bootstrap-extra-files
 description: "Inject additional workspace bootstrap files via glob/path patterns"
-homepage: https://docs.genesis.ai/automation/hooks#bootstrap-extra-files
+homepage: https://genesis.pixelzx.com/docs/automation/hooks#bootstrap-extra-files
 metadata:
   {
     "genesis":

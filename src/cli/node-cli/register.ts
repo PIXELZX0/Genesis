@@ -34,7 +34,7 @@ export function registerNodeCli(program: Command) {
           ["genesis node status", "Check node host service status."],
           ["genesis node install", "Install the node host service."],
           ["genesis node restart", "Restart the installed node host service."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.genesis.ai/cli/node")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "genesis.pixelzx.com/docs/cli/node")}\n`,
     );
 
   node

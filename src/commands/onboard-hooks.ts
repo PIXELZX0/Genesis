@@ -15,7 +15,7 @@ export async function setupInternalHooks(
       "Hooks let you automate actions when agent commands are issued.",
       "Example: Save session context to memory when you issue /new or /reset.",
       "",
-      "Learn more: https://docs.genesis.ai/automation/hooks",
+      "Learn more: https://genesis.pixelzx.com/docs/automation/hooks",
     ].join("\n"),
     "Hooks",
   );

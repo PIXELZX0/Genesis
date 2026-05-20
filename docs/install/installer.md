@@ -1,13 +1,13 @@
 ---
 summary: "How the installer scripts work (install.sh, install-cli.sh, install.ps1), flags, and automation"
 read_when:
-  - You want to understand `genesis.ai/install.sh`
+  - You want to understand `genesis.pixelzx.com/install.sh`
   - You want to automate installs (CI / headless)
   - You want to install from a GitHub checkout
 title: "Installer internals"
 ---
 
-Genesis ships three installer scripts, served from `genesis.ai`.
+Genesis ships three installer scripts, served from `genesis.pixelzx.com`.
 
 | Script                             | Platform             | What it does                                                                                                 |
 | ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -20,31 +20,31 @@ Genesis ships three installer scripts, served from `genesis.ai`.
 <Tabs>
   <Tab title="install.sh">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash
     ```
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --help
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --help
     ```
 
   </Tab>
   <Tab title="install-cli.sh">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash
     ```
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --help
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --help
     ```
 
   </Tab>
   <Tab title="install.ps1">
     ```powershell
-    iwr -useb https://genesis.ai/install.ps1 | iex
+    iwr -useb https://genesis.pixelzx.com/install.ps1 | iex
     ```
 
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -Tag beta -NoOnboard -DryRun
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -Tag beta -NoOnboard -DryRun
     ```
 
   </Tab>
@@ -104,27 +104,27 @@ The script exits with code `2` for invalid method selection or invalid `--instal
 <Tabs>
   <Tab title="Default">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash
     ```
   </Tab>
   <Tab title="Skip onboarding">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --no-onboard
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --no-onboard
     ```
   </Tab>
   <Tab title="Git install">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git
     ```
   </Tab>
   <Tab title="GitHub main via npm">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --version main
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --version main
     ```
   </Tab>
   <Tab title="Dry run">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --dry-run
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --dry-run
     ```
   </Tab>
 </Tabs>
@@ -206,27 +206,27 @@ by default, plus git-checkout installs under the same prefix flow.
 <Tabs>
   <Tab title="Default">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash
     ```
   </Tab>
   <Tab title="Custom prefix + version">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --prefix /opt/genesis --version latest
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --prefix /opt/genesis --version latest
     ```
   </Tab>
   <Tab title="Git install">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --install-method git --git-dir ~/genesis
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --install-method git --git-dir ~/genesis
     ```
   </Tab>
   <Tab title="Automation JSON output">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --json --prefix /opt/genesis
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --json --prefix /opt/genesis
     ```
   </Tab>
   <Tab title="Run onboarding">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --onboard
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --onboard
     ```
   </Tab>
 </Tabs>
@@ -299,34 +299,34 @@ by default, plus git-checkout installs under the same prefix flow.
 <Tabs>
   <Tab title="Default">
     ```powershell
-    iwr -useb https://genesis.ai/install.ps1 | iex
+    iwr -useb https://genesis.pixelzx.com/install.ps1 | iex
     ```
   </Tab>
   <Tab title="Git install">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -InstallMethod git
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -InstallMethod git
     ```
   </Tab>
   <Tab title="GitHub main via npm">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -Tag main
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -Tag main
     ```
   </Tab>
   <Tab title="Custom git directory">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -InstallMethod git -GitDir "C:\genesis"
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -InstallMethod git -GitDir "C:\genesis"
     ```
   </Tab>
   <Tab title="Dry run">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -DryRun
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -DryRun
     ```
   </Tab>
   <Tab title="Debug trace">
     ```powershell
     # install.ps1 has no dedicated -Verbose flag yet.
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
   </Tab>
@@ -372,23 +372,23 @@ Use non-interactive flags/env vars for predictable runs.
 <Tabs>
   <Tab title="install.sh (non-interactive npm)">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --no-prompt --no-onboard
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --no-prompt --no-onboard
     ```
   </Tab>
   <Tab title="install.sh (non-interactive git)">
     ```bash
     GENESIS_INSTALL_METHOD=git GENESIS_NO_PROMPT=1 \
-      curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash
+      curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash
     ```
   </Tab>
   <Tab title="install-cli.sh (JSON)">
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install-cli.sh | bash -s -- --json --prefix /opt/genesis
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install-cli.sh | bash -s -- --json --prefix /opt/genesis
     ```
   </Tab>
   <Tab title="install.ps1 (skip onboarding)">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
     ```
   </Tab>
 </Tabs>
@@ -410,7 +410,7 @@ Use non-interactive flags/env vars for predictable runs.
     The scripts default `SHARP_IGNORE_GLOBAL_LIBVIPS=1` to avoid sharp building against system libvips. To override:
 
     ```bash
-    SHARP_IGNORE_GLOBAL_LIBVIPS=0 curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash
+    SHARP_IGNORE_GLOBAL_LIBVIPS=0 curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash
     ```
 
   </Accordion>
@@ -429,7 +429,7 @@ Use non-interactive flags/env vars for predictable runs.
 
     ```powershell
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
 

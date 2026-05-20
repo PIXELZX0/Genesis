@@ -61,7 +61,7 @@ export async function setupWizardCommand(
     runtime.error(
       [
         "Non-interactive setup requires explicit risk acknowledgement.",
-        "Read: https://docs.genesis.ai/security",
+        "Read: https://genesis.pixelzx.com/docs/security",
         `Re-run with: ${formatCliCommand("genesis onboard --non-interactive --accept-risk ...")}`,
       ].join("\n"),
     );
@@ -88,7 +88,7 @@ export async function setupWizardCommand(
         "Windows detected - Genesis runs great on WSL2!",
         "Native Windows might be trickier.",
         "Quick setup: wsl --install (one command, one reboot)",
-        "Guide: https://docs.genesis.ai/windows",
+        "Guide: https://genesis.pixelzx.com/docs/windows",
       ].join("\n"),
     );
   }

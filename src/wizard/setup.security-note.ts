@@ -33,5 +33,5 @@ export const SECURITY_NOTE_MESSAGE = [
   formatCliCommand("genesis security audit --fix"),
   "",
   heading("Learn more"),
-  "- https://docs.genesis.ai/gateway/security",
+  "- https://genesis.pixelzx.com/docs/gateway/security",
 ].join("\n");

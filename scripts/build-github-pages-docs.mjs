@@ -14,7 +14,7 @@ const OUT_DIR = path.resolve(
   process.env.GENESIS_GITHUB_PAGES_OUT_DIR || ".artifacts/github-pages-docs",
 );
 const REPO_URL = "https://github.com/PIXELZX0/Genesis";
-const CANONICAL_DOCS_URL = "https://docs.genesis.ai";
+const CANONICAL_DOCS_URL = "https://genesis.pixelzx.com/docs";
 const EXCLUDED_DOC_DIRS = new Set([
   ".generated",
   ".i18n",

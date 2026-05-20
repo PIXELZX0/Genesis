@@ -50,7 +50,7 @@ struct AboutSettings: View {
                     icon: "chevron.left.slash.chevron.right",
                     title: "GitHub",
                     url: "https://github.com/PIXELZX0/Genesis")
-                AboutLinkRow(icon: "globe", title: "Website", url: "https://genesis.ai")
+                AboutLinkRow(icon: "globe", title: "Website", url: "https://genesis.pixelzx.com")
                 AboutLinkRow(icon: "bird", title: "Twitter", url: "https://twitter.com/steipete")
                 AboutLinkRow(icon: "envelope", title: "Email", url: "mailto:peter@steipete.me")
             }

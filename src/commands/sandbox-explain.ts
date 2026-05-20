@@ -32,7 +32,7 @@ type SandboxExplainOptions = {
   json: boolean;
 };
 
-const SANDBOX_DOCS_URL = "https://docs.genesis.ai/sandbox";
+const SANDBOX_DOCS_URL = "https://genesis.pixelzx.com/docs/sandbox";
 
 function normalizeExplainSessionKey(params: {
   cfg: GenesisConfig;
@@ -339,7 +339,7 @@ export async function sandboxExplainCommand(
     lines.push(`  - ${key}`);
   }
   lines.push("");
-  lines.push(`${key("Docs:")} ${formatDocsLink("/sandbox", "docs.genesis.ai/sandbox")}`);
+  lines.push(`${key("Docs:")} ${formatDocsLink("/sandbox", "genesis.pixelzx.com/docs/sandbox")}`);
 
   runtime.log(`${lines.join("\n")}\n`);
 }

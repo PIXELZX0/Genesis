@@ -20,7 +20,7 @@ import { dirname, join, resolve, win32 as pathWin32 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-const PUBLISHED_INSTALLER_BASE_URL = "https://genesis.ai";
+const PUBLISHED_INSTALLER_BASE_URL = "https://genesis.pixelzx.com";
 const GENESIS_NPM_PACKAGE_NAME = "@pixelzx/genesis";
 
 const SUPPORTED_MODES = new Set(["fresh", "upgrade", "both"]);

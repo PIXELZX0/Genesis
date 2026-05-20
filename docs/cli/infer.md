@@ -15,7 +15,7 @@ It intentionally exposes capability families, not raw gateway RPC names and not 
 Copy and paste this to an agent:
 
 ```text
-Read https://docs.genesis.ai/cli/infer, then create a skill that routes my common workflows to `genesis infer`.
+Read https://genesis.pixelzx.com/docs/cli/infer, then create a skill that routes my common workflows to `genesis infer`.
 Focus on model runs, image generation, video generation, audio transcription, TTS, web search, and embeddings.
 ```
 
@@ -237,7 +237,7 @@ Use `web` for search and fetch workflows.
 ```bash
 genesis infer web search --query "Genesis docs" --json
 genesis infer web search --query "Genesis infer web providers" --json
-genesis infer web fetch --url https://docs.genesis.ai/cli/infer --json
+genesis infer web fetch --url https://genesis.pixelzx.com/docs/cli/infer --json
 genesis infer web providers --json
 ```
 

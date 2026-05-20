@@ -262,7 +262,7 @@ export function buildOpenRouterSpeechProvider(): SpeechProviderPlugin {
         defaultHeaders: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://genesis.ai",
+          "HTTP-Referer": "https://genesis.pixelzx.com",
           "X-OpenRouter-Title": "Genesis",
         },
         provider: "openrouter",

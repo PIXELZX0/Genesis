@@ -38,7 +38,7 @@ describe("provider attribution", () => {
       product: "Genesis",
       version: "2026.3.22",
       headers: {
-        "HTTP-Referer": "https://genesis.ai",
+        "HTTP-Referer": "https://genesis.pixelzx.com",
         "X-OpenRouter-Title": "Genesis",
         "X-OpenRouter-Categories": "cli-agent",
       },
@@ -51,7 +51,7 @@ describe("provider attribution", () => {
         GENESIS_VERSION: "2026.3.22",
       }),
     ).toEqual({
-      "HTTP-Referer": "https://genesis.ai",
+      "HTTP-Referer": "https://genesis.pixelzx.com",
       "X-OpenRouter-Title": "Genesis",
       "X-OpenRouter-Categories": "cli-agent",
     });

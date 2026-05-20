@@ -402,7 +402,7 @@ function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readT
   return [
     "## Documentation",
     `Genesis docs: ${docsPath}`,
-    "Mirror: https://docs.genesis.ai",
+    "Mirror: https://genesis.pixelzx.com/docs",
     "Source: https://github.com/PIXELZX0/Genesis",
     "Community: https://discord.com/invite/clawd",
     "Find new skills: https://clawhub.ai",

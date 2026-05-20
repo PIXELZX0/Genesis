@@ -81,7 +81,7 @@ session-memory/
 ---
 name: my-hook
 description: "Short description"
-homepage: https://docs.genesis.ai/automation/hooks#my-hook
+homepage: https://genesis.pixelzx.com/docs/automation/hooks#my-hook
 metadata:
   { "genesis": { "emoji": "🔗", "events": ["command:new"], "requires": { "bins": ["node"] } } }
 ---
@@ -220,4 +220,4 @@ Test your hooks by:
 
 ## Documentation
 
-Full documentation: https://docs.genesis.ai/automation/hooks
+Full documentation: https://genesis.pixelzx.com/docs/automation/hooks

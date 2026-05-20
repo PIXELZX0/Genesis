@@ -592,7 +592,7 @@ describe("loginGeminiCliOAuth", () => {
   }
 
   function userInfoResponse(): Response {
-    return responseJson({ email: "lobster@genesis.ai" });
+    return responseJson({ email: "lobster@pixelzx.com" });
   }
 
   type RecordedFetchRequest = {

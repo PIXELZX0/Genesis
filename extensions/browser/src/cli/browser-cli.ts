@@ -31,7 +31,7 @@ export function registerBrowserCli(program: Command) {
           true,
         )}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/browser",
-          "docs.genesis.ai/cli/browser",
+          "genesis.pixelzx.com/docs/cli/browser",
         )}\n`,
     )
     .action(() => {

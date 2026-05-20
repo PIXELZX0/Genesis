@@ -88,7 +88,7 @@ vi.mock("../../terminal/health-style.js", () => ({
 }));
 
 vi.mock("../../terminal/links.js", () => ({
-  formatDocsLink: () => "docs.genesis.ai/cli/gateway",
+  formatDocsLink: () => "genesis.pixelzx.com/docs/cli/gateway",
 }));
 
 vi.mock("../../terminal/theme.js", () => ({

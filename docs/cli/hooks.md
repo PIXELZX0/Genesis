@@ -93,7 +93,7 @@ Details:
   Source: genesis-bundled
   Path: /path/to/genesis/hooks/bundled/session-memory/HOOK.md
   Handler: /path/to/genesis/hooks/bundled/session-memory/handler.ts
-  Homepage: https://docs.genesis.ai/automation/hooks#session-memory
+  Homepage: https://genesis.pixelzx.com/docs/automation/hooks#session-memory
   Events: command:new, command:reset
 
 Requirements:

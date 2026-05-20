@@ -455,7 +455,7 @@ describe("provider request config", () => {
     });
 
     expect(resolved).toEqual({
-      "HTTP-Referer": "https://genesis.ai",
+      "HTTP-Referer": "https://genesis.pixelzx.com",
       "X-OpenRouter-Title": "Genesis",
       "X-OpenRouter-Categories": "cli-agent",
       "X-Custom": "1",

@@ -29,7 +29,7 @@ Need to install Node? See [Node setup](/install/node).
     <Tabs>
       <Tab title="macOS / Linux">
         ```bash
-        curl -fsSL https://genesis.ai/install.sh | bash
+        curl -fsSL https://genesis.pixelzx.com/install.sh | bash
         ```
         <img
   src="/assets/install-script.svg"
@@ -39,7 +39,7 @@ Need to install Node? See [Node setup](/install/node).
       </Tab>
       <Tab title="Windows (PowerShell)">
         ```powershell
-        iwr -useb https://genesis.ai/install.ps1 | iex
+        iwr -useb https://genesis.pixelzx.com/install.ps1 | iex
         ```
       </Tab>
     </Tabs>

@@ -67,7 +67,7 @@ export async function promptRemoteGatewayConfig(
     await prompter.note(
       [
         "Bonjour discovery requires dns-sd (macOS) or avahi-browse (Linux).",
-        "Docs: https://docs.genesis.ai/gateway/discovery",
+        "Docs: https://genesis.pixelzx.com/docs/gateway/discovery",
       ].join("\n"),
       "Discovery",
     );
@@ -142,7 +142,7 @@ export async function promptRemoteGatewayConfig(
           [
             "Start a tunnel before using the CLI:",
             `ssh -N -L 18789:127.0.0.1:18789 <user>@${host}${target.sshPort ? ` -p ${target.sshPort}` : ""}`,
-            "Docs: https://docs.genesis.ai/gateway/remote",
+            "Docs: https://genesis.pixelzx.com/docs/gateway/remote",
           ].join("\n"),
           "SSH tunnel",
         );

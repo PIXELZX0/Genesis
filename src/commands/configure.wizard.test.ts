@@ -393,7 +393,7 @@ describe("runConfigureWizard", () => {
         envVars: [],
         placeholder: "(no key needed)",
         signupUrl: "https://duckduckgo.com/",
-        docsUrl: "https://docs.genesis.ai/tools/web",
+        docsUrl: "https://genesis.pixelzx.com/docs/tools/web",
         credentialPath: "",
       }),
     ]);

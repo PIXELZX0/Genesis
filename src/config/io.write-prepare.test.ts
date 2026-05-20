@@ -523,7 +523,7 @@ describe("config io write prepare", () => {
 
   it("preserves root $schema during unrelated partial writes", () => {
     const sourceConfig: GenesisConfig = {
-      $schema: "https://genesis.ai/config.json",
+      $schema: "https://genesis.pixelzx.com/config.json",
       gateway: { mode: "local" },
     } satisfies GenesisConfig;
 
@@ -535,13 +535,13 @@ describe("config io write prepare", () => {
       } satisfies GenesisConfig,
     }) as GenesisConfig;
 
-    expect(persisted.$schema).toBe("https://genesis.ai/config.json");
+    expect(persisted.$schema).toBe("https://genesis.pixelzx.com/config.json");
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
   });
 
   it("rejects writes that would flatten a root include", () => {
     const sourceConfig = {
-      $schema: "https://genesis.ai/config-from-include.json",
+      $schema: "https://genesis.pixelzx.com/config-from-include.json",
       gateway: { mode: "local" },
     };
 
@@ -562,7 +562,7 @@ describe("config io write prepare", () => {
 
   it("does not restore root $schema when the next config explicitly clears it", () => {
     const sourceConfig = {
-      $schema: "https://genesis.ai/config.json",
+      $schema: "https://genesis.pixelzx.com/config.json",
       gateway: { mode: "local" },
     };
 
@@ -581,7 +581,7 @@ describe("config io write prepare", () => {
 
   it("does not restore root $schema when the next config sets an invalid value", () => {
     const sourceConfig = {
-      $schema: "https://genesis.ai/config.json",
+      $schema: "https://genesis.pixelzx.com/config.json",
       gateway: { mode: "local" },
     };
 

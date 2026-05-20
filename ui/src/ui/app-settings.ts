@@ -701,7 +701,7 @@ function buildAttentionItems(host: SettingsAppHost) {
       title: "Missing operator.read scope",
       description:
         "This connection does not have the operator.read scope. Some features may be unavailable.",
-      href: "https://docs.genesis.ai/web/dashboard",
+      href: "https://genesis.pixelzx.com/docs/web/dashboard",
       external: true,
     });
   }

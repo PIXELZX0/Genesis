@@ -189,7 +189,7 @@ If you're an experienced contributor who wants to help shape Genesis's direction
 
 Being a maintainer is a responsibility, not an honorary title. We expect active, consistent involvement — triaging issues, reviewing PRs, and helping move the project forward.
 
-Still interested? Email contributing@genesis.ai with:
+Still interested? Email contributing@pixelzx.com with:
 
 - Links to your PRs on Genesis (if you don't have any, start there first)
 - Links to open source projects you maintain or actively contribute to
@@ -213,7 +213,7 @@ We take security reports seriously. Report vulnerabilities directly to the repos
 - **ClawHub** — [genesis/clawhub](https://github.com/genesis/clawhub)
 - **Trust and threat model** — [genesis/trust](https://github.com/genesis/trust)
 
-For issues that don't fit a specific repo, or if you're unsure, email **security@genesis.ai** and we'll route it.
+For issues that don't fit a specific repo, or if you're unsure, email **security@pixelzx.com** and we'll route it.
 
 ### Required in Reports
 

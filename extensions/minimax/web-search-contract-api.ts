@@ -16,7 +16,7 @@ export function createMiniMaxWebSearchProvider(): WebSearchProviderPlugin {
     envVars: [...MINIMAX_CODING_PLAN_ENV_VARS],
     placeholder: "sk-cp-...",
     signupUrl: "https://platform.minimax.io/user-center/basic-information/interface-key",
-    docsUrl: "https://docs.genesis.ai/tools/minimax-search",
+    docsUrl: "https://genesis.pixelzx.com/docs/tools/minimax-search",
     autoDetectOrder: 15,
     credentialPath,
     ...createWebSearchProviderContractFields({

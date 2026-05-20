@@ -141,7 +141,7 @@ genesis browser tab new --label docs
 genesis browser tab label t1 docs
 genesis browser tab select 2
 genesis browser tab close 2
-genesis browser open https://docs.genesis.ai --label docs
+genesis browser open https://genesis.pixelzx.com/docs --label docs
 genesis browser focus docs
 genesis browser close t1
 ```

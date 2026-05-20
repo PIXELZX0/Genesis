@@ -56,7 +56,7 @@ export async function runNonInteractiveRemoteSetup(params: {
     runtime.log(`Remote gateway: ${remoteUrl}`);
     runtime.log(`Auth: ${payload.auth}`);
     runtime.log(
-      `Tip: run \`${formatCliCommand("genesis configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.genesis.ai/tools/web`,
+      `Tip: run \`${formatCliCommand("genesis configure --section web")}\` to store your Brave API key for web_search. Docs: https://genesis.pixelzx.com/docs/tools/web`,
     );
   }
 }

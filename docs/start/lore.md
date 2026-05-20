@@ -119,7 +119,7 @@ In just 3 hours:
 - GitHub renamed: `github.com/PIXELZX0/Genesis` ✅
 - X handle `@genesis` secured with GOLD CHECKMARK 💰
 - npm packages released under new name
-- Docs migrated to `docs.genesis.ai`
+- Docs migrated to `genesis.pixelzx.com/docs`
 - 200K+ views on announcement in 90 minutes
 
 **The Heroes:**

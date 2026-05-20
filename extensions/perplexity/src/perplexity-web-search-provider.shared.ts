@@ -32,7 +32,7 @@ export function createPerplexityWebSearchProviderBase() {
     envVars: ["PERPLEXITY_API_KEY", "OPENROUTER_API_KEY"],
     placeholder: "pplx-...",
     signupUrl: "https://www.perplexity.ai/settings/api",
-    docsUrl: "https://docs.genesis.ai/perplexity",
+    docsUrl: "https://genesis.pixelzx.com/docs/perplexity",
     autoDetectOrder: 50,
     credentialPath: PERPLEXITY_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

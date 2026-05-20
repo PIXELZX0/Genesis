@@ -145,10 +145,10 @@ ARG GENESIS_DOCKER_APT_UPGRADE
 # OCI base-image metadata for downstream image consumers.
 # If you change these annotations, also update:
 # - docs/install/docker.md ("Base image metadata" section)
-# - https://docs.genesis.ai/install/docker
+# - https://genesis.pixelzx.com/docs/install/docker
 LABEL org.opencontainers.image.source="https://github.com/PIXELZX0/Genesis" \
-  org.opencontainers.image.url="https://genesis.ai" \
-  org.opencontainers.image.documentation="https://docs.genesis.ai/install/docker" \
+  org.opencontainers.image.url="https://genesis.pixelzx.com" \
+  org.opencontainers.image.documentation="https://genesis.pixelzx.com/docs/install/docker" \
   org.opencontainers.image.licenses="MIT" \
   org.opencontainers.image.title="Genesis" \
   org.opencontainers.image.description="Genesis gateway and CLI runtime container image"

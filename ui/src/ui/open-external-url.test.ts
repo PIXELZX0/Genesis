@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 describe("resolveSafeExternalUrl", () => {
-  const baseHref = "https://genesis.ai/chat";
+  const baseHref = "https://genesis.pixelzx.com/chat";
 
   it("allows absolute https URLs", () => {
     expect(resolveSafeExternalUrl("https://example.com/a.png?x=1#y", baseHref)).toBe(
@@ -17,13 +17,13 @@ describe("resolveSafeExternalUrl", () => {
 
   it("allows relative URLs resolved against the current origin", () => {
     expect(resolveSafeExternalUrl("/assets/pic.png", baseHref)).toBe(
-      "https://genesis.ai/assets/pic.png",
+      "https://genesis.pixelzx.com/assets/pic.png",
     );
   });
 
   it("allows blob URLs", () => {
-    expect(resolveSafeExternalUrl("blob:https://genesis.ai/abc-123", baseHref)).toBe(
-      "blob:https://genesis.ai/abc-123",
+    expect(resolveSafeExternalUrl("blob:https://genesis.pixelzx.com/abc-123", baseHref)).toBe(
+      "blob:https://genesis.pixelzx.com/abc-123",
     );
   });
 
@@ -94,7 +94,7 @@ describe("openExternalUrlSafe", () => {
       .mockImplementation(() => openedLikeProxy as unknown as Window);
 
     const opened = openExternalUrlSafe("https://example.com/safe.png", {
-      baseHref: "https://genesis.ai/chat",
+      baseHref: "https://genesis.pixelzx.com/chat",
     });
 
     expect(openMock).toHaveBeenCalledWith(

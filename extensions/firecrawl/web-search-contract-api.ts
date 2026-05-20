@@ -15,7 +15,7 @@ export function createFirecrawlWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["FIRECRAWL_API_KEY"],
     placeholder: "fc-...",
     signupUrl: "https://www.firecrawl.dev/",
-    docsUrl: "https://docs.genesis.ai/tools/firecrawl",
+    docsUrl: "https://genesis.pixelzx.com/docs/tools/firecrawl",
     autoDetectOrder: 60,
     credentialPath,
     ...createWebSearchProviderContractFields({

@@ -88,7 +88,7 @@ export function registerDirectoryCli(program: Command) {
           ],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/directory",
-          "docs.genesis.ai/cli/directory",
+          "genesis.pixelzx.com/docs/cli/directory",
         )}\n`,
     )
     .action(() => {

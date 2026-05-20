@@ -1,7 +1,7 @@
 ---
 name: command-logger
 description: "Log all command events to a centralized audit file"
-homepage: https://docs.genesis.ai/automation/hooks#command-logger
+homepage: https://genesis.pixelzx.com/docs/automation/hooks#command-logger
 metadata:
   {
     "genesis":

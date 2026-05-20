@@ -350,5 +350,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
   }
 
   defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("genesis status")}`);
-  defaultRuntime.log(`${label("Troubleshooting:")} https://docs.genesis.ai/troubleshooting`);
+  defaultRuntime.log(
+    `${label("Troubleshooting:")} https://genesis.pixelzx.com/docs/troubleshooting`,
+  );
 }

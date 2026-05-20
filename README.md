@@ -13,9 +13,9 @@ If you want a personal, single-user assistant that feels local, fast, and always
 
 Supported channels include: WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, BlueBubbles, IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, WebChat.
 
-[Website](https://genesis.ai) · [Docs](https://docs.genesis.ai) · [Vision](VISION.md) · [DeepWiki](https://deepwiki.com/PIXELZX0/Genesis) · [Getting Started](https://docs.genesis.ai/start/getting-started) · [Updating](https://docs.genesis.ai/install/updating) · [Showcase](https://docs.genesis.ai/start/showcase) · [FAQ](https://docs.genesis.ai/help/faq) · [Onboarding](https://docs.genesis.ai/start/wizard) · [Nix](https://github.com/genesis/nix-genesis) · [Docker](https://docs.genesis.ai/install/docker)
+[Website](https://genesis.pixelzx.com) · [Docs](https://genesis.pixelzx.com/docs) · [Vision](VISION.md) · [DeepWiki](https://deepwiki.com/PIXELZX0/Genesis) · [Getting Started](https://genesis.pixelzx.com/docs/start/getting-started) · [Updating](https://genesis.pixelzx.com/docs/install/updating) · [Showcase](https://genesis.pixelzx.com/docs/start/showcase) · [FAQ](https://genesis.pixelzx.com/docs/help/faq) · [Onboarding](https://genesis.pixelzx.com/docs/start/wizard) · [Nix](https://github.com/genesis/nix-genesis) · [Docker](https://genesis.pixelzx.com/docs/install/docker)
 
-New install? Start here: [Getting started](https://docs.genesis.ai/start/getting-started)
+New install? Start here: [Getting started](https://genesis.pixelzx.com/docs/start/getting-started)
 
 Preferred setup: run `genesis onboard` in your terminal.
 Genesis Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
@@ -25,7 +25,7 @@ Works with npm, pnpm, or bun.
 
 - **[OpenAI](https://openai.com/)** (ChatGPT/Codex)
 
-Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://docs.genesis.ai/start/onboarding).
+Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://genesis.pixelzx.com/docs/start/onboarding).
 
 ## Install (recommended)
 
@@ -44,7 +44,7 @@ Genesis Onboard installs the Gateway daemon (launchd/systemd user service) so it
 
 Runtime: **Node 24 (recommended) or Node 22.16+**.
 
-Full beginner guide (auth, pairing, channels): [Getting started](https://docs.genesis.ai/start/getting-started)
+Full beginner guide (auth, pairing, channels): [Getting started](https://genesis.pixelzx.com/docs/start/getting-started)
 
 ```bash
 genesis onboard --install-daemon
@@ -58,15 +58,15 @@ genesis message send --to +1234567890 --message "Hello from Genesis"
 genesis agent --message "Ship checklist" --thinking high
 ```
 
-Upgrading? [Updating guide](https://docs.genesis.ai/install/updating) (and run `genesis doctor`).
+Upgrading? [Updating guide](https://genesis.pixelzx.com/docs/install/updating) (and run `genesis doctor`).
 
-Models config + CLI: [Models](https://docs.genesis.ai/concepts/models). Auth profile rotation + fallbacks: [Model failover](https://docs.genesis.ai/concepts/model-failover).
+Models config + CLI: [Models](https://genesis.pixelzx.com/docs/concepts/models). Auth profile rotation + fallbacks: [Model failover](https://genesis.pixelzx.com/docs/concepts/model-failover).
 
 ## Security defaults (DM access)
 
 Genesis connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.
 
-Full security guide: [Security](https://docs.genesis.ai/gateway/security)
+Full security guide: [Security](https://genesis.pixelzx.com/docs/gateway/security)
 
 Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack:
 
@@ -78,39 +78,39 @@ Run `genesis doctor` to surface risky/misconfigured DM policies.
 
 ## Highlights
 
-- **[Local-first Gateway](https://docs.genesis.ai/gateway)** — single control plane for sessions, channels, tools, and events.
-- **[Multi-channel inbox](https://docs.genesis.ai/channels)** — WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, BlueBubbles (iMessage), iMessage (legacy), IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, WebChat, macOS, iOS/Android.
-- **[Multi-agent routing](https://docs.genesis.ai/gateway/configuration)** — route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions).
-- **[Voice Wake](https://docs.genesis.ai/nodes/voicewake) + [Talk Mode](https://docs.genesis.ai/nodes/talk)** — wake words on macOS/iOS and continuous voice on Android (ElevenLabs + system TTS fallback).
-- **[Live Canvas](https://docs.genesis.ai/platforms/mac/canvas)** — agent-driven visual workspace with [A2UI](https://docs.genesis.ai/platforms/mac/canvas#canvas-a2ui).
-- **[First-class tools](https://docs.genesis.ai/tools)** — browser, canvas, nodes, cron, sessions, and Discord/Slack actions.
-- **[Companion apps](https://docs.genesis.ai/platforms/macos)** — macOS menu bar app + iOS/Android [nodes](https://docs.genesis.ai/nodes).
-- **[Onboarding](https://docs.genesis.ai/start/wizard) + [skills](https://docs.genesis.ai/tools/skills)** — onboarding-driven setup with bundled/managed/workspace skills.
+- **[Local-first Gateway](https://genesis.pixelzx.com/docs/gateway)** — single control plane for sessions, channels, tools, and events.
+- **[Multi-channel inbox](https://genesis.pixelzx.com/docs/channels)** — WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, BlueBubbles (iMessage), iMessage (legacy), IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, WebChat, macOS, iOS/Android.
+- **[Multi-agent routing](https://genesis.pixelzx.com/docs/gateway/configuration)** — route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions).
+- **[Voice Wake](https://genesis.pixelzx.com/docs/nodes/voicewake) + [Talk Mode](https://genesis.pixelzx.com/docs/nodes/talk)** — wake words on macOS/iOS and continuous voice on Android (ElevenLabs + system TTS fallback).
+- **[Live Canvas](https://genesis.pixelzx.com/docs/platforms/mac/canvas)** — agent-driven visual workspace with [A2UI](https://genesis.pixelzx.com/docs/platforms/mac/canvas#canvas-a2ui).
+- **[First-class tools](https://genesis.pixelzx.com/docs/tools)** — browser, canvas, nodes, cron, sessions, and Discord/Slack actions.
+- **[Companion apps](https://genesis.pixelzx.com/docs/platforms/macos)** — macOS menu bar app + iOS/Android [nodes](https://genesis.pixelzx.com/docs/nodes).
+- **[Onboarding](https://genesis.pixelzx.com/docs/start/wizard) + [skills](https://genesis.pixelzx.com/docs/tools/skills)** — onboarding-driven setup with bundled/managed/workspace skills.
 
 ## Security model (important)
 
 - Default: tools run on the host for the `main` session, so the agent has full access when it is just you.
 - Group/channel safety: set `agents.defaults.sandbox.mode: "non-main"` to run non-`main` sessions inside sandboxes. Docker is the default sandbox backend; SSH and OpenShell backends are also available.
 - Typical sandbox default: allow `bash`, `process`, `read`, `write`, `edit`, `sessions_list`, `sessions_history`, `sessions_send`, `sessions_spawn`; deny `browser`, `canvas`, `nodes`, `cron`, `discord`, `gateway`.
-- Before exposing anything remotely, read [Security](https://docs.genesis.ai/gateway/security), [Sandboxing](https://docs.genesis.ai/gateway/sandboxing), and [Configuration](https://docs.genesis.ai/gateway/configuration).
+- Before exposing anything remotely, read [Security](https://genesis.pixelzx.com/docs/gateway/security), [Sandboxing](https://genesis.pixelzx.com/docs/gateway/sandboxing), and [Configuration](https://genesis.pixelzx.com/docs/gateway/configuration).
 
 ## Operator quick refs
 
 - Chat commands: `/status`, `/new`, `/reset`, `/compact`, `/think <level>`, `/verbose on|off`, `/trace on|off`, `/usage off|tokens|full`, `/restart`, `/activation mention|always`
 - Session tools: `sessions_list`, `sessions_history`, `sessions_send`
-- Skills guide: [Skills](https://docs.genesis.ai/tools/skills)
-- Architecture overview: [Architecture](https://docs.genesis.ai/concepts/architecture)
+- Skills guide: [Skills](https://genesis.pixelzx.com/docs/tools/skills)
+- Architecture overview: [Architecture](https://genesis.pixelzx.com/docs/concepts/architecture)
 
 ## Docs by goal
 
-- New here: [Getting started](https://docs.genesis.ai/start/getting-started), [Onboarding](https://docs.genesis.ai/start/wizard), [Updating](https://docs.genesis.ai/install/updating)
-- Channel setup: [Channels index](https://docs.genesis.ai/channels), [WhatsApp](https://docs.genesis.ai/channels/whatsapp), [Telegram](https://docs.genesis.ai/channels/telegram), [Discord](https://docs.genesis.ai/channels/discord), [Slack](https://docs.genesis.ai/channels/slack)
-- Apps + nodes: [macOS](https://docs.genesis.ai/platforms/macos), [iOS](https://docs.genesis.ai/platforms/ios), [Android](https://docs.genesis.ai/platforms/android), [Nodes](https://docs.genesis.ai/nodes)
-- Config + security: [Configuration](https://docs.genesis.ai/gateway/configuration), [Security](https://docs.genesis.ai/gateway/security), [Sandboxing](https://docs.genesis.ai/gateway/sandboxing)
-- Remote + web: [Gateway](https://docs.genesis.ai/gateway), [Remote access](https://docs.genesis.ai/gateway/remote), [Tailscale](https://docs.genesis.ai/gateway/tailscale), [Web surfaces](https://docs.genesis.ai/web)
-- Tools + automation: [Tools](https://docs.genesis.ai/tools), [Skills](https://docs.genesis.ai/tools/skills), [Cron jobs](https://docs.genesis.ai/automation/cron-jobs), [Webhooks](https://docs.genesis.ai/automation/webhook), [Gmail Pub/Sub](https://docs.genesis.ai/automation/gmail-pubsub)
-- Internals: [Architecture](https://docs.genesis.ai/concepts/architecture), [Agent](https://docs.genesis.ai/concepts/agent), [Session model](https://docs.genesis.ai/concepts/session), [Gateway protocol](https://docs.genesis.ai/reference/rpc)
-- Troubleshooting: [Channel troubleshooting](https://docs.genesis.ai/channels/troubleshooting), [Logging](https://docs.genesis.ai/logging), [Docs home](https://docs.genesis.ai)
+- New here: [Getting started](https://genesis.pixelzx.com/docs/start/getting-started), [Onboarding](https://genesis.pixelzx.com/docs/start/wizard), [Updating](https://genesis.pixelzx.com/docs/install/updating)
+- Channel setup: [Channels index](https://genesis.pixelzx.com/docs/channels), [WhatsApp](https://genesis.pixelzx.com/docs/channels/whatsapp), [Telegram](https://genesis.pixelzx.com/docs/channels/telegram), [Discord](https://genesis.pixelzx.com/docs/channels/discord), [Slack](https://genesis.pixelzx.com/docs/channels/slack)
+- Apps + nodes: [macOS](https://genesis.pixelzx.com/docs/platforms/macos), [iOS](https://genesis.pixelzx.com/docs/platforms/ios), [Android](https://genesis.pixelzx.com/docs/platforms/android), [Nodes](https://genesis.pixelzx.com/docs/nodes)
+- Config + security: [Configuration](https://genesis.pixelzx.com/docs/gateway/configuration), [Security](https://genesis.pixelzx.com/docs/gateway/security), [Sandboxing](https://genesis.pixelzx.com/docs/gateway/sandboxing)
+- Remote + web: [Gateway](https://genesis.pixelzx.com/docs/gateway), [Remote access](https://genesis.pixelzx.com/docs/gateway/remote), [Tailscale](https://genesis.pixelzx.com/docs/gateway/tailscale), [Web surfaces](https://genesis.pixelzx.com/docs/web)
+- Tools + automation: [Tools](https://genesis.pixelzx.com/docs/tools), [Skills](https://genesis.pixelzx.com/docs/tools/skills), [Cron jobs](https://genesis.pixelzx.com/docs/automation/cron-jobs), [Webhooks](https://genesis.pixelzx.com/docs/automation/webhook), [Gmail Pub/Sub](https://genesis.pixelzx.com/docs/automation/gmail-pubsub)
+- Internals: [Architecture](https://genesis.pixelzx.com/docs/concepts/architecture), [Agent](https://genesis.pixelzx.com/docs/concepts/agent), [Session model](https://genesis.pixelzx.com/docs/concepts/session), [Gateway protocol](https://genesis.pixelzx.com/docs/reference/rpc)
+- Troubleshooting: [Channel troubleshooting](https://genesis.pixelzx.com/docs/channels/troubleshooting), [Logging](https://genesis.pixelzx.com/docs/logging), [Docs home](https://genesis.pixelzx.com/docs)
 
 ## Apps (optional)
 
@@ -125,7 +125,7 @@ If you plan to build/run companion apps, follow the platform runbooks below.
 - WebChat + debug tools.
 - Remote gateway control over SSH.
 
-Note: signed builds required for macOS permissions to stick across rebuilds (see [macOS Permissions](https://docs.genesis.ai/platforms/mac/permissions)).
+Note: signed builds required for macOS permissions to stick across rebuilds (see [macOS Permissions](https://genesis.pixelzx.com/docs/platforms/mac/permissions)).
 
 ### iOS node (optional)
 
@@ -133,13 +133,13 @@ Note: signed builds required for macOS permissions to stick across rebuilds (see
 - Voice trigger forwarding + Canvas surface.
 - Controlled via `genesis nodes …`.
 
-Runbook: [iOS connect](https://docs.genesis.ai/platforms/ios).
+Runbook: [iOS connect](https://genesis.pixelzx.com/docs/platforms/ios).
 
 ### Android node (optional)
 
 - Pairs as a WS node via device pairing (`genesis devices ...`).
 - Exposes Connect/Chat/Voice tabs plus Canvas, Camera, Screen capture, and Android device command families.
-- Runbook: [Android connect](https://docs.genesis.ai/platforms/android).
+- Runbook: [Android connect](https://genesis.pixelzx.com/docs/platforms/android).
 
 ## From source (development)
 
@@ -181,7 +181,7 @@ Note: `pnpm genesis ...` runs TypeScript directly (via `tsx`). `pnpm build` prod
 - **dev**: moving head of `main`, npm dist-tag `dev` (when published).
 
 Switch channels (git + npm): `genesis update --channel stable|beta|dev`.
-Details: [Development channels](https://docs.genesis.ai/install/development-channels).
+Details: [Development channels](https://genesis.pixelzx.com/docs/install/development-channels).
 
 ## Agent workspace + skills
 
@@ -201,7 +201,7 @@ Minimal `~/.genesis/genesis.json` (model + defaults):
 }
 ```
 
-[Full configuration reference (all keys + examples).](https://docs.genesis.ai/gateway/configuration)
+[Full configuration reference (all keys + examples).](https://genesis.pixelzx.com/docs/gateway/configuration)
 
 ## Star History
 

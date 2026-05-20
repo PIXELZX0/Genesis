@@ -88,7 +88,7 @@ export default definePluginEntry({
       buildUnknownModelHint: () =>
         "vLLM requires authentication to be registered as a provider. " +
         'Set VLLM_API_KEY (any value works) or run "genesis configure". ' +
-        "See: https://docs.genesis.ai/providers/vllm",
+        "See: https://genesis.pixelzx.com/docs/providers/vllm",
     });
   },
 });

@@ -99,7 +99,7 @@ tailscale status
 ## 5) Install Genesis
 
 ```bash
-curl -fsSL https://genesis.ai/install.sh | bash
+curl -fsSL https://genesis.pixelzx.com/install.sh | bash
 source ~/.bashrc
 ```
 

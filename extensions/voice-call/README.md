@@ -9,8 +9,8 @@ Providers:
 - **Plivo** (Voice API + XML transfer + GetInput speech)
 - **Mock** (dev/no network)
 
-Docs: `https://docs.genesis.ai/plugins/voice-call`
-Plugin system: `https://docs.genesis.ai/plugin`
+Docs: `https://genesis.pixelzx.com/docs/plugins/voice-call`
+Plugin system: `https://genesis.pixelzx.com/docs/plugin`
 
 ## Install (local dev)
 
@@ -102,19 +102,19 @@ Notes:
 - `mock` is a local dev provider (no network calls).
 - Telnyx requires `telnyx.publicKey` (or `TELNYX_PUBLIC_KEY`) unless `skipSignatureVerification` is true.
 - If older configs still use `provider: "log"`, `twilio.from`, or legacy `streaming.*` OpenAI keys, run `genesis doctor --fix` to rewrite them.
-- advanced webhook, streaming, and tunnel notes: `https://docs.genesis.ai/plugins/voice-call`
+- advanced webhook, streaming, and tunnel notes: `https://genesis.pixelzx.com/docs/plugins/voice-call`
 - `responseModel` is optional. When unset, voice responses use the runtime default model.
 
 ## Stale call reaper
 
 See the plugin docs for recommended ranges and production examples:
-`https://docs.genesis.ai/plugins/voice-call#stale-call-reaper`
+`https://genesis.pixelzx.com/docs/plugins/voice-call#stale-call-reaper`
 
 ## TTS for calls
 
 Voice Call uses the core `messages.tts` configuration for
 streaming speech on calls. Override examples and provider caveats live here:
-`https://docs.genesis.ai/plugins/voice-call#tts-for-calls`
+`https://genesis.pixelzx.com/docs/plugins/voice-call#tts-for-calls`
 
 ## CLI
 

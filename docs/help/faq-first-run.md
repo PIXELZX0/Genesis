@@ -3,7 +3,7 @@ summary: "FAQ: quick-start and first-run setup — install, onboard, auth, subsc
 read_when:
   - New install, onboarding stuck, or first-run errors
   - Choosing auth and provider subscriptions
-  - Cannot access docs.genesis.ai, cannot open dashboard, install stuck
+  - Cannot access genesis.pixelzx.com/docs, cannot open dashboard, install stuck
 title: "FAQ: first-run setup"
 sidebarTitle: "First-run FAQ"
 ---
@@ -27,7 +27,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     the hackable (git) install:
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git
     ```
 
     This installs Genesis **from a git checkout**, so the agent can read the code + docs and
@@ -82,7 +82,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     The repo recommends running from source and using onboarding:
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash
     genesis onboard --install-daemon
     ```
 
@@ -242,9 +242,9 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   </Accordion>
 
-  <Accordion title="Cannot access docs.genesis.ai (SSL error)">
-    Some Comcast/Xfinity connections incorrectly block `docs.genesis.ai` via Xfinity
-    Advanced Security. Disable it or allowlist `docs.genesis.ai`, then retry.
+  <Accordion title="Cannot access genesis.pixelzx.com/docs (SSL error)">
+    Some Comcast/Xfinity connections incorrectly block `genesis.pixelzx.com/docs` via Xfinity
+    Advanced Security. Disable it or allowlist `genesis.pixelzx.com/docs`, then retry.
     Please help us unblock it by reporting here: [https://spa.xfinity.com/check_url_status](https://spa.xfinity.com/check_url_status).
 
     If you still can't reach the site, the docs are mirrored on GitHub:
@@ -277,15 +277,15 @@ and troubleshooting see the main [FAQ](/help/faq).
     One-liners (macOS/Linux):
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --beta
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --beta
     ```
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL --proto '=https' --tlsv1.2 https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git
     ```
 
     Windows installer (PowerShell):
-    [https://genesis.ai/install.ps1](https://genesis.ai/install.ps1)
+    [https://genesis.pixelzx.com/install.ps1](https://genesis.pixelzx.com/install.ps1)
 
     More detail: [Development channels](/install/development-channels) and [Installer flags](/install/installer).
 
@@ -305,7 +305,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     2. **Hackable install (from the installer site):**
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git
     ```
 
     That gives you a local repo you can edit, then update via git.
@@ -339,19 +339,19 @@ and troubleshooting see the main [FAQ](/help/faq).
     Re-run the installer with **verbose output**:
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --verbose
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --verbose
     ```
 
     Beta install with verbose:
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --beta --verbose
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --beta --verbose
     ```
 
     For a hackable (git) install:
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --install-method git --verbose
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git --verbose
     ```
 
     Windows (PowerShell) equivalent:
@@ -359,7 +359,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     ```powershell
     # install.ps1 has no dedicated -Verbose flag yet.
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
 
@@ -426,7 +426,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     your bot (or Claude/Codex) _from that folder_ so it can read the repo and answer precisely.
 
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --install-method git
     ```
 
     More detail: [Install](/install) and [Installer flags](/install/installer).

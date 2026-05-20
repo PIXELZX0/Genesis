@@ -308,7 +308,7 @@ md.core.ruler.after("linkify", "linkify-cjk-trim", (state) => {
         continue;
       }
       // Only trim linkify-generated autolinks, not explicit markdown links
-      // like [Genesis中文](https://docs.genesis.ai) where CJK in display
+      // like [Genesis中文](https://genesis.pixelzx.com/docs) where CJK in display
       // text is intentional and href must not be rewritten.
       if (token.markup !== "linkify") {
         continue;

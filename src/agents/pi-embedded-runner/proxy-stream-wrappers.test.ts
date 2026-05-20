@@ -54,7 +54,7 @@ describe("proxy stream wrappers", () => {
     expect(calls).toEqual([
       {
         headers: {
-          "HTTP-Referer": "https://genesis.ai",
+          "HTTP-Referer": "https://genesis.pixelzx.com",
           "X-OpenRouter-Title": "Genesis",
           "X-OpenRouter-Categories": "cli-agent",
           "X-Custom": "1",

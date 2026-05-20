@@ -147,8 +147,8 @@ describe("status.command-sections", () => {
         gatewayReachable: false,
       }),
     ).toEqual([
-      "FAQ: https://docs.genesis.ai/faq",
-      "Troubleshooting: https://docs.genesis.ai/troubleshooting",
+      "FAQ: https://genesis.pixelzx.com/docs/faq",
+      "Troubleshooting: https://genesis.pixelzx.com/docs/troubleshooting",
       "",
       "warn(upgrade ready)",
       "Next steps:",

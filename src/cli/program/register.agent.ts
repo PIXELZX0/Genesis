@@ -74,7 +74,7 @@ ${formatHelpExamples([
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.genesis.ai/cli/agent")}`,
+${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "genesis.pixelzx.com/docs/cli/agent")}`,
     )
     .action(async (opts) => {
       const verboseLevel =
@@ -93,7 +93,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.genesis.ai/cli/agen
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/agents", "docs.genesis.ai/cli/agents")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/agents", "genesis.pixelzx.com/docs/cli/agents")}\n`,
     );
 
   agents

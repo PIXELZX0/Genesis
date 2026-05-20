@@ -1,7 +1,7 @@
 ---
 name: boot-md
 description: "Run BOOT.md on gateway startup"
-homepage: https://docs.genesis.ai/automation/hooks#boot-md
+homepage: https://genesis.pixelzx.com/docs/automation/hooks#boot-md
 metadata:
   {
     "genesis":

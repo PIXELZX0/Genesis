@@ -258,7 +258,7 @@ export function registerLogsCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/logs", "docs.genesis.ai/cli/logs")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/logs", "genesis.pixelzx.com/docs/cli/logs")}\n`,
     );
 
   addGatewayClientOptions(logs);

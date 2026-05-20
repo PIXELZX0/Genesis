@@ -59,7 +59,7 @@ describe("config validation SecretRef policy guards", () => {
       expect(issue).toBeDefined();
       expect(issue?.message).toContain("SecretRef objects are not supported at hooks.token");
       expect(issue?.message).toContain(
-        "https://docs.genesis.ai/reference/secretref-credential-surface",
+        "https://genesis.pixelzx.com/docs/reference/secretref-credential-surface",
       );
       expect(
         result.issues.some(

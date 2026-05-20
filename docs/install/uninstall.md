@@ -114,7 +114,7 @@ If you used a profile, delete the matching task name and `~\.genesis-<profile>\g
 
 ### Normal install (install.sh / npm / pnpm / bun)
 
-If you used `https://genesis.ai/install.sh` or `install.ps1`, the CLI was installed with `npm install -g @pixelzx/genesis@latest`.
+If you used `https://genesis.pixelzx.com/install.sh` or `install.ps1`, the CLI was installed with `npm install -g @pixelzx/genesis@latest`.
 Remove it with `npm rm -g @pixelzx/genesis` (or `pnpm remove -g` / `bun remove -g` if you installed that way).
 
 ### Source checkout (git clone)

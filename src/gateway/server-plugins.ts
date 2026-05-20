@@ -162,7 +162,7 @@ function authorizeFallbackModelOverride(params: {
       allowed: false,
       reason:
         `plugin "${pluginId}" is not trusted for fallback provider/model override requests. ` +
-        "See https://docs.genesis.ai/tools/plugin#runtime-helpers and search for: " +
+        "See https://genesis.pixelzx.com/docs/tools/plugin#runtime-helpers and search for: " +
         "plugins.entries.<id>.subagent.allowModelOverride",
     };
   }

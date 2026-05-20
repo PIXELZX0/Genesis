@@ -20,12 +20,12 @@ The fastest way to install. It detects your OS, installs Node if needed, install
 <Tabs>
   <Tab title="macOS / Linux / WSL2">
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash
     ```
   </Tab>
   <Tab title="Windows (PowerShell)">
     ```powershell
-    iwr -useb https://genesis.ai/install.ps1 | iex
+    iwr -useb https://genesis.pixelzx.com/install.ps1 | iex
     ```
   </Tab>
 </Tabs>
@@ -35,12 +35,12 @@ To install without running onboarding:
 <Tabs>
   <Tab title="macOS / Linux / WSL2">
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash -s -- --no-onboard
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash -s -- --no-onboard
     ```
   </Tab>
   <Tab title="Windows (PowerShell)">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
     ```
   </Tab>
 </Tabs>
@@ -55,7 +55,7 @@ Use this when you want Genesis and Node kept under a local prefix such as
 `~/.genesis`, without depending on a system-wide Node install:
 
 ```bash
-curl -fsSL https://genesis.ai/install-cli.sh | bash
+curl -fsSL https://genesis.pixelzx.com/install-cli.sh | bash
 ```
 
 It supports npm installs by default, plus git-checkout installs under the same

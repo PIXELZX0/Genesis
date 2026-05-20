@@ -248,9 +248,9 @@ describe("scripts/genesis-cross-os-release-checks", () => {
   });
 
   it("uses the published installer URLs for native installer lanes", () => {
-    expect(resolvePublishedInstallerUrl("darwin")).toBe("https://genesis.ai/install.sh");
-    expect(resolvePublishedInstallerUrl("linux")).toBe("https://genesis.ai/install.sh");
-    expect(resolvePublishedInstallerUrl("win32")).toBe("https://genesis.ai/install.ps1");
+    expect(resolvePublishedInstallerUrl("darwin")).toBe("https://genesis.pixelzx.com/install.sh");
+    expect(resolvePublishedInstallerUrl("linux")).toBe("https://genesis.pixelzx.com/install.sh");
+    expect(resolvePublishedInstallerUrl("win32")).toBe("https://genesis.pixelzx.com/install.ps1");
   });
 
   it("uses managed gateway services only on native Windows runners", () => {

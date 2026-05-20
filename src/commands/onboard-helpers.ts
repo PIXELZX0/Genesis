@@ -147,8 +147,8 @@ export function formatControlUiSshHint(params: {
     localUrl,
     authedUrl,
     "Docs:",
-    "https://docs.genesis.ai/gateway/remote",
-    "https://docs.genesis.ai/web/control-ui",
+    "https://genesis.pixelzx.com/docs/gateway/remote",
+    "https://genesis.pixelzx.com/docs/web/control-ui",
   ]
     .filter(Boolean)
     .join("\n");

@@ -27,7 +27,7 @@ export function registerNodesCli(program: Command) {
             "Invoke a node command directly.",
           ],
           ["genesis nodes camera snap --node <id>", "Capture a photo from a node camera."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/nodes", "docs.genesis.ai/cli/nodes")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/nodes", "genesis.pixelzx.com/docs/cli/nodes")}\n`,
     );
 
   registerNodesStatusCommands(nodes);

@@ -73,7 +73,7 @@ Run a persistent Genesis Gateway on Oracle Cloud's **Always Free** ARM tier (up 
 
   <Step title="Install Genesis">
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash
     source ~/.bashrc
     ```
 

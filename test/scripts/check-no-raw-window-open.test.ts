@@ -5,7 +5,7 @@ describe("check-no-raw-window-open", () => {
   it("finds direct window.open calls", () => {
     const source = `
       function openDocs() {
-        window.open("https://docs.genesis.ai");
+        window.open("https://genesis.pixelzx.com/docs");
       }
     `;
     expect(findRawWindowOpenLines(source)).toEqual([3]);
@@ -14,7 +14,7 @@ describe("check-no-raw-window-open", () => {
   it("finds globalThis.open calls", () => {
     const source = `
       function openDocs() {
-        globalThis.open("https://docs.genesis.ai");
+        globalThis.open("https://genesis.pixelzx.com/docs");
       }
     `;
     expect(findRawWindowOpenLines(source)).toEqual([3]);

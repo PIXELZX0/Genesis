@@ -203,7 +203,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.genesis.ai/web/control-ui#device-pairing-first-connection"
+            href="https://genesis.pixelzx.com/docs/web/control-ui#device-pairing-first-connection"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.pairing.docsTitle")}
@@ -236,7 +236,7 @@ export function renderOverview(props: OverviewProps) {
           <div style="margin-top: 6px">
             <a
               class="session-link"
-              href="https://docs.genesis.ai/web/dashboard"
+              href="https://genesis.pixelzx.com/docs/web/dashboard"
               target=${EXTERNAL_LINK_TARGET}
               rel=${buildExternalLinkRel()}
               title=${t("overview.connection.authDocsTitle")}
@@ -252,7 +252,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.genesis.ai/web/dashboard"
+            href="https://genesis.pixelzx.com/docs/web/dashboard"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.authDocsTitle")}
@@ -285,7 +285,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.genesis.ai/gateway/tailscale"
+            href="https://genesis.pixelzx.com/docs/gateway/tailscale"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.tailscaleDocsTitle")}
@@ -294,7 +294,7 @@ export function renderOverview(props: OverviewProps) {
           <span class="muted"> · </span>
           <a
             class="session-link"
-            href="https://docs.genesis.ai/web/control-ui#insecure-http"
+            href="https://genesis.pixelzx.com/docs/web/control-ui#insecure-http"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.insecureHttpDocsTitle")}
@@ -471,7 +471,7 @@ export function renderOverview(props: OverviewProps) {
                   ${t("overview.connection.docsHint")}
                   <a
                     class="session-link"
-                    href="https://docs.genesis.ai/web/dashboard"
+                    href="https://genesis.pixelzx.com/docs/web/dashboard"
                     target="_blank"
                     rel="noreferrer"
                     >${t("overview.connection.docsLink")}</a

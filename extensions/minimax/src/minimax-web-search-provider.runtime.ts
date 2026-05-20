@@ -183,7 +183,7 @@ function missingMiniMaxKeyPayload() {
   return {
     error: "missing_minimax_api_key",
     message: `web_search (minimax) needs a MiniMax Coding Plan key. Run \`${formatCliCommand("genesis configure --section web")}\` to store it, or set MINIMAX_CODE_PLAN_KEY, MINIMAX_CODING_API_KEY, or MINIMAX_API_KEY in the Gateway environment.`,
-    docs: "https://docs.genesis.ai/tools/web",
+    docs: "https://genesis.pixelzx.com/docs/tools/web",
   };
 }
 

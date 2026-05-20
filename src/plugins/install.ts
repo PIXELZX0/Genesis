@@ -36,7 +36,7 @@ type PackageManifest = PluginPackageManifest & {
 };
 
 const MISSING_EXTENSIONS_ERROR =
-  'package.json missing genesis.extensions (or OpenClaw-compatible openclaw.extensions); update the plugin package to include genesis.extensions (for example ["./dist/index.js"]). See https://docs.genesis.ai/help/troubleshooting#plugin-install-fails-with-missing-genesis-extensions';
+  'package.json missing genesis.extensions (or OpenClaw-compatible openclaw.extensions); update the plugin package to include genesis.extensions (for example ["./dist/index.js"]). See https://genesis.pixelzx.com/docs/help/troubleshooting#plugin-install-fails-with-missing-genesis-extensions';
 const PLUGIN_ARCHIVE_ROOT_MARKERS = [
   "package.json",
   "genesis.plugin.json",

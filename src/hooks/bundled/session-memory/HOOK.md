@@ -1,7 +1,7 @@
 ---
 name: session-memory
 description: "Save session context to memory when /new or /reset command is issued"
-homepage: https://docs.genesis.ai/automation/hooks#session-memory
+homepage: https://genesis.pixelzx.com/docs/automation/hooks#session-memory
 metadata:
   {
     "genesis":

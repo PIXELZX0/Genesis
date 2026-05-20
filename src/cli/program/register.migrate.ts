@@ -26,7 +26,7 @@ export function registerMigrateCommand(program: Command) {
             "genesis migrate hermes --source-dir ~/.hermes-work",
             "Import a non-default Hermes home directory.",
           ],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/migrate", "docs.genesis.ai/cli/migrate")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/migrate", "genesis.pixelzx.com/docs/cli/migrate")}\n`,
     )
     .action(async (source, opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {

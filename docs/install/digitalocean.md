@@ -44,7 +44,7 @@ Run a persistent Genesis Gateway on a DigitalOcean Droplet.
     apt install -y nodejs
 
     # Install Genesis
-    curl -fsSL https://genesis.ai/install.sh | bash
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash
     genesis --version
     ```
 

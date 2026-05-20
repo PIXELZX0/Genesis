@@ -137,7 +137,7 @@ export function createBraveWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["BRAVE_API_KEY"],
     placeholder: "BSA...",
     signupUrl: "https://brave.com/search/api/",
-    docsUrl: "https://docs.genesis.ai/brave-search",
+    docsUrl: "https://genesis.pixelzx.com/docs/brave-search",
     autoDetectOrder: 10,
     credentialPath: BRAVE_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

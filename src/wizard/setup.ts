@@ -151,7 +151,7 @@ export async function runSetupWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.genesis.ai/gateway/configuration",
+          "Docs: https://genesis.pixelzx.com/docs/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );

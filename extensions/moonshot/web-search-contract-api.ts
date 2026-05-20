@@ -15,7 +15,7 @@ export function createKimiWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["KIMI_API_KEY", "MOONSHOT_API_KEY"],
     placeholder: "sk-...",
     signupUrl: "https://platform.moonshot.cn/",
-    docsUrl: "https://docs.genesis.ai/tools/web",
+    docsUrl: "https://genesis.pixelzx.com/docs/tools/web",
     autoDetectOrder: 40,
     credentialPath,
     ...createWebSearchProviderContractFields({

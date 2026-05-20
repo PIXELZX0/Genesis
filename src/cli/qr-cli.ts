@@ -95,7 +95,8 @@ export function registerQrCli(program: Command) {
     .description("Generate a mobile pairing QR code and setup code")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/qr", "docs.genesis.ai/cli/qr")}\n`,
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/qr", "genesis.pixelzx.com/docs/cli/qr")}\n`,
     )
     .option(
       "--remote",

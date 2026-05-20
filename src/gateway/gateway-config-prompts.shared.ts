@@ -27,8 +27,8 @@ export const TAILSCALE_MISSING_BIN_NOTE_LINES = [
 
 export const TAILSCALE_DOCS_LINES = [
   "Docs:",
-  "https://docs.genesis.ai/gateway/tailscale",
-  "https://docs.genesis.ai/web",
+  "https://genesis.pixelzx.com/docs/gateway/tailscale",
+  "https://genesis.pixelzx.com/docs/web",
 ] as const;
 
 function normalizeTailnetHostForUrl(rawHost: string): string | null {

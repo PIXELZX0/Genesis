@@ -79,7 +79,7 @@ export function registerChannelsCli(program: Command) {
           ["genesis channels login --channel whatsapp", "Link a WhatsApp Web account."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/channels",
-          "docs.genesis.ai/cli/channels",
+          "genesis.pixelzx.com/docs/cli/channels",
         )}\n`,
     );
 

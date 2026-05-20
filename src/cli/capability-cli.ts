@@ -1246,7 +1246,7 @@ export function registerCapabilityCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/infer", "docs.genesis.ai/cli/infer")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/infer", "genesis.pixelzx.com/docs/cli/infer")}\n`,
     );
 
   registerCapabilityListAndInspect(capability);

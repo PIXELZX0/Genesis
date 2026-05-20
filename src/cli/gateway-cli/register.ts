@@ -390,7 +390,7 @@ export function registerGatewayCli(program: Command) {
             ["genesis gateway discover", "Find local and wide-area gateway beacons."],
             ["genesis gateway stability", "Show recent stability diagnostics."],
             ["genesis gateway call health", "Call a gateway RPC method directly."],
-          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.genesis.ai/cli/gateway")}\n`,
+          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "genesis.pixelzx.com/docs/cli/gateway")}\n`,
       ),
   );
 

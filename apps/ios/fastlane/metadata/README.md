@@ -39,7 +39,7 @@ Or set `APP_STORE_CONNECT_API_KEY_PATH`.
 - `release_notes.txt` is generated from `apps/ios/CHANGELOG.md`; after changelog updates, run `pnpm ios:version:sync`.
 - Release notes resolve from `## <pinned iOS version>` first, then fall back to `## Unreleased` while a TestFlight train is still in progress.
 - When starting a new production release train, pin the iOS version first with `pnpm ios:version:pin -- --from-gateway`.
-- `privacy_url.txt` is set to `https://genesis.ai/privacy`.
+- `privacy_url.txt` is set to `https://genesis.pixelzx.com/privacy`.
 - If app lookup fails in `deliver`, set one of:
   - `ASC_APP_IDENTIFIER` (bundle ID)
   - `ASC_APP_ID` (numeric App Store Connect app ID, e.g. from `/apps/<id>/...` URL)

@@ -213,7 +213,7 @@ describe("openai codex provider", () => {
     expect(loginOpenAICodexDeviceCodeMock).toHaveBeenCalledOnce();
     expect(runtime.error).not.toHaveBeenCalled();
     expect(note).not.toHaveBeenCalledWith(
-      "Trouble with device code login? See https://docs.genesis.ai/start/faq",
+      "Trouble with device code login? See https://genesis.pixelzx.com/docs/start/faq",
       "OAuth help",
     );
     expect(result).toMatchObject({

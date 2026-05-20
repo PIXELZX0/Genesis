@@ -133,7 +133,7 @@ describe("ollama web search provider", () => {
           results: [
             {
               title: "Genesis",
-              url: "https://genesis.ai/docs",
+              url: "https://genesis.pixelzx.com/docs",
               content: "Gateway docs and setup details",
             },
           ],
@@ -179,7 +179,7 @@ describe("ollama web search provider", () => {
       query: "genesis docs",
       provider: "ollama",
       count: 1,
-      results: [{ url: "https://genesis.ai/docs" }],
+      results: [{ url: "https://genesis.pixelzx.com/docs" }],
     });
     expect(release).toHaveBeenCalledTimes(1);
   });

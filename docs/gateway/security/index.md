@@ -1323,6 +1323,6 @@ Commit the updated `.secrets.baseline` once it reflects the intended state.
 
 Found a vulnerability in Genesis? Please report responsibly:
 
-1. Email: [security@genesis.ai](mailto:security@genesis.ai)
+1. Email: [security@pixelzx.com](mailto:security@pixelzx.com)
 2. Don't post publicly until fixed
 3. We'll credit you (unless you prefer anonymity)

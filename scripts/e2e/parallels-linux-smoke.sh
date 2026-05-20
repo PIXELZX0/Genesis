@@ -13,7 +13,7 @@ API_KEY_ENV=""
 AUTH_CHOICE=""
 AUTH_KEY_FLAG=""
 MODEL_ID=""
-INSTALL_URL="https://genesis.ai/install.sh"
+INSTALL_URL="https://genesis.pixelzx.com/install.sh"
 HOST_PORT="18427"
 HOST_PORT_EXPLICIT=0
 HOST_IP=""
@@ -106,7 +106,7 @@ Options:
   --api-key-env <var>        Host env var name for provider API key.
                              Default: OPENAI_API_KEY for openai, ANTHROPIC_API_KEY for anthropic
   --openai-api-key-env <var> Alias for --api-key-env (backward compatible)
-  --install-url <url>        Installer URL for latest release. Default: https://genesis.ai/install.sh
+  --install-url <url>        Installer URL for latest release. Default: https://genesis.pixelzx.com/install.sh
   --host-port <port>         Host HTTP port for current-main tgz. Default: 18427
   --host-ip <ip>             Override Parallels host IP.
   --latest-version <ver>     Override npm latest version lookup.

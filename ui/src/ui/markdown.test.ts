@@ -201,8 +201,8 @@ describe("toSanitizedMarkdownHtml", () => {
     });
 
     it("does NOT rewrite explicit markdown links with CJK display text", () => {
-      const html = toSanitizedMarkdownHtml("[Genesis中文](https://docs.genesis.ai)");
-      expect(html).toContain('href="https://docs.genesis.ai"');
+      const html = toSanitizedMarkdownHtml("[Genesis中文](https://genesis.pixelzx.com/docs)");
+      expect(html).toContain('href="https://genesis.pixelzx.com/docs"');
       expect(html).toContain("Genesis中文</a>");
     });
 

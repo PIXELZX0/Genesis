@@ -1,6 +1,6 @@
 # Changelog
 
-Docs: https://docs.genesis.ai
+Docs: https://genesis.pixelzx.com/docs
 
 ## 2026.5.17
 
@@ -980,7 +980,7 @@ Docs: https://docs.genesis.ai
 ### Changes
 
 - QA/lab: add Convex-backed pooled Telegram credential leasing plus `genesis qa credentials` admin commands and broker setup docs. (#65596) Thanks @joshavant.
-- Memory/Active Memory: add a new optional Active Memory plugin that gives Genesis a dedicated memory sub-agent right before the main reply, so ongoing chats can automatically pull in relevant preferences, context, and past details without making users remember to manually say "remember this" or "search memory" first. Includes configurable message/recent/full context modes, live `/verbose` inspection, advanced prompt/thinking overrides for tuning, and opt-in transcript persistence for debugging. Docs: https://docs.genesis.ai/concepts/active-memory. (#63286) Thanks @Takhoffman.
+- Memory/Active Memory: add a new optional Active Memory plugin that gives Genesis a dedicated memory sub-agent right before the main reply, so ongoing chats can automatically pull in relevant preferences, context, and past details without making users remember to manually say "remember this" or "search memory" first. Includes configurable message/recent/full context modes, live `/verbose` inspection, advanced prompt/thinking overrides for tuning, and opt-in transcript persistence for debugging. Docs: https://genesis.pixelzx.com/docs/concepts/active-memory. (#63286) Thanks @Takhoffman.
 - macOS/Talk: add an experimental local MLX speech provider for Talk Mode, with explicit provider selection, local utterance playback, interruption handling, and system-voice fallback. (#63539) Thanks @ImLukeF.
 - CLI/exec policy: add a local `genesis exec-policy` command with `show`, `preset`, and `set` subcommands for synchronizing requested `tools.exec.*` config with the local exec approvals file, plus follow-up hardening for node-host rejection, rollback safety, and sync conflict detection. (#64050) Thanks @rugvedS07.
 - Gateway: add a `commands.list` RPC so remote gateway clients can discover runtime-native, text, skill, and plugin commands with surface-aware naming and serialized argument metadata. (#62656) Thanks @samzong.
@@ -1100,7 +1100,7 @@ Docs: https://docs.genesis.ai
 ### Changes
 
 - Models/Codex: add the bundled Codex provider and plugin-owned app-server harness so `codex/gpt-*` models use Codex-managed auth, native threads, model discovery, and compaction while `openai/gpt-*` stays on the normal OpenAI provider path. (#64298)
-- Memory/Active Memory: add a new optional Active Memory plugin that gives Genesis a dedicated memory sub-agent right before the main reply, so ongoing chats can automatically pull in relevant preferences, context, and past details without making users remember to manually say "remember this" or "search memory" first. Includes configurable message/recent/full context modes, live `/verbose` inspection, advanced prompt/thinking overrides for tuning, and opt-in transcript persistence for debugging. Docs: https://docs.genesis.ai/concepts/active-memory. (#63286) Thanks @Takhoffman.
+- Memory/Active Memory: add a new optional Active Memory plugin that gives Genesis a dedicated memory sub-agent right before the main reply, so ongoing chats can automatically pull in relevant preferences, context, and past details without making users remember to manually say "remember this" or "search memory" first. Includes configurable message/recent/full context modes, live `/verbose` inspection, advanced prompt/thinking overrides for tuning, and opt-in transcript persistence for debugging. Docs: https://genesis.pixelzx.com/docs/concepts/active-memory. (#63286) Thanks @Takhoffman.
 - macOS/Talk: add an experimental local MLX speech provider for Talk Mode, with explicit provider selection, local utterance playback, interruption handling, and system-voice fallback. (#63539) Thanks @ImLukeF.
 - Tools/video generation: add Seedance 2.0 model refs to the bundled fal provider and submit the provider-specific duration, resolution, audio, and seed metadata fields needed for live Seedance 2.0 runs.
 - Microsoft Teams: add message actions for pin, unpin, read, react, and listing reactions. (#53432) Thanks @sudie-codes.
@@ -2442,15 +2442,15 @@ Docs: https://docs.genesis.ai
 
 ### Breaking
 
-- Plugins/install: bare `genesis plugins install <package>` now prefers ClawHub before npm for npm-safe names, and only falls back to npm when ClawHub does not have that package or version. Docs: https://docs.genesis.ai/tools/clawhub
-- Browser/Chrome MCP: remove the legacy Chrome extension relay path, bundled extension assets, `driver: "extension"`, and `browser.relayBindHost`. Run `genesis doctor --fix` to migrate host-local browser config to `existing-session` / `user`; Docker, headless, sandbox, and remote browser flows still use raw CDP. Docs: https://docs.genesis.ai/gateway/doctor and https://docs.genesis.ai/tools/browser (#47893) Thanks @vincentkoc.
+- Plugins/install: bare `genesis plugins install <package>` now prefers ClawHub before npm for npm-safe names, and only falls back to npm when ClawHub does not have that package or version. Docs: https://genesis.pixelzx.com/docs/tools/clawhub
+- Browser/Chrome MCP: remove the legacy Chrome extension relay path, bundled extension assets, `driver: "extension"`, and `browser.relayBindHost`. Run `genesis doctor --fix` to migrate host-local browser config to `existing-session` / `user`; Docker, headless, sandbox, and remote browser flows still use raw CDP. Docs: https://genesis.pixelzx.com/docs/gateway/doctor and https://genesis.pixelzx.com/docs/tools/browser (#47893) Thanks @vincentkoc.
 - Tools/image generation: standardize the stock image create/edit path on the core `image_generate` tool. The old `nano-banana-pro` docs/examples are gone; if you previously copied that sample-skill config, switch to `agents.defaults.imageGenerationModel` for built-in image generation or install a separate third-party skill explicitly.
 - Skills/image generation: remove the bundled `nano-banana-pro` skill wrapper. Use `agents.defaults.imageGenerationModel.primary: "google/gemini-3-pro-image-preview"` for the native Nano Banana-style path instead.
-- Plugins/SDK: the new public plugin SDK surface is `genesis/plugin-sdk/*`; `genesis/extension-api` is removed with no compatibility shim. Bundled plugins must use injected runtime for host-side operations (for example `api.runtime.agent.runEmbeddedPiAgent`) and any remaining direct imports must come from narrow `genesis/plugin-sdk/*` subpaths instead of the monolithic SDK root. Docs: https://docs.genesis.ai/plugins/sdk-migration and https://docs.genesis.ai/plugins/sdk-overview
+- Plugins/SDK: the new public plugin SDK surface is `genesis/plugin-sdk/*`; `genesis/extension-api` is removed with no compatibility shim. Bundled plugins must use injected runtime for host-side operations (for example `api.runtime.agent.runEmbeddedPiAgent`) and any remaining direct imports must come from narrow `genesis/plugin-sdk/*` subpaths instead of the monolithic SDK root. Docs: https://genesis.pixelzx.com/docs/plugins/sdk-migration and https://genesis.pixelzx.com/docs/plugins/sdk-overview
 - Plugins/message discovery: require `ChannelMessageActionAdapter.describeMessageTool(...)` for shared `message` tool discovery. The legacy `listActions`, `getCapabilities`, and `getToolSchema` adapter methods are removed. Plugin authors should migrate message discovery to `describeMessageTool(...)` and keep channel-specific action runtime code inside the owning plugin package. Thanks @gumadeiras.
-- Plugins/Matrix: add a new Matrix plugin backed by the official `matrix-js-sdk`. If you are upgrading from the previous public Matrix plugin, follow the migration guide: https://docs.genesis.ai/install/migrating-matrix Thanks @gumadeiras.
+- Plugins/Matrix: add a new Matrix plugin backed by the official `matrix-js-sdk`. If you are upgrading from the previous public Matrix plugin, follow the migration guide: https://genesis.pixelzx.com/docs/install/migrating-matrix Thanks @gumadeiras.
 - Config/env: remove legacy `CLAWDBOT_*` and `MOLTBOT_*` compatibility env names across runtime, installers, and test tooling. Use the matching `GENESIS_*` env names instead.
-- Config/state: remove legacy `.moltbot` state-dir and `moltbot.json` auto-detection/migration fallback. If you still keep state under `~/.moltbot`, move it to `~/.genesis` or set `GENESIS_STATE_DIR` / `GENESIS_CONFIG_PATH` explicitly. Docs: https://docs.genesis.ai/install/migrating and https://docs.genesis.ai/start/getting-started
+- Config/state: remove legacy `.moltbot` state-dir and `moltbot.json` auto-detection/migration fallback. If you still keep state under `~/.moltbot`, move it to `~/.genesis` or set `GENESIS_STATE_DIR` / `GENESIS_CONFIG_PATH` explicitly. Docs: https://genesis.pixelzx.com/docs/install/migrating and https://genesis.pixelzx.com/docs/start/getting-started
 - Exec/env sandbox: block build-tool JVM injection (`MAVEN_OPTS`, `SBT_OPTS`, `GRADLE_OPTS`, `ANT_OPTS`), glibc tunable exploitation (`GLIBC_TUNABLES`), and .NET dependency resolution hijack (`DOTNET_ADDITIONAL_DEPS`) from the host exec environment, and restrict Gradle init script redirect (`GRADLE_USER_HOME`) as an override-only block so user-configured Gradle homes still propagate. (#49702)
 - Discord/commands: switch native command deployment to Carbon reconcile by default so Discord restarts stop churning slash commands through Genesis's local deploy path. (#46597) Thanks @huntharo and @thewilloftheshadow.
 - Security/exec approvals: treat `time` as a transparent dispatch wrapper during allowlist evaluation and allow-always persistence so approved `time ...` commands bind the inner executable instead of the wrapper path. Thanks @YLChen-007 for reporting.
@@ -3727,7 +3727,7 @@ Docs: https://docs.genesis.ai
 ### Breaking
 
 - **BREAKING:** Onboarding now defaults `tools.profile` to `messaging` for new local installs (interactive + non-interactive). New setups no longer start with broad coding/system tools unless explicitly configured.
-- **BREAKING:** ACP dispatch now defaults to enabled unless explicitly disabled (`acp.dispatch.enabled=false`). If you need to pause ACP turn routing while keeping `/acp` controls, set `acp.dispatch.enabled=false`. Docs: https://docs.genesis.ai/tools/acp-agents
+- **BREAKING:** ACP dispatch now defaults to enabled unless explicitly disabled (`acp.dispatch.enabled=false`). If you need to pause ACP turn routing while keeping `/acp` controls, set `acp.dispatch.enabled=false`. Docs: https://genesis.pixelzx.com/docs/tools/acp-agents
 - **BREAKING:** Plugin SDK removed `api.registerHttpHandler(...)`. Plugins must register explicit HTTP routes via `api.registerHttpRoute({ path, auth, match, handler })`, and dynamic webhook lifecycles should use `registerPluginHttpRoute(...)`.
 - **BREAKING:** Zalo Personal plugin (`@genesis/zalouser`) no longer depends on external `zca`-compatible CLI binaries (`openzca`, `zca-cli`) for runtime send/listen/login; operators should use `genesis channels login --channel zalouser` after upgrade to refresh sessions in the new JS-native path.
 
@@ -5956,28 +5956,28 @@ Docs: https://docs.genesis.ai
 
 ### Highlights
 
-- Providers: Ollama discovery + docs; Venice guide upgrades + cross-links. (#1606) Thanks @abhaymundhara. https://docs.genesis.ai/providers/ollama https://docs.genesis.ai/providers/venice
+- Providers: Ollama discovery + docs; Venice guide upgrades + cross-links. (#1606) Thanks @abhaymundhara. https://genesis.pixelzx.com/docs/providers/ollama https://genesis.pixelzx.com/docs/providers/venice
 - Channels: LINE plugin (Messaging API) with rich replies + quick replies. (#1630) Thanks @plum-dawg.
-- TTS: Edge fallback (keyless) + `/tts` auto modes. (#1668, #1667) Thanks @sebslight. https://docs.genesis.ai/tts
-- Exec approvals: approve in-chat via `/approve` across all channels (including plugins). (#1621) Thanks @czekaj. https://docs.genesis.ai/tools/exec-approvals https://docs.genesis.ai/tools/slash-commands
-- Telegram: DM topics as separate sessions + outbound link preview toggle. (#1597, #1700) Thanks @rohannagpal, @zerone0x. https://docs.genesis.ai/channels/telegram
+- TTS: Edge fallback (keyless) + `/tts` auto modes. (#1668, #1667) Thanks @sebslight. https://genesis.pixelzx.com/docs/tts
+- Exec approvals: approve in-chat via `/approve` across all channels (including plugins). (#1621) Thanks @czekaj. https://genesis.pixelzx.com/docs/tools/exec-approvals https://genesis.pixelzx.com/docs/tools/slash-commands
+- Telegram: DM topics as separate sessions + outbound link preview toggle. (#1597, #1700) Thanks @rohannagpal, @zerone0x. https://genesis.pixelzx.com/docs/channels/telegram
 
 ### Changes
 
 - Channels: add LINE plugin (Messaging API) with rich replies, quick replies, and plugin HTTP registry. (#1630) Thanks @plum-dawg.
-- TTS: add Edge TTS provider fallback, defaulting to keyless Edge with MP3 retry on format failures. (#1668) https://docs.genesis.ai/tts
-- TTS: add auto mode enum (off/always/inbound/tagged) with per-session `/tts` override. (#1667) Thanks @sebslight. https://docs.genesis.ai/tts
+- TTS: add Edge TTS provider fallback, defaulting to keyless Edge with MP3 retry on format failures. (#1668) https://genesis.pixelzx.com/docs/tts
+- TTS: add auto mode enum (off/always/inbound/tagged) with per-session `/tts` override. (#1667) Thanks @sebslight. https://genesis.pixelzx.com/docs/tts
 - Telegram: treat DM topics as separate sessions and keep DM history limits stable with thread suffixes. (#1597) Thanks @rohannagpal.
-- Telegram: add `channels.telegram.linkPreview` to toggle outbound link previews. (#1700) Thanks @zerone0x. https://docs.genesis.ai/channels/telegram
-- Web search: add Brave freshness filter parameter for time-scoped results. (#1688) Thanks @JonUleis. https://docs.genesis.ai/tools/web
+- Telegram: add `channels.telegram.linkPreview` to toggle outbound link previews. (#1700) Thanks @zerone0x. https://genesis.pixelzx.com/docs/channels/telegram
+- Web search: add Brave freshness filter parameter for time-scoped results. (#1688) Thanks @JonUleis. https://genesis.pixelzx.com/docs/tools/web
 - UI: refresh Control UI dashboard design system (colors, icons, typography). (#1745, #1786) Thanks @EnzeD, @mousberg.
-- Exec approvals: forward approval prompts to chat with `/approve` for all channels (including plugins). (#1621) Thanks @czekaj. https://docs.genesis.ai/tools/exec-approvals https://docs.genesis.ai/tools/slash-commands
+- Exec approvals: forward approval prompts to chat with `/approve` for all channels (including plugins). (#1621) Thanks @czekaj. https://genesis.pixelzx.com/docs/tools/exec-approvals https://genesis.pixelzx.com/docs/tools/slash-commands
 - Gateway: expose config.patch in the gateway tool with safe partial updates + restart sentinel. (#1653)
-- Diagnostics: add diagnostic flags for targeted debug logs (config + env override). https://docs.genesis.ai/diagnostics/flags
+- Diagnostics: add diagnostic flags for targeted debug logs (config + env override). https://genesis.pixelzx.com/docs/diagnostics/flags
 - Docs: expand FAQ (migration, scheduling, concurrency, model recommendations, OpenAI subscription auth, Pi sizing, hackable install, docs SSL workaround).
 - Docs: add verbose installer troubleshooting guidance.
 - Docs: add macOS VM guide with local/hosted options + VPS/nodes guidance. (#1693) Thanks @f-trycua.
-- Docs: add Bedrock EC2 instance role setup + IAM steps. (#1625) Thanks @sergical. https://docs.genesis.ai/bedrock
+- Docs: add Bedrock EC2 instance role setup + IAM steps. (#1625) Thanks @sergical. https://genesis.pixelzx.com/docs/bedrock
 - Docs: update Fly.io guide notes.
 - Dev: add prek pre-commit hooks + dependabot config for weekly updates. (#1720) Thanks @dguido.
 
@@ -5989,11 +5989,11 @@ Docs: https://docs.genesis.ai
 - Web UI: hide internal `message_id` hints in chat bubbles.
 - Gateway: allow Control UI token-only auth to skip device pairing even when device identity is present (`gateway.controlUi.allowInsecureAuth`). (#1679)
 - Matrix: decrypt E2EE media attachments with preflight size guard. (#1744) Thanks @araa47.
-- BlueBubbles: route phone-number targets to DMs, avoid leaking routing IDs, and auto-create missing DMs (Private API required). (#1751) Thanks @tyler6204. https://docs.genesis.ai/channels/bluebubbles
+- BlueBubbles: route phone-number targets to DMs, avoid leaking routing IDs, and auto-create missing DMs (Private API required). (#1751) Thanks @tyler6204. https://genesis.pixelzx.com/docs/channels/bluebubbles
 - BlueBubbles: keep part-index GUIDs in reply tags when short IDs are missing.
 - iMessage: normalize chat_id/chat_guid/chat_identifier prefixes case-insensitively and keep service-prefixed handles stable. (#1708) Thanks @aaronn.
 - Signal: repair reaction sends (group/UUID targets + CLI author flags). (#1651) Thanks @vilkasdev.
-- Signal: add configurable signal-cli startup timeout + external daemon mode docs. (#1677) https://docs.genesis.ai/channels/signal
+- Signal: add configurable signal-cli startup timeout + external daemon mode docs. (#1677) https://genesis.pixelzx.com/docs/channels/signal
 - Telegram: set fetch duplex="half" for uploads on Node 22 to avoid sendPhoto failures. (#1684) Thanks @commdata2338.
 - Telegram: use wrapped fetch for long-polling on Node to normalize AbortSignal handling. (#1639)
 - Telegram: honor per-account proxy for outbound API calls. (#1774) Thanks @radek-paclt.
@@ -6033,26 +6033,26 @@ Docs: https://docs.genesis.ai
 
 ### Highlights
 
-- TTS: move Telegram TTS into core + enable model-driven TTS tags by default for expressive audio replies. (#1559) Thanks @Glucksberg. https://docs.genesis.ai/tts
-- Gateway: add `/tools/invoke` HTTP endpoint for direct tool calls (auth + tool policy enforced). (#1575) Thanks @vignesh07. https://docs.genesis.ai/gateway/tools-invoke-http-api
-- Heartbeat: per-channel visibility controls (OK/alerts/indicator). (#1452) Thanks @dlauer. https://docs.genesis.ai/gateway/heartbeat
-- Deploy: add Fly.io deployment support + guide. (#1570) https://docs.genesis.ai/platforms/fly
-- Channels: add Tlon/Urbit channel plugin (DMs, group mentions, thread replies). (#1544) Thanks @wca4a. https://docs.genesis.ai/channels/tlon
+- TTS: move Telegram TTS into core + enable model-driven TTS tags by default for expressive audio replies. (#1559) Thanks @Glucksberg. https://genesis.pixelzx.com/docs/tts
+- Gateway: add `/tools/invoke` HTTP endpoint for direct tool calls (auth + tool policy enforced). (#1575) Thanks @vignesh07. https://genesis.pixelzx.com/docs/gateway/tools-invoke-http-api
+- Heartbeat: per-channel visibility controls (OK/alerts/indicator). (#1452) Thanks @dlauer. https://genesis.pixelzx.com/docs/gateway/heartbeat
+- Deploy: add Fly.io deployment support + guide. (#1570) https://genesis.pixelzx.com/docs/platforms/fly
+- Channels: add Tlon/Urbit channel plugin (DMs, group mentions, thread replies). (#1544) Thanks @wca4a. https://genesis.pixelzx.com/docs/channels/tlon
 
 ### Changes
 
-- Channels: allow per-group tool allow/deny policies across built-in + plugin channels. (#1546) Thanks @adam91holt. https://docs.genesis.ai/multi-agent-sandbox-tools
-- Agents: add Bedrock auto-discovery defaults + config overrides. (#1553) Thanks @fal3. https://docs.genesis.ai/bedrock
-- CLI: add `genesis system` for system events + heartbeat controls; remove standalone `wake`. (commit 71203829d) https://docs.genesis.ai/cli/system
-- CLI: add live auth probes to `genesis models status` for per-profile verification. (commit 40181afde) https://docs.genesis.ai/cli/models
+- Channels: allow per-group tool allow/deny policies across built-in + plugin channels. (#1546) Thanks @adam91holt. https://genesis.pixelzx.com/docs/multi-agent-sandbox-tools
+- Agents: add Bedrock auto-discovery defaults + config overrides. (#1553) Thanks @fal3. https://genesis.pixelzx.com/docs/bedrock
+- CLI: add `genesis system` for system events + heartbeat controls; remove standalone `wake`. (commit 71203829d) https://genesis.pixelzx.com/docs/cli/system
+- CLI: add live auth probes to `genesis models status` for per-profile verification. (commit 40181afde) https://genesis.pixelzx.com/docs/cli/models
 - CLI: restart the gateway by default after `genesis update`; add `--no-restart` to skip it. (commit 2c85b1b40)
 - Browser: add node-host proxy auto-routing for remote gateways (configurable per gateway/node). (commit c3cb26f7c)
-- Plugins: add optional `llm-task` JSON-only tool for workflows. (#1498) Thanks @vignesh07. https://docs.genesis.ai/tools/llm-task
+- Plugins: add optional `llm-task` JSON-only tool for workflows. (#1498) Thanks @vignesh07. https://genesis.pixelzx.com/docs/tools/llm-task
 - Markdown: add per-channel table conversion (bullets for Signal/WhatsApp, code blocks elsewhere). (#1495) Thanks @odysseus0.
 - Agents: keep system prompt time zone-only and move current time to `session_status` for better cache hits. (commit 66eec295b)
 - Agents: remove redundant bash tool alias from tool registration/display. (#1571) Thanks @Takhoffman.
-- Docs: add cron vs heartbeat decision guide (with Lobster workflow notes). (#1533) Thanks @JustYannicc. https://docs.genesis.ai/automation/cron-vs-heartbeat
-- Docs: clarify HEARTBEAT.md empty file skips heartbeats, missing file still runs. (#1535) Thanks @JustYannicc. https://docs.genesis.ai/gateway/heartbeat
+- Docs: add cron vs heartbeat decision guide (with Lobster workflow notes). (#1533) Thanks @JustYannicc. https://genesis.pixelzx.com/docs/automation/cron-vs-heartbeat
+- Docs: clarify HEARTBEAT.md empty file skips heartbeats, missing file still runs. (#1535) Thanks @JustYannicc. https://genesis.pixelzx.com/docs/gateway/heartbeat
 
 ### Fixes
 
@@ -6134,15 +6134,15 @@ Docs: https://docs.genesis.ai
 
 ### Fixes
 
-- Control UI: ignore bootstrap identity placeholder text for avatar values and fall back to the default avatar. https://docs.genesis.ai/cli/agents https://docs.genesis.ai/web/control-ui
+- Control UI: ignore bootstrap identity placeholder text for avatar values and fall back to the default avatar. https://genesis.pixelzx.com/docs/cli/agents https://genesis.pixelzx.com/docs/web/control-ui
 - Slack: remove deprecated `filetype` field from `files.uploadV2` to eliminate API warnings. (#1447)
 
 ## 2026.1.21
 
 ### Changes
 
-- Highlight: Lobster optional plugin tool for typed workflows + approval gates. https://docs.genesis.ai/tools/lobster
-- Lobster: allow workflow file args via `argsJson` in the plugin tool. https://docs.genesis.ai/tools/lobster
+- Highlight: Lobster optional plugin tool for typed workflows + approval gates. https://genesis.pixelzx.com/docs/tools/lobster
+- Lobster: allow workflow file args via `argsJson` in the plugin tool. https://genesis.pixelzx.com/docs/tools/lobster
 - Heartbeat: allow running heartbeats in an explicit session key. (#1256) Thanks @zknicker.
 - CLI: default exec approvals to the local host, add gateway/node targeting flags, and show target details in allowlist output. Thanks @tobiasbischoff.
 - CLI: exec approvals mutations render tables instead of raw JSON. Thanks @tobiasbischoff.
@@ -6154,11 +6154,11 @@ Docs: https://docs.genesis.ai
 - Sessions: add per-channel reset overrides via `session.resetByChannel`. (#1353) Thanks @cash-echo-bot.
 - Agents: add identity avatar config support and Control UI avatar rendering. (#1329, #1424) Thanks @dlauer.
 - UI: show per-session assistant identity in the Control UI. (#1420) Thanks @robbyczgw-cla.
-- CLI: add `genesis update wizard` for interactive channel selection and restart prompts. https://docs.genesis.ai/cli/update
+- CLI: add `genesis update wizard` for interactive channel selection and restart prompts. https://genesis.pixelzx.com/docs/cli/update
 - Signal: add typing indicators and DM read receipts via signal-cli.
 - MSTeams: add file uploads, adaptive cards, and attachment handling improvements. (#1410) Thanks @Evizero.
 - Onboarding: remove the run setup-token auth option (paste setup-token or reuse CLI creds instead).
-- Docs: add troubleshooting entry for gateway.mode blocking gateway start. https://docs.genesis.ai/gateway/troubleshooting
+- Docs: add troubleshooting entry for gateway.mode blocking gateway start. https://genesis.pixelzx.com/docs/gateway/troubleshooting
 - Docs: add /model allowlist troubleshooting note. (#1405)
 - Docs: add per-message Gmail search example for gog. (#1220) Thanks @mbelinky.
 
@@ -6186,75 +6186,75 @@ Docs: https://docs.genesis.ai
 
 ### Breaking
 
-- **BREAKING:** Control UI now rejects insecure HTTP without device identity by default. Use HTTPS (Tailscale Serve) or set `gateway.controlUi.allowInsecureAuth: true` to allow token-only auth. https://docs.genesis.ai/web/control-ui#insecure-http
+- **BREAKING:** Control UI now rejects insecure HTTP without device identity by default. Use HTTPS (Tailscale Serve) or set `gateway.controlUi.allowInsecureAuth: true` to allow token-only auth. https://genesis.pixelzx.com/docs/web/control-ui#insecure-http
 - **BREAKING:** Envelope and system event timestamps now default to host-local time (was UTC) so agents don't have to constantly convert (#57018). Thanks @hydro13.
 
 ## 2026.1.20
 
 ### Changes
 
-- Control UI: add copy-as-markdown with error feedback. (#1345) https://docs.genesis.ai/web/control-ui
-- Control UI: drop the legacy list view. (#1345) https://docs.genesis.ai/web/control-ui
-- TUI: add syntax highlighting for code blocks. (#1200) https://docs.genesis.ai/tui
-- TUI: session picker shows derived titles, fuzzy search, relative times, and last message preview. (#1271) https://docs.genesis.ai/tui
-- TUI: add a searchable model picker for quicker model selection. (#1198) https://docs.genesis.ai/tui
-- TUI: add input history (up/down) for submitted messages. (#1348) https://docs.genesis.ai/tui
-- ACP: add `genesis acp` for IDE integrations. https://docs.genesis.ai/cli/acp
-- ACP: add `genesis acp client` interactive harness for debugging. https://docs.genesis.ai/cli/acp
-- Skills: add download installs with OS-filtered options. https://docs.genesis.ai/tools/skills
-- Skills: add the local sherpa-onnx-tts skill. https://docs.genesis.ai/tools/skills
-- Memory: add hybrid BM25 + vector search (FTS5) with weighted merging and fallback. https://docs.genesis.ai/concepts/memory
-- Memory: add SQLite embedding cache to speed up reindexing and frequent updates. https://docs.genesis.ai/concepts/memory
-- Memory: add OpenAI batch indexing for embeddings when configured. https://docs.genesis.ai/concepts/memory
-- Memory: enable OpenAI batch indexing by default for OpenAI embeddings. https://docs.genesis.ai/concepts/memory
-- Memory: allow parallel OpenAI batch indexing jobs (default concurrency: 2). https://docs.genesis.ai/concepts/memory
-- Memory: render progress immediately, color batch statuses in verbose logs, and poll OpenAI batch status every 2s by default. https://docs.genesis.ai/concepts/memory
-- Memory: add `--verbose` logging for memory status + batch indexing details. https://docs.genesis.ai/concepts/memory
-- Memory: add native Gemini embeddings provider for memory search. (#1151) https://docs.genesis.ai/concepts/memory
-- Browser: allow config defaults for efficient snapshots in the tool/CLI. (#1336) https://docs.genesis.ai/tools/browser
-- Nostr: add the Nostr channel plugin with profile management + onboarding defaults. (#1323) https://docs.genesis.ai/channels/nostr
-- Matrix: migrate to matrix-bot-sdk with E2EE support, location handling, and group allowlist upgrades. (#1298) https://docs.genesis.ai/channels/matrix
-- Slack: add HTTP webhook mode via Bolt HTTP receiver. (#1143) https://docs.genesis.ai/channels/slack
-- Telegram: enrich forwarded-message context with normalized origin details + legacy fallback. (#1090) https://docs.genesis.ai/channels/telegram
+- Control UI: add copy-as-markdown with error feedback. (#1345) https://genesis.pixelzx.com/docs/web/control-ui
+- Control UI: drop the legacy list view. (#1345) https://genesis.pixelzx.com/docs/web/control-ui
+- TUI: add syntax highlighting for code blocks. (#1200) https://genesis.pixelzx.com/docs/tui
+- TUI: session picker shows derived titles, fuzzy search, relative times, and last message preview. (#1271) https://genesis.pixelzx.com/docs/tui
+- TUI: add a searchable model picker for quicker model selection. (#1198) https://genesis.pixelzx.com/docs/tui
+- TUI: add input history (up/down) for submitted messages. (#1348) https://genesis.pixelzx.com/docs/tui
+- ACP: add `genesis acp` for IDE integrations. https://genesis.pixelzx.com/docs/cli/acp
+- ACP: add `genesis acp client` interactive harness for debugging. https://genesis.pixelzx.com/docs/cli/acp
+- Skills: add download installs with OS-filtered options. https://genesis.pixelzx.com/docs/tools/skills
+- Skills: add the local sherpa-onnx-tts skill. https://genesis.pixelzx.com/docs/tools/skills
+- Memory: add hybrid BM25 + vector search (FTS5) with weighted merging and fallback. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: add SQLite embedding cache to speed up reindexing and frequent updates. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: add OpenAI batch indexing for embeddings when configured. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: enable OpenAI batch indexing by default for OpenAI embeddings. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: allow parallel OpenAI batch indexing jobs (default concurrency: 2). https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: render progress immediately, color batch statuses in verbose logs, and poll OpenAI batch status every 2s by default. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: add `--verbose` logging for memory status + batch indexing details. https://genesis.pixelzx.com/docs/concepts/memory
+- Memory: add native Gemini embeddings provider for memory search. (#1151) https://genesis.pixelzx.com/docs/concepts/memory
+- Browser: allow config defaults for efficient snapshots in the tool/CLI. (#1336) https://genesis.pixelzx.com/docs/tools/browser
+- Nostr: add the Nostr channel plugin with profile management + onboarding defaults. (#1323) https://genesis.pixelzx.com/docs/channels/nostr
+- Matrix: migrate to matrix-bot-sdk with E2EE support, location handling, and group allowlist upgrades. (#1298) https://genesis.pixelzx.com/docs/channels/matrix
+- Slack: add HTTP webhook mode via Bolt HTTP receiver. (#1143) https://genesis.pixelzx.com/docs/channels/slack
+- Telegram: enrich forwarded-message context with normalized origin details + legacy fallback. (#1090) https://genesis.pixelzx.com/docs/channels/telegram
 - Discord: fall back to `/skill` when native command limits are exceeded. (#1287)
 - Discord: expose `/skill` globally. (#1287)
-- Zalouser: add channel dock metadata, config schema, setup wiring, probe, and status issues. (#1219) https://docs.genesis.ai/plugins/zalouser
-- Plugins: require manifest-embedded config schemas with preflight validation warnings. (#1272) https://docs.genesis.ai/plugins/manifest
-- Plugins: move channel catalog metadata into plugin manifests. (#1290) https://docs.genesis.ai/plugins/manifest
-- Plugins: align Nextcloud Talk policy helpers with core patterns. (#1290) https://docs.genesis.ai/plugins/manifest
-- Plugins/UI: let channel plugin metadata drive UI labels/icons and cron channel options. (#1306) https://docs.genesis.ai/web/control-ui
-- Agents/UI: add agent avatar support in identity config, IDENTITY.md, and the Control UI. (#1329) https://docs.genesis.ai/gateway/configuration
-- Plugins: add plugin slots with a dedicated memory slot selector. https://docs.genesis.ai/plugins/agent-tools
-- Plugins: ship the bundled BlueBubbles channel plugin (disabled by default). https://docs.genesis.ai/channels/bluebubbles
+- Zalouser: add channel dock metadata, config schema, setup wiring, probe, and status issues. (#1219) https://genesis.pixelzx.com/docs/plugins/zalouser
+- Plugins: require manifest-embedded config schemas with preflight validation warnings. (#1272) https://genesis.pixelzx.com/docs/plugins/manifest
+- Plugins: move channel catalog metadata into plugin manifests. (#1290) https://genesis.pixelzx.com/docs/plugins/manifest
+- Plugins: align Nextcloud Talk policy helpers with core patterns. (#1290) https://genesis.pixelzx.com/docs/plugins/manifest
+- Plugins/UI: let channel plugin metadata drive UI labels/icons and cron channel options. (#1306) https://genesis.pixelzx.com/docs/web/control-ui
+- Agents/UI: add agent avatar support in identity config, IDENTITY.md, and the Control UI. (#1329) https://genesis.pixelzx.com/docs/gateway/configuration
+- Plugins: add plugin slots with a dedicated memory slot selector. https://genesis.pixelzx.com/docs/plugins/agent-tools
+- Plugins: ship the bundled BlueBubbles channel plugin (disabled by default). https://genesis.pixelzx.com/docs/channels/bluebubbles
 - Plugins: migrate bundled messaging extensions to the plugin SDK and resolve plugin-sdk imports in the loader.
-- Plugins: migrate the Zalo plugin to the shared plugin SDK runtime. https://docs.genesis.ai/channels/zalo
-- Plugins: migrate the Zalo Personal plugin to the shared plugin SDK runtime. https://docs.genesis.ai/plugins/zalouser
-- Plugins: allow optional agent tools with explicit allowlists and add the plugin tool authoring guide. https://docs.genesis.ai/plugins/agent-tools
+- Plugins: migrate the Zalo plugin to the shared plugin SDK runtime. https://genesis.pixelzx.com/docs/channels/zalo
+- Plugins: migrate the Zalo Personal plugin to the shared plugin SDK runtime. https://genesis.pixelzx.com/docs/plugins/zalouser
+- Plugins: allow optional agent tools with explicit allowlists and add the plugin tool authoring guide. https://genesis.pixelzx.com/docs/plugins/agent-tools
 - Plugins: auto-enable bundled channel/provider plugins when configuration is present.
 - Plugins: sync plugin sources on channel switches and update npm-installed plugins during `genesis update`.
 - Plugins: share npm plugin update logic between `genesis update` and `genesis plugins update`.
 
 - Gateway/API: add `/v1/responses` (OpenResponses) with item-based input + semantic streaming events. (#1229)
 - Gateway/API: expand `/v1/responses` to support file/image inputs, tool_choice, usage, and output limits. (#1229)
-- Usage: add `/usage cost` summaries and macOS menu cost charts. https://docs.genesis.ai/reference/api-usage-costs
-- Security: warn when <=300B models run without sandboxing while web tools are enabled. https://docs.genesis.ai/cli/security
-- Exec: add host/security/ask routing for gateway + node exec. https://docs.genesis.ai/tools/exec
-- Exec: add `/exec` directive for per-session exec defaults (host/security/ask/node). https://docs.genesis.ai/tools/exec
-- Exec approvals: migrate approvals to `~/.genesis/exec-approvals.json` with per-agent allowlists + skill auto-allow toggle, and add approvals UI + node exec lifecycle events. https://docs.genesis.ai/tools/exec-approvals
-- Nodes: add headless node host (`genesis node start`) for `system.run`/`system.which`. https://docs.genesis.ai/cli/node
-- Nodes: add node daemon service install/status/start/stop/restart. https://docs.genesis.ai/cli/node
+- Usage: add `/usage cost` summaries and macOS menu cost charts. https://genesis.pixelzx.com/docs/reference/api-usage-costs
+- Security: warn when <=300B models run without sandboxing while web tools are enabled. https://genesis.pixelzx.com/docs/cli/security
+- Exec: add host/security/ask routing for gateway + node exec. https://genesis.pixelzx.com/docs/tools/exec
+- Exec: add `/exec` directive for per-session exec defaults (host/security/ask/node). https://genesis.pixelzx.com/docs/tools/exec
+- Exec approvals: migrate approvals to `~/.genesis/exec-approvals.json` with per-agent allowlists + skill auto-allow toggle, and add approvals UI + node exec lifecycle events. https://genesis.pixelzx.com/docs/tools/exec-approvals
+- Nodes: add headless node host (`genesis node start`) for `system.run`/`system.which`. https://genesis.pixelzx.com/docs/cli/node
+- Nodes: add node daemon service install/status/start/stop/restart. https://genesis.pixelzx.com/docs/cli/node
 - Bridge: add `skills.bins` RPC to support node host auto-allow skill bins.
-- Sessions: add daily reset policy with per-type overrides and idle windows (default 4am local), preserving legacy idle-only configs. (#1146) https://docs.genesis.ai/concepts/session
-- Sessions: allow `sessions_spawn` to override thinking level for sub-agent runs. https://docs.genesis.ai/tools/subagents
-- Channels: unify thread/topic allowlist matching + command/mention gating helpers across core providers. https://docs.genesis.ai/concepts/groups
-- Models: add Qwen Portal OAuth provider support. (#1120) https://docs.genesis.ai/providers/qwen
-- Onboarding: add allowlist prompts and username-to-id resolution across core and extension channels. https://docs.genesis.ai/start/onboarding
-- Docs: clarify allowlist input types and onboarding behavior for messaging channels. https://docs.genesis.ai/start/onboarding
-- Docs: refresh Android node discovery docs for the Gateway WS service type. https://docs.genesis.ai/platforms/android
-- Docs: surface Amazon Bedrock in provider lists and clarify Bedrock auth env vars. (#1289) https://docs.genesis.ai/bedrock
-- Docs: clarify WhatsApp voice notes. https://docs.genesis.ai/channels/whatsapp
-- Docs: clarify Windows WSL portproxy LAN access notes. https://docs.genesis.ai/platforms/windows
-- Docs: refresh bird skill install metadata and usage notes. (#1302) https://docs.genesis.ai/tools/browser-login
+- Sessions: add daily reset policy with per-type overrides and idle windows (default 4am local), preserving legacy idle-only configs. (#1146) https://genesis.pixelzx.com/docs/concepts/session
+- Sessions: allow `sessions_spawn` to override thinking level for sub-agent runs. https://genesis.pixelzx.com/docs/tools/subagents
+- Channels: unify thread/topic allowlist matching + command/mention gating helpers across core providers. https://genesis.pixelzx.com/docs/concepts/groups
+- Models: add Qwen Portal OAuth provider support. (#1120) https://genesis.pixelzx.com/docs/providers/qwen
+- Onboarding: add allowlist prompts and username-to-id resolution across core and extension channels. https://genesis.pixelzx.com/docs/start/onboarding
+- Docs: clarify allowlist input types and onboarding behavior for messaging channels. https://genesis.pixelzx.com/docs/start/onboarding
+- Docs: refresh Android node discovery docs for the Gateway WS service type. https://genesis.pixelzx.com/docs/platforms/android
+- Docs: surface Amazon Bedrock in provider lists and clarify Bedrock auth env vars. (#1289) https://genesis.pixelzx.com/docs/bedrock
+- Docs: clarify WhatsApp voice notes. https://genesis.pixelzx.com/docs/channels/whatsapp
+- Docs: clarify Windows WSL portproxy LAN access notes. https://genesis.pixelzx.com/docs/platforms/windows
+- Docs: refresh bird skill install metadata and usage notes. (#1302) https://genesis.pixelzx.com/docs/tools/browser-login
 - Agents: add local docs path resolution and include docs/mirror/source/community pointers in the system prompt.
 - Agents: clarify node_modules read-only guidance in agent instructions.
 - Config: stamp last-touched metadata on write and warn if the config is newer than the running build.
@@ -6383,12 +6383,12 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 
 ### Highlights
 
-- Hooks: add hooks system with bundled hooks, CLI tooling, and docs. (#1028) - thanks @ThomsenDrake. https://docs.genesis.ai/hooks
-- Media: add inbound media understanding (image/audio/video) with provider + CLI fallbacks. https://docs.genesis.ai/nodes/media-understanding
-- Plugins: add Zalo Personal plugin (`@genesis/zalouser`) and unify channel directory for plugins. (#1032) - thanks @suminhthanh. https://docs.genesis.ai/plugins/zalouser
-- Models: add Vercel AI Gateway auth choice + onboarding updates. (#1016) - thanks @timolins. https://docs.genesis.ai/providers/vercel-ai-gateway
-- Sessions: add `session.identityLinks` for cross-platform DM session li nking. (#1033) - thanks @thewilloftheshadow. https://docs.genesis.ai/concepts/session
-- Web search: add `country`/`language` parameters (schema + Brave API) and docs. (#1046) - thanks @YuriNachos. https://docs.genesis.ai/tools/web
+- Hooks: add hooks system with bundled hooks, CLI tooling, and docs. (#1028) - thanks @ThomsenDrake. https://genesis.pixelzx.com/docs/hooks
+- Media: add inbound media understanding (image/audio/video) with provider + CLI fallbacks. https://genesis.pixelzx.com/docs/nodes/media-understanding
+- Plugins: add Zalo Personal plugin (`@genesis/zalouser`) and unify channel directory for plugins. (#1032) - thanks @suminhthanh. https://genesis.pixelzx.com/docs/plugins/zalouser
+- Models: add Vercel AI Gateway auth choice + onboarding updates. (#1016) - thanks @timolins. https://genesis.pixelzx.com/docs/providers/vercel-ai-gateway
+- Sessions: add `session.identityLinks` for cross-platform DM session li nking. (#1033) - thanks @thewilloftheshadow. https://genesis.pixelzx.com/docs/concepts/session
+- Web search: add `country`/`language` parameters (schema + Brave API) and docs. (#1046) - thanks @YuriNachos. https://genesis.pixelzx.com/docs/tools/web
 
 ### Changes
 
@@ -6399,7 +6399,7 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 - Tools: send Chrome-like headers by default for `web_fetch` to improve extraction on bot-sensitive sites.
 - Tools: Firecrawl fallback now uses bot-circumvention + cache by default; remove basic HTML fallback when extraction fails.
 - Tools: default `exec` exit notifications and auto-migrate legacy `tools.bash` to `tools.exec`.
-- Tools: add `exec` PTY support for interactive sessions. https://docs.genesis.ai/tools/exec
+- Tools: add `exec` PTY support for interactive sessions. https://genesis.pixelzx.com/docs/tools/exec
 - Tools: add tmux-style `process send-keys` and bracketed paste helpers for PTY sessions.
 - Tools: add `process submit` helper to send CR for PTY sessions.
 - Tools: respond to PTY cursor position queries to unblock interactive TUIs.
@@ -6455,7 +6455,7 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 - Sessions: hard-stop `sessions.delete` cleanup.
 - Channels: treat replies to the bot as implicit mentions across supported channels.
 - Channels: normalize object-format capabilities in channel capability parsing.
-- Security: default-deny slash/control commands unless a channel computed `CommandAuthorized` (fixes accidental "open" behavior), and ensure WhatsApp + Zalo plugin channels gate inline `/...` tokens correctly. https://docs.genesis.ai/gateway/security (#57018) Thanks @hydro13.
+- Security: default-deny slash/control commands unless a channel computed `CommandAuthorized` (fixes accidental "open" behavior), and ensure WhatsApp + Zalo plugin channels gate inline `/...` tokens correctly. https://genesis.pixelzx.com/docs/gateway/security (#57018) Thanks @hydro13.
 - Security: redact sensitive text in gateway WS logs.
 - Tools: cap pending `exec` process output to avoid unbounded buffers.
 - CLI: speed up `genesis sandbox-explain` by avoiding heavy plugin imports when normalizing channel ids.
@@ -6487,7 +6487,7 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 - **BREAKING:** Channel auth now prefers config over env for Discord/Telegram/Matrix (env is fallback only). (#1040) - thanks @thewilloftheshadow.
 - **BREAKING:** Drop legacy `chatType: "room"` support; use `chatType: "channel"`.
 - **BREAKING:** remove legacy provider-specific target resolution fallbacks; target resolution is centralized with plugin hints + directory lookups.
-- **BREAKING:** `genesis hooks` is now `genesis webhooks`; hooks live under `genesis hooks`. https://docs.genesis.ai/cli/webhooks
+- **BREAKING:** `genesis hooks` is now `genesis webhooks`; hooks live under `genesis hooks`. https://genesis.pixelzx.com/docs/cli/webhooks
 - **BREAKING:** `genesis plugins install <path>` now copies into `~/.genesis/extensions` (use `--link` to keep path-based loading).
 
 ## 2026.1.15
@@ -6781,7 +6781,7 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 - Agents: add pre-compaction memory flush config (`agents.defaults.compaction.*`) with a soft threshold + system prompt.
 - Config: add `$include` directive for modular config files. (#731) - thanks @pasogott.
 - Build: set pnpm minimum release age to 2880 minutes (2 days). (#718) - thanks @dan-dr.
-- macOS: prompt to install the global `genesis` CLI when missing in local mode; install via `genesis.ai/install-cli.sh` (no onboarding) and use external launchd/CLI instead of the embedded gateway runtime.
+- macOS: prompt to install the global `genesis` CLI when missing in local mode; install via `genesis.pixelzx.com/install-cli.sh` (no onboarding) and use external launchd/CLI instead of the embedded gateway runtime.
 - Docs: add gog calendar event color IDs from `gog calendar colors`. (#715) - thanks @mjrussell.
 - Cron/CLI: add `--model` flag to cron add/edit commands. (#711) - thanks @mjrussell.
 - Cron/CLI: trim model overrides on cron edits and document main-session guidance. (#711) - thanks @mjrussell.
@@ -6836,7 +6836,7 @@ Thanks @AlexMikhalev, @CoreyH, @John-Rood, @KrauseFx, @MaudeBot, @Nachx639, @Nic
 
 - Postinstall: replace `git apply` with builtin JS patcher (works npm/pnpm/bun; no git dependency) plus regression tests.
 - Postinstall: skip pnpm patch fallback when the new patcher is active.
-- Installer tests: add root+non-root docker smokes, CI workflow to fetch genesis.ai scripts and run install sh/cli with onboarding skipped.
+- Installer tests: add root+non-root docker smokes, CI workflow to fetch genesis.pixelzx.com scripts and run install sh/cli with onboarding skipped.
 - Installer UX: support `CLAWDBOT_NO_ONBOARD=1` for non-interactive installs; fix npm prefix on Linux and auto-install git.
 - Installer UX: add `install.sh --help` with flags/env and git install hint.
 - Installer UX: add `--install-method git|npm` and auto-detect source checkouts (prompt to update git checkout vs migrate to npm).

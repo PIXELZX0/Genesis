@@ -262,7 +262,7 @@ export function buildOpenRouterImageGenerationProvider(): ImageGenerationProvide
           allowPrivateNetwork: false,
           defaultHeaders: {
             Authorization: `Bearer ${auth.apiKey}`,
-            "HTTP-Referer": "https://genesis.ai",
+            "HTTP-Referer": "https://genesis.pixelzx.com",
             "X-OpenRouter-Title": "Genesis",
           },
           provider: "openrouter",

@@ -13,9 +13,9 @@ Report vulnerabilities directly to the repository where the issue lives:
 - **ClawHub** — [genesis/clawhub](https://github.com/genesis/clawhub)
 - **Trust and threat model** — [genesis/trust](https://github.com/genesis/trust)
 
-For issues that don't fit a specific repo, or if you're unsure, email **[security@genesis.ai](mailto:security@genesis.ai)** and we'll route it.
+For issues that don't fit a specific repo, or if you're unsure, email **[security@pixelzx.com](mailto:security@pixelzx.com)** and we'll route it.
 
-For full reporting instructions see our [Trust page](https://trust.genesis.ai).
+For full reporting instructions see our [Trust page](https://trust.genesis.pixelzx.com).
 
 ### Required in Reports
 
@@ -249,7 +249,7 @@ Security boundary notes:
 
 For threat model + hardening guidance (including `genesis security audit --deep` and `--fix`), see:
 
-- `https://docs.genesis.ai/gateway/security`
+- `https://genesis.pixelzx.com/docs/gateway/security`
 
 ### Tool filesystem hardening
 

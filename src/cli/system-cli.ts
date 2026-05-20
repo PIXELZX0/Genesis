@@ -46,7 +46,7 @@ export function registerSystemCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/system", "docs.genesis.ai/cli/system")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/system", "genesis.pixelzx.com/docs/cli/system")}\n`,
     );
 
   addGatewayClientOptions(

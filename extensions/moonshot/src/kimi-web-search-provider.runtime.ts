@@ -275,7 +275,7 @@ export async function executeKimiWebSearchProviderTool(
       error: "missing_kimi_api_key",
       message:
         "web_search (kimi) needs a Moonshot API key. Set KIMI_API_KEY or MOONSHOT_API_KEY in the Gateway environment, or configure tools.web.search.kimi.apiKey.",
-      docs: "https://docs.genesis.ai/tools/web",
+      docs: "https://genesis.pixelzx.com/docs/tools/web",
     };
   }
 

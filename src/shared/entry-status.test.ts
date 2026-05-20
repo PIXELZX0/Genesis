@@ -26,7 +26,7 @@ describe("shared/entry-status", () => {
       always: false,
       metadata: {
         emoji: "🦀",
-        homepage: "https://genesis.ai",
+        homepage: "https://genesis.pixelzx.com",
         requires: {
           bins: ["bun"],
           anyBins: ["ffmpeg", "sox"],
@@ -37,7 +37,7 @@ describe("shared/entry-status", () => {
       },
       frontmatter: {
         emoji: "🙂",
-        homepage: "https://docs.genesis.ai",
+        homepage: "https://genesis.pixelzx.com/docs",
       },
       hasLocalBin: (bin) => bin === "bun",
       localPlatform: "linux",
@@ -50,7 +50,7 @@ describe("shared/entry-status", () => {
 
     expect(result).toEqual({
       emoji: "🦀",
-      homepage: "https://genesis.ai",
+      homepage: "https://genesis.pixelzx.com",
       required: {
         bins: ["bun"],
         anyBins: ["ffmpeg", "sox"],
@@ -99,7 +99,7 @@ describe("shared/entry-status", () => {
           },
         },
         frontmatter: {
-          website: " https://docs.genesis.ai ",
+          website: " https://genesis.pixelzx.com/docs ",
           emoji: "🙂",
         },
       },
@@ -110,7 +110,7 @@ describe("shared/entry-status", () => {
 
     expect(result).toEqual({
       emoji: "🙂",
-      homepage: "https://docs.genesis.ai",
+      homepage: "https://genesis.pixelzx.com/docs",
       required: {
         bins: ["missing-bin"],
         anyBins: [],

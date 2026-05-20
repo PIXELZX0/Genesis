@@ -5,12 +5,12 @@ describe("shared/entry-metadata", () => {
   it("prefers metadata emoji and homepage when present", () => {
     expect(
       resolveEmojiAndHomepage({
-        metadata: { emoji: "🦀", homepage: " https://genesis.ai " },
+        metadata: { emoji: "🦀", homepage: " https://genesis.pixelzx.com " },
         frontmatter: { emoji: "🙂", homepage: "https://example.com" },
       }),
     ).toEqual({
       emoji: "🦀",
-      homepage: "https://genesis.ai",
+      homepage: "https://genesis.pixelzx.com",
     });
   });
 
@@ -26,11 +26,11 @@ describe("shared/entry-metadata", () => {
   it("falls back through frontmatter homepage aliases and drops blanks", () => {
     expect(
       resolveEmojiAndHomepage({
-        frontmatter: { emoji: "🙂", website: " https://docs.genesis.ai " },
+        frontmatter: { emoji: "🙂", website: " https://genesis.pixelzx.com/docs " },
       }),
     ).toEqual({
       emoji: "🙂",
-      homepage: "https://docs.genesis.ai",
+      homepage: "https://genesis.pixelzx.com/docs",
     });
     expect(
       resolveEmojiAndHomepage({
@@ -40,10 +40,10 @@ describe("shared/entry-metadata", () => {
     ).toEqual({});
     expect(
       resolveEmojiAndHomepage({
-        frontmatter: { url: " https://genesis.ai/install " },
+        frontmatter: { url: " https://genesis.pixelzx.com/install " },
       }),
     ).toEqual({
-      homepage: "https://genesis.ai/install",
+      homepage: "https://genesis.pixelzx.com/install",
     });
   });
 
@@ -52,8 +52,8 @@ describe("shared/entry-metadata", () => {
       resolveEmojiAndHomepage({
         frontmatter: {
           homepage: " ",
-          website: "https://docs.genesis.ai",
-          url: "https://genesis.ai/install",
+          website: "https://genesis.pixelzx.com/docs",
+          url: "https://genesis.pixelzx.com/install",
         },
       }),
     ).toEqual({});

@@ -159,7 +159,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
     - **Always-on Gateway** (run on a VPS, interact from anywhere)
     - **Nodes** for local browser/screen/camera/exec
 
-    Showcase: [https://genesis.ai/showcase](https://genesis.ai/showcase)
+    Showcase: [https://genesis.pixelzx.com/showcase](https://genesis.pixelzx.com/showcase)
 
   </Accordion>
 </AccordionGroup>

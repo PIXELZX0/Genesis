@@ -104,7 +104,7 @@ describe("tavily tools", () => {
       max_results: 5,
       include_answer: true,
       time_range: "week",
-      include_domains: ["docs.genesis.ai", "", "genesis.ai"],
+      include_domains: ["genesis.pixelzx.com/docs", "", "genesis.pixelzx.com"],
       exclude_domains: ["bad.example", ""],
     });
 
@@ -116,7 +116,7 @@ describe("tavily tools", () => {
       maxResults: 5,
       includeAnswer: true,
       timeRange: "week",
-      includeDomains: ["docs.genesis.ai", "genesis.ai"],
+      includeDomains: ["genesis.pixelzx.com/docs", "genesis.pixelzx.com"],
       excludeDomains: ["bad.example"],
     });
     expect(result).toMatchObject({
@@ -130,7 +130,7 @@ describe("tavily tools", () => {
           maxResults: 5,
           includeAnswer: true,
           timeRange: "week",
-          includeDomains: ["docs.genesis.ai", "genesis.ai"],
+          includeDomains: ["genesis.pixelzx.com/docs", "genesis.pixelzx.com"],
           excludeDomains: ["bad.example"],
         },
       },

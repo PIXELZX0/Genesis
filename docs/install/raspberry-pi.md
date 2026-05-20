@@ -77,7 +77,7 @@ Run a persistent, always-on Genesis Gateway on a Raspberry Pi. Since the Pi is j
 
   <Step title="Install Genesis">
     ```bash
-    curl -fsSL https://genesis.ai/install.sh | bash
+    curl -fsSL https://genesis.pixelzx.com/install.sh | bash
     ```
   </Step>
 

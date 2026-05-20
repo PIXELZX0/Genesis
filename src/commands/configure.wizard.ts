@@ -138,8 +138,8 @@ async function runGatewayHealthCheck(params: {
     note(
       [
         "Docs:",
-        "https://docs.genesis.ai/gateway/health",
-        "https://docs.genesis.ai/gateway/troubleshooting",
+        "https://genesis.pixelzx.com/docs/gateway/health",
+        "https://genesis.pixelzx.com/docs/gateway/troubleshooting",
       ].join("\n"),
       "Health check help",
     );
@@ -205,7 +205,7 @@ async function promptWebToolsConfig(
     [
       "Web search lets your agent look things up online using the `web_search` tool.",
       "Choose a managed provider now, and Codex-capable models can also use native Codex web search.",
-      "Docs: https://docs.genesis.ai/tools/web",
+      "Docs: https://genesis.pixelzx.com/docs/tools/web",
     ].join("\n"),
     "Web search",
   );
@@ -301,7 +301,7 @@ async function promptWebToolsConfig(
           [
             "No web search providers are currently available under this plugin policy.",
             "Enable plugins or remove deny rules, then rerun configure.",
-            "Docs: https://docs.genesis.ai/tools/web",
+            "Docs: https://genesis.pixelzx.com/docs/tools/web",
           ].join("\n"),
           "Web search",
         );
@@ -373,7 +373,7 @@ export async function runConfigureWizard(
           [
             ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
             "",
-            "Docs: https://docs.genesis.ai/gateway/configuration",
+            "Docs: https://genesis.pixelzx.com/docs/gateway/configuration",
           ].join("\n"),
           "Config issues",
         );
@@ -798,7 +798,7 @@ export async function runConfigureWizard(
         `Web UI: ${links.httpUrl}`,
         `Gateway WS: ${links.wsUrl}`,
         gatewayStatusLine,
-        "Docs: https://docs.genesis.ai/web/control-ui",
+        "Docs: https://genesis.pixelzx.com/docs/web/control-ui",
       ].join("\n"),
       "Control UI",
     );

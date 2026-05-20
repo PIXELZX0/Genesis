@@ -45,7 +45,7 @@ export function createXaiWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["XAI_API_KEY"],
     placeholder: "xai-...",
     signupUrl: "https://console.x.ai/",
-    docsUrl: "https://docs.genesis.ai/tools/web",
+    docsUrl: "https://genesis.pixelzx.com/docs/tools/web",
     autoDetectOrder: 30,
     credentialPath: XAI_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

@@ -46,7 +46,7 @@ ${formatHelpExamples([
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "docs.genesis.ai/cli/message")}`,
+${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "genesis.pixelzx.com/docs/cli/message")}`,
     )
     .action(() => {
       message.help({ error: true });

@@ -527,7 +527,7 @@ echo "Telegram (bot token):"
 echo "  ${COMPOSE_HINT} run --rm genesis-cli channels add --channel telegram --token <token>"
 echo "Discord (bot token):"
 echo "  ${COMPOSE_HINT} run --rm genesis-cli channels add --channel discord --token <token>"
-echo "Docs: https://docs.genesis.ai/channels"
+echo "Docs: https://genesis.pixelzx.com/docs/channels"
 
 echo ""
 echo "==> Starting gateway"
@@ -611,7 +611,7 @@ if [[ -n "$SANDBOX_ENABLED" ]]; then
 
   if [[ "$sandbox_config_ok" == true ]]; then
     echo "Sandbox enabled: mode=non-main, scope=agent, workspaceAccess=none"
-    echo "Docs: https://docs.genesis.ai/gateway/sandboxing"
+    echo "Docs: https://genesis.pixelzx.com/docs/gateway/sandboxing"
     # Restart gateway with sandbox compose overlay to pick up socket mount + config.
     docker compose "${COMPOSE_ARGS[@]}" up -d genesis-gateway
   else

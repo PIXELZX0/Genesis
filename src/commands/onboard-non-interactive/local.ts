@@ -343,7 +343,7 @@ export async function runNonInteractiveLocalSetup(params: {
 
   if (!opts.json) {
     runtime.log(
-      `Tip: run \`${formatCliCommand("genesis configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.genesis.ai/tools/web`,
+      `Tip: run \`${formatCliCommand("genesis configure --section web")}\` to store your Brave API key for web_search. Docs: https://genesis.pixelzx.com/docs/tools/web`,
     );
   }
 }

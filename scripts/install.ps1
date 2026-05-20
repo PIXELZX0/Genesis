@@ -1,6 +1,6 @@
 # Genesis Installer for Windows (PowerShell)
-# Usage: iwr -useb https://genesis.ai/install.ps1 | iex
-# Or: & ([scriptblock]::Create((iwr -useb https://genesis.ai/install.ps1))) -NoOnboard
+# Usage: iwr -useb https://genesis.pixelzx.com/install.ps1 | iex
+# Or: & ([scriptblock]::Create((iwr -useb https://genesis.pixelzx.com/install.ps1))) -NoOnboard
 
 param(
     [string]$InstallMethod = "npm",

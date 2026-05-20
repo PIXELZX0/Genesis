@@ -197,7 +197,7 @@ export async function handleBashChatCommand(params: {
     return buildDisabledCommandReply({
       label: "bash",
       configKey: "bash",
-      docsUrl: "https://docs.genesis.ai/tools/slash-commands#config",
+      docsUrl: "https://genesis.pixelzx.com/docs/tools/slash-commands#config",
     });
   }
 

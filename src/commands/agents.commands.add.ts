@@ -354,7 +354,7 @@ export async function agentsAddCommand(
         await prompter.note(
           [
             "Routing unchanged. Add bindings when you're ready.",
-            "Docs: https://docs.genesis.ai/concepts/multi-agent",
+            "Docs: https://genesis.pixelzx.com/docs/concepts/multi-agent",
           ].join("\n"),
           "Routing",
         );

@@ -15,7 +15,7 @@ export function registerConfigureCommand(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/configure", "docs.genesis.ai/cli/configure")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/configure", "genesis.pixelzx.com/docs/cli/configure")}\n`,
     )
     .option(
       "--section <section>",
