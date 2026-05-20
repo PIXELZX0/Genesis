@@ -60,9 +60,8 @@ jobs:
           mkdir -p .artifacts/site
           # Marketing landing, installers, CNAME, privacy
           rsync -a site-static/ .artifacts/site/
-          # JSON schemas referenced by config files and protocol clients
+          # Gateway protocol JSON schema (generated above by pnpm protocol:gen).
           cp dist/protocol.schema.json .artifacts/site/protocol.schema.json
-          cp docs/.generated/config-baseline.json .artifacts/site/config.json
           # Ensure .nojekyll exists at root regardless of source presence
           touch .artifacts/site/.nojekyll
           echo "--- site root listing ---"
