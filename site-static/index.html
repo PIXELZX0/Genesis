@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Genesis — Self-hosted AI gateway</title>
+    <meta
+      name="description"
+      content="Self-hosted gateway that connects messaging channels to AI coding agents. Run one Gateway process on your own machine and message your AI assistant from anywhere."
+    />
+    <link rel="canonical" href="https://genesis.pixelzx.com/" />
+    <link rel="icon" href="/docs/assets/pixel-lobster.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0c0c10;
+        --fg: #f4f4f5;
+        --muted: #a1a1aa;
+        --accent: #f97316;
+        --card: #18181b;
+        --border: #27272a;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #ffffff;
+          --fg: #18181b;
+          --muted: #52525b;
+          --accent: #ea580c;
+          --card: #fafafa;
+          --border: #e4e4e7;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          "DM Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem;
+      }
+      h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        line-height: 1.1;
+        margin: 0 0 1rem;
+      }
+      .lobster {
+        width: 96px;
+        height: 96px;
+        margin-bottom: 1.5rem;
+      }
+      .tagline {
+        font-size: 1.125rem;
+        color: var(--muted);
+        margin: 0 0 2rem;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 3rem;
+      }
+      .links a {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.625rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--fg);
+        text-decoration: none;
+        font-weight: 500;
+        transition: border-color 0.15s;
+      }
+      .links a:hover {
+        border-color: var(--accent);
+      }
+      .links a.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .install {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .install h2 {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin: 0 0 0.75rem;
+      }
+      .install pre {
+        margin: 0;
+        font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.875rem;
+        overflow-x: auto;
+        color: var(--fg);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 0.875rem;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      footer a {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img class="lobster" src="/docs/assets/pixel-lobster.svg" alt="Genesis lobster" />
+      <h1>Genesis</h1>
+      <p class="tagline">
+        Self-hosted gateway that connects Discord, Slack, Telegram, WhatsApp, iMessage, Matrix and more
+        to your AI coding agents.
+      </p>
+      <div class="links">
+        <a class="primary" href="/docs/start/getting-started">Get started</a>
+        <a href="/docs/">Docs</a>
+        <a href="https://github.com/PIXELZX0/Genesis">GitHub</a>
+        <a href="https://deepwiki.com/PIXELZX0/Genesis">DeepWiki</a>
+      </div>
+      <div class="install">
+        <h2>Install (macOS / Linux)</h2>
+        <pre>curl -fsSL https://genesis.pixelzx.com/install.sh | sh</pre>
+      </div>
+      <div class="install">
+        <h2>Install (Windows PowerShell)</h2>
+        <pre>iwr https://genesis.pixelzx.com/install.ps1 -useb | iex</pre>
+      </div>
+      <footer>
+        <a href="/privacy">Privacy</a> ·
+        <a href="mailto:security@pixelzx.com">Security</a> ·
+        <a href="mailto:support@pixelzx.com">Support</a>
+      </footer>
+    </div>
+  </body>
+</html>

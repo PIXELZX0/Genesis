@@ -7,9 +7,12 @@ on:
     paths:
       - ".github/workflows/docs-pages.yml"
       - "docs/**"
+      - "site-static/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "scripts/build-github-pages-docs.mjs"
+      - "scripts/protocol-gen.ts"
+      - "src/gateway/protocol/**"
   workflow_dispatch:
 
 permissions:
@@ -43,8 +46,27 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build GitHub Pages docs
+      - name: Build docs into site/docs
+        env:
+          GENESIS_GITHUB_PAGES_OUT_DIR: .artifacts/site/docs
         run: node scripts/build-github-pages-docs.mjs
+
+      - name: Generate protocol schema
+        run: pnpm protocol:gen
+
+      - name: Assemble site root
+        run: |
+          set -eu
+          mkdir -p .artifacts/site
+          # Marketing landing, installers, CNAME, privacy
+          rsync -a site-static/ .artifacts/site/
+          # JSON schemas referenced by config files and protocol clients
+          cp dist/protocol.schema.json .artifacts/site/protocol.schema.json
+          cp docs/.generated/config-baseline.json .artifacts/site/config.json
+          # Ensure .nojekyll exists at root regardless of source presence
+          touch .artifacts/site/.nojekyll
+          echo "--- site root listing ---"
+          ls -la .artifacts/site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -52,7 +74,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .artifacts/github-pages-docs
+          path: .artifacts/site
 
   deploy:
     name: Deploy docs site
