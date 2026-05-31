@@ -667,7 +667,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
         runNonInteractiveSetup(
           {
             nonInteractive: true,
-            mode: "invalid",
+            mode: "invalid" as unknown as "local",
             authChoice: "skip",
             json: true,
           },
