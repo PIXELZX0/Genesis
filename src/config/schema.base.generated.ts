@@ -114,10 +114,18 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "string",
                 const: "remote",
               },
+              {
+                type: "string",
+                const: "gateway",
+              },
+              {
+                type: "string",
+                const: "node",
+              },
             ],
             title: "Wizard Last Run Mode",
             description:
-              'Wizard execution mode recorded as "local" or "remote" for the most recent setup flow. Use this to understand whether setup targeted direct local runtime or remote gateway topology.',
+              'Wizard execution mode recorded as "local", "remote", "gateway", or "node" for the most recent setup flow. Use this to understand whether setup targeted direct local runtime, remote gateway topology, gateway-only configuration, or node registration.',
           },
         },
         additionalProperties: false,
@@ -24802,7 +24810,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wizard.lastRunMode": {
       label: "Wizard Last Run Mode",
-      help: 'Wizard execution mode recorded as "local" or "remote" for the most recent setup flow. Use this to understand whether setup targeted direct local runtime or remote gateway topology.',
+      help: 'Wizard execution mode recorded as "local", "remote", "gateway", or "node" for the most recent setup flow. Use this to understand whether setup targeted direct local runtime, remote gateway topology, gateway-only configuration, or node registration.',
       tags: ["advanced"],
     },
     "diagnostics.otel": {

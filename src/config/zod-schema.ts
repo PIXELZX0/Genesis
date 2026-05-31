@@ -422,7 +422,9 @@ export const GenesisSchema = z
         lastRunVersion: z.string().optional(),
         lastRunCommit: z.string().optional(),
         lastRunCommand: z.string().optional(),
-        lastRunMode: z.union([z.literal("local"), z.literal("remote")]).optional(),
+        lastRunMode: z
+          .union([z.literal("local"), z.literal("remote"), z.literal("gateway"), z.literal("node")])
+          .optional(),
       })
       .strict()
       .optional(),

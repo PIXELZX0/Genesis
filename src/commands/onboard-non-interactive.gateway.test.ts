@@ -139,6 +139,22 @@ vi.mock("../daemon/diagnostics.js", () => ({
   readLastGatewayErrorLine: readLastGatewayErrorLineMock,
 }));
 
+const nodeHostConfigStore = vi.hoisted<
+  Array<{
+    version: number;
+    nodeId: string;
+    token?: string;
+    displayName?: string;
+    gateway?: { host?: string; port?: number; tls?: boolean };
+  }>
+>(() => []);
+vi.mock("../node-host/config.js", () => ({
+  loadNodeHostConfig: async () => nodeHostConfigStore.at(-1) ?? null,
+  saveNodeHostConfig: async (config: (typeof nodeHostConfigStore)[number]) => {
+    nodeHostConfigStore.push(config);
+  },
+}));
+
 let runNonInteractiveSetup: typeof import("./onboard-non-interactive.js").runNonInteractiveSetup;
 let resolveInstallDaemonGatewayHealthTiming: typeof import("./onboard-non-interactive/local.js").resolveInstallDaemonGatewayHealthTiming;
 
@@ -311,6 +327,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
   afterEach(() => {
     waitForGatewayReachableMock = undefined;
     testConfigStore.clear();
+    nodeHostConfigStore.length = 0;
     installGatewayDaemonNonInteractiveMock.mockClear();
     healthCommandMock.mockClear();
     gatewayServiceMock.isLoaded.mockClear();
@@ -591,6 +608,72 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       expect(cfg.gateway?.port).toBe(port);
       expect(cfg.gateway?.auth?.mode).toBe("token");
       expect((cfg.gateway?.auth?.token ?? "").length).toBeGreaterThan(8);
+    });
+  }, 60_000);
+
+  it("writes node config for node mode", async () => {
+    await withStateDir("state-node-", async (_stateDir) => {
+      const port = getPseudoPort(50_000);
+      const remoteUrl = `wss://127.0.0.1:${port}`;
+      const remoteToken = "tok_node_123";
+
+      await runNonInteractiveSetup(
+        {
+          nonInteractive: true,
+          mode: "node",
+          remoteUrl,
+          remoteToken,
+          authChoice: "skip",
+          json: true,
+        },
+        runtime,
+      );
+
+      const cfg = readTestConfig<{
+        gateway?: { mode?: string; remote?: { url?: string; token?: string } };
+      }>();
+
+      expect(cfg.gateway?.mode).toBe("remote");
+      expect(cfg.gateway?.remote?.url).toBe(remoteUrl);
+      expect(cfg.gateway?.remote?.token).toBe(remoteToken);
+
+      const nodeConfig = nodeHostConfigStore.at(-1);
+      expect(nodeConfig).toBeDefined();
+      expect(nodeConfig?.gateway?.host).toBe("127.0.0.1");
+      expect(nodeConfig?.gateway?.port).toBe(port);
+      expect(nodeConfig?.gateway?.tls).toBe(true);
+    });
+  }, 60_000);
+
+  it("errors for node mode when remote-url is missing", async () => {
+    await withStateDir("state-node-missing-url-", async (_stateDir) => {
+      await expect(
+        runNonInteractiveSetup(
+          {
+            nonInteractive: true,
+            mode: "node",
+            authChoice: "skip",
+            json: true,
+          },
+          runtime,
+        ),
+      ).rejects.toThrow("Missing --remote-url for node mode.");
+    });
+  }, 60_000);
+
+  it("rejects invalid mode values", async () => {
+    await withStateDir("state-invalid-mode-", async (_stateDir) => {
+      await expect(
+        runNonInteractiveSetup(
+          {
+            nonInteractive: true,
+            mode: "invalid",
+            authChoice: "skip",
+            json: true,
+          },
+          runtime,
+        ),
+      ).rejects.toThrow('Invalid --mode "invalid" (use local|remote|gateway|node).');
     });
   }, 60_000);
 });

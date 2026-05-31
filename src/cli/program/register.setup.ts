@@ -22,7 +22,7 @@ export function registerSetupCommand(program: Command) {
     )
     .option("--wizard", "Run interactive onboarding", false)
     .option("--non-interactive", "Run onboarding without prompts", false)
-    .option("--mode <mode>", "Onboard mode: local|remote")
+    .option("--mode <mode>", "Onboard mode: local|remote|gateway|node")
     .option("--remote-url <url>", "Remote Gateway WebSocket URL")
     .option("--remote-token <token>", "Remote Gateway token (optional)")
     .action(async (opts, command) => {
@@ -39,7 +39,7 @@ export function registerSetupCommand(program: Command) {
             {
               workspace: opts.workspace as string | undefined,
               nonInteractive: Boolean(opts.nonInteractive),
-              mode: opts.mode as "local" | "remote" | undefined,
+              mode: opts.mode as "local" | "remote" | "gateway" | "node" | undefined,
               remoteUrl: opts.remoteUrl as string | undefined,
               remoteToken: opts.remoteToken as string | undefined,
             },

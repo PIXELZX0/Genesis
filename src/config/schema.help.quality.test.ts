@@ -432,7 +432,7 @@ const ENUM_EXPECTATIONS: Record<string, string[]> = {
   "browser.profiles.*.tor.mode": ['"managed"', '"external"'],
   "browser.profiles.*.tor.routeMode": ['"onion-only"', '"all"'],
   "discovery.mdns.mode": ['"off"', '"minimal"', '"full"'],
-  "wizard.lastRunMode": ['"local"', '"remote"'],
+  "wizard.lastRunMode": ['"local"', '"remote"', '"gateway"', '"node"'],
   "diagnostics.otel.protocol": ['"http/protobuf"', '"grpc"'],
   "logging.level": ['"silent"', '"fatal"', '"error"', '"warn"', '"info"', '"debug"', '"trace"'],
   "logging.consoleLevel": [

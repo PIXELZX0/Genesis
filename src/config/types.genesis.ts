@@ -70,7 +70,7 @@ export type GenesisConfig = {
     lastRunVersion?: string;
     lastRunCommit?: string;
     lastRunCommand?: string;
-    lastRunMode?: "local" | "remote";
+    lastRunMode?: "local" | "remote" | "gateway" | "node";
   };
   diagnostics?: DiagnosticsConfig;
   logging?: LoggingConfig;

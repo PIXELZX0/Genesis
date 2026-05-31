@@ -103,7 +103,7 @@ export function registerOnboardCommand(program: Command) {
       false,
     )
     .option("--flow <flow>", "Onboard flow: quickstart|advanced|manual")
-    .option("--mode <mode>", "Onboard mode: local|remote")
+    .option("--mode <mode>", "Onboard mode: local|remote|gateway|node")
     .option("--auth-choice <choice>", `Auth: ${AUTH_CHOICE_HELP}`)
     .option(
       "--token-provider <id>",
@@ -178,7 +178,7 @@ export function registerOnboardCommand(program: Command) {
           nonInteractive: Boolean(opts.nonInteractive),
           acceptRisk: Boolean(opts.acceptRisk),
           flow: opts.flow as "quickstart" | "advanced" | "manual" | undefined,
-          mode: opts.mode as "local" | "remote" | undefined,
+          mode: opts.mode as "local" | "remote" | "gateway" | "node" | undefined,
           authChoice: opts.authChoice as AuthChoice | undefined,
           tokenProvider: opts.tokenProvider as string | undefined,
           token: opts.token as string | undefined,

@@ -2,7 +2,7 @@ import type { ChannelId } from "../channels/plugins/types.public.js";
 import type { SecretInputMode } from "../plugins/provider-auth-types.js";
 import type { GatewayDaemonRuntime } from "./daemon-runtime.js";
 
-export type OnboardMode = "local" | "remote";
+export type OnboardMode = "local" | "remote" | "gateway" | "node";
 /**
  * Auth choices are plugin-owned contract ids plus a few legacy aliases that
  * are normalized elsewhere (for example `oauth` -> `setup-token`).

@@ -256,6 +256,12 @@ vi.mock("./setup.completion.js", () => ({
   setupWizardShellCompletion,
 }));
 
+const promptNodeHostConfig = vi.hoisted(() => vi.fn(async () => {}));
+
+vi.mock("./setup.node-config.js", () => ({
+  promptNodeHostConfig,
+}));
+
 function createRuntime(opts?: { throwsOnExit?: boolean }): RuntimeEnv {
   if (opts?.throwsOnExit) {
     return {

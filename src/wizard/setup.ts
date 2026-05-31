@@ -473,6 +473,16 @@ export async function runSetupWizard(
                   ? `Gateway reachable (${remoteUrl})`
                   : `Configured but unreachable (${remoteUrl})`,
             },
+            {
+              value: "gateway",
+              label: "Gateway only (this machine, minimal)",
+              hint: "Gateway config without channels or skills",
+            },
+            {
+              value: "node",
+              label: "Node (connect to a remote gateway)",
+              hint: "Configure this machine as a node",
+            },
           ],
         })) as OnboardMode));
 
@@ -490,6 +500,28 @@ export async function runSetupWizard(
     await writeConfigFile(nextConfig);
     logConfigUpdated(runtime);
     await prompter.outro("Remote gateway configured.");
+    return;
+  }
+
+  if (mode === "node") {
+    const { promptRemoteGatewayConfig } = await import("../commands/onboard-remote.js");
+    const { applySkipBootstrapConfig } = await import("../commands/onboard-config.js");
+    const { logConfigUpdated } = await loadConfigLoggingModule();
+    let nextConfig = await promptRemoteGatewayConfig(baseConfig, prompter, {
+      secretInputMode: opts.secretInputMode,
+    });
+    if (opts.skipBootstrap) {
+      nextConfig = applySkipBootstrapConfig(nextConfig);
+    }
+    const remoteUrl = nextConfig.gateway?.remote?.url;
+    if (remoteUrl) {
+      const { promptNodeHostConfig } = await import("./setup.node-config.js");
+      await promptNodeHostConfig(prompter, remoteUrl);
+    }
+    nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
+    await writeConfigFile(nextConfig);
+    logConfigUpdated(runtime);
+    await prompter.outro("Node configured.");
     return;
   }
 
