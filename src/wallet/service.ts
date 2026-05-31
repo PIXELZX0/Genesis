@@ -24,6 +24,12 @@ import {
   readWalletKeystore,
   writeWalletKeystore,
 } from "./keystore.js";
+import {
+  getLndHubAddress,
+  getLndHubBalance,
+  quoteLndHubSend,
+  sendLndHubTransaction,
+} from "./lndhub.js";
 import type {
   LocalKeystoreWalletChain,
   WalletBalance,
@@ -152,6 +158,9 @@ function nativeAssetDecimals(chain: WalletChain): number {
   if (chain === "xmr") {
     return 12;
   }
+  if (chain === "lndhub") {
+    return 8;
+  }
   return 18;
 }
 
@@ -178,6 +187,25 @@ export async function getWalletSummary(options: WalletServiceOptions = {}): Prom
         chain: "xmr",
         address,
         network: "monero-wallet-rpc",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      warnings.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  if (
+    walletEnabled(config) &&
+    config?.networks?.lndhub?.enabled !== false &&
+    config?.networks?.lndhub?.baseUrl
+  ) {
+    try {
+      const address = await getLndHubAddress(config);
+      accounts.push({
+        id: "lndhub:rpc",
+        chain: "lndhub",
+        address,
+        network: "lndhub",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -284,6 +312,9 @@ export async function getWalletBalanceForChain(
   assertWalletOperationEnabled(config, params.chain);
   if (params.chain === "xmr") {
     return getXmrBalance(config);
+  }
+  if (params.chain === "lndhub") {
+    return getLndHubBalance(config);
   }
   const accounts = await getWalletAccounts({ config, env: params.env });
   return getWalletBalance({
@@ -413,6 +444,9 @@ export async function quoteWalletTransaction(
   if (params.chain === "xmr") {
     return quoteXmrSend({ to: params.to, amount: params.amount, config });
   }
+  if (params.chain === "lndhub") {
+    return quoteLndHubSend({ to: params.to, amount: params.amount, config });
+  }
   if (!isLocalKeystoreWalletChain(params.chain)) {
     throw unsupportedWalletChainError(params.chain);
   }
@@ -447,6 +481,9 @@ export async function sendWallet(
   });
   if (params.chain === "xmr") {
     return sendXmrTransaction({ to: params.to, amount: params.amount, config });
+  }
+  if (params.chain === "lndhub") {
+    return sendLndHubTransaction({ to: params.to, amount: params.amount, config });
   }
   if (!isLocalKeystoreWalletChain(params.chain)) {
     throw unsupportedWalletChainError(params.chain);

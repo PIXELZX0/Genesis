@@ -18996,6 +18996,237 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 description:
                   "Monero wallet RPC settings. Genesis does not derive or store Monero private keys; it calls monero-wallet-rpc for address, balance, and transfer.",
               },
+              lndhub: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "LndHub Wallet Enabled",
+                    description: "Enable the LndHub Lightning wallet integration.",
+                  },
+                  baseUrl: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "LndHub Base URL",
+                    description: "Base URL of the LndHub service (e.g., https://lndhub.io).",
+                  },
+                  login: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "LndHub Login",
+                    description: "LndHub account login/username.",
+                  },
+                  password: {
+                    anyOf: [
+                      {
+                        type: "string",
+                      },
+                      {
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "env",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                                pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "file",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              source: {
+                                type: "string",
+                                const: "exec",
+                              },
+                              provider: {
+                                type: "string",
+                                pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                              },
+                              id: {
+                                type: "string",
+                              },
+                            },
+                            required: ["source", "provider", "id"],
+                            additionalProperties: false,
+                          },
+                        ],
+                      },
+                    ],
+                    title: "LndHub Password",
+                    description: "LndHub account password.",
+                  },
+                  lightningAddress: {
+                    type: "string",
+                    title: "LndHub Lightning Address",
+                    description:
+                      "Optional Lightning Address (e.g., user@walletofsatoshi.com) to display as the receiving address.",
+                  },
+                  explorerTxUrl: {
+                    type: "string",
+                    format: "uri",
+                    title: "LndHub Explorer Transaction URL",
+                    description:
+                      "Optional transaction explorer base URL for Lightning payments (e.g., https://mempool.space/lightning).",
+                  },
+                },
+                additionalProperties: false,
+                title: "Bitcoin Lightning (LndHub) Wallet",
+                description:
+                  "External LndHub Lightning wallet settings. Use this for custodial or self-hosted LndHub-compatible services like BlueWallet.",
+              },
             },
             additionalProperties: false,
             title: "Wallet Networks",
@@ -25955,6 +26186,44 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "wallet.networks.xmr.explorerTxUrl": {
       label: "Monero Explorer Transaction URL",
+      tags: ["advanced"],
+    },
+    "wallet.networks.lndhub": {
+      label: "Bitcoin Lightning (LndHub) Wallet",
+      help: "External LndHub Lightning wallet settings. Use this for custodial or self-hosted LndHub-compatible services like BlueWallet.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.lndhub.enabled": {
+      label: "LndHub Wallet Enabled",
+      help: "Enable the LndHub Lightning wallet integration.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.lndhub.baseUrl": {
+      label: "LndHub Base URL",
+      help: "Base URL of the LndHub service (e.g., https://lndhub.io).",
+      tags: ["security", "advanced", "url-secret"],
+      sensitive: true,
+    },
+    "wallet.networks.lndhub.login": {
+      label: "LndHub Login",
+      help: "LndHub account login/username.",
+      tags: ["security", "advanced"],
+      sensitive: true,
+    },
+    "wallet.networks.lndhub.password": {
+      label: "LndHub Password",
+      help: "LndHub account password.",
+      tags: ["security", "auth"],
+      sensitive: true,
+    },
+    "wallet.networks.lndhub.lightningAddress": {
+      label: "LndHub Lightning Address",
+      help: "Optional Lightning Address (e.g., user@walletofsatoshi.com) to display as the receiving address.",
+      tags: ["advanced"],
+    },
+    "wallet.networks.lndhub.explorerTxUrl": {
+      label: "LndHub Explorer Transaction URL",
+      help: "Optional transaction explorer base URL for Lightning payments (e.g., https://mempool.space/lightning).",
       tags: ["advanced"],
     },
     "wallet.spending": {

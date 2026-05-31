@@ -1,6 +1,6 @@
 import type { SecretInput } from "./types.secrets.js";
 
-export type WalletChain = "btc" | "evm" | "sol" | "trx" | "xmr";
+export type WalletChain = "btc" | "evm" | "sol" | "trx" | "xmr" | "lndhub";
 
 export type WalletBtcNetwork = "mainnet" | "testnet" | "regtest";
 export type WalletSolNetwork = "mainnet-beta" | "testnet" | "devnet";
@@ -74,6 +74,15 @@ export type WalletXmrNetworkConfig = {
   explorerTxUrl?: string;
 };
 
+export type WalletLndHubNetworkConfig = {
+  enabled?: boolean;
+  baseUrl?: SecretInput;
+  login?: SecretInput;
+  password?: SecretInput;
+  lightningAddress?: string;
+  explorerTxUrl?: string;
+};
+
 export type WalletSpendingConfig = {
   enabled?: boolean;
   requireAllowEnv?: boolean;
@@ -89,6 +98,7 @@ export type WalletConfig = {
     sol?: WalletSolNetworkConfig;
     trx?: WalletTrxNetworkConfig;
     xmr?: WalletXmrNetworkConfig;
+    lndhub?: WalletLndHubNetworkConfig;
   };
   spending?: WalletSpendingConfig;
 };

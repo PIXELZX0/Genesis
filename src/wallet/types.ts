@@ -2,7 +2,7 @@ import type { WalletChain } from "../config/types.wallet.js";
 
 export type { WalletChain } from "../config/types.wallet.js";
 
-export const WALLET_CHAINS = ["btc", "evm", "sol", "trx", "xmr"] as const;
+export const WALLET_CHAINS = ["btc", "evm", "sol", "trx", "xmr", "lndhub"] as const;
 export const LOCAL_KEYSTORE_WALLET_CHAINS = ["btc", "evm", "sol", "trx"] as const;
 
 export type LocalKeystoreWalletChain = (typeof LOCAL_KEYSTORE_WALLET_CHAINS)[number];

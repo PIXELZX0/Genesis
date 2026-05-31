@@ -350,6 +350,17 @@ const WalletSchema = z
           })
           .strict()
           .optional(),
+        lndhub: z
+          .object({
+            ...WalletChainConfigEnabledShape,
+            baseUrl: SecretInputSchema.optional().register(sensitive),
+            login: SecretInputSchema.optional().register(sensitive),
+            password: SecretInputSchema.optional().register(sensitive),
+            lightningAddress: z.string().optional(),
+            explorerTxUrl: z.string().url().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),

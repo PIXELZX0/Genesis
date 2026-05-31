@@ -20,6 +20,7 @@ Supported chains:
 - `sol`: local BIP39/SLIP-0010-derived Solana address through `@solana/web3.js`
 - `trx`: local BIP39-derived TRON address through TronWeb
 - `xmr`: read and transfer through `monero-wallet-rpc`; Genesis does not sign Monero locally
+- `lndhub`: read and pay Lightning invoices through an external LndHub-compatible REST API (e.g. BlueWallet); Genesis does not hold Lightning keys locally
 
 Security model:
 

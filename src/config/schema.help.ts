@@ -717,6 +717,16 @@ export const FIELD_HELP: Record<string, string> = {
     "Monero wallet RPC settings. Genesis does not derive or store Monero private keys; it calls monero-wallet-rpc for address, balance, and transfer.",
   "wallet.networks.xmr.walletRpcUrl":
     "monero-wallet-rpc JSON-RPC URL. Keep it on loopback or behind strong transport and auth controls.",
+  "wallet.networks.lndhub":
+    "External LndHub Lightning wallet settings. Use this for custodial or self-hosted LndHub-compatible services like BlueWallet.",
+  "wallet.networks.lndhub.enabled": "Enable the LndHub Lightning wallet integration.",
+  "wallet.networks.lndhub.baseUrl": "Base URL of the LndHub service (e.g., https://lndhub.io).",
+  "wallet.networks.lndhub.login": "LndHub account login/username.",
+  "wallet.networks.lndhub.password": "LndHub account password.",
+  "wallet.networks.lndhub.lightningAddress":
+    "Optional Lightning Address (e.g., user@walletofsatoshi.com) to display as the receiving address.",
+  "wallet.networks.lndhub.explorerTxUrl":
+    "Optional transaction explorer base URL for Lightning payments (e.g., https://mempool.space/lightning).",
   "wallet.spending":
     "Guardrails for CLI send commands. These controls are independent of exec approvals and are checked before any broadcast.",
   "wallet.spending.enabled":

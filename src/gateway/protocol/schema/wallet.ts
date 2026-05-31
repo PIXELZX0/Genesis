@@ -6,6 +6,7 @@ const WalletChainSchema = Type.Union([
   Type.Literal("sol"),
   Type.Literal("trx"),
   Type.Literal("xmr"),
+  Type.Literal("lndhub"),
 ]);
 
 export const WalletSummaryParamsSchema = Type.Object(

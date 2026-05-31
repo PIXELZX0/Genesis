@@ -41,6 +41,8 @@ function walletChainLabel(chain: WalletPublicAccount["chain"]): string {
       return "TRX";
     case "xmr":
       return "XMR";
+    case "lndhub":
+      return "Lightning";
   }
   const exhaustiveChain: never = chain;
   return exhaustiveChain;
