@@ -2,6 +2,19 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.5.31
+
+### Changes
+
+- Wallet: add Bitcoin Lightning (LndHub) support.
+- Onboarding: add gateway and node setup modes.
+- Docs site: host marketing landing page, installer scripts, and schema files alongside the docs at genesis.pixelzx.com.
+- Rebrand public URLs and contact addresses from genesis.ai to genesis.pixelzx.com.
+
+### Fixes
+
+- Matrix CLI: bootstrap the runtime so `verify`, `backup`, and `devices` commands work instead of crashing with "Matrix runtime not initialized".
+
 ## 2026.5.17
 
 ### Fixes
