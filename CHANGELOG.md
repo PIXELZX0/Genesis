@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.1
+
+### Changes
+
+- Onboarding: install node service (systemd/launchd/schtasks) during node mode setup.
+
 ## 2026.5.31
 
 ### Changes
