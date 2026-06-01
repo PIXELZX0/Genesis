@@ -10,6 +10,7 @@ import { readConfigFileSnapshot, resolveGatewayPort, writeConfigFile } from "../
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeSecretInputString } from "../config/types.secrets.js";
 import { formatErrorMessage } from "../infra/errors.js";
+import { loadNodeHostConfig } from "../node-host/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { resolveUserPath } from "../utils.js";
@@ -521,6 +522,115 @@ export async function runSetupWizard(
     nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
     await writeConfigFile(nextConfig);
     logConfigUpdated(runtime);
+
+    // Node service install (systemd/launchd/schtasks)
+    const { isSystemdUserServiceAvailable } = await import("../daemon/systemd.js");
+    const systemdAvailable =
+      process.platform === "linux" ? await isSystemdUserServiceAvailable() : true;
+    if (process.platform === "linux" && !systemdAvailable) {
+      await prompter.note(
+        "Systemd user services are unavailable. Skipping node service install.",
+        "Systemd",
+      );
+    }
+
+    const explicitInstallDaemon =
+      typeof opts.installDaemon === "boolean" ? opts.installDaemon : undefined;
+    let installNodeDaemon: boolean;
+    if (explicitInstallDaemon !== undefined) {
+      installNodeDaemon = explicitInstallDaemon;
+    } else if (process.platform === "linux" && !systemdAvailable) {
+      installNodeDaemon = false;
+    } else {
+      installNodeDaemon = await prompter.confirm({
+        message: "Install Node service (recommended)",
+        initialValue: true,
+      });
+    }
+
+    if (installNodeDaemon) {
+      const { resolveNodeService } = await import("../daemon/node-service.js");
+      const { buildNodeInstallPlan } = await import("../commands/node-daemon-install-helpers.js");
+      const { DEFAULT_NODE_DAEMON_RUNTIME } = await import("../commands/node-daemon-runtime.js");
+      const { formatErrorMessage } = await import("../infra/errors.js");
+
+      const service = resolveNodeService();
+      const loaded = await service.isLoaded({ env: process.env });
+      let restartWasScheduled = false;
+      if (loaded) {
+        const action = await prompter.select({
+          message: "Node service already installed",
+          options: [
+            { value: "restart", label: "Restart" },
+            { value: "reinstall", label: "Reinstall" },
+            { value: "skip", label: "Skip" },
+          ],
+        });
+        if (action === "restart") {
+          const progress = prompter.progress("Node service");
+          try {
+            progress.update("Restarting Node service…");
+            const restartResult = await service.restart({
+              env: process.env,
+              stdout: process.stdout,
+            });
+            restartWasScheduled = restartResult.outcome === "scheduled";
+            progress.stop("Node service restarted.");
+          } catch (err) {
+            progress.stop("Node service restart failed.");
+            runtime.error(formatErrorMessage(err));
+          }
+        } else if (action === "reinstall") {
+          const progress = prompter.progress("Node service");
+          try {
+            progress.update("Uninstalling Node service…");
+            await service.uninstall({ env: process.env, stdout: process.stdout });
+            progress.stop("Node service uninstalled.");
+          } catch (err) {
+            progress.stop("Node service uninstall failed.");
+            runtime.error(formatErrorMessage(err));
+          }
+        }
+      }
+
+      if (
+        !loaded ||
+        (!restartWasScheduled && loaded && !(await service.isLoaded({ env: process.env })))
+      ) {
+        const progress = prompter.progress("Node service");
+        let installError: string | null = null;
+        try {
+          progress.update("Preparing Node service…");
+          const nodeConfig = await loadNodeHostConfig();
+          const { programArguments, workingDirectory, environment } = await buildNodeInstallPlan({
+            env: process.env,
+            host: nodeConfig?.gateway?.host ?? "127.0.0.1",
+            port: nodeConfig?.gateway?.port ?? 18789,
+            tls: nodeConfig?.gateway?.tls ?? false,
+            tlsFingerprint: nodeConfig?.gateway?.tlsFingerprint ?? undefined,
+            nodeId: nodeConfig?.nodeId,
+            displayName: nodeConfig?.displayName ?? undefined,
+            runtime: opts.daemonRuntime ?? DEFAULT_NODE_DAEMON_RUNTIME,
+          });
+          progress.update("Installing Node service…");
+          await service.install({
+            env: process.env,
+            stdout: process.stdout,
+            programArguments,
+            workingDirectory,
+            environment,
+          });
+        } catch (err) {
+          installError = formatErrorMessage(err);
+        } finally {
+          progress.stop(installError ? "Node service install failed." : "Node service installed.");
+        }
+        if (installError) {
+          await prompter.note(`Node service install failed: ${installError}`, "Node");
+        }
+      }
+    }
+
     await prompter.outro("Node configured.");
     return;
   }
