@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.3
+
+### Fixes
+
+- Onboarding: node-mode service install now targets the correct systemd unit (`genesis-node`) instead of `genesis-gateway`, fixing a "Unit genesis-gateway.service does not exist" failure during `genesis onboard`.
+
 ## 2026.6.1
 
 ### Changes
