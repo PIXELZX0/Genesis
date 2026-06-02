@@ -17,6 +17,7 @@ vi.mock("node:child_process", async () => {
 import { splitArgsPreservingQuotes } from "./arg-split.js";
 import { parseSystemdExecStart } from "./systemd-unit.js";
 import {
+  installSystemdService,
   isNonFatalSystemdInstallProbeError,
   isSystemdServiceEnabled,
   isSystemdUserServiceAvailable,
@@ -26,6 +27,7 @@ import {
   resolveSystemdUserUnitPath,
   stageSystemdService,
   stopSystemdService,
+  uninstallSystemdService,
 } from "./systemd.js";
 
 type ExecFileError = Error & {
@@ -745,6 +747,82 @@ describe("stageSystemdService", () => {
       expect(unit).toContain(`EnvironmentFile=-${envFilePath}`);
       expect(unit).toContain("Environment=GENESIS_GATEWAY_TOKEN=fresh-token");
       expect(envFile).toBe("LLM_API_KEY=dotenv-key\n");
+    });
+  });
+});
+
+describe("installSystemdService / uninstallSystemdService unit-name resolution", () => {
+  async function withInstallFixture(
+    run: (context: { env: Record<string, string>; unitPath: string }) => Promise<void>,
+  ): Promise<void> {
+    const tempHomeRoot = await fs.mkdtemp(path.join(os.tmpdir(), "genesis-systemd-install-"));
+    const home = path.join(tempHomeRoot, "home");
+    const stateDir = path.join(home, ".genesis");
+    // Mirror node-service.ts, which sets GENESIS_SYSTEMD_UNIT=genesis-node for node installs.
+    const env = {
+      HOME: home,
+      GENESIS_STATE_DIR: stateDir,
+      GENESIS_SYSTEMD_UNIT: "genesis-node",
+    };
+    const unitPath = resolveSystemdUserUnitPath(env);
+    try {
+      await fs.mkdir(stateDir, { recursive: true });
+      await run({ env, unitPath });
+    } finally {
+      await fs.rm(tempHomeRoot, { recursive: true, force: true });
+    }
+  }
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    execFileMock.mockReset();
+  });
+
+  it("enables and restarts the GENESIS_SYSTEMD_UNIT override, not the gateway unit", async () => {
+    await withInstallFixture(async ({ env, unitPath }) => {
+      execFileMock.mockImplementation((_cmd, _args, _opts, cb) => {
+        cb(null, "", "");
+      });
+
+      await installSystemdService({
+        env,
+        stdout: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+        programArguments: ["/usr/bin/genesis", "node", "run"],
+        workingDirectory: "/tmp",
+        environment: {},
+      });
+
+      const calls = execFileMock.mock.calls.map((call) => call[1] as string[]);
+      const enableCall = calls.find((args) => args.includes("enable"));
+      const restartCall = calls.find((args) => args.includes("restart"));
+      // Regression: enable/restart must target the written override unit, not genesis-gateway.
+      expect(enableCall).toEqual(["--user", "enable", "genesis-node.service"]);
+      expect(restartCall).toEqual(["--user", "restart", "genesis-node.service"]);
+      expect(unitPath.endsWith("/genesis-node.service")).toBe(true);
+      await expect(fs.readFile(unitPath, "utf8")).resolves.toContain(
+        "ExecStart=/usr/bin/genesis node run",
+      );
+    });
+  });
+
+  it("disables the GENESIS_SYSTEMD_UNIT override on uninstall", async () => {
+    await withInstallFixture(async ({ env, unitPath }) => {
+      await fs.mkdir(path.dirname(unitPath), { recursive: true });
+      await fs.writeFile(unitPath, "[Service]\nExecStart=/usr/bin/genesis node run\n", "utf8");
+      execFileMock.mockImplementation((_cmd, _args, _opts, cb) => {
+        cb(null, "", "");
+      });
+
+      await uninstallSystemdService({
+        env,
+        stdout: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      });
+
+      const calls = execFileMock.mock.calls.map((call) => call[1] as string[]);
+      const disableCall = calls.find((args) => args.includes("disable"));
+      // Regression: disable must target the override unit, not genesis-gateway.
+      expect(disableCall).toEqual(["--user", "disable", "--now", "genesis-node.service"]);
+      await expect(fs.access(unitPath)).rejects.toThrow();
     });
   });
 });
