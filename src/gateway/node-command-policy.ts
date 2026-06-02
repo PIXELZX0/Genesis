@@ -1,6 +1,7 @@
 import type { GenesisConfig } from "../config/types.genesis.js";
 import {
   NODE_BROWSER_PROXY_COMMAND,
+  NODE_EXEC_APPROVALS_COMMANDS,
   NODE_SYSTEM_NOTIFY_COMMAND,
   NODE_SYSTEM_RUN_COMMANDS,
 } from "../infra/node-commands.js";
@@ -49,18 +50,20 @@ const MOTION_COMMANDS = ["motion.activity", "motion.pedometer"];
 const SMS_DANGEROUS_COMMANDS = ["sms.send", "sms.search"];
 
 // iOS nodes don't implement system.run/which, but they do support notifications.
-const IOS_SYSTEM_COMMANDS = [NODE_SYSTEM_NOTIFY_COMMAND];
+const IOS_SYSTEM_COMMANDS = [NODE_SYSTEM_NOTIFY_COMMAND, ...NODE_EXEC_APPROVALS_COMMANDS];
 
 const SYSTEM_COMMANDS = [
   ...NODE_SYSTEM_RUN_COMMANDS,
   NODE_SYSTEM_NOTIFY_COMMAND,
   NODE_BROWSER_PROXY_COMMAND,
+  ...NODE_EXEC_APPROVALS_COMMANDS,
 ];
 const UNKNOWN_PLATFORM_COMMANDS = [
   ...CANVAS_COMMANDS,
   ...CAMERA_COMMANDS,
   ...LOCATION_COMMANDS,
   NODE_SYSTEM_NOTIFY_COMMAND,
+  ...NODE_EXEC_APPROVALS_COMMANDS,
 ];
 
 // "High risk" node commands. These can be enabled by explicitly adding them to
@@ -100,6 +103,7 @@ const PLATFORM_DEFAULTS: Record<string, string[]> = {
     ...REMINDERS_COMMANDS,
     ...PHOTOS_COMMANDS,
     ...MOTION_COMMANDS,
+    ...NODE_EXEC_APPROVALS_COMMANDS,
   ],
   macos: [
     ...CANVAS_COMMANDS,
