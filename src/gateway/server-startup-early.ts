@@ -37,7 +37,7 @@ function resolveGatewayWebUrl(cfg: GenesisConfig, port: number): string {
           : parsed.protocol === "ws:"
             ? "http:"
             : parsed.protocol;
-      const basePath = normalizeControlUiBasePath(cfg.daemon?.controlUi?.basePath);
+      const basePath = normalizeControlUiBasePath(cfg.gateway?.controlUi?.basePath);
       return `${httpProtocol}//${parsed.host}${basePath}`;
     } catch {
       // fall through to local resolution
@@ -47,7 +47,7 @@ function resolveGatewayWebUrl(cfg: GenesisConfig, port: number): string {
     port,
     bind: cfg.gateway?.bind,
     customBindHost: cfg.gateway?.customBindHost,
-    basePath: cfg.daemon?.controlUi?.basePath,
+    basePath: cfg.gateway?.controlUi?.basePath,
   });
   return links.httpUrl.replace(/\/+$/, "");
 }

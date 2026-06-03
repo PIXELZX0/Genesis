@@ -11,6 +11,28 @@ import {
   type McpOAuthRuntime,
 } from "./mcp-metadata.js";
 
+// Stub signature compatible with the module's internal `FetchLike`.
+type FetchStub = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+function urlOf(input: RequestInfo | URL): string {
+  return typeof input === "string"
+    ? input
+    : input instanceof URL
+      ? input.toString()
+      : (input as Request).url;
+}
+
+function methodOf(init?: RequestInit): string {
+  if (!init?.body) {
+    return "";
+  }
+  try {
+    return (JSON.parse(String(init.body)) as { method?: string }).method ?? "";
+  } catch {
+    return "";
+  }
+}
+
 // In-memory token/state store shared with the mocked module below.
 const stores = vi.hoisted(() => ({
   tokens: new Map<string, Record<string, unknown>>(),
@@ -105,7 +127,7 @@ describe("completeMcpOAuthFlow", () => {
   it("exchanges the code, sends the PKCE verifier, and persists the token", async () => {
     setMcpServerConfigCache({ srv: server });
     const start = await startMcpOAuthFlow(runtime, "srv", server, ["read"]);
-    const fetchImpl = vi.fn(async () =>
+    const fetchImpl = vi.fn<FetchStub>(async () =>
       json({ access_token: "AT", refresh_token: "RT", expires_in: 3600, scope: "read write" }),
     );
     const done = await completeMcpOAuthFlow(
@@ -114,7 +136,7 @@ describe("completeMcpOAuthFlow", () => {
       { fetchImpl },
     );
     expect(done.ok).toBe(true);
-    const body = String((fetchImpl.mock.calls[0]?.[1] as RequestInit).body);
+    const body = String(fetchImpl.mock.calls[0]?.[1]?.body);
     expect(body).toContain("grant_type=authorization_code");
     expect(body).toContain("code_verifier=");
     const token = stores.tokens.get("srv");
@@ -129,7 +151,7 @@ describe("completeMcpOAuthFlow", () => {
     const done = await completeMcpOAuthFlow(
       runtime,
       { name: "srv", state: "bogus", code: "CODE" },
-      { fetchImpl: vi.fn() },
+      { fetchImpl: vi.fn<FetchStub>(async () => json({})) },
     );
     expect(done.ok).toBe(false);
     expect(done.message).toMatch(/expired or invalid/);
@@ -144,7 +166,7 @@ describe("refresh / revoke", () => {
       tokenUrl: "https://prov.test/token",
       expiresAtMs: Date.now() + 1000,
     });
-    const fetchImpl = vi.fn(async () => json({ access_token: "NEW", expires_in: 3600 }));
+    const fetchImpl = vi.fn<FetchStub>(async () => json({ access_token: "NEW", expires_in: 3600 }));
     const res = await refreshMcpOAuthToken("srv", {} as McpServerConfig, {
       clientId: "client-123",
       fetchImpl,
@@ -158,7 +180,7 @@ describe("refresh / revoke", () => {
     stores.tokens.set("srv", { accessToken: "x" });
     const res = await refreshMcpOAuthToken("srv", {} as McpServerConfig, {
       clientId: "c",
-      fetchImpl: vi.fn(),
+      fetchImpl: vi.fn<FetchStub>(async () => json({})),
     });
     expect(res.ok).toBe(false);
   });
@@ -170,7 +192,7 @@ describe("refresh / revoke", () => {
       tokenUrl: "https://prov.test/token",
       expiresAtMs: Date.now() + 3_600_000,
     });
-    const fetchImpl = vi.fn(async () => json({ access_token: "NEW" }));
+    const fetchImpl = vi.fn<FetchStub>(async () => json({ access_token: "NEW" }));
     await ensureFreshMcpOAuthToken("srv", {} as McpServerConfig, { clientId: "c", fetchImpl });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -181,30 +203,31 @@ describe("refresh / revoke", () => {
       refreshToken: "RT",
       revokeUrl: "https://prov.test/revoke",
     });
-    const fetchImpl = vi.fn(async () => new Response("", { status: 200 }));
+    const fetchImpl = vi.fn<FetchStub>(async () => new Response("", { status: 200 }));
     const res = await revokeMcpOAuthToken("srv", {} as McpServerConfig, {
       clientId: "c",
       fetchImpl,
     });
     expect(res.revoked).toBe(true);
-    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe("https://prov.test/revoke");
-    expect(String((fetchImpl.mock.calls[0]?.[1] as RequestInit).body)).toContain("token=RT");
+    expect(urlOf(fetchImpl.mock.calls[0]![0])).toBe("https://prov.test/revoke");
+    expect(String(fetchImpl.mock.calls[0]?.[1]?.body)).toContain("token=RT");
   });
 });
 
 describe("fetchMcpServerMetadata", () => {
-  function mcpServer(initResult: unknown): (url: string, init?: RequestInit) => Promise<Response> {
-    return async (url: string, init?: RequestInit) => {
-      const body = init?.body ? (JSON.parse(String(init.body)) as { method?: string }) : {};
-      if (body.method === "ping") return json({ jsonrpc: "2.0", id: 0, result: {} });
-      if (body.method === "initialize") return json({ jsonrpc: "2.0", id: 1, result: initResult });
+  function mcpServer(initResult: unknown): FetchStub {
+    return async (input, init) => {
+      const method = methodOf(init);
+      if (method === "ping") return json({ jsonrpc: "2.0", id: 0, result: {} });
+      if (method === "initialize") return json({ jsonrpc: "2.0", id: 1, result: initResult });
       return json({});
     };
   }
 
   it("discovers transport + OAuth via standard well-known metadata", async () => {
     const base = mcpServer({ serverInfo: { name: "Test", version: "1" }, capabilities: {} });
-    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
       if (url.endsWith("/.well-known/oauth-authorization-server")) {
         return json({
           authorization_endpoint: "https://as.test/auth",
@@ -213,7 +236,7 @@ describe("fetchMcpServerMetadata", () => {
         });
       }
       if (url.includes("/.well-known/")) return new Response("", { status: 404 });
-      return base(url, init);
+      return base(input, init);
     });
     const meta = await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
     expect(meta.transport).toBe("streamable-http");
@@ -224,7 +247,8 @@ describe("fetchMcpServerMetadata", () => {
 
   it("falls back to RFC 9728 protected-resource discovery", async () => {
     const base = mcpServer({ serverInfo: { name: "Notion" }, capabilities: {} });
-    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
       if (url.endsWith("/.well-known/oauth-protected-resource")) {
         return json({ authorization_servers: ["https://auth.notion.test"] });
       }
@@ -235,7 +259,7 @@ describe("fetchMcpServerMetadata", () => {
         });
       }
       if (url.includes("/.well-known/")) return new Response("", { status: 404 });
-      return base(url, init);
+      return base(input, init);
     });
     const meta = await fetchMcpServerMetadata("https://notion.test/mcp", { fetchImpl });
     expect(meta.oauth).toBe(true);
@@ -243,7 +267,9 @@ describe("fetchMcpServerMetadata", () => {
   });
 
   it("rejects a malformed URL", async () => {
-    await expect(fetchMcpServerMetadata("not-a-url", { fetchImpl: vi.fn() })).rejects.toThrow();
+    await expect(
+      fetchMcpServerMetadata("not-a-url", { fetchImpl: vi.fn<FetchStub>(async () => json({})) }),
+    ).rejects.toThrow();
   });
 
   it("blocks a private-IP target via the default SSRF guard (no stub)", async () => {
