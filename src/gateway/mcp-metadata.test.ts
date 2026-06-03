@@ -15,19 +15,21 @@ import {
 type FetchStub = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 function urlOf(input: RequestInfo | URL): string {
-  return typeof input === "string"
-    ? input
-    : input instanceof URL
-      ? input.toString()
-      : (input as Request).url;
+  return typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+}
+
+function bodyText(init?: RequestInit): string {
+  const body = init?.body;
+  return typeof body === "string" ? body : "";
 }
 
 function methodOf(init?: RequestInit): string {
-  if (!init?.body) {
+  const body = init?.body;
+  if (typeof body !== "string") {
     return "";
   }
   try {
-    return (JSON.parse(String(init.body)) as { method?: string }).method ?? "";
+    return (JSON.parse(body) as { method?: string }).method ?? "";
   } catch {
     return "";
   }
@@ -136,7 +138,7 @@ describe("completeMcpOAuthFlow", () => {
       { fetchImpl },
     );
     expect(done.ok).toBe(true);
-    const body = String(fetchImpl.mock.calls[0]?.[1]?.body);
+    const body = bodyText(fetchImpl.mock.calls[0]?.[1]);
     expect(body).toContain("grant_type=authorization_code");
     expect(body).toContain("code_verifier=");
     const token = stores.tokens.get("srv");
@@ -209,17 +211,21 @@ describe("refresh / revoke", () => {
       fetchImpl,
     });
     expect(res.revoked).toBe(true);
-    expect(urlOf(fetchImpl.mock.calls[0]![0])).toBe("https://prov.test/revoke");
-    expect(String(fetchImpl.mock.calls[0]?.[1]?.body)).toContain("token=RT");
+    expect(urlOf(fetchImpl.mock.calls[0]?.[0] ?? "")).toBe("https://prov.test/revoke");
+    expect(bodyText(fetchImpl.mock.calls[0]?.[1])).toContain("token=RT");
   });
 });
 
 describe("fetchMcpServerMetadata", () => {
   function mcpServer(initResult: unknown): FetchStub {
-    return async (input, init) => {
+    return async (_input, init) => {
       const method = methodOf(init);
-      if (method === "ping") return json({ jsonrpc: "2.0", id: 0, result: {} });
-      if (method === "initialize") return json({ jsonrpc: "2.0", id: 1, result: initResult });
+      if (method === "ping") {
+        return json({ jsonrpc: "2.0", id: 0, result: {} });
+      }
+      if (method === "initialize") {
+        return json({ jsonrpc: "2.0", id: 1, result: initResult });
+      }
       return json({});
     };
   }
@@ -235,7 +241,9 @@ describe("fetchMcpServerMetadata", () => {
           scopes_supported: ["read"],
         });
       }
-      if (url.includes("/.well-known/")) return new Response("", { status: 404 });
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
       return base(input, init);
     });
     const meta = await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
@@ -258,7 +266,9 @@ describe("fetchMcpServerMetadata", () => {
           token_endpoint: "https://auth.notion.test/token",
         });
       }
-      if (url.includes("/.well-known/")) return new Response("", { status: 404 });
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
       return base(input, init);
     });
     const meta = await fetchMcpServerMetadata("https://notion.test/mcp", { fetchImpl });

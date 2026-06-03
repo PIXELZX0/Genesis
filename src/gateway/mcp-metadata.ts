@@ -84,11 +84,7 @@ function createGuardedFetch(allowedHosts?: string[]): FetchLike {
     allowedHosts && allowedHosts.length > 0 ? { allowedHostnames: allowedHosts } : undefined;
   return async (input, init) => {
     const url =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : (input as Request).url;
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const { response, release } = await fetchWithSsrFGuard({
       url,
       init: init as RequestInit,
