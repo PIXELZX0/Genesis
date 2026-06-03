@@ -172,6 +172,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "mcp.oauth.start",
     "mcp.oauth.callback",
     "mcp.oauth.disconnect",
+    "mcp.oauth.refresh",
     "plugins.install",
     "plugins.update",
     "plugins.uninstall",

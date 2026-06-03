@@ -2,6 +2,16 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.4
+
+### Changes
+
+- MCP: connect remote MCP servers that require OAuth (Notion, Linear, Slack, and similar) directly from the Control UI. Genesis runs the authorization-code flow with PKCE, stores tokens encrypted at rest (AES-256-GCM) on the gateway host, refreshes them automatically near expiry, and best-effort revokes on disconnect. OAuth discovery now also follows RFC 9728 protected-resource metadata and a `401` challenge probe for providers that do not expose the standard well-known endpoint. Outbound metadata and token requests are SSRF-guarded — private and internal addresses are blocked by default; allow self-hosted servers with `mcp.metadataFetch.allowedHosts`. See [MCP OAuth](https://genesis.pixelzx.com/docs/concepts/mcp-oauth).
+
+### Fixes
+
+- MCP: the OAuth flow now works end to end. The gateway wires the OAuth runtime at startup (previously every `mcp.oauth.*` request returned "runtime not configured"), and the Control UI callback uses the correct same-origin callback URL and validates the message origin before accepting the authorization code.
+
 ## 2026.6.3
 
 ### Changes

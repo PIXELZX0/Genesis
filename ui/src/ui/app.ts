@@ -94,6 +94,7 @@ import type {
 } from "./controllers/skills.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
+import { isTrustedMcpOAuthMessage } from "./mcp-oauth-trust.ts";
 import type { Tab } from "./navigation.ts";
 import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 import type { SidebarContent } from "./sidebar-content.ts";
@@ -694,7 +695,22 @@ export class GenesisApp extends LitElement {
       state?: string;
       error?: string;
     } | null;
-    if (!data || data.source !== "genesis-mcp-oauth") {
+    if (!data) {
+      return;
+    }
+    // Accept callback messages only from our same-origin callback page (with a
+    // popup-identity fallback for opaque origins). Rejects forged messages.
+    const expectedOrigin =
+      typeof window !== "undefined" && window.location ? window.location.origin : "";
+    if (
+      !isTrustedMcpOAuthMessage({
+        origin: event.origin,
+        source: event.source,
+        expectedOrigin,
+        popup: this.mcpOAuthPopup,
+        dataSource: data.source,
+      })
+    ) {
       return;
     }
     if (data.type === "mcp-oauth-callback") {

@@ -330,6 +330,10 @@ import {
   McpOAuthStatusResultSchema,
   type McpOAuthDisconnectParams,
   McpOAuthDisconnectParamsSchema,
+  type McpOAuthRefreshParams,
+  McpOAuthRefreshParamsSchema,
+  type McpOAuthRefreshResult,
+  McpOAuthRefreshResultSchema,
   type ToolsEffectiveParams,
   ToolsEffectiveParamsSchema,
   type ToolsEffectiveResult,
@@ -569,6 +573,9 @@ export const validateMcpOAuthStatusParams = ajv.compile<McpOAuthStatusParams>(
 );
 export const validateMcpOAuthDisconnectParams = ajv.compile<McpOAuthDisconnectParams>(
   McpOAuthDisconnectParamsSchema,
+);
+export const validateMcpOAuthRefreshParams = ajv.compile<McpOAuthRefreshParams>(
+  McpOAuthRefreshParamsSchema,
 );
 export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
   ToolsEffectiveParamsSchema,
@@ -829,6 +836,8 @@ export {
   McpOAuthStatusParamsSchema,
   McpOAuthStatusResultSchema,
   McpOAuthDisconnectParamsSchema,
+  McpOAuthRefreshParamsSchema,
+  McpOAuthRefreshResultSchema,
   ToolsEffectiveParamsSchema,
   SkillsInstallParamsSchema,
   SkillsSearchParamsSchema,
@@ -965,6 +974,8 @@ export type {
   McpOAuthStatusParams,
   McpOAuthStatusResult,
   McpOAuthDisconnectParams,
+  McpOAuthRefreshParams,
+  McpOAuthRefreshResult,
   ToolsEffectiveParams,
   ToolsEffectiveResult,
   SkillsBinsParams,

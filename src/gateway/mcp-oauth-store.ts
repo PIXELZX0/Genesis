@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { STATE_DIR } from "../config/paths.js";
+import { logWarn } from "../logger.js";
 
 /**
  * Tokens stored per MCP server. Includes a CSRF state map for in-flight
@@ -18,6 +19,10 @@ export type McpOAuthTokenRecord = {
   providerName?: string;
   /** OAuth scopes granted. */
   scopes?: string[];
+  /** Token endpoint, retained so the access token can be refreshed later. */
+  tokenUrl?: string;
+  /** RFC 7009 revocation endpoint, if advertised; used on disconnect. */
+  revokeUrl?: string;
 };
 
 export type McpOAuthStateRecord = {
@@ -37,48 +42,174 @@ type McpOAuthStore = {
 };
 
 const MCP_OAUTH_FILENAME = "mcp-oauth.json";
+const MCP_OAUTH_KEY_FILENAME = "mcp-oauth.key";
+const FILE_MODE = 0o600;
+const ENVELOPE_VERSION = 2 as const;
+
+/**
+ * On-disk envelope. Tokens are encrypted at rest with AES-256-GCM under a
+ * machine-local key (see {@link loadOrCreateKey}). Version 1 (plaintext
+ * `{ tokens, states }`) is still readable and is transparently migrated to the
+ * encrypted form on the next write.
+ */
+type McpOAuthEnvelope = {
+  v: typeof ENVELOPE_VERSION;
+  enc: "aes-256-gcm";
+  nonce: string;
+  tag: string;
+  ciphertext: string;
+};
 
 function oauthStorePath(stateDir: string = STATE_DIR): string {
   return path.join(stateDir, MCP_OAUTH_FILENAME);
 }
 
-function readStore(filePath: string): McpOAuthStore {
+function oauthKeyPath(stateDir: string = STATE_DIR): string {
+  return path.join(stateDir, MCP_OAUTH_KEY_FILENAME);
+}
+
+function writeFileAtomicSync(filePath: string, data: string | Buffer): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const tmp = `${filePath}.${process.pid}.${crypto.randomBytes(6).toString("hex")}.tmp`;
+  fs.writeFileSync(tmp, data, { mode: FILE_MODE });
   try {
-    const raw = fs.readFileSync(filePath, "utf8");
-    const parsed = JSON.parse(raw) as Partial<McpOAuthStore>;
-    return {
-      tokens: parsed.tokens ?? {},
-      states: parsed.states ?? {},
-    };
+    fs.chmodSync(tmp, FILE_MODE);
+  } catch {
+    // best-effort; some filesystems do not support chmod
+  }
+  fs.renameSync(tmp, filePath);
+  try {
+    fs.chmodSync(filePath, FILE_MODE);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Load the machine-local 256-bit encryption key, creating it on first use.
+ * The key file is written with 0600 perms next to the token store. A malformed
+ * existing key is regenerated (any previously stored tokens then read as
+ * "no token" and the user simply re-authorizes); the token file is never
+ * deleted here.
+ */
+function loadOrCreateKey(stateDir: string = STATE_DIR): Buffer {
+  const keyPath = oauthKeyPath(stateDir);
+  try {
+    const raw = fs.readFileSync(keyPath, "utf8").trim();
+    const buf = Buffer.from(raw, "base64");
+    if (buf.length === 32) {
+      return buf;
+    }
+    logWarn(
+      `mcp-oauth: key file at ${keyPath} is malformed; regenerating (stored tokens will be dropped).`,
+    );
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+      logWarn(`mcp-oauth: unable to read key file (${(err as Error).message}); regenerating.`);
+    }
+  }
+  const key = crypto.randomBytes(32);
+  writeFileAtomicSync(keyPath, key.toString("base64"));
+  return key;
+}
+
+/** Read the key for decryption only; returns null when absent/unreadable. */
+function readKeyForDecrypt(stateDir: string): Buffer | null {
+  try {
+    const raw = fs.readFileSync(oauthKeyPath(stateDir), "utf8").trim();
+    const buf = Buffer.from(raw, "base64");
+    return buf.length === 32 ? buf : null;
+  } catch {
+    return null;
+  }
+}
+
+function encryptStore(store: McpOAuthStore, key: Buffer): McpOAuthEnvelope {
+  const nonce = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, nonce);
+  const plaintext = Buffer.from(JSON.stringify(store), "utf8");
+  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return {
+    v: ENVELOPE_VERSION,
+    enc: "aes-256-gcm",
+    nonce: nonce.toString("base64"),
+    tag: tag.toString("base64"),
+    ciphertext: ciphertext.toString("base64"),
+  };
+}
+
+function decryptStore(envelope: McpOAuthEnvelope, stateDir: string): McpOAuthStore {
+  const key = readKeyForDecrypt(stateDir);
+  if (!key) {
+    logWarn(
+      "mcp-oauth: token store is encrypted but the key is missing/unreadable; treating as empty.",
+    );
+    return { tokens: {}, states: {} };
+  }
+  try {
+    const nonce = Buffer.from(envelope.nonce, "base64");
+    const tag = Buffer.from(envelope.tag, "base64");
+    const ciphertext = Buffer.from(envelope.ciphertext, "base64");
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, nonce);
+    decipher.setAuthTag(tag);
+    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    const parsed = JSON.parse(plaintext.toString("utf8")) as Partial<McpOAuthStore>;
+    return { tokens: parsed.tokens ?? {}, states: parsed.states ?? {} };
+  } catch (err) {
+    // Key changed or file corrupted: fail closed to "no token" but never delete
+    // the file, so an operator can investigate/restore.
+    logWarn(
+      `mcp-oauth: unable to decrypt token store (${(err as Error).message}); treating as empty.`,
+    );
+    return { tokens: {}, states: {} };
+  }
+}
+
+function readStore(filePath: string, stateDir: string): McpOAuthStore {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(filePath, "utf8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       return { tokens: {}, states: {} };
     }
     throw err;
   }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    logWarn(
+      `mcp-oauth: token store is not valid JSON (${(err as Error).message}); treating as empty.`,
+    );
+    return { tokens: {}, states: {} };
+  }
+  if (parsed && typeof parsed === "object" && (parsed as McpOAuthEnvelope).enc === "aes-256-gcm") {
+    return decryptStore(parsed as McpOAuthEnvelope, stateDir);
+  }
+  // Legacy v1 plaintext store; migrated to encrypted form on next write.
+  const legacy = parsed as Partial<McpOAuthStore>;
+  return { tokens: legacy.tokens ?? {}, states: legacy.states ?? {} };
 }
 
-function writeStore(filePath: string, store: McpOAuthStore): void {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(store, null, 2), { mode: 0o600 });
-  try {
-    fs.chmodSync(filePath, 0o600);
-  } catch {
-    // best-effort; some filesystems do not support chmod
-  }
+function writeStore(filePath: string, store: McpOAuthStore, stateDir: string): void {
+  const key = loadOrCreateKey(stateDir);
+  const envelope = encryptStore(store, key);
+  writeFileAtomicSync(filePath, `${JSON.stringify(envelope, null, 2)}\n`);
 }
 
 export function listMcpOAuthTokens(
   stateDir: string = STATE_DIR,
 ): Record<string, McpOAuthTokenRecord> {
-  return readStore(oauthStorePath(stateDir)).tokens;
+  return readStore(oauthStorePath(stateDir), stateDir).tokens;
 }
 
 export function getMcpOAuthToken(
   name: string,
   stateDir: string = STATE_DIR,
 ): McpOAuthTokenRecord | null {
-  const tokens = readStore(oauthStorePath(stateDir)).tokens;
+  const tokens = readStore(oauthStorePath(stateDir), stateDir).tokens;
   return tokens[name] ?? null;
 }
 
@@ -88,14 +219,14 @@ export function setMcpOAuthToken(
   stateDir: string = STATE_DIR,
 ): void {
   const filePath = oauthStorePath(stateDir);
-  const store = readStore(filePath);
+  const store = readStore(filePath, stateDir);
   store.tokens[name] = token;
-  writeStore(filePath, store);
+  writeStore(filePath, store, stateDir);
 }
 
 export function deleteMcpOAuthToken(name: string, stateDir: string = STATE_DIR): void {
   const filePath = oauthStorePath(stateDir);
-  const store = readStore(filePath);
+  const store = readStore(filePath, stateDir);
   delete store.tokens[name];
   // Clean up any stale states targeting this name.
   for (const state of Object.keys(store.states)) {
@@ -103,7 +234,7 @@ export function deleteMcpOAuthToken(name: string, stateDir: string = STATE_DIR):
       delete store.states[state];
     }
   }
-  writeStore(filePath, store);
+  writeStore(filePath, store, stateDir);
 }
 
 export function createMcpOAuthState(
@@ -111,10 +242,10 @@ export function createMcpOAuthState(
   stateDir: string = STATE_DIR,
 ): string {
   const filePath = oauthStorePath(stateDir);
-  const store = readStore(filePath);
+  const store = readStore(filePath, stateDir);
   const state = crypto.randomBytes(24).toString("base64url");
   store.states[state] = { ...record, createdAtMs: Date.now() };
-  writeStore(filePath, store);
+  writeStore(filePath, store, stateDir);
   return state;
 }
 
@@ -123,13 +254,13 @@ export function consumeMcpOAuthState(
   stateDir: string = STATE_DIR,
 ): McpOAuthStateRecord | null {
   const filePath = oauthStorePath(stateDir);
-  const store = readStore(filePath);
+  const store = readStore(filePath, stateDir);
   const record = store.states[state];
   if (!record) {
     return null;
   }
   delete store.states[state];
-  writeStore(filePath, store);
+  writeStore(filePath, store, stateDir);
   return record;
 }
 
@@ -142,7 +273,7 @@ export function pruneExpiredMcpOAuthStates(
   stateDir: string = STATE_DIR,
 ): number {
   const filePath = oauthStorePath(stateDir);
-  const store = readStore(filePath);
+  const store = readStore(filePath, stateDir);
   const cutoff = Date.now() - ttlMs;
   let removed = 0;
   for (const state of Object.keys(store.states)) {
@@ -153,7 +284,7 @@ export function pruneExpiredMcpOAuthStates(
     }
   }
   if (removed > 0) {
-    writeStore(filePath, store);
+    writeStore(filePath, store, stateDir);
   }
   return removed;
 }
@@ -188,4 +319,14 @@ export function buildMcpOAuthAuthorizeUrl(params: {
     }
   }
   return url.toString();
+}
+
+/**
+ * Generate a PKCE (RFC 7636) verifier/challenge pair using S256. The verifier
+ * is a 32-byte base64url random string; the challenge is base64url(sha256).
+ */
+export function generatePkcePair(): { codeVerifier: string; codeChallenge: string } {
+  const codeVerifier = crypto.randomBytes(32).toString("base64url");
+  const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
+  return { codeVerifier, codeChallenge };
 }

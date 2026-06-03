@@ -3139,6 +3139,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                               },
                               {
                                 type: "string",
+                                const: "together",
+                              },
+                              {
+                                type: "string",
                                 const: "zai",
                               },
                               {
@@ -3148,6 +3152,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                               {
                                 type: "string",
                                 const: "qwen-chat-template",
+                              },
+                              {
+                                type: "string",
+                                const: "string-thinking",
                               },
                             ],
                           },
@@ -23988,6 +23996,24 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             description:
               "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
           },
+          metadataFetch: {
+            type: "object",
+            properties: {
+              allowedHosts: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+                title: "Allowed Metadata Hosts",
+                description:
+                  "Hostnames trusted for self-hosted MCP servers. Listing a host exempts it from the default private/internal-IP block so a gateway on a private network can reach an internal MCP server. Empty by default.",
+              },
+            },
+            additionalProperties: false,
+            title: "MCP Metadata Fetch",
+            description:
+              "Controls for outbound MCP metadata/OAuth discovery fetches (Control UI 'Add by link' and the OAuth flow). These requests are SSRF-guarded and block private/internal addresses by default.",
+          },
         },
         additionalProperties: false,
         title: "MCP",
@@ -28317,6 +28343,16 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
       tags: ["storage"],
     },
+    "mcp.metadataFetch": {
+      label: "MCP Metadata Fetch",
+      help: "Controls for outbound MCP metadata/OAuth discovery fetches (Control UI 'Add by link' and the OAuth flow). These requests are SSRF-guarded and block private/internal addresses by default.",
+      tags: ["advanced"],
+    },
+    "mcp.metadataFetch.allowedHosts": {
+      label: "Allowed Metadata Hosts",
+      help: "Hostnames trusted for self-hosted MCP servers. Listing a host exempts it from the default private/internal-IP block so a gateway on a private network can reach an internal MCP server. Empty by default.",
+      tags: ["access"],
+    },
     "ui.seamColor": {
       label: "Accent Color",
       help: "Primary accent color used by UI surfaces for emphasis, badges, and visual identity cues. Use high-contrast values that remain readable across light/dark themes.",
@@ -29913,6 +29949,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2026.6.3-2",
+  version: "2026.6.4",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };

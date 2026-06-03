@@ -1417,6 +1417,10 @@ export const FIELD_HELP: Record<string, string> = {
     "Named MCP server definitions. Genesis stores them in its own config and runtime adapters decide which transports are supported at execution time.",
   "mcp.sessionIdleTtlMs":
     "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
+  "mcp.metadataFetch":
+    "Controls for outbound MCP metadata/OAuth discovery fetches (Control UI 'Add by link' and the OAuth flow). These requests are SSRF-guarded and block private/internal addresses by default.",
+  "mcp.metadataFetch.allowedHosts":
+    "Hostnames trusted for self-hosted MCP servers. Listing a host exempts it from the default private/internal-IP block so a gateway on a private network can reach an internal MCP server. Empty by default.",
   session:
     "Global session routing, reset, delivery policy, and maintenance controls for conversation history behavior. Keep defaults unless you need stricter isolation, retention, or delivery constraints.",
   "session.scope":

@@ -29,4 +29,17 @@ export type McpConfig = {
    * Defaults to 10 minutes. Set to 0 to disable idle eviction.
    */
   sessionIdleTtlMs?: number;
+  /**
+   * Controls for outbound metadata/OAuth discovery fetches (Control UI
+   * "Add by link" and the OAuth flow). These requests are SSRF-guarded and
+   * block private/internal addresses by default.
+   */
+  metadataFetch?: {
+    /**
+     * Hostnames the operator trusts for self-hosted MCP servers. Listing a host
+     * here exempts it from the default private/internal-IP block so a gateway on
+     * a private network can reach an internal MCP server. Empty by default.
+     */
+    allowedHosts?: string[];
+  };
 };

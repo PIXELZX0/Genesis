@@ -81,6 +81,26 @@ Example:
 
 Reference: [Plugin architecture](/plugins/architecture)
 
+## MCP OAuth popup closes immediately
+
+If the MCP OAuth popup opens, flashes, and closes without connecting, the
+callback page either could not reach the Control UI or the message was rejected
+as untrusted. Common causes:
+
+1. Origin mismatch. The Control UI accepts the callback only from the gateway
+   web origin. If you reach the Control UI through a different host or port than
+   the one the gateway serves, the callback message is dropped. Open the Control
+   UI from the same origin the gateway prints on startup.
+2. Callback page not served. The redirect target is
+   `/mcp-oauth-callback.html` on the gateway web origin. If a reverse proxy or
+   custom base path hides it, the provider cannot return the code. Confirm the
+   page loads directly in a browser.
+3. Wrong redirect URI registered. The provider must allow the gateway redirect
+   URI exactly. For remote gateways, set `GENESIS_GATEWAY_WEB_URL` (or
+   `gateway.remote.url`) so the redirect matches the externally reachable URL.
+
+Reference: [MCP OAuth](/concepts/mcp-oauth)
+
 ## Decision tree
 
 ```mermaid

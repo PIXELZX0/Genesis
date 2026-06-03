@@ -3,19 +3,20 @@ import {
   setConfiguredMcpServer,
   unsetConfiguredMcpServer,
 } from "../../config/mcp-config.js";
+import type { McpServerConfig } from "../../config/types.mcp.js";
+import { logInfo } from "../../logger.js";
 import {
   fetchMcpServerMetadata as fetchMetadata,
   completeMcpOAuthFlow,
+  ensureFreshMcpOAuthToken,
   getStoredMcpOAuthStatus,
   listStoredMcpOAuthStatuses,
+  refreshMcpOAuthToken,
+  revokeMcpOAuthToken,
   setMcpServerConfigCache,
   startMcpOAuthFlow,
 } from "../mcp-metadata.js";
-import {
-  deleteMcpOAuthToken,
-  getMcpOAuthToken,
-  pruneExpiredMcpOAuthStates,
-} from "../mcp-oauth-store.js";
+import { deleteMcpOAuthToken, pruneExpiredMcpOAuthStates } from "../mcp-oauth-store.js";
 import {
   ErrorCodes,
   errorShape,
@@ -25,6 +26,7 @@ import {
   type McpOAuthStartResult,
   type McpOAuthCallbackResult,
   type McpOAuthStatusResult,
+  type McpOAuthRefreshResult,
   type McpServersResult,
   validateMcpServerSetParams,
   validateMcpServerUnsetParams,
@@ -35,6 +37,7 @@ import {
   validateMcpOAuthCallbackParams,
   validateMcpOAuthStatusParams,
   validateMcpOAuthDisconnectParams,
+  validateMcpOAuthRefreshParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
@@ -51,9 +54,67 @@ export type McpRuntime = {
 
 let _runtime: McpRuntime | null = null;
 let _lastConfigCacheKey: string | null = null;
+let _allowedHosts: string[] = [];
+
+const DEFAULT_MCP_CLIENT_ID = "genesis-control-ui";
 
 export function setMcpRuntime(runtime: McpRuntime): void {
   _runtime = runtime;
+}
+
+/** Whether the OAuth runtime has been wired by gateway startup. */
+export function isMcpRuntimeConfigured(): boolean {
+  return _runtime !== null;
+}
+
+/**
+ * Resolve the OAuth `client_id` for a server. Prefers the provider-registered
+ * id from `auth.clientId`, then the gateway runtime's resolver, then a constant.
+ */
+function resolveClientIdFor(name: string, server?: Record<string, unknown>): string {
+  const auth = server?.auth;
+  if (auth && typeof auth === "object") {
+    const clientId = (auth as Record<string, unknown>).clientId;
+    if (typeof clientId === "string" && clientId.length > 0) {
+      return clientId;
+    }
+  }
+  return _runtime ? _runtime.resolveClientId(name) : DEFAULT_MCP_CLIENT_ID;
+}
+
+function normalizeAllowedHosts(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
+}
+
+/**
+ * Strip secrets before a server config is written to logs: OAuth client secret
+ * and any bearer/authorization headers. Mirrors the redaction intent of
+ * `src/config/redact-snapshot`.
+ */
+export function redactMcpServerConfigForLog(
+  server: Record<string, unknown>,
+): Record<string, unknown> {
+  const clone: Record<string, unknown> = { ...server };
+  if (clone.auth && typeof clone.auth === "object") {
+    const auth = { ...(clone.auth as Record<string, unknown>) };
+    if ("clientSecret" in auth) {
+      auth.clientSecret = "[redacted]";
+    }
+    clone.auth = auth;
+  }
+  if (clone.headers && typeof clone.headers === "object") {
+    const headers = { ...(clone.headers as Record<string, unknown>) };
+    for (const key of Object.keys(headers)) {
+      if (key.toLowerCase() === "authorization") {
+        headers[key] = "[redacted]";
+      }
+    }
+    clone.headers = headers;
+  }
+  return clone;
 }
 
 async function refreshServerConfigCache(): Promise<Record<string, Record<string, unknown>>> {
@@ -62,6 +123,7 @@ async function refreshServerConfigCache(): Promise<Record<string, Record<string,
     setMcpServerConfigCache(null);
     return {};
   }
+  _allowedHosts = normalizeAllowedHosts(loaded.config?.mcp?.metadataFetch?.allowedHosts);
   const cacheKey = JSON.stringify(loaded.mcpServers);
   if (_lastConfigCacheKey !== cacheKey) {
     setMcpServerConfigCache(loaded.mcpServers as never);
@@ -111,6 +173,11 @@ export const mcpHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, result.error));
       return;
     }
+    logInfo(
+      `mcp: server "${params.name}" configured ${JSON.stringify(
+        redactMcpServerConfigForLog(params.server as Record<string, unknown>),
+      )}`,
+    );
     setMcpServerConfigCache(result.mcpServers as never);
     _lastConfigCacheKey = JSON.stringify(result.mcpServers);
     respond(
@@ -161,7 +228,8 @@ export const mcpHandlers: GatewayRequestHandlers = {
       return;
     }
     try {
-      const result = await fetchMetadata(params.url);
+      await refreshServerConfigCache();
+      const result = await fetchMetadata(params.url, { allowedHosts: _allowedHosts });
       respond(true, result satisfies McpServerMetadataResult, undefined);
     } catch (err) {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, getErrorMessage(err)));
@@ -201,7 +269,10 @@ export const mcpHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    const token = getMcpOAuthToken(params.name);
+    const token = await ensureFreshMcpOAuthToken(params.name, server as McpServerConfig, {
+      clientId: resolveClientIdFor(params.name, server),
+      allowedHosts: _allowedHosts,
+    });
     const headers: Record<string, string> = {
       accept: "application/json, text/event-stream",
     };
@@ -283,7 +354,7 @@ export const mcpHandlers: GatewayRequestHandlers = {
       const result = await startMcpOAuthFlow(
         {
           gatewayWebUrl: _runtime.gatewayWebUrl,
-          resolveClientId: (name) => _runtime!.resolveClientId(name),
+          resolveClientId: (name, srv) => resolveClientIdFor(name, srv as Record<string, unknown>),
         },
         params.name,
         server as never,
@@ -318,12 +389,14 @@ export const mcpHandlers: GatewayRequestHandlers = {
       return;
     }
     try {
+      await refreshServerConfigCache();
       const result = await completeMcpOAuthFlow(
         {
           gatewayWebUrl: _runtime.gatewayWebUrl,
-          resolveClientId: (name) => _runtime!.resolveClientId(name),
+          resolveClientId: (name, srv) => resolveClientIdFor(name, srv as Record<string, unknown>),
         },
         { name: params.name, state: params.state, code: params.code },
+        { allowedHosts: _allowedHosts },
       );
       respond(true, result satisfies McpOAuthCallbackResult, undefined);
     } catch (err) {
@@ -346,6 +419,14 @@ export const mcpHandlers: GatewayRequestHandlers = {
       );
       return;
     }
+    const servers = await refreshServerConfigCache();
+    const server = servers[params.name];
+    if (server) {
+      await ensureFreshMcpOAuthToken(params.name, server as McpServerConfig, {
+        clientId: resolveClientIdFor(params.name),
+        allowedHosts: _allowedHosts,
+      });
+    }
     const status = getStoredMcpOAuthStatus(params.name);
     respond(true, status satisfies McpOAuthStatusResult, undefined);
   },
@@ -361,8 +442,46 @@ export const mcpHandlers: GatewayRequestHandlers = {
       );
       return;
     }
+    // Best-effort RFC 7009 revocation before dropping the local token. Failures
+    // never block disconnect.
+    const servers = await refreshServerConfigCache();
+    const server = servers[params.name];
+    if (server) {
+      await revokeMcpOAuthToken(params.name, server as McpServerConfig, {
+        clientId: resolveClientIdFor(params.name),
+        allowedHosts: _allowedHosts,
+      });
+    }
     deleteMcpOAuthToken(params.name);
     respond(true, { ok: true } satisfies { ok: true }, undefined);
+  },
+  "mcp.oauth.refresh": async ({ params, respond }) => {
+    if (!validateMcpOAuthRefreshParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid mcp.oauth.refresh params: ${formatValidationErrors(validateMcpOAuthRefreshParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const servers = await refreshServerConfigCache();
+    const server = servers[params.name];
+    if (!server) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `No MCP server named "${params.name}".`),
+      );
+      return;
+    }
+    const result = await refreshMcpOAuthToken(params.name, server as McpServerConfig, {
+      clientId: resolveClientIdFor(params.name, server),
+      allowedHosts: _allowedHosts,
+    });
+    respond(true, result satisfies McpOAuthRefreshResult, undefined);
   },
 };
 

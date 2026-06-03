@@ -67,6 +67,7 @@ const BASE_METHODS = [
   "mcp.oauth.callback",
   "mcp.oauth.status",
   "mcp.oauth.disconnect",
+  "mcp.oauth.refresh",
   "agents.list",
   "agents.create",
   "agents.update",

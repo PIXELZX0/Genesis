@@ -722,6 +722,8 @@ export const FIELD_LABELS: Record<string, string> = {
   mcp: "MCP",
   "mcp.servers": "MCP Servers",
   "mcp.sessionIdleTtlMs": "MCP Runtime Idle TTL",
+  "mcp.metadataFetch": "MCP Metadata Fetch",
+  "mcp.metadataFetch.allowedHosts": "Allowed Metadata Hosts",
   ui: "UI",
   "ui.seamColor": "Accent Color",
   "ui.assistant": "Assistant Appearance",

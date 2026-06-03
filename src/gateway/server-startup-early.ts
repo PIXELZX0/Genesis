@@ -9,8 +9,48 @@ import {
 } from "../infra/skills-remote.js";
 import type { PluginRegistry } from "../plugins/registry-types.js";
 import { startTaskRegistryMaintenance } from "../tasks/task-registry.maintenance.js";
+import { resolveControlUiLinks } from "./control-ui-links.js";
+import { normalizeControlUiBasePath } from "./control-ui-shared.js";
 import { startGatewayDiscovery } from "./server-discovery-runtime.js";
 import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
+import { setMcpRuntime } from "./server-methods/mcp.js";
+
+const MCP_OAUTH_CLIENT_ID = "genesis-control-ui";
+
+/**
+ * Resolve the externally reachable Gateway web origin (plus Control UI base
+ * path) used to build the MCP OAuth redirect URI. Prefers an explicit override,
+ * then a configured remote URL, then the local Control UI link.
+ */
+function resolveGatewayWebUrl(cfg: GenesisConfig, port: number): string {
+  const envOverride = process.env.GENESIS_GATEWAY_WEB_URL?.trim();
+  if (envOverride) {
+    return envOverride.replace(/\/+$/, "");
+  }
+  const remoteUrl = cfg.gateway?.mode === "remote" ? cfg.gateway?.remote?.url?.trim() : undefined;
+  if (remoteUrl) {
+    try {
+      const parsed = new URL(remoteUrl);
+      const httpProtocol =
+        parsed.protocol === "wss:"
+          ? "https:"
+          : parsed.protocol === "ws:"
+            ? "http:"
+            : parsed.protocol;
+      const basePath = normalizeControlUiBasePath(cfg.daemon?.controlUi?.basePath);
+      return `${httpProtocol}//${parsed.host}${basePath}`;
+    } catch {
+      // fall through to local resolution
+    }
+  }
+  const links = resolveControlUiLinks({
+    port,
+    bind: cfg.gateway?.bind,
+    customBindHost: cfg.gateway?.customBindHost,
+    basePath: cfg.daemon?.controlUi?.basePath,
+  });
+  return links.httpUrl.replace(/\/+$/, "");
+}
 
 export async function startGatewayEarlyRuntime(params: {
   minimalTestGateway: boolean;
@@ -78,6 +118,20 @@ export async function startGatewayEarlyRuntime(params: {
     setSkillsRemoteRegistry(params.nodeRegistry);
     void primeRemoteSkillsCache();
     startTaskRegistryMaintenance();
+    // Wire the MCP OAuth runtime so `mcp.oauth.*` RPCs can build redirect URIs.
+    // Without this the handlers short-circuit with UNAVAILABLE.
+    try {
+      setMcpRuntime({
+        gatewayWebUrl: resolveGatewayWebUrl(params.cfgAtStart, params.port),
+        resolveClientId: () => MCP_OAUTH_CLIENT_ID,
+      });
+    } catch (err) {
+      params.log.warn(
+        `mcp: failed to configure OAuth runtime: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
   }
 
   const skillsChangeUnsub = params.minimalTestGateway

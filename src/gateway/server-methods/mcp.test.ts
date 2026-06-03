@@ -5,7 +5,7 @@ import {
   resolveRequiredOperatorScopeForMethod,
 } from "../method-scopes.js";
 import type { ErrorShape } from "../protocol/index.js";
-import { mcpHandlers } from "./mcp.js";
+import { mcpHandlers, redactMcpServerConfigForLog, setMcpRuntime } from "./mcp.js";
 
 const mcpServers = vi.hoisted(() => new Map<string, Record<string, unknown>>());
 
@@ -96,5 +96,54 @@ describe("mcp gateway handlers", () => {
     expect(resolveRequiredOperatorScopeForMethod("mcp.servers.list")).toBe(READ_SCOPE);
     expect(resolveRequiredOperatorScopeForMethod("mcp.servers.set")).toBe(ADMIN_SCOPE);
     expect(resolveRequiredOperatorScopeForMethod("mcp.servers.unset")).toBe(ADMIN_SCOPE);
+  });
+
+  it("classifies mcp.oauth.refresh as admin scope", () => {
+    expect(resolveRequiredOperatorScopeForMethod("mcp.oauth.refresh")).toBe(ADMIN_SCOPE);
+  });
+});
+
+describe("mcp oauth handlers", () => {
+  afterEach(() => {
+    mcpServers.clear();
+    vi.clearAllMocks();
+  });
+
+  // NOTE: runs before any setMcpRuntime call below, so the runtime is unset.
+  it("short-circuits mcp.oauth.start with UNAVAILABLE when runtime is not configured", async () => {
+    const res = await callHandler("mcp.oauth.start", { name: "srv" });
+    expect(res.ok).toBe(false);
+    expect(res.error?.code).toBe("UNAVAILABLE");
+  });
+
+  it("builds an authorize URL once the runtime is wired", async () => {
+    setMcpRuntime({
+      gatewayWebUrl: "http://127.0.0.1:18789",
+      resolveClientId: () => "client-xyz",
+    });
+    mcpServers.set("srv", {
+      url: "https://srv.test/mcp",
+      auth: { authorizeUrl: "https://prov.test/authorize", tokenUrl: "https://prov.test/token" },
+    });
+    const res = await callHandler("mcp.oauth.start", { name: "srv", scopes: ["read"] });
+    expect(res.ok).toBe(true);
+    const url = new URL((res.payload as { authorizeUrl: string }).authorizeUrl);
+    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(url.searchParams.get("client_id")).toBe("client-xyz");
+    expect(url.searchParams.get("redirect_uri")).toBe(
+      "http://127.0.0.1:18789/mcp-oauth-callback.html",
+    );
+  });
+
+  it("redacts client secret and Authorization header for logging", () => {
+    const redacted = redactMcpServerConfigForLog({
+      url: "https://srv.test/mcp",
+      auth: { clientId: "keep-me", clientSecret: "super-secret" },
+      headers: { Authorization: "Bearer leaked", "X-Trace": "ok" },
+    });
+    expect((redacted.auth as Record<string, unknown>).clientSecret).toBe("[redacted]");
+    expect((redacted.auth as Record<string, unknown>).clientId).toBe("keep-me");
+    expect((redacted.headers as Record<string, unknown>).Authorization).toBe("[redacted]");
+    expect((redacted.headers as Record<string, unknown>)["X-Trace"]).toBe("ok");
   });
 });

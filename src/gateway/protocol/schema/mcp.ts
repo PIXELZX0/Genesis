@@ -151,3 +151,18 @@ export const McpOAuthStatusResultSchema = Type.Object(
 );
 
 export const McpOAuthDisconnectParamsSchema = McpOAuthStatusParamsSchema;
+
+/**
+ * `mcp.oauth.refresh` — force a refresh-token exchange for a server's stored
+ * access token. Admin-scoped, mirrors disconnect.
+ */
+export const McpOAuthRefreshParamsSchema = McpOAuthStatusParamsSchema;
+
+export const McpOAuthRefreshResultSchema = Type.Object(
+  {
+    ok: Type.Boolean(),
+    expiresAtMs: Type.Optional(Type.Union([Type.Null(), Type.Integer()])),
+    message: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
