@@ -35,6 +35,7 @@ import {
 } from "./controllers/dreaming.ts";
 import { loadExecApprovals, type ExecApprovalsState } from "./controllers/exec-approvals.ts";
 import { loadLogs, type LogsState } from "./controllers/logs.ts";
+import { loadMcpServers, type McpState } from "./controllers/mcp.ts";
 import {
   loadModelAuthStatusState,
   type ModelAuthStatusState,
@@ -90,7 +91,7 @@ type SettingsHost = {
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
-  agentsPanel?: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel?: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron";
   pendingGatewayUrl?: string | null;
   systemThemeCleanup?: (() => void) | null;
   pendingGatewayToken?: string | null;
@@ -113,6 +114,7 @@ type SettingsAppHost = SettingsHost &
   AgentFilesState &
   AgentIdentityState &
   AgentSkillsState &
+  McpState &
   AgentsState &
   ChannelsState &
   ConfigState &
@@ -323,6 +325,9 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
       return;
     case "skills":
       void loadAgentSkills(app, agentId);
+      return;
+    case "mcp":
+      void loadMcpServers(app);
       return;
     case "channels":
       void loadChannels(app, false);

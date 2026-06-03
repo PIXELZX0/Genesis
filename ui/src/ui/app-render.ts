@@ -96,6 +96,7 @@ import {
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
+import { deleteMcpServer, loadMcpServers, saveMcpServer } from "./controllers/mcp.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -1305,6 +1306,9 @@ export function renderApp(state: AppViewState) {
         void loadToolsCatalog(state, agentId);
         void refreshVisibleToolsEffectiveForCurrentSession(state);
         return;
+      case "mcp":
+        void loadMcpServers(state);
+        return;
       case "overview":
       case "channels":
       case "cron":
@@ -2037,6 +2041,16 @@ export function renderApp(state: AppViewState) {
                   error: state.toolsEffectiveError,
                   result: state.toolsEffectiveResult,
                 },
+                mcp: {
+                  servers: state.mcpServers,
+                  path: state.mcpServersPath,
+                  loading: state.mcpServersLoading,
+                  error: state.mcpServersError,
+                  busy: state.mcpBusy,
+                  message: state.mcpMessage,
+                  draftName: state.mcpDraftName,
+                  draftConfig: state.mcpDraftConfig,
+                },
                 runtimeSessionKey: state.sessionKey,
                 runtimeSessionMatchesSelectedAgent: toolsPanelUsesActiveSession,
                 modelCatalog: state.chatModelCatalog ?? [],
@@ -2100,6 +2114,9 @@ export function renderApp(state: AppViewState) {
                     } else {
                       resetToolsEffectiveState(state);
                     }
+                  }
+                  if (panel === "mcp") {
+                    void loadMcpServers(state);
                   }
                   refreshAgentsPanelSupplementalData(panel);
                 },
@@ -2224,6 +2241,38 @@ export function renderApp(state: AppViewState) {
                   }
                   updateConfigFormValue(state, ["agents", "list", index, "skills"], []);
                 },
+                onMcpRefresh: () => void loadMcpServers(state),
+                onMcpDraftNameChange: (value) => {
+                  state.mcpDraftName = value;
+                },
+                onMcpDraftConfigChange: (value) => {
+                  state.mcpDraftConfig = value;
+                },
+                onMcpEdit: (name) => {
+                  state.mcpDraftName = name;
+                  const existing = state.mcpServers?.[name];
+                  state.mcpDraftConfig = existing ? JSON.stringify(existing, null, 2) : "";
+                  state.mcpMessage = null;
+                },
+                onMcpSave: () => {
+                  const raw = state.mcpDraftConfig.trim();
+                  let parsed: unknown;
+                  try {
+                    parsed = raw ? JSON.parse(raw) : {};
+                  } catch (err) {
+                    state.mcpMessage = {
+                      kind: "error",
+                      text: `Invalid JSON: ${err instanceof Error ? err.message : String(err)}`,
+                    };
+                    return;
+                  }
+                  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+                    state.mcpMessage = { kind: "error", text: "Config must be a JSON object." };
+                    return;
+                  }
+                  void saveMcpServer(state, state.mcpDraftName, parsed as Record<string, unknown>);
+                },
+                onMcpDelete: (name) => void deleteMcpServer(state, name),
                 onModelChange: (agentId, modelId) => {
                   const index = modelId ? ensureAgentIndex(agentId) : findAgentIndex(agentId);
                   if (index < 0) {

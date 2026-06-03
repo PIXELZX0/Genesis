@@ -37,7 +37,7 @@ import { loadConfig } from "../../config/config.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 
-export type SessionKind = "main" | "group" | "cron" | "hook" | "node" | "other";
+export type SessionKind = "main" | "group" | "cron" | "hook" | "node" | "reset" | "other";
 
 export type SessionListDeliveryContext = {
   channel?: string;
@@ -52,6 +52,8 @@ export type SessionListRow = {
   key: string;
   agentId?: string;
   kind: SessionKind;
+  /** Live base session key this row is a `/new`-`/reset` predecessor of. */
+  resetOfSessionKey?: string;
   channel: string;
   origin?: {
     provider?: string;
@@ -117,6 +119,9 @@ export function classifySessionKind(params: {
   const key = params.key;
   if (key === params.alias || key === params.mainKey) {
     return "main";
+  }
+  if (params.gatewayKind === "reset") {
+    return "reset";
   }
   if (key.startsWith("cron:")) {
     return "cron";

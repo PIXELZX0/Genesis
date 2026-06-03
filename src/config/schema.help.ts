@@ -1398,7 +1398,7 @@ export const FIELD_HELP: Record<string, string> = {
     "How long bash waits before backgrounding (default: 2000; 0 backgrounds immediately).",
   "commands.config": "Allow /config chat command to read/write config on disk (default: false).",
   "commands.mcp":
-    "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
+    "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: true; set false to disable).",
   "commands.plugins":
     "Allow /plugins chat command to list discovered plugins and toggle plugin enablement in config (default: false).",
   "commands.debug": "Allow /debug chat command for runtime-only overrides (default: false).",
@@ -1503,6 +1503,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Rotates the session store when file size exceeds a threshold such as `10mb` or `1gb`. Use this to bound single-file growth and keep backup/restore operations manageable.",
   "session.maintenance.resetArchiveRetention":
     "Retention for reset transcript archives (`*.reset.<timestamp>`). Accepts a duration (for example `30d`), or `false` to disable cleanup. Defaults to pruneAfter so reset artifacts do not grow forever.",
+  "session.maintenance.resetHistoryMax":
+    'Maximum number of predecessor sessions preserved per session key when it is cleared via `/new` or `/reset`, so the agent can still read recent prior conversations (shown as `kind:"reset"` rows by the session tools). Set `0` to disable preservation. Defaults to 10.',
   "session.maintenance.maxDiskBytes":
     "Optional per-agent sessions-directory disk budget (for example `500mb`). Use this to cap session storage per agent; when exceeded, warn mode reports pressure and enforce mode performs oldest-first cleanup.",
   "session.maintenance.highWaterBytes":

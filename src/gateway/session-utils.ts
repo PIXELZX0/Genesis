@@ -717,6 +717,9 @@ export function migrateAndPruneGatewaySessionStoreKey(params: {
 }
 
 export function classifySessionKey(key: string, entry?: SessionEntry): GatewaySessionRow["kind"] {
+  if (entry?.resetHistory === true) {
+    return "reset";
+  }
   if (key === "global") {
     return "global";
   }
@@ -1535,6 +1538,8 @@ export function buildGatewaySessionRow(params: {
     subagentRole: entry?.subagentRole,
     subagentControlScope: entry?.subagentControlScope,
     kind: classifySessionKey(key, entry),
+    resetHistory: entry?.resetHistory,
+    resetOfSessionKey: entry?.resetOfSessionKey,
     label: entry?.label,
     displayName,
     derivedTitle,

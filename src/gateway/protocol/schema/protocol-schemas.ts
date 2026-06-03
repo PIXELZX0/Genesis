@@ -139,6 +139,13 @@ import {
   LogsTailResultSchema,
 } from "./logs-chat.js";
 import {
+  McpServerConfigSchema,
+  McpServerSetParamsSchema,
+  McpServerUnsetParamsSchema,
+  McpServersListParamsSchema,
+  McpServersResultSchema,
+} from "./mcp.js";
+import {
   NodeDescribeParamsSchema,
   NodeEventParamsSchema,
   NodePendingDrainParamsSchema,
@@ -427,6 +434,11 @@ export const ProtocolSchemas = {
   ChatAbortParams: ChatAbortParamsSchema,
   ChatInjectParams: ChatInjectParamsSchema,
   ChatEvent: ChatEventSchema,
+  McpServerConfig: McpServerConfigSchema,
+  McpServersListParams: McpServersListParamsSchema,
+  McpServerSetParams: McpServerSetParamsSchema,
+  McpServerUnsetParams: McpServerUnsetParamsSchema,
+  McpServersResult: McpServersResultSchema,
   UpdateRunParams: UpdateRunParamsSchema,
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,

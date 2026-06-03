@@ -245,7 +245,7 @@ export type AppViewState = {
   toolsEffectiveResultKey: string | null;
   toolsEffectiveError: string | null;
   toolsEffectiveResult: import("./types.js").ToolsEffectiveResult | null;
-  agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron";
   agentFilesLoading: boolean;
   agentFilesError: string | null;
   agentFilesList: AgentsFilesListResult | null;
@@ -260,6 +260,14 @@ export type AppViewState = {
   agentSkillsError: string | null;
   agentSkillsReport: SkillStatusReport | null;
   agentSkillsAgentId: string | null;
+  mcpServersLoading: boolean;
+  mcpServers: Record<string, Record<string, unknown>> | null;
+  mcpServersPath: string | null;
+  mcpServersError: string | null;
+  mcpBusy: boolean;
+  mcpMessage: { kind: "success" | "error"; text: string } | null;
+  mcpDraftName: string;
+  mcpDraftConfig: string;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;

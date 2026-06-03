@@ -104,6 +104,37 @@ describe("handleCommands /mcp", () => {
     });
   });
 
+  it("is enabled by default when commands.mcp is unset", async () => {
+    await withTempHome("genesis-command-mcp-home-", async () => {
+      const workspaceDir = await workspaceHarness.createWorkspace();
+      const params = buildCommandTestParams("/mcp show", { commands: { text: true } }, undefined, {
+        workspaceDir,
+      });
+      params.command.senderIsOwner = true;
+
+      const result = expectMcpResult(await handleMcpCommand(params, true));
+      expect(result.reply?.text).not.toContain("disabled");
+      expect(result.reply?.text).toContain("No MCP servers configured");
+    });
+  });
+
+  it("is disabled only when commands.mcp is explicitly false", async () => {
+    await withTempHome("genesis-command-mcp-home-", async () => {
+      const workspaceDir = await workspaceHarness.createWorkspace();
+      const params = buildCommandTestParams(
+        "/mcp show",
+        { commands: { text: true, mcp: false } },
+        undefined,
+        { workspaceDir },
+      );
+      params.command.senderIsOwner = true;
+
+      const result = expectMcpResult(await handleMcpCommand(params, true));
+      expect(result.reply?.text).toContain("disabled");
+      expect(result.reply?.text).toContain("commands.mcp=true");
+    });
+  });
+
   it("accepts non-stdio MCP config at the config layer", async () => {
     await withTempHome("genesis-command-mcp-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();

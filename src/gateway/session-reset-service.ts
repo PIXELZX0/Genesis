@@ -35,6 +35,10 @@ import {
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../routing/session-key.js";
+import {
+  preservePreviousSessionAsResetEntry,
+  resolveResetHistoryMax,
+} from "../sessions/session-reset-preserve.js";
 import { ErrorCodes, errorShape } from "./protocol/index.js";
 import {
   archiveSessionTranscriptsDetailed,
@@ -514,12 +518,14 @@ export async function performGatewaySessionReset(params: {
   let oldSessionId: string | undefined;
   let oldSessionFile: string | undefined;
   let resetSourceEntry: SessionEntry | undefined;
+  let primaryStoreKey: string | undefined;
   const next = await updateSessionStore(storePath, (store) => {
     const { primaryKey } = migrateAndPruneGatewaySessionStoreKey({
       cfg,
       key: params.key,
       store,
     });
+    primaryStoreKey = primaryKey;
     const currentEntry = store[primaryKey];
     resetSourceEntry = currentEntry ? { ...currentEntry } : undefined;
     const parsed = parseAgentSessionKey(primaryKey);
@@ -633,6 +639,34 @@ export async function performGatewaySessionReset(params: {
     agentId: target.agentId,
     reason: "reset",
   });
+
+  // Preserve the cleared predecessor under a re-keyed `:reset:<oldId>` entry so
+  // the agent can still read prior conversations after `/new` or `/reset`.
+  if (primaryStoreKey && resetSourceEntry?.sessionId) {
+    const maxPreserved = resolveResetHistoryMax(cfg.session?.maintenance);
+    if (maxPreserved > 0) {
+      const baseKey = primaryStoreKey;
+      const predecessor = resetSourceEntry;
+      const stableTranscript = resolveStableSessionEndTranscript({
+        sessionId: predecessor.sessionId,
+        storePath,
+        sessionFile: predecessor.sessionFile,
+        agentId: target.agentId,
+        archivedTranscripts,
+      });
+      await updateSessionStore(storePath, (store) => {
+        preservePreviousSessionAsResetEntry({
+          store,
+          baseSessionKey: baseKey,
+          previousEntry: predecessor,
+          archivedSessionFile: stableTranscript.sessionFile,
+          now: Date.now(),
+          maxPreserved,
+        });
+      });
+    }
+  }
+
   fs.mkdirSync(path.dirname(next.sessionFile as string), { recursive: true });
   if (!fs.existsSync(next.sessionFile as string)) {
     const header = {
