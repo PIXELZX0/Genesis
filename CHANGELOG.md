@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Sessions: on `/new` or `/reset`, preserve the cleared session as a reset-history entry so agents can still read the prior conversation via `sessions_list` (kind: `reset`) and `sessions_history`.
 - Control UI: add an MCP page under the Agents section to add, edit, and remove MCP (Model Context Protocol) servers without leaving the panel.
 - MCP: built-in MCP server management is enabled by default — the `/mcp` chat command no longer requires setting `commands.mcp: true` (set it to `false` to opt out). Writes still require owner plus `operator.admin`.
 - Skills: remove the bundled `mcporter` skill; MCP servers are now managed natively through the Control UI, the `/mcp` command, and `genesis mcp`.
