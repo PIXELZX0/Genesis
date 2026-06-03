@@ -96,7 +96,17 @@ import {
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
-import { deleteMcpServer, loadMcpServers, saveMcpServer } from "./controllers/mcp.ts";
+import {
+  deleteMcpServer,
+  fetchMcpServerMetadata,
+  loadMcpOAuthStatuses,
+  loadMcpServers,
+  saveMcpServer,
+  startMcpOAuth,
+  testMcpServer,
+  disconnectMcpOAuth,
+  cancelMcpOAuth,
+} from "./controllers/mcp.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -252,11 +262,33 @@ const lazyCron = createLazy(() => import("./views/cron.ts"));
 const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
+const lazyMcp = createLazy(() => import("./views/mcp.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
 const lazySkills = createLazy(() => import("./views/skills.ts"));
 const lazyWallet = createLazy(() => import("./views/wallet.ts"));
+
+type McpOAuthHostState = {
+  mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null;
+  mcpOAuthPopup: Window | null;
+  mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus>;
+  mcpMessage: { kind: "success" | "error"; text: string } | null;
+};
+
+async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {
+  const flow = await startMcpOAuth(state as never, name);
+  if (!flow) {
+    return;
+  }
+  state.mcpOAuthFlow = flow;
+  const popup = window.open(
+    flow.authorizeUrl,
+    `mcp-oauth-${encodeURIComponent(name)}`,
+    "width=520,height=720,noopener=no",
+  );
+  state.mcpOAuthPopup = popup;
+}
 
 function formatDreamNextCycle(nextRunAtMs: number | undefined): string | null {
   if (typeof nextRunAtMs !== "number" || !Number.isFinite(nextRunAtMs)) {
@@ -1306,9 +1338,6 @@ export function renderApp(state: AppViewState) {
         void loadToolsCatalog(state, agentId);
         void refreshVisibleToolsEffectiveForCurrentSession(state);
         return;
-      case "mcp":
-        void loadMcpServers(state);
-        return;
       case "overview":
       case "channels":
       case "cron":
@@ -2041,16 +2070,6 @@ export function renderApp(state: AppViewState) {
                   error: state.toolsEffectiveError,
                   result: state.toolsEffectiveResult,
                 },
-                mcp: {
-                  servers: state.mcpServers,
-                  path: state.mcpServersPath,
-                  loading: state.mcpServersLoading,
-                  error: state.mcpServersError,
-                  busy: state.mcpBusy,
-                  message: state.mcpMessage,
-                  draftName: state.mcpDraftName,
-                  draftConfig: state.mcpDraftConfig,
-                },
                 runtimeSessionKey: state.sessionKey,
                 runtimeSessionMatchesSelectedAgent: toolsPanelUsesActiveSession,
                 modelCatalog: state.chatModelCatalog ?? [],
@@ -2114,9 +2133,6 @@ export function renderApp(state: AppViewState) {
                     } else {
                       resetToolsEffectiveState(state);
                     }
-                  }
-                  if (panel === "mcp") {
-                    void loadMcpServers(state);
                   }
                   refreshAgentsPanelSupplementalData(panel);
                 },
@@ -2241,38 +2257,6 @@ export function renderApp(state: AppViewState) {
                   }
                   updateConfigFormValue(state, ["agents", "list", index, "skills"], []);
                 },
-                onMcpRefresh: () => void loadMcpServers(state),
-                onMcpDraftNameChange: (value) => {
-                  state.mcpDraftName = value;
-                },
-                onMcpDraftConfigChange: (value) => {
-                  state.mcpDraftConfig = value;
-                },
-                onMcpEdit: (name) => {
-                  state.mcpDraftName = name;
-                  const existing = state.mcpServers?.[name];
-                  state.mcpDraftConfig = existing ? JSON.stringify(existing, null, 2) : "";
-                  state.mcpMessage = null;
-                },
-                onMcpSave: () => {
-                  const raw = state.mcpDraftConfig.trim();
-                  let parsed: unknown;
-                  try {
-                    parsed = raw ? JSON.parse(raw) : {};
-                  } catch (err) {
-                    state.mcpMessage = {
-                      kind: "error",
-                      text: `Invalid JSON: ${err instanceof Error ? err.message : String(err)}`,
-                    };
-                    return;
-                  }
-                  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-                    state.mcpMessage = { kind: "error", text: "Config must be a JSON object." };
-                    return;
-                  }
-                  void saveMcpServer(state, state.mcpDraftName, parsed as Record<string, unknown>);
-                },
-                onMcpDelete: (name) => void deleteMcpServer(state, name),
                 onModelChange: (agentId, modelId) => {
                   const index = modelId ? ensureAgentIndex(agentId) : findAgentIndex(agentId);
                   if (index < 0) {
@@ -2398,6 +2382,109 @@ export function renderApp(state: AppViewState) {
                 onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
                 onClawHubInstall: (slug) => installFromClawHub(state, slug),
+              }),
+            )
+          : nothing}
+        ${state.tab === "mcp"
+          ? lazyRender(lazyMcp, (m) =>
+              m.renderMcp({
+                connected: state.connected,
+                loading: state.mcpServersLoading,
+                servers: state.mcpServers,
+                path: state.mcpServersPath,
+                error: state.mcpServersError,
+                busy: state.mcpBusy,
+                message: state.mcpMessage,
+                addMode: state.mcpAddMode,
+                linkUrl: state.mcpLinkUrl,
+                linkLoading: state.mcpLinkMetadataLoading,
+                linkError: state.mcpLinkMetadataError,
+                linkMetadata: state.mcpLinkMetadata,
+                draftName: state.mcpDraftName,
+                draftConfig: state.mcpDraftConfig,
+                oauthStatus: state.mcpOAuthStatus,
+                oauthFlow: state.mcpOAuthFlow,
+                testStatus: state.mcpTestStatus,
+                onAddModeChange: (mode) => (state.mcpAddMode = mode),
+                onLinkUrlChange: (next) => (state.mcpLinkUrl = next),
+                onLinkFetch: () => void fetchMcpServerMetadata(state, state.mcpLinkUrl),
+                onLinkClear: () => {
+                  state.mcpLinkMetadata = null;
+                  state.mcpLinkMetadataError = null;
+                },
+                onRefresh: () => {
+                  void loadMcpServers(state);
+                  void loadMcpOAuthStatuses(state);
+                },
+                onDraftNameChange: (value) => {
+                  state.mcpDraftName = value;
+                },
+                onDraftConfigChange: (value) => {
+                  state.mcpDraftConfig = value;
+                },
+                onEdit: (name) => {
+                  state.mcpAddMode = "json";
+                  state.mcpDraftName = name;
+                  const existing = state.mcpServers?.[name];
+                  state.mcpDraftConfig = existing ? JSON.stringify(existing, null, 2) : "";
+                  state.mcpMessage = null;
+                },
+                onSave: () => {
+                  const raw = state.mcpDraftConfig.trim();
+                  let parsed: unknown;
+                  try {
+                    parsed = raw ? JSON.parse(raw) : {};
+                  } catch (err) {
+                    state.mcpMessage = {
+                      kind: "error",
+                      text: `Invalid JSON: ${err instanceof Error ? err.message : String(err)}`,
+                    };
+                    return;
+                  }
+                  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+                    state.mcpMessage = { kind: "error", text: "Config must be a JSON object." };
+                    return;
+                  }
+                  void saveMcpServer(state, state.mcpDraftName, parsed as Record<string, unknown>);
+                },
+                onSaveMetadata: (metadata) => {
+                  const name = state.mcpDraftName.trim() || metadata.name;
+                  const config: Record<string, unknown> = {
+                    url: metadata.url,
+                    transport: metadata.transport,
+                  };
+                  if (metadata.oauth && metadata.oauthIssuer) {
+                    config.auth = { type: "oauth", issuer: metadata.oauthIssuer };
+                  } else if (metadata.oauth) {
+                    config.auth = { type: "oauth" };
+                  }
+                  state.mcpDraftName = name;
+                  state.mcpDraftConfig = JSON.stringify(config, null, 2);
+                  void saveMcpServer(state, name, config).then(() => {
+                    if (state.mcpMessage?.kind === "success") {
+                      state.mcpLinkMetadata = null;
+                      state.mcpLinkUrl = "";
+                      void loadMcpOAuthStatuses(state);
+                    }
+                  });
+                },
+                onDelete: (name) => {
+                  if (confirm(`Remove MCP server "${name}"?`)) {
+                    void deleteMcpServer(state, name);
+                  }
+                },
+                onTest: (name) => {
+                  void testMcpServer(state, name);
+                },
+                onOAuthConnect: (name) => {
+                  void handleMcpOAuthStart(state, name);
+                },
+                onOAuthDisconnect: (name) => {
+                  void disconnectMcpOAuth(state, name);
+                },
+                onOAuthCancel: () => {
+                  cancelMcpOAuth(state);
+                },
               }),
             )
           : nothing}

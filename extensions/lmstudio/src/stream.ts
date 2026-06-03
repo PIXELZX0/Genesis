@@ -1,5 +1,5 @@
-import type { StreamFn } from "@mariozechner/pi-agent-core";
-import { streamSimple } from "@mariozechner/pi-ai";
+import type { StreamFn } from "@earendil-works/pi-agent-core";
+import { streamSimple } from "@earendil-works/pi-ai";
 import { createSubsystemLogger } from "genesis/plugin-sdk/logging-core";
 import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
 import { ssrfPolicyFromHttpBaseUrlAllowedHostname } from "genesis/plugin-sdk/ssrf-runtime";

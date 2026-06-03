@@ -8,7 +8,7 @@ export const TAB_GROUPS = [
     label: "control",
     tabs: ["overview", "canvas", "channels", "instances", "sessions", "usage", "wallet", "cron"],
   },
-  { label: "agent", tabs: ["agents", "skills", "plugins", "nodes", "dreams"] },
+  { label: "agent", tabs: ["agents", "skills", "mcp", "plugins", "nodes", "dreams"] },
   {
     label: "settings",
     tabs: [
@@ -35,6 +35,7 @@ export type Tab =
   | "wallet"
   | "cron"
   | "skills"
+  | "mcp"
   | "plugins"
   | "nodes"
   | "chat"
@@ -59,6 +60,7 @@ const TAB_PATHS: Record<Tab, string> = {
   wallet: "/wallet",
   cron: "/cron",
   skills: "/skills",
+  mcp: "/mcp",
   plugins: "/plugins",
   nodes: "/nodes",
   chat: "/chat",
@@ -185,6 +187,8 @@ export function iconForTab(tab: Tab): IconName {
       return "loader";
     case "skills":
       return "zap";
+    case "mcp":
+      return "plug";
     case "plugins":
       return "wrench";
     case "nodes":

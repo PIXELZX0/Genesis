@@ -1,5 +1,5 @@
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import { SessionManager } from "@mariozechner/pi-coding-agent";
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import { SessionManager } from "@earendil-works/pi-coding-agent";
 import { emitSessionTranscriptUpdate } from "../../../sessions/transcript-events.js";
 import { rewriteTranscriptEntriesInSessionManager } from "../transcript-rewrite.js";
 

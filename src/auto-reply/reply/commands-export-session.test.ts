@@ -22,7 +22,7 @@ const hoisted = await vi.hoisted(async () => {
   };
 });
 
-vi.mock("@mariozechner/pi-coding-agent", () => ({
+vi.mock("@earendil-works/pi-coding-agent", () => ({
   SessionManager: {
     open: vi.fn(() => ({
       getEntries: hoisted.getEntriesMock,

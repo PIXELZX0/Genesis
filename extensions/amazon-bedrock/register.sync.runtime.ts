@@ -1,4 +1,4 @@
-import type { StreamFn } from "@mariozechner/pi-agent-core";
+import type { StreamFn } from "@earendil-works/pi-agent-core";
 import { resolvePluginConfigObject, type GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import type { GenesisPluginApi } from "genesis/plugin-sdk/plugin-entry";
 import {
@@ -65,7 +65,7 @@ function createGuardrailWrapStreamFn(
 
 /**
  * Mirrors the shipped pi-ai Bedrock `supportsPromptCaching` matcher.
- * Keep this in sync with node_modules/@mariozechner/pi-ai/dist/providers/amazon-bedrock.js.
+ * Keep this in sync with node_modules/@earendil-works/pi-ai/dist/providers/amazon-bedrock.js.
  */
 function matchesPiAiPromptCachingModelId(modelId: string): boolean {
   const id = modelId.toLowerCase();

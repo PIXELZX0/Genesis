@@ -1,4 +1,4 @@
-import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import { vi } from "vitest";
 import { __testing as beforeToolCallTesting } from "../../../src/agents/pi-tools.before-tool-call.js";
 import type {

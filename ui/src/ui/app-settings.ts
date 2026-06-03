@@ -35,7 +35,7 @@ import {
 } from "./controllers/dreaming.ts";
 import { loadExecApprovals, type ExecApprovalsState } from "./controllers/exec-approvals.ts";
 import { loadLogs, type LogsState } from "./controllers/logs.ts";
-import { loadMcpServers, type McpState } from "./controllers/mcp.ts";
+import { loadMcpOAuthStatuses, loadMcpServers, type McpState } from "./controllers/mcp.ts";
 import {
   loadModelAuthStatusState,
   type ModelAuthStatusState,
@@ -91,7 +91,7 @@ type SettingsHost = {
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
-  agentsPanel?: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron";
+  agentsPanel?: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
   pendingGatewayUrl?: string | null;
   systemThemeCleanup?: (() => void) | null;
   pendingGatewayToken?: string | null;
@@ -326,9 +326,6 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
     case "skills":
       void loadAgentSkills(app, agentId);
       return;
-    case "mcp":
-      void loadMcpServers(app);
-      return;
     case "channels":
       void loadChannels(app, false);
       return;
@@ -379,6 +376,10 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "skills":
       await loadSkills(app);
+      return;
+    case "mcp":
+      await loadMcpServers(app);
+      await loadMcpOAuthStatuses(app);
       return;
     case "plugins":
       await loadPlugins(app);

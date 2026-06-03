@@ -1,1 +1,1 @@
-export type AgentsPanel = "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron";
+export type AgentsPanel = "overview" | "files" | "tools" | "skills" | "channels" | "cron";

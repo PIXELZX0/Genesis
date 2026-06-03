@@ -1,4 +1,4 @@
-import { type Api, type Model } from "@mariozechner/pi-ai";
+import { type Api, type Model } from "@earendil-works/pi-ai";
 import type { AgentModelConfig } from "../../config/types.agents-shared.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { SsrFPolicy } from "../../infra/net/ssrf.js";

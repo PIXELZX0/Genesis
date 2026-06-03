@@ -15,6 +15,14 @@ function createState(request: RequestFn, overrides: Partial<McpState> = {}): Mcp
     mcpMessage: null,
     mcpDraftName: "",
     mcpDraftConfig: "",
+    mcpLinkUrl: "",
+    mcpLinkMetadataLoading: false,
+    mcpLinkMetadataError: null,
+    mcpLinkMetadata: null,
+    mcpOAuthStatus: {},
+    mcpOAuthFlow: null,
+    mcpOAuthPopup: null,
+    mcpTestStatus: {},
     ...overrides,
   };
 }

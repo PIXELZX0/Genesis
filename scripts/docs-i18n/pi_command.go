@@ -86,7 +86,7 @@ func ensureMaterializedPiRuntime(ctx context.Context) (docsPiCommand, error) {
 			"--silent",
 			"--no-audit",
 			"--no-fund",
-			fmt.Sprintf("@mariozechner/pi-coding-agent@%s", packageVersion),
+			fmt.Sprintf("@earendil-works/pi-coding-agent@%s", packageVersion),
 		)
 		install.Dir = runtimeDir
 		install.Env = os.Environ()

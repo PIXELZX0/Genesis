@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import type { ExtensionFactory, SessionManager } from "@mariozechner/pi-coding-agent";
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
+import type { ExtensionFactory, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { listAgentToolResultMiddlewares } from "../../plugins/agent-tool-result-middleware.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";

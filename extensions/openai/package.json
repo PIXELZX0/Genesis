@@ -5,7 +5,7 @@
   "description": "Genesis OpenAI provider plugins",
   "type": "module",
   "dependencies": {
-    "@mariozechner/pi-ai": "0.70.2",
+    "@earendil-works/pi-ai": "0.78.0",
     "ws": "^8.20.0"
   },
   "devDependencies": {

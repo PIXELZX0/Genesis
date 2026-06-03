@@ -1,4 +1,4 @@
-import { complete, type Api, type Model } from "@mariozechner/pi-ai";
+import { complete, type Api, type Model } from "@earendil-works/pi-ai";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { prepareProviderRuntimeAuth } from "../plugins/provider-runtime.runtime.js";

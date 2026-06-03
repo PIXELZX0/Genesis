@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { ModelRegistry } from "@mariozechner/pi-coding-agent";
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { StreamFn } from "@earendil-works/pi-agent-core";
+import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 import type { Command } from "commander";
 import type {
   ApiKeyCredential,
@@ -619,7 +619,7 @@ export type ProviderExtraParamsForTransportContext = Omit<
   "extraParams"
 > & {
   model?: ProviderRuntimeModel;
-  transport?: "sse" | "websocket" | "auto";
+  transport?: "sse" | "websocket" | "websocket-cached" | "auto";
   extraParams: Record<string, unknown>;
 };
 

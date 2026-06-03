@@ -1,4 +1,4 @@
-import type { Api, AssistantMessage, Context, Model } from "@mariozechner/pi-ai";
+import type { Api, AssistantMessage, Context, Model } from "@earendil-works/pi-ai";
 
 export const LIVE_MODEL_FILE_PROBE_TOKEN = "opal";
 
@@ -14,8 +14,6 @@ const KNOWN_EMPTY_FILE_PROBE_MODELS = new Set([
   "google/gemini-3.1-pro-preview-customtools",
   "opencode-go/glm-5",
   "opencode-go/glm-5.1",
-  "opencode-go/mimo-v2-omni",
-  "opencode-go/mimo-v2-pro",
   "opencode-go/minimax-m2.5",
   "openrouter/arcee-ai/trinity-mini",
   "openrouter/deepseek/deepseek-chat-v3.1",
@@ -37,7 +35,6 @@ const KNOWN_EMPTY_IMAGE_PROBE_MODELS = new Set([
   "fireworks/accounts/fireworks/routers/kimi-k2p5-turbo",
   "google/gemini-3.1-pro-preview-customtools",
   "opencode/kimi-k2.6",
-  "opencode-go/mimo-v2-omni",
   "opencode-go/kimi-k2.5",
   "opencode-go/kimi-k2.6",
   "openrouter/amazon/nova-pro-v1",

@@ -1,4 +1,4 @@
-import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import { normalizeToolParameters } from "../../agents/pi-tools.schema.js";
 import type { AnyAgentTool } from "../../agents/tools/common.js";
 import type { VoiceClawRealtimeToolDeclaration } from "./types.js";

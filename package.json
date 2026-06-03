@@ -1603,11 +1603,11 @@
   "dependencies": {
     "@agentclientprotocol/sdk": "0.19.1",
     "@clack/prompts": "^1.2.0",
+    "@earendil-works/pi-agent-core": "0.78.0",
+    "@earendil-works/pi-ai": "0.78.0",
+    "@earendil-works/pi-coding-agent": "0.78.0",
+    "@earendil-works/pi-tui": "0.78.0",
     "@lydell/node-pty": "1.2.0-beta.12",
-    "@mariozechner/pi-agent-core": "0.70.2",
-    "@mariozechner/pi-ai": "0.70.2",
-    "@mariozechner/pi-coding-agent": "0.70.2",
-    "@mariozechner/pi-tui": "0.70.2",
     "@modelcontextprotocol/sdk": "1.29.0",
     "@scure/bip32": "^2.0.1",
     "@scure/bip39": "^2.0.1",
@@ -1725,7 +1725,7 @@
       "koffi"
     ],
     "packageExtensions": {
-      "@mariozechner/pi-coding-agent": {
+      "@earendil-works/pi-coding-agent": {
         "dependencies": {
           "strip-ansi": "^7.2.0"
         }

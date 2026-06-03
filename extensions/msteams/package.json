@@ -15,7 +15,7 @@
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
-    "genesis": "workspace:*"
+    "genesis": "link:../.."
   },
   "peerDependencies": {
     "genesis": ">=2026.4.20"

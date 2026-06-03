@@ -245,7 +245,7 @@ export type AppViewState = {
   toolsEffectiveResultKey: string | null;
   toolsEffectiveError: string | null;
   toolsEffectiveResult: import("./types.js").ToolsEffectiveResult | null;
-  agentsPanel: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron";
+  agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
   agentFilesLoading: boolean;
   agentFilesError: string | null;
   agentFilesList: AgentsFilesListResult | null;
@@ -268,6 +268,15 @@ export type AppViewState = {
   mcpMessage: { kind: "success" | "error"; text: string } | null;
   mcpDraftName: string;
   mcpDraftConfig: string;
+  mcpAddMode: "link" | "json";
+  mcpLinkUrl: string;
+  mcpLinkMetadataLoading: boolean;
+  mcpLinkMetadataError: string | null;
+  mcpLinkMetadata: import("./controllers/mcp.ts").McpServerMetadata | null;
+  mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus>;
+  mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null;
+  mcpOAuthPopup: Window | null;
+  mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;

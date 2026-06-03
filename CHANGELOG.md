@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Dependencies/Pi: migrate embedded Pi SDK packages from `@mariozechner/pi-*` (deprecated, pinned to `0.70.2`) to `@earendil-works/pi-*` at `0.78.0`. This unblocks the upstream catalog and adds `opencode-go/qwen3.7-max`, `opencode-go/deepseek-v4-pro`, and `opencode-go/deepseek-v4-flash`. Three models are dropped from the opencode-go catalog upstream: `mimo-v2-omni`, `mimo-v2-pro`, and `qwen3.5-plus`. `opencode-go/minimax-m2.7` switched from `anthropic-messages` (`/v1`-less base URL) to `openai-completions` (`/v1`). Companion fix: 21 channel extension packages now use `genesis: link:../..` instead of `genesis: workspace:*` so pnpm 10 resolves the root under `@pixelzx/genesis`.
 - Sessions: on `/new` or `/reset`, preserve the cleared session as a reset-history entry so agents can still read the prior conversation via `sessions_list` (kind: `reset`) and `sessions_history`.
 - Control UI: add an MCP page under the Agents section to add, edit, and remove MCP (Model Context Protocol) servers without leaving the panel.
 - MCP: built-in MCP server management is enabled by default — the `/mcp` chat command no longer requires setting `commands.mcp: true` (set it to `false` to opt out). Writes still require owner plus `operator.admin`.

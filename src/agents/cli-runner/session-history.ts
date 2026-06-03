@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { SessionManager } from "@mariozechner/pi-coding-agent";
+import { SessionManager } from "@earendil-works/pi-coding-agent";
 import {
   resolveSessionFilePath,
   resolveSessionFilePathOptions,

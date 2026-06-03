@@ -3,7 +3,7 @@ import {
   getOAuthProviders,
   type OAuthCredentials,
   type OAuthProvider,
-} from "@mariozechner/pi-ai/oauth";
+} from "@earendil-works/pi-ai/oauth";
 import { loadConfig } from "../../config/config.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { coerceSecretRef } from "../../config/types.secrets.js";

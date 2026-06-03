@@ -1,4 +1,4 @@
-import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { AnyAgentTool } from "genesis/plugin-sdk/agent-harness";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { wrapToolWithBeforeToolCallHook } from "../../../../src/agents/pi-tools.before-tool-call.js";

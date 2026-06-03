@@ -17,7 +17,7 @@ minimumReleaseAgeExclude:
   - "vite"
   - "@cloudflare/workers-types"
   - "@hono/node-server"
-  - "@mariozechner/*"
+  - "@earendil-works/*"
   - "@typescript/native-preview*"
   - "@types/node"
   - "@rolldown/*"

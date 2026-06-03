@@ -1,5 +1,5 @@
-import type { Context, Model } from "@mariozechner/pi-ai";
-import { createAssistantMessageEventStream } from "@mariozechner/pi-ai";
+import type { Context, Model } from "@earendil-works/pi-ai";
+import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { buildOpenAICompletionsParams } from "../../src/agents/openai-transport-stream.js";
 import { resolveProviderPluginChoice } from "../../src/plugins/provider-auth-choice.runtime.js";

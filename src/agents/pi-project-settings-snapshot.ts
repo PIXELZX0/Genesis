@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { SettingsManager } from "@mariozechner/pi-coding-agent";
+import type { SettingsManager } from "@earendil-works/pi-coding-agent";
 import { applyMergePatch } from "../config/merge-patch.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";

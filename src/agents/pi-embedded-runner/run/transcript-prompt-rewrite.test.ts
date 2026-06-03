@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { SessionManager } from "@mariozechner/pi-coding-agent";
+import { SessionManager } from "@earendil-works/pi-coding-agent";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { onSessionTranscriptUpdate } from "../../../sessions/transcript-events.js";
 import { rewriteSubmittedPromptTranscript } from "./transcript-prompt-rewrite.js";

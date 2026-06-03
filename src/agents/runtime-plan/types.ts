@@ -1,4 +1,4 @@
-import type { AgentTool } from "@mariozechner/pi-agent-core";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { TSchema } from "typebox";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { ReplyPayload } from "../../auto-reply/types.js";
@@ -7,7 +7,7 @@ import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.
 import type { FailoverReason } from "../pi-embedded-helpers/types.js";
 import type { PromptMode } from "../system-prompt.types.js";
 
-export type AgentRuntimeTransport = "sse" | "websocket" | "auto";
+export type AgentRuntimeTransport = "sse" | "websocket" | "websocket-cached" | "auto";
 
 export type AgentRuntimeSystemPromptSectionId =
   | "interaction_style"

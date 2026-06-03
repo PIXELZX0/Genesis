@@ -1,9 +1,9 @@
-import type { Context, Tool } from "@mariozechner/pi-ai";
+import type { Context, Tool } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import {
   convertMessages,
   convertTools,
-} from "../../node_modules/@mariozechner/pi-ai/dist/providers/google-shared.js";
+} from "../../node_modules/@earendil-works/pi-ai/dist/providers/google-shared.js";
 import {
   asRecord,
   expectConvertedRoles,
@@ -345,7 +345,7 @@ describe("google-shared convertMessages", () => {
       ],
     } as unknown as Context;
 
-    const contents = convertMessages(model, context);
+    const contents = convertMessages(model as never, context);
     const parts = contents.flatMap((content) => content.parts ?? []);
     const toolCallPart = parts.find(
       (part) => typeof part === "object" && part !== null && "functionCall" in part,

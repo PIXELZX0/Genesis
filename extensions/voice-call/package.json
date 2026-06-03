@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*",
-    "genesis": "workspace:*"
+    "genesis": "link:../.."
   },
   "peerDependencies": {
     "genesis": ">=2026.4.20"

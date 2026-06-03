@@ -5,7 +5,7 @@
   "description": "Genesis Anthropic provider plugin",
   "type": "module",
   "dependencies": {
-    "@mariozechner/pi-ai": "0.70.2"
+    "@earendil-works/pi-ai": "0.78.0"
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"

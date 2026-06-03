@@ -866,7 +866,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({
         dependencies: {
-          "@mariozechner/pi-ai": "0.70.2",
+          "@earendil-works/pi-ai": "0.70.2",
         },
       }),
     );
@@ -885,7 +885,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
         });
         fs.writeFileSync(
           path.join(params.installRoot, "node_modules", "@mariozechner", "pi-ai", "package.json"),
-          JSON.stringify({ name: "@mariozechner/pi-ai", version: "0.70.2" }),
+          JSON.stringify({ name: "@earendil-works/pi-ai", version: "0.70.2" }),
         );
       },
       pluginId: "openai",
@@ -893,8 +893,8 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     });
 
     expect(result).toEqual({
-      installedSpecs: ["@mariozechner/pi-ai@0.70.2"],
-      retainSpecs: ["@mariozechner/pi-ai@0.70.2"],
+      installedSpecs: ["@earendil-works/pi-ai@0.70.2"],
+      retainSpecs: ["@earendil-works/pi-ai@0.70.2"],
     });
     expect(calls).toHaveLength(1);
     expect(fs.existsSync(lockDir)).toBe(false);
@@ -1263,13 +1263,13 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({
         dependencies: {
-          "@mariozechner/pi-ai": "0.68.1",
+          "@earendil-works/pi-ai": "0.68.1",
         },
       }),
     );
     fs.writeFileSync(
       path.join(packageRoot, "node_modules", "@mariozechner", "pi-ai", "package.json"),
-      JSON.stringify({ name: "@mariozechner/pi-ai", version: "0.68.1" }),
+      JSON.stringify({ name: "@earendil-works/pi-ai", version: "0.68.1" }),
     );
     const calls: BundledRuntimeDepsInstallParams[] = [];
 
@@ -1283,15 +1283,15 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     });
 
     expect(result).toEqual({
-      installedSpecs: ["@mariozechner/pi-ai@0.68.1"],
-      retainSpecs: ["@mariozechner/pi-ai@0.68.1"],
+      installedSpecs: ["@earendil-works/pi-ai@0.68.1"],
+      retainSpecs: ["@earendil-works/pi-ai@0.68.1"],
     });
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env: {} });
     expect(calls).toEqual([
       {
         installRoot,
-        missingSpecs: ["@mariozechner/pi-ai@0.68.1"],
-        installSpecs: ["@mariozechner/pi-ai@0.68.1"],
+        missingSpecs: ["@earendil-works/pi-ai@0.68.1"],
+        installSpecs: ["@earendil-works/pi-ai@0.68.1"],
       },
     ]);
     expect(installRoot).not.toBe(pluginRoot);

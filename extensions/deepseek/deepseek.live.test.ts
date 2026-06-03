@@ -5,7 +5,7 @@ import {
   type AssistantMessage,
   type Context,
   type Model,
-} from "@mariozechner/pi-ai";
+} from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import {
   createSingleUserPromptMessage,

@@ -86,6 +86,7 @@ import type {
 } from "./controllers/dreaming.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import { cancelMcpOAuth, completeMcpOAuth } from "./controllers/mcp.ts";
 import type {
   ClawHubSearchResult,
   ClawHubSkillDetail,
@@ -361,8 +362,7 @@ export class GenesisApp extends LitElement {
   @state() toolsEffectiveResultKey: string | null = null;
   @state() toolsEffectiveError: string | null = null;
   @state() toolsEffectiveResult: ToolsEffectiveResult | null = null;
-  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron" =
-    "files";
+  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron" = "files";
   @state() agentFilesLoading = false;
   @state() agentFilesError: string | null = null;
   @state() agentFilesList: AgentsFilesListResult | null = null;
@@ -385,6 +385,15 @@ export class GenesisApp extends LitElement {
   @state() mcpMessage: { kind: "success" | "error"; text: string } | null = null;
   @state() mcpDraftName = "";
   @state() mcpDraftConfig = "";
+  @state() mcpAddMode: "link" | "json" = "link";
+  @state() mcpLinkUrl = "";
+  @state() mcpLinkMetadataLoading = false;
+  @state() mcpLinkMetadataError: string | null = null;
+  @state() mcpLinkMetadata: import("./controllers/mcp.ts").McpServerMetadata | null = null;
+  @state() mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus> = {};
+  @state() mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null = null;
+  @state() mcpOAuthPopup: Window | null = null;
+  @state() mcpTestStatus: Record<string, { ok: boolean; message: string } | null> = {};
 
   @state() sessionsLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
@@ -661,6 +670,7 @@ export class GenesisApp extends LitElement {
     };
     document.addEventListener("keydown", this.globalKeydownHandler);
     window.addEventListener("message", this.canvasAgentRunMessageHandler);
+    window.addEventListener("message", this.mcpOAuthMessageHandler);
     handleConnected(this as unknown as Parameters<typeof handleConnected>[0]);
   }
 
@@ -671,9 +681,54 @@ export class GenesisApp extends LitElement {
   disconnectedCallback() {
     document.removeEventListener("keydown", this.globalKeydownHandler);
     window.removeEventListener("message", this.canvasAgentRunMessageHandler);
+    window.removeEventListener("message", this.mcpOAuthMessageHandler);
     handleDisconnected(this as unknown as Parameters<typeof handleDisconnected>[0]);
     super.disconnectedCallback();
   }
+
+  private mcpOAuthMessageHandler = (event: MessageEvent) => {
+    const data = event.data as {
+      source?: string;
+      type?: string;
+      code?: string;
+      state?: string;
+      error?: string;
+    } | null;
+    if (!data || data.source !== "genesis-mcp-oauth") {
+      return;
+    }
+    if (data.type === "mcp-oauth-callback") {
+      if (this.mcpOAuthPopup && !this.mcpOAuthPopup.closed) {
+        try {
+          this.mcpOAuthPopup.close();
+        } catch {
+          // ignore
+        }
+      }
+      this.mcpOAuthPopup = null;
+      if (!this.mcpOAuthFlow) {
+        return;
+      }
+      if (data.error) {
+        this.mcpMessage = { kind: "error", text: `OAuth failed: ${data.error}` };
+        this.mcpOAuthFlow = null;
+        return;
+      }
+      if (!data.code || !data.state) {
+        this.mcpMessage = { kind: "error", text: "OAuth callback missing code or state." };
+        this.mcpOAuthFlow = null;
+        return;
+      }
+      void completeMcpOAuth(
+        this as unknown as Parameters<typeof completeMcpOAuth>[0],
+        data.code,
+        data.state,
+      );
+    } else if (data.type === "mcp-oauth-cancelled") {
+      cancelMcpOAuth(this as unknown as Parameters<typeof cancelMcpOAuth>[0]);
+      this.mcpMessage = { kind: "error", text: "Authorization was cancelled." };
+    }
+  };
 
   protected updated(changed: Map<PropertyKey, unknown>) {
     handleUpdated(this as unknown as Parameters<typeof handleUpdated>[0], changed);

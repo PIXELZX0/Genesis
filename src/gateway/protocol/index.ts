@@ -308,6 +308,28 @@ import {
   McpServerUnsetParamsSchema,
   type McpServersResult,
   McpServersResultSchema,
+  type McpServerMetadataParams,
+  McpServerMetadataParamsSchema,
+  type McpServerMetadataResult,
+  McpServerMetadataResultSchema,
+  type McpServerTestParams,
+  McpServerTestParamsSchema,
+  type McpServerTestResult,
+  McpServerTestResultSchema,
+  type McpOAuthStartParams,
+  McpOAuthStartParamsSchema,
+  type McpOAuthStartResult,
+  McpOAuthStartResultSchema,
+  type McpOAuthCallbackParams,
+  McpOAuthCallbackParamsSchema,
+  type McpOAuthCallbackResult,
+  McpOAuthCallbackResultSchema,
+  type McpOAuthStatusParams,
+  McpOAuthStatusParamsSchema,
+  type McpOAuthStatusResult,
+  McpOAuthStatusResultSchema,
+  type McpOAuthDisconnectParams,
+  McpOAuthDisconnectParamsSchema,
   type ToolsEffectiveParams,
   ToolsEffectiveParamsSchema,
   type ToolsEffectiveResult,
@@ -531,6 +553,22 @@ export const validateMcpServersListParams = ajv.compile<McpServersListParams>(
 export const validateMcpServerSetParams = ajv.compile<McpServerSetParams>(McpServerSetParamsSchema);
 export const validateMcpServerUnsetParams = ajv.compile<McpServerUnsetParams>(
   McpServerUnsetParamsSchema,
+);
+export const validateMcpServerMetadataParams = ajv.compile<McpServerMetadataParams>(
+  McpServerMetadataParamsSchema,
+);
+export const validateMcpServerTestParams =
+  ajv.compile<McpServerTestParams>(McpServerTestParamsSchema);
+export const validateMcpOAuthStartParams =
+  ajv.compile<McpOAuthStartParams>(McpOAuthStartParamsSchema);
+export const validateMcpOAuthCallbackParams = ajv.compile<McpOAuthCallbackParams>(
+  McpOAuthCallbackParamsSchema,
+);
+export const validateMcpOAuthStatusParams = ajv.compile<McpOAuthStatusParams>(
+  McpOAuthStatusParamsSchema,
+);
+export const validateMcpOAuthDisconnectParams = ajv.compile<McpOAuthDisconnectParams>(
+  McpOAuthDisconnectParamsSchema,
 );
 export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
   ToolsEffectiveParamsSchema,
@@ -780,6 +818,17 @@ export {
   McpServerSetParamsSchema,
   McpServerUnsetParamsSchema,
   McpServersResultSchema,
+  McpServerMetadataParamsSchema,
+  McpServerMetadataResultSchema,
+  McpServerTestParamsSchema,
+  McpServerTestResultSchema,
+  McpOAuthStartParamsSchema,
+  McpOAuthStartResultSchema,
+  McpOAuthCallbackParamsSchema,
+  McpOAuthCallbackResultSchema,
+  McpOAuthStatusParamsSchema,
+  McpOAuthStatusResultSchema,
+  McpOAuthDisconnectParamsSchema,
   ToolsEffectiveParamsSchema,
   SkillsInstallParamsSchema,
   SkillsSearchParamsSchema,
@@ -905,6 +954,17 @@ export type {
   McpServerSetParams,
   McpServerUnsetParams,
   McpServersResult,
+  McpServerMetadataParams,
+  McpServerMetadataResult,
+  McpServerTestParams,
+  McpServerTestResult,
+  McpOAuthStartParams,
+  McpOAuthStartResult,
+  McpOAuthCallbackParams,
+  McpOAuthCallbackResult,
+  McpOAuthStatusParams,
+  McpOAuthStatusResult,
+  McpOAuthDisconnectParams,
   ToolsEffectiveParams,
   ToolsEffectiveResult,
   SkillsBinsParams,
