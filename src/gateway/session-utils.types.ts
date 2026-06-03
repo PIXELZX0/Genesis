@@ -33,7 +33,11 @@ export type GatewaySessionRow = {
   spawnDepth?: number;
   subagentRole?: SessionEntry["subagentRole"];
   subagentControlScope?: SessionEntry["subagentControlScope"];
-  kind: "direct" | "group" | "global" | "unknown";
+  kind: "direct" | "group" | "global" | "unknown" | "reset";
+  /** True when this row is a predecessor preserved on `/new` / `/reset`. */
+  resetHistory?: boolean;
+  /** Live base session key a preserved predecessor belongs to. */
+  resetOfSessionKey?: string;
   label?: string;
   displayName?: string;
   derivedTitle?: string;

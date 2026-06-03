@@ -21312,6 +21312,14 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 description:
                   "Retention for reset transcript archives (`*.reset.<timestamp>`). Accepts a duration (for example `30d`), or `false` to disable cleanup. Defaults to pruneAfter so reset artifacts do not grow forever.",
               },
+              resetHistoryMax: {
+                type: "integer",
+                minimum: 0,
+                maximum: 9007199254740991,
+                title: "Session Reset History Limit",
+                description:
+                  'Maximum number of predecessor sessions preserved per session key when it is cleared via `/new` or `/reset`, so the agent can still read recent prior conversations (shown as `kind:"reset"` rows by the session tools). Set `0` to disable preservation. Defaults to 10.',
+              },
               maxDiskBytes: {
                 anyOf: [
                   {
@@ -28608,6 +28616,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Session Reset Archive Retention",
       help: "Retention for reset transcript archives (`*.reset.<timestamp>`). Accepts a duration (for example `30d`), or `false` to disable cleanup. Defaults to pruneAfter so reset artifacts do not grow forever.",
       tags: ["storage"],
+    },
+    "session.maintenance.resetHistoryMax": {
+      label: "Session Reset History Limit",
+      help: 'Maximum number of predecessor sessions preserved per session key when it is cleared via `/new` or `/reset`, so the agent can still read recent prior conversations (shown as `kind:"reset"` rows by the session tools). Set `0` to disable preservation. Defaults to 10.',
+      tags: ["performance", "storage"],
     },
     "session.maintenance.maxDiskBytes": {
       label: "Session Max Disk Budget",

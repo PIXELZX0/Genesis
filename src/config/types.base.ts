@@ -207,6 +207,14 @@ export type SessionMaintenanceConfig = {
    */
   resetArchiveRetention?: string | number | false;
   /**
+   * Maximum number of predecessor sessions to preserve per session key when it
+   * is cleared via `/new` or `/reset`, so the agent can still read recent prior
+   * conversations (surfaced as `kind:"reset"` rows by the session tools).
+   * Set `0` to disable preservation (predecessors are orphaned/archived only).
+   * Default: 10.
+   */
+  resetHistoryMax?: number;
+  /**
    * Optional per-agent sessions-directory disk budget (e.g. "500mb").
    * When exceeded, warn (mode=warn) or enforce oldest-first cleanup (mode=enforce).
    */

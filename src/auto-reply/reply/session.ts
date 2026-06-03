@@ -40,6 +40,10 @@ import type { PluginHookSessionEndReason } from "../../plugins/hook-types.js";
 import { isAcpSessionKey, normalizeMainKey } from "../../routing/session-key.js";
 import { isInterSessionInputProvenance } from "../../sessions/input-provenance.js";
 import {
+  preservePreviousSessionAsResetEntry,
+  resolveResetHistoryMax,
+} from "../../sessions/session-reset-preserve.js";
+import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
@@ -791,6 +795,26 @@ export async function initSessionState(params: {
       agentId,
       archivedTranscripts,
     });
+    // Preserve the cleared predecessor under a re-keyed `:reset:<oldId>` entry so
+    // the agent can still read it. Only explicit `/new` / `/reset` are preserved;
+    // stale/daily rollovers are archived-only.
+    if (resetTriggered) {
+      const maxPreserved = resolveResetHistoryMax(sessionCfg?.maintenance);
+      if (maxPreserved > 0) {
+        const predecessor = previousSessionEntry;
+        const archivedSessionFile = previousSessionTranscript.sessionFile;
+        await updateSessionStore(storePath, (store) => {
+          preservePreviousSessionAsResetEntry({
+            store,
+            baseSessionKey: sessionKey,
+            previousEntry: predecessor,
+            archivedSessionFile,
+            now: Date.now(),
+            maxPreserved,
+          });
+        });
+      }
+    }
     await retireSessionMcpRuntime({
       sessionId: previousSessionEntry.sessionId,
       reason: "reply-session-rollover",

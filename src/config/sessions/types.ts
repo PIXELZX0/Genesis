@@ -266,6 +266,17 @@ export type SessionEntry = {
    */
   pluginDebugEntries?: SessionPluginDebugEntry[];
   acp?: SessionAcpMeta;
+  /**
+   * Marks a preserved predecessor session captured when a live session was
+   * cleared via `/new` or `/reset`. Such entries are re-keyed under
+   * `<baseSessionKey>:reset:<oldSessionId>` so the prior transcript stays
+   * enumerable and readable through the session tools instead of being orphaned.
+   */
+  resetHistory?: boolean;
+  /** Live base session key this preserved predecessor belongs to. */
+  resetOfSessionKey?: string;
+  /** Epoch ms when this predecessor was preserved (drives retention ordering). */
+  resetArchivedAt?: number;
 };
 
 function isSessionPluginTraceLine(line: string): boolean {

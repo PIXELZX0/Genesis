@@ -1503,6 +1503,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Rotates the session store when file size exceeds a threshold such as `10mb` or `1gb`. Use this to bound single-file growth and keep backup/restore operations manageable.",
   "session.maintenance.resetArchiveRetention":
     "Retention for reset transcript archives (`*.reset.<timestamp>`). Accepts a duration (for example `30d`), or `false` to disable cleanup. Defaults to pruneAfter so reset artifacts do not grow forever.",
+  "session.maintenance.resetHistoryMax":
+    'Maximum number of predecessor sessions preserved per session key when it is cleared via `/new` or `/reset`, so the agent can still read recent prior conversations (shown as `kind:"reset"` rows by the session tools). Set `0` to disable preservation. Defaults to 10.',
   "session.maintenance.maxDiskBytes":
     "Optional per-agent sessions-directory disk budget (for example `500mb`). Use this to cap session storage per agent; when exceeded, warn mode reports pressure and enforce mode performs oldest-first cleanup.",
   "session.maintenance.highWaterBytes":

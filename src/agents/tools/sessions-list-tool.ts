@@ -87,7 +87,7 @@ export function createSessionsListTool(opts?: {
         ?.map((value) => normalizeOptionalLowercaseString(value))
         .filter((value): value is string => Boolean(value));
       const allowedKindsList = (kindsRaw ?? []).filter((value) =>
-        ["main", "group", "cron", "hook", "node", "other"].includes(value),
+        ["main", "group", "cron", "hook", "node", "reset", "other"].includes(value),
       );
       const allowedKinds = allowedKindsList.length ? new Set(allowedKindsList) : undefined;
 
@@ -234,6 +234,8 @@ export function createSessionsListTool(opts?: {
           key: displayKey,
           agentId: resolvedAgentId,
           kind,
+          resetOfSessionKey:
+            typeof entry.resetOfSessionKey === "string" ? entry.resetOfSessionKey : undefined,
           channel: derivedChannel,
           origin:
             originChannel ||

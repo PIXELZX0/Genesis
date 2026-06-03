@@ -2355,7 +2355,16 @@ describe("gateway server sessions", () => {
     expect(reset.ok).toBe(true);
     expect(reset.payload?.key).toBe("agent:ops:work");
     store = await readStore();
-    expect(Object.keys(store).toSorted()).toEqual(["agent:ops:work"]);
+    // Reset clears the alias and keeps the canonical live key, plus one preserved
+    // predecessor (`:reset:<oldId>`) so the prior conversation stays readable.
+    const keysAfterReset = Object.keys(store).toSorted();
+    expect(keysAfterReset).toContain("agent:ops:work");
+    const resetHistoryKeys = keysAfterReset.filter((key) =>
+      key.startsWith("agent:ops:work:reset:"),
+    );
+    expect(resetHistoryKeys).toHaveLength(1);
+    expect(store[resetHistoryKeys[0]]?.resetHistory).toBe(true);
+    expect(keysAfterReset).toHaveLength(2);
 
     ws.close();
   });

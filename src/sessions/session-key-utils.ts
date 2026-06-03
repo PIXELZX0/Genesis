@@ -63,6 +63,19 @@ export function isCronSessionKey(sessionKey: string | undefined | null): boolean
   return normalizeOptionalLowercaseString(parsed.rest)?.startsWith("cron:") === true;
 }
 
+/**
+ * Preserved predecessor sessions captured on `/new` / `/reset` are re-keyed as
+ * `<baseSessionKey>:reset:<oldSessionId>`. The session id is a UUID (no colons),
+ * so the marker is the trailing `:reset:<id>` segment.
+ */
+export function isResetHistorySessionKey(sessionKey: string | undefined | null): boolean {
+  const parsed = parseAgentSessionKey(sessionKey);
+  if (!parsed) {
+    return false;
+  }
+  return /:reset:[^:]+$/.test(normalizeOptionalLowercaseString(parsed.rest) ?? "");
+}
+
 export function isSubagentSessionKey(sessionKey: string | undefined | null): boolean {
   const raw = normalizeOptionalString(sessionKey);
   if (!raw) {
