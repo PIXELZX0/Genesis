@@ -1,5 +1,5 @@
 import type { SkillCommandSpec } from "../agents/skills/types.js";
-import { isCommandFlagEnabled } from "../config/commands.flags.js";
+import { isCommandFlagEnabled, isMcpCommandEnabled } from "../config/commands.flags.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { getChatCommands } from "./commands-registry.data.js";
 import type { ChatCommandDefinition } from "./commands-registry.types.js";
@@ -35,7 +35,7 @@ export function isCommandEnabled(cfg: GenesisConfig, commandKey: string): boolea
     return isCommandFlagEnabled(cfg, "config");
   }
   if (commandKey === "mcp") {
-    return isCommandFlagEnabled(cfg, "mcp");
+    return isMcpCommandEnabled(cfg);
   }
   if (commandKey === "plugins") {
     return isCommandFlagEnabled(cfg, "plugins");

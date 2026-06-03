@@ -20473,7 +20473,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             type: "boolean",
             title: "Allow /mcp",
             description:
-              "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
+              "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: true; set false to disable).",
           },
           plugins: {
             type: "boolean",
@@ -28258,7 +28258,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "commands.mcp": {
       label: "Allow /mcp",
-      help: "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: false).",
+      help: "Allow /mcp chat command to manage Genesis MCP server config under mcp.servers (default: true; set false to disable).",
       tags: ["advanced"],
     },
     "commands.plugins": {

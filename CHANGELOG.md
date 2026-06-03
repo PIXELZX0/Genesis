@@ -4,6 +4,12 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## 2026.6.3
 
+### Changes
+
+- Control UI: add an MCP page under the Agents section to add, edit, and remove MCP (Model Context Protocol) servers without leaving the panel.
+- MCP: built-in MCP server management is enabled by default — the `/mcp` chat command no longer requires setting `commands.mcp: true` (set it to `false` to opt out). Writes still require owner plus `operator.admin`.
+- Skills: remove the bundled `mcporter` skill; MCP servers are now managed natively through the Control UI, the `/mcp` command, and `genesis mcp`.
+
 ### Fixes
 
 - Control UI: restore the Node target dropdown in Exec approvals by adding `system.execApprovals.get` and `system.execApprovals.set` to the node default command allowlist.

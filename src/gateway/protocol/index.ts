@@ -299,6 +299,15 @@ import {
   type ToolsCatalogParams,
   ToolsCatalogParamsSchema,
   type ToolsCatalogResult,
+  type McpServerConfig,
+  type McpServersListParams,
+  McpServersListParamsSchema,
+  type McpServerSetParams,
+  McpServerSetParamsSchema,
+  type McpServerUnsetParams,
+  McpServerUnsetParamsSchema,
+  type McpServersResult,
+  McpServersResultSchema,
   type ToolsEffectiveParams,
   ToolsEffectiveParamsSchema,
   type ToolsEffectiveResult,
@@ -516,6 +525,13 @@ export const validateChannelsLogoutParams = ajv.compile<ChannelsLogoutParams>(
 export const validateModelsListParams = ajv.compile<ModelsListParams>(ModelsListParamsSchema);
 export const validateSkillsStatusParams = ajv.compile<SkillsStatusParams>(SkillsStatusParamsSchema);
 export const validateToolsCatalogParams = ajv.compile<ToolsCatalogParams>(ToolsCatalogParamsSchema);
+export const validateMcpServersListParams = ajv.compile<McpServersListParams>(
+  McpServersListParamsSchema,
+);
+export const validateMcpServerSetParams = ajv.compile<McpServerSetParams>(McpServerSetParamsSchema);
+export const validateMcpServerUnsetParams = ajv.compile<McpServerUnsetParams>(
+  McpServerUnsetParamsSchema,
+);
 export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
   ToolsEffectiveParamsSchema,
 );
@@ -760,6 +776,10 @@ export {
   ModelsListParamsSchema,
   SkillsStatusParamsSchema,
   ToolsCatalogParamsSchema,
+  McpServersListParamsSchema,
+  McpServerSetParamsSchema,
+  McpServerUnsetParamsSchema,
+  McpServersResultSchema,
   ToolsEffectiveParamsSchema,
   SkillsInstallParamsSchema,
   SkillsSearchParamsSchema,
@@ -880,6 +900,11 @@ export type {
   SkillsStatusParams,
   ToolsCatalogParams,
   ToolsCatalogResult,
+  McpServerConfig,
+  McpServersListParams,
+  McpServerSetParams,
+  McpServerUnsetParams,
+  McpServersResult,
   ToolsEffectiveParams,
   ToolsEffectiveResult,
   SkillsBinsParams,

@@ -26,3 +26,11 @@ export function isCommandFlagEnabled(
 export function isRestartEnabled(config?: { commands?: unknown }): boolean {
   return getOwnCommandFlagValue(config, "restart") !== false;
 }
+
+/**
+ * `/mcp` MCP server management is built-in and enabled by default; only an
+ * explicit `commands.mcp: false` disables it. Mirrors {@link isRestartEnabled}.
+ */
+export function isMcpCommandEnabled(config?: { commands?: unknown }): boolean {
+  return getOwnCommandFlagValue(config, "mcp") !== false;
+}

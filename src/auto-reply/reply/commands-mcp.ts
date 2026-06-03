@@ -1,3 +1,4 @@
+import { isMcpCommandEnabled } from "../../config/commands.flags.js";
 import {
   listConfiguredMcpServers,
   setConfiguredMcpServer,
@@ -5,9 +6,9 @@ import {
 } from "../../config/mcp-config.js";
 import { isInternalMessageChannel } from "../../utils/message-channel.js";
 import {
+  buildDisabledCommandReply,
   rejectNonOwnerCommand,
   rejectUnauthorizedCommand,
-  requireCommandFlagEnabled,
   requireGatewayClientScopeForInternalChannel,
 } from "./command-gates.js";
 import type { CommandHandler } from "./commands-types.js";
@@ -35,12 +36,11 @@ export const handleMcpCommand: CommandHandler = async (params, allowTextCommands
   if (nonOwner) {
     return nonOwner;
   }
-  const disabled = requireCommandFlagEnabled(params.cfg, {
-    label: "/mcp",
-    configKey: "mcp",
-  });
-  if (disabled) {
-    return disabled;
+  if (!isMcpCommandEnabled(params.cfg)) {
+    return {
+      shouldContinue: false,
+      reply: buildDisabledCommandReply({ label: "/mcp", configKey: "mcp" }),
+    };
   }
   if (mcpCommand.action === "error") {
     return {

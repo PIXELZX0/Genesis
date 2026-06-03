@@ -19,6 +19,7 @@ import { doctorHandlers } from "./server-methods/doctor.js";
 import { execApprovalsHandlers } from "./server-methods/exec-approvals.js";
 import { healthHandlers } from "./server-methods/health.js";
 import { logsHandlers } from "./server-methods/logs.js";
+import { mcpHandlers } from "./server-methods/mcp.js";
 import { modelsAuthStatusHandlers } from "./server-methods/models-auth-status.js";
 import { modelsHandlers } from "./server-methods/models.js";
 import { nativeHookRelayHandlers } from "./server-methods/native-hook-relay.js";
@@ -95,6 +96,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...talkHandlers,
   ...toolsCatalogHandlers,
   ...toolsEffectiveHandlers,
+  ...mcpHandlers,
   ...ttsHandlers,
   ...skillsHandlers,
   ...sessionsHandlers,

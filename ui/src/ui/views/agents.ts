@@ -13,6 +13,7 @@ import type {
   ToolsCatalogResult,
   ToolsEffectiveResult,
 } from "../types.ts";
+import { renderAgentMcp } from "./agents-panels-mcp.ts";
 import { renderAgentOverview } from "./agents-panels-overview.ts";
 import {
   renderAgentFiles,
@@ -75,6 +76,17 @@ export type ToolsEffectiveState = {
   result: ToolsEffectiveResult | null;
 };
 
+export type McpPanelState = {
+  servers: Record<string, Record<string, unknown>> | null;
+  path: string | null;
+  loading: boolean;
+  error: string | null;
+  busy: boolean;
+  message: { kind: "success" | "error"; text: string } | null;
+  draftName: string;
+  draftConfig: string;
+};
+
 export type AgentsProps = {
   basePath: string;
   connected: boolean;
@@ -93,6 +105,7 @@ export type AgentsProps = {
   agentSkills: AgentSkillsState;
   toolsCatalog: ToolsCatalogState;
   toolsEffective: ToolsEffectiveState;
+  mcp: McpPanelState;
   runtimeSessionKey: string;
   runtimeSessionMatchesSelectedAgent: boolean;
   modelCatalog: ModelCatalogEntry[];
@@ -128,6 +141,12 @@ export type AgentsProps = {
   onAgentSkillToggle: (agentId: string, skillName: string, enabled: boolean) => void;
   onAgentSkillsClear: (agentId: string) => void;
   onAgentSkillsDisableAll: (agentId: string) => void;
+  onMcpRefresh: () => void;
+  onMcpDraftNameChange: (value: string) => void;
+  onMcpDraftConfigChange: (value: string) => void;
+  onMcpEdit: (name: string) => void;
+  onMcpSave: () => void;
+  onMcpDelete: (name: string) => void;
   onSetDefault: (agentId: string) => void;
 };
 
@@ -152,6 +171,7 @@ export function renderAgents(props: AgentsProps) {
   const tabCounts: Record<string, number | null> = {
     files: props.agentFiles.list?.files?.length ?? null,
     skills: selectedSkillCount,
+    mcp: props.mcp.servers ? Object.keys(props.mcp.servers).length : null,
     channels: channelEntryCount,
     cron: cronJobCount || null,
   };
@@ -322,6 +342,24 @@ export function renderAgents(props: AgentsProps) {
                     onConfigSave: props.onConfigSave,
                   })
                 : nothing}
+              ${props.activePanel === "mcp"
+                ? renderAgentMcp({
+                    servers: props.mcp.servers,
+                    path: props.mcp.path,
+                    loading: props.mcp.loading,
+                    error: props.mcp.error,
+                    busy: props.mcp.busy,
+                    message: props.mcp.message,
+                    draftName: props.mcp.draftName,
+                    draftConfig: props.mcp.draftConfig,
+                    onRefresh: props.onMcpRefresh,
+                    onDraftNameChange: props.onMcpDraftNameChange,
+                    onDraftConfigChange: props.onMcpDraftConfigChange,
+                    onEdit: props.onMcpEdit,
+                    onSave: props.onMcpSave,
+                    onDelete: props.onMcpDelete,
+                  })
+                : nothing}
               ${props.activePanel === "channels"
                 ? renderAgentChannels({
                     context: buildAgentContext(
@@ -375,6 +413,7 @@ function renderAgentTabs(
     { id: "files", label: "Files" },
     { id: "tools", label: "Tools" },
     { id: "skills", label: "Skills" },
+    { id: "mcp", label: "MCP" },
     { id: "channels", label: "Channels" },
     { id: "cron", label: "Cron Jobs" },
   ];

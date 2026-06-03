@@ -361,7 +361,8 @@ export class GenesisApp extends LitElement {
   @state() toolsEffectiveResultKey: string | null = null;
   @state() toolsEffectiveError: string | null = null;
   @state() toolsEffectiveResult: ToolsEffectiveResult | null = null;
-  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron" = "files";
+  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "mcp" | "channels" | "cron" =
+    "files";
   @state() agentFilesLoading = false;
   @state() agentFilesError: string | null = null;
   @state() agentFilesList: AgentsFilesListResult | null = null;
@@ -376,6 +377,14 @@ export class GenesisApp extends LitElement {
   @state() agentSkillsError: string | null = null;
   @state() agentSkillsReport: SkillStatusReport | null = null;
   @state() agentSkillsAgentId: string | null = null;
+  @state() mcpServersLoading = false;
+  @state() mcpServers: Record<string, Record<string, unknown>> | null = null;
+  @state() mcpServersPath: string | null = null;
+  @state() mcpServersError: string | null = null;
+  @state() mcpBusy = false;
+  @state() mcpMessage: { kind: "success" | "error"; text: string } | null = null;
+  @state() mcpDraftName = "";
+  @state() mcpDraftConfig = "";
 
   @state() sessionsLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
