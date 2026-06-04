@@ -379,6 +379,10 @@ Important behavior:
 - session-scoped bundled MCP runtimes are reaped after `mcp.sessionIdleTtlMs`
   milliseconds of idle time (default 10 minutes; set `0` to disable) and
   one-shot embedded runs clean them up at run end
+- editing `mcp.*` config (via `set`, `unset`, the Control UI, or a direct
+  `genesis.json` edit) hot-reloads without restarting the gateway: the runtime
+  config snapshot is swapped in place and each session rebuilds its MCP clients
+  on its next turn, so in-flight work is not interrupted
 
 ## Saved MCP server definitions
 

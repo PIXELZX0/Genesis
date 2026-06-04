@@ -372,6 +372,36 @@ describe("buildGatewayReloadPlan", () => {
     expect(plan.noopPaths).toContain("skills.entries.github.enabled");
   });
 
+  it("hot-reloads MCP server config changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan(["mcp.servers.context7.url"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toContain("mcp.servers.context7.url");
+    expect(plan.noopPaths).toEqual([]);
+  });
+
+  it("hot-reloads MCP session idle TTL changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan(["mcp.sessionIdleTtlMs"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toContain("mcp.sessionIdleTtlMs");
+  });
+
+  it.each([
+    "commands.mcp",
+    "commands.ownerDisplay",
+    "commands.nativeSkills",
+    "surfaces.telegram.silentReply",
+    "silentReply.mode",
+    "silentReplyRewrite.enabled",
+  ])(
+    "treats command gating and reply-policy change %s as no-op for gateway restart planning",
+    (path) => {
+      const plan = buildGatewayReloadPlan([path]);
+      expect(plan.restartGateway).toBe(false);
+      expect(plan.hotReasons).toEqual([]);
+      expect(plan.noopPaths).toContain(path);
+    },
+  );
+
   it("treats agent skill allowlist changes as no-op for gateway restart planning", () => {
     const plan = buildGatewayReloadPlan(["agents.list[0].skills[0]"]);
     expect(plan.restartGateway).toBe(false);

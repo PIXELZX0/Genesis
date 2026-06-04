@@ -92,6 +92,15 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
   },
   { prefix: "agent.heartbeat", kind: "hot", actions: ["restart-heartbeat"] },
   { prefix: "cron", kind: "hot", actions: ["restart-cron"] },
+  // MCP server definitions are consumed per session by the embedded runner's
+  // bundle MCP runtime, which is keyed on a config fingerprint and disposes +
+  // rebuilds its clients when `mcp.servers` changes (see
+  // pi-bundle-mcp-runtime getOrCreate). A hot reload swaps the runtime config
+  // snapshot so the next turn picks up the new servers without a gateway
+  // restart; this covers external genesis.json edits as well as in-process
+  // `/mcp` writes. No dedicated action is needed because the runtime reloads
+  // itself lazily on the next turn.
+  { prefix: "mcp", kind: "hot" },
 ];
 
 const BASE_RELOAD_RULES_TAIL: ReloadRule[] = [
@@ -106,6 +115,13 @@ const BASE_RELOAD_RULES_TAIL: ReloadRule[] = [
   { prefix: "agent", kind: "none" },
   { prefix: "routing", kind: "none" },
   { prefix: "messages", kind: "none" },
+  // Command gating, surface overrides, and silent-reply policy are read per
+  // operation from the threaded config (no runtime service or boot binding),
+  // so an in-process edit applies on the next turn without a gateway restart.
+  { prefix: "commands", kind: "none" },
+  { prefix: "surfaces", kind: "none" },
+  { prefix: "silentReply", kind: "none" },
+  { prefix: "silentReplyRewrite", kind: "none" },
   { prefix: "session", kind: "none" },
   { prefix: "talk", kind: "none" },
   { prefix: "skills", kind: "none" },
