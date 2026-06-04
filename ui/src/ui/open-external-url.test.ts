@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { openExternalUrlSafe, resolveSafeExternalUrl } from "./open-external-url.ts";
+import {
+  openExternalUrlSafe,
+  openPopupWindowSafe,
+  resolveSafeExternalUrl,
+} from "./open-external-url.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -104,5 +108,43 @@ describe("openExternalUrlSafe", () => {
     );
     expect(opened).toBe(openedLikeProxy);
     expect(openedLikeProxy.opener).toBeNull();
+  });
+});
+
+describe("openPopupWindowSafe", () => {
+  it("forwards the named target and features and returns the live handle", () => {
+    const opener = { postMessage: () => void 0 };
+    const popupLike = { opener, close: () => void 0 } as unknown as WindowProxy;
+    const openMock = vi
+      .spyOn(window, "open")
+      .mockImplementation(() => popupLike as unknown as Window);
+
+    const popup = openPopupWindowSafe(
+      "https://auth.example.com/authorize?x=1",
+      "mcp-oauth-server",
+      "width=520,height=720,noopener=no",
+      { baseHref: "https://genesis.pixelzx.com/chat" },
+    );
+
+    expect(openMock).toHaveBeenCalledWith(
+      "https://auth.example.com/authorize?x=1",
+      "mcp-oauth-server",
+      "width=520,height=720,noopener=no",
+    );
+    // Handle retained for cancelMcpOAuth(); opener left intact so the callback
+    // page can window.opener.postMessage(...) back.
+    expect(popup).toBe(popupLike);
+    expect(popupLike.opener).toBe(opener);
+  });
+
+  it("returns null and never opens a window for an unsafe URL", () => {
+    const openMock = vi.spyOn(window, "open").mockImplementation(() => null);
+
+    const popup = openPopupWindowSafe("javascript:alert(1)", "mcp-oauth-server", "width=520", {
+      baseHref: "https://genesis.pixelzx.com/chat",
+    });
+
+    expect(popup).toBeNull();
+    expect(openMock).not.toHaveBeenCalled();
   });
 });

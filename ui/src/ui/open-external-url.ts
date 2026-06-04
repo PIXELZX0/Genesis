@@ -75,3 +75,32 @@ export function openExternalUrlSafe(
   }
   return opened;
 }
+
+export type OpenPopupWindowSafeOptions = ResolveSafeExternalUrlOptions & {
+  baseHref?: string;
+};
+
+/**
+ * Open a named popup window for a trusted interactive flow (e.g. the MCP OAuth
+ * authorization popup) while applying the same URL-scheme safety checks as
+ * {@link openExternalUrlSafe}.
+ *
+ * Unlike {@link openExternalUrlSafe}, this preserves the returned window handle
+ * and its live `opener` link: the OAuth callback page posts its result back via
+ * `window.opener.postMessage`, and the caller keeps the handle to size, close,
+ * or identity-check the popup. Pass `target` (named window) and `features`
+ * (e.g. sizing plus `noopener=no`) exactly as you would to `window.open`.
+ */
+export function openPopupWindowSafe(
+  rawUrl: string,
+  target: string,
+  features: string,
+  opts: OpenPopupWindowSafeOptions = {},
+): WindowProxy | null {
+  const baseHref = opts.baseHref ?? window.location.href;
+  const safeUrl = resolveSafeExternalUrl(rawUrl, baseHref, opts);
+  if (!safeUrl) {
+    return null;
+  }
+  return window.open(safeUrl, target, features);
+}

@@ -149,6 +149,7 @@ import {
 } from "./controllers/skills.ts";
 import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
+import { openPopupWindowSafe } from "./open-external-url.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
 import "./components/dashboard-header.ts";
@@ -282,7 +283,7 @@ async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {
     return;
   }
   state.mcpOAuthFlow = flow;
-  const popup = window.open(
+  const popup = openPopupWindowSafe(
     flow.authorizeUrl,
     `mcp-oauth-${encodeURIComponent(name)}`,
     "width=520,height=720,noopener=no",
