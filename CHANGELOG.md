@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.4-1
+
+### Changes
+
+- MCP: Control UI now shows a **Presets** tab when adding a new MCP server — one-click configs for Notion, Linear, and Sentry (OAuth), GitHub (PAT bearer token), and Context7 (no auth required). An optional auth-token field on the link and preset flows is saved as an `Authorization: Bearer` header on the server config.
+
+### Fixes
+
+- MCP: the gateway no longer fails on startup when reading the Control UI base path; `server-startup-early` now reads from `gateway.controlUi.basePath` (the correct key) instead of the nonexistent `daemon` key. This bug was introduced in 2026.6.4 and masked by a stale local tsgo cache.
+- MCP: OAuth popup now opens through a validated safe helper (`openPopupWindowSafe`) — the popup handle and its opener are preserved so the callback page can post the authorization code back and `cancelMcpOAuth` can close the popup.
+
 ## 2026.6.4
 
 ### Changes
