@@ -386,7 +386,9 @@ export class GenesisApp extends LitElement {
   @state() mcpMessage: { kind: "success" | "error"; text: string } | null = null;
   @state() mcpDraftName = "";
   @state() mcpDraftConfig = "";
-  @state() mcpAddMode: "link" | "json" = "link";
+  @state() mcpAddMode: "preset" | "link" | "json" = "preset";
+  @state() mcpAuthToken = "";
+  @state() mcpPresetId: string | null = null;
   @state() mcpLinkUrl = "";
   @state() mcpLinkMetadataLoading = false;
   @state() mcpLinkMetadataError: string | null = null;

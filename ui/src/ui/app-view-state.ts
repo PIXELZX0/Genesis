@@ -268,7 +268,9 @@ export type AppViewState = {
   mcpMessage: { kind: "success" | "error"; text: string } | null;
   mcpDraftName: string;
   mcpDraftConfig: string;
-  mcpAddMode: "link" | "json";
+  mcpAddMode: "preset" | "link" | "json";
+  mcpAuthToken: string;
+  mcpPresetId: string | null;
   mcpLinkUrl: string;
   mcpLinkMetadataLoading: boolean;
   mcpLinkMetadataError: string | null;

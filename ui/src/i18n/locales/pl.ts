@@ -211,8 +211,21 @@ export const pl: TranslationMap = {
     subtitle: "Manage Model Context Protocol servers available to this Gateway.",
     add: {
       title: "Add MCP server",
+      tabPreset: "Presets",
       tabLink: "By link",
       tabJson: "By JSON",
+      token: {
+        label: "Auth token",
+        placeholder: "Paste an access token",
+        hint: "Optional. Sent as the Authorization: Bearer header with every request.",
+      },
+      preset: {
+        intro: "Pick a popular MCP server to add in one step.",
+        selected: "Configure {label}",
+        oauthNote: "Uses OAuth. Save, then click Connect to authorize in your browser.",
+        tokenDocs: "Where do I get a token?",
+        save: "Add server",
+      },
       link: {
         label: "Server URL",
         placeholder: "https://mcp.example.com",

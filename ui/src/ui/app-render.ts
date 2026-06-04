@@ -149,11 +149,11 @@ import {
 } from "./controllers/skills.ts";
 import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
-import { openPopupWindowSafe } from "./open-external-url.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
-import "./components/dashboard-header.ts";
+import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
+import "./components/dashboard-header.ts";
 import {
   buildAgentMainSessionKey,
   parseAgentSessionKey,
@@ -186,6 +186,7 @@ import { renderDreaming } from "./views/dreaming.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
+import { buildMcpPresetConfig, withBearerToken } from "./views/mcp-presets.ts";
 import { renderOverview } from "./views/overview.ts";
 
 function loadSessionsForSessionView(state: AppViewState): Promise<void> {
@@ -2403,6 +2404,8 @@ export function renderApp(state: AppViewState) {
                 linkMetadata: state.mcpLinkMetadata,
                 draftName: state.mcpDraftName,
                 draftConfig: state.mcpDraftConfig,
+                authToken: state.mcpAuthToken,
+                presetId: state.mcpPresetId,
                 oauthStatus: state.mcpOAuthStatus,
                 oauthFlow: state.mcpOAuthFlow,
                 testStatus: state.mcpTestStatus,
@@ -2422,6 +2425,26 @@ export function renderApp(state: AppViewState) {
                 },
                 onDraftConfigChange: (value) => {
                   state.mcpDraftConfig = value;
+                },
+                onAuthTokenChange: (value) => {
+                  state.mcpAuthToken = value;
+                },
+                onPresetSelect: (preset) => {
+                  state.mcpPresetId = preset.id;
+                  state.mcpDraftName = preset.name;
+                  state.mcpAuthToken = "";
+                  state.mcpMessage = null;
+                },
+                onPresetSave: (preset) => {
+                  const name = state.mcpDraftName.trim() || preset.name;
+                  const config = buildMcpPresetConfig(preset, state.mcpAuthToken);
+                  state.mcpDraftName = name;
+                  void saveMcpServer(state, name, config).then(() => {
+                    if (state.mcpMessage?.kind === "success") {
+                      state.mcpPresetId = null;
+                      void loadMcpOAuthStatuses(state);
+                    }
+                  });
                 },
                 onEdit: (name) => {
                   state.mcpAddMode = "json";
@@ -2450,7 +2473,7 @@ export function renderApp(state: AppViewState) {
                 },
                 onSaveMetadata: (metadata) => {
                   const name = state.mcpDraftName.trim() || metadata.name;
-                  const config: Record<string, unknown> = {
+                  let config: Record<string, unknown> = {
                     url: metadata.url,
                     transport: metadata.transport,
                   };
@@ -2458,6 +2481,8 @@ export function renderApp(state: AppViewState) {
                     config.auth = { type: "oauth", issuer: metadata.oauthIssuer };
                   } else if (metadata.oauth) {
                     config.auth = { type: "oauth" };
+                  } else {
+                    config = withBearerToken(config, state.mcpAuthToken);
                   }
                   state.mcpDraftName = name;
                   state.mcpDraftConfig = JSON.stringify(config, null, 2);

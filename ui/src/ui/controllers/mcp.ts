@@ -19,6 +19,7 @@ export type McpState = {
   mcpMessage: McpMessage | null;
   mcpDraftName: string;
   mcpDraftConfig: string;
+  mcpAuthToken: string;
   mcpLinkUrl: string;
   mcpLinkMetadataLoading: boolean;
   mcpLinkMetadataError: string | null;
@@ -154,6 +155,7 @@ export async function saveMcpServer(
     state.mcpMessage = { kind: "success", text: `Saved MCP server "${trimmed}".` };
     state.mcpDraftName = "";
     state.mcpDraftConfig = "";
+    state.mcpAuthToken = "";
   } catch (err) {
     state.mcpMessage = { kind: "error", text: getErrorMessage(err) };
   } finally {

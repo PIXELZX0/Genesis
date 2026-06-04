@@ -15,6 +15,7 @@ function createState(request: RequestFn, overrides: Partial<McpState> = {}): Mcp
     mcpMessage: null,
     mcpDraftName: "",
     mcpDraftConfig: "",
+    mcpAuthToken: "",
     mcpLinkUrl: "",
     mcpLinkMetadataLoading: false,
     mcpLinkMetadataError: null,

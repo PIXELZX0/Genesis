@@ -8,6 +8,9 @@ import type {
   McpServerMetadata,
   McpServersMap,
 } from "../controllers/mcp.ts";
+import { MCP_PRESETS, type McpPreset } from "./mcp-presets.ts";
+
+export type McpAddMode = "preset" | "link" | "json";
 
 export type McpProps = {
   connected: boolean;
@@ -17,23 +20,30 @@ export type McpProps = {
   error: string | null;
   busy: boolean;
   message: McpMessage | null;
-  addMode: "link" | "json";
+  addMode: McpAddMode;
   linkUrl: string;
   linkLoading: boolean;
   linkError: string | null;
   linkMetadata: McpServerMetadata | null;
   draftName: string;
   draftConfig: string;
+  /** Operator-supplied bearer token, shared by the link preview and presets. */
+  authToken: string;
+  /** Id of the currently selected preset, if any. */
+  presetId: string | null;
   oauthStatus: Record<string, McpOAuthStatus>;
   oauthFlow: McpOAuthFlow | null;
   testStatus: Record<string, { ok: boolean; message: string } | null>;
-  onAddModeChange: (mode: "link" | "json") => void;
+  onAddModeChange: (mode: McpAddMode) => void;
   onLinkUrlChange: (next: string) => void;
   onLinkFetch: () => void;
   onLinkClear: () => void;
   onRefresh: () => void;
   onDraftNameChange: (value: string) => void;
   onDraftConfigChange: (value: string) => void;
+  onAuthTokenChange: (value: string) => void;
+  onPresetSelect: (preset: McpPreset) => void;
+  onPresetSave: (preset: McpPreset) => void;
   onEdit: (name: string) => void;
   onSave: () => void;
   onSaveMetadata: (metadata: McpServerMetadata) => void;
@@ -58,17 +68,22 @@ function summarizeTransport(server: Record<string, unknown>): string {
   return "—";
 }
 
-function authBadgeFor(name: string, status: McpOAuthStatus | undefined) {
-  if (!status) {
-    return nothing;
+function serverDeclaresOauth(server: Record<string, unknown>): boolean {
+  const auth = server.auth;
+  if (!auth || typeof auth !== "object") {
+    return false;
   }
-  if (status.connected) {
+  return (auth as Record<string, unknown>).type === "oauth";
+}
+
+function authBadgeFor(status: McpOAuthStatus | undefined, declaresOauth: boolean) {
+  if (status?.connected) {
     return html`<span class="chip chip-ok">${t("mcpView.list.connected")}</span>`;
   }
-  if (status.requiresAuth) {
+  if (declaresOauth || status?.requiresAuth) {
     return html`<span class="chip chip-warn">${t("mcpView.list.oauthRequired")}</span>`;
   }
-  return html`<span class="chip">${t("mcpView.list.notConnected")}</span>`;
+  return nothing;
 }
 
 const EXAMPLE_CONFIG = `{
@@ -141,6 +156,13 @@ function renderAddPanel(props: McpProps, canSaveJson: boolean) {
         <div style="font-weight: 600;">${t("mcpView.add.title")}</div>
         <div style="display: flex; gap: 6px; margin-left: auto;">
           <button
+            class="btn btn--sm ${props.addMode === "preset" ? "primary" : "ghost"}"
+            @click=${() => props.onAddModeChange("preset")}
+            type="button"
+          >
+            ${t("mcpView.add.tabPreset")}
+          </button>
+          <button
             class="btn btn--sm ${props.addMode === "link" ? "primary" : "ghost"}"
             @click=${() => props.onAddModeChange("link")}
             type="button"
@@ -156,7 +178,11 @@ function renderAddPanel(props: McpProps, canSaveJson: boolean) {
           </button>
         </div>
       </div>
-      ${props.addMode === "link" ? renderLinkForm(props) : renderJsonForm(props, canSaveJson)}
+      ${props.addMode === "preset"
+        ? renderPresetForm(props)
+        : props.addMode === "link"
+          ? renderLinkForm(props)
+          : renderJsonForm(props, canSaveJson)}
     </div>
   `;
 }
@@ -260,6 +286,12 @@ function renderMetadataPreview(props: McpProps) {
             `
           : nothing}
       </div>
+      ${metadata.oauth
+        ? nothing
+        : renderAuthTokenField(props, {
+            label: t("mcpView.add.token.label"),
+            hint: t("mcpView.add.token.hint"),
+          })}
       <div style="display: flex; gap: 8px; margin-top: 12px;">
         <button
           class="btn btn--sm primary"
@@ -270,6 +302,118 @@ function renderMetadataPreview(props: McpProps) {
         </button>
         <button class="btn btn--sm ghost" @click=${props.onLinkClear}>
           ${t("mcpView.add.link.cancel")}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/** Reusable password-style token input. Used by the link preview and presets. */
+function renderAuthTokenField(props: McpProps, opts: { label: string; hint: string }) {
+  return html`
+    <label class="field" style="margin-top: 12px;">
+      <span>${opts.label}</span>
+      <input
+        type="password"
+        .value=${props.authToken}
+        @input=${(e: Event) => props.onAuthTokenChange((e.target as HTMLInputElement).value)}
+        placeholder=${t("mcpView.add.token.placeholder")}
+        autocomplete="off"
+        name="mcp-auth-token"
+        spellcheck="false"
+      />
+    </label>
+    <div class="muted" style="font-size: 13px; margin-top: 4px;">${opts.hint}</div>
+  `;
+}
+
+function renderPresetForm(props: McpProps) {
+  const selected = MCP_PRESETS.find((p) => p.id === props.presetId);
+  return html`
+    <div>
+      <div class="muted" style="font-size: 13px; margin-bottom: 12px;">
+        ${t("mcpView.add.preset.intro")}
+      </div>
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;"
+      >
+        ${MCP_PRESETS.map((preset) => {
+          const active = preset.id === props.presetId;
+          return html`
+            <button
+              class="btn ${active ? "primary" : "ghost"}"
+              type="button"
+              style="display: flex; align-items: flex-start; gap: 8px; text-align: left; padding: 10px 12px; height: auto;"
+              @click=${() => props.onPresetSelect(preset)}
+            >
+              <span style="font-size: 18px; line-height: 1;">${preset.icon}</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-weight: 600;">${preset.label}</span>
+                <span class="muted" style="font-size: 12px; white-space: normal;"
+                  >${preset.description}</span
+                >
+              </span>
+            </button>
+          `;
+        })}
+      </div>
+      ${selected ? renderPresetDetail(props, selected) : nothing}
+    </div>
+  `;
+}
+
+function renderPresetDetail(props: McpProps, preset: McpPreset) {
+  const isBearer = preset.authKind === "bearer";
+  const tokenLabel = preset.tokenLabel ?? t("mcpView.add.token.label");
+  return html`
+    <div
+      style="margin-top: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 6px;"
+    >
+      <div style="font-weight: 600; margin-bottom: 6px;">
+        ${t("mcpView.add.preset.selected", { label: preset.label })}
+      </div>
+      <div style="display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px;">
+        <div class="muted">${t("mcpView.add.link.nameLabel")}</div>
+        <div>
+          <input
+            .value=${props.draftName || preset.name}
+            @input=${(e: Event) => props.onDraftNameChange((e.target as HTMLInputElement).value)}
+            autocomplete="off"
+            name="mcp-preset-name"
+          />
+        </div>
+        <div class="muted">${t("mcpView.add.link.transportLabel")}</div>
+        <div class="mono" style="overflow-wrap: anywhere;">${preset.transport}</div>
+        <div class="muted">URL</div>
+        <div class="mono" style="overflow-wrap: anywhere;">${preset.url}</div>
+      </div>
+      ${isBearer
+        ? html`
+            ${renderAuthTokenField(props, {
+              label: tokenLabel,
+              hint: t("mcpView.add.token.hint"),
+            })}
+            ${preset.tokenDocsUrl
+              ? html`<div class="muted" style="font-size: 13px; margin-top: 4px;">
+                  <a href=${preset.tokenDocsUrl} target="_blank" rel="noopener noreferrer"
+                    >${t("mcpView.add.preset.tokenDocs")}</a
+                  >
+                </div>`
+              : nothing}
+          `
+        : nothing}
+      ${preset.authKind === "oauth"
+        ? html`<div class="callout info" style="margin-top: 12px;">
+            ${t("mcpView.add.preset.oauthNote")}
+          </div>`
+        : nothing}
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <button
+          class="btn btn--sm primary"
+          ?disabled=${props.busy || !props.connected}
+          @click=${() => props.onPresetSave(preset)}
+        >
+          ${props.busy ? t("common.loading") : t("mcpView.add.preset.save")}
         </button>
       </div>
     </div>
@@ -354,7 +498,8 @@ function renderOAuthBanner(props: McpProps) {
 function renderServerRow(name: string, server: Record<string, unknown>, props: McpProps) {
   const status = props.oauthStatus[name];
   const test = props.testStatus[name];
-  const isOauthServer = status?.requiresAuth ?? false;
+  const declaresOauth = serverDeclaresOauth(server);
+  const isOauthServer = declaresOauth || (status?.requiresAuth ?? false);
   return html`
     <div
       class="list-item"
@@ -365,7 +510,7 @@ function renderServerRow(name: string, server: Record<string, unknown>, props: M
           style="font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;"
         >
           <span>${name}</span>
-          ${authBadgeFor(name, status)}
+          ${authBadgeFor(status, declaresOauth)}
         </div>
         <div class="muted mono" style="overflow-wrap: anywhere;">${summarizeTransport(server)}</div>
         ${test
