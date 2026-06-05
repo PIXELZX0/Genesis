@@ -532,6 +532,27 @@ Add `--account <id>` when you want to target a named Matrix account explicitly.
 
 Matrix accepts `mxc://` avatar URLs directly. When you pass an `http://` or `https://` avatar URL, Genesis uploads it to Matrix first and stores the resolved `mxc://` URL back into `channels.matrix.avatarUrl` (or the selected account override).
 
+## Presence
+
+By default Genesis publishes `presence: "online"` to the homeserver once the Matrix client finishes its initial sync, so the bot no longer shows up as offline. Presence errors are non-fatal and never crash the monitor loop.
+
+You can change the published state with `channels.matrix.presence`:
+
+```json5
+{
+  channels: {
+    matrix: {
+      presence: {
+        state: "online", // "online" | "unavailable" | "offline"
+        statusMessage: "helping", // only sent when state is "online"
+      },
+    },
+  },
+}
+```
+
+`state` defaults to `"online"`. Use `"unavailable"` for the same self-chat push-notification pattern as the WhatsApp gateway, or `"offline"` to keep the bot quiet after startup. `statusMessage` is trimmed and ignored when empty or when the state is not `"online"`. The same shape is accepted under `channels.matrix.accounts.<id>.presence`.
+
 ## Threads
 
 Matrix supports native Matrix threads for both automatic replies and message-tool sends.

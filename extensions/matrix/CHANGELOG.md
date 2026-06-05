@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.4.21
+
+### Fixes
+
+- Matrix/presence: publish `setPresence({ presence: "online" })` after the client finishes syncing so the bot no longer appears offline by default. Configurable via `channels.matrix.presence.{state,statusMessage}` (`"online" | "unavailable" | "offline"`, default `"online"`). Mirrors the Discord `autoPresence` default and WhatsApp self-chat presence fix.
+
 ## 2026.4.20
 
 ### Changes

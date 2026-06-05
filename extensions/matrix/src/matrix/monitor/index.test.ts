@@ -109,6 +109,9 @@ const hoisted = vi.hoisted(() => {
     (params: { abortSignal?: AbortSignal }) => Promise<void>
   >(async () => undefined);
   const setStatus = vi.fn();
+  const applyMatrixPresence = vi.fn<(params: { abortSignal?: AbortSignal }) => Promise<unknown>>(
+    async () => ({ applied: true, state: "online" }),
+  );
   return {
     acquireSharedMatrixClient,
     backfillMatrixAuthDeviceIdAfterStartup,
@@ -131,6 +134,7 @@ const hoisted = vi.hoisted(() => {
     setActiveMatrixClient,
     setMatrixRuntime,
     setStatus,
+    applyMatrixPresence,
     state,
     stopThreadBindingManager,
   };
@@ -389,6 +393,11 @@ vi.mock("./startup.js", () => ({
   runMatrixStartupMaintenance: hoisted.runMatrixStartupMaintenance,
 }));
 
+vi.mock("./presence.js", () => ({
+  applyMatrixPresence: (params: { abortSignal?: AbortSignal }) =>
+    hoisted.applyMatrixPresence(params),
+}));
+
 let monitorMatrixProvider: typeof import("./index.js").monitorMatrixProvider;
 
 describe("monitorMatrixProvider", () => {
@@ -480,6 +489,9 @@ describe("monitorMatrixProvider", () => {
     hoisted.runMatrixStartupMaintenance.mockReset().mockResolvedValue(undefined);
     hoisted.createMatrixRoomMessageHandler.mockReset().mockReturnValue(vi.fn());
     hoisted.setStatus.mockReset();
+    hoisted.applyMatrixPresence
+      .mockReset()
+      .mockImplementation(async () => ({ applied: true, state: "online" }));
     Object.values(hoisted.logger).forEach((mock) => mock.mockReset());
   });
 
@@ -521,6 +533,32 @@ describe("monitorMatrixProvider", () => {
         connected: true,
         healthState: "healthy",
         lastError: null,
+      }),
+    );
+
+    abortController.abort();
+    await expect(monitorPromise).resolves.toBeUndefined();
+  });
+
+  it("publishes presence after the client starts so the bot does not appear offline", async () => {
+    const abortController = new AbortController();
+    const monitorPromise = monitorMatrixProvider({
+      abortSignal: abortController.signal,
+      setStatus: hoisted.setStatus,
+    });
+
+    await waitForCallOrderEntry("start-client");
+    // presence is published fire-and-forget; wait a microtask queue spin
+    await flushUntil(
+      () => hoisted.applyMatrixPresence.mock.calls.length > 0,
+      "expected applyMatrixPresence to be called after the client started",
+    );
+
+    expect(hoisted.applyMatrixPresence).toHaveBeenCalledWith(
+      expect.objectContaining({
+        client: hoisted.client,
+        abortSignal: abortController.signal,
+        log: expect.objectContaining({ info: expect.any(Function) }),
       }),
     );
 

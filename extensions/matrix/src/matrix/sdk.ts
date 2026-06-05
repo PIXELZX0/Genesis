@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import { KeyedAsyncQueue } from "genesis/plugin-sdk/keyed-async-queue";
 import type { PinnedDispatcherPolicy } from "genesis/plugin-sdk/ssrf-dispatcher";
 import { normalizeNullableString } from "genesis/plugin-sdk/string-coerce-runtime";
+import type { IPresenceOpts } from "matrix-js-sdk";
 import {
   ClientEvent,
   Filter,
@@ -901,6 +902,10 @@ export class MatrixClient {
 
   async setAvatarUrl(avatarUrl: string): Promise<void> {
     await this.client.setAvatarUrl(avatarUrl);
+  }
+
+  async setPresence(opts: IPresenceOpts): Promise<void> {
+    await this.client.setPresence(opts);
   }
 
   async joinRoom(roomId: string): Promise<void> {

@@ -90,6 +90,21 @@ export type MatrixNetworkConfig = {
   dangerouslyAllowPrivateNetwork?: boolean;
 };
 
+export type MatrixPresenceState = "online" | "unavailable" | "offline";
+
+export type MatrixPresenceConfig = {
+  /**
+   * Matrix presence state to publish once the client is connected and syncing.
+   * - `"online"` (default): the homeserver shows the bot as actively online.
+   * - `"unavailable"`: the bot is signed in but idle (matches WhatsApp's
+   *   "self-chat" pattern; keeps push notifications flowing on personal accounts).
+   * - `"offline"`: explicit offline (rarely useful; usually leave unset).
+   */
+  state?: MatrixPresenceState;
+  /** Optional Matrix status message. Ignored unless `state === "online"`. */
+  statusMessage?: string;
+};
+
 /** Per-account Matrix config (excludes the accounts field to prevent recursion). */
 export type MatrixAccountConfig = Omit<MatrixConfig, "accounts">;
 
@@ -106,6 +121,12 @@ export type MatrixConfig = {
   homeserver?: string;
   /** Network policy overrides for trusted private/internal Matrix homeservers. */
   network?: MatrixNetworkConfig;
+  /**
+   * Presence state the bot publishes once it finishes syncing. When unset, the
+   * extension defaults to `state: "online"` so the bot no longer shows up as
+   * offline by default. Mirrors the Discord `autoPresence` default.
+   */
+  presence?: MatrixPresenceConfig;
   /** Optional HTTP(S) proxy URL for Matrix connections (e.g. http://127.0.0.1:7890). */
   proxy?: string;
   /** Matrix user id (@user:server). */

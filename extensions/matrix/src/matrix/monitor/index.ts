@@ -43,6 +43,7 @@ import {
   createMatrixInboundEventDeduper,
   type MatrixInboundEventDeduper,
 } from "./inbound-dedupe.js";
+import { applyMatrixPresence } from "./presence.js";
 import { shouldPromoteRecentInviteRoom } from "./recent-invite.js";
 import { createMatrixRoomInfoResolver } from "./room-info.js";
 import { runMatrixStartupMaintenance } from "./startup.js";
@@ -410,6 +411,21 @@ export async function monitorMatrixProvider(opts: MonitorMatrixOpts = {}): Promi
 
     // Shared client is already started via resolveSharedMatrixClient.
     logger.info(`matrix: logged in as ${auth.userId}`);
+    // Publish presence after the client is started so the homeserver stops
+    // showing the bot as offline. Fire-and-forget so presence failures never
+    // crash the monitor loop. Mirrors the Discord autoPresence-on-ready pattern.
+    void applyMatrixPresence({
+      client,
+      cfg,
+      abortSignal: opts.abortSignal,
+      log: {
+        info: logger.info,
+        warn: logger.warn,
+        ...(logger.debug ? { debug: logger.debug } : {}),
+      },
+    }).catch((err) => {
+      logVerboseMessage(`matrix: presence publish threw unexpectedly (${String(err)})`);
+    });
     void backfillMatrixAuthDeviceIdAfterStartup({
       auth,
       env: process.env,
