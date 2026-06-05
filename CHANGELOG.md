@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.6
+
+### Changes
+
+- Control UI: redesigned with a monochrome, iOS-style flat look. The Claw, Knot, and Dash color themes and the tweakcn custom-theme importer are replaced by a single black-and-white theme with light, dark, and system modes. Adds iOS-style segmented controls, grouped inset lists, sheet dialogs, and large page titles, and rounded corners now ship by default. Existing installs migrate to the monochrome theme automatically while keeping their light and dark preference.
+
 ## 2026.6.5
 
 ### Changes
