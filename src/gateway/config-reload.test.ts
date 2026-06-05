@@ -20,6 +20,7 @@ import { createTestRegistry } from "../test-utils/channel-plugins.js";
 import {
   buildGatewayReloadPlan,
   diffConfigPaths,
+  isNoopGatewayReloadPlan,
   listPluginInstallTimestampMetadataPaths,
   listPluginInstallWholeRecordPaths,
   resolveGatewayReloadSettings,
@@ -150,6 +151,83 @@ describe("diffConfigPaths", () => {
       "plugins.installs.lossless.resolvedAt",
       "plugins.installs.lossless.resolvedAt",
     ]);
+  });
+
+  it("captures new MCP server entries added under mcp.servers", () => {
+    const prev = {
+      mcp: { servers: { context7: { url: "https://example.com" } } },
+    };
+    const next = {
+      mcp: {
+        servers: {
+          context7: { url: "https://example.com" },
+          newServer: { command: "node", args: ["server.js"] },
+        },
+      },
+    };
+
+    const paths = diffConfigPaths(prev, next);
+    expect(paths).toContain("mcp.servers.newServer");
+    expect(paths).not.toContain("mcp.servers.context7.url");
+  });
+
+  it("captures new skill entries added under skills.entries", () => {
+    const prev = {
+      skills: { entries: { github: { enabled: true } } },
+    };
+    const next = {
+      skills: {
+        entries: {
+          github: { enabled: true },
+          newSkill: { enabled: true, apiKey: "x" },
+        },
+      },
+    };
+
+    const paths = diffConfigPaths(prev, next);
+    expect(paths).toContain("skills.entries.newSkill");
+    expect(paths).not.toContain("skills.entries.github.enabled");
+  });
+
+  it("captures modifications to existing MCP server fields", () => {
+    const prev = {
+      mcp: { servers: { context7: { url: "https://old.example.com" } } },
+    };
+    const next = {
+      mcp: { servers: { context7: { url: "https://new.example.com" } } },
+    };
+
+    expect(diffConfigPaths(prev, next)).toEqual(["mcp.servers.context7.url"]);
+  });
+
+  it("captures modifications to existing skill entry fields", () => {
+    const prev = {
+      skills: { entries: { github: { enabled: true, apiKey: "old" } } },
+    };
+    const next = {
+      skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+    };
+
+    expect(diffConfigPaths(prev, next)).toEqual(["skills.entries.github.apiKey"]);
+  });
+
+  it("captures mcp.metadataFetch and mcp.sessionIdleTtlMs changes", () => {
+    const prev = {
+      mcp: {
+        metadataFetch: { allowedHosts: ["a.example.com"] },
+        sessionIdleTtlMs: 600000,
+      },
+    };
+    const next = {
+      mcp: {
+        metadataFetch: { allowedHosts: ["a.example.com", "b.example.com"] },
+        sessionIdleTtlMs: 300000,
+      },
+    };
+
+    const paths = diffConfigPaths(prev, next);
+    expect(paths).toContain("mcp.metadataFetch.allowedHosts[1]");
+    expect(paths).toContain("mcp.sessionIdleTtlMs");
   });
 });
 
@@ -502,6 +580,119 @@ describe("buildGatewayReloadPlan", () => {
     expect(plan.restartChannels).toContain("telegram");
   });
 
+  it("hot-reloads MCP server URL changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan(["mcp.servers.context7.url"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toContain("mcp.servers.context7.url");
+    expect(plan.noopPaths).toEqual([]);
+  });
+
+  it("hot-reloads MCP server headers changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan(["mcp.servers.context7.headers.Authorization"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toContain("mcp.servers.context7.headers.Authorization");
+    expect(plan.noopPaths).toEqual([]);
+  });
+
+  it("hot-reloads MCP server command/transport changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan([
+      "mcp.servers.stdio-server.command",
+      "mcp.servers.stdio-server.args[0]",
+      "mcp.servers.stdio-server.env.MY_ENV",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(
+      expect.arrayContaining([
+        "mcp.servers.stdio-server.command",
+        "mcp.servers.stdio-server.args[0]",
+        "mcp.servers.stdio-server.env.MY_ENV",
+      ]),
+    );
+    expect(plan.noopPaths).toEqual([]);
+  });
+
+  it("hot-reloads MCP server enabled/auth toggles without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan([
+      "mcp.servers.context7.enabled",
+      "mcp.servers.context7.auth.clientId",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(
+      expect.arrayContaining([
+        "mcp.servers.context7.enabled",
+        "mcp.servers.context7.auth.clientId",
+      ]),
+    );
+  });
+
+  it("hot-reloads MCP metadata fetch allowlist changes without a gateway restart", () => {
+    const plan = buildGatewayReloadPlan([
+      "mcp.metadataFetch.allowedHosts[0]",
+      "mcp.metadataFetch.allowedHosts[1]",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(
+      expect.arrayContaining([
+        "mcp.metadataFetch.allowedHosts[0]",
+        "mcp.metadataFetch.allowedHosts[1]",
+      ]),
+    );
+  });
+
+  it("does not restart when an entire MCP server entry is added or removed", () => {
+    const plan = buildGatewayReloadPlan(["mcp.servers.newServer", "mcp.servers.removedServer"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(
+      expect.arrayContaining(["mcp.servers.newServer", "mcp.servers.removedServer"]),
+    );
+  });
+
+  it("treats new skill entry additions as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan([
+      "skills.entries.newSkill",
+      "skills.entries.newSkill.enabled",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toEqual(["skills.entries.newSkill", "skills.entries.newSkill.enabled"]);
+    expect(plan.hotReasons).toEqual([]);
+  });
+
+  it("treats modifications of existing skill entry fields as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan([
+      "skills.entries.github.apiKey",
+      "skills.entries.github.env.OPENAI_API_KEY",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toEqual([
+      "skills.entries.github.apiKey",
+      "skills.entries.github.env.OPENAI_API_KEY",
+    ]);
+  });
+
+  it("treats changes to skills.load.extraDirs as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan(["skills.load.extraDirs[0]", "skills.load.watch"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toEqual(["skills.load.extraDirs[0]", "skills.load.watch"]);
+  });
+
+  it("treats agents.defaults.skills allowlist additions as no-op for gateway restart planning", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.skills[0]"]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.noopPaths).toEqual(["agents.defaults.skills[0]"]);
+    expect(plan.hotReasons).toEqual([]);
+  });
+
+  it("does not restart when only skill- and mcp-related paths change together", () => {
+    const plan = buildGatewayReloadPlan([
+      "skills.entries.newSkill.enabled",
+      "mcp.servers.newServer.command",
+      "agents.list[0].skills[0]",
+    ]);
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(["mcp.servers.newServer.command"]);
+    expect(plan.noopPaths).toEqual(["skills.entries.newSkill.enabled", "agents.list[0].skills[0]"]);
+  });
+
   it("defaults unknown paths to restart", () => {
     const plan = buildGatewayReloadPlan(["unknownField"]);
     expect(plan.restartGateway).toBe(true);
@@ -579,6 +770,74 @@ describe("resolveGatewayReloadSettings", () => {
     const settings = resolveGatewayReloadSettings({});
     expect(settings.mode).toBe("hybrid");
     expect(settings.debounceMs).toBe(300);
+  });
+});
+
+describe("isNoopGatewayReloadPlan", () => {
+  const emptyRegistry = createTestRegistry([]);
+
+  beforeEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  afterEach(() => {
+    resetPluginRuntimeStateForTest();
+  });
+
+  it("returns true for skill entry add/modify changes", () => {
+    const plan = buildGatewayReloadPlan([
+      "skills.entries.newSkill.enabled",
+      "skills.entries.github.apiKey",
+    ]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(true);
+  });
+
+  it("returns true for per-agent skill allowlist changes", () => {
+    const plan = buildGatewayReloadPlan(["agents.list[0].skills[0]"]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(true);
+  });
+
+  it("returns true for agents.defaults.skills allowlist changes", () => {
+    const plan = buildGatewayReloadPlan(["agents.defaults.skills[0]"]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(true);
+  });
+
+  it("returns false for MCP server add/modify changes (hot reload, not no-op)", () => {
+    const plan = buildGatewayReloadPlan([
+      "mcp.servers.newServer.command",
+      "mcp.servers.context7.url",
+    ]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(false);
+  });
+
+  it("returns false for MCP metadataFetch and sessionIdleTtlMs changes", () => {
+    expect(
+      isNoopGatewayReloadPlan(buildGatewayReloadPlan(["mcp.metadataFetch.allowedHosts[0]"])),
+    ).toBe(false);
+    expect(isNoopGatewayReloadPlan(buildGatewayReloadPlan(["mcp.sessionIdleTtlMs"]))).toBe(false);
+  });
+
+  it("returns false for hooks hot-reload changes", () => {
+    const plan = buildGatewayReloadPlan(["hooks.gmail.account"]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(false);
+  });
+
+  it("returns false for heartbeat hot-reload changes", () => {
+    const plan = buildGatewayReloadPlan(["agents.list"]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(false);
+  });
+
+  it("returns false when any path requires a gateway restart", () => {
+    const plan = buildGatewayReloadPlan(["skills.entries.newSkill.enabled", "gateway.port"]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(false);
+  });
+
+  it("returns false when skill changes are mixed with a hot-reload change", () => {
+    const plan = buildGatewayReloadPlan([
+      "skills.entries.newSkill.enabled",
+      "mcp.servers.context7.url",
+    ]);
+    expect(isNoopGatewayReloadPlan(plan)).toBe(false);
   });
 });
 
@@ -1595,5 +1854,431 @@ describe("startGatewayConfigReloader skills invalidation", () => {
     expect(getSkillsSnapshotVersion()).toBe(before);
 
     await reloader.stop();
+  });
+});
+
+describe("startGatewayConfigReloader SKILL and MCP add/modify", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetSkillsRefreshStateForTest();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    resetSkillsRefreshStateForTest();
+  });
+
+  it("hot-reloads and does not restart when a new MCP server is added via in-process write", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { servers: { context7: { url: "https://mcp.example.com" } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        sourceConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: {
+            servers: {
+              context7: { url: "https://mcp.example.com" },
+              newServer: { command: "node", args: ["server.js"] },
+            },
+          },
+        },
+        runtimeConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: {
+            servers: {
+              context7: { url: "https://mcp.example.com" },
+              newServer: { command: "node", args: ["server.js"] },
+            },
+          },
+        },
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: {
+            servers: {
+              context7: { url: "https://mcp.example.com" },
+              newServer: { command: "node", args: ["server.js"] },
+            },
+          },
+        },
+        hash: "mcp-add-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: {
+          servers: {
+            context7: { url: "https://mcp.example.com" },
+            newServer: { command: "node", args: ["server.js"] },
+          },
+        },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: {
+          servers: {
+            context7: { url: "https://mcp.example.com" },
+            newServer: { command: "node", args: ["server.js"] },
+          },
+        },
+      },
+      persistedHash: "mcp-add-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({ restartGateway: false, hotReasons: expect.any(Array) }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("hot-reloads and does not restart when an existing MCP server URL is modified", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { servers: { context7: { url: "https://old.example.com" } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        sourceConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { servers: { context7: { url: "https://new.example.com" } } },
+        },
+        runtimeConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { servers: { context7: { url: "https://new.example.com" } } },
+        },
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { servers: { context7: { url: "https://new.example.com" } } },
+        },
+        hash: "mcp-modify-url-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: { servers: { context7: { url: "https://new.example.com" } } },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: { servers: { context7: { url: "https://new.example.com" } } },
+      },
+      persistedHash: "mcp-modify-url-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.servers.context7.url"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("hot-reloads and does not restart when mcp.metadataFetch.allowedHosts changes via watcher", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { metadataFetch: { allowedHosts: ["a.example.com"] } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { metadataFetch: { allowedHosts: ["a.example.com", "b.example.com"] } },
+        },
+        hash: "mcp-metadata-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.metadataFetch.allowedHosts[1]"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("hot-reloads and does not restart when mcp.sessionIdleTtlMs changes via watcher", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { sessionIdleTtlMs: 600000 },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { sessionIdleTtlMs: 300000 },
+        },
+        hash: "mcp-ttl-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.sessionIdleTtlMs"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart and bumps the skills snapshot when a new skill entry is added", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      skills: { entries: { github: { enabled: true } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        sourceConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: {
+              github: { enabled: true },
+              newSkill: { enabled: true, apiKey: "x" },
+            },
+          },
+        },
+        runtimeConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: {
+              github: { enabled: true },
+              newSkill: { enabled: true, apiKey: "x" },
+            },
+          },
+        },
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: {
+              github: { enabled: true },
+              newSkill: { enabled: true, apiKey: "x" },
+            },
+          },
+        },
+        hash: "skill-add-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: {
+          entries: {
+            github: { enabled: true },
+            newSkill: { enabled: true, apiKey: "x" },
+          },
+        },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: {
+          entries: {
+            github: { enabled: true },
+            newSkill: { enabled: true, apiKey: "x" },
+          },
+        },
+      },
+      persistedHash: "skill-add-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(harness.onHotReload).not.toHaveBeenCalled();
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.log.info).toHaveBeenCalledWith(
+      expect.stringContaining("skills snapshot invalidated by config change"),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart and bumps the skills snapshot when an existing skill entry is modified", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      skills: { entries: { github: { enabled: true, apiKey: "old" } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        sourceConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+        },
+        runtimeConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+        },
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+        },
+        hash: "skill-modify-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: { entries: { github: { enabled: true, apiKey: "new" } } },
+      },
+      persistedHash: "skill-modify-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(harness.onHotReload).not.toHaveBeenCalled();
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.log.info).toHaveBeenCalledWith(
+      expect.stringContaining("skills snapshot invalidated by config change"),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart when skill entries are added and an MCP server is added in the same change", async () => {
+    const before = getSkillsSnapshotVersion();
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      skills: { entries: { github: { enabled: true } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        sourceConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: { github: { enabled: true }, newSkill: { enabled: true } },
+          },
+          mcp: { servers: { newServer: { command: "node" } } },
+        },
+        runtimeConfig: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: { github: { enabled: true }, newSkill: { enabled: true } },
+          },
+          mcp: { servers: { newServer: { command: "node" } } },
+        },
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          skills: {
+            entries: { github: { enabled: true }, newSkill: { enabled: true } },
+          },
+          mcp: { servers: { newServer: { command: "node" } } },
+        },
+        hash: "mixed-skill-mcp-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: {
+          entries: { github: { enabled: true }, newSkill: { enabled: true } },
+        },
+        mcp: { servers: { newServer: { command: "node" } } },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        skills: {
+          entries: { github: { enabled: true }, newSkill: { enabled: true } },
+        },
+        mcp: { servers: { newServer: { command: "node" } } },
+      },
+      persistedHash: "mixed-skill-mcp-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(getSkillsSnapshotVersion()).toBeGreaterThan(before);
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({ restartGateway: false }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart when MCP server fields are modified externally via watcher", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { servers: { context7: { url: "https://old.example.com" } } },
+    };
+    const readSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>().mockResolvedValueOnce(
+      makeSnapshot({
+        config: {
+          gateway: { reload: { debounceMs: 0 } },
+          mcp: { servers: { context7: { url: "https://new.example.com" } } },
+        },
+        hash: "mcp-watcher-modify-1",
+      }),
+    );
+    const harness = createReloaderHarness(readSnapshot, { initialCompareConfig: initialConfig });
+
+    harness.watcher.emit("change");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.servers.context7.url"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
   });
 });
