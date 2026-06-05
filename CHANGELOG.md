@@ -2,12 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.6.4-1
+## 2026.6.5
 
 ### Changes
 
 - MCP: adding, editing, or removing an MCP server no longer restarts the gateway. `mcp.*` config changes now hot-reload — the runtime config snapshot is swapped in place and each session rebuilds its MCP clients on the next turn, so in-flight work is no longer interrupted. Applies to `/mcp`, `genesis mcp`, the Control UI, and direct `genesis.json` edits.
 - Gateway: editing command gating (`commands.*`), surface overrides (`surfaces.*`), or silent-reply policy (`silentReply.*`, `silentReplyRewrite.*`) no longer restarts the gateway. These are read per operation from config, so an in-process edit applies on the next turn. Boot-bound settings (gateway, plugins, discovery, canvas host, auth/env/node host) still restart as before.
+
+## 2026.6.4-1
+
+### Changes
+
 - MCP: Control UI now shows a **Presets** tab when adding a new MCP server — one-click configs for Notion, Linear, and Sentry (OAuth), GitHub (PAT bearer token), and Context7 (no auth required). An optional auth-token field on the link and preset flows is saved as an `Authorization: Bearer` header on the server config.
 
 ### Fixes
