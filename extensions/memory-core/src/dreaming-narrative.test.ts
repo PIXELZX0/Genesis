@@ -851,6 +851,69 @@ describe("generateAndAppendDreamNarrative", () => {
     expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("dreaming cleanup scrubbed"));
   });
 
+  it("skips the scrubber when autoDeleteSessions is disabled", async () => {
+    const workspaceDir = await createTempWorkspace("genesis-dreaming-narrative-");
+    const stateDir = await createTempWorkspace("genesis-dreaming-state-");
+    const sessionsDir = path.join(stateDir, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+    const storePath = path.join(sessionsDir, "sessions.json");
+    const orphanPath = path.join(sessionsDir, "orphan.jsonl");
+    await fs.writeFile(
+      storePath,
+      `${JSON.stringify({
+        "agent:main:dreaming-narrative-light-1": {
+          sessionId: "missing",
+        },
+        "agent:main:kept-session": {
+          sessionId: "still-live",
+        },
+      })}\n`,
+      "utf-8",
+    );
+    await fs.writeFile(orphanPath, '{"runId":"dreaming-narrative-light-123"}\n', "utf-8");
+    const oldDate = new Date(Date.now() - 600_000);
+    await fs.utimes(orphanPath, oldDate, oldDate);
+
+    const loadConfigSpy = vi
+      .spyOn(configRuntimeModule, "loadConfig")
+      .mockReturnValue({ session: {} } as never);
+    vi.spyOn(configRuntimeModule, "resolveStorePath").mockImplementation(((
+      _store: string | undefined,
+      { agentId }: { agentId: string },
+    ) => {
+      expect(agentId).toBe("main");
+      return storePath;
+    }) as typeof configRuntimeModule.resolveStorePath);
+    vi.spyOn(memoryCoreHostRuntimeCoreModule, "resolveStateDir").mockReturnValue(stateDir);
+
+    const subagent = createMockSubagent("A small thought took root in the quiet.");
+    const logger = createMockLogger();
+
+    await generateAndAppendDreamNarrative({
+      subagent,
+      workspaceDir,
+      data: { phase: "light", snippets: ["memory fragment"] },
+      logger,
+      autoDeleteSessions: false,
+    });
+
+    expect(loadConfigSpy).not.toHaveBeenCalled();
+    const updatedStore = JSON.parse(await fs.readFile(storePath, "utf-8")) as Record<
+      string,
+      unknown
+    >;
+    expect(updatedStore).toHaveProperty("agent:main:dreaming-narrative-light-1");
+    expect(updatedStore).toHaveProperty("agent:main:kept-session");
+    const sessionFiles = await fs.readdir(sessionsDir);
+    expect(sessionFiles).toContain("orphan.jsonl");
+    expect(sessionFiles.some((name) => name.startsWith("orphan.jsonl.deleted."))).toBe(false);
+    expect(
+      logger.info.mock.calls.some(
+        ([message]) => typeof message === "string" && message.includes("dreaming cleanup scrubbed"),
+      ),
+    ).toBe(false);
+  });
+
   it("isolates narrative sessions across workspaces even at the same timestamp", async () => {
     const firstWorkspaceDir = await createTempWorkspace("genesis-dreaming-narrative-");
     const secondWorkspaceDir = await createTempWorkspace("genesis-dreaming-narrative-");

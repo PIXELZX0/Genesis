@@ -16,6 +16,7 @@ export const DEFAULT_MEMORY_DREAMING_STORAGE_MODE = "separate";
 export const DEFAULT_MEMORY_DREAMING_SEPARATE_REPORTS = false;
 export const DEFAULT_MEMORY_DREAMING_FREQUENCY = "0 3 * * *";
 export const DEFAULT_MEMORY_DREAMING_PLUGIN_ID = "memory-core";
+export const DEFAULT_MEMORY_DREAMING_NARRATIVE_AUTO_DELETE_SESSIONS = true;
 
 export const DEFAULT_MEMORY_LIGHT_DREAMING_CRON_EXPR = "0 */6 * * *";
 export const DEFAULT_MEMORY_LIGHT_DREAMING_LOOKBACK_DAYS = 2;
@@ -115,6 +116,10 @@ export type MemoryRemDreamingConfig = {
 
 export type MemoryDreamingPhaseName = "light" | "deep" | "rem";
 
+export type MemoryDreamingNarrativeConfig = {
+  autoDeleteSessions: boolean;
+};
+
 export type MemoryDreamingConfig = {
   enabled: boolean;
   frequency: string;
@@ -124,6 +129,7 @@ export type MemoryDreamingConfig = {
   execution: {
     defaults: MemoryDreamingExecutionConfig;
   };
+  narrative: MemoryDreamingNarrativeConfig;
   phases: {
     light: MemoryLightDreamingConfig;
     deep: MemoryDeepDreamingConfig;
@@ -359,6 +365,7 @@ export function resolveMemoryDreamingConfig(params: {
   const storage = asNullableRecord(dreaming?.storage);
   const execution = asNullableRecord(dreaming?.execution);
   const phases = asNullableRecord(dreaming?.phases);
+  const narrative = asNullableRecord(dreaming?.narrative);
 
   const defaultExecution = resolveExecutionConfig(execution?.defaults, {
     speed: DEFAULT_MEMORY_DREAMING_SPEED,
@@ -389,6 +396,12 @@ export function resolveMemoryDreamingConfig(params: {
     },
     execution: {
       defaults: defaultExecution,
+    },
+    narrative: {
+      autoDeleteSessions: normalizeBoolean(
+        narrative?.autoDeleteSessions,
+        DEFAULT_MEMORY_DREAMING_NARRATIVE_AUTO_DELETE_SESSIONS,
+      ),
     },
     phases: {
       light: {
@@ -510,6 +523,7 @@ export function resolveMemoryDeepDreamingConfig(params: {
   timezone?: string;
   verboseLogging: boolean;
   storage: MemoryDreamingStorageConfig;
+  narrative: MemoryDreamingNarrativeConfig;
 } {
   const resolved = resolveMemoryDreamingConfig(params);
   return {
@@ -518,6 +532,7 @@ export function resolveMemoryDeepDreamingConfig(params: {
     ...(resolved.timezone ? { timezone: resolved.timezone } : {}),
     verboseLogging: resolved.verboseLogging,
     storage: resolved.storage,
+    narrative: resolved.narrative,
   };
 }
 
@@ -528,6 +543,7 @@ export function resolveMemoryLightDreamingConfig(params: {
   timezone?: string;
   verboseLogging: boolean;
   storage: MemoryDreamingStorageConfig;
+  narrative: MemoryDreamingNarrativeConfig;
 } {
   const resolved = resolveMemoryDreamingConfig(params);
   return {
@@ -536,6 +552,7 @@ export function resolveMemoryLightDreamingConfig(params: {
     ...(resolved.timezone ? { timezone: resolved.timezone } : {}),
     verboseLogging: resolved.verboseLogging,
     storage: resolved.storage,
+    narrative: resolved.narrative,
   };
 }
 
@@ -546,6 +563,7 @@ export function resolveMemoryRemDreamingConfig(params: {
   timezone?: string;
   verboseLogging: boolean;
   storage: MemoryDreamingStorageConfig;
+  narrative: MemoryDreamingNarrativeConfig;
 } {
   const resolved = resolveMemoryDreamingConfig(params);
   return {
@@ -554,6 +572,7 @@ export function resolveMemoryRemDreamingConfig(params: {
     ...(resolved.timezone ? { timezone: resolved.timezone } : {}),
     verboseLogging: resolved.verboseLogging,
     storage: resolved.storage,
+    narrative: resolved.narrative,
   };
 }
 

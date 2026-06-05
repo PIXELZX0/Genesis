@@ -303,4 +303,31 @@ describe("memory dreaming host helpers", () => {
       },
     });
   });
+
+  it("defaults the narrative block to auto-delete sessions on", () => {
+    const resolved = resolveMemoryDreamingConfig({});
+    expect(resolved.narrative).toEqual({ autoDeleteSessions: true });
+  });
+
+  it("honors an explicit narrative.autoDeleteSessions value", () => {
+    const resolved = resolveMemoryDreamingConfig({
+      pluginConfig: {
+        dreaming: {
+          narrative: { autoDeleteSessions: false },
+        },
+      },
+    });
+    expect(resolved.narrative).toEqual({ autoDeleteSessions: false });
+  });
+
+  it("treats a string boolean in narrative.autoDeleteSessions as a boolean", () => {
+    const resolved = resolveMemoryDreamingConfig({
+      pluginConfig: {
+        dreaming: {
+          narrative: { autoDeleteSessions: "false" },
+        },
+      },
+    });
+    expect(resolved.narrative.autoDeleteSessions).toBe(false);
+  });
 });

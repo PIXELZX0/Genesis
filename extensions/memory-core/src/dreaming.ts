@@ -116,6 +116,9 @@ export type ShortTermPromotionDreamingConfig = {
     mode: "inline" | "separate" | "both";
     separateReports: boolean;
   };
+  narrative?: {
+    autoDeleteSessions: boolean;
+  };
 };
 
 type ReconcileResult =
@@ -391,7 +394,16 @@ export function resolveShortTermPromotionDreamingConfig(params: {
     ...(typeof resolved.maxAgeDays === "number" ? { maxAgeDays: resolved.maxAgeDays } : {}),
     verboseLogging: resolved.verboseLogging,
     storage: resolved.storage,
+    narrative: resolved.narrative,
   };
+}
+
+export const DEFAULT_NARRATIVE_AUTO_DELETE_SESSIONS = true;
+
+export function resolveDreamingAutoDeleteNarrativeSessions(
+  config: ShortTermPromotionDreamingConfig | undefined,
+): boolean {
+  return config?.narrative?.autoDeleteSessions ?? DEFAULT_NARRATIVE_AUTO_DELETE_SESSIONS;
 }
 
 export async function reconcileShortTermDreamingCronJob(params: {
@@ -625,6 +637,7 @@ export async function runShortTermDreamingPromotionIfTriggered(params: {
           snippets: candidates.map((c) => c.snippet).filter(Boolean),
           promotions: applied.appliedCandidates.map((c) => c.snippet).filter(Boolean),
         };
+        const autoDeleteSessions = params.config.narrative?.autoDeleteSessions ?? true;
         if (detachNarratives) {
           queueMicrotask(() => {
             void generateAndAppendDreamNarrative({
@@ -634,6 +647,7 @@ export async function runShortTermDreamingPromotionIfTriggered(params: {
               nowMs: sweepNowMs,
               timezone: params.config.timezone,
               logger: params.logger,
+              autoDeleteSessions,
             }).catch(() => undefined);
           });
         } else {
@@ -644,6 +658,7 @@ export async function runShortTermDreamingPromotionIfTriggered(params: {
             nowMs: sweepNowMs,
             timezone: params.config.timezone,
             logger: params.logger,
+            autoDeleteSessions,
           });
         }
       }

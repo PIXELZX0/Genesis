@@ -16,6 +16,10 @@
       "label": "Dreaming Frequency",
       "placeholder": "0 3 * * *",
       "help": "Optional cron cadence for the full dreaming sweep (light, REM, then deep)."
+    },
+    "dreaming.narrative.autoDeleteSessions": {
+      "label": "Auto-delete dream narrative sessions",
+      "help": "Remove the dreaming-narrative session store entries (and their orphan transcripts) right after each dream finishes. Disable to keep them for inspection."
     }
   },
   "configSchema": {
@@ -37,6 +41,15 @@
           },
           "verboseLogging": {
             "type": "boolean"
+          },
+          "narrative": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "autoDeleteSessions": {
+                "type": "boolean"
+              }
+            }
           },
           "storage": {
             "type": "object",

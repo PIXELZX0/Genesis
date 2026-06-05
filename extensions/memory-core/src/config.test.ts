@@ -21,6 +21,9 @@ describe("memory-core manifest config schema", () => {
             mode: "inline",
             separateReports: false,
           },
+          narrative: {
+            autoDeleteSessions: false,
+          },
           phases: {
             light: {
               enabled: true,
@@ -49,5 +52,22 @@ describe("memory-core manifest config schema", () => {
     });
 
     expect(result.ok).toBe(true);
+  });
+
+  it("rejects unknown narrative subkeys", () => {
+    const result = validateJsonSchemaValue({
+      schema: manifest.configSchema,
+      cacheKey: "memory-core.manifest.dreaming-narrative-unknown",
+      value: {
+        dreaming: {
+          narrative: {
+            autoDeleteSessions: true,
+            retainForever: true,
+          },
+        },
+      },
+    });
+
+    expect(result.ok).toBe(false);
   });
 });

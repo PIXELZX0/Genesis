@@ -209,6 +209,9 @@ describe("short-term dreaming config", () => {
         mode: "separate",
         separateReports: false,
       },
+      narrative: {
+        autoDeleteSessions: true,
+      },
     });
   });
 
@@ -248,6 +251,9 @@ describe("short-term dreaming config", () => {
         mode: "separate",
         separateReports: false,
       },
+      narrative: {
+        autoDeleteSessions: true,
+      },
     });
   });
 
@@ -284,6 +290,9 @@ describe("short-term dreaming config", () => {
         mode: "separate",
         separateReports: false,
       },
+      narrative: {
+        autoDeleteSessions: true,
+      },
     });
   });
 
@@ -318,6 +327,9 @@ describe("short-term dreaming config", () => {
       storage: {
         mode: "separate",
         separateReports: false,
+      },
+      narrative: {
+        autoDeleteSessions: true,
       },
     });
   });
@@ -356,6 +368,30 @@ describe("short-term dreaming config", () => {
 
     expect(enabled.verboseLogging).toBe(true);
     expect(disabled.verboseLogging).toBe(false);
+  });
+
+  it("defaults narrative.autoDeleteSessions to true and honors explicit false", () => {
+    const defaultConfig = resolveShortTermPromotionDreamingConfig({
+      pluginConfig: {},
+    });
+    const explicitOff = resolveShortTermPromotionDreamingConfig({
+      pluginConfig: {
+        dreaming: {
+          narrative: { autoDeleteSessions: false },
+        },
+      },
+    });
+    const explicitOn = resolveShortTermPromotionDreamingConfig({
+      pluginConfig: {
+        dreaming: {
+          narrative: { autoDeleteSessions: "true" },
+        },
+      },
+    });
+
+    expect(defaultConfig.narrative).toEqual({ autoDeleteSessions: true });
+    expect(explicitOff.narrative).toEqual({ autoDeleteSessions: false });
+    expect(explicitOn.narrative).toEqual({ autoDeleteSessions: true });
   });
 
   it("falls back to defaults when thresholds are negative", () => {

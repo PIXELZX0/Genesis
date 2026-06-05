@@ -847,8 +847,10 @@ export async function generateAndAppendDreamNarrative(params: {
   nowMs?: number;
   timezone?: string;
   logger: Logger;
+  autoDeleteSessions?: boolean;
 }): Promise<void> {
   const nowMs = Number.isFinite(params.nowMs) ? (params.nowMs as number) : Date.now();
+  const autoDeleteSessions = params.autoDeleteSessions !== false;
 
   if (params.data.snippets.length === 0 && !params.data.promotions?.length) {
     return;
@@ -928,10 +930,12 @@ export async function generateAndAppendDreamNarrative(params: {
       }
     }
 
-    await scrubDreamingNarrativeArtifacts(params.logger).catch((scrubErr: unknown) => {
-      params.logger.warn(
-        `memory-core: dreaming cleanup scrub failed for ${params.data.phase} phase: ${formatErrorMessage(scrubErr)}`,
-      );
-    });
+    if (autoDeleteSessions) {
+      await scrubDreamingNarrativeArtifacts(params.logger).catch((scrubErr: unknown) => {
+        params.logger.warn(
+          `memory-core: dreaming cleanup scrub failed for ${params.data.phase} phase: ${formatErrorMessage(scrubErr)}`,
+        );
+      });
+    }
   }
 }
