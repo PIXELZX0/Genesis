@@ -1,32 +1,29 @@
-export type ThemeName = "claw" | "knot" | "dash" | "custom";
+export type ThemeName = "mono";
 export type ThemeMode = "system" | "light" | "dark";
-export type ResolvedTheme =
-  | "dark"
-  | "light"
-  | "openknot"
-  | "openknot-light"
-  | "dash"
-  | "dash-light"
-  | "custom"
-  | "custom-light";
+export type ResolvedTheme = "dark" | "light";
 
-export const VALID_THEME_NAMES = new Set<ThemeName>(["claw", "knot", "dash", "custom"]);
+export const VALID_THEME_NAMES = new Set<ThemeName>(["mono"]);
 export const VALID_THEME_MODES = new Set<ThemeMode>(["system", "light", "dark"]);
 
-type ThemeSelection = { theme: ThemeName; mode: ThemeMode };
-
-const LEGACY_MAP: Record<string, ThemeSelection> = {
-  defaultTheme: { theme: "claw", mode: "dark" },
-  docsTheme: { theme: "claw", mode: "light" },
-  lightTheme: { theme: "knot", mode: "dark" },
-  landingTheme: { theme: "knot", mode: "dark" },
-  newTheme: { theme: "knot", mode: "dark" },
-  dark: { theme: "claw", mode: "dark" },
-  light: { theme: "claw", mode: "light" },
-  openknot: { theme: "knot", mode: "dark" },
-  fieldmanual: { theme: "dash", mode: "dark" },
-  clawdash: { theme: "dash", mode: "light" },
-  system: { theme: "claw", mode: "system" },
+// Legacy persisted theme names (pre-monochrome palettes). Every palette now
+// collapses to the single "mono" theme; we only preserve the user's light/dark
+// preference so existing installs keep their mode after the redesign.
+const LEGACY_MODE_MAP: Record<string, ThemeMode> = {
+  defaultTheme: "dark",
+  docsTheme: "light",
+  lightTheme: "dark",
+  landingTheme: "dark",
+  newTheme: "dark",
+  dark: "dark",
+  light: "light",
+  openknot: "dark",
+  fieldmanual: "dark",
+  clawdash: "light",
+  claw: "dark",
+  knot: "dark",
+  dash: "dark",
+  custom: "dark",
+  system: "system",
 };
 
 export function prefersLightScheme(): boolean {
@@ -44,17 +41,14 @@ export function parseThemeSelection(
   themeRaw: unknown,
   modeRaw: unknown,
 ): { theme: ThemeName; mode: ThemeMode } {
-  const theme = typeof themeRaw === "string" ? themeRaw : "";
-  const mode = typeof modeRaw === "string" ? modeRaw : "";
+  const themeStr = typeof themeRaw === "string" ? themeRaw : "";
+  const modeStr = typeof modeRaw === "string" ? modeRaw : "";
 
-  const normalizedTheme = VALID_THEME_NAMES.has(theme as ThemeName)
-    ? (theme as ThemeName)
-    : (LEGACY_MAP[theme]?.theme ?? "claw");
-  const normalizedMode = VALID_THEME_MODES.has(mode as ThemeMode)
-    ? (mode as ThemeMode)
-    : (LEGACY_MAP[theme]?.mode ?? "system");
+  const mode = VALID_THEME_MODES.has(modeStr as ThemeMode)
+    ? (modeStr as ThemeMode)
+    : (LEGACY_MODE_MAP[themeStr] ?? "system");
 
-  return { theme: normalizedTheme, mode: normalizedMode };
+  return { theme: "mono", mode };
 }
 
 function resolveMode(mode: ThemeMode): "light" | "dark" {
@@ -64,16 +58,6 @@ function resolveMode(mode: ThemeMode): "light" | "dark" {
   return mode;
 }
 
-export function resolveTheme(theme: ThemeName, mode: ThemeMode): ResolvedTheme {
-  const resolvedMode = resolveMode(mode);
-  if (theme === "claw") {
-    return resolvedMode === "light" ? "light" : "dark";
-  }
-  if (theme === "knot") {
-    return resolvedMode === "light" ? "openknot-light" : "openknot";
-  }
-  if (theme === "dash") {
-    return resolvedMode === "light" ? "dash-light" : "dash";
-  }
-  return resolvedMode === "light" ? "custom-light" : "custom";
+export function resolveTheme(_theme: ThemeName, mode: ThemeMode): ResolvedTheme {
+  return resolveMode(mode);
 }

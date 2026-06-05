@@ -7,7 +7,6 @@ import {
   setTabFromRoute,
   syncThemeWithSettings,
 } from "./app-settings.ts";
-import { normalizeImportedCustomTheme } from "./custom-theme.ts";
 import type { ThemeMode, ThemeName } from "./theme.ts";
 
 type Tab =
@@ -48,9 +47,8 @@ type SettingsHost = {
     navWidth: number;
     navGroupsCollapsed: Record<string, boolean>;
     borderRadius: number;
-    customTheme?: import("./custom-theme.ts").ImportedCustomTheme;
   };
-  theme: ThemeName & ThemeMode;
+  theme: ThemeName;
   themeMode: ThemeMode;
   themeResolved: import("./theme.ts").ResolvedTheme;
   applySessionKey: string;
@@ -136,7 +134,7 @@ const createHost = (tab: Tab): SettingsHost => ({
     token: "",
     sessionKey: "main",
     lastActiveSessionKey: "main",
-    theme: "claw",
+    theme: "mono",
     themeMode: "system",
     chatFocusMode: false,
     chatShowThinking: true,
@@ -147,7 +145,7 @@ const createHost = (tab: Tab): SettingsHost => ({
     navGroupsCollapsed: {},
     borderRadius: 50,
   },
-  theme: "claw" as unknown as ThemeName & ThemeMode,
+  theme: "mono",
   themeMode: "system",
   themeResolved: "dark",
   applySessionKey: "main",
@@ -184,66 +182,6 @@ const createHost = (tab: Tab): SettingsHost => ({
   wikiMemoryPalace: null,
 });
 
-function createCustomThemeFixture() {
-  return normalizeImportedCustomTheme(
-    {
-      name: "Light Green",
-      cssVars: {
-        theme: {
-          "font-sans": "Inter, system-ui, sans-serif",
-          "font-mono": "JetBrains Mono, monospace",
-        },
-        light: {
-          background: "oklch(0.98 0.01 120)",
-          foreground: "oklch(0.2 0.03 265)",
-          card: "oklch(1 0 0)",
-          "card-foreground": "oklch(0.2 0.03 265)",
-          popover: "oklch(1 0 0)",
-          "popover-foreground": "oklch(0.2 0.03 265)",
-          primary: "oklch(0.8 0.2 128)",
-          "primary-foreground": "oklch(0 0 0)",
-          secondary: "oklch(0.35 0.03 257)",
-          "secondary-foreground": "oklch(0.98 0.01 248)",
-          muted: "oklch(0.96 0.01 248)",
-          "muted-foreground": "oklch(0.55 0.04 257)",
-          accent: "oklch(0.98 0.02 155)",
-          "accent-foreground": "oklch(0.45 0.1 151)",
-          destructive: "oklch(0.64 0.2 25)",
-          "destructive-foreground": "oklch(1 0 0)",
-          border: "oklch(0.92 0.01 255)",
-          input: "oklch(0.92 0.01 255)",
-          ring: "oklch(0.8 0.2 128)",
-        },
-        dark: {
-          background: "oklch(0.12 0.04 265)",
-          foreground: "oklch(0.98 0.01 248)",
-          card: "oklch(0.2 0.04 266)",
-          "card-foreground": "oklch(0.98 0.01 248)",
-          popover: "oklch(0.2 0.04 266)",
-          "popover-foreground": "oklch(0.98 0.01 248)",
-          primary: "oklch(0.8 0.2 128)",
-          "primary-foreground": "oklch(0 0 0)",
-          secondary: "oklch(0.28 0.04 260)",
-          "secondary-foreground": "oklch(0.98 0.01 248)",
-          muted: "oklch(0.28 0.04 260)",
-          "muted-foreground": "oklch(0.71 0.03 257)",
-          accent: "oklch(0.39 0.09 152)",
-          "accent-foreground": "oklch(0.8 0.2 128)",
-          destructive: "oklch(0.44 0.16 27)",
-          "destructive-foreground": "oklch(1 0 0)",
-          border: "oklch(0.28 0.04 260)",
-          input: "oklch(0.28 0.04 260)",
-          ring: "oklch(0.8 0.2 128)",
-        },
-      },
-    },
-    {
-      sourceUrl: "https://tweakcn.com/themes/cmlhfpjhw000004l4f4ax3m7z",
-      themeId: "cmlhfpjhw000004l4f4ax3m7z",
-    },
-  );
-}
-
 describe("setTabFromRoute", () => {
   beforeEach(() => {
     vi.stubGlobal("localStorage", createStorageMock());
@@ -276,49 +214,37 @@ describe("setTabFromRoute", () => {
     expect(host.debugPollInterval).toBeNull();
   });
 
-  it("re-resolves the active palette when only themeMode changes", () => {
+  it("re-resolves the active theme when only themeMode changes", () => {
     const host = createHost("chat");
-    host.settings.theme = "knot";
+    host.settings.theme = "mono";
     host.settings.themeMode = "dark";
-    host.theme = "knot" as unknown as ThemeName & ThemeMode;
+    host.theme = "mono";
     host.themeMode = "dark";
-    host.themeResolved = "openknot";
+    host.themeResolved = "dark";
 
     applySettings(host, {
       ...host.settings,
       themeMode: "light",
     });
 
-    expect(host.theme).toBe("knot");
+    expect(host.theme).toBe("mono");
     expect(host.themeMode).toBe("light");
-    expect(host.themeResolved).toBe("openknot-light");
+    expect(host.themeResolved).toBe("light");
   });
 
-  it("syncs both theme family and mode from persisted settings", () => {
+  it("syncs the mono theme and mode from persisted settings", () => {
     const host = createHost("chat");
-    host.settings.theme = "dash";
+    host.settings.theme = "mono";
     host.settings.themeMode = "light";
 
     syncThemeWithSettings(host);
 
-    expect(host.theme).toBe("dash");
+    expect(host.theme).toBe("mono");
     expect(host.themeMode).toBe("light");
-    expect(host.themeResolved).toBe("dash-light");
+    expect(host.themeResolved).toBe("light");
   });
 
-  it("falls back to claw when custom is selected without a stored custom theme", () => {
-    const host = createHost("chat");
-    host.settings.theme = "custom";
-    host.settings.themeMode = "dark";
-
-    syncThemeWithSettings(host);
-
-    expect(host.theme).toBe("claw");
-    expect(host.settings.theme).toBe("claw");
-    expect(host.themeResolved).toBe("dark");
-  });
-
-  it("applies named system themes on OS preference changes", () => {
+  it("re-resolves the system theme on OS preference changes", () => {
     const listeners: Array<(event: MediaQueryListEvent) => void> = [];
     const matchMedia = vi.fn().mockReturnValue({
       matches: false,
@@ -334,18 +260,18 @@ describe("setTabFromRoute", () => {
     });
 
     const host = createHost("chat");
-    host.settings.theme = "knot" as unknown as ThemeName & ThemeMode;
+    host.settings.theme = "mono";
     host.settings.themeMode = "system";
 
     syncThemeWithSettings(host);
     listeners[0]?.({ matches: true } as MediaQueryListEvent);
-    expect(host.themeResolved).toBe("openknot");
+    expect(host.themeResolved).toBe("dark");
 
     listeners[0]?.({ matches: false } as MediaQueryListEvent);
-    expect(host.themeResolved).toBe("openknot");
+    expect(host.themeResolved).toBe("dark");
   });
 
-  it("normalizes light family themes to the shared light CSS token", () => {
+  it("applies the light resolved theme as light-mode tokens", () => {
     const root = {
       dataset: {} as DOMStringMap,
       style: { colorScheme: "" } as CSSStyleDeclaration & { colorScheme: string },
@@ -353,26 +279,10 @@ describe("setTabFromRoute", () => {
     vi.stubGlobal("document", { documentElement: root } as Document);
 
     const host = createHost("chat");
-    applyResolvedTheme(host, "dash-light");
+    applyResolvedTheme(host, "light");
 
-    expect(host.themeResolved).toBe("dash-light");
-    expect(root.dataset.theme).toBe("dash-light");
-    expect(root.style.colorScheme).toBe("light");
-  });
-
-  it("applies imported custom light themes as light-mode tokens", () => {
-    const root = {
-      dataset: {} as DOMStringMap,
-      style: { colorScheme: "" } as CSSStyleDeclaration & { colorScheme: string },
-    };
-    vi.stubGlobal("document", { documentElement: root } as Document);
-
-    const host = createHost("chat");
-    host.settings.customTheme = createCustomThemeFixture();
-    applyResolvedTheme(host, "custom-light");
-
-    expect(host.themeResolved).toBe("custom-light");
-    expect(root.dataset.theme).toBe("custom-light");
+    expect(host.themeResolved).toBe("light");
+    expect(root.dataset.theme).toBe("light");
     expect(root.style.colorScheme).toBe("light");
   });
 });

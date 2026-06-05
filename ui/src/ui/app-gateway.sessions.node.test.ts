@@ -66,7 +66,7 @@ function createHost() {
       token: "",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "mono",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,

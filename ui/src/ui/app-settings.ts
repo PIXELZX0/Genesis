@@ -47,7 +47,6 @@ import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
 import { loadUsage, type UsageState } from "./controllers/usage.ts";
 import { loadWalletSummary, type WalletState } from "./controllers/wallet.ts";
-import { syncCustomThemeStyleTag } from "./custom-theme.ts";
 import { isMonitoredAuthProvider } from "./model-auth-helpers.ts";
 import {
   inferBasePathFromPathname,
@@ -149,7 +148,6 @@ export function applySettings(host: SettingsHost, next: UiSettings) {
   };
   host.settings = normalized;
   saveSettings(normalized);
-  syncCustomThemeStyleTag(normalized.customTheme);
   if (next.theme !== host.theme || next.themeMode !== host.themeMode) {
     host.theme = next.theme;
     host.themeMode = next.themeMode;
@@ -434,19 +432,10 @@ export function inferBasePath() {
 }
 
 export function syncThemeWithSettings(host: SettingsHost) {
-  syncCustomThemeStyleTag(host.settings.customTheme);
-  const normalizedTheme =
-    host.settings.theme === "custom" && !host.settings.customTheme
-      ? "claw"
-      : (host.settings.theme ?? "claw");
-  host.theme = normalizedTheme;
+  host.theme = "mono";
   host.themeMode = host.settings.themeMode ?? "system";
-  if (normalizedTheme !== host.settings.theme) {
-    host.settings = { ...host.settings, theme: normalizedTheme };
-    saveSettings(host.settings);
-  }
   applyResolvedTheme(host, resolveTheme(host.theme, host.themeMode));
-  applyBorderRadius(host.settings.borderRadius ?? 0);
+  applyBorderRadius(host.settings.borderRadius ?? 50);
   syncSystemThemeListener(host);
 }
 

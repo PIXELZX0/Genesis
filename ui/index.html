@@ -10,15 +10,20 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script>
       (function () {
-        var THEMES = { claw: 1, knot: 1, dash: 1 };
         var MODES = { system: 1, light: 1, dark: 1 };
-        var LEGACY = {
-          dark: "claw:dark",
-          light: "claw:light",
-          openknot: "knot:dark",
-          fieldmanual: "dash:dark",
-          clawdash: "dash:light",
-          system: "claw:system",
+        // Legacy stored theme names → preserve only the user's light/dark
+        // preference. Every palette now collapses to one monochrome theme.
+        var LEGACY_MODE = {
+          dark: "dark",
+          light: "light",
+          openknot: "dark",
+          fieldmanual: "dark",
+          clawdash: "light",
+          system: "system",
+          claw: "dark",
+          knot: "dark",
+          dash: "dark",
+          custom: "dark",
         };
         try {
           var keys = Object.keys(localStorage);
@@ -31,33 +36,14 @@
           }
           if (!raw) return;
           var s = JSON.parse(raw);
-          var t = s && s.theme;
-          var m = s && s.themeMode;
-          if (typeof t !== "string") t = "";
-          if (typeof m !== "string") m = "";
-          var legacy = LEGACY[t];
-          var theme = THEMES[t] ? t : legacy ? legacy.split(":")[0] : "claw";
-          var mode = MODES[m] ? m : legacy ? legacy.split(":")[1] : "system";
+          var t = s && typeof s.theme === "string" ? s.theme : "";
+          var m = s && typeof s.themeMode === "string" ? s.themeMode : "";
+          var mode = MODES[m] ? m : LEGACY_MODE[t] || "system";
           if (mode === "system") {
             mode = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
           }
-          var resolved =
-            theme === "knot"
-              ? mode === "light"
-                ? "openknot-light"
-                : "openknot"
-              : theme === "dash"
-                ? mode === "light"
-                  ? "dash-light"
-                  : "dash"
-                : mode === "light"
-                  ? "light"
-                  : "dark";
-          document.documentElement.setAttribute("data-theme", resolved);
-          document.documentElement.setAttribute(
-            "data-theme-mode",
-            resolved.indexOf("light") !== -1 ? "light" : "dark",
-          );
+          document.documentElement.setAttribute("data-theme", mode);
+          document.documentElement.setAttribute("data-theme-mode", mode);
         } catch (e) {}
       })();
     </script>

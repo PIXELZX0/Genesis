@@ -77,11 +77,8 @@ export type QuickSettingsProps = {
   // Appearance
   theme: ThemeName;
   themeMode: ThemeMode;
-  hasCustomTheme: boolean;
-  customThemeLabel?: string | null;
   borderRadius: number;
   setTheme: (theme: ThemeName, context?: ThemeTransitionContext) => void;
-  onOpenCustomThemeImport?: () => void;
   setThemeMode: (mode: ThemeMode, context?: ThemeTransitionContext) => void;
   setBorderRadius: (value: number) => void;
   userName?: string | null;
@@ -102,15 +99,6 @@ export type QuickSettingsProps = {
   assistantName: string;
   version: string;
 };
-
-// ── Theme options ──
-
-type ThemeOption = { id: ThemeName; label: string };
-const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
-  { id: "claw", label: "Claw" },
-  { id: "knot", label: "Knot" },
-  { id: "dash", label: "Dash" },
-];
 
 const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; label: string }> = [
   { value: 0, label: "None" },
@@ -381,38 +369,10 @@ function renderSecurityCard(props: QuickSettingsProps) {
 }
 
 function renderAppearanceCard(props: QuickSettingsProps) {
-  const themeOptions: ThemeOption[] = [...BUILTIN_THEME_OPTIONS, { id: "custom", label: "Custom" }];
   return html`
     <div class="qs-card">
       ${renderCardHeader(icons.spark, "Appearance")}
       <div class="qs-card__body">
-        <div class="qs-row">
-          <span class="qs-row__label">Theme</span>
-          <div class="qs-segmented">
-            ${themeOptions.map(
-              (opt) => html`
-                <button
-                  class="qs-segmented__btn ${opt.id === props.theme
-                    ? "qs-segmented__btn--active"
-                    : ""}"
-                  @click=${(e: Event) => {
-                    if (opt.id === "custom" && !props.hasCustomTheme) {
-                      props.onOpenCustomThemeImport?.();
-                      return;
-                    }
-                    if (opt.id !== props.theme) {
-                      props.setTheme(opt.id, {
-                        element: (e.currentTarget as HTMLElement) ?? undefined,
-                      });
-                    }
-                  }}
-                >
-                  ${opt.label}
-                </button>
-              `,
-            )}
-          </div>
-        </div>
         <div class="qs-row">
           <span class="qs-row__label">Mode</span>
           <div class="qs-segmented">

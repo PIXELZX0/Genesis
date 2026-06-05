@@ -77,7 +77,7 @@ function createSettings(): AppViewState["settings"] {
     locale: "en",
     sessionKey: "main",
     lastActiveSessionKey: "main",
-    theme: "claw",
+    theme: "mono",
     themeMode: "dark",
     splitRatio: 0.6,
     navWidth: 280,

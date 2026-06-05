@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 import { parseThemeSelection, resolveSystemTheme, resolveTheme } from "./theme.ts";
 
 describe("resolveTheme", () => {
-  it("resolves named theme families when mode is provided", () => {
-    expect(resolveTheme("knot", "dark")).toBe("openknot");
-    expect(resolveTheme("dash", "light")).toBe("dash-light");
+  it("resolves to the explicit light/dark mode", () => {
+    expect(resolveTheme("mono", "dark")).toBe("dark");
+    expect(resolveTheme("mono", "light")).toBe("light");
   });
 
   it("uses system preference when mode is system", () => {
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
-    expect(resolveTheme("knot", "system")).toBe("openknot-light");
+    expect(resolveTheme("mono", "system")).toBe("light");
     vi.unstubAllGlobals();
   });
 });
@@ -23,14 +23,18 @@ describe("resolveSystemTheme", () => {
 });
 
 describe("parseThemeSelection", () => {
-  it("maps legacy stored values onto theme + mode", () => {
+  it("collapses every stored theme onto mono while preserving the mode", () => {
     expect(parseThemeSelection("system", undefined)).toEqual({
-      theme: "claw",
+      theme: "mono",
       mode: "system",
     });
     expect(parseThemeSelection("fieldmanual", undefined)).toEqual({
-      theme: "dash",
+      theme: "mono",
       mode: "dark",
+    });
+    expect(parseThemeSelection("knot", "light")).toEqual({
+      theme: "mono",
+      mode: "light",
     });
   });
 });

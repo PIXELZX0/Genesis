@@ -70,11 +70,6 @@ export type AppViewState = {
   themeMode: ThemeMode;
   themeResolved: ResolvedTheme;
   themeOrder: ThemeName[];
-  customThemeImportUrl: string;
-  customThemeImportBusy: boolean;
-  customThemeImportMessage: { kind: "success" | "error"; text: string } | null;
-  customThemeImportExpanded: boolean;
-  customThemeImportFocusToken: number;
   hello: GatewayHelloOk | null;
   lastError: string | null;
   lastErrorCode: string | null;
