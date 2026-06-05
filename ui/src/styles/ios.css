@@ -323,3 +323,34 @@ a.ios-list__row:hover {
     animation: none;
   }
 }
+
+/* ── Large title ─────────────────────────────────────────────────────
+ * iOS large navigation title at the top of each page. As the content
+ * scrolls, the large title scrolls away and the persistent topbar title
+ * (dashboard-header) takes over — the iOS large-title collapse pattern.
+ * Scoped to headers that actually carry a .page-title, so the chat tab
+ * (which renders a session selector here instead) is left untouched. */
+.page-title {
+  font-size: var(--fs-large-title);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+  color: var(--text-strong);
+}
+
+.content-header:has(.page-title) {
+  align-items: flex-start;
+  padding: 14px 8px 8px;
+  max-height: 148px;
+}
+
+.content-header:has(.page-title) .page-sub {
+  font-size: var(--fs-subhead);
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .content-header:has(.page-title) .page-title {
+    font-size: 28px;
+  }
+}
