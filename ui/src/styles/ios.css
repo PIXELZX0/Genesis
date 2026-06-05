@@ -354,3 +354,12 @@ a.ios-list__row:hover {
     font-size: 28px;
   }
 }
+
+/* ── Toggle knob (monochrome fix) ────────────────────────────────────
+ * When a switch is ON its track becomes --accent (white in dark mode),
+ * so the white knob would vanish. Flip the knob to --accent-foreground
+ * (black in dark / white in light) so it stays visible in both modes. */
+.skill-toggle:checked::after,
+.qs-toggle input:checked + .qs-toggle__track::after {
+  background: var(--accent-foreground);
+}
