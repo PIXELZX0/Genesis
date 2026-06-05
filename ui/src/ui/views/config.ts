@@ -586,12 +586,12 @@ function renderAppearanceSection(props: ConfigProps) {
         <p class="settings-appearance__hint">
           A single monochrome theme. Choose how light and dark mode are selected.
         </p>
-        <div class="settings-mode-toggle" role="group" aria-label="Theme mode">
+        <div class="seg" role="group" aria-label="Theme mode">
           ${modeOptions.map(
             (opt) => html`
               <button
                 type="button"
-                class="btn btn--sm ${opt.id === props.themeMode ? "active" : ""}"
+                class="seg__item ${opt.id === props.themeMode ? "seg__item--active" : ""}"
                 aria-pressed=${opt.id === props.themeMode}
                 @click=${(e: Event) => {
                   if (opt.id !== props.themeMode) {

@@ -1,0 +1,82 @@
+/*
+ * iOS-style component layer.
+ *
+ * Loaded last (after components/config/etc.) so it can refine the base
+ * component styles into iOS idioms: segmented controls, grouped inset
+ * lists, sheets, and large titles. Keeping it isolated makes the redesign
+ * easy to review and revert.
+ */
+
+/* ── Segmented control ───────────────────────────────────────────────
+ * iOS UISegmentedControl: a recessed track with a raised "thumb" on the
+ * selected segment. Use:
+ *   <div class="seg" role="group">
+ *     <button class="seg__item seg__item--active">A</button>
+ *     <button class="seg__item">B</button>
+ *   </div>
+ */
+.seg {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-muted);
+  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.seg--block {
+  display: flex;
+  width: 100%;
+}
+
+.seg__item {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border: none;
+  border-radius: max(2px, calc(var(--radius-md) - 3px));
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 590;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.seg__item:hover:not(.seg__item--active):not([aria-pressed="true"]) {
+  color: var(--text);
+}
+
+.seg__item--active,
+.seg__item[aria-pressed="true"] {
+  background: var(--popover);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.seg__item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Refine the existing Form/Raw + wallet recovery toggles into the same
+ * iOS treatment. The old `.active` state filled with --accent and white
+ * text, which is invisible in monochrome dark mode (white on white). */
+.config-mode-toggle {
+  background: var(--bg-muted);
+}
+
+.config-mode-toggle__btn.active {
+  background: var(--popover);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-sm);
+}
