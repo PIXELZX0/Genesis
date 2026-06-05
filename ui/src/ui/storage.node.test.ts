@@ -197,7 +197,7 @@ describe("loadSettings default gateway URL derivation", () => {
       navCollapsed: false,
       navWidth: 220,
       navGroupsCollapsed: {},
-      borderRadius: 0,
+      borderRadius: 50,
       sessionsByGateway: {
         "wss://gateway.example:8443/genesis": {
           sessionKey: "agent",

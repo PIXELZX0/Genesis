@@ -1,103 +1,116 @@
 :root {
-  /* Background - black field with green console depth */
-  --bg: #030503;
-  --bg-accent: #061009;
-  --bg-elevated: #0a1510;
-  --bg-hover: #10241a;
-  --bg-muted: #0d1d15;
+  /* Background — true black iOS base */
+  --bg: #000000;
+  --bg-accent: #0a0a0a;
+  --bg-elevated: #1c1c1e;
+  --bg-hover: #2c2c2e;
+  --bg-muted: #1c1c1e;
 
-  /* Card / Surface - squared graphite layers */
-  --card: #070c09;
-  --card-foreground: #effff4;
-  --card-highlight: rgba(74, 222, 128, 0.05);
-  --popover: #0a1510;
-  --popover-foreground: #effff4;
+  /* Card / Surface — iOS grouped-list grays */
+  --card: #1c1c1e;
+  --card-foreground: #ffffff;
+  --card-highlight: rgba(255, 255, 255, 0.05);
+  --popover: #2c2c2e;
+  --popover-foreground: #ffffff;
 
   /* Panel */
-  --panel: #030503;
-  --panel-strong: #0a1510;
-  --panel-hover: #10241a;
-  --chrome: rgba(3, 5, 3, 0.96);
-  --chrome-strong: rgba(3, 5, 3, 0.98);
+  --panel: #000000;
+  --panel-strong: #1c1c1e;
+  --panel-hover: #2c2c2e;
+  --chrome: rgba(0, 0, 0, 0.8);
+  --chrome-strong: rgba(0, 0, 0, 0.9);
 
-  /* Text - Clean contrast */
-  --text: #d8e7dc;
-  --text-strong: #f4fff7;
-  --chat-text: #d8e7dc;
-  --muted: #7f9184;
-  --muted-strong: #9bb3a1;
-  --muted-foreground: #7f9184;
+  /* Text */
+  --text: #ffffff;
+  --text-strong: #ffffff;
+  --chat-text: #ffffff;
+  --muted: #8e8e93;
+  --muted-strong: #aeaeb2;
+  --muted-foreground: #8e8e93;
 
-  /* Border - green-black wireframe */
-  --border: #173021;
-  --border-strong: #245c38;
-  --border-hover: #37a25c;
-  --input: #173021;
-  --ring: #39ff88;
+  /* Border — iOS hairline grays */
+  --border: #38383a;
+  --border-strong: #48484a;
+  --border-hover: #636366;
+  --input: #38383a;
+  --ring: #ffffff;
 
-  /* Accent - electric green */
-  --accent: #39ff88;
-  --accent-hover: #77ffad;
-  --accent-muted: #22c55e;
-  --accent-subtle: rgba(57, 255, 136, 0.12);
-  --accent-foreground: #021006;
-  --accent-glow: rgba(57, 255, 136, 0.22);
-  --primary: #39ff88;
-  --primary-foreground: #021006;
+  /* Accent — monochrome tint (white in dark mode) */
+  --accent: #ffffff;
+  --accent-hover: #e5e5ea;
+  --accent-muted: #aeaeb2;
+  --accent-subtle: rgba(255, 255, 255, 0.12);
+  --accent-foreground: #000000;
+  --accent-glow: transparent;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
 
   /* Secondary */
-  --secondary: #07110b;
-  --secondary-foreground: #effff4;
-  --accent-2: #15d1a0;
-  --accent-2-muted: rgba(21, 209, 160, 0.7);
-  --accent-2-subtle: rgba(21, 209, 160, 0.12);
+  --secondary: #1c1c1e;
+  --secondary-foreground: #ffffff;
+  --accent-2: #ffffff;
+  --accent-2-muted: rgba(255, 255, 255, 0.7);
+  --accent-2-subtle: rgba(255, 255, 255, 0.12);
 
-  /* Semantic */
-  --ok: #22c55e;
-  --ok-muted: rgba(34, 197, 94, 0.75);
-  --ok-subtle: rgba(34, 197, 94, 0.08);
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
-  --warn: #f59e0b;
-  --warn-muted: rgba(245, 158, 11, 0.75);
-  --warn-subtle: rgba(245, 158, 11, 0.08);
-  --danger: #ef4444;
-  --danger-muted: rgba(239, 68, 68, 0.75);
-  --danger-subtle: rgba(239, 68, 68, 0.08);
-  --info: #3b82f6;
+  /* Semantic — iOS dark system palette (only chromatic exception) */
+  --ok: #30d158;
+  --ok-muted: rgba(48, 209, 88, 0.75);
+  --ok-subtle: rgba(48, 209, 88, 0.12);
+  --destructive: #ff453a;
+  --destructive-foreground: #ffffff;
+  --warn: #ff9f0a;
+  --warn-muted: rgba(255, 159, 10, 0.75);
+  --warn-subtle: rgba(255, 159, 10, 0.12);
+  --danger: #ff453a;
+  --danger-muted: rgba(255, 69, 58, 0.75);
+  --danger-subtle: rgba(255, 69, 58, 0.12);
+  --info: #0a84ff;
 
   /* Focus */
-  --focus: rgba(57, 255, 136, 0.2);
+  --focus: rgba(255, 255, 255, 0.2);
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 3px color-mix(in srgb, var(--ring) 80%, transparent);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 3px var(--ring), 0 0 16px var(--accent-glow);
 
   /* Grid */
-  --grid-line: rgba(57, 255, 136, 0.035);
+  --grid-line: rgba(255, 255, 255, 0.035);
 
   /* Theme transition */
   --theme-switch-x: 50%;
   --theme-switch-y: 50%;
 
-  /* Typography */
+  /* Typography — SF system stack */
   --mono:
-    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto,
+    system-ui, sans-serif;
   --font-display: var(--font-body);
 
-  /* Shadows - hard-edged dark depth */
+  /* iOS type ramp — font sizes (weights applied per use) */
+  --fs-large-title: 34px;
+  --fs-title: 22px;
+  --fs-title-2: 20px;
+  --fs-headline: 17px;
+  --fs-body: 17px;
+  --fs-callout: 16px;
+  --fs-subhead: 15px;
+  --fs-footnote: 13px;
+  --fs-caption: 12px;
+
+  /* Shadows — soft, neutral (no neon glow) */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.48);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.58);
   --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.66);
   --shadow-glow: 0 0 24px var(--accent-glow);
 
-  /* Radii - default to a fully squared interface */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-full: 0px;
-  --radius: 0px;
+  /* Radii — iOS rounding (matches runtime BASE_RADII at scale 1.0) */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --radius: 10px;
 
   /* Transitions - Crisp and responsive */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -112,71 +125,71 @@
 
 /* Light theme tokens apply to every light-mode family. */
 :root[data-theme-mode="light"] {
-  --bg: #f2f8f3;
-  --bg-accent: #e6f1e8;
+  --bg: #f2f2f7;
+  --bg-accent: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-hover: #d9eadc;
-  --bg-muted: #d9eadc;
-  --bg-content: #e6f1e8;
+  --bg-hover: #e5e5ea;
+  --bg-muted: #e5e5ea;
+  --bg-content: #f2f2f7;
 
   --card: #ffffff;
-  --card-foreground: #07110b;
-  --card-highlight: rgba(22, 101, 52, 0.04);
+  --card-foreground: #000000;
+  --card-highlight: rgba(0, 0, 0, 0.03);
   --popover: #ffffff;
-  --popover-foreground: #07110b;
+  --popover-foreground: #000000;
 
-  --panel: #f2f8f3;
-  --panel-strong: #e6f1e8;
-  --panel-hover: #d9eadc;
-  --chrome: rgba(242, 248, 243, 0.96);
-  --chrome-strong: rgba(242, 248, 243, 0.98);
+  --panel: #f2f2f7;
+  --panel-strong: #ffffff;
+  --panel-hover: #e5e5ea;
+  --chrome: rgba(249, 249, 249, 0.8);
+  --chrome-strong: rgba(249, 249, 249, 0.94);
 
-  --text: #24352a;
-  --text-strong: #07110b;
-  --chat-text: #24352a;
-  --muted: #5f7566;
-  --muted-strong: #405949;
-  --muted-foreground: #5f7566;
+  --text: #000000;
+  --text-strong: #000000;
+  --chat-text: #000000;
+  --muted: #8e8e93;
+  --muted-strong: #6c6c70;
+  --muted-foreground: #8e8e93;
 
-  --border: #c9dacd;
-  --border-strong: #9cbea5;
-  --border-hover: #5fa774;
-  --input: #c9dacd;
-  --ring: #047857;
+  --border: #c6c6c8;
+  --border-strong: #aeaeb2;
+  --border-hover: #8e8e93;
+  --input: #c6c6c8;
+  --ring: #000000;
 
-  --accent: #047857;
-  --accent-hover: #065f46;
-  --accent-muted: #047857;
-  --accent-subtle: rgba(4, 120, 87, 0.1);
+  --accent: #000000;
+  --accent-hover: #1c1c1e;
+  --accent-muted: #6c6c70;
+  --accent-subtle: rgba(0, 0, 0, 0.06);
   --accent-foreground: #ffffff;
-  --accent-glow: rgba(4, 120, 87, 0.16);
-  --primary: #047857;
+  --accent-glow: transparent;
+  --primary: #000000;
   --primary-foreground: #ffffff;
 
-  --secondary: #e6f1e8;
-  --secondary-foreground: #24352a;
-  --accent-2: #0f766e;
-  --accent-2-muted: rgba(15, 118, 110, 0.75);
-  --accent-2-subtle: rgba(15, 118, 110, 0.1);
+  --secondary: #e5e5ea;
+  --secondary-foreground: #000000;
+  --accent-2: #000000;
+  --accent-2-muted: rgba(0, 0, 0, 0.7);
+  --accent-2-subtle: rgba(0, 0, 0, 0.06);
 
-  --ok: #15803d;
-  --ok-muted: rgba(21, 128, 61, 0.75);
-  --ok-subtle: rgba(21, 128, 61, 0.08);
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --warn: #b45309;
-  --warn-muted: rgba(180, 83, 9, 0.75);
-  --warn-subtle: rgba(180, 83, 9, 0.08);
-  --danger: #dc2626;
-  --danger-muted: rgba(220, 38, 38, 0.75);
-  --danger-subtle: rgba(220, 38, 38, 0.08);
-  --info: #2563eb;
+  --ok: #34c759;
+  --ok-muted: rgba(52, 199, 89, 0.75);
+  --ok-subtle: rgba(52, 199, 89, 0.12);
+  --destructive: #ff3b30;
+  --destructive-foreground: #ffffff;
+  --warn: #ff9500;
+  --warn-muted: rgba(255, 149, 0, 0.75);
+  --warn-subtle: rgba(255, 149, 0, 0.12);
+  --danger: #ff3b30;
+  --danger-muted: rgba(255, 59, 48, 0.75);
+  --danger-subtle: rgba(255, 59, 48, 0.12);
+  --info: #007aff;
 
-  --focus: rgba(4, 120, 87, 0.15);
+  --focus: rgba(0, 0, 0, 0.15);
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 3px color-mix(in srgb, var(--ring) 70%, transparent);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 3px var(--ring), 0 0 12px var(--accent-glow);
 
-  --grid-line: rgba(4, 120, 87, 0.06);
+  --grid-line: rgba(0, 0, 0, 0.05);
 
   /* Light shadows - Subtle, clean */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);

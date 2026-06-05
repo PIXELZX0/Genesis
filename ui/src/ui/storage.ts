@@ -63,7 +63,7 @@ export type UiSettings = {
   navCollapsed: boolean; // Collapsible sidebar state
   navWidth: number; // Sidebar width when expanded (240–400px)
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
-  borderRadius: number; // Corner roundness (0-100, default 0)
+  borderRadius: number; // Corner roundness (0-100, default 50 = iOS rounding)
   customTheme?: ImportedCustomTheme;
   locale?: string;
 };
@@ -204,7 +204,7 @@ export function loadSettings(): UiSettings {
     navCollapsed: false,
     navWidth: 220,
     navGroupsCollapsed: {},
-    borderRadius: 0,
+    borderRadius: 50,
   };
 
   try {
