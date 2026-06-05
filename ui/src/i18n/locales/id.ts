@@ -883,8 +883,6 @@ export const id: TranslationMap = {
   chat: {
     disconnected: "Terputus dari gateway.",
     refreshTitle: "Refresh data chat",
-    thinkingToggle: "Alihkan output berpikir/bekerja asisten",
-    toolCallsToggle: "Alihkan panggilan alat dan hasil alat",
     focusToggle: "Alihkan mode fokus (sembunyikan bilah samping + header halaman)",
     hideCronSessions: "Sembunyikan sesi cron",
     showCronSessions: "Tampilkan sesi cron",

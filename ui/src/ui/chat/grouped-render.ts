@@ -1261,7 +1261,7 @@ function renderInlineToolCards(
     <div class="chat-tools-inline">
       ${toolCards.map((card, index) =>
         renderToolCard(card, {
-          expanded: opts.isToolExpanded?.(`${opts.messageKey}:toolcard:${index}`) ?? false,
+          expanded: opts.isToolExpanded?.(`${opts.messageKey}:toolcard:${index}`) ?? true,
           onToggleExpanded: opts.onToggleToolExpanded
             ? () => opts.onToggleToolExpanded?.(`${opts.messageKey}:toolcard:${index}`)
             : () => undefined,
@@ -1429,8 +1429,7 @@ function renderGroupedMessage(
 
   const toolMessageDisclosureId = `toolmsg:${messageKey}`;
   const hasMediaToolOutput = hasImages || assistantAttachments.length > 0;
-  const toolMessageExpanded =
-    opts.isToolMessageExpanded?.(toolMessageDisclosureId) ?? hasMediaToolOutput;
+  const toolMessageExpanded = opts.isToolMessageExpanded?.(toolMessageDisclosureId) ?? true;
   const toolNames = [...new Set(toolCards.map((c) => c.name))];
   const toolSummaryLabel =
     toolNames.length <= 3

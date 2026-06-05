@@ -179,40 +179,15 @@ export function renderChatControls(state: AppViewState) {
   const hiddenCronCount = hideCron
     ? countHiddenCronSessions(state.sessionKey, state.sessionsResult)
     : 0;
-  const disableThinkingToggle = state.onboarding;
   const disableFocusToggle = state.onboarding;
-  const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
-  const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
   const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
   const refreshLabel = t("chat.refreshTitle");
-  const thinkingLabel = disableThinkingToggle
-    ? t("chat.onboardingDisabled")
-    : t("chat.thinkingToggle");
-  const toolCallsLabel = disableThinkingToggle
-    ? t("chat.onboardingDisabled")
-    : t("chat.toolCallsToggle");
   const focusLabel = disableFocusToggle ? t("chat.onboardingDisabled") : t("chat.focusToggle");
   const cronLabel = hideCron
     ? hiddenCronCount > 0
       ? t("chat.showCronSessionsHidden", { count: String(hiddenCronCount) })
       : t("chat.showCronSessions")
     : t("chat.hideCronSessions");
-  const toolCallsIcon = html`
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path
-        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-      ></path>
-    </svg>
-  `;
   const refreshIcon = html`
     <svg
       width="18"
@@ -277,44 +252,6 @@ export function renderChatControls(state: AppViewState) {
       </button>
       <span class="chat-controls__separator">|</span>
       <button
-        class="btn btn--sm btn--icon ${showThinking ? "active" : ""}"
-        ?disabled=${disableThinkingToggle}
-        @click=${() => {
-          if (disableThinkingToggle) {
-            return;
-          }
-          state.applySettings({
-            ...state.settings,
-            chatShowThinking: !state.settings.chatShowThinking,
-          });
-        }}
-        aria-pressed=${showThinking}
-        title=${thinkingLabel}
-        aria-label=${thinkingLabel}
-        data-tooltip=${thinkingLabel}
-      >
-        ${icons.brain}
-      </button>
-      <button
-        class="btn btn--sm btn--icon ${showToolCalls ? "active" : ""}"
-        ?disabled=${disableThinkingToggle}
-        @click=${() => {
-          if (disableThinkingToggle) {
-            return;
-          }
-          state.applySettings({
-            ...state.settings,
-            chatShowToolCalls: !state.settings.chatShowToolCalls,
-          });
-        }}
-        aria-pressed=${showToolCalls}
-        title=${toolCallsLabel}
-        aria-label=${toolCallsLabel}
-        data-tooltip=${toolCallsLabel}
-      >
-        ${toolCallsIcon}
-      </button>
-      <button
         class="btn btn--sm btn--icon ${focusActive ? "active" : ""}"
         ?disabled=${disableFocusToggle}
         @click=${() => {
@@ -356,27 +293,8 @@ export function renderChatControls(state: AppViewState) {
  */
 export function renderChatMobileToggle(state: AppViewState) {
   const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
-  const disableThinkingToggle = state.onboarding;
   const disableFocusToggle = state.onboarding;
-  const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
-  const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
   const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
-  const toolCallsIcon = html`
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path
-        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-      ></path>
-    </svg>
-  `;
   const focusIcon = html`
     <svg
       width="18"
@@ -470,38 +388,6 @@ export function renderChatMobileToggle(state: AppViewState) {
           </label>
           ${renderChatThinkingSelect(state)}
           <div class="chat-controls__thinking">
-            <button
-              class="btn btn--sm btn--icon ${showThinking ? "active" : ""}"
-              ?disabled=${disableThinkingToggle}
-              @click=${() => {
-                if (!disableThinkingToggle) {
-                  state.applySettings({
-                    ...state.settings,
-                    chatShowThinking: !state.settings.chatShowThinking,
-                  });
-                }
-              }}
-              aria-pressed=${showThinking}
-              title=${t("chat.thinkingToggle")}
-            >
-              ${icons.brain}
-            </button>
-            <button
-              class="btn btn--sm btn--icon ${showToolCalls ? "active" : ""}"
-              ?disabled=${disableThinkingToggle}
-              @click=${() => {
-                if (!disableThinkingToggle) {
-                  state.applySettings({
-                    ...state.settings,
-                    chatShowToolCalls: !state.settings.chatShowToolCalls,
-                  });
-                }
-              }}
-              aria-pressed=${showToolCalls}
-              title=${t("chat.toolCallsToggle")}
-            >
-              ${toolCallsIcon}
-            </button>
             <button
               class="btn btn--sm btn--icon ${focusActive ? "active" : ""}"
               ?disabled=${disableFocusToggle}

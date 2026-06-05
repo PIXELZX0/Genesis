@@ -50,13 +50,11 @@ describe("chat header controls (browser)", () => {
       container.querySelectorAll<HTMLButtonElement>(".chat-controls .btn--icon[data-tooltip]"),
     );
 
-    expect(buttons).toHaveLength(5);
+    expect(buttons).toHaveLength(3);
 
     const labels = buttons.map((button) => button.getAttribute("data-tooltip"));
     expect(labels).toEqual([
       t("chat.refreshTitle"),
-      t("chat.thinkingToggle"),
-      t("chat.toolCallsToggle"),
       t("chat.focusToggle"),
       t("chat.showCronSessions"),
     ]);

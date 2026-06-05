@@ -22,7 +22,7 @@ function createGroup(message: unknown, key = "assistant-1"): MessageGroup {
 }
 
 describe("tool expansion state", () => {
-  it("expands already-visible tool cards when auto-expand turns on", () => {
+  it("initializes new tool cards as expanded regardless of the auto-expand pref", () => {
     const group = createGroup({
       role: "assistant",
       content: [
@@ -36,7 +36,7 @@ describe("tool expansion state", () => {
     });
 
     syncToolCardExpansionState("main", [group], false);
-    expect(getExpandedToolCards("main").get("assistant-1:toolcard:0")).toBe(false);
+    expect(getExpandedToolCards("main").get("assistant-1:toolcard:0")).toBe(true);
 
     syncToolCardExpansionState("main", [group], true);
     expect(getExpandedToolCards("main").get("assistant-1:toolcard:0")).toBe(true);

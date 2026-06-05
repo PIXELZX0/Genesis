@@ -879,8 +879,6 @@ export const ko: TranslationMap = {
   chat: {
     disconnected: "Gateway와 연결이 끊어졌습니다.",
     refreshTitle: "채팅 데이터 새로고침",
-    thinkingToggle: "어시스턴트 생각/작업 출력 전환",
-    toolCallsToggle: "도구 호출 및 도구 결과 전환",
     focusToggle: "집중 모드 전환(사이드바 + 페이지 헤더 숨기기)",
     hideCronSessions: "Cron 세션 숨기기",
     showCronSessions: "Cron 세션 표시",

@@ -178,12 +178,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-06-04T11:35:11.504Z",
+  "generatedAt": "2026-06-05T22:14:39.243Z",
   "locale": "ko",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "408409be3149762b85d8d0b6e2c474b4e19457af76af38d8899f2084e050e7e5",
-  "totalKeys": 911,
-  "translatedKeys": 734,
+  "sourceHash": "9a0feab9a714c98d2f1100b1a43acc27c12be10901b60e39941833f3bcd7b26a",
+  "totalKeys": 909,
+  "translatedKeys": 732,
   "workflow": 1
 }

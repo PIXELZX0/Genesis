@@ -28,7 +28,7 @@ export function syncToolCardExpansionState(
 ) {
   const expanded = getExpandedToolCards(sessionKey);
   const initialized = getInitializedToolCards(sessionKey);
-  const previousAutoExpand = lastAutoExpandPrefBySession.get(sessionKey) ?? false;
+  const previousAutoExpand = lastAutoExpandPrefBySession.get(sessionKey) ?? true;
   const currentToolCardIds = new Set<string>();
   for (const item of items) {
     if (item.kind !== "group") {
@@ -42,7 +42,7 @@ export function syncToolCardExpansionState(
         if (initialized.has(disclosureId)) {
           continue;
         }
-        expanded.set(disclosureId, autoExpandToolCalls);
+        expanded.set(disclosureId, true);
         initialized.add(disclosureId);
       }
       const messageRecord = entry.message as Record<string, unknown>;
@@ -63,7 +63,7 @@ export function syncToolCardExpansionState(
       if (initialized.has(disclosureId)) {
         continue;
       }
-      expanded.set(disclosureId, autoExpandToolCalls);
+      expanded.set(disclosureId, true);
       initialized.add(disclosureId);
     }
   }

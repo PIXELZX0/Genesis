@@ -888,8 +888,6 @@ export const pl: TranslationMap = {
   chat: {
     disconnected: "Rozłączono z Gateway.",
     refreshTitle: "Odśwież dane czatu",
-    thinkingToggle: "Przełącz wyświetlanie myślenia/pracy asystenta",
-    toolCallsToggle: "Przełącz wyświetlanie wywołań narzędzi i wyników narzędzi",
     focusToggle: "Przełącz tryb skupienia (ukryj pasek boczny i nagłówek strony)",
     hideCronSessions: "Ukryj sesje Cron",
     showCronSessions: "Pokaż sesje Cron",

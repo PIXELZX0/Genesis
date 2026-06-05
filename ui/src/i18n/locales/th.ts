@@ -871,8 +871,6 @@ export const th: TranslationMap = {
   chat: {
     disconnected: "ตัดการเชื่อมต่อจากเกตเวย์แล้ว",
     refreshTitle: "รีเฟรชข้อมูลแชต",
-    thinkingToggle: "สลับการแสดงผลการคิด/การทำงานของผู้ช่วย",
-    toolCallsToggle: "สลับการแสดงการเรียกใช้ tool และผลลัพธ์ของ tool",
     focusToggle: "สลับโหมดโฟกัส (ซ่อนแถบด้านข้าง + ส่วนหัวหน้า)",
     hideCronSessions: "ซ่อนเซสชัน cron",
     showCronSessions: "แสดงเซสชัน cron",

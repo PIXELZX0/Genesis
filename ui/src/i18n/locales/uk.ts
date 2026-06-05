@@ -887,8 +887,6 @@ export const uk: TranslationMap = {
   chat: {
     disconnected: "Відключено від шлюзу.",
     refreshTitle: "Оновити дані чату",
-    thinkingToggle: "Перемкнути показ мислення/роботи асистента",
-    toolCallsToggle: "Перемкнути виклики інструментів і результати інструментів",
     focusToggle: "Перемкнути режим фокусу (сховати бічну панель і заголовок сторінки)",
     hideCronSessions: "Сховати сеанси Cron",
     showCronSessions: "Показати сеанси Cron",
