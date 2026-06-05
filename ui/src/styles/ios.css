@@ -176,3 +176,150 @@ button.ios-list__row:hover,
 a.ios-list__row:hover {
   background: var(--bg-hover);
 }
+
+/* ── Sheet ───────────────────────────────────────────────────────────
+ * iOS sheet presentation: a blurred backdrop with a panel that reads as
+ * a centered card on desktop and a bottom-anchored sheet (with a grabber
+ * handle) on narrow screens. Reusable .ios-sheet* classes plus a restyle
+ * of the existing config restart modal as the reference conversion. */
+@keyframes ios-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ios-sheet-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ios-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.ios-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: ios-fade-in var(--duration-normal) var(--ease-out);
+}
+
+.ios-sheet {
+  position: relative;
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 24px 22px 22px;
+  background: var(--popover);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  animation: ios-sheet-pop var(--duration-normal) var(--ease-out);
+}
+
+.ios-sheet__grabber,
+.ios-sheet--grabber::before {
+  content: "";
+  justify-self: center;
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.ios-sheet__title {
+  font-size: var(--fs-title-2);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.ios-sheet__body {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-subhead);
+  line-height: 1.5;
+}
+
+.ios-sheet__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Restyle the existing config restart modal as an iOS sheet. */
+.config-restart-modal {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: ios-fade-in var(--duration-normal) var(--ease-out);
+}
+
+.config-restart-modal__panel {
+  position: relative;
+  padding-top: 26px;
+  background: var(--popover);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  animation: ios-sheet-pop var(--duration-normal) var(--ease-out);
+}
+
+.config-restart-modal__panel::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+/* Bottom-anchored sheets on narrow screens. */
+@media (max-width: 640px) {
+  .ios-sheet-backdrop,
+  .config-restart-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .ios-sheet,
+  .config-restart-modal__panel {
+    width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+    animation: ios-sheet-up var(--duration-normal) var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-sheet-backdrop,
+  .ios-sheet,
+  .config-restart-modal,
+  .config-restart-modal__panel {
+    animation: none;
+  }
+}
