@@ -80,3 +80,99 @@
   color: var(--text-strong);
   box-shadow: var(--shadow-sm);
 }
+
+/* ── Grouped inset list ──────────────────────────────────────────────
+ * iOS Settings-style grouped list: a rounded card surface with inset
+ * hairline separators between rows. Use:
+ *   <div class="ios-list">
+ *     <div class="ios-list__row">
+ *       <span class="ios-list__label">Gateway</span>
+ *       <span class="ios-list__value mono">wss://…</span>
+ *     </div>
+ *   </div>
+ */
+.ios-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ios-list__group-header {
+  padding: 6px 16px;
+  font-size: var(--fs-footnote);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ios-list__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 11px 16px;
+}
+
+/* Inset hairline between rows (starts at the label, iOS style). */
+.ios-list__row + .ios-list__row::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.ios-list__label {
+  color: var(--text);
+  font-size: var(--fs-subhead);
+  font-weight: 500;
+}
+
+.ios-list__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--fs-subhead);
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ios-list__value.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.ios-list__chevron {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+/* Tappable rows (with chevron / navigation affordance). */
+button.ios-list__row,
+a.ios-list__row {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+button.ios-list__row:hover,
+a.ios-list__row:hover {
+  background: var(--bg-hover);
+}

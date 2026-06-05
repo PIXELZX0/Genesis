@@ -635,14 +635,14 @@ function renderAppearanceSection(props: ConfigProps) {
 
       <div class="settings-appearance__section">
         <h3 class="settings-appearance__heading">Connection</h3>
-        <div class="settings-info-grid">
-          <div class="settings-info-row">
-            <span class="settings-info-row__label">Gateway</span>
-            <span class="settings-info-row__value mono">${props.gatewayUrl || "-"}</span>
+        <div class="ios-list">
+          <div class="ios-list__row">
+            <span class="ios-list__label">Gateway</span>
+            <span class="ios-list__value mono">${props.gatewayUrl || "-"}</span>
           </div>
-          <div class="settings-info-row">
-            <span class="settings-info-row__label">Status</span>
-            <span class="settings-info-row__value">
+          <div class="ios-list__row">
+            <span class="ios-list__label">Status</span>
+            <span class="ios-list__value">
               <span
                 class="settings-status-dot ${props.connected ? "settings-status-dot--ok" : ""}"
               ></span>
@@ -651,9 +651,9 @@ function renderAppearanceSection(props: ConfigProps) {
           </div>
           ${props.assistantName
             ? html`
-                <div class="settings-info-row">
-                  <span class="settings-info-row__label">Assistant</span>
-                  <span class="settings-info-row__value">${props.assistantName}</span>
+                <div class="ios-list__row">
+                  <span class="ios-list__label">Assistant</span>
+                  <span class="ios-list__value">${props.assistantName}</span>
                 </div>
               `
             : nothing}
