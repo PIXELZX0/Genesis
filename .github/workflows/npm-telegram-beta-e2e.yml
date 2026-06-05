@@ -21,11 +21,11 @@ jobs:
       image: ${{ steps.image.outputs.image }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Docker builder
         uses: useblacksmith/setup-docker-builder@v1
       - name: Build Docker E2E image
-        uses: useblacksmith/build-push-action@v1
+        uses: useblacksmith/build-push-action@v2
         with:
           context: .
           file: scripts/e2e/Dockerfile
@@ -53,6 +53,6 @@ jobs:
       GENESIS_DOCKER_E2E_IMAGE: ${{ needs.prepare_docker_e2e_image.outputs.image }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Run NPM Telegram beta E2E
         run: bash scripts/e2e/npm-telegram-live-docker.sh
