@@ -2281,4 +2281,126 @@ describe("startGatewayConfigReloader SKILL and MCP add/modify", () => {
 
     await harness.reloader.stop();
   });
+
+  it("does not restart when one of many MCP servers is removed via in-process write", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: {
+        servers: {
+          context7: { url: "https://mcp.example.com" },
+          github: { command: "gh-mcp" },
+        },
+      },
+    };
+    const harness = createReloaderHarness(vi.fn(), { initialCompareConfig: initialConfig });
+
+    // Simulate the in-process write from unsetConfiguredMcpServer removing context7
+    // (matches what the Control UI's delete button does via mcp.servers.unset).
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: { servers: { github: { command: "gh-mcp" } } },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: { servers: { github: { command: "gh-mcp" } } },
+      },
+      persistedHash: "mcp-remove-one-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.servers.context7"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart when the only MCP server is removed via in-process write (mcp key gone)", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: { servers: { context7: { url: "https://mcp.example.com" } } },
+    };
+    const harness = createReloaderHarness(vi.fn(), { initialCompareConfig: initialConfig });
+
+    // Simulate the in-process write from unsetConfiguredMcpServer removing the
+    // only server; unsetConfiguredMcpServer deletes the entire mcp key when no
+    // servers remain and no other mcp.* keys are set.
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: { gateway: { reload: { debounceMs: 0 } } },
+      runtimeConfig: { gateway: { reload: { debounceMs: 0 } } },
+      persistedHash: "mcp-remove-only-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
+
+  it("does not restart when the only MCP server is removed and other mcp.* keys remain", async () => {
+    const initialConfig: GenesisConfig = {
+      gateway: { reload: { debounceMs: 0 } },
+      mcp: {
+        servers: { context7: { url: "https://mcp.example.com" } },
+        metadataFetch: { allowedHosts: ["mcp.example.com"] },
+        sessionIdleTtlMs: 60000,
+      },
+    };
+    const harness = createReloaderHarness(vi.fn(), { initialCompareConfig: initialConfig });
+
+    // Simulate the in-process write when metadataFetch/sessionIdleTtlMs are also
+    // configured; unsetConfiguredMcpServer leaves mcp intact with only
+    // servers deleted.
+    harness.emitWrite({
+      configPath: "/tmp/genesis.json",
+      sourceConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: {
+          metadataFetch: { allowedHosts: ["mcp.example.com"] },
+          sessionIdleTtlMs: 60000,
+        },
+      },
+      runtimeConfig: {
+        gateway: { reload: { debounceMs: 0 } },
+        mcp: {
+          metadataFetch: { allowedHosts: ["mcp.example.com"] },
+          sessionIdleTtlMs: 60000,
+        },
+      },
+      persistedHash: "mcp-remove-only-with-others-1",
+      writtenAtMs: Date.now(),
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(harness.onHotReload).toHaveBeenCalledTimes(1);
+    expect(harness.onRestart).not.toHaveBeenCalled();
+    expect(harness.onHotReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        restartGateway: false,
+        hotReasons: expect.arrayContaining(["mcp.servers"]),
+      }),
+      expect.anything(),
+    );
+
+    await harness.reloader.stop();
+  });
 });
