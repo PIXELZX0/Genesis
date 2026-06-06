@@ -415,6 +415,14 @@ describe("installBundledRuntimeDeps", () => {
     ).toThrow("Unsupported bundled runtime dependency spec for tokenjuice");
   });
 
+  it("accepts dist-tag install specs (e.g. @earendil-works/pi-ai@latest)", () => {
+    expect(createBundledRuntimeDepsInstallArgs(["@earendil-works/pi-ai@latest"])).toEqual([
+      "install",
+      "--ignore-scripts",
+      "@earendil-works/pi-ai@latest",
+    ]);
+  });
+
   it("includes spawn errors in install failures", () => {
     spawnSyncMock.mockReturnValue({
       pid: 0,
