@@ -178,6 +178,14 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "plugins.uninstall",
     "secrets.reload",
     "secrets.resolve",
+    // Auth-profile mutations write/remove stored model credentials
+    // (auth-profiles.json / auth-state.json), so they require admin like the
+    // other credential-management methods (secrets.*, mcp.oauth.*).
+    "models.authProfileAdd",
+    "models.authProfileRemove",
+    "models.authProfileRename",
+    "models.authProfileSetPriority",
+    "models.authProfileReorder",
     "cron.add",
     "cron.update",
     "cron.remove",
