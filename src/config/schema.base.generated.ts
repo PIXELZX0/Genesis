@@ -3157,6 +3157,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                                 type: "string",
                                 const: "string-thinking",
                               },
+                              {
+                                type: "string",
+                                const: "ant-ling",
+                              },
                             ],
                           },
                           requiresToolResultName: {

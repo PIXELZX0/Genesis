@@ -53,7 +53,8 @@ type SupportedThinkingFormat =
   | NonNullable<OpenAICompletionsCompat["thinkingFormat"]>
   | "deepseek"
   | "openrouter"
-  | "qwen-chat-template";
+  | "qwen-chat-template"
+  | "ant-ling";
 
 export type ModelCompatConfig = SupportedOpenAICompatFields &
   SupportedOpenAIResponsesCompatFields &

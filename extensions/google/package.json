@@ -5,7 +5,7 @@
   "description": "Genesis Google plugin",
   "type": "module",
   "dependencies": {
-    "@earendil-works/pi-ai": "0.78.0",
+    "@earendil-works/pi-ai": "latest",
     "@google/genai": "^1.50.1"
   },
   "devDependencies": {
