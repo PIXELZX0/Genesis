@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import semverSatisfies from "semver/functions/satisfies.js";
+import semverValidRange from "semver/ranges/valid.js";
 import { resolveNpmRunner } from "./npm-runner.mjs";
 
 const TRANSIENT_TEMP_REMOVE_ERROR_CODES = new Set(["EBUSY", "ENOTEMPTY", "EPERM"]);
@@ -770,7 +771,7 @@ function assertSafeRuntimeDependencySpec(depName, spec) {
 function resolveInstalledPinnedDependencyVersion(params) {
   const depRoot = resolveInstalledDependencyRoot({
     depName: params.depName,
-    enforceSpec: true,
+    enforceSpec: params.enforceSpec ?? true,
     parentPackageRoot: params.parentPackageRoot,
     rootNodeModulesDir: params.rootNodeModulesDir,
     spec: params.spec,
@@ -781,12 +782,33 @@ function resolveInstalledPinnedDependencyVersion(params) {
   return readInstalledDependencyVersionFromRoot(depRoot);
 }
 
+function isDistTagLikeSpec(spec) {
+  // A spec is "dist-tag-like" when it is not a pinned exact semver and not a
+  // valid semver range (e.g. "latest", "next", "beta"). semver.validRange
+  // returns null for these, and the only safe resolution is to use whatever
+  // version the package manager actually installed in node_modules.
+  if (typeof spec !== "string") {
+    return false;
+  }
+  if (exactVersionSpecRe.test(spec)) {
+    return false;
+  }
+  return semverValidRange(spec, { loose: false }) === null;
+}
+
 function resolvePinnedRuntimeDependencyVersion(params) {
   assertSafeRuntimeDependencySpec(params.depName, params.spec);
   if (exactVersionSpecRe.test(params.spec)) {
     return params.spec;
   }
-  const installedVersion = resolveInstalledPinnedDependencyVersion(params);
+  // Dist-tag specs (e.g. "latest") are not valid semver ranges, so the
+  // semver-satisfies check would reject them. Trust the package manager's
+  // installed version when the spec is a dist-tag.
+  const enforceSpec = isDistTagLikeSpec(params.spec) ? false : true;
+  const installedVersion = resolveInstalledPinnedDependencyVersion({
+    ...params,
+    enforceSpec,
+  });
   if (typeof installedVersion === "string" && exactVersionSpecRe.test(installedVersion)) {
     return installedVersion;
   }
