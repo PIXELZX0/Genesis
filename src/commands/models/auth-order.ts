@@ -6,6 +6,7 @@ import {
   setAuthProfileOrder,
 } from "../../agents/auth-profiles.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
+import { resolveProviderIdForAuth } from "../../agents/provider-auth-aliases.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../../runtime.js";
 import { normalizeStringEntries } from "../../shared/string-normalization.js";
 import { shortenHomePath } from "../../utils.js";
@@ -90,8 +91,73 @@ export async function modelsAuthOrderClearCommand(
   runtime.log("Cleared per-agent order override.");
 }
 
+const PRIORITY_UNSET = Number.NEGATIVE_INFINITY;
+
+/**
+ * Resolve a profile's effective priority for ordering. Mirrors the resolver's
+ * precedence: secret-side `credential.priority` wins, then state-side
+ * `priorities.<id>`, then config-side. Falls back to `-Infinity` so the row
+ * sorts to the bottom of its tier.
+ */
+function resolveOrderPriority(
+  profileId: string,
+  store: AuthProfileStore,
+  cfg: Awaited<ReturnType<typeof loadModelsConfig>>,
+): number {
+  const credPriority = store.profiles[profileId]?.priority;
+  if (typeof credPriority === "number" && Number.isFinite(credPriority)) {
+    return credPriority;
+  }
+  const statePriority = store.priorities?.[profileId];
+  if (typeof statePriority === "number" && Number.isFinite(statePriority)) {
+    return statePriority;
+  }
+  const configPriority = cfg?.auth?.profiles?.[profileId]?.priority;
+  if (typeof configPriority === "number" && Number.isFinite(configPriority)) {
+    return configPriority;
+  }
+  return PRIORITY_UNSET;
+}
+
+/**
+ * Append profiles that exist for the provider but were not mentioned in the
+ * explicit `requested` list, sorted by priority desc. Stable for equal
+ * priorities (preserves the existing store order). The caller still gets to
+ * choose the *first* slots; the filler is for the tail.
+ */
+function fillByPriority(params: {
+  requested: string[];
+  store: AuthProfileStore;
+  cfg: Awaited<ReturnType<typeof loadModelsConfig>>;
+  provider: string;
+}): string[] {
+  const providerAuthKey = resolveProviderIdForAuth(params.provider, { config: params.cfg });
+  const requestedSet = new Set(params.requested);
+  const remaining: string[] = [];
+  for (const [profileId, credential] of Object.entries(params.store.profiles)) {
+    if (requestedSet.has(profileId)) {
+      continue;
+    }
+    if (resolveProviderIdForAuth(credential.provider, { config: params.cfg }) !== providerAuthKey) {
+      continue;
+    }
+    remaining.push(profileId);
+  }
+  remaining.toSorted(
+    (a, b) =>
+      resolveOrderPriority(b, params.store, params.cfg) -
+      resolveOrderPriority(a, params.store, params.cfg),
+  );
+  return [...params.requested, ...remaining];
+}
+
 export async function modelsAuthOrderSetCommand(
-  opts: { provider: string; agent?: string; order: string[] },
+  opts: {
+    provider: string;
+    agent?: string;
+    order: string[];
+    sortByPriority?: boolean;
+  },
   runtime: RuntimeEnv,
 ) {
   const { agentId, agentDir, provider } = await resolveAuthOrderContext(opts, runtime);
@@ -115,10 +181,19 @@ export async function modelsAuthOrderSetCommand(
     }
   }
 
+  const finalOrder = opts.sortByPriority
+    ? fillByPriority({
+        requested,
+        store,
+        cfg: await loadModelsConfig({ commandName: "models auth-order", runtime }),
+        provider,
+      })
+    : requested;
+
   const updated = await setAuthProfileOrder({
     agentDir,
     provider,
-    order: requested,
+    order: finalOrder,
   });
   if (!updated) {
     throw new Error("Failed to update auth-state.json (lock busy?).");

@@ -122,6 +122,86 @@ export async function removeProviderAuthProfilesWithLock(params: {
   });
 }
 
+/**
+ * Remove a single profile by id — drops the credential, its usage stats, and
+ * any priority override. Does not touch other profiles for the same provider
+ * (use {@link removeProviderAuthProfilesWithLock} for that). Returns the
+ * post-update store or `null` if the lock failed.
+ */
+export async function removeAuthProfileWithLock(params: {
+  profileId: string;
+  agentDir?: string;
+}): Promise<AuthProfileStore | null> {
+  return await updateAuthProfileStoreWithLock({
+    agentDir: params.agentDir,
+    updater: (store) => {
+      let changed = false;
+      if (store.profiles[params.profileId]) {
+        delete store.profiles[params.profileId];
+        changed = true;
+      }
+      if (store.usageStats?.[params.profileId]) {
+        delete store.usageStats[params.profileId];
+        changed = true;
+      }
+      if (store.priorities?.[params.profileId] !== undefined) {
+        delete store.priorities[params.profileId];
+        changed = true;
+        if (Object.keys(store.priorities).length === 0) {
+          store.priorities = undefined;
+        }
+      }
+      if (store.usageStats && Object.keys(store.usageStats).length === 0) {
+        store.usageStats = undefined;
+      }
+      return changed;
+    },
+  });
+}
+
+/**
+ * Update the secret-side credential fields in place. Used by the rename and
+ * set-priority flows. The credential type and provider are immutable; this
+ * only mutates mutable metadata (displayName, priority) and the api_key
+ * `metadata` map. Returns the post-update store or `null` if the lock failed
+ * or the profile does not exist.
+ */
+export async function updateAuthProfileMetadataWithLock(params: {
+  profileId: string;
+  displayName?: string | null;
+  priority?: number | null;
+  agentDir?: string;
+}): Promise<AuthProfileStore | null> {
+  return await updateAuthProfileStoreWithLock({
+    agentDir: params.agentDir,
+    updater: (store) => {
+      const credential = store.profiles[params.profileId];
+      if (!credential) {
+        return false;
+      }
+      let changed = false;
+      if (params.displayName !== undefined) {
+        const next =
+          params.displayName === null || params.displayName.length === 0
+            ? undefined
+            : params.displayName;
+        if (next !== credential.displayName) {
+          credential.displayName = next;
+          changed = true;
+        }
+      }
+      if (params.priority !== undefined) {
+        const next = params.priority === null ? undefined : params.priority;
+        if (next !== credential.priority) {
+          credential.priority = next;
+          changed = true;
+        }
+      }
+      return changed;
+    },
+  });
+}
+
 export async function markAuthProfileGood(params: {
   store: AuthProfileStore;
   provider: string;

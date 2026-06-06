@@ -22,6 +22,8 @@ export type ApiKeyCredential = {
   keyRef?: SecretRef;
   email?: string;
   displayName?: string;
+  /** Higher number = tried first by the resolver. Unset = round-robin. */
+  priority?: number;
   /** Optional provider-specific metadata (e.g., account IDs, gateway IDs). */
   metadata?: Record<string, string>;
 };
@@ -39,6 +41,8 @@ export type TokenCredential = {
   expires?: number;
   email?: string;
   displayName?: string;
+  /** Higher number = tried first by the resolver. Unset = round-robin. */
+  priority?: number;
 };
 
 export type OAuthCredential = OAuthCredentials & {
@@ -47,6 +51,8 @@ export type OAuthCredential = OAuthCredentials & {
   clientId?: string;
   email?: string;
   displayName?: string;
+  /** Higher number = tried first by the resolver. Unset = round-robin. */
+  priority?: number;
 };
 
 export type AuthProfileCredential = ApiKeyCredential | TokenCredential | OAuthCredential;
@@ -84,6 +90,13 @@ export type AuthProfileState = {
    */
   order?: Record<string, string[]>;
   lastGood?: Record<string, string>;
+  /**
+   * Optional per-profile priority overrides stored in auth-state.json.
+   * Mirrors the secret-side `credential.priority` so rotation can honor
+   * priority without rewriting the secrets file. Secret-side wins when both
+   * are set; this map is consulted only when the credential has no priority.
+   */
+  priorities?: Record<string, number>;
   /** Usage statistics per profile for round-robin rotation */
   usageStats?: Record<string, ProfileUsageStats>;
 };

@@ -247,7 +247,23 @@ export type ProviderAuthKind = "oauth" | "api_key" | "token" | "device_code" | "
 
 /** Standard result payload returned by provider auth methods. */
 export type ProviderAuthResult = {
-  profiles: Array<{ profileId: string; credential: AuthProfileCredential }>;
+  profiles: Array<{
+    profileId: string;
+    credential: AuthProfileCredential;
+    /**
+     * Optional human-readable label for this credential. The runner persists
+     * it on both the secret-side credential and the config-side profile meta
+     * so the dashboard and CLI can show the same name regardless of which
+     * store they read.
+     */
+    displayName?: string;
+    /**
+     * Optional routing priority (higher = tried first). The runner persists
+     * it on both the secret-side credential and the config-side profile meta.
+     * Unset = fall back to round-robin.
+     */
+    priority?: number;
+  }>;
   /**
    * Optional config patch to merge after credentials are written.
    *

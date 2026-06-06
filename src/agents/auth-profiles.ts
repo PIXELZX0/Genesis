@@ -16,7 +16,9 @@ export {
   dedupeProfileIds,
   listProfilesForProvider,
   markAuthProfileGood,
+  removeAuthProfileWithLock,
   setAuthProfileOrder,
+  updateAuthProfileMetadataWithLock,
   upsertAuthProfile,
   upsertAuthProfileWithLock,
 } from "./auth-profiles/profiles.js";

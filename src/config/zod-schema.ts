@@ -609,7 +609,8 @@ export const GenesisSchema = z
                 provider: z.string(),
                 mode: z.union([z.literal("api_key"), z.literal("oauth"), z.literal("token")]),
                 email: z.string().optional(),
-                displayName: z.string().optional(),
+                displayName: z.string().max(80).optional(),
+                priority: z.number().int().optional(),
               })
               .strict(),
           )

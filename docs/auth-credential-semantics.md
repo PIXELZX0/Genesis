@@ -53,6 +53,10 @@ Token credentials (`type: "token"`) support inline `token` and/or `tokenRef`.
   not silently tried later. Probe output reports it with
   `reasonCode: excluded_by_auth_order` and the detail
   `Excluded by auth.order for this provider.`
+- Explicit `auth.order` still wins over `priority`. When the user has set
+  `auth.order`, profiles are tried in that exact order, even if a higher
+  `priority` profile is present. To use priority, clear `auth.order` (or
+  leave it unset).
 
 ## Probe Target Resolution
 

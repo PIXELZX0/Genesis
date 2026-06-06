@@ -116,6 +116,11 @@ genesis models auth add
 genesis models auth login --provider <id>
 genesis models auth setup-token --provider <id>
 genesis models auth paste-token
+# Profile management
+genesis models auth rename          --profile-id <id> --name <displayName>
+genesis models auth remove          --profile-id <id>
+genesis models auth set-priority    --profile-id <id> --priority <n>
+genesis models auth order set <profileIds...> [--sort-by-priority]
 ```
 
 `models auth add` is the interactive auth helper. It can launch a provider auth
@@ -129,6 +134,9 @@ Examples:
 
 ```bash
 genesis models auth login --provider openai-codex --set-default
+# Add a named, prioritized credential
+genesis models auth login --provider openai-codex --name "Work" --priority 100
+genesis models auth paste-token --provider anthropic --profile-id anthropic:work --name "Work" --priority 100 --expires-in 365d
 ```
 
 Notes:
@@ -144,6 +152,10 @@ Notes:
   `--profile-id`.
 - `paste-token --expires-in <duration>` stores an absolute token expiry from a
   relative duration such as `365d` or `12h`.
+- `--name <displayName>` (max 80 chars) and `--priority <n>` (integer; higher = tried first) attach a human-readable label and routing priority to the new profile. Both fields are written to the secret side and the config side. Unset `priority` keeps the profile in the round-robin bucket.
+- `auth rename` updates the display name on the secret side first, then the config side. `auth set-priority --priority ""` clears the priority.
+- `auth remove` drops the credential, its usage stats, and its config-side meta. It prompts for confirmation on a TTY; pass `--yes` to skip.
+- `auth order set --sort-by-priority` appends any remaining profiles for the provider to the explicit order, sorted by priority desc — useful for pinning the first slot while letting priority fill the tail.
 - Anthropic note: Anthropic staff told us Genesis-style Claude CLI usage is allowed again, so Genesis treats Claude CLI reuse and `claude -p` usage as sanctioned for this integration unless Anthropic publishes a new policy.
 - Anthropic `setup-token` / `paste-token` remain available as a supported Genesis token path, but Genesis now prefers Claude CLI reuse and `claude -p` when available.
 

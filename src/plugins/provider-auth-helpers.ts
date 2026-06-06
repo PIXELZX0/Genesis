@@ -140,6 +140,12 @@ export function applyAuthProfileConfig(
     mode: "api_key" | "oauth" | "token";
     email?: string;
     displayName?: string;
+    /**
+     * Config-side priority override. Routing-only metadata — the secret-side
+     * `credential.priority` wins when both are set. Persisted alongside
+     * `displayName` so users can shape rotation from `genesis.json` alone.
+     */
+    priority?: number;
     preferProfileFirst?: boolean;
   },
 ): GenesisConfig {
@@ -151,6 +157,9 @@ export function applyAuthProfileConfig(
       mode: params.mode,
       ...(params.email ? { email: params.email } : {}),
       ...(params.displayName ? { displayName: params.displayName } : {}),
+      ...(typeof params.priority === "number" && Number.isFinite(params.priority)
+        ? { priority: params.priority }
+        : {}),
     },
   };
 

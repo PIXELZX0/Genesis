@@ -8,6 +8,7 @@ import { normalizeOptionalSecretInput } from "../utils/normalize-secret-input.js
 import type {
   ProviderAuthMethod,
   ProviderAuthMethodNonInteractiveContext,
+  ProviderAuthResult,
   ProviderPluginWizardSetup,
 } from "./types.js";
 
@@ -21,8 +22,24 @@ type ProviderApiKeyAuthMethodOptions = {
   flagName: `--${string}`;
   envVar: string;
   promptMessage: string;
+  /**
+   * Flat shape: one or more profile ids to write. Backwards-compatible.
+   * When `profileConfigs` is also provided, the flat ids are unioned with
+   * the per-profile objects (and any duplicate ids use the per-profile
+   * metadata).
+   */
   profileId?: string;
   profileIds?: string[];
+  /**
+   * Per-profile shape. Lets plugin authors attach a `displayName` and
+   * `priority` to each profile in a single auth call. Preferred over the
+   * flat `profileId`/`profileIds` shape for multi-credential providers.
+   */
+  profileConfigs?: Array<{
+    profileId: string;
+    displayName?: string;
+    priority?: number;
+  }>;
   allowProfile?: boolean;
   defaultModel?: string;
   expectedProviders?: string[];
@@ -49,12 +66,36 @@ function resolveProfileIds(params: {
   providerId: string;
   profileId?: string;
   profileIds?: string[];
-}) {
-  const explicit = Array.from(new Set(normalizeStringEntries(params.profileIds ?? [])));
+  profileConfigs?: Array<{ profileId: string }>;
+}): string[] {
+  const explicit = Array.from(
+    new Set(
+      normalizeStringEntries([
+        ...(params.profileIds ?? []),
+        ...(params.profileConfigs?.map((c) => c.profileId) ?? []),
+      ]),
+    ),
+  );
   if (explicit.length > 0) {
     return explicit;
   }
   return [resolveProfileId(params)];
+}
+
+function resolveProfileMetadata(params: {
+  profileId: string;
+  profileConfigs?: Array<{ profileId: string; displayName?: string; priority?: number }>;
+}): { displayName?: string; priority?: number } {
+  const match = params.profileConfigs?.find((c) => c.profileId === params.profileId);
+  if (!match) {
+    return {};
+  }
+  return {
+    ...(match.displayName !== undefined ? { displayName: match.displayName } : {}),
+    ...(typeof match.priority === "number" && Number.isFinite(match.priority)
+      ? { priority: match.priority }
+      : {}),
+  };
 }
 
 async function applyApiKeyConfig(params: {
@@ -135,9 +176,9 @@ export function createProviderApiKeyAuthMethod(
       const profileIds = resolveProfileIds(params);
 
       return {
-        profiles: profileIds.map((profileId) => ({
-          profileId,
-          credential: buildApiKeyCredential(
+        profiles: profileIds.map((profileId) => {
+          const meta = resolveProfileMetadata({ profileId, profileConfigs: params.profileConfigs });
+          const credential = buildApiKeyCredential(
             normalizeOptionalString(profileId.split(":", 1)[0]) || params.providerId,
             credentialInput,
             params.metadata,
@@ -147,8 +188,16 @@ export function createProviderApiKeyAuthMethod(
                   config: ctx.config,
                 }
               : undefined,
-          ),
-        })),
+          );
+          const entry: ProviderAuthResult["profiles"][number] = { profileId, credential };
+          if (meta.displayName !== undefined) {
+            entry.displayName = meta.displayName;
+          }
+          if (typeof meta.priority === "number") {
+            entry.priority = meta.priority;
+          }
+          return entry;
+        }),
         ...(params.applyConfig ? { configPatch: params.applyConfig(ctx.config) } : {}),
         ...(params.defaultModel ? { defaultModel: params.defaultModel } : {}),
       };

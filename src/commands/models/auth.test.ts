@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => ({
   resolveAgentWorkspaceDir: vi.fn(),
   resolveDefaultAgentWorkspaceDir: vi.fn(),
   upsertAuthProfile: vi.fn(),
+  upsertAuthProfileWithLock: vi.fn(),
+  removeAuthProfileWithLock: vi.fn(),
+  updateAuthProfileMetadataWithLock: vi.fn(),
   resolvePluginProviders: vi.fn(),
   createClackPrompter: vi.fn(),
   loadValidConfigOrThrow: vi.fn(),
@@ -29,6 +32,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../agents/auth-profiles/profiles.js", () => ({
   listProfilesForProvider: mocks.listProfilesForProvider,
   upsertAuthProfile: mocks.upsertAuthProfile,
+  upsertAuthProfileWithLock: mocks.upsertAuthProfileWithLock,
+  removeAuthProfileWithLock: mocks.removeAuthProfileWithLock,
+  updateAuthProfileMetadataWithLock: mocks.updateAuthProfileMetadataWithLock,
 }));
 
 vi.mock("../../agents/auth-profiles/store.js", () => ({
@@ -743,6 +749,120 @@ describe("modelsAuthLoginCommand", () => {
         provider: "moonshot",
         token: "moonshot-token",
       },
+      agentDir: "/tmp/genesis/agents/main",
+    });
+  });
+});
+
+describe("modelsAuthRenameCommand", () => {
+  beforeEach(() => {
+    mocks.updateAuthProfileMetadataWithLock.mockResolvedValue({
+      version: 1,
+      profiles: {
+        "anthropic:work": {
+          type: "api_key",
+          provider: "anthropic",
+          key: "sk-test",
+          displayName: "Work",
+        },
+      },
+    });
+  });
+
+  it("rejects missing profileId", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthRenameCommand } = await import("./auth.js");
+    await expect(modelsAuthRenameCommand({ name: "Work" }, runtime)).rejects.toThrow(
+      /Missing --profile-id/,
+    );
+  });
+
+  it("rejects missing name", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthRenameCommand } = await import("./auth.js");
+    await expect(modelsAuthRenameCommand({ profileId: "anthropic:work" }, runtime)).rejects.toThrow(
+      /Missing --name/,
+    );
+  });
+
+  it("renames a profile and writes both sides", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthRenameCommand } = await import("./auth.js");
+    await modelsAuthRenameCommand({ profileId: "anthropic:work", name: "Work" }, runtime);
+    expect(mocks.updateAuthProfileMetadataWithLock).toHaveBeenCalledWith({
+      profileId: "anthropic:work",
+      displayName: "Work",
+      agentDir: "/tmp/genesis/agents/main",
+    });
+  });
+});
+
+describe("modelsAuthSetPriorityCommand", () => {
+  beforeEach(() => {
+    mocks.updateAuthProfileMetadataWithLock.mockResolvedValue({
+      version: 1,
+      profiles: {
+        "anthropic:work": {
+          type: "api_key",
+          provider: "anthropic",
+          key: "sk-test",
+          priority: 100,
+        },
+      },
+    });
+  });
+
+  it("sets a priority", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthSetPriorityCommand } = await import("./auth.js");
+    await modelsAuthSetPriorityCommand({ profileId: "anthropic:work", priority: 100 }, runtime);
+    expect(mocks.updateAuthProfileMetadataWithLock).toHaveBeenCalledWith({
+      profileId: "anthropic:work",
+      priority: 100,
+      agentDir: "/tmp/genesis/agents/main",
+    });
+  });
+
+  it("clears a priority via null", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthSetPriorityCommand } = await import("./auth.js");
+    await modelsAuthSetPriorityCommand({ profileId: "anthropic:work", priority: null }, runtime);
+    expect(mocks.updateAuthProfileMetadataWithLock).toHaveBeenCalledWith({
+      profileId: "anthropic:work",
+      priority: null,
+      agentDir: "/tmp/genesis/agents/main",
+    });
+  });
+
+  it("rejects non-integer priority", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthSetPriorityCommand } = await import("./auth.js");
+    await expect(
+      modelsAuthSetPriorityCommand({ profileId: "anthropic:work", priority: 1.5 }, runtime),
+    ).rejects.toThrow(/integer/);
+  });
+});
+
+describe("modelsAuthRemoveCommand", () => {
+  beforeEach(() => {
+    mocks.removeAuthProfileWithLock.mockResolvedValue({
+      version: 1,
+      profiles: {},
+    });
+  });
+
+  it("rejects missing profileId", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthRemoveCommand } = await import("./auth.js");
+    await expect(modelsAuthRemoveCommand({}, runtime)).rejects.toThrow(/Missing --profile-id/);
+  });
+
+  it("removes a profile", async () => {
+    const runtime = createRuntime();
+    const { modelsAuthRemoveCommand } = await import("./auth.js");
+    await modelsAuthRemoveCommand({ profileId: "anthropic:work", yes: true }, runtime);
+    expect(mocks.removeAuthProfileWithLock).toHaveBeenCalledWith({
+      profileId: "anthropic:work",
       agentDir: "/tmp/genesis/agents/main",
     });
   });

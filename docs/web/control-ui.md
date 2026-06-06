@@ -121,6 +121,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
 - Model providers: guided provider auth setup from Agents -> Overview (`wizard.start` with `target: "models"`)
+- Auth profiles: per-provider multi-credential panel with name, priority, masked key, expiry, and source (env / SecretRef / plaintext); Add / Rename / Remove / Set Priority actions via the new `models.authProfile*` RPCs; the Quick Settings API Keys card shows one row per profile when a provider has multiple credentials.
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, ClawHub search/browse/install, dependency installs, API key updates (`skills.*`)

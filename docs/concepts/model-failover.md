@@ -81,15 +81,32 @@ Profiles live in `~/.genesis/agents/<agentId>/agent/auth-profiles.json` under `p
 
 When a provider has multiple profiles, Genesis chooses an order like this:
 
-1. **Explicit config**: `auth.order[provider]` (if set).
+1. **Explicit config**: `auth.order[provider]` (if set). Wins over priority.
 2. **Configured profiles**: `auth.profiles` filtered by provider.
 3. **Stored profiles**: entries in `auth-profiles.json` for the provider.
 
-If no explicit order is configured, Genesis uses a round‑robin order:
+If no explicit order is configured, Genesis uses **priority** as the new primary sort key, then falls back to round-robin:
 
-- **Primary key:** profile type (**OAuth before API keys**).
-- **Secondary key:** `usageStats.lastUsed` (oldest first, within each type).
-- **Cooldown/disabled profiles** are moved to the end, ordered by soonest expiry.
+- **Primary key:** `priority` (descending). A profile with `priority: 100` is tried before `priority: 1`; a profile with no priority sorts to the bottom of its tier. Sources, in order: secret-side `credential.priority` → state-side `priorities.<id>` → config-side `auth.profiles.<id>.priority`. Secret-side wins.
+- **Secondary key:** profile type (**OAuth before API keys**) — only consulted when priorities tie or are both unset.
+- **Tertiary key:** `usageStats.lastUsed` (oldest first, within each type).
+- **Cooldown/disabled profiles** are moved to the end, ordered by soonest expiry, regardless of priority.
+
+A profile with `priority: 0` counts as "set" (above unset priorities); it does not collapse to falsy. To force a profile to the back of its priority tier, set its priority to a value lower than every other profile, or rely on cooldown.
+
+### Example
+
+```json5
+// auth-profiles.json
+{
+  profiles: {
+    "anthropic:work": { type: "api_key", provider: "anthropic", key: "sk-work", priority: 100 },
+    "anthropic:personal": { type: "api_key", provider: "anthropic", key: "sk-personal" },
+  },
+}
+```
+
+`anthropic:work` is tried first (priority 100); `anthropic:personal` is the round-robin fallback.
 
 ### Session stickiness (cache-friendly)
 

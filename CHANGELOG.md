@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Auth profiles: per-provider multi-credential support. Attach a human-readable `displayName` and a numeric `priority` to each auth profile in `auth-profiles.json` and `genesis.json` (`auth.profiles.<id>`); the resolver now sorts by `priority` (desc) before falling back to type + round-robin. Secret-side fields win over config-side when both are set. `genesis models auth login` / `paste-token` / `setup-token` accept `--name` and `--priority`; new `auth rename`, `auth remove`, and `auth set-priority` subcommands manage profiles after the fact. `auth order set --sort-by-priority` fills remaining slots in the explicit order. The gateway exposes `models.authProfileAdd` / `Remove` / `Rename` / `SetPriority` / `Reorder` RPCs. The Control UI shows one row per profile with name, priority, and masked key.
 - Control UI: redesigned with a monochrome, iOS-style flat look. The Claw, Knot, and Dash color themes and the tweakcn custom-theme importer are replaced by a single black-and-white theme with light, dark, and system modes. Adds iOS-style segmented controls, grouped inset lists, sheet dialogs, and large page titles, and rounded corners now ship by default. Existing installs migrate to the monochrome theme automatically while keeping their light and dark preference.
 
 ### Fixes

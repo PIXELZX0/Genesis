@@ -1216,6 +1216,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 displayName: {
                   type: "string",
+                  maxLength: 80,
+                },
+                priority: {
+                  type: "integer",
+                  minimum: -9007199254740991,
+                  maximum: 9007199254740991,
                 },
               },
               required: ["provider", "mode"],

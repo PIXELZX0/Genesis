@@ -45,6 +45,19 @@ export type ModelAuthStatusProfile = {
   type: "oauth" | "token" | "api_key";
   status: AuthProfileHealthStatus;
   expiry?: ModelAuthExpiry;
+  /**
+   * Human-readable label for this credential. Falls back to `profileId` when
+   * unset. Sourced from secret-side `credential.displayName`, then
+   * config-side `auth.profiles.<id>.displayName`.
+   */
+  displayName?: string;
+  /**
+   * Routing priority. Higher = tried first. Sourced from secret-side
+   * `credential.priority`, then state-side `priorities.<id>`, then
+   * config-side `auth.profiles.<id>.priority`. `undefined` for unset so
+   * dashboards can render a `—` placeholder.
+   */
+  priority?: number;
 };
 
 export type ModelAuthStatusProvider = {
@@ -163,6 +176,11 @@ function mapProvider(
   prov: AuthProviderHealth,
   usageByProvider: Map<string, { windows: UsageWindow[]; plan?: string }>,
   expectsOAuthSet: Set<string>,
+  store: {
+    profiles?: Record<string, { priority?: number; displayName?: string }>;
+    priorities?: Record<string, number>;
+  },
+  cfg?: GenesisConfig,
 ): ModelAuthStatusProvider {
   const usageKey = resolveUsageProviderId(prov.provider);
   const usage = usageKey ? usageByProvider.get(usageKey) : undefined;
@@ -177,9 +195,39 @@ function mapProvider(
       type: prof.type,
       status: prof.status,
       expiry: buildExpiry(prof.remainingMs, prof.expiresAt),
+      displayName:
+        store.profiles?.[prof.profileId]?.displayName ??
+        cfg?.auth?.profiles?.[prof.profileId]?.displayName,
+      priority: resolvePriorityForProfile(prof.profileId, store, cfg),
     })),
     usage: usage ? { windows: usage.windows, plan: usage.plan } : undefined,
   };
+}
+
+/**
+ * Resolve a profile's effective priority for the wire. Mirrors the runtime
+ * resolver's precedence: secret-side → state-side → config-side. Numeric
+ * `Infinity` is collapsed to `undefined` so JSON consumers can rely on
+ * `displayName === undefined` and `priority === undefined` as sentinels.
+ */
+function resolvePriorityForProfile(
+  profileId: string,
+  store: { profiles?: Record<string, { priority?: number }>; priorities?: Record<string, number> },
+  cfg?: GenesisConfig,
+): number | undefined {
+  const secret = store.profiles?.[profileId]?.priority;
+  if (typeof secret === "number" && Number.isFinite(secret)) {
+    return secret;
+  }
+  const state = store.priorities?.[profileId];
+  if (typeof state === "number" && Number.isFinite(state)) {
+    return state;
+  }
+  const config = cfg?.auth?.profiles?.[profileId]?.priority;
+  if (typeof config === "number" && Number.isFinite(config)) {
+    return config;
+  }
+  return undefined;
 }
 
 /**
@@ -332,7 +380,7 @@ export const modelsAuthStatusHandlers: GatewayRequestHandlers = {
       }
 
       const providers = authHealth.providers.map((prov) =>
-        mapProvider(prov, usageByProvider, configured.expectsOAuth),
+        mapProvider(prov, usageByProvider, configured.expectsOAuth, store, cfg),
       );
       const result: ModelAuthStatusResult = { ts: now, providers };
       cached = { ts: now, result };

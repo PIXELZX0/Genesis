@@ -10,7 +10,12 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { listProfilesForProvider, upsertAuthProfile } from "../../agents/auth-profiles/profiles.js";
+import {
+  listProfilesForProvider,
+  removeAuthProfileWithLock,
+  updateAuthProfileMetadataWithLock,
+  upsertAuthProfile,
+} from "../../agents/auth-profiles/profiles.js";
 import { loadAuthProfileStoreForRuntime } from "../../agents/auth-profiles/store.js";
 import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
 import { clearAuthProfileCooldown } from "../../agents/auth-profiles/usage.js";
@@ -236,9 +241,13 @@ async function persistProviderAuthResult(params: {
   setDefault?: boolean;
 }) {
   for (const profile of params.result.profiles) {
+    const credential = withCredentialMetadata(profile.credential, {
+      displayName: profile.displayName,
+      priority: profile.priority,
+    });
     upsertAuthProfile({
       profileId: profile.profileId,
-      credential: profile.credential,
+      credential,
       agentDir: params.agentDir,
     });
   }
@@ -255,6 +264,8 @@ async function persistProviderAuthResult(params: {
         profileId: profile.profileId,
         provider: profile.credential.provider,
         mode: credentialMode(profile.credential),
+        ...(profile.displayName ? { displayName: profile.displayName } : {}),
+        ...(typeof profile.priority === "number" ? { priority: profile.priority } : {}),
       });
     }
     if (params.setDefault && params.result.defaultModel) {
@@ -265,8 +276,13 @@ async function persistProviderAuthResult(params: {
 
   logConfigUpdated(params.runtime);
   for (const profile of params.result.profiles) {
+    const label = profile.displayName
+      ? `${profile.displayName} (${profile.profileId})`
+      : profile.profileId;
+    const prioritySuffix =
+      typeof profile.priority === "number" ? ` priority=${profile.priority}` : "";
     params.runtime.log(
-      `Auth profile: ${profile.profileId} (${profile.credential.provider}/${credentialMode(profile.credential)})`,
+      `Auth profile: ${label} (${profile.credential.provider}/${credentialMode(profile.credential)})${prioritySuffix}`,
     );
   }
   if (params.result.defaultModel) {
@@ -281,6 +297,42 @@ async function persistProviderAuthResult(params: {
   }
 }
 
+/**
+ * Apply optional `displayName` and `priority` metadata onto a credential
+ * before persisting it. Preserves the credential type discriminator — never
+ * returns a plain `AuthProfileCredential` without the original `type`.
+ */
+function withCredentialMetadata(
+  credential: AuthProfileCredential,
+  meta: { displayName?: string; priority?: number },
+): AuthProfileCredential {
+  const { displayName, priority } = meta;
+  const hasDisplayName = typeof displayName === "string" && displayName.length > 0;
+  const hasPriority = typeof priority === "number" && Number.isFinite(priority);
+  if (!hasDisplayName && !hasPriority) {
+    return credential;
+  }
+  if (credential.type === "api_key") {
+    return {
+      ...credential,
+      ...(hasDisplayName ? { displayName } : {}),
+      ...(hasPriority ? { priority } : {}),
+    };
+  }
+  if (credential.type === "token") {
+    return {
+      ...credential,
+      ...(hasDisplayName ? { displayName } : {}),
+      ...(hasPriority ? { priority } : {}),
+    };
+  }
+  return {
+    ...credential,
+    ...(hasDisplayName ? { displayName } : {}),
+    ...(hasPriority ? { priority } : {}),
+  };
+}
+
 async function runProviderAuthMethod(params: {
   config: GenesisConfig;
   agentDir: string;
@@ -290,6 +342,12 @@ async function runProviderAuthMethod(params: {
   runtime: RuntimeEnv;
   prompter: ReturnType<typeof createClackPrompter>;
   setDefault?: boolean;
+  /**
+   * CLI overrides that win over what the provider's auth method returned.
+   * Applied to every profile in the result before persisting.
+   */
+  displayNameOverride?: string;
+  priorityOverride?: number;
 }) {
   await clearStaleProfileLockouts(params.provider.id, params.agentDir);
 
@@ -311,8 +369,31 @@ async function runProviderAuthMethod(params: {
     },
   });
 
+  const overridden: ProviderAuthResult = {
+    ...result,
+    profiles: result.profiles.map((profile) => {
+      const next: ProviderAuthResult["profiles"][number] = {
+        profileId: profile.profileId,
+        credential: profile.credential,
+      };
+      if (profile.displayName !== undefined) {
+        next.displayName = profile.displayName;
+      }
+      if (profile.priority !== undefined) {
+        next.priority = profile.priority;
+      }
+      if (params.displayNameOverride) {
+        next.displayName = params.displayNameOverride;
+      }
+      if (typeof params.priorityOverride === "number") {
+        next.priority = params.priorityOverride;
+      }
+      return next;
+    }),
+  };
+
   await persistProviderAuthResult({
-    result,
+    result: overridden,
     agentDir: params.agentDir,
     runtime: params.runtime,
     prompter: params.prompter,
@@ -321,7 +402,12 @@ async function runProviderAuthMethod(params: {
 }
 
 export async function modelsAuthSetupTokenCommand(
-  opts: { provider?: string; yes?: boolean },
+  opts: {
+    provider?: string;
+    yes?: boolean;
+    name?: string;
+    priority?: number;
+  },
   runtime: RuntimeEnv,
 ) {
   if (!process.stdin.isTTY) {
@@ -368,6 +454,12 @@ export async function modelsAuthSetupTokenCommand(
     method,
     runtime,
     prompter,
+    ...(normalizeOptionalString(opts.name)
+      ? { displayNameOverride: normalizeOptionalString(opts.name) }
+      : {}),
+    ...(typeof opts.priority === "number" && Number.isFinite(opts.priority)
+      ? { priorityOverride: opts.priority }
+      : {}),
   });
 }
 
@@ -376,6 +468,8 @@ export async function modelsAuthPasteTokenCommand(
     provider?: string;
     profileId?: string;
     expiresIn?: string;
+    name?: string;
+    priority?: number;
   },
   runtime: RuntimeEnv,
 ) {
@@ -387,6 +481,9 @@ export async function modelsAuthPasteTokenCommand(
   const provider = normalizeProviderId(rawProvider);
   const profileId =
     normalizeOptionalString(opts.profileId) || resolveDefaultTokenProfileId(provider);
+  const displayName = normalizeOptionalString(opts.name);
+  const priority =
+    typeof opts.priority === "number" && Number.isFinite(opts.priority) ? opts.priority : undefined;
 
   const tokenInput = await text({
     message: `Paste token for ${provider}`,
@@ -420,14 +517,26 @@ export async function modelsAuthPasteTokenCommand(
       provider,
       token,
       ...(expires ? { expires } : {}),
+      ...(displayName ? { displayName } : {}),
+      ...(typeof priority === "number" ? { priority } : {}),
     },
     agentDir,
   });
 
-  await updateConfig((cfg) => applyAuthProfileConfig(cfg, { profileId, provider, mode: "token" }));
+  await updateConfig((cfg) =>
+    applyAuthProfileConfig(cfg, {
+      profileId,
+      provider,
+      mode: "token",
+      ...(displayName ? { displayName } : {}),
+      ...(typeof priority === "number" ? { priority } : {}),
+    }),
+  );
 
   logConfigUpdated(runtime);
-  runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
+  const labelSuffix = displayName ? ` "${displayName}"` : "";
+  const prioritySuffix = typeof priority === "number" ? ` priority=${priority}` : "";
+  runtime.log(`Auth profile: ${profileId}${labelSuffix} (${provider}/token)${prioritySuffix}`);
   if (provider === "anthropic") {
     runtime.log("Anthropic setup-token auth is supported in Genesis.");
     runtime.log("Genesis prefers Claude CLI reuse when it is available on the host.");
@@ -435,7 +544,10 @@ export async function modelsAuthPasteTokenCommand(
   }
 }
 
-export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime: RuntimeEnv) {
+export async function modelsAuthAddCommand(
+  opts: { name?: string; priority?: number },
+  runtime: RuntimeEnv,
+) {
   const { config, agentDir, workspaceDir, providers } = await resolveModelsAuthContext();
   const tokenProviders = listProvidersWithTokenMethods(providers);
 
@@ -493,6 +605,12 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
         method,
         runtime,
         prompter,
+        ...(normalizeOptionalString(opts.name)
+          ? { displayNameOverride: normalizeOptionalString(opts.name) }
+          : {}),
+        ...(typeof opts.priority === "number" && Number.isFinite(opts.priority)
+          ? { priorityOverride: opts.priority }
+          : {}),
       });
       return;
     }
@@ -528,7 +646,16 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
       ).trim()
     : undefined;
 
-  await modelsAuthPasteTokenCommand({ provider: providerId, profileId, expiresIn }, runtime);
+  await modelsAuthPasteTokenCommand(
+    {
+      provider: providerId,
+      profileId,
+      expiresIn,
+      ...(normalizeOptionalString(opts.name) ? { name: normalizeOptionalString(opts.name) } : {}),
+      ...(typeof opts.priority === "number" ? { priority: opts.priority } : {}),
+    },
+    runtime,
+  );
 }
 
 type LoginOptions = {
@@ -536,6 +663,9 @@ type LoginOptions = {
   method?: string;
   setDefault?: boolean;
   yes?: boolean;
+  profileId?: string;
+  name?: string;
+  priority?: number;
 };
 
 /**
@@ -633,6 +763,166 @@ export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: Runtim
     runtime,
     prompter,
     setDefault: opts.setDefault,
+    ...(normalizeOptionalString(opts.name)
+      ? { displayNameOverride: normalizeOptionalString(opts.name) }
+      : {}),
+    ...(typeof opts.priority === "number" && Number.isFinite(opts.priority)
+      ? { priorityOverride: opts.priority }
+      : {}),
   });
   maybeLogOpenAICodexNativeSearchTip(runtime, selectedProvider.id);
+}
+
+/**
+ * Update the display name and/or priority of an existing profile. Writes
+ * the secret side first (via the per-agent lock), then the config side
+ * (`auth.profiles.<id>`) so config and secret stay in sync. A null/empty
+ * `displayName` clears the name; `null` priority clears the priority. The
+ * `priorities` cache mirror in `auth-state.json` is updated to match.
+ */
+export async function modelsAuthRenameCommand(
+  opts: { profileId?: string; name?: string },
+  runtime: RuntimeEnv,
+) {
+  const profileId = normalizeOptionalString(opts.profileId);
+  if (!profileId) {
+    throw new Error("Missing --profile-id.");
+  }
+  if (!opts.name) {
+    throw new Error("Missing --name. Pass the new display name as a non-empty string.");
+  }
+
+  const agentDir = await resolveModelsAuthAgentDir();
+  const updated = await updateAuthProfileMetadataWithLock({
+    profileId,
+    displayName: opts.name,
+    agentDir,
+  });
+  if (!updated) {
+    throw new Error(
+      `Auth profile "${profileId}" not found. Use \`${formatCliCommand("genesis models list")}\` to inspect existing profiles.`,
+    );
+  }
+  const credential = updated.profiles[profileId];
+  if (!credential) {
+    throw new Error(`Auth profile "${profileId}" disappeared during update.`);
+  }
+
+  await updateConfig((cfg) =>
+    applyAuthProfileConfig(cfg, {
+      profileId,
+      provider: credential.provider,
+      mode: credentialMode(credential),
+      displayName: opts.name,
+    }),
+  );
+  logConfigUpdated(runtime);
+  runtime.log(`Renamed ${profileId} → "${opts.name}"`);
+}
+
+export async function modelsAuthSetPriorityCommand(
+  opts: { profileId?: string; priority?: number | null },
+  runtime: RuntimeEnv,
+) {
+  const profileId = normalizeOptionalString(opts.profileId);
+  if (!profileId) {
+    throw new Error("Missing --profile-id.");
+  }
+  if (opts.priority === undefined) {
+    throw new Error("Missing --priority. Pass an integer; pass an empty string to clear.");
+  }
+  const priority = opts.priority === null ? null : opts.priority;
+  if (priority !== null && (!Number.isFinite(priority) || !Number.isInteger(priority))) {
+    throw new Error("--priority must be an integer (or an empty value to clear).");
+  }
+
+  const agentDir = await resolveModelsAuthAgentDir();
+  const updated = await updateAuthProfileMetadataWithLock({
+    profileId,
+    priority,
+    agentDir,
+  });
+  if (!updated) {
+    throw new Error(
+      `Auth profile "${profileId}" not found. Use \`${formatCliCommand("genesis models list")}\` to inspect existing profiles.`,
+    );
+  }
+  const credential = updated.profiles[profileId];
+  if (!credential) {
+    throw new Error(`Auth profile "${profileId}" disappeared during update.`);
+  }
+
+  await updateConfig((cfg) => {
+    const profiles = { ...cfg.auth?.profiles };
+    const existing = profiles[profileId];
+    if (existing) {
+      const { priority: _drop, ...rest } = existing;
+      void _drop;
+      if (priority === null) {
+        profiles[profileId] = rest;
+      } else {
+        profiles[profileId] = { ...rest, priority };
+      }
+    } else if (priority !== null) {
+      profiles[profileId] = {
+        provider: credential.provider,
+        mode: credentialMode(credential),
+        priority,
+      };
+    }
+    const next: GenesisConfig = { ...cfg, auth: { ...cfg.auth, profiles } };
+    return next;
+  });
+
+  logConfigUpdated(runtime);
+  runtime.log(
+    priority === null
+      ? `Cleared priority for ${profileId}`
+      : `Set priority for ${profileId} to ${priority}`,
+  );
+}
+
+export async function modelsAuthRemoveCommand(
+  opts: { profileId?: string; yes?: boolean },
+  runtime: RuntimeEnv,
+) {
+  const profileId = normalizeOptionalString(opts.profileId);
+  if (!profileId) {
+    throw new Error("Missing --profile-id.");
+  }
+
+  if (!opts.yes && process.stdin.isTTY) {
+    const proceed = await confirm({
+      message: `Remove auth profile "${profileId}"? This deletes the secret and its state.`,
+      initialValue: false,
+    });
+    if (!proceed) {
+      runtime.log("Cancelled.");
+      return;
+    }
+  }
+
+  const agentDir = await resolveModelsAuthAgentDir();
+  const updated = await removeAuthProfileWithLock({ profileId, agentDir });
+  if (!updated) {
+    throw new Error("Failed to update auth-profiles.json (lock busy?).");
+  }
+
+  await updateConfig((cfg) => {
+    if (!cfg.auth?.profiles?.[profileId]) {
+      return cfg;
+    }
+    const { [profileId]: _drop, ...remaining } = cfg.auth.profiles;
+    void _drop;
+    return {
+      ...cfg,
+      auth: {
+        ...cfg.auth,
+        profiles: Object.keys(remaining).length > 0 ? remaining : undefined,
+      },
+    };
+  });
+
+  logConfigUpdated(runtime);
+  runtime.log(`Removed auth profile: ${profileId}`);
 }

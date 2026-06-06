@@ -22,6 +22,18 @@ export type SingleProviderPluginApiKeyAuthOptions = Omit<
 > & {
   expectedProviders?: string[];
   wizard?: false | ProviderPluginWizardSetup;
+  /**
+   * Per-profile shape: attach a `displayName` and `priority` to each profile
+   * in a single auth call. Use this when a provider needs to register
+   * multiple named credentials with rotation hints (e.g. several API keys
+   * with stable labels and ordering). The flat `profileId` / `profileIds`
+   * shape remains supported; per-profile metadata is layered on top.
+   */
+  profileConfigs?: Array<{
+    profileId: string;
+    displayName?: string;
+    priority?: number;
+  }>;
 };
 
 export type SingleProviderPluginCatalogOptions =

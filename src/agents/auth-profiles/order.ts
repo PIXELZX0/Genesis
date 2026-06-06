@@ -74,6 +74,17 @@ export function resolveAuthProfileOrder(params: {
   const providerAuthKey = resolveProviderIdForAuth(provider, { config: cfg });
   const now = Date.now();
 
+  // Rotation precedence (highest priority wins, then falls through):
+  // 1. `preferredProfile` (caller-pinned profile id, e.g. per-session override)
+  // 2. Explicit `auth.order` (per-agent state or global config) — user-locked
+  //    rotation, still cooldown-respected
+  // 3. Priority-sorted candidates (new): profiles with `priority` (secret-side
+  //    `credential.priority` or state-side `priorities.<id>`, secret wins) sort
+  //    by `priority` desc; profiles without priority fall to the bottom within
+  //    their tier; ties resolve by type (oauth > token > api_key) then
+  //    `lastUsed` ascending (round-robin)
+  // 4. Round-robin fallback (no priority, no explicit order)
+
   // Clear any cooldowns that have expired since the last check so profiles
   // get a fresh error count and are not immediately re-penalized on the
   // next transient failure. See #3604.
@@ -155,7 +166,7 @@ export function resolveAuthProfileOrder(params: {
   // Otherwise, use round-robin: sort by lastUsed (oldest first)
   // preferredProfile goes first if specified (for explicit user choice)
   // lastGood is NOT prioritized - that would defeat round-robin
-  const sorted = orderProfilesByMode(deduped, store);
+  const sorted = orderProfilesByMode(deduped, store, cfg);
 
   if (preferredProfile && sorted.includes(preferredProfile)) {
     return [preferredProfile, ...sorted.filter((e) => e !== preferredProfile)];
@@ -171,7 +182,11 @@ function resolveAuthOrder(
   return findNormalizedProviderValue(order, provider);
 }
 
-function orderProfilesByMode(order: string[], store: AuthProfileStore): string[] {
+function orderProfilesByMode(
+  order: string[],
+  store: AuthProfileStore,
+  cfg?: GenesisConfig,
+): string[] {
   const now = Date.now();
 
   // Partition into available and in-cooldown
@@ -186,23 +201,30 @@ function orderProfilesByMode(order: string[], store: AuthProfileStore): string[]
     }
   }
 
-  // Sort available profiles by type preference, then by lastUsed (oldest first = round-robin within type)
+  // Sort available profiles. Primary key: priority (desc) so a user-set
+  // `priority = 100` on a slow OAuth profile is tried before an unset token.
+  // Unset priorities sort to the bottom within their tier — `undefined` is
+  // treated as `-Infinity`. A `priority = 0` is "set" and counts above
+  // undefined; it does not collapse to falsy.
+  // Secondary: type (oauth > token > api_key). Tertiary: lastUsed asc.
   const scored = available.map((profileId) => {
     const type = store.profiles[profileId]?.type;
     const typeScore = type === "oauth" ? 0 : type === "token" ? 1 : type === "api_key" ? 2 : 3;
     const lastUsed = store.usageStats?.[profileId]?.lastUsed ?? 0;
-    return { profileId, typeScore, lastUsed };
+    const priority = resolveProfilePriority(profileId, store, cfg);
+    return { profileId, typeScore, lastUsed, priority };
   });
 
-  // Primary sort: type preference (oauth > token > api_key).
-  // Secondary sort: lastUsed (oldest first for round-robin within type).
+  // Primary: priority (desc). Secondary: type (oauth > token > api_key).
+  // Tertiary: lastUsed (oldest first for round-robin within tier).
   const sorted = scored
     .toSorted((a, b) => {
-      // First by type (oauth > token > api_key)
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority;
+      }
       if (a.typeScore !== b.typeScore) {
         return a.typeScore - b.typeScore;
       }
-      // Then by lastUsed (oldest first)
       return a.lastUsed - b.lastUsed;
     })
     .map((entry) => entry.profileId);
@@ -217,4 +239,33 @@ function orderProfilesByMode(order: string[], store: AuthProfileStore): string[]
     .map((entry) => entry.profileId);
 
   return [...sorted, ...cooldownSorted];
+}
+
+const PRIORITY_UNSET = Number.NEGATIVE_INFINITY;
+
+/**
+ * Resolve the effective priority for a profile. Secret-side
+ * `credential.priority` wins; state-side `priorities.<id>` is the metadata
+ * fallback; config-side `auth.profiles.<id>.priority` is the second fallback.
+ * Unset (any side missing) yields `-Infinity` so the row sorts to the bottom
+ * of its tier — round-robin then breaks the tie.
+ */
+function resolveProfilePriority(
+  profileId: string,
+  store: AuthProfileStore,
+  cfg?: GenesisConfig,
+): number {
+  const secretPriority = store.profiles[profileId]?.priority;
+  if (typeof secretPriority === "number" && Number.isFinite(secretPriority)) {
+    return secretPriority;
+  }
+  const statePriority = store.priorities?.[profileId];
+  if (typeof statePriority === "number" && Number.isFinite(statePriority)) {
+    return statePriority;
+  }
+  const configPriority = cfg?.auth?.profiles?.[profileId]?.priority;
+  if (typeof configPriority === "number" && Number.isFinite(configPriority)) {
+    return configPriority;
+  }
+  return PRIORITY_UNSET;
 }

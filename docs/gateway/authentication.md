@@ -175,6 +175,8 @@ Set an explicit auth profile order override for an agent (stored in that agent�
 ```bash
 genesis models auth order get --provider anthropic
 genesis models auth order set --provider anthropic anthropic:default
+# Pin the first slot; let priority fill the tail
+genesis models auth order set --provider anthropic anthropic:work --sort-by-priority
 genesis models auth order clear --provider anthropic
 ```
 
@@ -183,6 +185,44 @@ When you debug order issues, `genesis models status --probe` shows omitted
 stored profiles as `excluded_by_auth_order` instead of silently skipping them.
 When you debug cooldown issues, remember that rate-limit cooldowns can be tied
 to one model id rather than the whole provider profile.
+
+### Priority-aware ordering
+
+If you do **not** set an explicit `auth.order`, Genesis rotates profiles by
+`priority` (desc) before falling back to the round-robin rules. Sources for
+the effective priority, in order: secret-side `credential.priority` →
+state-side `priorities.<id>` → config-side `auth.profiles.<id>.priority`.
+Secret side wins when both are set.
+
+```json5
+// auth-profiles.json
+{
+  profiles: {
+    "anthropic:work": {
+      type: "api_key",
+      provider: "anthropic",
+      key: "sk-work",
+      priority: 100,
+      displayName: "Work",
+    },
+    "anthropic:personal": {
+      type: "api_key",
+      provider: "anthropic",
+      key: "sk-personal",
+      displayName: "Personal",
+    },
+  },
+}
+```
+
+Edit priorities from the CLI:
+
+```bash
+genesis models auth set-priority --profile-id anthropic:work --priority 100
+genesis models auth set-priority --profile-id anthropic:work --priority ""  # clear
+```
+
+See [Rotation order](/concepts/model-failover#rotation-order) for the full precedence rules.
 
 ## Troubleshooting
 

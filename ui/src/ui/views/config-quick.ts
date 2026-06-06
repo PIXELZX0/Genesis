@@ -33,6 +33,20 @@ export type QuickSettingsApiKey = {
   label: string;
   masked?: string;
   isSet: boolean;
+  /**
+   * Optional list of additional profiles for this provider. When present, the
+   * renderer surfaces one row per profile (instead of collapsing the provider
+   * into a single "Add/Change" action). `displayName` and `priority` are
+   * the routing metadata the user can edit from the auth-profiles panel.
+   */
+  profiles?: Array<{
+    profileId: string;
+    displayName?: string;
+    priority?: number;
+    masked?: string;
+    expiryLabel?: string;
+    isSet: boolean;
+  }>;
 };
 
 export type QuickSettingsAutomation = {
@@ -266,14 +280,57 @@ function renderChannelsCard(props: QuickSettingsProps) {
 }
 
 function renderApiKeysCard(props: QuickSettingsProps) {
+  const totalProfiles = props.apiKeys.reduce(
+    (acc, key) =>
+      acc + (key.profiles && key.profiles.length > 0 ? key.profiles.length : key.isSet ? 1 : 0),
+    0,
+  );
+  const badge =
+    totalProfiles > 1 ? html`<span class="qs-badge">${totalProfiles} profiles</span>` : undefined;
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.plug, "API Keys")}
+      ${renderCardHeader(icons.plug, "API Keys", badge)}
       <div class="qs-card__body">
         ${props.apiKeys.length === 0
           ? html`<div class="qs-empty muted">No API keys configured</div>`
-          : props.apiKeys.map(
-              (key) => html`
+          : props.apiKeys.map((key) => {
+              // Multi-profile providers render one row per profile; the
+              // single-credential shape is preserved for backwards compat
+              // (callers that haven't migrated to the new shape still get a
+              // working "Add / Change" affordance).
+              if (key.profiles && key.profiles.length > 0) {
+                return html`
+                  <div class="qs-row qs-row--stack">
+                    <span class="qs-row__label">${key.label}</span>
+                    <div class="qs-profiles">
+                      ${key.profiles.map(
+                        (profile) => html`
+                          <div class="qs-profile-row">
+                            <code class="qs-muted">
+                              ${profile.displayName ?? profile.profileId}
+                            </code>
+                            <span class="qs-profile-priority">
+                              ${typeof profile.priority === "number"
+                                ? `priority ${profile.priority}`
+                                : "round-robin"}
+                            </span>
+                            <code class="qs-masked">
+                              ${profile.isSet ? (profile.masked ?? "••••••••") : "(not set)"}
+                            </code>
+                            <button
+                              class="qs-link-btn"
+                              @click=${() => props.onApiKeyChange?.(key.provider)}
+                            >
+                              Manage
+                            </button>
+                          </div>
+                        `,
+                      )}
+                    </div>
+                  </div>
+                `;
+              }
+              return html`
                 <div class="qs-row">
                   <span class="qs-row__label">${key.label}</span>
                   <span class="qs-row__value">
@@ -295,8 +352,8 @@ function renderApiKeysCard(props: QuickSettingsProps) {
                         </button>`}
                   </span>
                 </div>
-              `,
-            )}
+              `;
+            })}
       </div>
     </div>
   `;

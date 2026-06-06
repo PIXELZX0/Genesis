@@ -160,6 +160,70 @@ Pick which profile is used:
 
 - globally via config ordering (`auth.order`)
 - per-session via `/model ...@<profileId>`
+- via `priority` (see [Rotation order](/concepts/model-failover#rotation-order))
+
+Each profile can carry a human-readable `displayName` and a numeric `priority`
+that controls the rotation order. Both fields can be set on either the
+secret-side credential or the config-side `auth.profiles.<id>` entry; secret
+side wins when both are set.
+
+Example (per-profile name and priority via the secret side):
+
+```json5
+// auth-profiles.json
+{
+  profiles: {
+    "anthropic:work": {
+      type: "oauth",
+      provider: "anthropic",
+      access: "...",
+      refresh: "...",
+      expires: 0,
+      displayName: "Work",
+      priority: 100,
+    },
+    "anthropic:personal": {
+      type: "oauth",
+      provider: "anthropic",
+      access: "...",
+      refresh: "...",
+      expires: 0,
+      displayName: "Personal",
+    },
+  },
+}
+```
+
+Example (config side only — useful for shaping rotation from `genesis.json` without rewriting secrets):
+
+```json5
+// genesis.json
+{
+  auth: {
+    profiles: {
+      "anthropic:work": {
+        provider: "anthropic",
+        mode: "oauth",
+        displayName: "Work",
+        priority: 100,
+      },
+      "anthropic:personal": { provider: "anthropic", mode: "oauth", displayName: "Personal" },
+    },
+  },
+}
+```
+
+Add or edit via CLI:
+
+```bash
+# New profile with name + priority (paste-token / setup-token / login all accept these)
+genesis models auth paste-token --provider anthropic --profile-id anthropic:work --name "Work" --priority 100 --expires-in 365d
+
+# Rename / set priority / remove after the fact
+genesis models auth rename          --profile-id anthropic:work --name "Work"
+genesis models auth set-priority    --profile-id anthropic:work --priority 100
+genesis models auth remove          --profile-id anthropic:work
+```
 
 Example (session override):
 

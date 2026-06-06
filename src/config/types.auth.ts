@@ -9,6 +9,12 @@ export type AuthProfileConfig = {
   mode: "api_key" | "oauth" | "token";
   email?: string;
   displayName?: string;
+  /**
+   * Routing-only priority override. Higher number = tried first by the
+   * resolver. The secret-side `credential.priority` wins when both are set;
+   * this field is the metadata fallback so configs alone can shape rotation.
+   */
+  priority?: number;
 };
 
 export type AuthConfig = {

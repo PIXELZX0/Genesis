@@ -767,9 +767,19 @@ Notes:
 {
   auth: {
     profiles: {
-      "anthropic:default": { provider: "anthropic", mode: "api_key" },
-      "anthropic:work": { provider: "anthropic", mode: "api_key" },
-      "openai-codex:personal": { provider: "openai-codex", mode: "oauth" },
+      "anthropic:default": {
+        provider: "anthropic",
+        mode: "api_key",
+        displayName: "Default",
+        priority: 1,
+      },
+      "anthropic:work": {
+        provider: "anthropic",
+        mode: "api_key",
+        displayName: "Work",
+        priority: 100,
+      },
+      "openai-codex:personal": { provider: "openai-codex", mode: "oauth", displayName: "Personal" },
     },
     order: {
       anthropic: ["anthropic:default", "anthropic:work"],
@@ -780,6 +790,8 @@ Notes:
 ```
 
 - Per-agent profiles are stored at `<agentDir>/auth-profiles.json`.
+- `auth.profiles.<id>.displayName` (max 80 chars) and `auth.profiles.<id>.priority` (integer) are routing metadata; the secret-side `credential.displayName` / `credential.priority` in `auth-profiles.json` take precedence when both are set.
+- `priority` is the new primary sort key for the resolver. Higher number = tried first. Unset = round-robin. `0` counts as "set" (above unset). See [Rotation order](/concepts/model-failover#rotation-order).
 - `auth-profiles.json` supports value-level refs (`keyRef` for `api_key`, `tokenRef` for `token`) for static credential modes.
 - OAuth-mode profiles (`auth.profiles.<id>.mode = "oauth"`) do not support SecretRef-backed auth-profile credentials.
 - Static runtime credentials come from in-memory resolved snapshots; legacy static `auth.json` entries are scrubbed when discovered.

@@ -296,6 +296,19 @@ export function registerModelsCli(program: Command) {
     .description("Run a provider plugin auth flow (OAuth/API key)")
     .option("--provider <id>", "Provider id registered by a plugin")
     .option("--method <id>", "Provider auth method id")
+    .option("--profile-id <id>", "Auth profile id (default: <provider>:default)")
+    .option("--name <displayName>", "Display name for the new profile")
+    .option(
+      "--priority <n>",
+      "Routing priority (higher = tried first). Unset = round-robin.",
+      (value: string) => {
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed)) {
+          throw new Error(`--priority must be an integer (got "${value}")`);
+        }
+        return parsed;
+      },
+    )
     .option("--set-default", "Apply the provider's default model recommendation", false)
     .action(async (opts) => {
       await runModelsCommand(async () => {
@@ -305,6 +318,9 @@ export function registerModelsCli(program: Command) {
             provider: opts.provider as string | undefined,
             method: opts.method as string | undefined,
             setDefault: Boolean(opts.setDefault),
+            profileId: opts.profileId as string | undefined,
+            name: opts.name as string | undefined,
+            ...(typeof opts.priority === "number" ? { priority: opts.priority } : {}),
           },
           defaultRuntime,
         );
@@ -315,6 +331,18 @@ export function registerModelsCli(program: Command) {
     .command("setup-token")
     .description("Run a provider CLI to create/sync a token (TTY required)")
     .option("--provider <name>", "Provider id")
+    .option("--name <displayName>", "Display name for the new profile")
+    .option(
+      "--priority <n>",
+      "Routing priority (higher = tried first). Unset = round-robin.",
+      (value: string) => {
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed)) {
+          throw new Error(`--priority must be an integer (got "${value}")`);
+        }
+        return parsed;
+      },
+    )
     .option("--yes", "Skip confirmation", false)
     .action(async (opts) => {
       await runModelsCommand(async () => {
@@ -323,6 +351,8 @@ export function registerModelsCli(program: Command) {
           {
             provider: opts.provider as string | undefined,
             yes: Boolean(opts.yes),
+            name: opts.name as string | undefined,
+            ...(typeof opts.priority === "number" ? { priority: opts.priority } : {}),
           },
           defaultRuntime,
         );
@@ -334,6 +364,18 @@ export function registerModelsCli(program: Command) {
     .description("Paste a token into auth-profiles.json and update config")
     .requiredOption("--provider <name>", "Provider id (e.g. anthropic)")
     .option("--profile-id <id>", "Auth profile id (default: <provider>:manual)")
+    .option("--name <displayName>", "Display name for the new profile")
+    .option(
+      "--priority <n>",
+      "Routing priority (higher = tried first). Unset = round-robin.",
+      (value: string) => {
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed)) {
+          throw new Error(`--priority must be an integer (got "${value}")`);
+        }
+        return parsed;
+      },
+    )
     .option(
       "--expires-in <duration>",
       "Optional expiry duration (e.g. 365d, 12h). Stored as absolute expiresAt.",
@@ -346,6 +388,77 @@ export function registerModelsCli(program: Command) {
             provider: opts.provider as string | undefined,
             profileId: opts.profileId as string | undefined,
             expiresIn: opts.expiresIn as string | undefined,
+            name: opts.name as string | undefined,
+            ...(typeof opts.priority === "number" ? { priority: opts.priority } : {}),
+          },
+          defaultRuntime,
+        );
+      });
+    });
+
+  auth
+    .command("rename")
+    .description("Rename a profile (updates both the secret side and config meta)")
+    .requiredOption("--profile-id <id>", "Auth profile id (e.g. anthropic:work)")
+    .requiredOption("--name <displayName>", "New display name (non-empty)")
+    .action(async (opts) => {
+      await runModelsCommand(async () => {
+        const { modelsAuthRenameCommand } = await import("../commands/models/auth.js");
+        await modelsAuthRenameCommand(
+          {
+            profileId: opts.profileId as string | undefined,
+            name: opts.name as string | undefined,
+          },
+          defaultRuntime,
+        );
+      });
+    });
+
+  auth
+    .command("remove")
+    .description("Remove a single auth profile (secret + state + config meta)")
+    .requiredOption("--profile-id <id>", "Auth profile id to remove")
+    .option("--yes", "Skip the confirmation prompt", false)
+    .action(async (opts) => {
+      await runModelsCommand(async () => {
+        const { modelsAuthRemoveCommand } = await import("../commands/models/auth.js");
+        await modelsAuthRemoveCommand(
+          {
+            profileId: opts.profileId as string | undefined,
+            yes: Boolean(opts.yes),
+          },
+          defaultRuntime,
+        );
+      });
+    });
+
+  auth
+    .command("set-priority")
+    .description("Set or clear the priority for an auth profile (updates both sides)")
+    .requiredOption("--profile-id <id>", "Auth profile id (e.g. anthropic:work)")
+    .option(
+      "--priority <n>",
+      "Priority (integer; higher = tried first). Empty string clears the priority.",
+      (value: string) => {
+        if (value === "") {
+          return null;
+        }
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed)) {
+          throw new Error(`--priority must be an integer (got "${value}")`);
+        }
+        return parsed;
+      },
+    )
+    .action(async (opts) => {
+      await runModelsCommand(async () => {
+        const { modelsAuthSetPriorityCommand } = await import("../commands/models/auth.js");
+        await modelsAuthSetPriorityCommand(
+          {
+            profileId: opts.profileId as string | undefined,
+            ...(opts.priority === null || typeof opts.priority === "number"
+              ? { priority: opts.priority }
+              : {}),
           },
           defaultRuntime,
         );
@@ -399,6 +512,11 @@ export function registerModelsCli(program: Command) {
     .description("Set per-agent auth order override (writes auth-state.json)")
     .requiredOption("--provider <name>", "Provider id (e.g. anthropic)")
     .option("--agent <id>", "Agent id (default: configured default agent)")
+    .option(
+      "--sort-by-priority",
+      "Append remaining profiles for this provider, sorted by priority desc",
+      false,
+    )
     .argument("<profileIds...>", "Auth profile ids (e.g. anthropic:default)")
     .action(async (profileIds: string[], opts, command) => {
       const agent =
@@ -410,6 +528,7 @@ export function registerModelsCli(program: Command) {
             provider: opts.provider as string,
             agent,
             order: profileIds,
+            sortByPriority: Boolean(opts.sortByPriority),
           },
           defaultRuntime,
         );
