@@ -59,8 +59,10 @@ describe("opencode-go provider plugin", () => {
       "mimo-v2.5-pro",
       "minimax-m2.5",
       "minimax-m2.7",
+      "minimax-m3",
       "qwen3.6-plus",
       "qwen3.7-max",
+      "qwen3.7-plus",
     ]);
 
     expect(models.get("kimi-k2.6")).toMatchObject({
