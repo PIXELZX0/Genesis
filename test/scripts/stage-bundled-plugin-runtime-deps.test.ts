@@ -86,6 +86,38 @@ describe("stageBundledPluginRuntimeDeps", () => {
     });
   });
 
+  it("resolves dist-tag specs to the installed version", () => {
+    const { repoRoot } = createBundledPluginFixture({
+      packageJson: {
+        name: "@genesis/fixture-plugin",
+        version: "1.0.0",
+        dependencies: {
+          "@earendil-works/pi-ai": "latest",
+        },
+      },
+    });
+    const rootNodeModulesDir = path.join(repoRoot, "node_modules");
+    const depDir = path.join(rootNodeModulesDir, "@earendil-works", "pi-ai");
+    fs.mkdirSync(depDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(depDir, "package.json"),
+      '{ "name": "@earendil-works/pi-ai", "version": "0.78.1" }\n',
+      "utf8",
+    );
+
+    expect(
+      collectRuntimeDependencyInstallSpecs(
+        {
+          dependencies: { "@earendil-works/pi-ai": "latest" },
+        },
+        { rootNodeModulesDir },
+      ),
+    ).toEqual({
+      dependencies: ["@earendil-works/pi-ai@0.78.1"],
+      optionalDependencies: [],
+    });
+  });
+
   it("rejects unsafe runtime dependency specs for fallback installs", () => {
     expect(() =>
       collectRuntimeDependencyInstallSpecs(
