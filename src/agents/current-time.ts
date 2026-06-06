@@ -1,5 +1,6 @@
 import {
   type TimeFormatPreference,
+  formatTimezoneOffset,
   formatUserTime,
   resolveUserTimeFormat,
   resolveUserTimezone,
@@ -21,12 +22,13 @@ type TimeConfigLike = {
 };
 
 export function resolveCronStyleNow(cfg: TimeConfigLike, nowMs: number): CronStyleNow {
+  const date = new Date(nowMs);
   const userTimezone = resolveUserTimezone(cfg.agents?.defaults?.userTimezone);
   const userTimeFormat = resolveUserTimeFormat(cfg.agents?.defaults?.timeFormat);
-  const formattedTime =
-    formatUserTime(new Date(nowMs), userTimezone, userTimeFormat) ?? new Date(nowMs).toISOString();
-  const utcTime = new Date(nowMs).toISOString().replace("T", " ").slice(0, 16) + " UTC";
-  const timeLine = `Current time: ${formattedTime} (${userTimezone}) / ${utcTime}`;
+  const formattedTime = formatUserTime(date, userTimezone, userTimeFormat) ?? date.toISOString();
+  const timezoneLabel = formatTimezoneOffset(date, userTimezone);
+  const utcTime = date.toISOString().replace("T", " ").slice(0, 16) + " UTC";
+  const timeLine = `Current time: ${formattedTime} (${timezoneLabel}) / ${utcTime}`;
   return { userTimezone, formattedTime, timeLine };
 }
 

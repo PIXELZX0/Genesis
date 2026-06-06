@@ -93,6 +93,37 @@ export function withNormalizedTimestamp<T extends Record<string, unknown>>(
   };
 }
 
+export function formatTimezoneOffset(date: Date, timeZone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "longOffset",
+    }).formatToParts(date);
+    const tzPart = parts.find((part) => part.type === "timeZoneName");
+    const value = tzPart?.value;
+    if (!value) {
+      return "UTC";
+    }
+    if (value === "GMT" || value === "UTC") {
+      return "UTC";
+    }
+    const match = value.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
+    if (!match) {
+      return value;
+    }
+    const sign = match[1];
+    const hours = Number.parseInt(match[2], 10);
+    const minutes = match[3];
+    const base = `UTC${sign}${hours}`;
+    if (minutes && minutes !== "00") {
+      return `${base}:${minutes}`;
+    }
+    return base;
+  } catch {
+    return "UTC";
+  }
+}
+
 function detectSystemTimeFormat(): boolean {
   if (process.platform === "darwin") {
     try {
