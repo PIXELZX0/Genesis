@@ -23,6 +23,10 @@ export function startGatewayEventSubscriptions(params: {
     connIds: ReadonlySet<string>,
     opts?: { dropIfSlow?: boolean },
   ) => void;
+  broadcastChatDelta: (
+    payloads: { full: unknown; incremental: unknown },
+    opts?: { dropIfSlow?: boolean },
+  ) => void;
   nodeSendToSession: (sessionKey: string, event: string, payload: unknown) => void;
   agentRunSeq: Map<string, number>;
   chatRunState: ChatRunState;
@@ -37,6 +41,7 @@ export function startGatewayEventSubscriptions(params: {
     createAgentEventHandler({
       broadcast: params.broadcast,
       broadcastToConnIds: params.broadcastToConnIds,
+      broadcastChatDelta: params.broadcastChatDelta,
       nodeSendToSession: params.nodeSendToSession,
       agentRunSeq: params.agentRunSeq,
       chatRunState: params.chatRunState,

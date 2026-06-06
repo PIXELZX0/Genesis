@@ -239,6 +239,19 @@ Nodes declare capability claims at connect time:
 
 The Gateway treats these as **claims** and enforces server-side allowlists.
 
+### Caps (operator)
+
+Operators also advertise `caps` at connect time to opt into additive,
+backward-compatible behaviors. Unknown caps are ignored, so older clients keep
+working unchanged.
+
+- `tool-events`: receive live tool lifecycle events.
+- `chat-incremental`: receive `chat` deltas as appended suffixes (`appendText`)
+  instead of full transcript snapshots. The Gateway selects the payload variant
+  per connection, so capable and non-capable operators can share the same run.
+  This reduces fan-out bytes for long streamed replies (the full-snapshot delta
+  is O(n^2) in total bytes across a run; the incremental form is O(n)).
+
 ## Presence
 
 - `system-presence` returns entries keyed by device identity.
@@ -386,8 +399,16 @@ enumeration of `src/gateway/server-methods/*.ts`.
 
 ### Common event families
 
-- `chat`: UI chat updates such as `chat.inject` and other transcript-only chat
-  events.
+- `chat`: streaming chat updates for a run. Each event has a `state` of
+  `delta` (incremental assistant text), `final` (terminal, carries the complete
+  assistant `message`), `aborted`, or `error`. By default a `delta` carries the
+  full assistant snapshot in `message.content[0].text`. Clients that advertise
+  the `chat-incremental` capability (see below) instead receive only the newly
+  appended suffix in `appendText` (with an optional `reset: true` flag meaning
+  "replace the accumulated buffer with `appendText`" rather than append); such
+  clients accumulate `appendText` across deltas and rely on the `final` event
+  (which always carries the full `message`) for late-joining/reconnect. The
+  `final` event is identical for all clients regardless of the capability.
 - `session.message` and `session.tool`: transcript/event-stream updates for a
   subscribed session.
 - `sessions.changed`: session index or metadata changed.

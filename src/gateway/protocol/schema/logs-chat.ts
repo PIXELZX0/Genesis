@@ -80,6 +80,17 @@ export const ChatEventSchema = Type.Object(
       Type.Literal("error"),
     ]),
     message: Type.Optional(Type.Unknown()),
+    // Incremental delta suffix for clients advertising the "chat-incremental"
+    // capability. Carries only the text appended since the previous delta
+    // broadcast for this run; such clients accumulate it and omit `message` on
+    // delta. Non-capable clients continue to receive the full `message`
+    // snapshot. The terminal `final` event always carries the complete
+    // `message` for late-joining/reconnecting clients.
+    appendText: Type.Optional(Type.String()),
+    // When true, replace the accumulated buffer with `appendText` instead of
+    // appending it (covers rare prefix mutation from directive/heartbeat/
+    // silent-token stripping where the new text is not a pure extension).
+    reset: Type.Optional(Type.Boolean()),
     errorMessage: Type.Optional(Type.String()),
     errorKind: Type.Optional(
       Type.Union([

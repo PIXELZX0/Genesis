@@ -19,7 +19,11 @@ import type { ChatAbortControllerEntry } from "./chat-abort.js";
 import type { ControlUiRootState } from "./control-ui.js";
 import type { HooksConfigResolved } from "./hooks.js";
 import { isLoopbackHost, resolveGatewayListenHosts } from "./net.js";
-import type { GatewayBroadcastFn, GatewayBroadcastToConnIdsFn } from "./server-broadcast-types.js";
+import type {
+  GatewayBroadcastChatDeltaFn,
+  GatewayBroadcastFn,
+  GatewayBroadcastToConnIdsFn,
+} from "./server-broadcast-types.js";
 import { createGatewayBroadcaster } from "./server-broadcast.js";
 import {
   type ChatRunEntry,
@@ -90,6 +94,7 @@ export async function createGatewayRuntimeState(params: {
   clients: Set<GatewayWsClient>;
   broadcast: GatewayBroadcastFn;
   broadcastToConnIds: GatewayBroadcastToConnIdsFn;
+  broadcastChatDelta: GatewayBroadcastChatDeltaFn;
   agentRunSeq: Map<string, number>;
   dedupe: Map<string, DedupeEntry>;
   chatRunState: ReturnType<typeof createChatRunState>;
@@ -134,7 +139,9 @@ export async function createGatewayRuntimeState(params: {
     }
 
     const clients = new Set<GatewayWsClient>();
-    const { broadcast, broadcastToConnIds } = createGatewayBroadcaster({ clients });
+    const { broadcast, broadcastToConnIds, broadcastChatDelta } = createGatewayBroadcaster({
+      clients,
+    });
 
     const handleHooksRequest = createGatewayHooksRequestHandler({
       deps: params.deps,
@@ -290,6 +297,7 @@ export async function createGatewayRuntimeState(params: {
       clients,
       broadcast,
       broadcastToConnIds,
+      broadcastChatDelta,
       agentRunSeq,
       dedupe,
       chatRunState,

@@ -62,6 +62,14 @@ describe("agent event handler", () => {
       params?.now === undefined ? undefined : vi.spyOn(Date, "now").mockReturnValue(params.now);
     const broadcast = vi.fn();
     const broadcastToConnIds = vi.fn();
+    // Mirror production's non-capable path: forward the full-snapshot variant to
+    // the `broadcast("chat", …)` sink so existing full-text assertions still see
+    // delta events. Incremental-specific assertions inspect this mock directly.
+    const broadcastChatDelta = vi.fn(
+      (payloads: { full: unknown; incremental: unknown }, opts?: { dropIfSlow?: boolean }) => {
+        broadcast("chat", payloads.full, opts);
+      },
+    );
     const nodeSendToSession = vi.fn();
     const clearAgentRunContext = vi.fn();
     const agentRunSeq = new Map<string, number>();
@@ -72,6 +80,7 @@ describe("agent event handler", () => {
     const handler = createAgentEventHandler({
       broadcast,
       broadcastToConnIds,
+      broadcastChatDelta,
       nodeSendToSession,
       agentRunSeq,
       chatRunState,
@@ -87,6 +96,7 @@ describe("agent event handler", () => {
       nowSpy,
       broadcast,
       broadcastToConnIds,
+      broadcastChatDelta,
       nodeSendToSession,
       clearAgentRunContext,
       agentRunSeq,
@@ -198,6 +208,50 @@ describe("agent event handler", () => {
     expect(payload.message?.content?.[0]?.text).toBe("Hello world");
     expect(sessionChatCalls(nodeSendToSession)).toHaveLength(1);
     nowSpy?.mockRestore();
+  });
+
+  it("streams incremental appendText suffixes alongside the full snapshot", () => {
+    let now = 20_000;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const { broadcastChatDelta, chatRunState, handler } = createHarness();
+    chatRunState.registry.add("run-inc", { sessionKey: "session-inc", clientRunId: "client-inc" });
+
+    handler({
+      runId: "run-inc",
+      seq: 1,
+      stream: "assistant",
+      ts: Date.now(),
+      data: { text: "Hello" },
+    });
+    now = 20_200;
+    handler({
+      runId: "run-inc",
+      seq: 2,
+      stream: "assistant",
+      ts: Date.now(),
+      data: { text: "Hello world" },
+    });
+
+    const deltas = broadcastChatDelta.mock.calls.map(
+      ([payloads]) =>
+        payloads as {
+          full: { message?: { content?: Array<{ text?: string }> } };
+          incremental: { appendText?: string; reset?: boolean; message?: unknown };
+        },
+    );
+    expect(deltas).toHaveLength(2);
+    // First delta carries the full text as the suffix (no prior text) and no reset.
+    expect(deltas[0]?.incremental.appendText).toBe("Hello");
+    expect(deltas[0]?.incremental.reset).toBeUndefined();
+    expect(deltas[0]?.incremental.message).toBeUndefined();
+    expect(deltas[0]?.full.message?.content?.[0]?.text).toBe("Hello");
+    // Second delta carries only the newly appended suffix.
+    expect(deltas[1]?.incremental.appendText).toBe(" world");
+    expect(deltas[1]?.incremental.reset).toBeUndefined();
+    expect(deltas[1]?.full.message?.content?.[0]?.text).toBe("Hello world");
+    // Accumulated incremental suffixes reconstruct the full transcript.
+    expect(deltas.map((d) => d.incremental.appendText ?? "").join("")).toBe("Hello world");
+    nowSpy.mockRestore();
   });
 
   it("strips inline directives from assistant chat events", () => {

@@ -943,6 +943,16 @@ export class AcpGatewayAgent implements Agent {
       return;
     }
 
+    // Incremental delta (gateway `chat-incremental` capability): the payload
+    // carries only the appended suffix instead of a full snapshot. Emit it as an
+    // agent_message_chunk and keep the sent-text counters in sync so the terminal
+    // `final` snapshot reconciles without re-sending the whole transcript.
+    const appendText = payload.appendText as string | undefined;
+    if (state === "delta" && typeof appendText === "string") {
+      await this.handleAppendTextEvent(pending.sessionId, appendText, payload.reset === true);
+      return;
+    }
+
     const shouldHandleMessageSnapshot = messageData && (state === "delta" || state === "final");
     if (shouldHandleMessageSnapshot) {
       // Gateway chat events can carry the latest full assistant snapshot on both
@@ -969,6 +979,33 @@ export class AcpGatewayAgent implements Agent {
       const stopReason: StopReason = errorKind === "refusal" ? "refusal" : "end_turn";
       void this.finishPrompt(pending.sessionId, pending, stopReason);
     }
+  }
+
+  private async handleAppendTextEvent(
+    sessionId: string,
+    appendText: string,
+    reset: boolean,
+  ): Promise<void> {
+    const pending = this.pendingPrompts.get(sessionId);
+    if (!pending) {
+      return;
+    }
+    // On reset the producer re-baselines the buffer (rare prefix mutation), so
+    // restart accumulation from the appended text; otherwise extend it.
+    const baseText = reset ? "" : (pending.sentText ?? "");
+    const fullText = baseText + appendText;
+    pending.sentText = fullText;
+    pending.sentTextLength = fullText.length;
+    if (!appendText) {
+      return;
+    }
+    await this.connection.sessionUpdate({
+      sessionId,
+      update: {
+        sessionUpdate: "agent_message_chunk",
+        content: { type: "text", text: appendText },
+      },
+    });
   }
 
   private async handleDeltaEvent(

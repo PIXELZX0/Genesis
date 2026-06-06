@@ -16,6 +16,10 @@ export type ChatEvent = {
   sessionKey: string;
   state: "delta" | "final" | "aborted" | "error";
   message?: unknown;
+  /** Incremental delta suffix (gateway `chat-incremental` capability). */
+  appendText?: string;
+  /** Replace the accumulated stream with `appendText` instead of appending. */
+  reset?: boolean;
   errorMessage?: string;
 };
 

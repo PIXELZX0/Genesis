@@ -119,6 +119,18 @@ function scheduleStreamUpdate(state: ChatState, text: string): void {
   }
 }
 
+/**
+ * Latest streamed text for a state, accounting for an update buffered in the
+ * pending RAF that has not yet been written to `state.chatStream`. Used to
+ * accumulate incremental `appendText` deltas without losing a coalesced chunk.
+ */
+function currentStreamText(state: ChatState): string {
+  if (streamPending && streamPending.state === state) {
+    return streamPending.text;
+  }
+  return state.chatStream ?? "";
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -497,6 +509,10 @@ export type ChatEventPayload = {
   sessionKey: string;
   state: "delta" | "final" | "aborted" | "error";
   message?: unknown;
+  /** Incremental delta suffix (gateway `chat-incremental` capability). */
+  appendText?: string;
+  /** Replace the accumulated stream with `appendText` instead of appending. */
+  reset?: boolean;
   errorMessage?: string;
 };
 
@@ -831,9 +847,20 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   }
 
   if (payload.state === "delta") {
-    const next = extractText(payload.message);
-    if (typeof next === "string" && !isSilentReplyStream(next)) {
-      scheduleStreamUpdate(state, next);
+    if (typeof payload.appendText === "string") {
+      // Incremental delta (gateway `chat-incremental` capability): accumulate the
+      // appended suffix onto the running stream, or replace it on `reset`.
+      const base = payload.reset ? "" : currentStreamText(state);
+      const nextText = base + payload.appendText;
+      if (!isSilentReplyStream(nextText)) {
+        scheduleStreamUpdate(state, nextText);
+      }
+    } else {
+      // Full-snapshot delta (legacy / non-capable path).
+      const next = extractText(payload.message);
+      if (typeof next === "string" && !isSilentReplyStream(next)) {
+        scheduleStreamUpdate(state, next);
+      }
     }
   } else if (payload.state === "final") {
     flushPendingStream();

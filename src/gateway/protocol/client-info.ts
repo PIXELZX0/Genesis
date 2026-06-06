@@ -47,6 +47,14 @@ export type GatewayClientInfo = {
 
 export const GATEWAY_CLIENT_CAPS = {
   TOOL_EVENTS: "tool-events",
+  /**
+   * Client accumulates incremental assistant chat deltas. When advertised, the
+   * gateway streams only the newly appended suffix (`appendText`) per `chat`
+   * delta instead of the full transcript snapshot; the client reconstructs the
+   * running text and relies on the terminal `final` event for the complete
+   * message. Clients without this cap keep receiving full `message` snapshots.
+   */
+  CHAT_INCREMENTAL: "chat-incremental",
 } as const;
 
 export type GatewayClientCap = (typeof GATEWAY_CLIENT_CAPS)[keyof typeof GATEWAY_CLIENT_CAPS];

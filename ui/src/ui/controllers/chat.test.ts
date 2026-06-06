@@ -165,6 +165,98 @@ describe("handleChatEvent", () => {
     expect(state.chatStream).toBe("Alpha");
   });
 
+  it("accumulates incremental appendText deltas into the stream", () => {
+    const state = createState({ sessionKey: "main", chatRunId: "run-1", chatStream: "" });
+
+    expect(
+      handleChatEvent(state, {
+        runId: "run-1",
+        sessionKey: "main",
+        state: "delta",
+        appendText: "Hello",
+      }),
+    ).toBe("delta");
+    flushPendingStream();
+    expect(state.chatStream).toBe("Hello");
+
+    expect(
+      handleChatEvent(state, {
+        runId: "run-1",
+        sessionKey: "main",
+        state: "delta",
+        appendText: " world",
+      }),
+    ).toBe("delta");
+    flushPendingStream();
+    expect(state.chatStream).toBe("Hello world");
+  });
+
+  it("accumulates appendText across coalesced deltas before a frame flush", () => {
+    const state = createState({ sessionKey: "main", chatRunId: "run-1", chatStream: "" });
+
+    handleChatEvent(state, {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "delta",
+      appendText: "Hello",
+    });
+    handleChatEvent(state, {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "delta",
+      appendText: " world",
+    });
+    flushPendingStream();
+    expect(state.chatStream).toBe("Hello world");
+  });
+
+  it("replaces the stream on a reset incremental delta", () => {
+    const state = createState({
+      sessionKey: "main",
+      chatRunId: "run-1",
+      chatStream: "stale prefix",
+    });
+
+    handleChatEvent(state, {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "delta",
+      appendText: "Fresh text",
+      reset: true,
+    });
+    flushPendingStream();
+    expect(state.chatStream).toBe("Fresh text");
+  });
+
+  it("finalizes an incrementally streamed reply from the accumulated stream", () => {
+    const state = createState({ sessionKey: "main", chatRunId: "run-1", chatStream: "" });
+
+    handleChatEvent(state, {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "delta",
+      appendText: "Hello world",
+    });
+    flushPendingStream();
+
+    // Final carries the full message snapshot for late joiners; the accumulated
+    // stream is cleared once the message lands in history.
+    expect(
+      handleChatEvent(state, {
+        runId: "run-1",
+        sessionKey: "main",
+        state: "final",
+        message: { role: "assistant", content: [{ type: "text", text: "Hello world" }] },
+      }),
+    ).toBe("final");
+    expect(state.chatStream).toBe(null);
+    expect(state.chatMessages).toHaveLength(1);
+    expect(state.chatMessages[0]).toEqual({
+      role: "assistant",
+      content: [{ type: "text", text: "Hello world" }],
+    });
+  });
+
   it("returns final for another run when payload has no message", () => {
     const state = createActiveStreamingState();
     const payload: ChatEventPayload = {

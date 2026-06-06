@@ -174,6 +174,37 @@ export class TuiStreamAssembler {
     return state.displayText;
   }
 
+  /**
+   * Ingest an incremental assistant-text suffix (gateway `chat-incremental`
+   * capability). Appends to the accumulated content (or replaces it on `reset`)
+   * and recomposes the display text. Chat deltas carry assistant text only, so
+   * accumulated thinking state is left untouched.
+   */
+  ingestAppendText(
+    runId: string,
+    appendText: string,
+    reset: boolean,
+    showThinking: boolean,
+  ): string | null {
+    const state = this.getOrCreateRun(runId);
+    const previousDisplayText = state.displayText;
+    const nextContentText = reset ? appendText : state.contentText + appendText;
+    state.contentText = nextContentText;
+    state.contentBlocks = nextContentText ? [nextContentText] : [];
+
+    state.displayText = composeThinkingAndContent({
+      thinkingText: state.thinkingText,
+      contentText: state.contentText,
+      showThinking,
+    });
+
+    if (!state.displayText || state.displayText === previousDisplayText) {
+      return null;
+    }
+
+    return state.displayText;
+  }
+
   finalize(runId: string, message: unknown, showThinking: boolean, errorMessage?: string): string {
     const state = this.getOrCreateRun(runId);
     const streamedDisplayText = state.displayText;

@@ -399,7 +399,7 @@ export class GatewayBrowserClient {
       role: plan.role,
       scopes: plan.scopes,
       device: plan.device,
-      caps: ["tool-events"],
+      caps: ["tool-events", "chat-incremental"],
       auth: plan.auth,
       userAgent: navigator.userAgent,
       locale: navigator.language,

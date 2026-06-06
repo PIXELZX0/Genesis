@@ -318,7 +318,15 @@ export function createEventHandlers(context: EventHandlerContext) {
       if (state.activeChatRunId === evt.runId) {
         armStreamingWatchdog(evt.runId);
       }
-      const displayText = streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
+      const displayText =
+        typeof evt.appendText === "string"
+          ? streamAssembler.ingestAppendText(
+              evt.runId,
+              evt.appendText,
+              evt.reset === true,
+              state.showThinking,
+            )
+          : streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
       if (!displayText) {
         return;
       }

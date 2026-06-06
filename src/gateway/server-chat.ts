@@ -202,6 +202,14 @@ export type ChatRunState = {
   deltaSentAt: Map<string, number>;
   /** Length of text at the time of the last broadcast, used to avoid duplicate flushes. */
   deltaLastBroadcastLen: Map<string, number>;
+  /**
+   * Exact display text broadcast on the last `chat` delta for a run. Used to
+   * compute the incremental `appendText` suffix (and detect prefix mutation →
+   * `reset`) for clients with the `chat-incremental` capability. Cleaned on the
+   * same internal lifecycle as `rawBuffers` (clearBufferedChatState /
+   * emitChatFinal / clear) — it is not externally swept.
+   */
+  deltaLastBroadcastText: Map<string, string>;
   abortedRuns: Map<string, number>;
   clear: () => void;
 };
@@ -212,6 +220,7 @@ export function createChatRunState(): ChatRunState {
   const buffers = new Map<string, string>();
   const deltaSentAt = new Map<string, number>();
   const deltaLastBroadcastLen = new Map<string, number>();
+  const deltaLastBroadcastText = new Map<string, string>();
   const abortedRuns = new Map<string, number>();
 
   const clear = () => {
@@ -220,6 +229,7 @@ export function createChatRunState(): ChatRunState {
     buffers.clear();
     deltaSentAt.clear();
     deltaLastBroadcastLen.clear();
+    deltaLastBroadcastText.clear();
     abortedRuns.clear();
   };
 
@@ -229,6 +239,7 @@ export function createChatRunState(): ChatRunState {
     buffers,
     deltaSentAt,
     deltaLastBroadcastLen,
+    deltaLastBroadcastText,
     abortedRuns,
     clear,
   };
@@ -437,6 +448,17 @@ export type ChatEventBroadcast = (
   opts?: { dropIfSlow?: boolean },
 ) => void;
 
+/**
+ * Fan out a `chat` delta with per-connection payload selection: clients with
+ * the `chat-incremental` capability receive `payloads.incremental` (suffix
+ * only); all others receive `payloads.full` (transcript snapshot). Structurally
+ * matches the broadcaster's `broadcastChatDelta`.
+ */
+export type ChatDeltaBroadcast = (
+  payloads: { full: unknown; incremental: unknown },
+  opts?: { dropIfSlow?: boolean },
+) => void;
+
 export type NodeSendToSession = (sessionKey: string, event: string, payload: unknown) => void;
 
 const CHAT_ERROR_KINDS = new Set<ErrorKind>([
@@ -461,6 +483,7 @@ export type AgentEventHandlerOptions = {
     connIds: ReadonlySet<string>,
     opts?: { dropIfSlow?: boolean },
   ) => void;
+  broadcastChatDelta: ChatDeltaBroadcast;
   nodeSendToSession: NodeSendToSession;
   agentRunSeq: Map<string, number>;
   chatRunState: ChatRunState;
@@ -475,6 +498,7 @@ export type AgentEventHandlerOptions = {
 export function createAgentEventHandler({
   broadcast,
   broadcastToConnIds,
+  broadcastChatDelta,
   nodeSendToSession,
   agentRunSeq,
   chatRunState,
@@ -492,6 +516,7 @@ export function createAgentEventHandler({
     chatRunState.buffers.delete(clientRunId);
     chatRunState.deltaSentAt.delete(clientRunId);
     chatRunState.deltaLastBroadcastLen.delete(clientRunId);
+    chatRunState.deltaLastBroadcastText.delete(clientRunId);
   };
 
   const clearPendingTerminalLifecycleError = (runId: string) => {
@@ -680,6 +705,59 @@ export function createAgentEventHandler({
     pendingTerminalLifecycleErrors.set(evt.runId, timer);
   };
 
+  /**
+   * Centralized `chat` delta dispatch shared by the streaming and throttle-flush
+   * paths. Computes the incremental suffix against the exact text broadcast on
+   * the previous delta for this run, then fans out two payload variants: a full
+   * transcript snapshot for legacy clients and an `appendText`/`reset` suffix for
+   * `chat-incremental` clients. Node subscribers receive the full snapshot (they
+   * reconcile full `message` shapes; the dominant O(n^2) fan-out cost is the
+   * operator broadcast). Returns false when there is nothing new to send.
+   */
+  const dispatchChatDelta = (
+    sessionKey: string,
+    clientRunId: string,
+    seq: number,
+    currentText: string,
+  ): boolean => {
+    const previousText = chatRunState.deltaLastBroadcastText.get(clientRunId) ?? "";
+    const isAppend = currentText.startsWith(previousText);
+    const appendText = isAppend ? currentText.slice(previousText.length) : currentText;
+    const reset = !isAppend;
+    if (!appendText && !reset) {
+      return false;
+    }
+    const now = Date.now();
+    const fullPayload = {
+      runId: clientRunId,
+      sessionKey,
+      seq,
+      state: "delta" as const,
+      message: {
+        role: "assistant",
+        content: [{ type: "text", text: currentText }],
+        timestamp: now,
+      },
+    };
+    const incrementalPayload = {
+      runId: clientRunId,
+      sessionKey,
+      seq,
+      state: "delta" as const,
+      appendText,
+      ...(reset ? { reset: true } : {}),
+    };
+    broadcastChatDelta(
+      { full: fullPayload, incremental: incrementalPayload },
+      { dropIfSlow: true },
+    );
+    nodeSendToSession(sessionKey, "chat", fullPayload);
+    chatRunState.deltaLastBroadcastText.set(clientRunId, currentText);
+    chatRunState.deltaLastBroadcastLen.set(clientRunId, currentText.length);
+    chatRunState.deltaSentAt.set(clientRunId, now);
+    return true;
+  };
+
   const emitChatDelta = (
     sessionKey: string,
     clientRunId: string,
@@ -727,21 +805,7 @@ export function createAgentEventHandler({
     if (now - last < 150) {
       return;
     }
-    chatRunState.deltaSentAt.set(clientRunId, now);
-    chatRunState.deltaLastBroadcastLen.set(clientRunId, mergedText.length);
-    const payload = {
-      runId: clientRunId,
-      sessionKey,
-      seq,
-      state: "delta" as const,
-      message: {
-        role: "assistant",
-        content: [{ type: "text", text: mergedText }],
-        timestamp: now,
-      },
-    };
-    broadcast("chat", payload, { dropIfSlow: true });
-    nodeSendToSession(sessionKey, "chat", payload);
+    dispatchChatDelta(sessionKey, clientRunId, seq, mergedText);
   };
 
   const resolveBufferedChatTextState = (clientRunId: string, sourceRunId: string) => {
@@ -785,22 +849,7 @@ export function createAgentEventHandler({
       return;
     }
 
-    const now = Date.now();
-    const flushPayload = {
-      runId: clientRunId,
-      sessionKey,
-      seq,
-      state: "delta" as const,
-      message: {
-        role: "assistant",
-        content: [{ type: "text", text }],
-        timestamp: now,
-      },
-    };
-    broadcast("chat", flushPayload, { dropIfSlow: true });
-    nodeSendToSession(sessionKey, "chat", flushPayload);
-    chatRunState.deltaLastBroadcastLen.set(clientRunId, text.length);
-    chatRunState.deltaSentAt.set(clientRunId, now);
+    dispatchChatDelta(sessionKey, clientRunId, seq, text);
   };
 
   const emitChatFinal = (
@@ -820,6 +869,7 @@ export function createAgentEventHandler({
     // Only flush if the buffer has grown since the last broadcast to avoid duplicates.
     flushBufferedChatDeltaIfNeeded(sessionKey, clientRunId, sourceRunId, seq);
     chatRunState.deltaLastBroadcastLen.delete(clientRunId);
+    chatRunState.deltaLastBroadcastText.delete(clientRunId);
     chatRunState.rawBuffers.delete(clientRunId);
     chatRunState.buffers.delete(clientRunId);
     chatRunState.deltaSentAt.delete(clientRunId);

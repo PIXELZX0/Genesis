@@ -106,6 +106,36 @@ describe("TuiStreamAssembler", () => {
     expect(second).toBeNull();
   });
 
+  it("accumulates incremental appendText deltas", () => {
+    const assembler = new TuiStreamAssembler();
+    expect(assembler.ingestAppendText("run-inc", "Hello", false, false)).toBe("Hello");
+    expect(assembler.ingestAppendText("run-inc", " world", false, false)).toBe("Hello world");
+  });
+
+  it("replaces accumulated text on a reset appendText delta", () => {
+    const assembler = new TuiStreamAssembler();
+    assembler.ingestAppendText("run-reset", "stale prefix", false, false);
+    expect(assembler.ingestAppendText("run-reset", "Fresh text", true, false)).toBe("Fresh text");
+  });
+
+  it("returns null when an appendText delta does not change the display", () => {
+    const assembler = new TuiStreamAssembler();
+    assembler.ingestAppendText("run-empty", "Hello", false, false);
+    expect(assembler.ingestAppendText("run-empty", "", false, false)).toBeNull();
+  });
+
+  it("finalizes incrementally streamed text from the full snapshot", () => {
+    const assembler = new TuiStreamAssembler();
+    assembler.ingestAppendText("run-fin", "Hello", false, false);
+    assembler.ingestAppendText("run-fin", " world", false, false);
+    const finalText = assembler.finalize(
+      "run-fin",
+      messageWithContent([text("Hello world")]),
+      false,
+    );
+    expect(finalText).toBe("Hello world");
+  });
+
   it("keeps streamed delta text when incoming tool boundary drops a block", () => {
     const assembler = new TuiStreamAssembler();
     const first = assembler.ingestDelta("run-delta-boundary", TEXT_ONLY_TWO_BLOCKS, false);

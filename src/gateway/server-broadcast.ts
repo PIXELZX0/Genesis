@@ -6,11 +6,14 @@ import {
   READ_SCOPE,
   WRITE_SCOPE,
 } from "./method-scopes.js";
+import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "./protocol/client-info.js";
 import type {
+  GatewayBroadcastChatDeltaFn,
   GatewayBroadcastFn,
   GatewayBroadcastOpts,
   GatewayBroadcastStateVersion,
   GatewayBroadcastToConnIdsFn,
+  GatewayChatDeltaPayloads,
 } from "./server-broadcast-types.js";
 import { MAX_BUFFERED_BYTES } from "./server-constants.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
@@ -51,10 +54,12 @@ const EVENT_SCOPE_GUARDS: Record<string, string[]> = {
 const NODE_ALLOWED_EVENTS = new Set<string>(["voicewake.changed"]);
 
 export type {
+  GatewayBroadcastChatDeltaFn,
   GatewayBroadcastFn,
   GatewayBroadcastOpts,
   GatewayBroadcastStateVersion,
   GatewayBroadcastToConnIdsFn,
+  GatewayChatDeltaPayloads,
 } from "./server-broadcast-types.js";
 
 function hasEventScope(client: GatewayWsClient, event: string): boolean {
@@ -99,6 +104,7 @@ export function createGatewayBroadcaster(params: { clients: Set<GatewayWsClient>
     payload: unknown,
     opts?: GatewayBroadcastOpts,
     targetConnIds?: ReadonlySet<string>,
+    chatVariants?: GatewayChatDeltaPayloads,
   ) => {
     if (params.clients.size === 0) {
       return;
@@ -119,6 +125,31 @@ export function createGatewayBroadcaster(params: { clients: Set<GatewayWsClient>
       }
       logWs("out", "event", logMeta);
     }
+    // Serialize the invariant frame parts once per broadcast, not once per client.
+    // Only `seq` varies between recipients; `payload` (often a large, growing chat
+    // transcript) is identical for all of them, so re-stringifying it per client was
+    // the dominant fan-out cost. Each client frame is assembled by cheap string splice
+    // below, preserving the exact wire bytes (key order and undefined-key omission) of
+    // the prior JSON.stringify form.
+    const eventJson = JSON.stringify(event);
+    const stateVersionPart =
+      opts?.stateVersion !== undefined
+        ? `,"stateVersion":${JSON.stringify(opts.stateVersion)}`
+        : "";
+    const buildFramePrefix = (framePayload: unknown): string => {
+      const framePayloadJson = JSON.stringify(framePayload);
+      const payloadPart = framePayloadJson !== undefined ? `,"payload":${framePayloadJson}` : "";
+      return `{"type":"event","event":${eventJson}${payloadPart}`;
+    };
+    // For chat-delta dual mode, serialize the full-snapshot and incremental
+    // variants once each (not per client) and select per connection below by
+    // the `chat-incremental` capability. Otherwise serialize the single payload
+    // once as before.
+    const framePrefix = chatVariants ? undefined : buildFramePrefix(payload);
+    const fullFramePrefix = chatVariants ? buildFramePrefix(chatVariants.full) : undefined;
+    const incrementalFramePrefix = chatVariants
+      ? buildFramePrefix(chatVariants.incremental)
+      : undefined;
     for (const c of params.clients) {
       if (targetConnIds && !targetConnIds.has(c.connId)) {
         continue;
@@ -158,13 +189,13 @@ export function createGatewayBroadcaster(params: { clients: Set<GatewayWsClient>
         if (!isTargeted) {
           clientSeq.set(c, nextSeq);
         }
-        const frame = JSON.stringify({
-          type: "event",
-          event,
-          payload,
-          seq: eventSeq,
-          stateVersion: opts?.stateVersion,
-        });
+        const seqPart = eventSeq !== undefined ? `,"seq":${eventSeq}` : "";
+        const selectedFramePrefix = chatVariants
+          ? hasGatewayClientCap(c.connect.caps, GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL)
+            ? (incrementalFramePrefix as string)
+            : (fullFramePrefix as string)
+          : (framePrefix as string);
+        const frame = `${selectedFramePrefix}${seqPart}${stateVersionPart}}`;
         c.socket.send(frame);
       } catch {
         /* ignore */
@@ -182,5 +213,12 @@ export function createGatewayBroadcaster(params: { clients: Set<GatewayWsClient>
     broadcastInternal(event, payload, opts, connIds);
   };
 
-  return { broadcast, broadcastToConnIds };
+  // Fan out a `chat` delta with per-connection payload selection: clients that
+  // advertise the `chat-incremental` capability receive only the appended
+  // suffix; all others receive the full transcript snapshot. Both variants are
+  // serialized once, preserving the serialize-once fan-out optimization.
+  const broadcastChatDelta: GatewayBroadcastChatDeltaFn = (payloads, opts) =>
+    broadcastInternal("chat", payloads.full, opts, undefined, payloads);
+
+  return { broadcast, broadcastToConnIds, broadcastChatDelta };
 }

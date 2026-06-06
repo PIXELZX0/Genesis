@@ -158,7 +158,7 @@ class ConnectionManager(
     return GatewayConnectOptions(
       role = "operator",
       scopes = listOf("operator.read", "operator.write", "operator.talk.secrets"),
-      caps = emptyList(),
+      caps = listOf("chat-incremental"),
       commands = emptyList(),
       permissions = emptyMap(),
       client = buildClientInfo(clientId = "genesis-android", clientMode = "ui"),

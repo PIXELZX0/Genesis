@@ -321,6 +321,66 @@ describe("gateway broadcaster", () => {
     ]);
   });
 
+  it("selects incremental vs full chat delta payload by the chat-incremental capability", () => {
+    const incrementalSocket = makeRecordingSocket();
+    const fullSocket = makeRecordingSocket();
+    const pairingSocket = makeRecordingSocket();
+    const clients = new Set<GatewayWsClient>([
+      makeGatewayWsClient("c-incremental", incrementalSocket, {
+        role: "operator",
+        scopes: ["operator.read"],
+        caps: ["chat-incremental"],
+      } as GatewayWsClient["connect"]),
+      makeGatewayWsClient("c-full", fullSocket, {
+        role: "operator",
+        scopes: ["operator.read"],
+      } as GatewayWsClient["connect"]),
+      makeGatewayWsClient("c-pairing", pairingSocket, {
+        role: "operator",
+        scopes: ["operator.pairing"],
+      } as GatewayWsClient["connect"]),
+    ]);
+
+    const { broadcastChatDelta } = createGatewayBroadcaster({ clients });
+
+    const full = {
+      runId: "r1",
+      sessionKey: "agent:main:main",
+      seq: 4,
+      state: "delta",
+      message: { role: "assistant", content: [{ type: "text", text: "Hello world" }] },
+    };
+    const incremental = {
+      runId: "r1",
+      sessionKey: "agent:main:main",
+      seq: 4,
+      state: "delta",
+      appendText: " world",
+    };
+    broadcastChatDelta({ full, incremental });
+
+    // Capable client receives the suffix-only variant with no full snapshot.
+    expect(incrementalSocket.sent).toHaveLength(1);
+    const incPayload = incrementalSocket.sent[0]?.payload as {
+      appendText?: string;
+      message?: unknown;
+    };
+    expect(incPayload.appendText).toBe(" world");
+    expect(incPayload.message).toBeUndefined();
+
+    // Non-capable client receives today's full transcript snapshot.
+    expect(fullSocket.sent).toHaveLength(1);
+    const fullPayload = fullSocket.sent[0]?.payload as {
+      appendText?: string;
+      message?: { content?: Array<{ text?: string }> };
+    };
+    expect(fullPayload.appendText).toBeUndefined();
+    expect(fullPayload.message?.content?.[0]?.text).toBe("Hello world");
+
+    // The chat-class scope guard still applies (pairing-only operator excluded).
+    expect(pairingSocket.send).not.toHaveBeenCalled();
+  });
+
   it("allows plugin.* broadcast events for operator.write and operator.admin", () => {
     const { pairingSocket, nodeSocket, readSocket, writeSocket, adminSocket, clients } =
       makeScopedBroadcastClients();

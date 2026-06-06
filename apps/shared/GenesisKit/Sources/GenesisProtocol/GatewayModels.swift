@@ -5455,6 +5455,8 @@ public struct ChatEvent: Codable, Sendable {
     public let seq: Int
     public let state: AnyCodable
     public let message: AnyCodable?
+    public let appendtext: String?
+    public let reset: Bool?
     public let errormessage: String?
     public let errorkind: AnyCodable?
     public let usage: AnyCodable?
@@ -5466,6 +5468,8 @@ public struct ChatEvent: Codable, Sendable {
         seq: Int,
         state: AnyCodable,
         message: AnyCodable?,
+        appendtext: String?,
+        reset: Bool?,
         errormessage: String?,
         errorkind: AnyCodable?,
         usage: AnyCodable?,
@@ -5476,6 +5480,8 @@ public struct ChatEvent: Codable, Sendable {
         self.seq = seq
         self.state = state
         self.message = message
+        self.appendtext = appendtext
+        self.reset = reset
         self.errormessage = errormessage
         self.errorkind = errorkind
         self.usage = usage
@@ -5488,10 +5494,352 @@ public struct ChatEvent: Codable, Sendable {
         case seq
         case state
         case message
+        case appendtext = "appendText"
+        case reset
         case errormessage = "errorMessage"
         case errorkind = "errorKind"
         case usage
         case stopreason = "stopReason"
+    }
+}
+
+public struct McpServerConfig: Codable, Sendable {}
+
+public struct McpServersListParams: Codable, Sendable {}
+
+public struct McpServerSetParams: Codable, Sendable {
+    public let name: String
+    public let server: McpServerConfig
+
+    public init(
+        name: String,
+        server: McpServerConfig)
+    {
+        self.name = name
+        self.server = server
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case server
+    }
+}
+
+public struct McpServerUnsetParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct McpServersResult: Codable, Sendable {
+    public let path: String
+    public let servers: [String: AnyCodable]
+    public let removed: Bool?
+
+    public init(
+        path: String,
+        servers: [String: AnyCodable],
+        removed: Bool?)
+    {
+        self.path = path
+        self.servers = servers
+        self.removed = removed
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case servers
+        case removed
+    }
+}
+
+public struct McpServerMetadataParams: Codable, Sendable {
+    public let url: String
+
+    public init(
+        url: String)
+    {
+        self.url = url
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case url
+    }
+}
+
+public struct McpServerMetadataResult: Codable, Sendable {
+    public let name: String
+    public let url: String
+    public let transport: AnyCodable
+    public let servername: String?
+    public let serverversion: String?
+    public let protocolversion: String?
+    public let capabilities: [String: AnyCodable]?
+    public let oauth: Bool
+    public let oauthissuer: String?
+    public let oauthauthorizeurl: String?
+    public let oauthtokenurl: String?
+    public let oauthscopes: [String]?
+
+    public init(
+        name: String,
+        url: String,
+        transport: AnyCodable,
+        servername: String?,
+        serverversion: String?,
+        protocolversion: String?,
+        capabilities: [String: AnyCodable]?,
+        oauth: Bool,
+        oauthissuer: String?,
+        oauthauthorizeurl: String?,
+        oauthtokenurl: String?,
+        oauthscopes: [String]?)
+    {
+        self.name = name
+        self.url = url
+        self.transport = transport
+        self.servername = servername
+        self.serverversion = serverversion
+        self.protocolversion = protocolversion
+        self.capabilities = capabilities
+        self.oauth = oauth
+        self.oauthissuer = oauthissuer
+        self.oauthauthorizeurl = oauthauthorizeurl
+        self.oauthtokenurl = oauthtokenurl
+        self.oauthscopes = oauthscopes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case url
+        case transport
+        case servername = "serverName"
+        case serverversion = "serverVersion"
+        case protocolversion = "protocolVersion"
+        case capabilities
+        case oauth
+        case oauthissuer = "oauthIssuer"
+        case oauthauthorizeurl = "oauthAuthorizeUrl"
+        case oauthtokenurl = "oauthTokenUrl"
+        case oauthscopes = "oauthScopes"
+    }
+}
+
+public struct McpServerTestParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct McpServerTestResult: Codable, Sendable {
+    public let ok: Bool
+    public let message: String
+
+    public init(
+        ok: Bool,
+        message: String)
+    {
+        self.ok = ok
+        self.message = message
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case message
+    }
+}
+
+public struct McpOAuthStartParams: Codable, Sendable {
+    public let name: String
+    public let scopes: [String]?
+
+    public init(
+        name: String,
+        scopes: [String]?)
+    {
+        self.name = name
+        self.scopes = scopes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case scopes
+    }
+}
+
+public struct McpOAuthStartResult: Codable, Sendable {
+    public let state: String
+    public let authorizeurl: String
+    public let providername: String?
+
+    public init(
+        state: String,
+        authorizeurl: String,
+        providername: String?)
+    {
+        self.state = state
+        self.authorizeurl = authorizeurl
+        self.providername = providername
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case state
+        case authorizeurl = "authorizeUrl"
+        case providername = "providerName"
+    }
+}
+
+public struct McpOAuthCallbackParams: Codable, Sendable {
+    public let name: String
+    public let state: String
+    public let code: String
+
+    public init(
+        name: String,
+        state: String,
+        code: String)
+    {
+        self.name = name
+        self.state = state
+        self.code = code
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case state
+        case code
+    }
+}
+
+public struct McpOAuthCallbackResult: Codable, Sendable {
+    public let ok: Bool
+    public let message: String?
+    public let providername: String?
+    public let expiresatms: AnyCodable?
+
+    public init(
+        ok: Bool,
+        message: String?,
+        providername: String?,
+        expiresatms: AnyCodable?)
+    {
+        self.ok = ok
+        self.message = message
+        self.providername = providername
+        self.expiresatms = expiresatms
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case message
+        case providername = "providerName"
+        case expiresatms = "expiresAtMs"
+    }
+}
+
+public struct McpOAuthStatusParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct McpOAuthStatusResult: Codable, Sendable {
+    public let connected: Bool
+    public let expiresatms: AnyCodable?
+    public let providername: String?
+    public let requiresauth: Bool
+
+    public init(
+        connected: Bool,
+        expiresatms: AnyCodable?,
+        providername: String?,
+        requiresauth: Bool)
+    {
+        self.connected = connected
+        self.expiresatms = expiresatms
+        self.providername = providername
+        self.requiresauth = requiresauth
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case connected
+        case expiresatms = "expiresAtMs"
+        case providername = "providerName"
+        case requiresauth = "requiresAuth"
+    }
+}
+
+public struct McpOAuthDisconnectParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct McpOAuthRefreshParams: Codable, Sendable {
+    public let name: String
+
+    public init(
+        name: String)
+    {
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+    }
+}
+
+public struct McpOAuthRefreshResult: Codable, Sendable {
+    public let ok: Bool
+    public let expiresatms: AnyCodable?
+    public let message: String?
+
+    public init(
+        ok: Bool,
+        expiresatms: AnyCodable?,
+        message: String?)
+    {
+        self.ok = ok
+        self.expiresatms = expiresatms
+        self.message = message
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case expiresatms = "expiresAtMs"
+        case message
     }
 }
 

@@ -493,6 +493,7 @@ export async function startGatewayServer(
     clients,
     broadcast,
     broadcastToConnIds,
+    broadcastChatDelta,
     agentRunSeq,
     dedupe,
     chatRunState,
@@ -669,6 +670,7 @@ export async function startGatewayServer(
       startGatewayEventSubscriptions({
         broadcast,
         broadcastToConnIds,
+        broadcastChatDelta,
         nodeSendToSession,
         agentRunSeq,
         chatRunState,

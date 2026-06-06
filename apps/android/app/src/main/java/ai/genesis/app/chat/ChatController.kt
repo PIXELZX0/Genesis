@@ -351,9 +351,21 @@ class ChatController(
       "delta" -> {
         // Only show streaming text for runs we initiated
         if (!isPending) return
-        val text = parseAssistantDeltaText(payload)
-        if (!text.isNullOrEmpty()) {
-          _streamingAssistantText.value = text
+        val append = payload["appendText"].asStringOrNull()
+        if (append != null) {
+          // Incremental delta (gateway "chat-incremental" capability): accumulate
+          // the appended suffix, or replace the buffer on reset.
+          val base = if (payload["reset"].asBooleanOrNull() == true) {
+            ""
+          } else {
+            _streamingAssistantText.value ?: ""
+          }
+          _streamingAssistantText.value = base + append
+        } else {
+          val text = parseAssistantDeltaText(payload)
+          if (!text.isNullOrEmpty()) {
+            _streamingAssistantText.value = text
+          }
         }
       }
       "final", "aborted", "error" -> {
@@ -637,5 +649,11 @@ private fun JsonElement?.asStringOrNull(): String? =
 private fun JsonElement?.asLongOrNull(): Long? =
   when (this) {
     is JsonPrimitive -> content.toLongOrNull()
+    else -> null
+  }
+
+private fun JsonElement?.asBooleanOrNull(): Boolean? =
+  when (this) {
+    is JsonPrimitive -> content.toBooleanStrictOrNull()
     else -> null
   }
