@@ -105,6 +105,12 @@ function normalizeInstallableRuntimeDepVersion(rawVersion: unknown): string | nu
   if ((rangePrefix === "^" || rangePrefix === "~") && validSemver(version.slice(1))) {
     return version;
   }
+  // Dist-tag specs (e.g. "latest", "next") are not valid semver and not
+  // "^/~ <version>" ranges. They are still safe to pass through; the actual
+  // version will be resolved at install time against the package manager.
+  if (validRange(version) === null && /^[a-z][a-z0-9._-]*$/u.test(version)) {
+    return version;
+  }
   return null;
 }
 
