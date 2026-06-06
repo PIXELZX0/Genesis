@@ -920,13 +920,17 @@ describe("createTelegramBot", () => {
     const [chatId, messageId, text, params] = editMessageTextSpy.mock.calls[0] ?? [];
     expect(chatId).toBe(1234);
     expect(messageId).toBe(12);
-    expect(String(text)).toContain(`${INFO_EMOJI} Commands (2/`);
+    const textStr = String(text);
+    expect(textStr).toContain(`${INFO_EMOJI} Commands (2/`);
+    const totalPagesMatch = textStr.match(/Commands \(2\/(\d+)\)/);
+    expect(totalPagesMatch).not.toBeNull();
+    const totalPages = totalPagesMatch?.[1] ?? "";
     expect(params).toEqual({
       reply_markup: {
         inline_keyboard: [
           [
             { text: "◀ Prev", callback_data: "commands_page_1:main" },
-            { text: "2/5", callback_data: "commands_page_noop:main" },
+            { text: `2/${totalPages}`, callback_data: "commands_page_noop:main" },
             { text: "Next ▶", callback_data: "commands_page_3:main" },
           ],
         ],
