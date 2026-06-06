@@ -435,6 +435,7 @@ export function createBrowserTool(opts?: {
       'When a node-hosted browser proxy is available, the tool may auto-route to it. Pin a node with node=<id|name> or target="node".',
       "When using refs from snapshot (e.g. e12), keep the same tab: prefer passing targetId from the snapshot response into subsequent actions (act/click/type/etc). For tab operations, targetId also accepts tabId handles (t1) and labels from action=tabs.",
       "For multi-step browser work, login checks, stale refs, duplicate tabs, or Google Meet flows, use the bundled browser-automation skill when it is available.",
+      'Tor routing is on by default for local managed profiles: `.onion` HTTP(S) URLs go through a managed Tor sidecar, regular domains/IPs stay direct (default `routeMode: "onion-only"`). Use a dedicated headless profile (e.g. `profile="onion"`) for onion-service work; `profile="user"` and other existing-session profiles never use Tor. Set `browser.tor.enabled=false` (or `browser.profiles.<name>.tor.enabled=false` per profile) to opt out, or `routeMode: "all"` to route every browser HTTP(S) request through Tor.',
       'For stable, self-resolving refs across calls, use snapshot with refs="aria" (Playwright aria-ref ids). Default refs="role" are role+name-based.',
       "Use snapshot+act for UI automation. Avoid act:wait by default; use only in exceptional cases when no reliable UI state exists.",
       `target selects browser location (sandbox|host|node). Default: ${targetDefault}.`,

@@ -328,6 +328,16 @@ describe("browser tool description", () => {
     expect(tool.description).toContain("existing-session profiles");
     expect(tool.description).toContain("browser-automation skill");
   });
+
+  it("explains Tor routing so agents can reach .onion URLs and pick the right profile", () => {
+    const tool = createBrowserTool();
+
+    expect(tool.description).toContain("Tor routing is on by default");
+    expect(tool.description).toContain('routeMode: "onion-only"');
+    expect(tool.description).toContain(".onion");
+    expect(tool.description).toContain("existing-session profiles never use Tor");
+    expect(tool.description).toContain("browser.tor.enabled=false");
+  });
 });
 
 describe("browser tool snapshot maxChars", () => {
