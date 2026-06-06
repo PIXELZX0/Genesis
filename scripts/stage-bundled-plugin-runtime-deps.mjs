@@ -804,7 +804,7 @@ function resolvePinnedRuntimeDependencyVersion(params) {
   // Dist-tag specs (e.g. "latest") are not valid semver ranges, so the
   // semver-satisfies check would reject them. Trust the package manager's
   // installed version when the spec is a dist-tag.
-  const enforceSpec = isDistTagLikeSpec(params.spec) ? false : true;
+  const enforceSpec = !isDistTagLikeSpec(params.spec);
   const installedVersion = resolveInstalledPinnedDependencyVersion({
     ...params,
     enforceSpec,
