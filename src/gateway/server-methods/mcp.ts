@@ -290,7 +290,16 @@ export const mcpHandlers: GatewayRequestHandlers = {
       const res = await fetch(url, {
         method: "POST",
         headers: { ...headers, "content-type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 99, method: "ping" }),
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 99,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "genesis-control-ui", version: "0.0.0" },
+          },
+        }),
       });
       if (res.ok || res.status === 406 || res.status === 415) {
         respond(

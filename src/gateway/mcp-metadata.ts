@@ -23,8 +23,36 @@ const MCP_PROTOCOL_VERSION = "2024-11-05";
 const MCP_CLIENT_INFO = { name: "genesis-control-ui", version: "0.0.0" };
 
 const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
+const SSE_PROBE_TIMEOUT_MS = 3_000;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const CALLBACK_PATH = "/mcp-oauth-callback.html";
+
+/**
+ * Standard headers for a streamable-HTTP MCP request. Per the MCP spec the
+ * client MUST include `MCP-Protocol-Version` on every initialize request and
+ * `Accept` MUST advertise both `application/json` and `text/event-stream` so
+ * the server can pick its preferred response shape.
+ */
+const STREAMABLE_HTTP_REQUEST_HEADERS: Record<string, string> = {
+  "content-type": "application/json",
+  accept: "application/json, text/event-stream",
+  "mcp-protocol-version": MCP_PROTOCOL_VERSION,
+};
+
+function isStreamableHttpStatus(status: number): boolean {
+  // 200 OK: success. 401/403: auth required. 406 Not Acceptable / 415
+  // Unsupported Media Type: server speaks the protocol but rejects this
+  // request shape — still a strong "this is an MCP endpoint" signal.
+  return status === 200 || status === 401 || status === 403 || status === 406 || status === 415;
+}
+
+function jsonContentTypeOf(res: { headers: { get(name: string): string | null } }): string {
+  return (res.headers.get("content-type") ?? "").toLowerCase();
+}
+
+function looksLikeMcpContentType(contentType: string): boolean {
+  return contentType.includes("text/event-stream") || contentType.includes("application/json");
+}
 
 type JsonRpcResponse<T> = {
   jsonrpc?: "2.0";
@@ -125,19 +153,36 @@ export async function fetchMcpServerMetadata(
 ): Promise<McpServerMetadata> {
   const fetchImpl = resolveFetch(opts);
   const normalized = normalizeUrl(url);
-  const endpoints = await discoverEndpoints(normalized, fetchImpl);
+  const probed = await discoverEndpoints(normalized, fetchImpl);
+  const endpoints = probed.endpoints;
   const transport = endpoints.transport;
-  const init = await sendMcpRequest<McpInitializeResult>(
-    endpoints,
-    1,
-    "initialize",
-    {
-      protocolVersion: MCP_PROTOCOL_VERSION,
-      capabilities: {},
-      clientInfo: MCP_CLIENT_INFO,
-    },
-    fetchImpl,
-  );
+  // Reuse the probe's response when the server already answered the spec
+  // `initialize` handshake. This avoids a second round-trip for the common
+  // case and lets us surface metadata even when the server only answers with
+  // a JSON-RPC auth error (e.g. 401/403) — the URL-derived name is good
+  // enough for the preview, and the OAuth probe can fill in the rest.
+  let init: JsonRpcResponse<McpInitializeResult>;
+  if (probed.initResponse) {
+    init = probed.initResponse;
+  } else if (probed.probeAccepted) {
+    // The probe was answered with an MCP-shaped status (200/401/403/406/415)
+    // but the body was not a usable JSON-RPC success — most likely an auth
+    // challenge. We must not re-issue `initialize` against a server that
+    // already rejected the same request; fall back to URL-derived metadata.
+    init = { jsonrpc: "2.0", id: 1 };
+  } else {
+    init = await sendMcpRequest<McpInitializeResult>(
+      endpoints,
+      1,
+      "initialize",
+      {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: MCP_CLIENT_INFO,
+      },
+      fetchImpl,
+    );
+  }
   const capabilities: McpServerMetadata["capabilities"] = {};
   if (init.result?.capabilities?.tools) {
     try {
@@ -203,37 +248,134 @@ export async function fetchMcpServerMetadata(
 
 type DiscoveredEndpoints = {
   baseUrl: string;
-  /** Last response, kept for streamable SSE parsing. */
+  /**
+   * Endpoint URL the server advertised for SSE-transport POSTs (the
+   * `endpoint` event from the stream). Falls back to the GET URL when the
+   * server never sends an explicit `endpoint` event.
+   */
+  ssePostUrl: string;
+  /** Kept for diagnostic purposes; not consumed after discovery. */
   sseStream?: ReadableStream<Uint8Array>;
   transport: "streamable-http" | "sse";
 };
 
-async function discoverEndpoints(url: string, fetchImpl: FetchLike): Promise<DiscoveredEndpoints> {
-  // First, try streamable-HTTP POST + accept event-stream.
+type ProbeResult = {
+  endpoints: DiscoveredEndpoints;
+  /**
+   * The `initialize` JSON-RPC response when the probe successfully parsed
+   * one (200 OK only). Used to skip a redundant round-trip and to surface
+   * metadata even when the server returns a JSON-RPC auth error.
+   */
+  initResponse: JsonRpcResponse<McpInitializeResult> | null;
+  /**
+   * `true` when the server answered the probe with an MCP-shaped status
+   * (200/401/403/406/415) — i.e. it speaks the protocol but the body was
+   * not a usable JSON-RPC success (auth challenge). The caller uses this to
+   * avoid re-issuing `initialize` and to fall back to URL-derived metadata.
+   */
+  probeAccepted: boolean;
+};
+
+async function discoverEndpoints(url: string, fetchImpl: FetchLike): Promise<ProbeResult> {
+  // Spec-defined capability probe: send the standard `initialize` handshake.
+  // Per the MCP spec every compliant server MUST respond to `initialize`, and
+  // `ping` is optional — many real servers omit it, which is why the previous
+  // `ping`-based probe frequently fell through to the SSE GET and timed out.
   const post = await fetchImpl(url, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json, text/event-stream",
-    },
+    headers: STREAMABLE_HTTP_REQUEST_HEADERS,
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: 0,
-      method: "ping",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: MCP_CLIENT_INFO,
+      },
     }),
   });
-  if (post.ok || post.status === 401 || post.status === 406 || post.status === 415) {
-    return { baseUrl: url, transport: "streamable-http" };
+  if (isStreamableHttpStatus(post.status)) {
+    // A 200 OK without a recognizable MCP content-type is almost certainly
+    // not an MCP endpoint (a generic web page, a 404 HTML page, etc.).
+    if (post.status === 200 && !looksLikeMcpContentType(jsonContentTypeOf(post))) {
+      const contentType = jsonContentTypeOf(post);
+      throw new Error(
+        `MCP server at ${url} returned an unexpected content-type: ${contentType || "(none)"}`,
+      );
+    }
+    const initResponse = await readInitializeResponseIfPresent(post, url);
+    return {
+      endpoints: { baseUrl: url, ssePostUrl: url, transport: "streamable-http" },
+      initResponse,
+      probeAccepted: true,
+    };
   }
-  // Fall back to legacy SSE: GET with text/event-stream and an `endpoint` event.
+  // 400/404/405/5xx → the URL is not a streamable-HTTP endpoint. Release the
+  // POST body before opening a second connection.
+  await post.body?.cancel();
+  // Legacy SSE: GET with `text/event-stream` and an `endpoint` event.
   const sse = await fetchImpl(url, {
     method: "GET",
     headers: { accept: "text/event-stream" },
   });
-  if (sse.ok && sse.body) {
-    return { baseUrl: url, transport: "sse", sseStream: sse.body };
+  if (!sse.ok) {
+    throw new Error(
+      `Could not reach MCP server at ${url}: streamable-HTTP probe returned HTTP ${post.status}, SSE probe returned HTTP ${sse.status}.`,
+    );
   }
-  throw new Error(`Could not reach MCP server at ${url} (HTTP ${post.status}).`);
+  const sseContentType = jsonContentTypeOf(sse);
+  if (!sseContentType.includes("text/event-stream") || !sse.body) {
+    await sse.body?.cancel();
+    throw new Error(
+      `MCP server at ${url} did not advertise SSE transport (content-type: ${sseContentType || "(none)"}).`,
+    );
+  }
+  // Read the first SSE event to confirm the server actually speaks SSE. We use
+  // a short timeout so a streamable-HTTP server that ignored our POST and
+  // returned a 200 + `text/event-stream` for GET (then idles) does not block
+  // the whole `fetchWithSsrFGuard` budget.
+  const endpointUrl = await readSseEndpointWithTimeout(sse.body, url, SSE_PROBE_TIMEOUT_MS);
+  return {
+    endpoints: {
+      baseUrl: url,
+      ssePostUrl: endpointUrl ?? url,
+      sseStream: sse.body,
+      transport: "sse",
+    },
+    initResponse: null,
+    probeAccepted: false,
+  };
+}
+
+/**
+ * Try to parse a 200 OK `initialize` probe response. Returns `null` for the
+ * auth-challenge codes (401/403/406/415) where the body is not a usable
+ * JSON-RPC success, and silently swallows parse errors so the caller can
+ * fall back to a fresh `initialize` request.
+ */
+async function readInitializeResponseIfPresent(
+  res: Response,
+  url: string,
+): Promise<JsonRpcResponse<McpInitializeResult> | null> {
+  if (res.status !== 200) {
+    return null;
+  }
+  const contentType = jsonContentTypeOf(res);
+  try {
+    if (contentType.includes("text/event-stream")) {
+      if (!res.body) {
+        return null;
+      }
+      return await readJsonRpcFromSse<McpInitializeResult>(res.body, url, SSE_PROBE_TIMEOUT_MS);
+    }
+    if (contentType.includes("application/json")) {
+      return (await res.json()) as JsonRpcResponse<McpInitializeResult>;
+    }
+  } catch {
+    // Body is not a valid JSON-RPC payload — caller will re-issue initialize.
+  }
+  return null;
 }
 
 async function sendMcpRequest<T>(
@@ -252,20 +394,24 @@ async function sendMcpRequest<T>(
   if (endpoints.transport === "streamable-http") {
     const res = await fetchImpl(endpoints.baseUrl, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json, text/event-stream",
-      },
+      headers: STREAMABLE_HTTP_REQUEST_HEADERS,
       body,
     });
     if (!res.ok) {
       throw new Error(`MCP request failed (${method}): HTTP ${res.status}`);
     }
+    const contentType = jsonContentTypeOf(res);
+    if (contentType.includes("text/event-stream")) {
+      if (!res.body) {
+        throw new Error(`MCP request ${method} returned SSE with no body`);
+      }
+      return await readJsonRpcFromSse<T>(res.body, endpoints.baseUrl, SSE_PROBE_TIMEOUT_MS);
+    }
     return (await res.json()) as JsonRpcResponse<T>;
   }
-  // SSE transport: send a POST to the `endpoint` URL announced by the server.
-  // For simplicity, the URL is the same as the GET endpoint.
-  const res = await fetchImpl(endpoints.baseUrl, {
+  // SSE transport: POST to the `endpoint` URL announced by the server. The
+  // spec says the POST response body is irrelevant; we discard it.
+  const res = await fetchImpl(endpoints.ssePostUrl, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body,
@@ -273,7 +419,157 @@ async function sendMcpRequest<T>(
   if (!res.ok) {
     throw new Error(`MCP request failed (${method}): HTTP ${res.status}`);
   }
-  return (await res.json()) as JsonRpcResponse<T>;
+  await res.body?.cancel();
+  return { jsonrpc: "2.0", id, result: {} as T };
+}
+
+type SseEvent = { event?: string; data?: string };
+
+/**
+ * Minimal SSE field parser. Supports multi-line `data:` (concatenated with
+ * `\n`, matching the spec) but does not implement comments or id/retry
+ * fields — we only need event/data for MCP discovery.
+ */
+function parseSseEvent(raw: string): SseEvent {
+  const result: SseEvent = {};
+  for (const line of raw.split("\n")) {
+    if (line.startsWith("event:")) {
+      const value = line.slice(6).trim();
+      if (value) {
+        result.event = value;
+      }
+    } else if (line.startsWith("data:")) {
+      // Per the SSE spec, a single space after the colon is stripped.
+      const value = line.slice(5).replace(/^ /, "");
+      result.data = result.data ? `${result.data}\n${value}` : value;
+    }
+  }
+  return result;
+}
+
+/**
+ * Read SSE events from a stream until `predicate` returns a non-null value or
+ * the stream closes. Bounded by `timeoutMs` to avoid hanging on a server that
+ * opens an SSE stream but never sends a relevant event.
+ */
+async function readSseUntil<T>(
+  reader: ReadableStreamDefaultReader<string>,
+  predicate: (event: SseEvent) => T | null,
+  timeoutMs: number,
+  contextUrl: string,
+): Promise<T | null> {
+  let buffer = "";
+  return await new Promise<T | null>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`SSE read from ${contextUrl} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    const cleanup = () => {
+      clearTimeout(timer);
+    };
+    const read = async () => {
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            cleanup();
+            resolve(null);
+            return;
+          }
+          buffer += value;
+          let eventEnd = buffer.indexOf("\n\n");
+          while (eventEnd !== -1) {
+            const raw = buffer.slice(0, eventEnd);
+            buffer = buffer.slice(eventEnd + 2);
+            const event = parseSseEvent(raw);
+            const match = predicate(event);
+            if (match !== null && match !== undefined) {
+              cleanup();
+              resolve(match);
+              return;
+            }
+            eventEnd = buffer.indexOf("\n\n");
+          }
+        }
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
+    };
+    void read();
+  });
+}
+
+async function readJsonRpcFromSse<T>(
+  body: ReadableStream<Uint8Array>,
+  contextUrl: string,
+  timeoutMs: number,
+): Promise<JsonRpcResponse<T>> {
+  const reader = decodeUtf8Stream(body).getReader();
+  try {
+    const data = await readSseUntil<string>(
+      reader,
+      (event) => (event.event === "message" && event.data ? event.data : null),
+      timeoutMs,
+      contextUrl,
+    );
+    if (!data) {
+      throw new Error(`SSE stream from ${contextUrl} closed without a JSON-RPC response`);
+    }
+    return JSON.parse(data) as JsonRpcResponse<T>;
+  } finally {
+    await reader.cancel();
+  }
+}
+
+async function readSseEndpointWithTimeout(
+  body: ReadableStream<Uint8Array>,
+  baseUrl: string,
+  timeoutMs: number,
+): Promise<string | null> {
+  const reader = decodeUtf8Stream(body).getReader();
+  try {
+    return await readSseUntil<string>(
+      reader,
+      (event) => {
+        if (event.event !== "endpoint" || !event.data) {
+          return null;
+        }
+        try {
+          return new URL(event.data, baseUrl).toString();
+        } catch {
+          return event.data;
+        }
+      },
+      timeoutMs,
+      baseUrl,
+    );
+  } finally {
+    await reader.cancel();
+  }
+}
+
+/**
+ * Decode a byte stream into a UTF-8 string stream. Wraps `TextDecoder` in a
+ * `TransformStream` so we can avoid the TS lib mismatch between
+ * `ReadableStream<Uint8Array<ArrayBufferLike>>` (the shape of `Response.body`)
+ * and `TextDecoderStream` (which types its writable side as
+ * `WritableStream<BufferSource>`).
+ */
+function decodeUtf8Stream(body: ReadableStream<Uint8Array>): ReadableStream<string> {
+  const decoder = new TextDecoder("utf-8");
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, string>({
+      transform(chunk, controller) {
+        controller.enqueue(decoder.decode(chunk, { stream: true }));
+      },
+      flush(controller) {
+        const tail = decoder.decode();
+        if (tail) {
+          controller.enqueue(tail);
+        }
+      },
+    }),
+  );
 }
 
 type OAuthProbe = {
@@ -388,10 +684,7 @@ async function probeUnauthorizedChallenge(
   try {
     const res = await fetchImpl(url, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json, text/event-stream",
-      },
+      headers: STREAMABLE_HTTP_REQUEST_HEADERS,
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: 0,

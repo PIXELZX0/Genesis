@@ -276,6 +276,175 @@ describe("fetchMcpServerMetadata", () => {
     expect(meta.oauthAuthorizeUrl).toBe("https://auth.notion.test/auth");
   });
 
+  it("probes with the spec-defined `initialize` handshake and `MCP-Protocol-Version`", async () => {
+    const base = mcpServer({ serverInfo: { name: "Spec" }, capabilities: {} });
+    const seenProbes: Array<{ method: string; headers: Record<string, string> }> = [];
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
+      const method = methodOf(init);
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      if (method === "initialize" && url.endsWith("/mcp")) {
+        seenProbes.push({ method, headers });
+      }
+      return base(input, init);
+    });
+    await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
+    const probe = seenProbes[0];
+    expect(probe.method).toBe("initialize");
+    expect(probe.headers.accept).toBe("application/json, text/event-stream");
+    expect(probe.headers["content-type"]).toBe("application/json");
+    expect(probe.headers["mcp-protocol-version"]).toBeTruthy();
+  });
+
+  it("treats 200 OK with a non-MCP content-type as a missing MCP endpoint", async () => {
+    const fetchImpl = vi.fn<FetchStub>(
+      async () =>
+        new Response("<html>not mcp</html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        }),
+    );
+    await expect(fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl })).rejects.toThrow(
+      /unexpected content-type/,
+    );
+  });
+
+  it("treats 403 Forbidden as a valid streamable-http response (auth challenge)", async () => {
+    const base = mcpServer({ serverInfo: { name: "Authed" }, capabilities: {} });
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
+      if (methodOf(init) === "initialize" && url.endsWith("/mcp")) {
+        return new Response(
+          JSON.stringify({ jsonrpc: "2.0", id: 1, error: { code: 403, message: "forbidden" } }),
+          {
+            status: 403,
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      return base(input, init);
+    });
+    const meta = await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
+    expect(meta.transport).toBe("streamable-http");
+  });
+
+  it("parses a streamable-http SSE response into a JSON-RPC result", async () => {
+    const sseBody = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("event: message\ndata: "));
+        controller.enqueue(
+          new TextEncoder().encode(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: 2,
+              result: { tools: [{ name: "alpha" }, { name: "beta" }] },
+            }) + "\n\n",
+          ),
+        );
+        controller.close();
+      },
+    });
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
+      if (methodOf(init) === "initialize") {
+        return json({
+          jsonrpc: "2.0",
+          id: 1,
+          result: { serverInfo: { name: "Sse" }, capabilities: { tools: {} } },
+        });
+      }
+      if (methodOf(init) === "tools/list") {
+        return new Response(sseBody, {
+          status: 200,
+          headers: { "content-type": "text/event-stream" },
+        });
+      }
+      return json({});
+    });
+    const meta = await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
+    expect(meta.capabilities?.tools).toEqual(["alpha", "beta"]);
+  });
+
+  it("discovers legacy SSE transport and POSTs to the announced `endpoint`", async () => {
+    const endpointUrl = "https://srv.test/messages";
+    const sseStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(`event: endpoint\ndata: ${endpointUrl}\n\n`));
+        // Keep the stream open; the probe should resolve on the endpoint event.
+      },
+    });
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
+      if (url.includes("/.well-known/")) {
+        return new Response("", { status: 404 });
+      }
+      // Probe the base URL: streamable-HTTP is rejected (405), GET opens SSE.
+      if (url.endsWith("/mcp")) {
+        if (init?.method === "POST") {
+          return new Response("", { status: 405 });
+        }
+        if (init?.method === "GET") {
+          return new Response(sseStream, {
+            status: 200,
+            headers: { "content-type": "text/event-stream" },
+          });
+        }
+      }
+      // Subsequent `initialize` POST to the announced endpoint URL is
+      // accepted (202 Accepted per the SSE-transport spec, no body).
+      if (url === endpointUrl && init?.method === "POST") {
+        return new Response("", { status: 202 });
+      }
+      return new Response("", { status: 404 });
+    });
+    const meta = await fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl });
+    expect(meta.transport).toBe("sse");
+    // The probe stopped at SSE discovery (it does not call initialize a second
+    // time for legacy transport); the metadata falls back to the URL-derived
+    // name. Tools/prompts/resources are skipped because the GET stream never
+    // resolves with a JSON-RPC response in this test.
+    expect(meta.url).toBe("https://srv.test/mcp");
+    // Verify the GET was sent with the standard SSE accept header.
+    const getCall = fetchImpl.mock.calls.find(([c, init]) => {
+      const u = urlOf(c);
+      return u.endsWith("/mcp") && init?.method === "GET";
+    });
+    expect(getCall).toBeTruthy();
+  });
+
+  it("fails the SSE fallback when the server opens an SSE stream but never sends an endpoint event", async () => {
+    const idle = new ReadableStream<Uint8Array>({
+      start() {
+        // Never enqueue anything; the probe should time out.
+      },
+    });
+    const fetchImpl = vi.fn<FetchStub>(async (input, init) => {
+      const url = urlOf(input);
+      if (init?.method === "POST") {
+        return new Response("", { status: 405 });
+      }
+      if (init?.method === "GET" && url.endsWith("/mcp")) {
+        return new Response(idle, {
+          status: 200,
+          headers: { "content-type": "text/event-stream" },
+        });
+      }
+      return new Response("", { status: 404 });
+    });
+    await expect(fetchMcpServerMetadata("https://srv.test/mcp", { fetchImpl })).rejects.toThrow(
+      /timed out|did not advertise/,
+    );
+  });
+
   it("rejects a malformed URL", async () => {
     await expect(
       fetchMcpServerMetadata("not-a-url", { fetchImpl: vi.fn<FetchStub>(async () => json({})) }),

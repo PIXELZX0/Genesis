@@ -12,6 +12,7 @@ Docs: https://genesis.pixelzx.com/docs
 ### Fixes
 
 - Matrix/presence: publish `setPresence({ presence: "online" })` after the client finishes syncing so the bot no longer appears offline by default. Configurable via `channels.matrix.presence.{state,statusMessage}` (`"online" | "unavailable" | "offline"`, default `"online"`). Mirrors the Discord `autoPresence` default and the WhatsApp self-chat presence fix.
+- MCP metadata fetch: the Control UI "Add by link" probe now uses the spec-defined `initialize` handshake with `MCP-Protocol-Version` and `Accept: application/json, text/event-stream` instead of `ping`, so compliant streamable-HTTP servers are detected on the first POST. The fallback GET-SSE probe is bounded by a short timeout, parses the announced `endpoint` URL out of the SSE stream, and accepts `text/event-stream` responses from streamable-HTTP. Fixes the frequent `No metadata found: This operation was aborted` error when adding remote MCP servers.
 
 ## 2026.6.5
 
