@@ -181,6 +181,13 @@ function findNearestAssistantMessageIndex(
   return assistantEntries[assistantEntries.length - 1]?.index ?? null;
 }
 
+// Tool calls/results belong to the assistant turn that produced them, so they
+// share a group with the assistant. This lets the renderer fold a whole turn's
+// thinking + tool use into a single collapsible "work" block (Claude Desktop style).
+function groupBucketForRole(role: string): string {
+  return role === "tool" ? "assistant" : role;
+}
+
 function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
   const result: Array<ChatItem | MessageGroup> = [];
   let currentGroup: MessageGroup | null = null;
@@ -196,22 +203,22 @@ function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
     }
 
     const normalized = normalizeMessage(item.message);
-    const role = normalizeRoleForGrouping(normalized.role);
-    const senderLabel = role.toLowerCase() === "user" ? (normalized.senderLabel ?? null) : null;
+    const bucket = groupBucketForRole(normalizeRoleForGrouping(normalized.role));
+    const senderLabel = bucket.toLowerCase() === "user" ? (normalized.senderLabel ?? null) : null;
     const timestamp = normalized.timestamp || Date.now();
 
     if (
       !currentGroup ||
-      currentGroup.role !== role ||
-      (role.toLowerCase() === "user" && currentGroup.senderLabel !== senderLabel)
+      currentGroup.role !== bucket ||
+      (bucket.toLowerCase() === "user" && currentGroup.senderLabel !== senderLabel)
     ) {
       if (currentGroup) {
         result.push(currentGroup);
       }
       currentGroup = {
         kind: "group",
-        key: `group:${role}:${item.key}`,
-        role,
+        key: `group:${bucket}:${item.key}`,
+        role: bucket,
         senderLabel,
         messages: [{ message: item.message, key: item.key }],
         timestamp,

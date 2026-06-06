@@ -35,7 +35,7 @@ import {
 import { isSttSupported, startStt, stopStt } from "../chat/speech.ts";
 import { renderCompactionIndicator, renderFallbackIndicator } from "../chat/status-indicators.ts";
 import { buildSidebarContent } from "../chat/tool-cards.ts";
-import { getExpandedToolCards, syncToolCardExpansionState } from "../chat/tool-expansion-state.ts";
+import { getExpandedToolCards } from "../chat/tool-expansion-state.ts";
 import type { EmbedSandboxMode } from "../embed-sandbox.ts";
 import { icons } from "../icons.ts";
 import type { SidebarContent } from "../sidebar-content.ts";
@@ -857,7 +857,6 @@ export function renderChat(props: ChatProps) {
     searchOpen: vs.searchOpen,
     searchQuery: vs.searchQuery,
   });
-  syncToolCardExpansionState(props.sessionKey, chatItems, true);
   const expandedToolCards = getExpandedToolCards(props.sessionKey);
   const toggleToolCardExpanded = (toolCardId: string) => {
     expandedToolCards.set(toolCardId, !expandedToolCards.get(toolCardId));
@@ -955,7 +954,7 @@ export function renderChat(props: ChatProps) {
                 onOpenSidebar: props.onOpenSidebar,
                 showReasoning,
                 showToolCalls: props.showToolCalls,
-                autoExpandToolCalls: true,
+                autoExpandToolCalls: false,
                 isToolMessageExpanded: (messageId: string) =>
                   expandedToolCards.get(messageId) ?? false,
                 onToggleToolMessageExpanded: (messageId: string) => {

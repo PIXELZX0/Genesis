@@ -24,6 +24,18 @@ function firstMessageContent(group: MessageGroup): unknown[] {
   return Array.isArray(message.content) ? message.content : [];
 }
 
+function messageContentById(groups: MessageGroup[], id: string): unknown[] {
+  for (const group of groups) {
+    for (const entry of group.messages) {
+      const message = entry.message as { id?: unknown; content?: unknown };
+      if (message.id === id) {
+        return Array.isArray(message.content) ? message.content : [];
+      }
+    }
+  }
+  return [];
+}
+
 describe("buildChatItems", () => {
   it("keeps consecutive user messages from different senders in separate groups", () => {
     const groups = messageGroups({
@@ -87,8 +99,14 @@ describe("buildChatItems", () => {
       ],
     });
 
-    expect(firstMessageContent(groups[0]).some((block) => isCanvasBlock(block))).toBe(true);
-    expect(firstMessageContent(groups[1]).some((block) => isCanvasBlock(block))).toBe(false);
+    // The tool turn now shares the assistant's group; the canvas should lift onto
+    // the nearest assistant message and leave the later, unrelated reply untouched.
+    expect(
+      messageContentById(groups, "assistant-with-canvas").some((block) => isCanvasBlock(block)),
+    ).toBe(true);
+    expect(
+      messageContentById(groups, "assistant-without-canvas").some((block) => isCanvasBlock(block)),
+    ).toBe(false);
   });
 
   it("does not lift generic view handles from non-canvas payloads", () => {

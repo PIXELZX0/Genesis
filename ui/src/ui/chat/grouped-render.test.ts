@@ -471,9 +471,9 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).toContain("Opened page");
   });
 
-  it("renders media-bearing tool messages expanded by default", () => {
+  it("keeps media-bearing tool work collapsed by default while showing the media", () => {
     const container = document.createElement("div");
-    renderAssistantMessage(container, {
+    const message = {
       id: "assistant-browser-screenshot",
       role: "assistant",
       toolCallId: "call-browser-screenshot",
@@ -495,17 +495,22 @@ describe("grouped chat rendering", () => {
         },
       ],
       timestamp: Date.now(),
-    });
+    };
+    renderAssistantMessage(container, message);
 
     const summary = container.querySelector<HTMLElement>(".chat-tool-msg-summary");
     const image = container.querySelector<HTMLImageElement>(".chat-message-image");
 
-    expect(summary?.getAttribute("aria-expanded")).toBe("true");
-    expect(container.textContent).toContain("Tool input");
+    // Work block defaults collapsed, but tool media stays visible alongside it.
+    expect(summary?.getAttribute("aria-expanded")).toBe("false");
+    expect(container.textContent).not.toContain("Tool input");
     expect(image?.getAttribute("src")).toBe("https://example.com/screenshot.png");
+
+    renderAssistantMessage(container, message, { isToolMessageExpanded: () => true });
+    expect(container.textContent).toContain("Tool input");
   });
 
-  it("renders expanded standalone tool-call rows", () => {
+  it("renders a turn's tool call inside a collapsible work block", () => {
     const container = document.createElement("div");
     const message = {
       id: "assistant-4b",
@@ -525,9 +530,12 @@ describe("grouped chat rendering", () => {
       isToolMessageExpanded: () => false,
     });
 
-    expect(container.querySelector(".chat-bubble--tool-shell")).not.toBeNull();
-    const summary = container.querySelector<HTMLElement>(".chat-tool-msg-summary");
-    expect(summary?.textContent).toContain("Tool call");
+    const summary = container.querySelector<HTMLElement>(
+      ".chat-work-collapse .chat-tool-msg-summary",
+    );
+    expect(summary).not.toBeNull();
+    expect(summary?.textContent).toContain("Worked");
+    expect(summary?.textContent).toContain("sessions_spawn");
     expect(container.textContent).not.toContain('"thread": true');
 
     renderAssistantMessage(container, message, {
@@ -634,7 +642,7 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).toContain('"status": "error"');
 
     renderMessageGroups(container, groups, {
-      isToolMessageExpanded: (messageId) => !messageId.startsWith("toolmsg:assistant:"),
+      isToolMessageExpanded: (messageId) => !messageId.startsWith("work:"),
     });
 
     expect(container.textContent).not.toContain("Tool input");

@@ -324,6 +324,31 @@ export function renderMessageGroup(
   // Aggregate usage/cost/model across all messages in the group
   const meta = extractGroupMeta(group, opts.contextWindow ?? null);
 
+  // Collapse a turn's thinking + tool use into one block (Claude Desktop style).
+  // Tool/result messages are grouped with the assistant, so this spans the turn.
+  const isAssistantTurn = normalizedRole === "assistant";
+  const workItems: TurnWorkItem[] = [];
+  if (isAssistantTurn) {
+    for (const entry of group.messages) {
+      const entryRecord = entry.message as Record<string, unknown>;
+      const entryRole = typeof entryRecord.role === "string" ? entryRecord.role.toLowerCase() : "";
+      if (opts.showReasoning && entryRole === "assistant") {
+        const thinking = extractThinkingCached(entry.message);
+        const markdown = thinking ? formatReasoningMarkdown(thinking) : "";
+        if (markdown) {
+          workItems.push({ kind: "thinking", markdown });
+        }
+      }
+      if (opts.showToolCalls ?? true) {
+        for (const card of extractToolCards(entry.message, entry.key)) {
+          workItems.push({ kind: "tool", card });
+        }
+      }
+    }
+  }
+  const workDisclosureId = `work:${group.key}`;
+  const workExpanded = opts.isToolMessageExpanded?.(workDisclosureId) ?? false;
+
   return html`
     <div class="chat-group ${roleClass}">
       ${renderAvatar(
@@ -340,6 +365,17 @@ export function renderMessageGroup(
         opts.assistantAttachmentAuthToken,
       )}
       <div class="chat-group-messages">
+        ${workItems.length > 0
+          ? renderTurnWorkBlock(workItems, {
+              disclosureId: workDisclosureId,
+              expanded: workExpanded,
+              onToggle: (id: string) => opts.onToggleToolMessageExpanded?.(id),
+              onOpenSidebar: opts.onOpenSidebar,
+              canvasHostUrl: opts.canvasHostUrl,
+              embedSandboxMode: opts.embedSandboxMode,
+              allowExternalEmbedUrls: opts.allowExternalEmbedUrls,
+            })
+          : nothing}
         ${group.messages.map((item, index) =>
           renderGroupedMessage(
             item.message,
@@ -349,6 +385,7 @@ export function renderMessageGroup(
               showReasoning: opts.showReasoning,
               showToolCalls: opts.showToolCalls ?? true,
               autoExpandToolCalls: opts.autoExpandToolCalls ?? false,
+              answerOnly: isAssistantTurn,
               isToolMessageExpanded: opts.isToolMessageExpanded,
               onToggleToolMessageExpanded: opts.onToggleToolMessageExpanded,
               isToolExpanded: opts.isToolExpanded,
@@ -1334,6 +1371,79 @@ function renderExpandButton(markdown: string, onOpenSidebar: (content: SidebarCo
   `;
 }
 
+// A single step inside a turn's work block: either a thinking segment or a tool call/result.
+type TurnWorkItem = { kind: "thinking"; markdown: string } | { kind: "tool"; card: ToolCard };
+
+function summarizeToolNames(names: string[]): string {
+  const unique = [...new Set(names)];
+  if (unique.length <= 3) {
+    return unique.join(", ");
+  }
+  return `${unique.slice(0, 2).join(", ")} +${unique.length - 2} more`;
+}
+
+// Renders a whole turn's thinking + tool use as one collapsible block (Claude Desktop style).
+function renderTurnWorkBlock(
+  items: TurnWorkItem[],
+  opts: {
+    disclosureId: string;
+    expanded: boolean;
+    onToggle: (id: string) => void;
+    onOpenSidebar?: (content: SidebarContent) => void;
+    canvasHostUrl?: string | null;
+    embedSandboxMode?: EmbedSandboxMode;
+    allowExternalEmbedUrls?: boolean;
+  },
+) {
+  const toolCards = items.filter(
+    (item): item is Extract<TurnWorkItem, { kind: "tool" }> => item.kind === "tool",
+  );
+  const hasThinking = items.some((item) => item.kind === "thinking");
+  const hasTools = toolCards.length > 0;
+  const label = hasTools ? "Worked" : "Thinking";
+  const detail = hasTools
+    ? summarizeToolNames(toolCards.map((item) => item.card.name))
+    : "Thought process";
+
+  return html`
+    <div
+      class="chat-work-collapse chat-tool-msg-collapse chat-tool-msg-collapse--manual ${opts.expanded
+        ? "is-open"
+        : ""}"
+    >
+      <button
+        class="chat-tool-msg-summary"
+        type="button"
+        aria-expanded=${String(opts.expanded)}
+        @click=${() => opts.onToggle(opts.disclosureId)}
+      >
+        <span class="chat-tool-msg-summary__icon">${hasThinking ? icons.brain : icons.zap}</span>
+        <span class="chat-tool-msg-summary__label">${label}</span>
+        ${detail ? html`<span class="chat-tool-msg-summary__names">${detail}</span>` : nothing}
+      </button>
+      ${opts.expanded
+        ? html`
+            <div class="chat-tool-msg-body chat-work-body">
+              ${items.map((item) =>
+                item.kind === "thinking"
+                  ? html`<div class="chat-thinking">
+                      ${unsafeHTML(toSanitizedMarkdownHtml(item.markdown))}
+                    </div>`
+                  : renderExpandedToolCardContent(
+                      item.card,
+                      opts.onOpenSidebar,
+                      opts.canvasHostUrl,
+                      opts.embedSandboxMode ?? "scripts",
+                      opts.allowExternalEmbedUrls ?? false,
+                    ),
+              )}
+            </div>
+          `
+        : nothing}
+    </div>
+  `;
+}
+
 function renderGroupedMessage(
   message: unknown,
   messageKey: string,
@@ -1342,6 +1452,9 @@ function renderGroupedMessage(
     showReasoning: boolean;
     showToolCalls?: boolean;
     autoExpandToolCalls?: boolean;
+    // When true, thinking + tool cards are rendered by the turn-level work block
+    // instead of this message, so the message only emits its answer text/media.
+    answerOnly?: boolean;
     isToolMessageExpanded?: (messageId: string) => boolean;
     onToggleToolMessageExpanded?: (messageId: string) => void;
     isToolExpanded?: (toolCardId: string) => boolean;
@@ -1366,7 +1479,8 @@ function renderGroupedMessage(
     typeof m.toolCallId === "string" ||
     typeof m.tool_call_id === "string";
 
-  const toolCards = (opts.showToolCalls ?? true) ? extractToolCards(message, messageKey) : [];
+  const toolCards =
+    !opts.answerOnly && (opts.showToolCalls ?? true) ? extractToolCards(message, messageKey) : [];
   const hasToolCards = toolCards.length > 0;
   const imageRenderOptions = {
     localMediaPreviewRoots: opts.localMediaPreviewRoots ?? [],
@@ -1394,7 +1508,9 @@ function renderGroupedMessage(
     (item): item is Extract<MessageContentItem, { type: "canvas" }> => item.type === "canvas",
   );
   const extractedThinking =
-    opts.showReasoning && role === "assistant" ? extractThinkingCached(message) : null;
+    !opts.answerOnly && opts.showReasoning && role === "assistant"
+      ? extractThinkingCached(message)
+      : null;
   const markdownBase = extractedText?.trim() ? extractedText : null;
   const reasoningMarkdown = extractedThinking ? formatReasoningMarkdown(extractedThinking) : null;
   const markdown = markdownBase;
@@ -1405,6 +1521,27 @@ function renderGroupedMessage(
   const jsonResult = markdown && !opts.isStreaming ? detectJson(markdown) : null;
 
   const isToolMessage = normalizedRole === "tool" || isToolResult;
+
+  // In answer-only mode the turn work block owns tool input/output, so a tool
+  // message here contributes only its media (screenshots, attachments).
+  if (opts.answerOnly && isToolMessage) {
+    if (!hasImages && assistantAttachments.length === 0) {
+      return nothing;
+    }
+    return html`
+      <div class="chat-bubble">
+        ${renderMessageImages(images, imageRenderOptions)}
+        ${renderAssistantAttachments(
+          assistantAttachments,
+          opts.localMediaPreviewRoots ?? [],
+          opts.basePath,
+          opts.assistantAttachmentAuthToken,
+          opts.onRequestUpdate,
+        )}
+      </div>
+    `;
+  }
+
   const bubbleClasses = [
     "chat-bubble",
     isToolMessage ? "chat-bubble--tool-shell" : "",

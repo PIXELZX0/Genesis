@@ -727,6 +727,35 @@
   overflow-wrap: anywhere;
 }
 
+/* Turn work block: a whole turn's thinking + tool use folded into one collapsible
+   block (Claude Desktop style). Reuses the tool summary chrome; the expanded body
+   stacks each thinking segment and tool card. */
+.chat-work-collapse {
+  margin-top: 6px;
+}
+
+.chat-work-body {
+  margin-top: 0;
+  padding: 12px 14px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: color-mix(in srgb, var(--card) 82%, var(--secondary) 18%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg) 68%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.chat-work-body > .chat-thinking {
+  margin-bottom: 0;
+}
+
+.chat-work-body > .chat-tool-card--expanded {
+  margin: 0;
+}
+
 /* Reading Indicator */
 .chat-reading-indicator {
   background: transparent;
