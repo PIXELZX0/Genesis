@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
-import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
+import { parse } from "yaml";
 
 const WORKFLOW_DIR = ".github/workflows";
 const WORKFLOW_PATH = `${WORKFLOW_DIR}/ci-check-testbox.yml`;
@@ -44,9 +44,7 @@ describe("Blacksmith Testbox workflow", () => {
     }
 
     expect(job["runs-on"]).toBe("blacksmith-32vcpu-ubuntu-2404");
-    const uses = (job.steps ?? []).flatMap((step) =>
-      step.uses ? [step.uses] : [],
-    );
+    const uses = (job.steps ?? []).flatMap((step) => (step.uses ? [step.uses] : []));
     expect(uses).toContain("useblacksmith/begin-testbox@v2");
     expect(uses).toContain("useblacksmith/run-testbox@v2");
     expect(workflow).toContain("pnpm install --frozen-lockfile");
@@ -57,9 +55,7 @@ describe("Blacksmith Testbox workflow", () => {
 
 describe("GitHub workflows", () => {
   it("runs every non-publishing job on Blacksmith runners", () => {
-    const githubHostedRunnerExceptions = new Set([
-      "genesis-npm-release.yml:publish:ubuntu-24.04",
-    ]);
+    const githubHostedRunnerExceptions = new Set(["genesis-npm-release.yml:publish:ubuntu-24.04"]);
     const workflowFiles = readdirSync(WORKFLOW_DIR)
       .filter((file) => file.endsWith(".yml") || file.endsWith(".yaml"))
       .toSorted((a, b) => a.localeCompare(b));
