@@ -2,6 +2,21 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.7
+
+### Changes
+
+- Gateway streaming: chat deltas now stream only the newly appended suffix instead of rebroadcasting the entire accumulated assistant transcript on every tick (previously O(n^2) total bytes across the fan-out for long replies). Gated additively on a new `chat-incremental` client capability — capable clients (Control UI, TUI, ACP, Android) accumulate locally, other clients keep receiving full message snapshots, and the terminal `final` event always carries the complete message for late-joining or reconnecting clients. No protocol version bump, so older clients are unaffected.
+- Control UI: each assistant turn's reasoning and tool calls now render together in a single grouped "work" block (Claude Desktop style), shown expanded, with each tool's input and output. The final answer text and media render below the block.
+- Agents: the session-start "Current time" line now shows the resolved UTC offset (for example `UTC+9`) instead of the IANA timezone name, matching the format expected for locale-aware start prompts.
+- Memory: new `plugins.entries.memory-core.config.dreaming.narrative.autoDeleteSessions` (default `true`) lets you opt out of the post-dreaming scrub that prunes dreaming-narrative session entries and orphans their transcripts.
+- Brand: the Genesis mascot is replaced with a red geometric diamond mark and `GENESIS` wordmark across docs, the Control UI, the browser extension icons, and the macOS DMG assets.
+
+### Fixes
+
+- Gateway: the `models.authProfile*` mutation RPCs (`Add`, `Remove`, `Rename`, `SetPriority`, `Reorder`) are now classified as `operator.admin` scope, matching the other credential-management methods (`secrets.*`, `mcp.oauth.*`). They were registered but missing from method-scope classification; the change is non-downgrading because unclassified methods already default-deny to admin.
+- Plugins: the bundled plugin runtime-deps resolver now accepts npm dist-tag specs (such as `latest`) in addition to exact versions and semver ranges, so plugins pinned to a dist-tag stage and install correctly instead of failing resolution.
+
 ## 2026.6.6
 
 ### Changes
