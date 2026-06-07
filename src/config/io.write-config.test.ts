@@ -5,6 +5,7 @@ import type { PluginManifestRegistry } from "../plugins/manifest-registry.js";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
 import {
   createConfigIO,
+  readConfigFileSnapshot,
   registerConfigWriteListener,
   resetConfigRuntimeState,
   setRuntimeConfigSnapshot,
@@ -653,6 +654,86 @@ describe("config io write", () => {
           delete process.env.GENESIS_GATEWAY_TOKEN;
         } else {
           process.env.GENESIS_GATEWAY_TOKEN = previousGatewayToken;
+        }
+      }
+    });
+  });
+
+  it("notifies in-process reloaders with the authored source shape, not materialized runtime defaults", async () => {
+    await withSuiteHome(async (home) => {
+      const configPath = path.join(home, ".genesis", "genesis.json");
+      const previousConfigPath = process.env.GENESIS_CONFIG_PATH;
+      process.env.GENESIS_CONFIG_PATH = configPath;
+      await fs.mkdir(path.dirname(configPath), { recursive: true });
+      // Authored source: no commands/messages/agents — only gateway + mcp.
+      await fs.writeFile(
+        configPath,
+        `${JSON.stringify(
+          {
+            gateway: { mode: "local", auth: { mode: "token", token: "literal-token" } },
+            mcp: {
+              servers: {
+                context7: { url: "https://mcp.example.com" },
+                github: { command: "gh-mcp" },
+              },
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf-8",
+      );
+
+      const observedSources: Array<Record<string, unknown>> = [];
+      const unsubscribe = registerConfigWriteListener((event) => {
+        observedSources.push(event.sourceConfig as Record<string, unknown>);
+      });
+
+      try {
+        // Resolve the runtime config (materializes schema defaults such as
+        // commands/messages/agents) and publish it as the runtime snapshot WITHOUT
+        // a source snapshot. This is the no-secrets gateway state where
+        // `hadBothSnapshots` is false, so the writer cannot self-project `nextCfg`
+        // back onto the authored shape.
+        const snapshot = await readConfigFileSnapshot();
+        const runtimeConfig = snapshot.config;
+        // Sanity: defaults really did materialize (premise of the regression).
+        expect(Object.keys(runtimeConfig)).toContain("commands");
+        setRuntimeConfigSnapshot(runtimeConfig);
+
+        // Mirror mcp.servers.unset: persist the resolved runtime config with one
+        // MCP server removed.
+        await writeConfigFile({
+          ...runtimeConfig,
+          mcp: { servers: { context7: { url: "https://mcp.example.com" } } },
+        } as Parameters<typeof writeConfigFile>[0]);
+
+        // The on-disk file must stay minimal (runtime defaults never persisted).
+        const persisted = JSON.parse(await fs.readFile(configPath, "utf-8")) as Record<
+          string,
+          unknown
+        >;
+        expect(persisted).not.toHaveProperty("commands");
+
+        // Regression: the reload notification must carry the authored source shape,
+        // not the materialized runtime defaults. Leaking default top-level keys
+        // (commands/messages/agents, or with plugins discovery/canvasHost/plugins)
+        // made the gateway reloader diff them against the on-disk source and force a
+        // spurious gateway restart whenever a skill or MCP server was toggled.
+        expect(observedSources).toHaveLength(1);
+        const notified = observedSources[0];
+        expect(notified).not.toHaveProperty("commands");
+        expect(notified).not.toHaveProperty("messages");
+        expect(notified).not.toHaveProperty("agents");
+        expect(notified.mcp).toEqual({
+          servers: { context7: { url: "https://mcp.example.com" } },
+        });
+      } finally {
+        unsubscribe();
+        if (previousConfigPath === undefined) {
+          delete process.env.GENESIS_CONFIG_PATH;
+        } else {
+          process.env.GENESIS_CONFIG_PATH = previousConfigPath;
         }
       }
     });

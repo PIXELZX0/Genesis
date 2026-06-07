@@ -190,6 +190,12 @@ export type ReadConfigFileSnapshotForWriteResult = {
 export type ConfigWriteResult = {
   persistedHash: string;
   persistedConfig: GenesisConfig;
+  // The authored-source-shaped config with env refs resolved and no runtime
+  // defaults materialized — i.e. the same shape `readConfigFileSnapshot()`
+  // returns as `.sourceConfig`. This is what in-process reload listeners must
+  // diff against; `persistedConfig` carries restored `${VAR}` placeholders and
+  // is only for surfacing exactly what landed on disk.
+  resolvedSourceConfig: GenesisConfig;
 };
 
 export type ConfigWriteNotification = RuntimeConfigWriteNotification;
@@ -1888,7 +1894,11 @@ export function createConfigIO(
             undefined,
             await deps.fs.promises.stat(configPath).catch(() => null),
           );
-          return { persistedHash: nextHash, persistedConfig: stampedOutputConfig };
+          return {
+            persistedHash: nextHash,
+            persistedConfig: stampedOutputConfig,
+            resolvedSourceConfig: coerceConfig(persistCandidate),
+          };
         }
         await deps.fs.promises.unlink(tmp).catch(() => {
           // best-effort
@@ -1902,7 +1912,11 @@ export function createConfigIO(
         undefined,
         await deps.fs.promises.stat(configPath).catch(() => null),
       );
-      return { persistedHash: nextHash, persistedConfig: stampedOutputConfig };
+      return {
+        persistedHash: nextHash,
+        persistedConfig: stampedOutputConfig,
+        resolvedSourceConfig: coerceConfig(persistCandidate),
+      };
     } catch (err) {
       await appendWriteAudit("failed", err);
       throw err;
@@ -2097,7 +2111,18 @@ export async function writeConfigFileWithResult(
     }
     notifyRuntimeConfigWriteListeners({
       configPath: io.configPath,
-      sourceConfig: nextCfg,
+      // Emit the authored-source projection of what was persisted, NOT the
+      // pre-write `nextCfg`. `nextCfg` is only projected back onto the source
+      // shape when both runtime snapshots exist (`hadBothSnapshots`); without the
+      // source snapshot it still carries materialized runtime defaults (e.g.
+      // commands/messages/agents, and with plugins loaded discovery/canvasHost/
+      // plugins). The reloader diffs `sourceConfig` against the on-disk source and
+      // would treat those default top-level keys as real changes — including
+      // restart-classified prefixes — forcing a spurious gateway restart whenever
+      // a skill or MCP server is toggled. `resolvedSourceConfig` is the same shape
+      // `readConfigFileSnapshot()` yields (env refs resolved, no defaults), so the
+      // in-process and file-watcher reload paths stay consistent.
+      sourceConfig: writeResult.resolvedSourceConfig,
       runtimeConfig: currentRuntimeConfig,
       persistedHash: writeResult.persistedHash,
       writtenAtMs: Date.now(),
