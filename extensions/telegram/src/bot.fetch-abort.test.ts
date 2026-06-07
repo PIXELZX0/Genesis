@@ -89,6 +89,21 @@ describe("createTelegramBot fetch abort", () => {
     vi.useRealTimers();
   });
 
+  it("rejects wrapped getUpdates when the underlying fetch ignores the abort signal", async () => {
+    vi.useFakeTimers();
+    // Simulate a wedged socket: the underlying fetch never settles, even after
+    // the abort signal fires. The hard deadline must still reject the call so
+    // grammY's runner is handed back control instead of hanging indefinitely.
+    const fetchSpy = vi.fn(() => new Promise<never>(() => {}));
+    const { clientFetch } = createWrappedTelegramClientFetch(fetchSpy as unknown as typeof fetch);
+
+    const pending = clientFetch("https://api.telegram.org/bot123456:ABC/getUpdates");
+    const assertion = expect(pending).rejects.toThrow(/getupdates timed out after 45000ms/i);
+    await vi.advanceTimersByTimeAsync(45_000);
+    await assertion;
+    vi.useRealTimers();
+  });
+
   it("preserves the original fetch error when tagging cannot attach metadata", async () => {
     const frozenError = Object.freeze(
       Object.assign(new TypeError("fetch failed"), {

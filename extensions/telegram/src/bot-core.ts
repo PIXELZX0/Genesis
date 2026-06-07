@@ -203,7 +203,6 @@ export function createTelegramBotCore(
       };
       const method = extractTelegramApiMethod(input);
       const requestTimeoutMs = resolveTelegramRequestTimeoutMs(method);
-      let requestTimeout: ReturnType<typeof setTimeout> | undefined;
       let onRequestAbort: (() => void) | undefined;
       const requestSignal = isTelegramAbortSignalLike(init?.signal) ? init.signal : undefined;
       if (shutdownSignal?.aborted) {
@@ -219,23 +218,46 @@ export function createTelegramBotCore(
           requestSignal.addEventListener("abort", onRequestAbort);
         }
       }
-      if (requestTimeoutMs) {
-        requestTimeout = setTimeout(() => {
-          controller.abort(new Error(`Telegram ${method} timed out after ${requestTimeoutMs}ms`));
-        }, requestTimeoutMs);
-        requestTimeout.unref?.();
-      }
-      return callFetch(input, {
-        ...init,
-        signal: controller.signal,
-      }).finally(() => {
-        if (requestTimeout) {
-          clearTimeout(requestTimeout);
-        }
+      const cleanup = () => {
         shutdownSignal?.removeEventListener("abort", onShutdown);
         if (requestSignal && onRequestAbort) {
           requestSignal.removeEventListener("abort", onRequestAbort);
         }
+      };
+      const fetchPromise = callFetch(input, {
+        ...init,
+        signal: controller.signal,
+      });
+      if (!requestTimeoutMs) {
+        return fetchPromise.finally(cleanup);
+      }
+      // Hard deadline so the call settles even when aborting the signal fails to
+      // reject the underlying fetch. On wedged sockets undici can keep an aborted
+      // long-poll pending far past the timeout (observed 72s/141s getUpdates on a
+      // 45s budget), starving grammY's runner until the outer stall watchdog
+      // fires minutes later. Racing a rejection hands control back to the retry
+      // loop on schedule. Dropping the abandoned response is safe: getUpdates
+      // only advances the offset once a batch is delivered, so Telegram
+      // re-delivers the same updates on the next poll.
+      let deadlineTimeout: ReturnType<typeof setTimeout> | undefined;
+      const deadline = new Promise<never>((_resolve, reject) => {
+        deadlineTimeout = setTimeout(() => {
+          const timeoutError = new Error(
+            `Telegram ${method} timed out after ${requestTimeoutMs}ms`,
+          );
+          controller.abort(timeoutError);
+          reject(timeoutError);
+        }, requestTimeoutMs);
+        deadlineTimeout.unref?.();
+      });
+      // Swallow a late rejection from the losing fetch so it cannot surface as an
+      // unhandled rejection after the deadline already won the race.
+      void fetchPromise.catch(() => {});
+      return Promise.race([fetchPromise, deadline]).finally(() => {
+        if (deadlineTimeout) {
+          clearTimeout(deadlineTimeout);
+        }
+        cleanup();
       });
     };
   }

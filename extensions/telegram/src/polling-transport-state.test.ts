@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TelegramTransport } from "./fetch.js";
+import type { TelegramPollingLogger } from "./monitor.types.js";
 import { TelegramPollingTransportState } from "./polling-transport-state.js";
 
 type LogFn = (line: string) => void;
 type LogSpy = ReturnType<typeof vi.fn<LogFn>>;
+type LeveledLogSpy = { debug: LogSpy; warn: LogSpy; error: LogSpy } & TelegramPollingLogger;
+
+function makeLeveledLog(): LeveledLogSpy {
+  return { debug: vi.fn<LogFn>(), warn: vi.fn<LogFn>(), error: vi.fn<LogFn>() };
+}
 
 function makeMockTransport(label = "transport"): TelegramTransport & {
   close: ReturnType<typeof vi.fn<() => Promise<void>>>;
@@ -30,9 +36,9 @@ async function flushMicrotasks() {
 }
 
 describe("TelegramPollingTransportState", () => {
-  let log: LogSpy;
+  let log: LeveledLogSpy;
   beforeEach(() => {
-    log = vi.fn<LogFn>();
+    log = makeLeveledLog();
   });
 
   it("returns the initial transport when not dirty", () => {
@@ -65,7 +71,7 @@ describe("TelegramPollingTransportState", () => {
     await flushMicrotasks();
     expect(initial.close).toHaveBeenCalledTimes(1);
     expect(rebuilt.close).not.toHaveBeenCalled();
-    expect(anyLogMatches(log, "closing stale transport")).toBe(true);
+    expect(anyLogMatches(log.debug, "closing stale transport")).toBe(true);
   });
 
   it("does not close when dirty rebuild keeps the same transport instance", async () => {
@@ -122,7 +128,7 @@ describe("TelegramPollingTransportState", () => {
     state.acquireForNextCycle();
 
     await expect(state.dispose()).resolves.toBeUndefined();
-    expect(anyLogMatches(log, "failed to close transport during dispose")).toBe(true);
+    expect(anyLogMatches(log.warn, "failed to close transport during dispose")).toBe(true);
   });
 
   it("acquireForNextCycle() returns undefined after dispose()", async () => {
@@ -154,7 +160,7 @@ describe("TelegramPollingTransportState", () => {
     expect(acquired).toBe(initial);
     // Next cycle without markDirty should not trigger another rebuild log.
     state.acquireForNextCycle();
-    const rebuildLogs = log.mock.calls.filter((call) => {
+    const rebuildLogs = log.debug.mock.calls.filter((call) => {
       const line = call[0];
       return typeof line === "string" && line.includes("rebuilding transport");
     });

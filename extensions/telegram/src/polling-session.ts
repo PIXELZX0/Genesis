@@ -10,6 +10,7 @@ import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import { createTelegramBot } from "./bot.js";
 import { type TelegramTransport } from "./fetch.js";
+import type { TelegramPollingLogger } from "./monitor.types.js";
 import { isRecoverableTelegramNetworkError } from "./network-errors.js";
 import { TelegramPollingLivenessTracker } from "./polling-liveness.js";
 import { createTelegramPollingStatusPublisher } from "./polling-status.js";
@@ -72,7 +73,7 @@ type TelegramPollingSessionOpts = {
   runnerOptions: RunOptions<unknown>;
   getLastUpdateId: () => number | null;
   persistUpdateId: (updateId: number) => Promise<void>;
-  log: (line: string) => void;
+  log: TelegramPollingLogger;
   /** Pre-resolved Telegram transport to reuse across bot instances */
   telegramTransport?: TelegramTransport;
   /** Rebuild Telegram transport after stall/network recovery when marked dirty. */
@@ -153,7 +154,7 @@ export class TelegramPollingSession {
     this.#restartAttempts += 1;
     const delayMs = computeBackoff(TELEGRAM_POLL_RESTART_POLICY, this.#restartAttempts);
     const delay = formatDurationPrecise(delayMs);
-    this.opts.log(buildLine(delay));
+    this.opts.log.warn(buildLine(delay));
     try {
       await sleepWithAbort(delayMs, this.opts.abortSignal);
     } catch (sleepErr) {
@@ -244,7 +245,14 @@ export class TelegramPollingSession {
     await this.#confirmPersistedOffset(bot);
 
     const liveness = new TelegramPollingLivenessTracker({
-      onPollSuccess: (finishedAt) => this.#status.notePollSuccess(finishedAt),
+      onPollSuccess: (finishedAt) => {
+        // A completed getUpdates proves the connection recovered, so clear the
+        // restart backoff counter. Without this reset the counter only ever
+        // grows across the session lifetime and a single stall hours into a
+        // healthy run inherits the 30s max backoff (see polling restart policy).
+        this.#restartAttempts = 0;
+        this.#status.notePollSuccess(finishedAt);
+      },
     });
     bot.api.config.use(async (prev, method, payload, signal) => {
       if (method !== "getUpdates") {
@@ -322,7 +330,7 @@ export class TelegramPollingSession {
       if (stall) {
         this.#transportState.markDirty();
         stalledRestart = true;
-        this.opts.log(`[telegram] ${stall.message}`);
+        this.opts.log.warn(`[telegram] ${stall.message}`);
         void stopRunner();
         void stopBot();
         if (!forceCycleTimer) {
@@ -330,7 +338,7 @@ export class TelegramPollingSession {
             if (this.opts.abortSignal?.aborted) {
               return;
             }
-            this.opts.log(
+            this.opts.log.warn(
               `[telegram] Polling runner stop timed out after ${formatDurationPrecise(POLL_STOP_GRACE_MS)}; forcing restart cycle.`,
             );
             forceCycleResolve?.();
@@ -351,7 +359,7 @@ export class TelegramPollingSession {
           ? "unhandled network error"
           : "runner stopped (maxRetryTime exceeded or graceful stop)";
       this.#forceRestarted = false;
-      this.opts.log(
+      this.opts.log.debug(
         `[telegram][diag] polling cycle finished reason=${reason} ${liveness.formatDiagnosticFields("error")}`,
       );
       const shouldRestart = await this.#waitBeforeRestart(
@@ -381,7 +389,7 @@ export class TelegramPollingSession {
       }
       const reason = isConflict ? "getUpdates conflict" : "network error";
       const errMsg = formatErrorMessage(err);
-      this.opts.log(
+      this.opts.log.debug(
         `[telegram][diag] polling cycle error reason=${reason} ${liveness.formatDiagnosticFields("lastGetUpdatesError")} err=${errMsg}`,
       );
       const shouldRestart = await this.#waitBeforeRestart(

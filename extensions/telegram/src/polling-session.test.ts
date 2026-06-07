@@ -1,5 +1,17 @@
 import type { ChannelAccountSnapshot } from "genesis/plugin-sdk/channel-contract";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import type { TelegramPollingLogger } from "./monitor.types.js";
+
+type LogFn = (line: string) => void;
+type LeveledLogSpy = TelegramPollingLogger & {
+  debug: ReturnType<typeof vi.fn<LogFn>>;
+  warn: ReturnType<typeof vi.fn<LogFn>>;
+  error: ReturnType<typeof vi.fn<LogFn>>;
+};
+
+function makeLeveledLog(): LeveledLogSpy {
+  return { debug: vi.fn<LogFn>(), warn: vi.fn<LogFn>(), error: vi.fn<LogFn>() };
+}
 
 const runMock = vi.hoisted(() => vi.fn());
 const createTelegramBotMock = vi.hoisted(() => vi.fn());
@@ -138,7 +150,7 @@ function createPollingSessionWithTransportRestart(params: {
 
 function createPollingSession(params: {
   abortSignal: AbortSignal;
-  log?: (message: string) => void;
+  log?: TelegramPollingLogger;
   telegramTransport?: ReturnType<typeof makeTelegramTransport>;
   createTelegramTransport?: () => ReturnType<typeof makeTelegramTransport>;
   stallThresholdMs?: number;
@@ -154,7 +166,7 @@ function createPollingSession(params: {
     runnerOptions: {},
     getLastUpdateId: () => null,
     persistUpdateId: async () => undefined,
-    log: params.log ?? (() => undefined),
+    log: params.log ?? makeLeveledLog(),
     telegramTransport: params.telegramTransport,
     stallThresholdMs: params.stallThresholdMs,
     setStatus: params.setStatus,
@@ -269,7 +281,7 @@ describe("TelegramPollingSession", () => {
       runnerOptions: {},
       getLastUpdateId: () => null,
       persistUpdateId: async () => undefined,
-      log: () => undefined,
+      log: makeLeveledLog(),
       telegramTransport: undefined,
     });
 
@@ -304,7 +316,7 @@ describe("TelegramPollingSession", () => {
       runnerOptions: {},
       getLastUpdateId: () => 41,
       persistUpdateId: async () => undefined,
-      log: () => undefined,
+      log: makeLeveledLog(),
       telegramTransport: undefined,
     });
 
@@ -364,7 +376,7 @@ describe("TelegramPollingSession", () => {
 
     const watchdogHarness = installPollingStallWatchdogHarness();
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = new TelegramPollingSession({
       token: "tok",
       config: {},
@@ -388,8 +400,8 @@ describe("TelegramPollingSession", () => {
       expect(runMock).toHaveBeenCalledTimes(2);
       expect(firstRunnerStop).toHaveBeenCalledTimes(1);
       expect(botStop).toHaveBeenCalled();
-      expect(log).toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
-      expect(log).toHaveBeenCalledWith(expect.stringContaining("polling stall detected"));
+      expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+      expect(log.debug).toHaveBeenCalledWith(expect.stringContaining("polling stall detected"));
     } finally {
       watchdogHarness.restore();
     }
@@ -403,7 +415,7 @@ describe("TelegramPollingSession", () => {
     const resolveFirstTask = mockLongRunningPollingCycle(runnerStop);
     const watchdogHarness = installPollingStallWatchdogHarness([0, 0], 150_001);
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -417,7 +429,7 @@ describe("TelegramPollingSession", () => {
 
       expect(runnerStop).not.toHaveBeenCalled();
       expect(botStop).not.toHaveBeenCalled();
-      expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+      expect(log.warn).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
 
       abort.abort();
       resolveFirstTask();
@@ -484,7 +496,7 @@ describe("TelegramPollingSession", () => {
         runnerOptions: {},
         getLastUpdateId: () => null,
         persistUpdateId: async () => undefined,
-        log: () => undefined,
+        log: makeLeveledLog(),
         telegramTransport: transport1,
         createTelegramTransport,
       });
@@ -532,7 +544,7 @@ describe("TelegramPollingSession", () => {
 
     const watchdogHarness = installPollingStallWatchdogHarness([0, 0, 1, 30_000], 119_999);
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -556,7 +568,7 @@ describe("TelegramPollingSession", () => {
 
       expect(runnerStop).not.toHaveBeenCalled();
       expect(botStop).not.toHaveBeenCalled();
-      expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+      expect(log.warn).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
 
       abort.abort();
       resolveFirstTask();
@@ -705,7 +717,7 @@ describe("TelegramPollingSession", () => {
     // All subsequent Date.now calls return the same value, giving apiIdle = 0.
     const watchdogHarness = installPollingStallWatchdogHarness();
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -729,7 +741,7 @@ describe("TelegramPollingSession", () => {
       // The watchdog should NOT have triggered a restart
       expect(runnerStop).not.toHaveBeenCalled();
       expect(botStop).not.toHaveBeenCalled();
-      expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+      expect(log.warn).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
 
       // Clean up: abort to end the session
       abort.abort();
@@ -749,7 +761,7 @@ describe("TelegramPollingSession", () => {
 
     const watchdogHarness = installPollingStallWatchdogHarness([0, 0, 60_000]);
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -781,7 +793,9 @@ describe("TelegramPollingSession", () => {
         // The watchdog should NOT have triggered a restart
         expect(runnerStop).not.toHaveBeenCalled();
         expect(botStop).not.toHaveBeenCalled();
-        expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+        expect(log.warn).not.toHaveBeenCalledWith(
+          expect.stringContaining("Polling stall detected"),
+        );
 
         // Resolve the in-flight call to clean up
         resolveSendMessage?.({ ok: true });
@@ -805,7 +819,7 @@ describe("TelegramPollingSession", () => {
 
     const watchdogHarness = installPollingStallWatchdogHarness([0, 0, 1]);
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -833,7 +847,7 @@ describe("TelegramPollingSession", () => {
 
         expect(runnerStop).toHaveBeenCalledTimes(1);
         expect(botStop).toHaveBeenCalledTimes(1);
-        expect(log).toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+        expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
 
         resolveSendMessage?.({ ok: true });
         await sendPromise;
@@ -856,7 +870,7 @@ describe("TelegramPollingSession", () => {
 
     const watchdogHarness = installPollingStallWatchdogHarness([0, 0, 1, 120_000]);
 
-    const log = vi.fn();
+    const log = makeLeveledLog();
     const session = createPollingSession({
       abortSignal: abort.signal,
       log,
@@ -898,7 +912,9 @@ describe("TelegramPollingSession", () => {
 
         expect(runnerStop).not.toHaveBeenCalled();
         expect(botStop).not.toHaveBeenCalled();
-        expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Polling stall detected"));
+        expect(log.warn).not.toHaveBeenCalledWith(
+          expect.stringContaining("Polling stall detected"),
+        );
 
         resolveFirstSend?.({ ok: true });
         resolveSecondSend?.({ ok: true });

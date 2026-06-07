@@ -12,7 +12,7 @@ import { resolveTelegramAccount } from "./accounts.js";
 import { resolveTelegramAllowedUpdates } from "./allowed-updates.js";
 import { isTelegramExecApprovalHandlerConfigured } from "./exec-approvals.js";
 import { resolveTelegramTransport } from "./fetch.js";
-import type { MonitorTelegramOpts } from "./monitor.types.js";
+import type { MonitorTelegramOpts, TelegramPollingLogger } from "./monitor.types.js";
 import {
   isRecoverableTelegramNetworkError,
   isTelegramPollingNetworkError,
@@ -85,14 +85,24 @@ async function loadTelegramMonitorWebhookRuntime() {
 }
 
 export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
-  const log = opts.runtime?.error ?? console.error;
+  // Routine polling self-healing (stall restarts, transport rebuilds) is not an
+  // error. RuntimeEnv only exposes log/error, so debug+warn route to runtime.log
+  // (info) and error stays on runtime.error; the channel runtime keeps the
+  // gateway/channels/telegram subsystem label and routing intact.
+  const runtimeLog = opts.runtime?.log ?? console.log;
+  const runtimeError = opts.runtime?.error ?? console.error;
+  const log: TelegramPollingLogger = {
+    debug: (line) => runtimeLog(line),
+    warn: (line) => runtimeLog(line),
+    error: (line) => runtimeError(line),
+  };
   let pollingSession: TelegramPollingSessionInstance | undefined;
 
   const unregisterHandler = registerUnhandledRejectionHandler((err) => {
     const isNetworkError = isRecoverableTelegramNetworkError(err, { context: "polling" });
     const isTelegramPollingError = isTelegramPollingNetworkError(err);
     if (isGrammyHttpError(err) && isNetworkError && isTelegramPollingError) {
-      log(`[telegram] Suppressed network error: ${formatErrorMessage(err)}`);
+      log.debug(`[telegram] Suppressed network error: ${formatErrorMessage(err)}`);
       return true;
     }
 
@@ -102,8 +112,8 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
       pollingSession?.markTransportDirty();
       pollingSession?.abortActiveFetch();
       void activeRunner.stop().catch(() => {});
-      log("[telegram][diag] marking transport dirty after polling network failure");
-      log(
+      log.debug("[telegram][diag] marking transport dirty after polling network failure");
+      log.warn(
         `[telegram] Restarting polling after unhandled network error: ${formatErrorMessage(err)}`,
       );
       return true;
@@ -178,7 +188,7 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     });
     let lastUpdateId = normalizePersistedUpdateId(persistedOffsetRaw);
     if (persistedOffsetRaw !== null && lastUpdateId === null) {
-      log(
+      log.warn(
         `[telegram] Ignoring invalid persisted update offset (${String(persistedOffsetRaw)}); starting without offset confirmation.`,
       );
     }
@@ -186,7 +196,7 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     const persistUpdateId = async (updateId: number) => {
       const normalizedUpdateId = normalizePersistedUpdateId(updateId);
       if (normalizedUpdateId === null) {
-        log(`[telegram] Ignoring invalid update_id value: ${String(updateId)}`);
+        log.warn(`[telegram] Ignoring invalid update_id value: ${String(updateId)}`);
         return;
       }
       if (lastUpdateId !== null && normalizedUpdateId <= lastUpdateId) {
@@ -200,9 +210,7 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
           botToken: token,
         });
       } catch (err) {
-        (opts.runtime?.error ?? console.error)(
-          `telegram: failed to persist update offset: ${String(err)}`,
-        );
+        log.error(`telegram: failed to persist update offset: ${String(err)}`);
       }
     };
 

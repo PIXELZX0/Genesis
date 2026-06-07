@@ -1,7 +1,8 @@
 import type { TelegramTransport } from "./fetch.js";
+import type { TelegramPollingLogger } from "./monitor.types.js";
 
 type TelegramPollingTransportStateOpts = {
-  log: (line: string) => void;
+  log: TelegramPollingLogger;
   initialTransport?: TelegramTransport;
   createTelegramTransport?: () => TelegramTransport;
 };
@@ -34,11 +35,11 @@ export class TelegramPollingTransportState {
     // forever — which over long-running sessions accumulates into the
     // hundreds of ESTABLISHED connections that choke per-IP upstream quotas.
     if (this.#transportDirty && previous && nextTransport !== previous) {
-      this.opts.log("[telegram][diag] closing stale transport before rebuild");
+      this.opts.log.debug("[telegram][diag] closing stale transport before rebuild");
       this.#closeTransportAsync(previous, "stale-transport rebuild");
     }
     if (this.#transportDirty && nextTransport) {
-      this.opts.log("[telegram][diag] rebuilding transport for next polling cycle");
+      this.opts.log.debug("[telegram][diag] rebuilding transport for next polling cycle");
     }
     this.#telegramTransport = nextTransport;
     this.#transportDirty = false;
@@ -58,7 +59,7 @@ export class TelegramPollingTransportState {
     try {
       await transport.close();
     } catch (err) {
-      this.opts.log(
+      this.opts.log.warn(
         `[telegram][diag] failed to close transport during dispose: ${formatCloseError(err)}`,
       );
     }
@@ -68,7 +69,7 @@ export class TelegramPollingTransportState {
   // blocked by a slow destroy. The error path is logged but never rethrown.
   #closeTransportAsync(transport: TelegramTransport, context: string) {
     void transport.close().catch((err) => {
-      this.opts.log(
+      this.opts.log.warn(
         `[telegram][diag] failed to close transport (${context}): ${formatCloseError(err)}`,
       );
     });
