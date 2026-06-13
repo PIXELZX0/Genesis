@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.13
+
+### Changes
+
+- Agents: the runtime model catalog now refreshes automatically when the `@earendil-works/pi-ai` package is updated on disk, so `genesis models list`, gateway `models.list`, and model pickers stay current without a manual restart.
+
 ## 2026.6.7
 
 ### Changes
