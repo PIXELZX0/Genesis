@@ -10,6 +10,7 @@ import { createConfigRuntimeEnv } from "../config/env-vars.js";
 import { resolveGenesisAgentDir } from "./agent-paths.js";
 import { MODELS_JSON_STATE } from "./models-config-state.js";
 import { planGenesisModelsJson } from "./models-config.plan.js";
+import { readPiAiPackageMtimeMs } from "./pi-ai-package.js";
 
 export { resetModelsJsonReadyCacheForTest } from "./models-config-state.js";
 
@@ -46,6 +47,7 @@ async function buildModelsJsonFingerprint(params: {
     path.join(params.agentDir, "auth-profiles.json"),
   );
   const modelsFileMtimeMs = await readFileMtimeMs(path.join(params.agentDir, "models.json"));
+  const piAiPackageMtimeMs = await readPiAiPackageMtimeMs();
   const envShape = createConfigRuntimeEnv(params.config, {});
   return stableStringify({
     config: params.config,
@@ -53,6 +55,7 @@ async function buildModelsJsonFingerprint(params: {
     envShape,
     authProfilesMtimeMs,
     modelsFileMtimeMs,
+    piAiPackageMtimeMs,
   });
 }
 

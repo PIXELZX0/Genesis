@@ -10,6 +10,7 @@ import {
 import { resolveGenesisAgentDir } from "./agent-paths.js";
 import type { ModelCatalogEntry, ModelInputType } from "./model-catalog.types.js";
 import { ensureGenesisModelsJson } from "./models-config.js";
+import { readPiAiPackageMtimeMs } from "./pi-ai-package.js";
 import { normalizeProviderId } from "./provider-id.js";
 
 const log = createSubsystemLogger("model-catalog");
@@ -37,6 +38,7 @@ type PiRegistryClassLike = {
 };
 
 let modelCatalogPromise: Promise<ModelCatalogEntry[]> | null = null;
+let cachedPiAiPackageMtimeMs: number | null = null;
 let hasLoggedModelCatalogError = false;
 const defaultImportPiSdk = () => import("./pi-model-discovery-runtime.js");
 let importPiSdk = defaultImportPiSdk;
@@ -53,6 +55,7 @@ function loadModelSuppression() {
 
 export function resetModelCatalogCache() {
   modelCatalogPromise = null;
+  cachedPiAiPackageMtimeMs = null;
   hasLoggedModelCatalogError = false;
   importPiSdk = defaultImportPiSdk;
 }
@@ -85,6 +88,13 @@ export async function loadModelCatalog(params?: {
   installBundledRuntimeDeps?: boolean;
 }): Promise<ModelCatalogEntry[]> {
   const readOnly = params?.readOnly === true;
+  const currentPiAiPackageMtimeMs = await readPiAiPackageMtimeMs();
+  if (currentPiAiPackageMtimeMs !== cachedPiAiPackageMtimeMs) {
+    cachedPiAiPackageMtimeMs = currentPiAiPackageMtimeMs;
+    if (!readOnly) {
+      modelCatalogPromise = null;
+    }
+  }
   if (!readOnly && params?.useCache === false) {
     modelCatalogPromise = null;
   }

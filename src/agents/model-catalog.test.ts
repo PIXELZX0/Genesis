@@ -1,8 +1,15 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../config/config.js";
 import { resetLogger, setLoggerOverride } from "../logging/logger.js";
+import { readPiAiPackageMtimeMs } from "./pi-ai-package.js";
 
 type PiSdkModule = typeof import("./pi-model-discovery.js");
+
+vi.mock("./pi-ai-package.js", () => ({
+  readPiAiPackageMtimeMs: vi.fn().mockResolvedValue(1000),
+}));
+
+const readPiAiPackageMtimeMsMock = vi.mocked(readPiAiPackageMtimeMs);
 
 let __setModelCatalogImportForTest: typeof import("./model-catalog.js").__setModelCatalogImportForTest;
 let findModelInCatalog: typeof import("./model-catalog.js").findModelInCatalog;
@@ -84,6 +91,7 @@ describe("loadModelCatalog", () => {
   beforeEach(() => {
     resetModelCatalogCacheForTest();
     ensureGenesisModelsJsonMock.mockClear();
+    readPiAiPackageMtimeMsMock.mockResolvedValue(1000);
   });
 
   afterEach(() => {
@@ -405,6 +413,29 @@ describe("loadModelCatalog", () => {
     );
     expect(matches).toHaveLength(1);
     expect(matches[0]?.name).toBe("Kilo Auto");
+  });
+
+  it("reuses the cached catalog when the pi-ai package mtime has not changed", async () => {
+    mockSingleOpenAiCatalogModel();
+
+    await loadModelCatalog({ config: {} as GenesisConfig });
+    await loadModelCatalog({ config: {} as GenesisConfig });
+
+    expect(ensureGenesisModelsJsonMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("invalidates the cached catalog when the pi-ai package mtime changes", async () => {
+    mockSingleOpenAiCatalogModel();
+
+    await loadModelCatalog({ config: {} as GenesisConfig });
+    expect(ensureGenesisModelsJsonMock).toHaveBeenCalledTimes(1);
+
+    readPiAiPackageMtimeMsMock.mockResolvedValue(2000);
+    await loadModelCatalog({ config: {} as GenesisConfig });
+    expect(ensureGenesisModelsJsonMock).toHaveBeenCalledTimes(2);
+
+    await loadModelCatalog({ config: {} as GenesisConfig });
+    expect(ensureGenesisModelsJsonMock).toHaveBeenCalledTimes(2);
   });
 
   it("matches models across canonical provider aliases", () => {
