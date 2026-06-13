@@ -534,9 +534,6 @@ function isRoutableChangedTarget(changedPath) {
   if (changedPath.endsWith(".live.test.ts")) {
     return false;
   }
-  if (!/\.(?:test|spec)\.[cm]?[jt]sx?$/u.test(changedPath)) {
-    return false;
-  }
   return /^(?:src|test|extensions|ui|packages)(?:\/|$)/u.test(changedPath);
 }
 
