@@ -111,6 +111,7 @@ export async function requestXaiXSearch(params: {
   inlineCitations: boolean;
   maxTurns?: number;
   options: XaiXSearchOptions;
+  config?: Record<string, unknown>;
 }): Promise<XaiXSearchResult> {
   return await postTrustedWebToolsJson(
     {
@@ -124,6 +125,7 @@ export async function requestXaiXSearch(params: {
         maxTurns: params.maxTurns,
       }),
       errorLabel: "xAI",
+      config: params.config as Parameters<typeof postTrustedWebToolsJson>[0]["config"],
     },
     async (response) => {
       const data = (await response.json()) as XaiWebSearchResponse;

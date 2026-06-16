@@ -118,6 +118,7 @@ async function runMiniMaxSearch(params: {
   apiKey: string;
   endpoint: string;
   timeoutSeconds: number;
+  config?: Record<string, unknown>;
 }): Promise<{
   results: Array<Record<string, unknown>>;
   relatedSearches?: string[];
@@ -126,6 +127,7 @@ async function runMiniMaxSearch(params: {
     {
       url: params.endpoint,
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config as Parameters<typeof withTrustedWebSearchEndpoint>[0]["config"],
       init: {
         method: "POST",
         headers: {
@@ -227,6 +229,7 @@ export async function executeMiniMaxWebSearchProviderTool(
     apiKey,
     endpoint,
     timeoutSeconds,
+    config,
   });
 
   const payload: Record<string, unknown> = {

@@ -35,6 +35,7 @@ export {
   withTrustedWebSearchEndpoint,
   writeCachedSearchPayload,
 } from "../agents/tools/web-search-provider-common.js";
+export { resolveWebTorProxyUrl, type WebTorConfig } from "../agents/tools/web-tor-shared.js";
 export {
   getScopedCredentialValue,
   getTopLevelCredentialValue,

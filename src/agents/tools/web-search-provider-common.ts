@@ -13,6 +13,7 @@ import {
   resolveTimeoutSeconds,
   writeCache,
 } from "./web-shared.js";
+import { resolveWebTorProxyUrl } from "./web-tor-shared.js";
 
 type WebGuardedFetchModule = Pick<
   typeof import("./web-guarded-fetch.js"),
@@ -79,15 +80,18 @@ export async function withTrustedWebSearchEndpoint<T>(
     url: string;
     timeoutSeconds: number;
     init: RequestInit;
+    config?: GenesisConfig;
   },
   run: (response: Response) => Promise<T>,
 ): Promise<T> {
   const withTrustedWebToolsEndpoint = await loadTrustedWebToolsEndpoint();
+  const torProxyUrl = resolveWebTorProxyUrl(params.config);
   return withTrustedWebToolsEndpoint(
     {
       url: params.url,
       init: params.init,
       timeoutSeconds: params.timeoutSeconds,
+      ...(torProxyUrl ? { torProxyUrl } : {}),
     },
     async ({ response }) => run(response),
   );
@@ -102,14 +106,17 @@ export async function postTrustedWebToolsJson<T>(
     errorLabel: string;
     maxErrorBytes?: number;
     extraHeaders?: Record<string, string>;
+    config?: GenesisConfig;
   },
   parseResponse: (response: Response) => Promise<T>,
 ): Promise<T> {
   const withTrustedWebToolsEndpoint = await loadTrustedWebToolsEndpoint();
+  const torProxyUrl = resolveWebTorProxyUrl(params.config);
   return withTrustedWebToolsEndpoint(
     {
       url: params.url,
       timeoutSeconds: params.timeoutSeconds,
+      ...(torProxyUrl ? { torProxyUrl } : {}),
       init: {
         method: "POST",
         headers: {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { blockedIpv6MulticastLiterals } from "../../shared/net/ip-test-fixtures.js";
 import {
   isBlockedHostnameOrIp,
+  isOnionHostname,
   isPrivateIpAddress,
   isSameSsrFPolicy,
   ssrfPolicyFromHttpBaseUrlAllowedHostname,
@@ -195,4 +196,20 @@ describe("isSameSsrFPolicy", () => {
       ),
     ).toBe(false);
   });
+});
+
+describe("isOnionHostname", () => {
+  it.each(["abc123.onion", "sub.example.onion", "UPPERCASE.ONION", "mixed.OnIoN"])(
+    "identifies %s as an onion hostname",
+    (hostname) => {
+      expect(isOnionHostname(hostname)).toBe(true);
+    },
+  );
+
+  it.each(["example.com", "onion", "example.onion.com", ""])(
+    "does not identify %s as an onion hostname",
+    (hostname) => {
+      expect(isOnionHostname(hostname)).toBe(false);
+    },
+  );
 });

@@ -95,6 +95,16 @@ const BLOCKED_HOSTNAMES = new Set([
   "metadata.google.internal",
 ]);
 
+const ONION_SUFFIX = ".onion";
+
+export function isOnionHostname(hostname: string): boolean {
+  const normalized = normalizeHostname(hostname);
+  if (!normalized) {
+    return false;
+  }
+  return normalized.endsWith(ONION_SUFFIX);
+}
+
 function normalizeHostnameSet(values?: string[]): Set<string> {
   if (!values || values.length === 0) {
     return new Set<string>();

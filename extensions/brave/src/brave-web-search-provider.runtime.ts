@@ -1,3 +1,4 @@
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import type { SearchConfigRecord } from "genesis/plugin-sdk/provider-web-search";
 import {
   buildSearchCacheKey,
@@ -65,6 +66,7 @@ async function runBraveLlmContextSearch(params: {
   country?: string;
   search_lang?: string;
   freshness?: string;
+  config?: GenesisConfig;
 }): Promise<{
   results: Array<{
     url: string;
@@ -90,6 +92,7 @@ async function runBraveLlmContextSearch(params: {
     {
       url: url.toString(),
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config,
       init: {
         method: "GET",
         headers: {
@@ -123,6 +126,7 @@ async function runBraveWebSearch(params: {
   freshness?: string;
   dateAfter?: string;
   dateBefore?: string;
+  config?: GenesisConfig;
 }): Promise<Array<Record<string, unknown>>> {
   const url = new URL(BRAVE_SEARCH_ENDPOINT);
   url.searchParams.set("q", params.query);
@@ -153,6 +157,7 @@ async function runBraveWebSearch(params: {
     {
       url: url.toString(),
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config,
       init: {
         method: "GET",
         headers: {
@@ -190,6 +195,7 @@ async function runBraveWebSearch(params: {
 export async function executeBraveSearch(
   args: Record<string, unknown>,
   searchConfig?: SearchConfigRecord,
+  config?: GenesisConfig,
 ): Promise<Record<string, unknown>> {
   const apiKey = resolveBraveApiKey(searchConfig);
   if (!apiKey) {
@@ -312,6 +318,7 @@ export async function executeBraveSearch(
       country: country ?? undefined,
       search_lang: normalizedLanguage.search_lang,
       freshness,
+      config,
     });
     const payload = {
       query,
@@ -348,6 +355,7 @@ export async function executeBraveSearch(
     freshness,
     dateAfter,
     dateBefore,
+    config,
   });
   const payload = {
     query,

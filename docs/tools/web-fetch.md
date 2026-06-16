@@ -143,6 +143,40 @@ Current runtime behavior:
 - Redirects are checked and limited by `maxRedirects`
 - `web_fetch` is best-effort -- some sites need the [Web Browser](/tools/browser)
 
+## Tor and .onion services
+
+`web_fetch` can route `.onion` URLs through a Tor SOCKS5 proxy. Clearnet URLs
+always stay on the normal direct fetch path, even when Tor is enabled.
+
+```json5
+{
+  tools: {
+    web: {
+      tor: {
+        enabled: true,
+        mode: "external",
+        socksHost: "127.0.0.1",
+        socksPort: 9050,
+      },
+    },
+  },
+}
+```
+
+| Field       | Default       | Description                                       |
+| ----------- | ------------- | ------------------------------------------------- |
+| `enabled`   | `false`       | Enable Tor routing for `.onion` URLs.             |
+| `mode`      | `"external"`  | Proxy mode. Only `"external"` is supported today. |
+| `socksHost` | `"127.0.0.1"` | SOCKS5 proxy host.                                |
+| `socksPort` | `9050`        | SOCKS5 proxy port.                                |
+
+When `tools.web.tor.enabled` is `true` and a `web_fetch` URL's hostname ends
+with `.onion`, the request is sent through the configured SOCKS5 proxy. DNS
+resolution is skipped and left to the Tor proxy. The hostname allowlist from
+`tools.web.fetch.ssrfPolicy.hostnameAllowlist` still applies.
+
+`.onion` URLs are blocked when Tor is not enabled.
+
 ## Tool profiles
 
 If you use tool profiles or allowlists, add `web_fetch` or `group:web`:

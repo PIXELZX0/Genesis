@@ -74,6 +74,7 @@ export async function requestXaiWebSearch(params: {
   apiKey: string;
   timeoutSeconds: number;
   inlineCitations: boolean;
+  config?: Record<string, unknown>;
 }): Promise<XaiWebSearchResult> {
   return await postTrustedWebToolsJson(
     {
@@ -86,6 +87,7 @@ export async function requestXaiWebSearch(params: {
         tools: [{ type: "web_search" }],
       }),
       errorLabel: "xAI",
+      config: params.config as Parameters<typeof postTrustedWebToolsJson>[0]["config"],
     },
     async (response) => {
       const data = (await response.json()) as XaiWebSearchResponse;

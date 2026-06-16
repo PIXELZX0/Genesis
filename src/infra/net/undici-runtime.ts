@@ -7,6 +7,7 @@ export type UndiciRuntimeDeps = {
   EnvHttpProxyAgent: typeof import("undici").EnvHttpProxyAgent;
   FormData?: typeof import("undici").FormData;
   ProxyAgent: typeof import("undici").ProxyAgent;
+  Socks5ProxyAgent?: typeof import("undici").Socks5ProxyAgent;
   fetch: typeof import("undici").fetch;
 };
 
@@ -15,6 +16,9 @@ type UndiciEnvHttpProxyAgentOptions = ConstructorParameters<
   UndiciRuntimeDeps["EnvHttpProxyAgent"]
 >[0];
 type UndiciProxyAgentOptions = ConstructorParameters<UndiciRuntimeDeps["ProxyAgent"]>[0];
+type UndiciSocks5ProxyAgentOptions = NonNullable<
+  ConstructorParameters<typeof import("undici").Socks5ProxyAgent>[1]
+>;
 
 // Guarded fetch dispatchers intentionally stay on HTTP/1.1. Undici 8 enables
 // HTTP/2 ALPN by default, but our guarded paths rely on dispatcher overrides
@@ -47,6 +51,7 @@ export function loadUndiciRuntimeDeps(): UndiciRuntimeDeps {
     EnvHttpProxyAgent: undici.EnvHttpProxyAgent,
     FormData: undici.FormData,
     ProxyAgent: undici.ProxyAgent,
+    Socks5ProxyAgent: undici.Socks5ProxyAgent,
     fetch: undici.fetch,
   };
 }
@@ -95,5 +100,27 @@ export function createHttp1ProxyAgent(
       : { ...options };
   return new ProxyAgent(
     withHttp1OnlyDispatcherOptions(normalized as object, timeoutMs) as UndiciProxyAgentOptions,
+  );
+}
+
+export function createSocks5ProxyAgent(
+  proxyUrl: string,
+  timeoutMs?: number,
+): import("undici").Socks5ProxyAgent {
+  const normalizedUrl = proxyUrl.trim();
+  if (
+    !normalizedUrl.startsWith("socks5://") &&
+    !normalizedUrl.startsWith("socks5h://") &&
+    !normalizedUrl.startsWith("socks://")
+  ) {
+    throw new Error("Socks5ProxyAgent proxyUrl must use socks5://, socks5h://, or socks://");
+  }
+  const runtimeDeps = loadUndiciRuntimeDeps();
+  if (!runtimeDeps.Socks5ProxyAgent) {
+    throw new Error("Socks5ProxyAgent is not available in the current undici runtime");
+  }
+  return new runtimeDeps.Socks5ProxyAgent(
+    normalizedUrl,
+    withHttp1OnlyDispatcherOptions({}, timeoutMs) as UndiciSocks5ProxyAgentOptions,
   );
 }

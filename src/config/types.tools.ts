@@ -269,7 +269,7 @@ export type ExecToolConfig = {
   approvalRunningNoticeMs?: number;
   /** How long to keep finished sessions in memory (ms). */
   cleanupMs?: number;
-  /** Emit a system event and heartbeat when a backgrounded exec exits. */
+  /** Emit a system event when a backgrounded exec exits. */
   notifyOnExit?: boolean;
   /**
    * Also emit success exit notifications when a backgrounded exec has no output.
@@ -560,9 +560,22 @@ export type ToolsConfig = {
       readability?: boolean;
       /** SSRF policy configuration for web_fetch. */
       ssrfPolicy?: {
+        /** Optional hostname allowlist for web_fetch targets. */
+        hostnameAllowlist?: string[];
         /** Allow RFC 2544 benchmark range IPs (198.18.0.0/15) for fake-IP proxy compatibility (e.g., Clash TUN mode, Surge). */
         allowRfc2544BenchmarkRange?: boolean;
       };
+    };
+    /** Tor SOCKS5 proxy routing for .onion services used by web tools. */
+    tor?: {
+      /** Enable Tor routing for .onion URLs (default: false). */
+      enabled?: boolean;
+      /** Tor proxy mode (default: "external"). */
+      mode?: "external";
+      /** SOCKS5 proxy host (default: "127.0.0.1"). */
+      socksHost?: string;
+      /** SOCKS5 proxy port (default: 9050). */
+      socksPort?: number;
     };
   };
   media?: MediaToolsConfig;

@@ -72,6 +72,7 @@ async function postTavilyJson(params: {
   apiKey: string;
   body: Record<string, unknown>;
   errorLabel: string;
+  config?: GenesisConfig;
 }): Promise<Record<string, unknown>> {
   return postTrustedWebToolsJson(
     {
@@ -81,6 +82,7 @@ async function postTavilyJson(params: {
       body: params.body,
       errorLabel: params.errorLabel,
       extraHeaders: { "X-Client-Source": "genesis" },
+      config: params.config,
     },
     async (response) => (await response.json()) as Record<string, unknown>,
   );
@@ -152,6 +154,7 @@ export async function runTavilySearch(
     apiKey,
     body,
     errorLabel: "Tavily Search",
+    config: params.cfg,
   });
 
   const rawResults = Array.isArray(payload.results) ? payload.results : [];
@@ -243,6 +246,7 @@ export async function runTavilyExtract(
     apiKey,
     body,
     errorLabel: "Tavily Extract",
+    config: params.cfg,
   });
 
   const rawResults = Array.isArray(payload.results) ? payload.results : [];

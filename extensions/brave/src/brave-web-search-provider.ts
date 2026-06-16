@@ -1,3 +1,4 @@
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import type {
   SearchConfigRecord,
   WebSearchProviderPlugin,
@@ -111,6 +112,7 @@ function resolveBraveMode(searchConfig?: Record<string, unknown>): "web" | "llm-
 
 function createBraveToolDefinition(
   searchConfig?: SearchConfigRecord,
+  config?: GenesisConfig,
 ): WebSearchProviderToolDefinition {
   const braveMode = resolveBraveMode(searchConfig);
 
@@ -122,7 +124,7 @@ function createBraveToolDefinition(
     parameters: BraveSearchSchema,
     execute: async (args) => {
       const { executeBraveSearch } = await loadBraveWebSearchRuntime();
-      return await executeBraveSearch(args, searchConfig);
+      return await executeBraveSearch(args, searchConfig, config);
     },
   };
 }
@@ -153,6 +155,7 @@ export function createBraveWebSearchProvider(): WebSearchProviderPlugin {
           resolveProviderWebSearchPluginConfig(ctx.config, "brave"),
           { mirrorApiKeyToTopLevel: true },
         ),
+        ctx.config,
       ),
   };
 }

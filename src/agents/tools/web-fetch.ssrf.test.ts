@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../../infra/net/ssrf.js";
+import { TEST_UNDICI_RUNTIME_DEPS_KEY } from "../../infra/net/undici-runtime.js";
 import { type FetchMock, withFetchPreconnect } from "../../test-utils/fetch-mock.js";
 import { createWebFetchTool } from "./web-fetch.js";
 import { makeFetchHeaders } from "./web-fetch.test-harness.js";
@@ -36,8 +37,9 @@ function setMockFetch(
 
 function createWebFetchToolForTest(params?: {
   firecrawlApiKey?: string;
-  ssrfPolicy?: { allowRfc2544BenchmarkRange?: boolean };
+  ssrfPolicy?: { hostnameAllowlist?: string[]; allowRfc2544BenchmarkRange?: boolean };
   cacheTtlMinutes?: number;
+  tor?: { enabled?: boolean; mode?: "external"; socksHost?: string; socksPort?: number };
 }) {
   return createWebFetchTool({
     config: {
@@ -61,11 +63,45 @@ function createWebFetchToolForTest(params?: {
             ssrfPolicy: params?.ssrfPolicy,
             ...(params?.firecrawlApiKey ? { provider: "firecrawl" } : {}),
           },
+          ...(params?.tor ? { tor: params.tor } : {}),
         },
       },
     },
     lookupFn: lookupMock,
   });
+}
+
+function installMockSocks5ProxyAgent() {
+  const socks5ProxyAgentCtor = vi.fn(function MockSocks5ProxyAgent(
+    this: { proxyUrl: unknown; options: unknown },
+    proxyUrl: unknown,
+    options: unknown,
+  ) {
+    this.proxyUrl = proxyUrl;
+    this.options = options;
+  });
+  (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+    Agent: vi.fn(function MockAgent(this: { options: unknown }, options: unknown) {
+      this.options = options;
+    }),
+    EnvHttpProxyAgent: vi.fn(function MockEnvHttpProxyAgent(
+      this: { options: unknown },
+      options: unknown,
+    ) {
+      this.options = options;
+    }),
+    ProxyAgent: vi.fn(function MockProxyAgent(this: { options: unknown }, options: unknown) {
+      this.options = options;
+    }),
+    Socks5ProxyAgent: socks5ProxyAgentCtor,
+    fetch: vi.fn(async () => textResponse("")),
+  };
+  return socks5ProxyAgentCtor;
+}
+
+function getRequestDispatcher(fetchSpy: ReturnType<typeof setMockFetch>): unknown {
+  const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+  return (init as RequestInit & { dispatcher?: unknown }).dispatcher;
 }
 
 async function expectBlockedUrl(
@@ -89,6 +125,7 @@ describe("web_fetch SSRF protection", () => {
     global.fetch = priorFetch;
     lookupMock.mockClear();
     vi.restoreAllMocks();
+    Reflect.deleteProperty(globalThis as object, TEST_UNDICI_RUNTIME_DEPS_KEY);
   });
 
   it("blocks localhost hostnames before fetch/firecrawl", async () => {
@@ -177,5 +214,114 @@ describe("web_fetch SSRF protection", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const stricterTool = createWebFetchToolForTest({ cacheTtlMinutes: 1 });
     await expectBlockedUrl(stricterTool, url, /private|internal|blocked/i);
+  });
+
+  it("blocks .onion URLs when Tor routing is not enabled", async () => {
+    const fetchSpy = setMockFetch();
+    const tool = createWebFetchToolForTest();
+
+    await expectBlockedUrl(tool, "http://abc123.onion/index.html", /Blocked .onion URL|Tor/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(lookupMock).not.toHaveBeenCalled();
+  });
+
+  it("routes .onion URLs through a SOCKS5 proxy when Tor is enabled", async () => {
+    const socks5ProxyAgentCtor = installMockSocks5ProxyAgent();
+    const fetchSpy = setMockFetch().mockResolvedValue(textResponse("onion response"));
+    const tool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "127.0.0.1", socksPort: 9050 },
+      cacheTtlMinutes: 1,
+    });
+
+    const result = await tool?.execute?.("call", { url: "http://abc123.onion/index.html" });
+    expect(result?.details).toMatchObject({ status: 200 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(getRequestDispatcher(fetchSpy)).toBeDefined();
+    expect(socks5ProxyAgentCtor).toHaveBeenCalledWith(
+      "socks5://127.0.0.1:9050",
+      expect.objectContaining({ allowH2: false }),
+    );
+    expect(lookupMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps clearnet URLs direct when Tor is enabled", async () => {
+    installMockSocks5ProxyAgent();
+    lookupMock.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
+    const fetchSpy = setMockFetch().mockResolvedValue(textResponse("clearnet ok"));
+    const tool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "127.0.0.1", socksPort: 9050 },
+      cacheTtlMinutes: 1,
+    });
+
+    const result = await tool?.execute?.("call", { url: "https://example.com" });
+    expect(result?.details).toMatchObject({ status: 200 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(getRequestDispatcher(fetchSpy)).toBeDefined();
+    expect(lookupMock).toHaveBeenCalledOnce();
+  });
+
+  it("honors custom Tor SOCKS host and port", async () => {
+    const socks5ProxyAgentCtor = installMockSocks5ProxyAgent();
+    setMockFetch().mockResolvedValue(textResponse("onion response"));
+    const tool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "192.168.1.50", socksPort: 9150 },
+      cacheTtlMinutes: 1,
+    });
+
+    await tool?.execute?.("call", { url: "http://custom.onion/page" });
+    expect(socks5ProxyAgentCtor).toHaveBeenCalledWith(
+      "socks5://192.168.1.50:9150",
+      expect.objectContaining({ allowH2: false }),
+    );
+  });
+
+  it("enforces hostname allowlist for .onion URLs through web_fetch config", async () => {
+    installMockSocks5ProxyAgent();
+    const allowedTool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "127.0.0.1", socksPort: 9050 },
+      ssrfPolicy: { hostnameAllowlist: ["allowed.onion"] },
+      cacheTtlMinutes: 1,
+    });
+    setMockFetch().mockResolvedValue(textResponse("onion response"));
+
+    const allowed = await allowedTool?.execute?.("call", { url: "http://allowed.onion/page" });
+    expect(allowed?.details).toMatchObject({ status: 200 });
+
+    const blockedTool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "127.0.0.1", socksPort: 9050 },
+      ssrfPolicy: { hostnameAllowlist: ["allowed.onion"] },
+      cacheTtlMinutes: 1,
+    });
+    await expectBlockedUrl(blockedTool, "http://blocked.onion/page", /allowlist/i);
+  });
+
+  it("brackets IPv6 SOCKS hosts in the proxy URL", async () => {
+    const socks5ProxyAgentCtor = installMockSocks5ProxyAgent();
+    setMockFetch().mockResolvedValue(textResponse("onion response"));
+    const tool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "::1", socksPort: 9050 },
+      cacheTtlMinutes: 1,
+    });
+
+    await tool?.execute?.("call", { url: "http://ipv6.onion/index.html" });
+    expect(socks5ProxyAgentCtor).toHaveBeenCalledWith(
+      "socks5://[::1]:9050",
+      expect.objectContaining({ allowH2: false }),
+    );
+  });
+
+  it("clamps out-of-range SOCKS ports to the valid TCP range", async () => {
+    const socks5ProxyAgentCtor = installMockSocks5ProxyAgent();
+    setMockFetch().mockResolvedValue(textResponse("onion response"));
+    const tool = createWebFetchToolForTest({
+      tor: { enabled: true, socksHost: "127.0.0.1", socksPort: 99999 },
+      cacheTtlMinutes: 1,
+    });
+
+    await tool?.execute?.("call", { url: "http://clamp.onion/index.html" });
+    expect(socks5ProxyAgentCtor).toHaveBeenCalledWith(
+      "socks5://127.0.0.1:65535",
+      expect.objectContaining({ allowH2: false }),
+    );
   });
 });
