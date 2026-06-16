@@ -215,6 +215,32 @@ Provider-specific config (API keys, base URLs, modes) lives under
 `plugins.entries.<plugin>.config.webSearch.*`. See the provider pages for
 examples.
 
+## Tor and .onion services
+
+`web_search` shares the same `tools.web.tor` config as `web_fetch`. When Tor is
+enabled, any provider request whose endpoint hostname ends with `.onion` is
+routed through the configured SOCKS5 proxy. Clearnet provider endpoints stay on
+the normal direct path.
+
+```json5
+{
+  tools: {
+    web: {
+      tor: {
+        enabled: true,
+        mode: "external",
+        socksHost: "127.0.0.1",
+        socksPort: 9050,
+      },
+    },
+  },
+}
+```
+
+This is most useful for self-hosted providers such as [SearXNG](/tools/searxng-search)
+that may expose an `.onion` instance. `.onion` provider endpoints are blocked
+when Tor is not enabled.
+
 `web_fetch` fallback provider selection is separate:
 
 - choose it with `tools.web.fetch.provider`

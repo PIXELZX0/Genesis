@@ -1,3 +1,4 @@
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   mergeScopedSearchConfig,
   resolveProviderWebSearchPluginConfig,
@@ -92,6 +93,7 @@ function hasPerplexityLegacyOverride(searchConfig?: Record<string, unknown>): bo
 function createPerplexityToolDefinition(
   searchConfig?: Record<string, unknown>,
   runtimeTransport?: string,
+  config?: GenesisConfig,
 ): WebSearchProviderToolDefinition {
   const schemaTransport =
     runtimeTransport ??
@@ -105,7 +107,7 @@ function createPerplexityToolDefinition(
     parameters: createPerplexityParameters(schemaTransport),
     execute: async (args) => {
       const { executePerplexitySearch } = await loadPerplexityWebSearchRuntime();
-      return await executePerplexitySearch(args, searchConfig);
+      return await executePerplexitySearch(args, searchConfig, config);
     },
   };
 }
@@ -122,6 +124,7 @@ export function createPerplexityWebSearchProvider(): WebSearchProviderPlugin {
           resolveProviderWebSearchPluginConfig(ctx.config, "perplexity"),
         ),
         ctx.runtimeMetadata?.perplexityTransport,
+        ctx.config,
       ),
   };
 }

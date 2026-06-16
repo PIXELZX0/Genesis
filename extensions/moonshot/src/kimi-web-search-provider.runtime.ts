@@ -169,6 +169,7 @@ async function runKimiSearch(params: {
   baseUrl: string;
   model: string;
   timeoutSeconds: number;
+  config?: GenesisConfig;
 }): Promise<{ content: string; citations: string[] }> {
   const endpoint = `${params.baseUrl.trim().replace(/\/$/, "")}/chat/completions`;
   const messages: Array<Record<string, unknown>> = [{ role: "user", content: params.query }];
@@ -179,6 +180,7 @@ async function runKimiSearch(params: {
       {
         url: endpoint,
         timeoutSeconds: params.timeoutSeconds,
+        config: params.config,
         init: {
           method: "POST",
           headers: {
@@ -303,6 +305,7 @@ export async function executeKimiWebSearchProviderTool(
     baseUrl,
     model,
     timeoutSeconds: resolveSearchTimeoutSeconds(searchConfig),
+    config: ctx.config,
   });
   const payload = {
     query,

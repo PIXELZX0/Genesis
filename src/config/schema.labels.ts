@@ -385,6 +385,11 @@ export const FIELD_LABELS: Record<string, string> = {
   "tools.web.fetch.ssrfPolicy": "Web Fetch SSRF Policy",
   "tools.web.fetch.ssrfPolicy.allowRfc2544BenchmarkRange":
     "Web Fetch Allow RFC 2544 Benchmark Range",
+  "tools.web.tor": "Tor Routing for Web Tools",
+  "tools.web.tor.enabled": "Enable Tor Routing",
+  "tools.web.tor.mode": "Tor Proxy Mode",
+  "tools.web.tor.socksHost": "Tor SOCKS Host",
+  "tools.web.tor.socksPort": "Tor SOCKS Port",
   "gateway.controlUi.basePath": "Control UI Base Path",
   "gateway.controlUi.root": "Control UI Assets Root",
   "gateway.controlUi.embedSandbox": "Control UI Embed Sandbox Mode",
@@ -689,16 +694,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "agents.defaults.embeddedPi": "Embedded Pi",
   "agents.defaults.embeddedPi.projectSettingsPolicy": "Embedded Pi Project Settings Policy",
   "agents.defaults.embeddedPi.executionContract": "Embedded Pi Execution Contract",
-  "agents.defaults.heartbeat.includeSystemPromptSection": "Heartbeat Include System Prompt Section",
-  "agents.list.*.heartbeat.includeSystemPromptSection": "Heartbeat Include System Prompt Section",
   "agents.list[].embeddedPi": "Agent Embedded Pi",
   "agents.list[].embeddedPi.executionContract": "Agent Embedded Pi Execution Contract",
-  "agents.defaults.heartbeat.directPolicy": "Heartbeat Direct Policy",
-  "agents.list.*.heartbeat.directPolicy": "Heartbeat Direct Policy",
-  "agents.defaults.heartbeat.suppressToolErrorWarnings": "Heartbeat Suppress Tool Error Warnings",
-  "agents.list.*.heartbeat.suppressToolErrorWarnings": "Heartbeat Suppress Tool Error Warnings",
-  "agents.defaults.heartbeat.timeoutSeconds": "Heartbeat Timeout (Seconds)",
-  "agents.list.*.heartbeat.timeoutSeconds": "Heartbeat Timeout (Seconds)",
   "agents.defaults.sandbox.browser.network": "Sandbox Browser Network",
   "agents.defaults.sandbox.browser.cdpSourceRange": "Sandbox Browser CDP Source Port Range",
   "agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin":
@@ -936,9 +933,6 @@ export const FIELD_LABELS: Record<string, string> = {
   "channels.mattermost.requireMention": "Mattermost Require Mention",
   "agents.list[].skills": "Agent Skill Filter",
   "agents.list[].identity.avatar": "Agent Avatar",
-  "agents.list[].heartbeat.suppressToolErrorWarnings":
-    "Agent Heartbeat Suppress Tool Error Warnings",
-  "agents.list[].heartbeat.timeoutSeconds": "Agent Heartbeat Timeout (Seconds)",
   "agents.list[].sandbox.browser.network": "Agent Sandbox Browser Network",
   "agents.list[].sandbox.browser.cdpSourceRange": "Agent Sandbox Browser CDP Source Port Range",
   "agents.list[].sandbox.docker.dangerouslyAllowContainerNamespaceJoin":

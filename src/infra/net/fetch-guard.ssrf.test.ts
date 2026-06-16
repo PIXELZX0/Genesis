@@ -10,20 +10,30 @@ import {
 } from "./undici-global-dispatcher.js";
 import { TEST_UNDICI_RUNTIME_DEPS_KEY } from "./undici-runtime.js";
 
-const { agentCtor, envHttpProxyAgentCtor, proxyAgentCtor } = vi.hoisted(() => ({
-  agentCtor: vi.fn(function MockAgent(this: { options: unknown }, options: unknown) {
-    this.options = options;
+const { agentCtor, envHttpProxyAgentCtor, proxyAgentCtor, socks5ProxyAgentCtor } = vi.hoisted(
+  () => ({
+    agentCtor: vi.fn(function MockAgent(this: { options: unknown }, options: unknown) {
+      this.options = options;
+    }),
+    envHttpProxyAgentCtor: vi.fn(function MockEnvHttpProxyAgent(
+      this: { options: unknown },
+      options: unknown,
+    ) {
+      this.options = options;
+    }),
+    proxyAgentCtor: vi.fn(function MockProxyAgent(this: { options: unknown }, options: unknown) {
+      this.options = options;
+    }),
+    socks5ProxyAgentCtor: vi.fn(function MockSocks5ProxyAgent(
+      this: { proxyUrl: unknown; options: unknown },
+      proxyUrl: unknown,
+      options: unknown,
+    ) {
+      this.proxyUrl = proxyUrl;
+      this.options = options;
+    }),
   }),
-  envHttpProxyAgentCtor: vi.fn(function MockEnvHttpProxyAgent(
-    this: { options: unknown },
-    options: unknown,
-  ) {
-    this.options = options;
-  }),
-  proxyAgentCtor: vi.fn(function MockProxyAgent(this: { options: unknown }, options: unknown) {
-    this.options = options;
-  }),
-}));
+);
 const logWarnMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../logger.js", async () => {
@@ -174,6 +184,7 @@ describe("fetchWithSsrFGuard hardening", () => {
     agentCtor.mockClear();
     envHttpProxyAgentCtor.mockClear();
     proxyAgentCtor.mockClear();
+    socks5ProxyAgentCtor.mockClear();
     logWarnMock.mockClear();
     resetGlobalUndiciStreamTimeoutsForTests();
     Reflect.deleteProperty(globalThis as object, TEST_UNDICI_RUNTIME_DEPS_KEY);
@@ -1234,6 +1245,108 @@ describe("fetchWithSsrFGuard hardening", () => {
     });
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(lookupFn).toHaveBeenCalledOnce();
+    await result.release();
+  });
+
+  it("blocks .onion URLs when Tor routing is not configured", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      fetchWithSsrFGuard({
+        url: "http://abc123.onion/index.html",
+        fetchImpl,
+      }),
+    ).rejects.toThrow(/Blocked .onion URL|Tor routing is not enabled/i);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("routes .onion URLs through a SOCKS5 proxy when torProxyUrl is set", async () => {
+    (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+      Agent: agentCtor,
+      EnvHttpProxyAgent: envHttpProxyAgentCtor,
+      ProxyAgent: proxyAgentCtor,
+      Socks5ProxyAgent: socks5ProxyAgentCtor,
+      fetch: vi.fn(async () => okResponse()),
+    };
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const requestInit = init as RequestInit & { dispatcher?: unknown };
+      expect(requestInit.dispatcher).toBeDefined();
+      return okResponse();
+    });
+
+    const result = await fetchWithSsrFGuard({
+      url: "http://abc123.onion/index.html",
+      fetchImpl,
+      torProxyUrl: "socks5://127.0.0.1:9050",
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(socks5ProxyAgentCtor).toHaveBeenCalledWith(
+      "socks5://127.0.0.1:9050",
+      expect.objectContaining({ allowH2: false }),
+    );
+    expect(agentCtor).not.toHaveBeenCalled();
+    expect(proxyAgentCtor).not.toHaveBeenCalled();
+    await result.release();
+  });
+
+  it("skips DNS pinning for .onion URLs when torProxyUrl is set", async () => {
+    (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+      Agent: agentCtor,
+      EnvHttpProxyAgent: envHttpProxyAgentCtor,
+      ProxyAgent: proxyAgentCtor,
+      Socks5ProxyAgent: socks5ProxyAgentCtor,
+      fetch: vi.fn(async () => okResponse()),
+    };
+    const lookupFn = vi.fn(async () => {
+      throw new Error("DNS lookup should not be called for .onion URLs");
+    }) as unknown as LookupFn;
+    const fetchImpl = vi.fn(async () => okResponse());
+
+    const result = await fetchWithSsrFGuard({
+      url: "http://abc123.onion/index.html",
+      fetchImpl,
+      lookupFn,
+      torProxyUrl: "socks5://127.0.0.1:9050",
+    });
+
+    expect(lookupFn).not.toHaveBeenCalled();
+    await result.release();
+  });
+
+  it("enforces hostname allowlist for .onion URLs when torProxyUrl is set", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      fetchWithSsrFGuard({
+        url: "http://blocked.onion/index.html",
+        fetchImpl,
+        policy: { hostnameAllowlist: ["allowed.onion"] },
+        torProxyUrl: "socks5://127.0.0.1:9050",
+      }),
+    ).rejects.toThrow(/allowlist/i);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("keeps clearnet URLs direct even when torProxyUrl is set", async () => {
+    (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+      Agent: agentCtor,
+      EnvHttpProxyAgent: envHttpProxyAgentCtor,
+      ProxyAgent: proxyAgentCtor,
+      Socks5ProxyAgent: socks5ProxyAgentCtor,
+      fetch: vi.fn(async () => okResponse()),
+    };
+    const lookupFn = createPublicLookup();
+    const fetchImpl = vi.fn(async () => okResponse());
+
+    const result = await fetchWithSsrFGuard({
+      url: "https://public.example/resource",
+      fetchImpl,
+      lookupFn,
+      torProxyUrl: "socks5://127.0.0.1:9050",
+    });
+
+    expect(socks5ProxyAgentCtor).not.toHaveBeenCalled();
+    expect(agentCtor).toHaveBeenCalledTimes(1);
     expect(lookupFn).toHaveBeenCalledOnce();
     await result.release();
   });

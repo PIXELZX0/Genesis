@@ -1,3 +1,4 @@
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   createWebSearchProviderContractFields,
   mergeScopedSearchConfig,
@@ -39,6 +40,7 @@ const GEMINI_TOOL_PARAMETERS = {
 
 function createGeminiToolDefinition(
   searchConfig?: Record<string, unknown>,
+  config?: GenesisConfig,
 ): WebSearchProviderToolDefinition {
   return {
     description:
@@ -46,7 +48,7 @@ function createGeminiToolDefinition(
     parameters: GEMINI_TOOL_PARAMETERS,
     execute: async (args) => {
       const { executeGeminiSearch } = await loadGeminiWebSearchRuntime();
-      return await executeGeminiSearch(args, searchConfig);
+      return await executeGeminiSearch(args, searchConfig, config);
     },
   };
 }
@@ -76,6 +78,7 @@ export function createGeminiWebSearchProvider(): WebSearchProviderPlugin {
           "gemini",
           resolveProviderWebSearchPluginConfig(ctx.config, "google"),
         ),
+        ctx.config,
       ),
   };
 }

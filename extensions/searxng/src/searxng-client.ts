@@ -178,6 +178,7 @@ export async function runSearxngSearch(params: {
     {
       url,
       timeoutSeconds,
+      config: params.config,
       init: {
         method: "GET",
         headers: {

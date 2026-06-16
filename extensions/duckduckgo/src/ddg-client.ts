@@ -157,6 +157,7 @@ export async function runDuckDuckGoSearch(params: {
     {
       url: url.toString(),
       timeoutSeconds,
+      config: params.config,
       init: {
         method: "GET",
         headers: {

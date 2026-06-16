@@ -323,6 +323,7 @@ async function runExaSearch(params: {
   type: ExaSearchType;
   contents?: ExaContentsArgs;
   timeoutSeconds: number;
+  config?: Record<string, unknown>;
 }): Promise<ExaSearchResult[]> {
   const body: Record<string, unknown> = {
     query: params.query,
@@ -344,6 +345,7 @@ async function runExaSearch(params: {
     {
       url: EXA_SEARCH_ENDPOINT,
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config as Parameters<typeof withTrustedWebSearchEndpoint>[0]["config"],
       init: {
         method: "POST",
         headers: {
@@ -470,6 +472,7 @@ export async function executeExaWebSearchProviderTool(
     type,
     contents,
     timeoutSeconds: resolveSearchTimeoutSeconds(searchConfig),
+    config: ctx.config,
   });
 
   const payload = {

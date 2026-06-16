@@ -264,6 +264,26 @@ describe("config schema", () => {
     });
   });
 
+  it("accepts web tor config in the runtime zod schema", () => {
+    const parsed = ToolsSchema.parse({
+      web: {
+        tor: {
+          enabled: true,
+          mode: "external",
+          socksHost: "127.0.0.1",
+          socksPort: 9050,
+        },
+      },
+    });
+
+    expect(parsed?.web?.tor).toMatchObject({
+      enabled: true,
+      mode: "external",
+      socksHost: "127.0.0.1",
+      socksPort: 9050,
+    });
+  });
+
   it("accepts experimental tool flags in the runtime zod schema", () => {
     const parsed = ToolsSchema.parse({
       experimental: {

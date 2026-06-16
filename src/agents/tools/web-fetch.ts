@@ -33,6 +33,7 @@ import {
   resolveTimeoutSeconds,
   writeCache,
 } from "./web-shared.js";
+import { resolveWebTorProxyUrl } from "./web-tor-shared.js";
 
 export { extractReadableContent } from "../../web-fetch/content-extractors.runtime.js";
 
@@ -71,6 +72,7 @@ type WebFetchConfig = NonNullable<GenesisConfig["tools"]>["web"] extends infer W
     ? Fetch
     : undefined
   : undefined;
+
 type ResolveWebFetchDefinition =
   (typeof import("../../web-fetch/runtime.js"))["resolveWebFetchDefinition"];
 type WebFetchProviderFallback = ReturnType<ResolveWebFetchDefinition>;
@@ -273,6 +275,7 @@ type WebFetchRuntimeParams = {
   readabilityEnabled: boolean;
   config?: GenesisConfig;
   ssrfPolicy?: {
+    hostnameAllowlist?: string[];
     allowRfc2544BenchmarkRange?: boolean;
   };
   lookupFn?: LookupFn;
@@ -387,7 +390,9 @@ async function maybeFetchProviderWebFetchPayload(
   return payload;
 }
 
-async function runWebFetch(params: WebFetchRuntimeParams): Promise<Record<string, unknown>> {
+async function runWebFetch(
+  params: WebFetchRuntimeParams & { torProxyUrl?: string },
+): Promise<Record<string, unknown>> {
   const allowRfc2544BenchmarkRange = params.ssrfPolicy?.allowRfc2544BenchmarkRange === true;
   const cacheKey = normalizeCacheKey(
     `fetch:${params.url}:${params.extractMode}:${params.maxChars}${allowRfc2544BenchmarkRange ? ":allow-rfc2544" : ""}`,
@@ -418,7 +423,8 @@ async function runWebFetch(params: WebFetchRuntimeParams): Promise<Record<string
       maxRedirects: params.maxRedirects,
       timeoutSeconds: params.timeoutSeconds,
       lookupFn: params.lookupFn,
-      policy: allowRfc2544BenchmarkRange ? { allowRfc2544BenchmarkRange } : undefined,
+      policy: params.ssrfPolicy ? { ...params.ssrfPolicy } : undefined,
+      ...(params.torProxyUrl ? { torProxyUrl: params.torProxyUrl } : {}),
       init: {
         headers: {
           Accept: "text/markdown, text/html;q=0.9, */*;q=0.1",
@@ -624,6 +630,7 @@ export function createWebFetchTool(options?: {
     }
     return providerFallbackCache;
   };
+  const torProxyUrl = resolveWebTorProxyUrl(options?.config);
   return {
     label: "Web Fetch",
     name: "web_fetch",
@@ -654,6 +661,7 @@ export function createWebFetchTool(options?: {
         ssrfPolicy: fetch?.ssrfPolicy,
         lookupFn: options?.lookupFn,
         resolveProviderFallback,
+        ...(torProxyUrl ? { torProxyUrl } : {}),
       });
       return jsonResult(result);
     },

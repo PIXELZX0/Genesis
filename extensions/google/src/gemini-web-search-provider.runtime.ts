@@ -64,6 +64,7 @@ async function runGeminiSearch(params: {
   apiKey: string;
   model: string;
   timeoutSeconds: number;
+  config?: Record<string, unknown>;
 }): Promise<{ content: string; citations: Array<{ url: string; title?: string }> }> {
   const endpoint = `${GEMINI_API_BASE}/models/${params.model}:generateContent`;
 
@@ -71,6 +72,7 @@ async function runGeminiSearch(params: {
     {
       url: endpoint,
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config as Parameters<typeof withTrustedWebSearchEndpoint>[0]["config"],
       init: {
         method: "POST",
         headers: {
@@ -126,7 +128,9 @@ async function runGeminiSearch(params: {
         const batch = rawCitations.slice(index, index + 10);
         const resolved = await Promise.all(
           batch.map(async (citation) =>
-            Object.assign({}, citation, { url: await resolveCitationRedirectUrl(citation.url) }),
+            Object.assign({}, citation, {
+              url: await resolveCitationRedirectUrl(citation.url, params.config),
+            }),
           ),
         );
         citations.push(...resolved);
@@ -140,6 +144,7 @@ async function runGeminiSearch(params: {
 export async function executeGeminiSearch(
   args: Record<string, unknown>,
   searchConfig?: SearchConfigRecord,
+  config?: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   const unsupportedResponse = buildUnsupportedSearchFilterResponse(args, "gemini");
   if (unsupportedResponse) {
@@ -178,6 +183,7 @@ export async function executeGeminiSearch(
     apiKey,
     model,
     timeoutSeconds: resolveSearchTimeoutSeconds(searchConfig),
+    config,
   });
   const payload = {
     query,

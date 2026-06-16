@@ -202,6 +202,7 @@ async function runPerplexitySearchApi(params: {
   searchBeforeDate?: string;
   maxTokens?: number;
   maxTokensPerPage?: number;
+  config?: Record<string, unknown>;
 }): Promise<Array<Record<string, unknown>>> {
   const body: Record<string, unknown> = {
     query: params.query,
@@ -236,6 +237,7 @@ async function runPerplexitySearchApi(params: {
     {
       url: PERPLEXITY_SEARCH_ENDPOINT,
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config as Parameters<typeof withTrustedWebSearchEndpoint>[0]["config"],
       init: {
         method: "POST",
         headers: buildPerplexityRequestHeaders(params.apiKey, true),
@@ -265,6 +267,7 @@ async function runPerplexitySearch(params: {
   model: string;
   timeoutSeconds: number;
   freshness?: string;
+  config?: Record<string, unknown>;
 }): Promise<{ content: string; citations: string[] }> {
   const endpoint = `${params.baseUrl.trim().replace(/\/$/, "")}/chat/completions`;
   const body: Record<string, unknown> = {
@@ -279,6 +282,7 @@ async function runPerplexitySearch(params: {
     {
       url: endpoint,
       timeoutSeconds: params.timeoutSeconds,
+      config: params.config as Parameters<typeof withTrustedWebSearchEndpoint>[0]["config"],
       init: {
         method: "POST",
         headers: buildPerplexityRequestHeaders(params.apiKey),
@@ -301,6 +305,7 @@ async function runPerplexitySearch(params: {
 export async function executePerplexitySearch(
   args: Record<string, unknown>,
   searchConfig?: SearchConfigRecord,
+  config?: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   const perplexityConfig = resolvePerplexityConfig(searchConfig);
   const runtime = resolvePerplexityTransport(perplexityConfig);
@@ -480,6 +485,7 @@ export async function executePerplexitySearch(
               model: runtime.model,
               timeoutSeconds,
               freshness,
+              config,
             });
             return {
               content: wrapWebContent(result.content, "web_search"),
@@ -511,6 +517,7 @@ export async function executePerplexitySearch(
             searchBeforeDate: dateBefore ? isoToPerplexityDate(dateBefore) : undefined,
             maxTokens: maxTokens ?? undefined,
             maxTokensPerPage: maxTokensPerPage ?? undefined,
+            config,
           }),
         };
 

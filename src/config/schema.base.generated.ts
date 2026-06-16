@@ -5305,96 +5305,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   },
                 ],
               },
-              heartbeat: {
-                type: "object",
-                properties: {
-                  every: {
-                    type: "string",
-                  },
-                  activeHours: {
-                    type: "object",
-                    properties: {
-                      start: {
-                        type: "string",
-                      },
-                      end: {
-                        type: "string",
-                      },
-                      timezone: {
-                        type: "string",
-                      },
-                    },
-                    additionalProperties: false,
-                  },
-                  model: {
-                    type: "string",
-                  },
-                  session: {
-                    type: "string",
-                  },
-                  includeReasoning: {
-                    type: "boolean",
-                  },
-                  target: {
-                    type: "string",
-                  },
-                  directPolicy: {
-                    anyOf: [
-                      {
-                        type: "string",
-                        const: "allow",
-                      },
-                      {
-                        type: "string",
-                        const: "block",
-                      },
-                    ],
-                    title: "Heartbeat Direct Policy",
-                    description:
-                      'Controls whether heartbeat delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
-                  },
-                  to: {
-                    type: "string",
-                  },
-                  accountId: {
-                    type: "string",
-                  },
-                  prompt: {
-                    type: "string",
-                  },
-                  includeSystemPromptSection: {
-                    type: "boolean",
-                    title: "Heartbeat Include System Prompt Section",
-                    description:
-                      "Includes the default agent's ## Heartbeats system prompt section when true. Turn this off to keep heartbeat runtime behavior while omitting the heartbeat prompt instructions from the agent system prompt.",
-                  },
-                  ackMaxChars: {
-                    type: "integer",
-                    minimum: 0,
-                    maximum: 9007199254740991,
-                  },
-                  suppressToolErrorWarnings: {
-                    type: "boolean",
-                    title: "Heartbeat Suppress Tool Error Warnings",
-                    description: "Suppress tool error warning payloads during heartbeat runs.",
-                  },
-                  timeoutSeconds: {
-                    type: "integer",
-                    exclusiveMinimum: 0,
-                    maximum: 9007199254740991,
-                    title: "Heartbeat Timeout (Seconds)",
-                    description:
-                      "Maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
-                  },
-                  lightContext: {
-                    type: "boolean",
-                  },
-                  isolatedSession: {
-                    type: "boolean",
-                  },
-                },
-                additionalProperties: false,
-              },
               maxConcurrent: {
                 type: "integer",
                 exclusiveMinimum: 0,
@@ -6633,96 +6543,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   type: "integer",
                   exclusiveMinimum: 0,
                   maximum: 9007199254740991,
-                },
-                heartbeat: {
-                  type: "object",
-                  properties: {
-                    every: {
-                      type: "string",
-                    },
-                    activeHours: {
-                      type: "object",
-                      properties: {
-                        start: {
-                          type: "string",
-                        },
-                        end: {
-                          type: "string",
-                        },
-                        timezone: {
-                          type: "string",
-                        },
-                      },
-                      additionalProperties: false,
-                    },
-                    model: {
-                      type: "string",
-                    },
-                    session: {
-                      type: "string",
-                    },
-                    includeReasoning: {
-                      type: "boolean",
-                    },
-                    target: {
-                      type: "string",
-                    },
-                    directPolicy: {
-                      anyOf: [
-                        {
-                          type: "string",
-                          const: "allow",
-                        },
-                        {
-                          type: "string",
-                          const: "block",
-                        },
-                      ],
-                      title: "Heartbeat Direct Policy",
-                      description:
-                        'Per-agent override for heartbeat direct/DM delivery policy; use "block" for agents that should only send heartbeat alerts to non-DM destinations.',
-                    },
-                    to: {
-                      type: "string",
-                    },
-                    accountId: {
-                      type: "string",
-                    },
-                    prompt: {
-                      type: "string",
-                    },
-                    includeSystemPromptSection: {
-                      type: "boolean",
-                      title: "Heartbeat Include System Prompt Section",
-                      description:
-                        "Per-agent override for whether the default agent's ## Heartbeats system prompt section is injected. Use false to keep heartbeat runtime behavior but omit the heartbeat prompt instructions from that agent's system prompt.",
-                    },
-                    ackMaxChars: {
-                      type: "integer",
-                      minimum: 0,
-                      maximum: 9007199254740991,
-                    },
-                    suppressToolErrorWarnings: {
-                      type: "boolean",
-                      title: "Heartbeat Suppress Tool Error Warnings",
-                      description: "Suppress tool error warning payloads during heartbeat runs.",
-                    },
-                    timeoutSeconds: {
-                      type: "integer",
-                      exclusiveMinimum: 0,
-                      maximum: 9007199254740991,
-                      title: "Heartbeat Timeout (Seconds)",
-                      description:
-                        "Per-agent maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to inherit the merged heartbeat/default agent timeout.",
-                    },
-                    lightContext: {
-                      type: "boolean",
-                    },
-                    isolatedSession: {
-                      type: "boolean",
-                    },
-                  },
-                  additionalProperties: false,
                 },
                 identity: {
                   type: "object",
@@ -8116,6 +7936,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   ssrfPolicy: {
                     type: "object",
                     properties: {
+                      hostnameAllowlist: {
+                        type: "array",
+                        items: {
+                          type: "string",
+                        },
+                      },
                       allowRfc2544BenchmarkRange: {
                         type: "boolean",
                         title: "Web Fetch Allow RFC 2544 Benchmark Range",
@@ -8250,6 +8076,37 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   },
                 },
                 additionalProperties: false,
+              },
+              tor: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Enable Tor Routing",
+                    description: "Enable Tor SOCKS5 routing for .onion URLs.",
+                  },
+                  mode: {
+                    type: "string",
+                    const: "external",
+                    title: "Tor Proxy Mode",
+                    description: 'Tor proxy mode. Only "external" is supported today.',
+                  },
+                  socksHost: {
+                    type: "string",
+                    title: "Tor SOCKS Host",
+                    description: "SOCKS5 proxy host for Tor routing.",
+                  },
+                  socksPort: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 65535,
+                    title: "Tor SOCKS Port",
+                    description: "SOCKS5 proxy port for Tor routing.",
+                  },
+                },
+                additionalProperties: false,
+                title: "Tor Routing for Web Tools",
+                description: "Route .onion URLs used by web tools through a Tor SOCKS5 proxy.",
               },
             },
             additionalProperties: false,
@@ -17822,7 +17679,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "boolean",
                 title: "Exec Notify On Exit",
                 description:
-                  "When true (default), backgrounded exec sessions on exit and node exec lifecycle events enqueue a system event and request a heartbeat.",
+                  "When true (default), backgrounded exec sessions on exit and node exec lifecycle events enqueue a system event.",
               },
               notifyOnExitEmptySuccess: {
                 type: "boolean",
@@ -26370,7 +26227,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "tools.exec.notifyOnExit": {
       label: "Exec Notify On Exit",
-      help: "When true (default), backgrounded exec sessions on exit and node exec lifecycle events enqueue a system event and request a heartbeat.",
+      help: "When true (default), backgrounded exec sessions on exit and node exec lifecycle events enqueue a system event.",
       tags: ["tools"],
     },
     "tools.exec.notifyOnExitEmptySuccess": {
@@ -26757,6 +26614,31 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Web Fetch Allow RFC 2544 Benchmark Range",
       help: "Allow RFC 2544 benchmark-range IPs (198.18.0.0/15) for fake-IP proxy compatibility such as Clash or Surge.",
       tags: ["access", "tools"],
+    },
+    "tools.web.tor": {
+      label: "Tor Routing for Web Tools",
+      help: "Route .onion URLs used by web tools through a Tor SOCKS5 proxy.",
+      tags: ["tools"],
+    },
+    "tools.web.tor.enabled": {
+      label: "Enable Tor Routing",
+      help: "Enable Tor SOCKS5 routing for .onion URLs.",
+      tags: ["tools"],
+    },
+    "tools.web.tor.mode": {
+      label: "Tor Proxy Mode",
+      help: 'Tor proxy mode. Only "external" is supported today.',
+      tags: ["tools"],
+    },
+    "tools.web.tor.socksHost": {
+      label: "Tor SOCKS Host",
+      help: "SOCKS5 proxy host for Tor routing.",
+      tags: ["tools"],
+    },
+    "tools.web.tor.socksPort": {
+      label: "Tor SOCKS Port",
+      help: "SOCKS5 proxy port for Tor routing.",
+      tags: ["tools"],
     },
     "gateway.controlUi.basePath": {
       label: "Control UI Base Path",
@@ -28199,16 +28081,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: 'Embedded Pi execution contract: "default" keeps the standard runner behavior, while "strict-agentic" keeps OpenAI/OpenAI Codex GPT-5-family runs acting until they hit a real blocker instead of stopping at plans or filler.',
       tags: ["advanced"],
     },
-    "agents.defaults.heartbeat.includeSystemPromptSection": {
-      label: "Heartbeat Include System Prompt Section",
-      help: "Includes the default agent's ## Heartbeats system prompt section when true. Turn this off to keep heartbeat runtime behavior while omitting the heartbeat prompt instructions from the agent system prompt.",
-      tags: ["automation"],
-    },
-    "agents.list.*.heartbeat.includeSystemPromptSection": {
-      label: "Heartbeat Include System Prompt Section",
-      help: "Per-agent override for whether the default agent's ## Heartbeats system prompt section is injected. Use false to keep heartbeat runtime behavior but omit the heartbeat prompt instructions from that agent's system prompt.",
-      tags: ["automation"],
-    },
     "agents.list[].embeddedPi": {
       label: "Agent Embedded Pi",
       help: "Optional per-agent embedded Pi overrides. Use this to opt specific agents into stricter GPT-5 execution behavior without changing the global default.",
@@ -28218,34 +28090,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Agent Embedded Pi Execution Contract",
       help: 'Optional per-agent embedded Pi execution contract override. Set "strict-agentic" to keep that agent acting through plan-only turns on OpenAI/OpenAI Codex GPT-5-family runs, or "default" to inherit the standard runner behavior.',
       tags: ["advanced"],
-    },
-    "agents.defaults.heartbeat.directPolicy": {
-      label: "Heartbeat Direct Policy",
-      help: 'Controls whether heartbeat delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
-      tags: ["access", "storage", "automation"],
-    },
-    "agents.list.*.heartbeat.directPolicy": {
-      label: "Heartbeat Direct Policy",
-      help: 'Per-agent override for heartbeat direct/DM delivery policy; use "block" for agents that should only send heartbeat alerts to non-DM destinations.',
-      tags: ["access", "storage", "automation"],
-    },
-    "agents.defaults.heartbeat.suppressToolErrorWarnings": {
-      label: "Heartbeat Suppress Tool Error Warnings",
-      help: "Suppress tool error warning payloads during heartbeat runs.",
-      tags: ["automation"],
-    },
-    "agents.list.*.heartbeat.suppressToolErrorWarnings": {
-      label: "Heartbeat Suppress Tool Error Warnings",
-      tags: ["automation"],
-    },
-    "agents.defaults.heartbeat.timeoutSeconds": {
-      label: "Heartbeat Timeout (Seconds)",
-      help: "Maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
-      tags: ["performance", "automation"],
-    },
-    "agents.list.*.heartbeat.timeoutSeconds": {
-      label: "Heartbeat Timeout (Seconds)",
-      tags: ["performance", "automation"],
     },
     "agents.defaults.sandbox.browser.network": {
       label: "Sandbox Browser Network",
@@ -29350,16 +29194,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       placeholder: "avatars/genesis.png",
       tags: ["advanced"],
     },
-    "agents.list[].heartbeat.suppressToolErrorWarnings": {
-      label: "Agent Heartbeat Suppress Tool Error Warnings",
-      help: "Suppress tool error warning payloads during heartbeat runs.",
-      tags: ["automation"],
-    },
-    "agents.list[].heartbeat.timeoutSeconds": {
-      label: "Agent Heartbeat Timeout (Seconds)",
-      help: "Per-agent maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to inherit the merged heartbeat/default agent timeout.",
-      tags: ["performance", "automation"],
-    },
     "agents.list[].sandbox.browser.network": {
       label: "Agent Sandbox Browser Network",
       help: "Per-agent override for sandbox browser Docker network.",
@@ -29959,6 +29793,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2026.6.7",
+  version: "2026.6.13",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };

@@ -13,6 +13,7 @@ import {
   assertHostnameAllowedWithPolicy,
   closeDispatcher,
   createPinnedDispatcher,
+  isOnionHostname,
   resolvePinnedHostnameWithPolicy,
   type LookupFn,
   type PinnedDispatcherPolicy,
@@ -24,6 +25,7 @@ import {
   createHttp1Agent,
   createHttp1EnvHttpProxyAgent,
   createHttp1ProxyAgent,
+  createSocks5ProxyAgent,
 } from "./undici-runtime.js";
 
 function resolveDispatcherTimeoutMs(fromParams: number | undefined): number | undefined {
@@ -72,6 +74,8 @@ export type GuardedFetchOptions = {
   dispatcherPolicy?: PinnedDispatcherPolicy;
   mode?: GuardedFetchMode;
   pinDns?: boolean;
+  /** Optional SOCKS5 proxy URL (e.g. socks5://127.0.0.1:9050) for .onion hostnames. */
+  torProxyUrl?: string;
   /** @deprecated use `mode: "trusted_env_proxy"` for trusted/operator-controlled URLs. */
   proxy?: "env";
   /**
@@ -357,7 +361,13 @@ export async function fetchWithSsrFGuard(params: GuardedFetchOptions): Promise<G
       const canUseTrustedEnvProxy =
         mode === GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY && hasProxyEnvConfigured();
       const timeoutMs = resolveDispatcherTimeoutMs(params.timeoutMs);
-      if (canUseTrustedEnvProxy) {
+      if (isOnionHostname(parsedUrl.hostname)) {
+        if (!params.torProxyUrl) {
+          throw new SsrFBlockedError("Blocked .onion URL: Tor routing is not enabled");
+        }
+        assertHostnameAllowedWithPolicy(parsedUrl.hostname, params.policy);
+        dispatcher = createSocks5ProxyAgent(params.torProxyUrl, timeoutMs);
+      } else if (canUseTrustedEnvProxy) {
         dispatcher = createHttp1EnvHttpProxyAgent(undefined, timeoutMs);
       } else if (usesTrustedExplicitProxyMode) {
         // Explicit proxy targets are still checked against the caller's hostname
