@@ -582,45 +582,6 @@ describe("buildSessionEntry", () => {
     expect(entry?.lineMap).toEqual([2, 3, 4]);
   });
 
-  it("drops heartbeat prompt and the HEARTBEAT_OK ack via assistant-side detection", async () => {
-    // The ack is dropped because `HEARTBEAT_OK` is recognised as an
-    // assistant-side machinery token, not because the prior user message was
-    // a heartbeat prompt. A real reply to a similarly-shaped user message
-    // would still survive.
-    const jsonlLines = [
-      JSON.stringify({
-        type: "message",
-        message: {
-          role: "user",
-          content:
-            "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
-        },
-      }),
-      JSON.stringify({
-        type: "message",
-        message: {
-          role: "assistant",
-          content: "HEARTBEAT_OK",
-        },
-      }),
-      JSON.stringify({
-        type: "message",
-        message: {
-          role: "user",
-          content: "Summarize what changed in the inbox today.",
-        },
-      }),
-    ];
-    const filePath = path.join(tmpDir, "heartbeat-session.jsonl");
-    await fs.writeFile(filePath, jsonlLines.join("\n"));
-
-    const entry = await buildSessionEntry(filePath);
-
-    expect(entry).not.toBeNull();
-    expect(entry?.content).toBe("User: Summarize what changed in the inbox today.");
-    expect(entry?.lineMap).toEqual([3]);
-  });
-
   it("does not let a user-typed `[cron:...]` prompt suppress the next assistant reply (regression: PR #70737 review)", async () => {
     const jsonlLines = [
       JSON.stringify({

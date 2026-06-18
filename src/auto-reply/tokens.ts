@@ -3,6 +3,60 @@ import { escapeRegExp } from "../utils.js";
 export const HEARTBEAT_TOKEN = "HEARTBEAT_OK";
 export const SILENT_REPLY_TOKEN = "NO_REPLY";
 
+const heartbeatTrailingRegex = /^\s*HEARTBEAT_OK\b[^\w\s]*\s*$/i;
+const heartbeatLeadingRegex = /^\s*HEARTBEAT_OK\b\s*/i;
+
+/**
+ * Strip HEARTBEAT_OK from the edges of a message, preserving any remaining
+ * content. Used by cron/exec event replies as well as legacy suppression paths.
+ * Returns the stripped text and whether the message should be skipped entirely.
+ */
+export function stripHeartbeatToken(
+  raw?: string,
+  _opts?: { mode?: "heartbeat" | "message"; maxAckChars?: number },
+): { shouldSkip: boolean; text: string; didStrip: boolean } {
+  if (!raw) {
+    return { shouldSkip: true, text: "", didStrip: false };
+  }
+  let text = raw.trim();
+  if (!text) {
+    return { shouldSkip: true, text: "", didStrip: false };
+  }
+  let didStrip = false;
+  // Normalize lightweight markup wrappers so <b>HEARTBEAT_OK</b> still strips.
+  const normalized = text
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/^[*`~_]+/, "")
+    .replace(/[*`~_]+$/, "")
+    .trim();
+  const target = normalized.includes(HEARTBEAT_TOKEN) ? normalized : text;
+  if (!target.toUpperCase().includes(HEARTBEAT_TOKEN)) {
+    return { shouldSkip: false, text, didStrip: false };
+  }
+  let working = target;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const next = working.trim();
+    if (heartbeatLeadingRegex.test(next)) {
+      working = next.replace(heartbeatLeadingRegex, "").trimStart();
+      didStrip = true;
+      changed = true;
+      continue;
+    }
+    if (heartbeatTrailingRegex.test(next)) {
+      working = next.replace(heartbeatTrailingRegex, "").trimEnd();
+      didStrip = true;
+      changed = true;
+    }
+  }
+  if (!working) {
+    return { shouldSkip: true, text: "", didStrip };
+  }
+  return { shouldSkip: false, text: working, didStrip };
+}
+
 const silentExactRegexByToken = new Map<string, RegExp>();
 const silentTrailingRegexByToken = new Map<string, RegExp>();
 const silentLeadingAttachedRegexByToken = new Map<string, RegExp>();

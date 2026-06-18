@@ -11,7 +11,6 @@ import {
   resolveAcpThreadSessionDetailLines,
 } from "../acp/runtime/session-identifiers.js";
 import type { AcpRuntimeSessionMode } from "../acp/runtime/types.js";
-import { DEFAULT_HEARTBEAT_EVERY } from "../auto-reply/heartbeat.js";
 import {
   resolveChannelDefaultBindingPlacement,
   resolveInboundConversationResolution,
@@ -27,7 +26,6 @@ import {
   resolveThreadBindingMaxAgeMsForChannel,
   resolveThreadBindingSpawnPolicy,
 } from "../channels/thread-bindings-policy.js";
-import { parseDurationMs } from "../cli/parse-duration.js";
 import {
   DEFAULT_SUBAGENT_MAX_CHILDREN_PER_AGENT,
   DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH,
@@ -39,7 +37,6 @@ import { resolveSessionTranscriptFile } from "../config/sessions/transcript.js";
 import type { SessionEntry } from "../config/sessions/types.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { callGateway } from "../gateway/call.js";
-import { areHeartbeatsEnabled } from "../infra/heartbeat-wake.js";
 import {
   getSessionBindingService,
   isSessionBindingError,
@@ -69,7 +66,7 @@ import {
   resolveAcpSpawnStreamLogPath,
   startAcpSpawnParentStreamRelay,
 } from "./acp-spawn-parent-stream.js";
-import { resolveAgentConfig, resolveDefaultAgentId } from "./agent-scope.js";
+import { resolveAgentConfig } from "./agent-scope.js";
 import { resolveSandboxRuntimeStatus } from "./sandbox/runtime-status.js";
 import { resolveRequesterOriginForChild } from "./spawn-requester-origin.js";
 import { resolveSpawnedWorkspaceInheritance } from "./spawned-context.js";
@@ -297,95 +294,6 @@ function resolveSpawnMode(params: {
 
 function resolveAcpSessionMode(mode: SpawnAcpMode): AcpRuntimeSessionMode {
   return mode === "session" ? "persistent" : "oneshot";
-}
-
-function isHeartbeatEnabledForSessionAgent(params: {
-  cfg: GenesisConfig;
-  sessionKey?: string;
-}): boolean {
-  if (!areHeartbeatsEnabled()) {
-    return false;
-  }
-  const requesterAgentId = parseAgentSessionKey(params.sessionKey)?.agentId;
-  if (!requesterAgentId) {
-    return true;
-  }
-
-  const agentEntries = params.cfg.agents?.list ?? [];
-  const hasExplicitHeartbeatAgents = agentEntries.some((entry) => Boolean(entry?.heartbeat));
-  const enabledByPolicy = hasExplicitHeartbeatAgents
-    ? agentEntries.some(
-        (entry) => Boolean(entry?.heartbeat) && normalizeAgentId(entry?.id) === requesterAgentId,
-      )
-    : requesterAgentId === resolveDefaultAgentId(params.cfg);
-  if (!enabledByPolicy) {
-    return false;
-  }
-
-  const heartbeatEvery =
-    resolveAgentConfig(params.cfg, requesterAgentId)?.heartbeat?.every ??
-    params.cfg.agents?.defaults?.heartbeat?.every ??
-    DEFAULT_HEARTBEAT_EVERY;
-  const trimmedEvery = normalizeOptionalString(heartbeatEvery) ?? "";
-  if (!trimmedEvery) {
-    return false;
-  }
-  try {
-    return parseDurationMs(trimmedEvery, { defaultUnit: "m" }) > 0;
-  } catch {
-    return false;
-  }
-}
-
-function resolveHeartbeatConfigForAgent(params: {
-  cfg: GenesisConfig;
-  agentId: string;
-}): NonNullable<NonNullable<GenesisConfig["agents"]>["defaults"]>["heartbeat"] {
-  const defaults = params.cfg.agents?.defaults?.heartbeat;
-  const overrides = resolveAgentConfig(params.cfg, params.agentId)?.heartbeat;
-  if (!defaults && !overrides) {
-    return undefined;
-  }
-  return {
-    ...defaults,
-    ...overrides,
-  };
-}
-
-function hasSessionLocalHeartbeatRelayRoute(params: {
-  cfg: GenesisConfig;
-  parentSessionKey: string;
-  requesterAgentId: string;
-}): boolean {
-  const scope = params.cfg.session?.scope ?? "per-sender";
-  if (scope === "global") {
-    return false;
-  }
-
-  const heartbeat = resolveHeartbeatConfigForAgent({
-    cfg: params.cfg,
-    agentId: params.requesterAgentId,
-  });
-  if ((heartbeat?.target ?? "none") !== "last") {
-    return false;
-  }
-
-  // Explicit delivery overrides are not session-local and can route updates
-  // to unrelated destinations (for example a pinned ops channel).
-  if (normalizeOptionalString(heartbeat?.to)) {
-    return false;
-  }
-  if (normalizeOptionalString(heartbeat?.accountId)) {
-    return false;
-  }
-
-  const storePath = resolveStorePath(params.cfg.session?.store, {
-    agentId: params.requesterAgentId,
-  });
-  const sessionStore = loadSessionStore(storePath);
-  const parentEntry = sessionStore[params.parentSessionKey];
-  const parentDeliveryContext = deliveryContextFromSession(parentEntry);
-  return Boolean(parentDeliveryContext?.channel && parentDeliveryContext.to);
 }
 
 function resolveTargetAcpAgentId(params: {
@@ -676,18 +584,8 @@ function resolveAcpSpawnRequesterState(params: {
     isSubagentSession,
     hasActiveSubagentBinding,
     hasThreadContext,
-    heartbeatEnabled: isHeartbeatEnabledForSessionAgent({
-      cfg: params.cfg,
-      sessionKey: params.parentSessionKey,
-    }),
-    heartbeatRelayRouteUsable:
-      params.parentSessionKey && requesterAgentId
-        ? hasSessionLocalHeartbeatRelayRoute({
-            cfg: params.cfg,
-            parentSessionKey: params.parentSessionKey,
-            requesterAgentId,
-          })
-        : false,
+    heartbeatEnabled: false,
+    heartbeatRelayRouteUsable: false,
     origin: resolveRequesterOriginForChild({
       cfg: params.cfg,
       targetAgentId: params.targetAgentId,
@@ -803,15 +701,7 @@ function resolveAcpSpawnStreamPlan(params: {
   // so user-facing threads do not receive unsolicited ACP progress chatter
   // unless streamTo="parent" is explicitly requested. Use resolved spawnMode
   // (not params.mode) so default mode selection works.
-  const implicitStreamToParent =
-    !params.streamToParentRequested &&
-    params.spawnMode === "run" &&
-    !params.requestThreadBinding &&
-    params.requester.isSubagentSession &&
-    !params.requester.hasActiveSubagentBinding &&
-    !params.requester.hasThreadContext &&
-    params.requester.heartbeatEnabled &&
-    params.requester.heartbeatRelayRouteUsable;
+  const implicitStreamToParent = false;
 
   return {
     implicitStreamToParent,

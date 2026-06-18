@@ -831,9 +831,7 @@ describe("provider-runtime", () => {
         applyConfigDefaults: ({ config }) => ({
           ...config,
           agents: {
-            defaults: {
-              heartbeat: { every: "1h" },
-            },
+            defaults: {},
           },
         }),
       },
@@ -850,11 +848,7 @@ describe("provider-runtime", () => {
       }),
     ).toMatchObject({
       agents: {
-        defaults: {
-          heartbeat: {
-            every: "1h",
-          },
-        },
+        defaults: {},
       },
     });
   });

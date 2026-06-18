@@ -3,7 +3,6 @@ import { createRequire } from "node:module";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { formatErrorMessage } from "../infra/errors.js";
-import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
@@ -986,10 +985,6 @@ function queueTaskSystemEvent(task: TaskRecord, text: string) {
     contextKey: `task:${task.taskId}`,
     deliveryContext: owner.requesterOrigin,
   });
-  requestHeartbeatNow({
-    reason: "background-task",
-    sessionKey: ownerKey,
-  });
   return true;
 }
 
@@ -1007,10 +1002,6 @@ function queueBlockedTaskFollowup(task: TaskRecord) {
     sessionKey: ownerKey,
     contextKey: `task:${task.taskId}:blocked-followup`,
     deliveryContext: owner.requesterOrigin,
-  });
-  requestHeartbeatNow({
-    reason: "background-task-blocked",
-    sessionKey: ownerKey,
   });
   return true;
 }

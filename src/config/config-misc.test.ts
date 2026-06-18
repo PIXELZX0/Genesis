@@ -689,50 +689,6 @@ describe("config strict validation", () => {
     });
   });
 
-  it("accepts top-level heartbeat agent settings via auto-migration and reports legacyIssues", async () => {
-    await withTempHome(async (home) => {
-      await writeGenesisConfig(home, {
-        heartbeat: {
-          every: "30m",
-          model: "anthropic/claude-3-5-haiku-20241022",
-        },
-      });
-
-      const snap = await readConfigFileSnapshot();
-
-      expect(snap.valid).toBe(true);
-      expect(snap.legacyIssues.some((issue) => issue.path === "heartbeat")).toBe(true);
-      expect(snap.sourceConfig.agents?.defaults?.heartbeat).toMatchObject({
-        every: "30m",
-        model: "anthropic/claude-3-5-haiku-20241022",
-      });
-      expect((snap.sourceConfig as { heartbeat?: unknown }).heartbeat).toBeUndefined();
-    });
-  });
-
-  it("accepts top-level heartbeat visibility via auto-migration and reports legacyIssues", async () => {
-    await withTempHome(async (home) => {
-      await writeGenesisConfig(home, {
-        heartbeat: {
-          showOk: true,
-          showAlerts: false,
-          useIndicator: true,
-        },
-      });
-
-      const snap = await readConfigFileSnapshot();
-
-      expect(snap.valid).toBe(true);
-      expect(snap.legacyIssues.some((issue) => issue.path === "heartbeat")).toBe(true);
-      expect(snap.sourceConfig.channels?.defaults?.heartbeat).toMatchObject({
-        showOk: true,
-        showAlerts: false,
-        useIndicator: true,
-      });
-      expect((snap.sourceConfig as { heartbeat?: unknown }).heartbeat).toBeUndefined();
-    });
-  });
-
   it("accepts legacy messages.tts provider keys via auto-migration and reports legacyIssues", async () => {
     const raw = {
       messages: {

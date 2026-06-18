@@ -68,27 +68,17 @@ describe("system-cli", () => {
     expect(runtimeErrors[0]).toContain("--mode must be now or next-heartbeat");
   });
 
-  it.each([
-    { args: ["system", "heartbeat", "last"], method: "last-heartbeat", params: undefined },
-    {
-      args: ["system", "heartbeat", "enable"],
-      method: "set-heartbeats",
-      params: { enabled: true },
-    },
-    {
-      args: ["system", "heartbeat", "disable"],
-      method: "set-heartbeats",
-      params: { enabled: false },
-    },
-    { args: ["system", "presence"], method: "system-presence", params: undefined },
-  ])("routes $args to gateway", async ({ args, method, params }) => {
-    callGatewayFromCli.mockResolvedValueOnce({ method });
+  it.each([{ args: ["system", "presence"], method: "system-presence", params: undefined }])(
+    "routes $args to gateway",
+    async ({ args, method, params }) => {
+      callGatewayFromCli.mockResolvedValueOnce({ method });
 
-    await runCli(args);
+      await runCli(args);
 
-    expect(callGatewayFromCli).toHaveBeenCalledWith(method, expect.any(Object), params, {
-      expectFinal: false,
-    });
-    expect(runtimeLogs).toEqual([JSON.stringify({ method }, null, 2)]);
-  });
+      expect(callGatewayFromCli).toHaveBeenCalledWith(method, expect.any(Object), params, {
+        expectFinal: false,
+      });
+      expect(runtimeLogs).toEqual([JSON.stringify({ method }, null, 2)]);
+    },
+  );
 });

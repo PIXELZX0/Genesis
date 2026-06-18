@@ -6,7 +6,6 @@ import { resolveMainSessionKeyFromConfig } from "../../config/sessions.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { runCronIsolatedAgentTurn } from "../../cron/isolated-agent.js";
 import type { CronJob } from "../../cron/types.js";
-import { requestHeartbeatNow } from "../../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import type { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -32,12 +31,9 @@ export function createGatewayHooksRequestHandler(params: {
 }) {
   const { deps, getHooksConfig, getClientIpConfig, bindHost, port, logHooks } = params;
 
-  const dispatchWakeHook = (value: { text: string; mode: "now" | "next-heartbeat" }) => {
+  const dispatchWakeHook = (value: { text: string; mode: "now" }) => {
     const sessionKey = resolveMainSessionKeyFromConfig();
     enqueueSystemEvent(value.text, { sessionKey, trusted: false });
-    if (value.mode === "now") {
-      requestHeartbeatNow({ reason: "hook:wake" });
-    }
   };
 
   const dispatchAgentHook = (value: HookAgentDispatchPayload) => {
@@ -99,9 +95,6 @@ export function createGatewayHooksRequestHandler(params: {
             sessionKey: mainSessionKey,
             trusted: false,
           });
-          if (value.wakeMode === "now") {
-            requestHeartbeatNow({ reason: `hook:${jobId}` });
-          }
         }
       } catch (err) {
         logHooks.warn(`hook agent failed: ${String(err)}`);
@@ -109,9 +102,6 @@ export function createGatewayHooksRequestHandler(params: {
           sessionKey: mainSessionKey,
           trusted: false,
         });
-        if (value.wakeMode === "now") {
-          requestHeartbeatNow({ reason: `hook:${jobId}:error` });
-        }
       }
     })();
 

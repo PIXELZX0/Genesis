@@ -162,7 +162,6 @@ export async function statusCommand(
     securityAudit,
     usage,
     health,
-    lastHeartbeat,
     gatewayService: daemon,
     nodeService: nodeDaemon,
   } = await resolveStatusRuntimeSnapshot({
@@ -297,7 +296,6 @@ export async function statusCommand(
       securityAudit,
       health,
       usageLines,
-      lastHeartbeat,
       agentStatus,
       channels,
       channelIssues,

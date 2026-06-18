@@ -1,7 +1,7 @@
 import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.types.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
-import { stripHeartbeatToken } from "../heartbeat.js";
 import type { OriginatingChannelType } from "../templating.js";
+import { stripHeartbeatToken } from "../tokens.js";
 import type { ReplyPayload } from "../types.js";
 import {
   resolveOriginAccountId,

@@ -30,13 +30,6 @@ export type SessionStatus = {
   flags: string[];
 };
 
-export type HeartbeatStatus = {
-  agentId: string;
-  enabled: boolean;
-  every: string;
-  everyMs: number | null;
-};
-
 export type StatusSummary = {
   runtimeVersion?: string | null;
   linkChannel?: {
@@ -44,10 +37,6 @@ export type StatusSummary = {
     label: string;
     linked: boolean;
     authAgeMs: number | null;
-  };
-  heartbeat: {
-    defaultAgentId: string;
-    agents: HeartbeatStatus[];
   };
   channelSummary: string[];
   queuedSystemEvents: string[];

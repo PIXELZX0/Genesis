@@ -731,9 +731,6 @@ export async function enqueueRun(state: CronServiceState, id: string, mode?: "du
   return { ok: true, enqueued: true, runId } as const;
 }
 
-export function wakeNow(
-  state: CronServiceState,
-  opts: { mode: "now" | "next-heartbeat"; text: string },
-) {
+export function wakeNow(state: CronServiceState, opts: { mode: "now"; text: string }) {
   return wake(state, opts);
 }

@@ -154,9 +154,6 @@ describe("anthropic provider replay hooks", () => {
       mode: "cache-ttl",
       ttl: "1h",
     });
-    expect(next?.agents?.defaults?.heartbeat).toMatchObject({
-      every: "30m",
-    });
     expect(
       next?.agents?.defaults?.models?.["anthropic/claude-opus-4-5"]?.params?.cacheRetention,
     ).toBe("short");
@@ -186,9 +183,6 @@ describe("anthropic provider replay hooks", () => {
       },
     } as never);
 
-    expect(next?.agents?.defaults?.heartbeat).toMatchObject({
-      every: "1h",
-    });
     expect(next?.agents?.defaults?.models).toMatchObject({
       "anthropic/claude-opus-4-7": {},
       "anthropic/claude-sonnet-4-6": {},

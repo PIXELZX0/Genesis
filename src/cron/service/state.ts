@@ -1,5 +1,4 @@
 import type { CronConfig } from "../../config/types.cron.js";
-import type { HeartbeatRunResult, HeartbeatWakeRequest } from "../../infra/heartbeat-wake.js";
 import type {
   CronDeliveryStatus,
   CronDeliveryTrace,
@@ -66,22 +65,6 @@ export type CronServiceDeps = {
     text: string,
     opts?: { agentId?: string; sessionKey?: string; contextKey?: string; trusted?: boolean },
   ) => void;
-  requestHeartbeatNow: (opts?: HeartbeatWakeRequest) => void;
-  runHeartbeatOnce?: (opts?: {
-    reason?: string;
-    agentId?: string;
-    sessionKey?: string;
-    /** Optional heartbeat config override (e.g. target: "last" for cron-triggered heartbeats). */
-    heartbeat?: { target?: string };
-  }) => Promise<HeartbeatRunResult>;
-  /**
-   * WakeMode=now: max time to wait for runHeartbeatOnce to stop returning
-   * { status:"skipped", reason:"requests-in-flight" } before falling back to
-   * requestHeartbeatNow.
-   */
-  wakeNowHeartbeatBusyMaxWaitMs?: number;
-  /** WakeMode=now: delay between runHeartbeatOnce retries while busy. */
-  wakeNowHeartbeatBusyRetryDelayMs?: number;
   runIsolatedAgentJob: (params: {
     job: CronJob;
     message: string;
@@ -153,7 +136,7 @@ export function createCronServiceState(deps: CronServiceDeps): CronServiceState 
 }
 
 export type CronRunMode = "due" | "force";
-export type CronWakeMode = "now" | "next-heartbeat";
+export type CronWakeMode = "now";
 
 export type CronStatusSummary = {
   enabled: boolean;

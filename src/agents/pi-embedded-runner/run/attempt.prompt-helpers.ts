@@ -10,7 +10,6 @@ import type {
 } from "../../../plugins/types.js";
 import { isCronSessionKey, isSubagentSessionKey } from "../../../routing/session-key.js";
 import { joinPresentTextSegments } from "../../../shared/text/join-segments.js";
-import { resolveHeartbeatPromptForSystemPrompt } from "../../heartbeat-system-prompt.js";
 import { buildActiveMusicGenerationTaskPromptContextForSession } from "../../music-generation-task-status.js";
 import { prependSystemPromptAdditionAfterCacheBoundary } from "../../system-prompt-cache-boundary.js";
 import { resolveEffectiveToolFsWorkspaceOnly } from "../../tool-fs-policy.js";
@@ -18,7 +17,6 @@ import { derivePromptTokens, type NormalizedUsage } from "../../usage.js";
 import { buildActiveVideoGenerationTaskPromptContextForSession } from "../../video-generation-task-status.js";
 import { buildEmbeddedCompactionRuntimeContext } from "../compaction-runtime-context.js";
 import { log } from "../logger.js";
-import { shouldInjectHeartbeatPromptForTrigger } from "./trigger-policy.js";
 import type { EmbeddedRunAttemptParams } from "./types.js";
 
 export type PromptBuildHookRunner = {
@@ -94,26 +92,6 @@ export function resolvePromptModeForSession(sessionKey?: string): "minimal" | "f
     return "full";
   }
   return isSubagentSessionKey(sessionKey) || isCronSessionKey(sessionKey) ? "minimal" : "full";
-}
-
-export function shouldInjectHeartbeatPrompt(params: {
-  config?: GenesisConfig;
-  agentId?: string;
-  defaultAgentId?: string;
-  isDefaultAgent: boolean;
-  trigger?: EmbeddedRunAttemptParams["trigger"];
-}): boolean {
-  return (
-    params.isDefaultAgent &&
-    shouldInjectHeartbeatPromptForTrigger(params.trigger) &&
-    Boolean(
-      resolveHeartbeatPromptForSystemPrompt({
-        config: params.config,
-        agentId: params.agentId,
-        defaultAgentId: params.defaultAgentId,
-      }),
-    )
-  );
 }
 
 export function shouldWarnOnOrphanedUserRepair(

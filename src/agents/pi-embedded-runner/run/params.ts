@@ -17,7 +17,7 @@ import type {
 import type { SkillSnapshot } from "../../skills.js";
 export type { ClientToolDefinition } from "../../command/shared-types.js";
 
-export type EmbeddedRunTrigger = "cron" | "heartbeat" | "manual" | "memory" | "overflow" | "user";
+export type EmbeddedRunTrigger = "cron" | "manual" | "memory" | "overflow" | "user";
 
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;
@@ -102,7 +102,7 @@ export type RunEmbeddedPiAgentParams = {
   /** Bootstrap context mode for workspace file injection. */
   bootstrapContextMode?: "full" | "lightweight";
   /** Run kind hint for context mode behavior. */
-  bootstrapContextRunKind?: "default" | "heartbeat" | "cron";
+  bootstrapContextRunKind?: "default" | "cron";
   /** Optional tool allow-list; when set, only these tools are sent to the model. */
   toolsAllow?: string[];
   /** Seen bootstrap truncation warning signatures for this session (once mode dedupe). */

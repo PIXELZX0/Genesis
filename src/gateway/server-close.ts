@@ -4,7 +4,6 @@ import { disposeRegisteredAgentHarnesses } from "../agents/harness/registry.js";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
-import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
@@ -82,7 +81,6 @@ export function createGatewayCloseHandler(params: {
   stopChannel: (name: ChannelId, accountId?: string) => Promise<void>;
   pluginServices: PluginServicesHandle | null;
   cron: { stop: () => void };
-  heartbeatRunner: HeartbeatRunner;
   updateCheckStop?: (() => void) | null;
   stopTaskRegistryMaintenance?: (() => void) | null;
   nodePresenceTimers: Map<string, ReturnType<typeof setInterval>>;
@@ -92,7 +90,6 @@ export function createGatewayCloseHandler(params: {
   dedupeCleanup: ReturnType<typeof setInterval>;
   mediaCleanup: ReturnType<typeof setInterval> | null;
   agentUnsub: (() => void) | null;
-  heartbeatUnsub: (() => void) | null;
   transcriptUnsub: (() => void) | null;
   lifecycleUnsub: (() => void) | null;
   chatRunState: { clear: () => void };
@@ -143,7 +140,6 @@ export function createGatewayCloseHandler(params: {
       }
       await stopGmailWatcher();
       params.cron.stop();
-      params.heartbeatRunner.stop();
       try {
         params.stopTaskRegistryMaintenance?.();
       } catch {
@@ -171,13 +167,6 @@ export function createGatewayCloseHandler(params: {
       if (params.agentUnsub) {
         try {
           params.agentUnsub();
-        } catch {
-          /* ignore */
-        }
-      }
-      if (params.heartbeatUnsub) {
-        try {
-          params.heartbeatUnsub();
         } catch {
           /* ignore */
         }

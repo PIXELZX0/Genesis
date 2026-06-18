@@ -593,7 +593,6 @@ export async function startGatewayServer(
       stopChannel,
       pluginServices: runtimeState.pluginServices,
       cron: runtimeState.cronState.cron,
-      heartbeatRunner: runtimeState.heartbeatRunner,
       updateCheckStop: runtimeState.stopGatewayUpdateCheck,
       stopTaskRegistryMaintenance,
       nodePresenceTimers,
@@ -603,7 +602,6 @@ export async function startGatewayServer(
       dedupeCleanup: runtimeState.dedupeCleanup,
       mediaCleanup: runtimeState.mediaCleanup,
       agentUnsub: runtimeState.agentUnsub,
-      heartbeatUnsub: runtimeState.heartbeatUnsub,
       transcriptUnsub: runtimeState.transcriptUnsub,
       lifecycleUnsub: runtimeState.lifecycleUnsub,
       chatRunState,
@@ -854,7 +852,7 @@ export async function startGatewayServer(
     ));
     startupTrace.mark("ready");
 
-    const activated = activateGatewayScheduledServices({
+    activateGatewayScheduledServices({
       minimalTestGateway,
       cfgAtStart,
       deps,
@@ -863,7 +861,6 @@ export async function startGatewayServer(
       logCron,
       log,
     });
-    runtimeState.heartbeatRunner = activated.heartbeatRunner;
 
     runtimeState.configReloader = startManagedGatewayConfigReloader({
       minimalTestGateway,
@@ -880,14 +877,12 @@ export async function startGatewayServer(
       getState: () => ({
         hooksConfig: runtimeState.hooksConfig,
         hookClientIpConfig: runtimeState.hookClientIpConfig,
-        heartbeatRunner: runtimeState.heartbeatRunner,
         cronState: runtimeState.cronState,
         channelHealthMonitor: runtimeState.channelHealthMonitor,
       }),
       setState: (nextState) => {
         runtimeState.hooksConfig = nextState.hooksConfig;
         runtimeState.hookClientIpConfig = nextState.hookClientIpConfig;
-        runtimeState.heartbeatRunner = nextState.heartbeatRunner;
         runtimeState.cronState = nextState.cronState;
         deps.cron = runtimeState.cronState.cron;
         runtimeState.channelHealthMonitor = nextState.channelHealthMonitor;

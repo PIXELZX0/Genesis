@@ -31,19 +31,6 @@ export function formatStatusSummary(summary: GatewayStatusSummary) {
     }
   }
 
-  const heartbeatAgents = summary.heartbeat?.agents ?? [];
-  if (heartbeatAgents.length > 0) {
-    const heartbeatParts = heartbeatAgents.map((agent) => {
-      const agentId = agent.agentId ?? "unknown";
-      if (!agent.enabled || !agent.everyMs) {
-        return `disabled (${agentId})`;
-      }
-      return `${agent.every ?? "unknown"} (${agentId})`;
-    });
-    lines.push("");
-    lines.push(`Heartbeat: ${heartbeatParts.join(", ")}`);
-  }
-
   const sessionPaths = summary.sessions?.paths ?? [];
   if (sessionPaths.length === 1) {
     lines.push(`Session store: ${sessionPaths[0]}`);

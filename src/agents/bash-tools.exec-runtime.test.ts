@@ -1,13 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const requestHeartbeatNowMock = vi.hoisted(() => vi.fn());
 const enqueueSystemEventMock = vi.hoisted(() => vi.fn());
 const supervisorMock = vi.hoisted(() => ({
   spawn: vi.fn(),
-}));
-
-vi.mock("../infra/heartbeat-wake.js", () => ({
-  requestHeartbeatNow: requestHeartbeatNowMock,
 }));
 
 vi.mock("../infra/system-events.js", () => ({
@@ -41,7 +36,6 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  requestHeartbeatNowMock.mockClear();
   enqueueSystemEventMock.mockClear();
   supervisorMock.spawn.mockReset();
 });
@@ -368,7 +362,6 @@ describe("exec notifyOnExit suppression", () => {
 
     expect(outcome.status).toBe("failed");
     expect(enqueueSystemEventMock).not.toHaveBeenCalled();
-    expect(requestHeartbeatNowMock).not.toHaveBeenCalled();
   });
 
   it("notifies for manual-cancelled background execs with output", async () => {
@@ -378,7 +371,6 @@ describe("exec notifyOnExit suppression", () => {
       expect.stringContaining("partial output"),
       expect.objectContaining({ sessionKey: "agent:main:main" }),
     );
-    expect(requestHeartbeatNowMock).toHaveBeenCalled();
   });
 
   it("still notifies for no-output background exec timeouts", async () => {
@@ -388,17 +380,15 @@ describe("exec notifyOnExit suppression", () => {
       expect.stringContaining("Exec failed"),
       expect.objectContaining({ sessionKey: "agent:main:main" }),
     );
-    expect(requestHeartbeatNowMock).toHaveBeenCalled();
   });
 });
 
 describe("emitExecSystemEvent", () => {
   beforeEach(() => {
-    requestHeartbeatNowMock.mockClear();
     enqueueSystemEventMock.mockClear();
   });
 
-  it("scopes heartbeat wake to the event session key", () => {
+  it("scopes system event to the event session key", () => {
     emitExecSystemEvent("Exec finished", {
       sessionKey: "agent:ops:main",
       contextKey: "exec:run-1",
@@ -418,16 +408,9 @@ describe("emitExecSystemEvent", () => {
         threadId: 47,
       },
     });
-    expect(requestHeartbeatNowMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        coalesceMs: 0,
-        reason: "exec-event",
-        sessionKey: "agent:ops:main",
-      }),
-    );
   });
 
-  it("keeps wake unscoped for non-agent session keys", () => {
+  it("keeps event unscoped for non-agent session keys", () => {
     emitExecSystemEvent("Exec finished", {
       sessionKey: "global",
       contextKey: "exec:run-global",
@@ -437,12 +420,6 @@ describe("emitExecSystemEvent", () => {
       sessionKey: "global",
       contextKey: "exec:run-global",
     });
-    expect(requestHeartbeatNowMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        coalesceMs: 0,
-        reason: "exec-event",
-      }),
-    );
   });
 
   it("ignores events without a session key", () => {
@@ -452,7 +429,6 @@ describe("emitExecSystemEvent", () => {
     });
 
     expect(enqueueSystemEventMock).not.toHaveBeenCalled();
-    expect(requestHeartbeatNowMock).not.toHaveBeenCalled();
   });
 });
 

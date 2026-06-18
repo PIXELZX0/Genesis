@@ -41,39 +41,6 @@ describe("resolveBootstrapMode", () => {
     ).toBe("limited");
   });
 
-  it("returns none for cron, heartbeat, and non-primary runs", () => {
-    expect(
-      resolveBootstrapMode({
-        bootstrapPending: true,
-        runKind: "cron",
-        isInteractiveUserFacing: true,
-        isPrimaryRun: true,
-        isCanonicalWorkspace: true,
-        hasBootstrapFileAccess: true,
-      }),
-    ).toBe("none");
-    expect(
-      resolveBootstrapMode({
-        bootstrapPending: true,
-        runKind: "heartbeat",
-        isInteractiveUserFacing: true,
-        isPrimaryRun: true,
-        isCanonicalWorkspace: true,
-        hasBootstrapFileAccess: true,
-      }),
-    ).toBe("none");
-    expect(
-      resolveBootstrapMode({
-        bootstrapPending: true,
-        runKind: "default",
-        isInteractiveUserFacing: true,
-        isPrimaryRun: false,
-        isCanonicalWorkspace: true,
-        hasBootstrapFileAccess: true,
-      }),
-    ).toBe("none");
-  });
-
   it("returns none when the run cannot access bootstrap files normally", () => {
     expect(
       resolveBootstrapMode({

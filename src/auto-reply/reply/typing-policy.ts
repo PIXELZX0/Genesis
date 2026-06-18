@@ -4,7 +4,6 @@ import type { TypingPolicy } from "../types.js";
 export type ResolveRunTypingPolicyParams = {
   requestedPolicy?: TypingPolicy;
   suppressTyping?: boolean;
-  isHeartbeat?: boolean;
   originatingChannel?: string;
   systemEvent?: boolean;
 };
@@ -17,9 +16,8 @@ export type ResolvedRunTypingPolicy = {
 export function resolveRunTypingPolicy(
   params: ResolveRunTypingPolicyParams,
 ): ResolvedRunTypingPolicy {
-  const typingPolicy = params.isHeartbeat
-    ? "heartbeat"
-    : params.originatingChannel === INTERNAL_MESSAGE_CHANNEL
+  const typingPolicy =
+    params.originatingChannel === INTERNAL_MESSAGE_CHANNEL
       ? "internal_webchat"
       : params.systemEvent
         ? "system_event"

@@ -2,7 +2,6 @@
 // module keeps responsibilities small and testable.
 import { resolveWebChannelAuthDir } from "./plugins/runtime/runtime-web-channel-plugin.js";
 
-export { HEARTBEAT_PROMPT } from "./auto-reply/heartbeat.js";
 export { HEARTBEAT_TOKEN } from "./auto-reply/tokens.js";
 export { loadWebMedia, optimizeImageToJpeg } from "./media/web-media.js";
 export {

@@ -933,11 +933,9 @@ export async function runReplyAgent(params: {
   const activeSessionStore = sessionStore;
   let activeIsNewSession = isNewSession;
 
-  const isHeartbeat = opts?.isHeartbeat === true;
   const typingSignals = createTypingSignaler({
     typing,
     mode: typingMode,
-    isHeartbeat,
   });
 
   const shouldEmitToolResult = createShouldEmitToolResult({
@@ -983,7 +981,6 @@ export async function runReplyAgent(params: {
 
   const activeRunQueueAction = resolveActiveRunQueueAction({
     isActive,
-    isHeartbeat,
     shouldFollowup,
     queueMode: resolvedQueue.mode,
   });
@@ -1114,7 +1111,6 @@ export async function runReplyAgent(params: {
       sessionKey,
       runtimePolicySessionKey,
       storePath,
-      isHeartbeat,
       replyOperation,
     });
     preflightCompactionApplied =
@@ -1134,7 +1130,6 @@ export async function runReplyAgent(params: {
       sessionKey,
       runtimePolicySessionKey,
       storePath,
-      isHeartbeat,
       replyOperation,
     });
 
@@ -1217,7 +1212,6 @@ export async function runReplyAgent(params: {
       pendingToolTasks,
       resetSessionAfterCompactionFailure,
       resetSessionAfterRoleOrderingConflict,
-      isHeartbeat,
       sessionKey,
       runtimePolicySessionKey,
       getActiveSessionEntry: () => activeSessionEntry,
@@ -1368,7 +1362,6 @@ export async function runReplyAgent(params: {
     const currentMessageId = sessionCtx.MessageSidFull ?? sessionCtx.MessageSid;
     const payloadResult = await buildReplyPayloads({
       payloads: payloadArray,
-      isHeartbeat,
       didLogHeartbeatStrip,
       silentExpected: followupRun.run.silentExpected,
       blockStreamingEnabled,

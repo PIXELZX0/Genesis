@@ -1,6 +1,6 @@
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import { CHANNEL_IDS, normalizeChatChannelId } from "../channels/ids.js";
+import { CHANNEL_IDS } from "../channels/ids.js";
 import { withBundledPluginAllowlistCompat } from "../plugins/bundled-compat.js";
 import {
   normalizePluginsConfig,
@@ -29,7 +29,6 @@ import {
   isWindowsAbsolutePath,
 } from "../shared/avatar-policy.js";
 import { isCanonicalDottedDecimalIPv4, isLoopbackIpAddress } from "../shared/net/ip.js";
-import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { isRecord } from "../utils.js";
 import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from "./agent-dirs.js";
 import { appendAllowedValuesHint, summarizeAllowedValues } from "./allowed-values.js";
@@ -1013,54 +1012,6 @@ function validateConfigObjectWithPluginsBase(
         continue;
       }
       replaceChannelConfig(trimmed, result.value);
-    }
-  }
-
-  const heartbeatChannelIds = new Set<string>();
-  for (const channelId of CHANNEL_IDS) {
-    heartbeatChannelIds.add(normalizeLowercaseStringOrEmpty(channelId));
-  }
-
-  const validateHeartbeatTarget = (target: string | undefined, path: string) => {
-    if (typeof target !== "string") {
-      return;
-    }
-    const trimmed = target.trim();
-    if (!trimmed) {
-      issues.push({ path, message: "heartbeat target must not be empty" });
-      return;
-    }
-    const normalized = normalizeLowercaseStringOrEmpty(trimmed);
-    if (normalized === "last" || normalized === "none") {
-      return;
-    }
-    if (normalizeChatChannelId(trimmed)) {
-      return;
-    }
-    if (!heartbeatChannelIds.has(normalized)) {
-      const { registry } = ensureRegistry();
-      for (const record of registry.plugins) {
-        for (const channelId of record.channels) {
-          const pluginChannel = channelId.trim();
-          if (pluginChannel) {
-            heartbeatChannelIds.add(normalizeLowercaseStringOrEmpty(pluginChannel));
-          }
-        }
-      }
-    }
-    if (heartbeatChannelIds.has(normalized)) {
-      return;
-    }
-    issues.push({ path, message: `unknown heartbeat target: ${target}` });
-  };
-
-  validateHeartbeatTarget(
-    config.agents?.defaults?.heartbeat?.target,
-    "agents.defaults.heartbeat.target",
-  );
-  if (Array.isArray(config.agents?.list)) {
-    for (const [index, entry] of config.agents.list.entries()) {
-      validateHeartbeatTarget(entry?.heartbeat?.target, `agents.list.${index}.heartbeat.target`);
     }
   }
 

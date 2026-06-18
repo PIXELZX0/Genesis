@@ -25,13 +25,11 @@ import {
   normalizeRpcAttachmentsToChatAttachments,
   parseMessageWithAttachments,
   registerApnsRegistration,
-  requestHeartbeatNow,
   resolveGatewayModelSupportsImages,
   resolveOutboundTarget,
   resolveSessionAgentId,
   resolveSessionModelRef,
   sanitizeInboundSystemTags,
-  scopedHeartbeatWakeOptions,
   updateSessionStore,
 } from "./server-node-events.runtime.js";
 
@@ -584,14 +582,11 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
         }
       }
 
-      const queued = enqueueSystemEvent(summary, {
+      enqueueSystemEvent(summary, {
         sessionKey,
         contextKey: `notification:${keyRaw}`,
         trusted: false,
       });
-      if (queued) {
-        requestHeartbeatNow({ reason: "notifications-event", sessionKey });
-      }
       return;
     }
     case "chat.subscribe": {
@@ -684,19 +679,11 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
         }
       }
 
-      const queued = enqueueSystemEvent(text, {
+      enqueueSystemEvent(text, {
         sessionKey,
         contextKey: runId ? `exec:${runId}` : "exec",
         trusted: false,
       });
-      if (queued) {
-        // Scope wakes only for canonical agent sessions. Synthetic node-* fallback
-        // keys should keep legacy unscoped behavior so enabled non-main heartbeat
-        // agents still run when no explicit agent session is provided.
-        requestHeartbeatNow(
-          scopedHeartbeatWakeOptions(sessionKey, { reason: "exec-event", coalesceMs: 0 }),
-        );
-      }
       return;
     }
     case "push.apns.register": {

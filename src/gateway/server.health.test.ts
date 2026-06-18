@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { emitAgentEvent } from "../infra/agent-events.js";
-import { emitHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import { startGatewayServerHarness, type GatewayServerHarness } from "./server.e2e-ws-harness.js";
 import { installGatewayTestHooks, onceMessage } from "./test-helpers.js";
@@ -51,61 +50,6 @@ describe("gateway server health/presence", () => {
       ws.close();
     },
   );
-
-  test("broadcasts heartbeat events and serves last-heartbeat", async () => {
-    type HeartbeatPayload = {
-      ts: number;
-      status: string;
-      to?: string;
-      preview?: string;
-      durationMs?: number;
-      hasMedia?: boolean;
-      reason?: string;
-    };
-    type EventFrame = {
-      type: "event";
-      event: string;
-      payload?: HeartbeatPayload | null;
-    };
-
-    const { ws } = await harness.openClient();
-
-    const waitHeartbeat = onceMessage<EventFrame>(
-      ws,
-      (o) => o.type === "event" && o.event === "heartbeat",
-    );
-    emitHeartbeatEvent({ status: "sent", to: "+123", preview: "ping" });
-    const evt = await waitHeartbeat;
-    expect(evt.payload?.status).toBe("sent");
-    expect(typeof evt.payload?.ts).toBe("number");
-
-    ws.send(
-      JSON.stringify({
-        type: "req",
-        id: "hb-last",
-        method: "last-heartbeat",
-      }),
-    );
-    const last = await onceMessage(ws, (o) => o.type === "res" && o.id === "hb-last");
-    expect(last.ok).toBe(true);
-    const lastPayload = last.payload as HeartbeatPayload | null | undefined;
-    expect(lastPayload?.status).toBe("sent");
-    expect(lastPayload?.ts).toBe(evt.payload?.ts);
-
-    ws.send(
-      JSON.stringify({
-        type: "req",
-        id: "hb-toggle-off",
-        method: "set-heartbeats",
-        params: { enabled: false },
-      }),
-    );
-    const toggle = await onceMessage(ws, (o) => o.type === "res" && o.id === "hb-toggle-off");
-    expect(toggle.ok).toBe(true);
-    expect((toggle.payload as { enabled?: boolean } | undefined)?.enabled).toBe(false);
-
-    ws.close();
-  });
 
   test(
     "presence events carry seq + stateVersion",

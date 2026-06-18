@@ -1,4 +1,3 @@
-import type { HeartbeatEventPayload } from "../infra/heartbeat-events.js";
 import type { Tone } from "../memory-host-sdk/status.js";
 import type { PluginCompatibilityNotice } from "../plugins/status.js";
 import type { buildStatusCommandOverviewRows } from "./status-overview-rows.ts";
@@ -137,15 +136,6 @@ export const baseStatusPluginCompatibility = [
   { pluginId: "a", severity: "warn", message: "legacy" },
 ] as PluginCompatibilityNotice[];
 
-export function createStatusLastHeartbeat(): HeartbeatEventPayload {
-  return {
-    ts: Date.now() - 30_000,
-    status: "ok-token",
-    channel: "quietchat",
-    accountId: "acct",
-  };
-}
-
 export function createStatusHealth() {
   return {
     ok: true as const,
@@ -206,7 +196,6 @@ export function createStatusCommandOverviewRowsParams(
     osLabel: "macOS",
     summary: baseStatusSummary,
     health: createStatusHealth(),
-    lastHeartbeat: createStatusLastHeartbeat(),
     agentStatus: baseStatusAgentStatus,
     memory: baseStatusMemory,
     memoryPlugin: baseStatusMemoryPlugin,
@@ -241,7 +230,6 @@ export function createStatusCommandReportDataParams(
     },
     health: createStatusHealth(),
     usageLines: ["usage line"],
-    lastHeartbeat: createStatusLastHeartbeat(),
     agentStatus: baseStatusAgentStatus,
     channels: {
       rows: [{ id: "quietchat", label: "QuietChat", enabled: true, state: "ok", detail: "ready" }],

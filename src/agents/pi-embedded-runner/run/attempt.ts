@@ -7,7 +7,6 @@ import {
   DefaultResourceLoader,
   SessionManager,
 } from "@earendil-works/pi-coding-agent";
-import { filterHeartbeatPairs } from "../../../auto-reply/heartbeat-filter.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import { emitDiagnosticEvent } from "../../../infra/diagnostic-events.js";
 import {
@@ -17,7 +16,6 @@ import {
 } from "../../../infra/diagnostic-trace-context.js";
 import { isEmbeddedMode } from "../../../infra/embedded-mode.js";
 import { formatErrorMessage } from "../../../infra/errors.js";
-import { resolveHeartbeatSummaryForAgent } from "../../../infra/heartbeat-summary.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
@@ -74,7 +72,6 @@ import {
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
 import { resolveGenesisDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
-import { resolveHeartbeatPromptForSystemPrompt } from "../../heartbeat-system-prompt.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { buildModelAliasLines } from "../../model-alias-lines.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
@@ -256,7 +253,6 @@ import {
   hasPromptSubmissionContent,
   shouldRunPreemptiveContextPrecheck,
   shouldWarnOnOrphanedUserRepair,
-  shouldInjectHeartbeatPrompt,
 } from "./attempt.prompt-helpers.js";
 import {
   createYieldAbortedResponse,
@@ -322,7 +318,6 @@ export {
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   shouldWarnOnOrphanedUserRepair,
-  shouldInjectHeartbeatPrompt,
 } from "./attempt.prompt-helpers.js";
 export {
   buildSessionsYieldContextMessage,
@@ -817,7 +812,7 @@ export async function runEmbeddedAttempt(
       );
     }
 
-    const { defaultAgentId } = resolveSessionAgentIds({
+    const { defaultAgentId: _defaultAgentId } = resolveSessionAgentIds({
       sessionKey: params.sessionKey,
       config: params.config,
       agentId: params.agentId,
@@ -1048,7 +1043,6 @@ export async function runEmbeddedAttempt(
         channelActions,
       },
     });
-    const isDefaultAgent = sessionAgentId === defaultAgentId;
     const promptMode = resolvePromptModeForSession(params.sessionKey);
 
     // When toolsAllow is set, use minimal prompt and strip skills catalog
@@ -1062,19 +1056,6 @@ export async function runEmbeddedAttempt(
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
-    const heartbeatPrompt = shouldInjectHeartbeatPrompt({
-      config: params.config,
-      agentId: sessionAgentId,
-      defaultAgentId,
-      isDefaultAgent,
-      trigger: params.trigger,
-    })
-      ? resolveHeartbeatPromptForSystemPrompt({
-          config: params.config,
-          agentId: sessionAgentId,
-          defaultAgentId,
-        })
-      : undefined;
     const promptContributionContext = {
       config: params.config,
       agentDir: params.agentDir,
@@ -1109,7 +1090,6 @@ export async function runEmbeddedAttempt(
         ownerDisplay: ownerDisplay.ownerDisplay,
         ownerDisplaySecret: ownerDisplay.ownerDisplaySecret,
         reasoningTagHint,
-        heartbeatPrompt,
         skillsPrompt: effectiveSkillsPrompt,
         docsPath: docsPath ?? undefined,
         ttsHint,
@@ -1848,17 +1828,8 @@ export async function runEmbeddedAttempt(
           sessionId: params.sessionId,
           policy: transcriptPolicy,
         });
-        const heartbeatSummary =
-          params.config && sessionAgentId
-            ? resolveHeartbeatSummaryForAgent(params.config, sessionAgentId)
-            : undefined;
-        const heartbeatFiltered = filterHeartbeatPairs(
-          validated,
-          heartbeatSummary?.ackMaxChars,
-          heartbeatSummary?.prompt,
-        );
         const truncated = limitHistoryTurns(
-          heartbeatFiltered,
+          validated,
           getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
         );
         // Re-run tool_use/tool_result pairing repair after truncation, since
@@ -2186,9 +2157,6 @@ export async function runEmbeddedAttempt(
         let effectivePrompt = prependBootstrapPromptWarning(
           params.prompt,
           bootstrapPromptWarning.lines,
-          {
-            preserveExactPrompt: heartbeatPrompt,
-          },
         );
         if (userPromptPrefixText) {
           effectivePrompt = `${userPromptPrefixText}\n\n${effectivePrompt}`;
@@ -2346,10 +2314,6 @@ export async function runEmbeddedAttempt(
         }
         const transcriptLeafId =
           (sessionManager.getLeafEntry() as { id?: string } | null | undefined)?.id ?? null;
-        const heartbeatSummary =
-          params.config && sessionAgentId
-            ? resolveHeartbeatSummaryForAgent(params.config, sessionAgentId)
-            : undefined;
 
         try {
           // Idempotent cleanup: prune old image blocks to limit context
@@ -2358,15 +2322,6 @@ export async function runEmbeddedAttempt(
           const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
           if (didPruneImages) {
             activeSession.agent.state.messages = activeSession.messages;
-          }
-
-          const filteredMessages = filterHeartbeatPairs(
-            activeSession.messages,
-            heartbeatSummary?.ackMaxChars,
-            heartbeatSummary?.prompt,
-          );
-          if (filteredMessages.length < activeSession.messages.length) {
-            activeSession.agent.state.messages = filteredMessages;
           }
           prePromptMessageCount = activeSession.messages.length;
 

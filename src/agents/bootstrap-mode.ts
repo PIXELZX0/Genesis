@@ -2,7 +2,7 @@ export type BootstrapMode = "full" | "limited" | "none";
 
 export function resolveBootstrapMode(params: {
   bootstrapPending: boolean;
-  runKind?: "default" | "heartbeat" | "cron";
+  runKind?: "default" | "cron";
   isInteractiveUserFacing: boolean;
   isPrimaryRun: boolean;
   isCanonicalWorkspace: boolean;
@@ -11,7 +11,7 @@ export function resolveBootstrapMode(params: {
   if (!params.bootstrapPending) {
     return "none";
   }
-  if (params.runKind === "heartbeat" || params.runKind === "cron") {
+  if (params.runKind === "cron") {
     return "none";
   }
   if (!params.isPrimaryRun || !params.isInteractiveUserFacing) {

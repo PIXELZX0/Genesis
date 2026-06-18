@@ -70,7 +70,6 @@ describe("CronService - session reaper runs in finally block (#31946)", () => {
       log: noopLogger,
       nowMs: () => now,
       enqueueSystemEvent: vi.fn(),
-      requestHeartbeatNow: vi.fn(),
       // This will throw, simulating a failure during job execution.
       runIsolatedAgentJob: vi.fn().mockRejectedValue(new Error("gateway down")),
       sessionStorePath,
@@ -109,7 +108,6 @@ describe("CronService - session reaper runs in finally block (#31946)", () => {
       log: noopLogger,
       nowMs: () => now,
       enqueueSystemEvent: vi.fn(),
-      requestHeartbeatNow: vi.fn(),
       runIsolatedAgentJob: vi.fn().mockResolvedValue({ status: "ok", summary: "done" }),
       resolveSessionStorePath: (agentId) => {
         const p = path.join(path.dirname(store.storePath), `${agentId}-sessions`, "sessions.json");
@@ -156,7 +154,6 @@ describe("CronService - session reaper runs in finally block (#31946)", () => {
       log: noopLogger,
       nowMs: () => now,
       enqueueSystemEvent: vi.fn(),
-      requestHeartbeatNow: vi.fn(),
       runIsolatedAgentJob: vi.fn(),
       sessionStorePath,
     });

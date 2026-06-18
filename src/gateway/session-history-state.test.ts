@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vitest";
-import { HEARTBEAT_PROMPT } from "../auto-reply/heartbeat.js";
 import { buildSessionHistorySnapshot, SessionHistorySseState } from "./session-history-state.js";
 import * as sessionUtils from "./session-utils.js";
 
@@ -141,89 +140,5 @@ describe("SessionHistorySseState", () => {
         __genesis: { seq: 2 },
       },
     ]);
-  });
-
-  test("hides heartbeat prompt and ok acknowledgements from visible history", () => {
-    const snapshot = buildSessionHistorySnapshot({
-      rawMessages: [
-        {
-          role: "user",
-          content: `${HEARTBEAT_PROMPT}\nWhen reading HEARTBEAT.md, use workspace file /tmp/HEARTBEAT.md (exact case). Do not read docs/heartbeat.md.`,
-          __genesis: { seq: 1 },
-        },
-        {
-          role: "assistant",
-          content: [{ type: "text", text: "HEARTBEAT_OK" }],
-          __genesis: { seq: 2 },
-        },
-        {
-          role: "user",
-          content: HEARTBEAT_PROMPT,
-          __genesis: { seq: 3 },
-        },
-        {
-          role: "assistant",
-          content: [{ type: "text", text: "Disk usage crossed 95 percent." }],
-          __genesis: { seq: 4 },
-        },
-      ],
-    });
-
-    expect(snapshot.history.messages).toEqual([
-      {
-        role: "assistant",
-        content: [{ type: "text", text: "Disk usage crossed 95 percent." }],
-        __genesis: { seq: 4 },
-      },
-    ]);
-    expect(snapshot.rawTranscriptSeq).toBe(4);
-  });
-
-  test("does not append heartbeat or internal-only SSE messages", () => {
-    const state = SessionHistorySseState.fromRawSnapshot({
-      target: { sessionId: "sess-main" },
-      rawMessages: [
-        {
-          role: "assistant",
-          content: [{ type: "text", text: "already visible" }],
-          __genesis: { seq: 1 },
-        },
-      ],
-    });
-
-    expect(
-      state.appendInlineMessage({
-        message: {
-          role: "user",
-          content: HEARTBEAT_PROMPT,
-        },
-      }),
-    ).toBeNull();
-    expect(
-      state.appendInlineMessage({
-        message: {
-          role: "assistant",
-          content: [{ type: "text", text: "HEARTBEAT_OK" }],
-        },
-      }),
-    ).toBeNull();
-    expect(
-      state.appendInlineMessage({
-        message: {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: [
-                "<<<BEGIN_GENESIS_INTERNAL_CONTEXT>>>",
-                "runtime details",
-                "<<<END_GENESIS_INTERNAL_CONTEXT>>>",
-              ].join("\n"),
-            },
-          ],
-        },
-      }),
-    ).toBeNull();
-    expect(state.snapshot().messages).toHaveLength(1);
   });
 });

@@ -43,7 +43,7 @@ export type HookAction =
   | {
       kind: "wake";
       text: string;
-      mode: "now" | "next-heartbeat";
+      mode: "now";
     }
   | {
       kind: "agent";
@@ -89,7 +89,7 @@ const transformCache = new Map<string, HookTransformFn>();
 type HookTransformResult = Partial<{
   kind: HookAction["kind"];
   text: string;
-  mode: "now" | "next-heartbeat";
+  mode: "now";
   message: string;
   agentId: string;
   wakeMode: "now" | "next-heartbeat";
@@ -253,7 +253,7 @@ function buildActionFromMapping(
       action: {
         kind: "wake",
         text,
-        mode: mapping.wakeMode ?? "now",
+        mode: "now",
       },
     };
   }
@@ -291,7 +291,7 @@ function mergeAction(
   if (kind === "wake") {
     const baseWake = base.kind === "wake" ? base : undefined;
     const text = typeof override.text === "string" ? override.text : (baseWake?.text ?? "");
-    const mode = override.mode === "next-heartbeat" ? "next-heartbeat" : (baseWake?.mode ?? "now");
+    const mode = "now";
     return validateAction({ kind: "wake", text, mode });
   }
   const baseAgent = base.kind === "agent" ? base : undefined;

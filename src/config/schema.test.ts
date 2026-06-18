@@ -10,7 +10,6 @@ describe("config schema", () => {
   let pluginUiHintInput: SchemaInput;
   let tokenHintInput: SchemaInput;
   let mergedSchemaInput: SchemaInput;
-  let heartbeatChannelInput: SchemaInput;
   let cachedMergeInput: SchemaInput;
 
   beforeAll(() => {
@@ -61,15 +60,6 @@ describe("config schema", () => {
               accessToken: { type: "string" },
             },
           },
-        },
-      ],
-    };
-    heartbeatChannelInput = {
-      channels: [
-        {
-          id: "bluebubbles",
-          label: "BlueBubbles",
-          configSchema: { type: "object" },
         },
       ],
     };
@@ -201,16 +191,6 @@ describe("config schema", () => {
       path: "plugins.entries.pack/one.config.provider",
       type: "string",
     });
-  });
-
-  it("adds heartbeat target hints with dynamic channels", () => {
-    const res = buildConfigSchema(heartbeatChannelInput);
-
-    const defaultsHint = res.uiHints["agents.defaults.heartbeat.target"];
-    const listHint = res.uiHints["agents.list.*.heartbeat.target"];
-    expect(defaultsHint?.help).toContain("bluebubbles");
-    expect(defaultsHint?.help).toContain("last");
-    expect(listHint?.help).toContain("bluebubbles");
   });
 
   it("caches merged schemas for identical plugin/channel metadata", () => {

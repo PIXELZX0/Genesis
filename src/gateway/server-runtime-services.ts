@@ -1,6 +1,5 @@
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { isVitestRuntimeEnv } from "../infra/env.js";
-import { startHeartbeatRunner, type HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { ChannelHealthMonitor } from "./channel-health-monitor.js";
 import { startChannelHealthMonitor } from "./channel-health-monitor.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
@@ -17,13 +16,6 @@ type GatewayRuntimeServiceLogger = {
 export type GatewayChannelManager = Parameters<
   typeof startChannelHealthMonitor
 >[0]["channelManager"];
-
-function createNoopHeartbeatRunner(): HeartbeatRunner {
-  return {
-    stop: () => {},
-    updateConfig: (_cfg: GenesisConfig) => {},
-  };
-}
 
 export function startGatewayChannelHealthMonitor(params: {
   cfg: GenesisConfig;
@@ -94,7 +86,6 @@ export function startGatewayRuntimeServices(params: {
   channelManager: GatewayChannelManager;
   log: GatewayRuntimeServiceLogger;
 }): {
-  heartbeatRunner: HeartbeatRunner;
   channelHealthMonitor: ChannelHealthMonitor | null;
   stopModelPricingRefresh: () => void;
 } {
@@ -104,7 +95,6 @@ export function startGatewayRuntimeServices(params: {
   });
 
   return {
-    heartbeatRunner: createNoopHeartbeatRunner(),
     channelHealthMonitor,
     stopModelPricingRefresh:
       !params.minimalTestGateway && !isVitestRuntimeEnv()
@@ -121,11 +111,10 @@ export function activateGatewayScheduledServices(params: {
   cron: { start: () => Promise<void> };
   logCron: { error: (message: string) => void };
   log: GatewayRuntimeServiceLogger;
-}): { heartbeatRunner: HeartbeatRunner } {
+}): void {
   if (params.minimalTestGateway) {
-    return { heartbeatRunner: createNoopHeartbeatRunner() };
+    return;
   }
-  const heartbeatRunner = startHeartbeatRunner({ cfg: params.cfgAtStart });
   startGatewayCronWithLogging({
     cron: params.cron,
     logCron: params.logCron,
@@ -139,5 +128,4 @@ export function activateGatewayScheduledServices(params: {
     log: params.log,
     maxEnqueuedAt: params.sessionDeliveryRecoveryMaxEnqueuedAt,
   });
-  return { heartbeatRunner };
 }

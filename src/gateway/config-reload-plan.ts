@@ -16,7 +16,6 @@ export type GatewayReloadPlan = {
   reloadHooks: boolean;
   restartGmailWatcher: boolean;
   restartCron: boolean;
-  restartHeartbeat: boolean;
   restartHealthMonitor: boolean;
   restartChannels: Set<ChannelKind>;
   noopPaths: string[];
@@ -32,7 +31,6 @@ type ReloadAction =
   | "reload-hooks"
   | "restart-gmail-watcher"
   | "restart-cron"
-  | "restart-heartbeat"
   | "restart-health-monitor"
   | `restart-channel:${ChannelId}`;
 
@@ -65,32 +63,22 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
   { prefix: "hooks", kind: "hot", actions: ["reload-hooks"] },
   { prefix: "agents.defaults.skills", kind: "none" },
   {
-    prefix: "agents.defaults.heartbeat",
-    kind: "hot",
-    actions: ["restart-heartbeat"],
-  },
-  {
     prefix: "agents.defaults.models",
     kind: "hot",
-    actions: ["restart-heartbeat"],
   },
   {
     prefix: "agents.defaults.model",
     kind: "hot",
-    actions: ["restart-heartbeat"],
   },
   {
     prefix: "models",
     kind: "hot",
-    actions: ["restart-heartbeat"],
   },
   { prefix: "agents.list[].skills", kind: "none" },
   {
     prefix: "agents.list",
     kind: "hot",
-    actions: ["restart-heartbeat"],
   },
-  { prefix: "agent.heartbeat", kind: "hot", actions: ["restart-heartbeat"] },
   { prefix: "cron", kind: "hot", actions: ["restart-cron"] },
   // MCP server definitions are consumed per session by the embedded runner's
   // bundle MCP runtime, which is keyed on a config fingerprint and disposes +
@@ -312,7 +300,6 @@ export function buildGatewayReloadPlan(
     reloadHooks: false,
     restartGmailWatcher: false,
     restartCron: false,
-    restartHeartbeat: false,
     restartHealthMonitor: false,
     restartChannels: new Set(),
     noopPaths: [],
@@ -333,9 +320,6 @@ export function buildGatewayReloadPlan(
         break;
       case "restart-cron":
         plan.restartCron = true;
-        break;
-      case "restart-heartbeat":
-        plan.restartHeartbeat = true;
         break;
       case "restart-health-monitor":
         plan.restartHealthMonitor = true;
@@ -388,7 +372,6 @@ export function isNoopGatewayReloadPlan(plan: GatewayReloadPlan): boolean {
     !plan.reloadHooks &&
     !plan.restartGmailWatcher &&
     !plan.restartCron &&
-    !plan.restartHeartbeat &&
     !plan.restartHealthMonitor &&
     plan.restartChannels.size === 0
   );

@@ -840,8 +840,7 @@ async function finalizeCronRun(params: {
     });
 
   const skipHeartbeatDelivery =
-    prepared.deliveryRequested &&
-    isHeartbeatOnlyResponse(payloads, resolveHeartbeatAckMaxChars(prepared.agentCfg));
+    prepared.deliveryRequested && isHeartbeatOnlyResponse(payloads, resolveHeartbeatAckMaxChars());
   const {
     dispatchCronDelivery,
     matchesMessagingToolDeliveryTarget,

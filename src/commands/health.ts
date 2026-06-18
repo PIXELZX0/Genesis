@@ -11,7 +11,6 @@ import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { info } from "../globals.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { formatErrorMessage } from "../infra/errors.js";
-import { resolveHeartbeatSummaryForAgent } from "../infra/heartbeat-summary.js";
 import { buildChannelAccountBindings, resolvePreferredAccountId } from "../routing/bindings.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
@@ -50,38 +49,6 @@ const debugHealth = (...args: unknown[]) => {
     console.warn("[health:debug]", ...args);
   }
 };
-
-const formatDurationParts = (ms: number): string => {
-  if (!Number.isFinite(ms)) {
-    return "unknown";
-  }
-  if (ms < 1000) {
-    return `${Math.max(0, Math.round(ms))}ms`;
-  }
-  const units: Array<{ label: string; size: number }> = [
-    { label: "w", size: 7 * 24 * 60 * 60 * 1000 },
-    { label: "d", size: 24 * 60 * 60 * 1000 },
-    { label: "h", size: 60 * 60 * 1000 },
-    { label: "m", size: 60 * 1000 },
-    { label: "s", size: 1000 },
-  ];
-  let remaining = Math.max(0, Math.floor(ms));
-  const parts: string[] = [];
-  for (const unit of units) {
-    const value = Math.floor(remaining / unit.size);
-    if (value > 0) {
-      parts.push(`${value}${unit.label}`);
-      remaining -= value * unit.size;
-    }
-  }
-  if (parts.length === 0) {
-    return "0s";
-  }
-  return parts.join(" ");
-};
-
-const resolveHeartbeatSummary = (cfg: GenesisConfig, agentId: string) =>
-  resolveHeartbeatSummaryForAgent(cfg, agentId);
 
 const resolveAgentOrder = (cfg: GenesisConfig) => {
   const defaultAgentId = resolveDefaultAgentId(cfg);
@@ -231,14 +198,10 @@ export async function getHealthSnapshot(params?: {
       agentId: entry.id,
       name: entry.name,
       isDefault: entry.id === defaultAgentId,
-      heartbeat: resolveHeartbeatSummary(cfg, entry.id),
       sessions,
     });
   }
   const defaultAgent = agents.find((agent) => agent.isDefault) ?? agents[0];
-  const heartbeatSeconds = defaultAgent?.heartbeat.everyMs
-    ? Math.round(defaultAgent.heartbeat.everyMs / 1000)
-    : 0;
   const sessions =
     defaultAgent?.sessions ??
     (await buildSessionSummary(resolveStorePath(cfg.session?.store, { agentId: defaultAgentId })));
@@ -380,7 +343,6 @@ export async function getHealthSnapshot(params?: {
     channels,
     channelOrder,
     channelLabels,
-    heartbeatSeconds,
     defaultAgentId,
     agents,
     sessions: {
@@ -439,7 +401,6 @@ export async function healthCommand(
         agentId: entry.id,
         name: entry.name,
         isDefault: entry.id === localAgents.defaultAgentId,
-        heartbeat: resolveHeartbeatSummary(cfg, entry.id),
         sessions: await buildSessionSummary(storePath),
       });
     }
@@ -601,16 +562,6 @@ export async function healthCommand(
         agent.isDefault ? `${agent.agentId} (default)` : agent.agentId,
       );
       runtime.log(info(`Agents: ${agentLabels.join(", ")}`));
-    }
-    const heartbeatParts = displayAgents
-      .map((agent) => {
-        const everyMs = agent.heartbeat?.everyMs;
-        const label = everyMs ? formatDurationParts(everyMs) : "disabled";
-        return `${label} (${agent.agentId})`;
-      })
-      .filter(Boolean);
-    if (heartbeatParts.length > 0) {
-      runtime.log(info(`Heartbeat interval: ${heartbeatParts.join(", ")}`));
     }
     if (displayAgents.length === 0) {
       runtime.log(

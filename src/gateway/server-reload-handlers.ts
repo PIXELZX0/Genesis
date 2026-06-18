@@ -8,7 +8,6 @@ import type { GenesisConfig } from "../config/types.genesis.js";
 import { startGmailWatcherWithLogs } from "../hooks/gmail-watcher-lifecycle.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { isTruthyEnvValue } from "../infra/env.js";
-import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
 import {
   deferGatewayRestartUntilIdle,
@@ -47,7 +46,6 @@ import { resolveHookClientIpConfig } from "./server/hooks.js";
 type GatewayHotReloadState = {
   hooksConfig: ReturnType<typeof resolveHooksConfig>;
   hookClientIpConfig: HookClientIpConfig;
-  heartbeatRunner: HeartbeatRunner;
   cronState: GatewayCronState;
   channelHealthMonitor: ChannelHealthMonitor | null;
 };
@@ -126,10 +124,6 @@ export function createGatewayReloadHandlers(params: GatewayReloadHandlerParams) 
       }
     }
     nextState.hookClientIpConfig = resolveHookClientIpConfig(nextConfig);
-
-    if (plan.restartHeartbeat) {
-      nextState.heartbeatRunner.updateConfig(nextConfig);
-    }
 
     resetDirectoryCache();
 

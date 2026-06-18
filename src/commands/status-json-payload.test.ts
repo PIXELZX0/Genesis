@@ -78,7 +78,6 @@ describe("status-json-payload", () => {
         securityAudit: { summary: { critical: 1 } },
         health: { ok: true },
         usage: { providers: [] },
-        lastHeartbeat: { status: "ok" },
         pluginCompatibility: [
           {
             pluginId: "legacy",
@@ -119,7 +118,6 @@ describe("status-json-payload", () => {
       securityAudit: { summary: { critical: 1 } },
       health: { ok: true },
       usage: { providers: [] },
-      lastHeartbeat: { status: "ok" },
       pluginCompatibility: {
         count: 1,
         warnings: [

@@ -51,9 +51,6 @@ const CONTEXT_FILE_ORDER = new Map<string, number>([
   ["memory.md", 70],
 ]);
 
-const DYNAMIC_CONTEXT_FILE_BASENAMES = new Set(["heartbeat.md"]);
-const DEFAULT_HEARTBEAT_PROMPT_CONTEXT_BLOCK =
-  "Default heartbeat prompt:\n`Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`";
 function normalizeContextFilePath(pathValue: string): string {
   return pathValue.trim().replace(/\\/g, "/");
 }
@@ -61,17 +58,6 @@ function normalizeContextFilePath(pathValue: string): string {
 function getContextFileBasename(pathValue: string): string {
   const normalizedPath = normalizeContextFilePath(pathValue);
   return normalizeLowercaseStringOrEmpty(normalizedPath.split("/").pop() ?? normalizedPath);
-}
-
-function isDynamicContextFile(pathValue: string): boolean {
-  return DYNAMIC_CONTEXT_FILE_BASENAMES.has(getContextFileBasename(pathValue));
-}
-
-function sanitizeContextFileContentForPrompt(content: string): string {
-  // Claude Code subscription mode rejects this exact prompt-policy quote when it
-  // appears in system context. The live heartbeat user turn still carries the
-  // actual instruction, and the generated heartbeat section below covers behavior.
-  return content.replaceAll(DEFAULT_HEARTBEAT_PROMPT_CONTEXT_BLOCK, "").replace(/\n{3,}/g, "\n\n");
 }
 
 function sortContextFilesForPrompt(contextFiles: EmbeddedContextFile[]): EmbeddedContextFile[] {
@@ -92,49 +78,23 @@ function sortContextFilesForPrompt(contextFiles: EmbeddedContextFile[]): Embedde
   });
 }
 
-function buildProjectContextSection(params: {
-  files: EmbeddedContextFile[];
-  heading: string;
-  dynamic: boolean;
-}) {
+function buildProjectContextSection(params: { files: EmbeddedContextFile[]; heading: string }) {
   if (params.files.length === 0) {
     return [];
   }
   const lines = [params.heading, ""];
-  if (params.dynamic) {
+  const hasSoulFile = params.files.some((file) => getContextFileBasename(file.path) === "soul.md");
+  lines.push("The following project context files have been loaded:");
+  if (hasSoulFile) {
     lines.push(
-      "The following frequently-changing project context files are kept below the cache boundary when possible:",
-      "",
+      "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
     );
-  } else {
-    const hasSoulFile = params.files.some(
-      (file) => getContextFileBasename(file.path) === "soul.md",
-    );
-    lines.push("The following project context files have been loaded:");
-    if (hasSoulFile) {
-      lines.push(
-        "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
-      );
-    }
-    lines.push("");
   }
+  lines.push("");
   for (const file of params.files) {
-    lines.push(`## ${file.path}`, "", sanitizeContextFileContentForPrompt(file.content), "");
+    lines.push(`## ${file.path}`, "", file.content, "");
   }
   return lines;
-}
-
-function buildHeartbeatSection(params: { isMinimal: boolean; heartbeatPrompt?: string }) {
-  if (params.isMinimal || !params.heartbeatPrompt) {
-    return [];
-  }
-  return [
-    "## Heartbeats",
-    "If the current user message is a heartbeat poll and nothing needs attention, reply exactly:",
-    "HEARTBEAT_OK",
-    'If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the alert text instead.',
-    "",
-  ];
 }
 
 function buildExecApprovalPromptGuidance(params: {
@@ -441,7 +401,6 @@ export function buildAgentSystemPrompt(params: {
   userTimeFormat?: ResolvedTimeFormat;
   contextFiles?: EmbeddedContextFile[];
   skillsPrompt?: string;
-  heartbeatPrompt?: string;
   docsPath?: string;
   workspaceNotes?: string[];
   ttsHint?: string;
@@ -617,7 +576,6 @@ export function buildAgentSystemPrompt(params: {
   const reasoningLevel = params.reasoningLevel ?? "off";
   const userTimezone = params.userTimezone?.trim();
   const skillsPrompt = params.skillsPrompt?.trim();
-  const heartbeatPrompt = params.heartbeatPrompt?.trim();
   const runtimeInfo = params.runtimeInfo;
   const runtimeChannel = normalizeOptionalLowercaseString(runtimeInfo?.channel);
   const runtimeCapabilities = runtimeInfo?.capabilities ?? [];
@@ -913,13 +871,10 @@ export function buildAgentSystemPrompt(params: {
     (file) => typeof file.path === "string" && file.path.trim().length > 0,
   );
   const orderedContextFiles = sortContextFilesForPrompt(validContextFiles);
-  const stableContextFiles = orderedContextFiles.filter((file) => !isDynamicContextFile(file.path));
-  const dynamicContextFiles = orderedContextFiles.filter((file) => isDynamicContextFile(file.path));
   lines.push(
     ...buildProjectContextSection({
-      files: stableContextFiles,
+      files: orderedContextFiles,
       heading: "# Project Context",
-      dynamic: false,
     }),
   );
 
@@ -946,14 +901,6 @@ export function buildAgentSystemPrompt(params: {
   // additions and volatile project context below it are the primary cache invalidators.
   lines.push(SYSTEM_PROMPT_CACHE_BOUNDARY);
 
-  lines.push(
-    ...buildProjectContextSection({
-      files: dynamicContextFiles,
-      heading: stableContextFiles.length > 0 ? "# Dynamic Project Context" : "# Project Context",
-      dynamic: true,
-    }),
-  );
-
   if (extraSystemPrompt) {
     // Use "Subagent Context" header for minimal mode (subagents), otherwise "Group Chat Context"
     const contextHeader =
@@ -963,8 +910,6 @@ export function buildAgentSystemPrompt(params: {
   if (providerDynamicSuffix) {
     lines.push(providerDynamicSuffix, "");
   }
-
-  lines.push(...buildHeartbeatSection({ isMinimal, heartbeatPrompt }));
 
   lines.push(
     "## Runtime",

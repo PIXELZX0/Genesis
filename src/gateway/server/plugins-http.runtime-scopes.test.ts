@@ -59,7 +59,7 @@ function assertWriteHelperAllowed() {
 
 function assertAdminHelperAllowed() {
   const scopes = getPluginRuntimeGatewayRequestScope()?.client?.connect?.scopes ?? [];
-  const auth = authorizeOperatorScopesForMethod("set-heartbeats", scopes);
+  const auth = authorizeOperatorScopesForMethod("config.get", scopes);
   if (!auth.allowed) {
     throw new Error(`missing scope: ${auth.missingScope}`);
   }

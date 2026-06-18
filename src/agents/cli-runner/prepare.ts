@@ -25,7 +25,6 @@ import {
 import { CLI_AUTH_EPOCH_VERSION, resolveCliAuthEpoch } from "../cli-auth-epoch.js";
 import { resolveCliBackendConfig } from "../cli-backends.js";
 import { hashCliSessionText, resolveCliSessionReuse } from "../cli-session.js";
-import { resolveHeartbeatPromptForSystemPrompt } from "../heartbeat-system-prompt.js";
 import {
   resolveBootstrapMaxChars,
   resolveBootstrapPromptTruncationWarningMode,
@@ -154,7 +153,7 @@ export async function prepareCliRunContext(
     seenSignatures: params.bootstrapPromptWarningSignaturesSeen,
     previousSignature: params.bootstrapPromptWarningSignature,
   });
-  const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
+  const { sessionAgentId } = resolveSessionAgentIds({
     sessionKey: params.sessionKey,
     config: params.config,
     agentId: params.agentId,
@@ -259,11 +258,6 @@ export async function prepareCliRunContext(
       `cli session reset: provider=${params.provider} reason=${reusableCliSession.invalidatedReason}`,
     );
   }
-  const heartbeatPrompt = resolveHeartbeatPromptForSystemPrompt({
-    config: params.config,
-    agentId: sessionAgentId,
-    defaultAgentId,
-  });
   const docsPath = await prepareDeps.resolveGenesisDocsPath({
     workspaceDir,
     argv1: process.argv[1],
@@ -287,7 +281,6 @@ export async function prepareCliRunContext(
       defaultThinkLevel: params.thinkLevel,
       extraSystemPrompt,
       ownerNumbers: params.ownerNumbers,
-      heartbeatPrompt,
       docsPath: docsPath ?? undefined,
       skillsPrompt,
       tools: [],
@@ -391,7 +384,6 @@ export async function prepareCliRunContext(
     systemPrompt,
     systemPromptReport,
     bootstrapPromptWarningLines: bootstrapPromptWarning.lines,
-    heartbeatPrompt,
     authEpoch,
     authEpochVersion: CLI_AUTH_EPOCH_VERSION,
     extraSystemPromptHash,

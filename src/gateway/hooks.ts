@@ -199,15 +199,12 @@ export function normalizeHookHeaders(req: IncomingMessage) {
 
 export function normalizeWakePayload(
   payload: Record<string, unknown>,
-):
-  | { ok: true; value: { text: string; mode: "now" | "next-heartbeat" } }
-  | { ok: false; error: string } {
+): { ok: true; value: { text: string; mode: "now" } } | { ok: false; error: string } {
   const normalizedText = normalizeOptionalString(payload.text) ?? "";
   if (!normalizedText) {
     return { ok: false, error: "text required" };
   }
-  const mode = payload.mode === "next-heartbeat" ? "next-heartbeat" : "now";
-  return { ok: true, value: { text: normalizedText, mode } };
+  return { ok: true, value: { text: normalizedText, mode: "now" } };
 }
 
 export type HookAgentPayload = {

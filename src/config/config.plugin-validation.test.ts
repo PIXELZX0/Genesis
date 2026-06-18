@@ -553,12 +553,9 @@ describe("config plugin validation", () => {
     }
   });
 
-  it("accepts known plugin ids and valid channel/heartbeat enums", async () => {
+  it("accepts known plugin ids", async () => {
     const res = validateInSuite({
-      agents: {
-        defaults: { heartbeat: { target: "last", directPolicy: "block" } },
-        list: [{ id: "pi", heartbeat: { directPolicy: "allow" } }],
-      },
+      agents: { list: [{ id: "pi" }] },
       channels: {
         modelByChannel: {
           openai: {
@@ -571,42 +568,11 @@ describe("config plugin validation", () => {
     expect(res.ok).toBe(true);
   });
 
-  it("accepts plugin heartbeat targets", async () => {
+  it("accepts plugin channels", async () => {
     const res = validateInSuite({
-      agents: { defaults: { heartbeat: { target: "bluebubbles" } }, list: [{ id: "pi" }] },
+      agents: { list: [{ id: "pi" }] },
       plugins: { enabled: false, load: { paths: [bluebubblesPluginDir] } },
     });
     expect(res.ok).toBe(true);
-  });
-
-  it("rejects unknown heartbeat targets", async () => {
-    const res = validateInSuite({
-      agents: {
-        defaults: { heartbeat: { target: "not-a-channel" } },
-        list: [{ id: "pi" }],
-      },
-    });
-    expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.issues).toContainEqual({
-        path: "agents.defaults.heartbeat.target",
-        message: "unknown heartbeat target: not-a-channel",
-      });
-    }
-  });
-
-  it("rejects invalid heartbeat directPolicy values", async () => {
-    const res = validateInSuite({
-      agents: {
-        defaults: { heartbeat: { directPolicy: "maybe" } },
-        list: [{ id: "pi" }],
-      },
-    });
-    expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(
-        res.issues.some((issue) => issue.path === "agents.defaults.heartbeat.directPolicy"),
-      ).toBe(true);
-    }
   });
 });

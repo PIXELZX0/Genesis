@@ -1,6 +1,5 @@
 import { resolveReadOnlyChannelPluginsForConfig } from "../channels/plugins/read-only.js";
 import type { GenesisConfig } from "../config/types.js";
-import type { HeartbeatEventPayload } from "../infra/heartbeat-events.js";
 import type { HealthSummary } from "./health.js";
 import { getDaemonStatusSummary, getNodeDaemonStatusSummary } from "./status.daemon.js";
 
@@ -89,30 +88,12 @@ export async function resolveStatusGatewayHealthSafe(params: {
   }).catch((err) => ({ error: String(err) }));
 }
 
-export async function resolveStatusLastHeartbeat(params: {
-  config: GenesisConfig;
-  timeoutMs?: number;
-  gatewayReachable: boolean;
-}) {
-  if (!params.gatewayReachable) {
-    return null;
-  }
-  const { callGateway } = await loadGatewayCallModule();
-  return await callGateway<HeartbeatEventPayload | null>({
-    method: "last-heartbeat",
-    params: {},
-    timeoutMs: params.timeoutMs,
-    config: params.config,
-  }).catch(() => null);
-}
-
 export async function resolveStatusServiceSummaries() {
   return await Promise.all([getDaemonStatusSummary(), getNodeDaemonStatusSummary()]);
 }
 
 type StatusUsageSummary = Awaited<ReturnType<typeof resolveStatusUsageSummary>>;
 type StatusGatewayHealth = Awaited<ReturnType<typeof resolveStatusGatewayHealth>>;
-type StatusLastHeartbeat = Awaited<ReturnType<typeof resolveStatusLastHeartbeat>>;
 type StatusGatewayServiceSummary = Awaited<ReturnType<typeof getDaemonStatusSummary>>;
 type StatusNodeServiceSummary = Awaited<ReturnType<typeof getNodeDaemonStatusSummary>>;
 type StatusSecurityAudit = Awaited<ReturnType<typeof resolveStatusSecurityAudit>>;
@@ -144,25 +125,16 @@ export async function resolveStatusRuntimeDetails(params: {
           timeoutMs: params.timeoutMs,
         })
     : undefined;
-  const lastHeartbeat = params.deep
-    ? await resolveStatusLastHeartbeat({
-        config: params.config,
-        timeoutMs: params.timeoutMs,
-        gatewayReachable: params.gatewayReachable,
-      })
-    : null;
   const [gatewayService, nodeService] = await resolveStatusServiceSummaries();
   const result = {
     usage,
     health,
-    lastHeartbeat,
     gatewayService,
     nodeService,
   };
   return result satisfies {
     usage?: StatusUsageSummary;
     health?: StatusGatewayHealth;
-    lastHeartbeat: StatusLastHeartbeat;
     gatewayService: StatusGatewayServiceSummary;
     nodeService: StatusNodeServiceSummary;
   };
@@ -210,7 +182,6 @@ export async function resolveStatusRuntimeSnapshot(params: {
     securityAudit?: StatusSecurityAudit;
     usage?: StatusUsageSummary;
     health?: StatusGatewayHealth;
-    lastHeartbeat: StatusLastHeartbeat;
     gatewayService: StatusGatewayServiceSummary;
     nodeService: StatusNodeServiceSummary;
   };

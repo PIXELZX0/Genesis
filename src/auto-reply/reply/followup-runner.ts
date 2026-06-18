@@ -21,7 +21,7 @@ import { emitAgentEvent, registerAgentRunContext } from "../../infra/agent-event
 import { formatErrorMessage } from "../../infra/errors.js";
 import { defaultRuntime } from "../../runtime.js";
 import { isInternalMessageChannel } from "../../utils/message-channel.js";
-import { stripHeartbeatToken } from "../heartbeat.js";
+import { stripHeartbeatToken } from "../tokens.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { runPreflightCompactionIfNeeded } from "./agent-runner-memory.js";
 import {
@@ -65,7 +65,6 @@ export function createFollowupRunner(params: {
   const typingSignals = createTypingSignaler({
     typing,
     mode: typingMode,
-    isHeartbeat: opts?.isHeartbeat === true,
   });
 
   /**
@@ -253,7 +252,6 @@ export function createFollowupRunner(params: {
         sessionStore,
         sessionKey,
         storePath,
-        isHeartbeat: opts?.isHeartbeat === true,
         replyOperation,
       });
       let bootstrapPromptWarningSignaturesSeen = resolveBootstrapWarningSignaturesSeen(

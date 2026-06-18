@@ -1,6 +1,5 @@
 import type { Mock } from "vitest";
 import { beforeEach, vi } from "vitest";
-import type { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import type { enqueueSystemEvent } from "../infra/system-events.js";
 import type { getProcessSupervisor } from "../process/supervisor/index.js";
 import { setCliRunnerExecuteTestDeps } from "./cli-runner/execute.js";
@@ -11,7 +10,6 @@ import type { WorkspaceBootstrapFile } from "./workspace.js";
 type ProcessSupervisor = ReturnType<typeof getProcessSupervisor>;
 type SupervisorSpawnFn = ProcessSupervisor["spawn"];
 type EnqueueSystemEventFn = typeof enqueueSystemEvent;
-type RequestHeartbeatNowFn = typeof requestHeartbeatNow;
 type UnknownMock = Mock<(...args: unknown[]) => unknown>;
 type BootstrapContext = {
   bootstrapFiles: WorkspaceBootstrapFile[];
@@ -21,7 +19,6 @@ type ResolveBootstrapContextForRunMock = Mock<() => Promise<BootstrapContext>>;
 
 export const supervisorSpawnMock: UnknownMock = vi.fn();
 export const enqueueSystemEventMock: UnknownMock = vi.fn();
-export const requestHeartbeatNowMock: UnknownMock = vi.fn();
 
 const hoisted = vi.hoisted(
   (): {
@@ -49,8 +46,6 @@ setCliRunnerExecuteTestDeps({
     text: Parameters<EnqueueSystemEventFn>[0],
     options: Parameters<EnqueueSystemEventFn>[1],
   ) => enqueueSystemEventMock(text, options) as ReturnType<EnqueueSystemEventFn>,
-  requestHeartbeatNow: (options?: Parameters<RequestHeartbeatNowFn>[0]) =>
-    requestHeartbeatNowMock(options) as ReturnType<RequestHeartbeatNowFn>,
 });
 
 setCliRunnerPrepareTestDeps({

@@ -3,9 +3,7 @@ import path from "node:path";
 import { readAcpSessionEntry } from "../acp/runtime/session-meta.js";
 import { resolveSessionFilePath, resolveSessionFilePathOptions } from "../config/sessions/paths.js";
 import { onAgentEvent } from "../infra/agent-events.js";
-import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
-import { scopedHeartbeatWakeOptions } from "../routing/session-key.js";
 import { normalizeAssistantPhase } from "../shared/chat-message-content.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { recordTaskRunProgressByRunId } from "../tasks/detached-task-runtime.js";
@@ -177,16 +175,6 @@ export function startAcpSpawnParentStreamRelay(params: {
     });
   };
   const shouldSurfaceUpdates = params.surfaceUpdates !== false;
-  const wake = () => {
-    if (!shouldSurfaceUpdates) {
-      return;
-    }
-    requestHeartbeatNow(
-      scopedHeartbeatWakeOptions(parentSessionKey, {
-        reason: "acp:spawn:stream",
-      }),
-    );
-  };
   const emit = (text: string, contextKey: string) => {
     const cleaned = text.trim();
     if (!cleaned) {
@@ -202,7 +190,6 @@ export function startAcpSpawnParentStreamRelay(params: {
       deliveryContext: params.deliveryContext,
       trusted: false,
     });
-    wake();
   };
   const emitStartNotice = () => {
     recordTaskRunProgressByRunId({

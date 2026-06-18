@@ -134,7 +134,6 @@ async function resolveHelloWithModelDefaults(params: {
     aliasIndex: { byAlias: new Map(), byKey: new Map() },
     provider: "openai",
     model: "gpt-4o-mini",
-    hasResolvedHeartbeatModelOverride: false,
     typing: makeTypingController(),
     opts: undefined,
     skillFilter: undefined,
@@ -307,7 +306,6 @@ describe("resolveReplyDirectives", () => {
       aliasIndex: { byAlias: new Map(), byKey: new Map() },
       provider: "openai",
       model: "gpt-4o-mini",
-      hasResolvedHeartbeatModelOverride: false,
       typing: {
         onReplyStart: async () => {},
         startTypingLoop: async () => {},
@@ -398,7 +396,6 @@ describe("resolveReplyDirectives", () => {
       aliasIndex: { byAlias: new Map(), byKey: new Map() },
       provider: "openai",
       model: "gpt-4o-mini",
-      hasResolvedHeartbeatModelOverride: false,
       typing: makeTypingController(),
       opts: undefined,
       skillFilter: undefined,

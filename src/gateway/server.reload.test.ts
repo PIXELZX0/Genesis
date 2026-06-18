@@ -421,7 +421,7 @@ describe("gateway hot reload", () => {
           gmail: { account: "me@example.com" },
         },
         cron: { enabled: true, store: "/tmp/cron.json" },
-        agents: { defaults: { heartbeat: { every: "1m" }, maxConcurrent: 2 } },
+        agents: { defaults: { maxConcurrent: 2 } },
         web: { enabled: true },
         channels: {
           telegram: { botToken: "token" },
@@ -436,7 +436,6 @@ describe("gateway hot reload", () => {
           changedPaths: [
             "hooks.gmail.account",
             "cron.enabled",
-            "agents.defaults.heartbeat.every",
             "web.enabled",
             "channels.telegram.botToken",
             "channels.discord.token",
@@ -449,7 +448,6 @@ describe("gateway hot reload", () => {
           reloadHooks: true,
           restartGmailWatcher: true,
           restartCron: true,
-          restartHeartbeat: true,
           restartChannels: new Set(["whatsapp", "telegram", "discord", "signal", "imessage"]),
           noopPaths: [],
         },
@@ -458,12 +456,6 @@ describe("gateway hot reload", () => {
 
       expect(hoisted.stopGmailWatcher).toHaveBeenCalled();
       expect(hoisted.startGmailWatcher).toHaveBeenCalledWith(expect.objectContaining(nextConfig));
-
-      expect(hoisted.startHeartbeatRunner).toHaveBeenCalledTimes(1);
-      expect(hoisted.heartbeatUpdateConfig).toHaveBeenCalledTimes(1);
-      expect(hoisted.heartbeatUpdateConfig).toHaveBeenCalledWith(
-        expect.objectContaining(nextConfig),
-      );
 
       expect(hoisted.cronInstances.length).toBe(2);
       expect(hoisted.cronInstances[0].stop).toHaveBeenCalledTimes(1);
@@ -497,7 +489,6 @@ describe("gateway hot reload", () => {
           reloadHooks: false,
           restartGmailWatcher: false,
           restartCron: false,
-          restartHeartbeat: false,
           restartChannels: new Set(),
           noopPaths: [],
         },

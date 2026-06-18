@@ -96,8 +96,6 @@ export type AgentConfig = {
   /** Optional per-agent overrides for selected context/token-heavy limits. */
   contextLimits?: AgentContextLimitsConfig;
   contextTokens?: number;
-  /** Optional per-agent heartbeat overrides. */
-  heartbeat?: AgentDefaultsConfig["heartbeat"];
   identity?: IdentityConfig;
   groupChat?: GroupChatConfig;
   subagents?: {

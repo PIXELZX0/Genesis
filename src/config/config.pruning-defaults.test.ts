@@ -4,10 +4,9 @@ import { clearBundledProviderPolicySurfaceCache } from "../plugins/provider-publ
 import type { GenesisConfig } from "./config.js";
 import { applyProviderConfigDefaultsForConfig } from "./provider-policy.js";
 
-function expectAnthropicPruningDefaults(cfg: GenesisConfig, heartbeatEvery = "30m") {
+function expectAnthropicPruningDefaults(cfg: GenesisConfig) {
   expect(cfg.agents?.defaults?.contextPruning?.mode).toBe("cache-ttl");
   expect(cfg.agents?.defaults?.contextPruning?.ttl).toBe("1h");
-  expect(cfg.agents?.defaults?.heartbeat?.every).toBe(heartbeatEvery);
 }
 
 function applyAnthropicDefaultsForTest(config: GenesisConfig) {
@@ -34,7 +33,7 @@ describe("config pruning defaults", () => {
     expect(cfg.agents?.defaults?.contextPruning?.mode).toBeUndefined();
   });
 
-  it("enables cache-ttl pruning + 1h heartbeat for Anthropic OAuth", async () => {
+  it("enables cache-ttl pruning + 1h cache TTL for Anthropic OAuth", async () => {
     const cfg = applyAnthropicDefaultsForTest({
       auth: {
         profiles: {
@@ -44,7 +43,7 @@ describe("config pruning defaults", () => {
       agents: { defaults: {} },
     });
 
-    expectAnthropicPruningDefaults(cfg, "1h");
+    expectAnthropicPruningDefaults(cfg);
   });
 
   it("enables cache-ttl pruning + 1h cache TTL for Anthropic API keys", async () => {

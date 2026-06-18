@@ -1,9 +1,9 @@
 import { hasOutboundReplyContent } from "genesis/plugin-sdk/reply-payload";
-import { DEFAULT_HEARTBEAT_ACK_MAX_CHARS } from "../../auto-reply/heartbeat.js";
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { truncateUtf16Safe } from "../../utils.js";
-import { shouldSkipHeartbeatOnlyDelivery } from "../heartbeat-policy.js";
+
+const DEFAULT_HEARTBEAT_ACK_MAX_CHARS = 300;
 
 type DeliveryPayload = Pick<
   ReplyPayload,
@@ -123,15 +123,33 @@ export function pickDeliverablePayloads(payloads: DeliveryPayload[]): DeliveryPa
 
 /**
  * Check if delivery should be skipped because the agent signaled no user-visible update.
- * Returns true when any payload is a heartbeat ack token and no payload contains media.
+ * Heartbeat ack suppression was removed; this always returns false.
  */
-export function isHeartbeatOnlyResponse(payloads: DeliveryPayload[], ackMaxChars: number) {
-  return shouldSkipHeartbeatOnlyDelivery(payloads, ackMaxChars);
+export function isHeartbeatOnlyResponse(_payloads: DeliveryPayload[], _ackMaxChars: number) {
+  return false;
 }
 
-export function resolveHeartbeatAckMaxChars(agentCfg?: { heartbeat?: { ackMaxChars?: number } }) {
-  const raw = agentCfg?.heartbeat?.ackMaxChars ?? DEFAULT_HEARTBEAT_ACK_MAX_CHARS;
-  return Math.max(0, raw);
+export function resolveHeartbeatAckMaxChars(_agentCfg?: unknown) {
+  return DEFAULT_HEARTBEAT_ACK_MAX_CHARS;
+}
+
+export function shouldEnqueueCronMainSummary(params: {
+  summaryText: string | undefined;
+  deliveryRequested: boolean;
+  delivered: boolean | undefined;
+  deliveryAttempted: boolean | undefined;
+  suppressMainSummary: boolean;
+  isCronSystemEvent: (text: string) => boolean;
+}): boolean {
+  const summaryText = params.summaryText?.trim();
+  return Boolean(
+    summaryText &&
+    params.isCronSystemEvent(summaryText) &&
+    params.deliveryRequested &&
+    !params.delivered &&
+    params.deliveryAttempted !== true &&
+    !params.suppressMainSummary,
+  );
 }
 
 export function resolveCronPayloadOutcome(params: {

@@ -135,16 +135,10 @@ export function shouldUseReplyFastTestRuntime(params: {
 export function shouldUseReplyFastDirectiveExecution(params: {
   isFastTestBootstrap: boolean;
   isGroup: boolean;
-  isHeartbeat: boolean;
   resetTriggered: boolean;
   triggerBodyNormalized: string;
 }): boolean {
-  if (
-    !params.isFastTestBootstrap ||
-    params.isGroup ||
-    params.isHeartbeat ||
-    params.resetTriggered
-  ) {
+  if (!params.isFastTestBootstrap || params.isGroup || params.resetTriggered) {
     return false;
   }
   return !params.triggerBodyNormalized.includes("/");

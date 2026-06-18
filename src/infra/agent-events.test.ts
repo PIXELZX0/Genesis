@@ -105,13 +105,11 @@ describe("agent-events sequencing", () => {
     });
     registerAgentRunContext("run-ctx", {
       verboseLevel: "full",
-      isHeartbeat: true,
     });
 
     expect(getAgentRunContext("run-ctx")).toMatchObject({
       sessionKey: "session-main",
       verboseLevel: "full",
-      isHeartbeat: true,
       isControlUiVisible: true,
     });
   });

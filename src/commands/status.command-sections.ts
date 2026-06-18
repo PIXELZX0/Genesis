@@ -3,7 +3,6 @@ import {
   describePairingConnectRequirement,
   type ConnectPairingRequiredReason,
 } from "../gateway/protocol/connect-error-details.js";
-import type { HeartbeatEventPayload } from "../infra/heartbeat-events.js";
 import type { Tone } from "../memory-host-sdk/status.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import type { TableColumn } from "../terminal/table.js";
@@ -19,7 +18,7 @@ type AgentStatusLike = {
   agents: AgentLocalStatus[];
 };
 
-type SummaryLike = Pick<StatusSummary, "tasks" | "taskAudit" | "heartbeat" | "sessions">;
+type SummaryLike = Pick<StatusSummary, "tasks" | "taskAudit" | "sessions">;
 type MemoryLike = MemoryStatusSnapshot | null;
 type MemoryPluginLike = MemoryPluginStatus;
 type SessionsRecentLike = SessionStatus;
@@ -96,45 +95,6 @@ export function buildStatusTasksValue(params: {
         : params.muted("audit clean"),
     `${params.summary.tasks.total} tracked`,
   ].join(" · ");
-}
-
-export function buildStatusHeartbeatValue(params: { summary: Pick<SummaryLike, "heartbeat"> }) {
-  const parts = params.summary.heartbeat.agents
-    .map((agent) => {
-      if (!agent.enabled || !agent.everyMs) {
-        return `disabled (${agent.agentId})`;
-      }
-      return `${agent.every} (${agent.agentId})`;
-    })
-    .filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "disabled";
-}
-
-export function buildStatusLastHeartbeatValue(params: {
-  deep?: boolean;
-  gatewayReachable: boolean;
-  lastHeartbeat: HeartbeatEventPayload | null;
-  warn: (value: string) => string;
-  muted: (value: string) => string;
-  formatTimeAgo: (ageMs: number) => string;
-}) {
-  if (!params.deep) {
-    return null;
-  }
-  if (!params.gatewayReachable) {
-    return params.warn("unavailable");
-  }
-  if (!params.lastHeartbeat) {
-    return params.muted("none");
-  }
-  const age = params.formatTimeAgo(Date.now() - params.lastHeartbeat.ts);
-  const channel = params.lastHeartbeat.channel ?? "unknown";
-  const accountLabel = params.lastHeartbeat.accountId
-    ? `account ${params.lastHeartbeat.accountId}`
-    : null;
-  return [params.lastHeartbeat.status, `${age} ago`, channel, accountLabel]
-    .filter(Boolean)
-    .join(" · ");
 }
 
 export function buildStatusMemoryValue(

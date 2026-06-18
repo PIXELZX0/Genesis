@@ -2,17 +2,6 @@ import { describe, expect, it } from "vitest";
 import { resolveRunTypingPolicy } from "./typing-policy.js";
 
 describe("resolveRunTypingPolicy", () => {
-  it("forces heartbeat policy for heartbeat runs", () => {
-    const resolved = resolveRunTypingPolicy({
-      requestedPolicy: "user_message",
-      isHeartbeat: true,
-    });
-    expect(resolved).toEqual({
-      typingPolicy: "heartbeat",
-      suppressTyping: true,
-    });
-  });
-
   it("forces internal webchat policy", () => {
     const resolved = resolveRunTypingPolicy({
       requestedPolicy: "user_message",

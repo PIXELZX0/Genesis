@@ -1,6 +1,5 @@
 import { resolveFailoverReasonFromError } from "../../agents/failover-error.js";
 import type { CronConfig, CronRetryOn } from "../../config/types.cron.js";
-import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import { DEFAULT_AGENT_ID } from "../../routing/session-key.js";
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
 import {
@@ -378,9 +377,6 @@ function emitFailureAlert(
   }
 
   state.deps.enqueueSystemEvent(text, { agentId: params.job.agentId });
-  if (params.job.wakeMode === "now") {
-    state.deps.requestHeartbeatNow({ reason: `cron:${params.job.id}:failure-alert` });
-  }
 }
 
 /**
@@ -1182,7 +1178,7 @@ async function executeMainSessionCronJob(
   state: CronServiceState,
   job: CronJob,
   abortSignal: AbortSignal | undefined,
-  waitWithAbort: (ms: number) => Promise<void>,
+  _waitWithAbort: (ms: number) => Promise<void>,
 ): Promise<
   CronRunOutcome &
     CronRunTelemetry & {
@@ -1203,79 +1199,13 @@ async function executeMainSessionCronJob(
     };
   }
   const targetMainSessionKey = job.sessionKey;
+  if (abortSignal?.aborted) {
+    return { status: "error", error: timeoutErrorMessage() };
+  }
   state.deps.enqueueSystemEvent(text, {
     agentId: job.agentId,
     sessionKey: targetMainSessionKey,
     contextKey: `cron:${job.id}`,
-  });
-  if (job.wakeMode === "now" && state.deps.runHeartbeatOnce) {
-    const reason = `cron:${job.id}`;
-    const isRecurringJob = job.schedule.kind !== "at";
-    const maxWaitMs = state.deps.wakeNowHeartbeatBusyMaxWaitMs ?? 2 * 60_000;
-    const retryDelayMs = state.deps.wakeNowHeartbeatBusyRetryDelayMs ?? 250;
-    const waitStartedAt = state.deps.nowMs();
-
-    let heartbeatResult: HeartbeatRunResult;
-    for (;;) {
-      if (abortSignal?.aborted) {
-        return { status: "error", error: timeoutErrorMessage() };
-      }
-      heartbeatResult = await state.deps.runHeartbeatOnce({
-        reason,
-        agentId: job.agentId,
-        sessionKey: targetMainSessionKey,
-        heartbeat: { target: "last" },
-      });
-      if (heartbeatResult.status !== "skipped" || heartbeatResult.reason !== "requests-in-flight") {
-        break;
-      }
-      if (isRecurringJob) {
-        // Recurring main-session cron jobs should not hold the cron lane open
-        // while the main lane is busy, or their measured duration starts to
-        // reflect queue wait instead of cron bookkeeping (#58833).
-        state.deps.requestHeartbeatNow({
-          reason,
-          agentId: job.agentId,
-          sessionKey: targetMainSessionKey,
-          heartbeat: { target: "last" },
-        });
-        return { status: "ok", summary: text };
-      }
-      if (abortSignal?.aborted) {
-        return { status: "error", error: timeoutErrorMessage() };
-      }
-      if (state.deps.nowMs() - waitStartedAt > maxWaitMs) {
-        if (abortSignal?.aborted) {
-          return { status: "error", error: timeoutErrorMessage() };
-        }
-        state.deps.requestHeartbeatNow({
-          reason,
-          agentId: job.agentId,
-          sessionKey: targetMainSessionKey,
-          heartbeat: { target: "last" },
-        });
-        return { status: "ok", summary: text };
-      }
-      await waitWithAbort(retryDelayMs);
-    }
-
-    if (heartbeatResult.status === "ran") {
-      return { status: "ok", summary: text };
-    }
-    if (heartbeatResult.status === "skipped") {
-      return { status: "skipped", error: heartbeatResult.reason, summary: text };
-    }
-    return { status: "error", error: heartbeatResult.reason, summary: text };
-  }
-
-  if (abortSignal?.aborted) {
-    return { status: "error", error: timeoutErrorMessage() };
-  }
-  state.deps.requestHeartbeatNow({
-    reason: `cron:${job.id}`,
-    agentId: job.agentId,
-    sessionKey: targetMainSessionKey,
-    heartbeat: { target: "last" },
   });
   return { status: "ok", summary: text };
 }
@@ -1406,18 +1336,12 @@ function emitJobFinished(
   });
 }
 
-export function wake(
-  state: CronServiceState,
-  opts: { mode: "now" | "next-heartbeat"; text: string },
-) {
+export function wake(state: CronServiceState, opts: { mode: "now"; text: string }) {
   const text = opts.text.trim();
   if (!text) {
     return { ok: false } as const;
   }
   state.deps.enqueueSystemEvent(text);
-  if (opts.mode === "now") {
-    state.deps.requestHeartbeatNow({ reason: "wake" });
-  }
   return { ok: true } as const;
 }
 

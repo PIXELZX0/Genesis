@@ -4,7 +4,7 @@ import { buildAgentUserPromptPrefix } from "../../system-prompt.js";
 
 export type AttemptBootstrapRoutingInput = {
   workspaceBootstrapPending: boolean;
-  bootstrapContextRunKind?: "default" | "heartbeat" | "cron";
+  bootstrapContextRunKind?: "default" | "cron";
   trigger?: string;
   sessionKey?: string;
   isPrimaryRun: boolean;

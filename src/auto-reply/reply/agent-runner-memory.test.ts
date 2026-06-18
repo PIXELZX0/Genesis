@@ -138,7 +138,6 @@ describe("runMemoryFlushIfNeeded", () => {
       sessionStore,
       sessionKey,
       storePath,
-      isHeartbeat: false,
       replyOperation: createReplyOperation(),
     });
 
@@ -187,7 +186,6 @@ describe("runMemoryFlushIfNeeded", () => {
       sessionEntry,
       sessionStore: { main: sessionEntry },
       sessionKey: "main",
-      isHeartbeat: false,
       replyOperation: createReplyOperation(),
     });
 
@@ -230,7 +228,6 @@ describe("runMemoryFlushIfNeeded", () => {
       sessionStore: { "agent:main:main": sessionEntry },
       sessionKey: "agent:main:main",
       runtimePolicySessionKey: "agent:main:telegram:default:direct:12345",
-      isHeartbeat: false,
       replyOperation: createReplyOperation(),
     });
 
@@ -275,7 +272,6 @@ describe("runMemoryFlushIfNeeded", () => {
       sessionKey: "agent:main:main",
       runtimePolicySessionKey: "agent:main:telegram:default:direct:12345",
       storePath: path.join(rootDir, "sessions.json"),
-      isHeartbeat: false,
       replyOperation: createReplyOperation(),
     });
 
@@ -330,7 +326,6 @@ describe("runMemoryFlushIfNeeded", () => {
       sessionEntry,
       sessionStore: { main: sessionEntry },
       sessionKey: "main",
-      isHeartbeat: false,
       replyOperation: createReplyOperation(),
     });
 

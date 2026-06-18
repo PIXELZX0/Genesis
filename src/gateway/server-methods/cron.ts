@@ -128,7 +128,7 @@ export const cronHandlers: GatewayRequestHandlers = {
       return;
     }
     const p = params as {
-      mode: "now" | "next-heartbeat";
+      mode: "now";
       text: string;
     };
     const result = context.cron.wake({ mode: p.mode, text: p.text });

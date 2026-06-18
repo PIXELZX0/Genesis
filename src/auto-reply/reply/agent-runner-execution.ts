@@ -53,7 +53,6 @@ import {
   resolveMessageChannel,
 } from "../../utils/message-channel.js";
 import { isInternalMessageChannel } from "../../utils/message-channel.js";
-import { stripHeartbeatToken } from "../heartbeat.js";
 import type { TemplateContext } from "../templating.js";
 import type { VerboseLevel } from "../thinking.js";
 import {
@@ -62,6 +61,7 @@ import {
   isSilentReplyText,
   SILENT_REPLY_TOKEN,
   startsWithSilentToken,
+  stripHeartbeatToken,
   stripLeadingSilentToken,
 } from "../tokens.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
@@ -465,11 +465,9 @@ function applyOpenAIGptChatReplyGuard(params: {
   provider?: string;
   model?: string;
   commandBody: string;
-  isHeartbeat: boolean;
   payloads?: ReplyPayload[];
 }): void {
   if (
-    params.isHeartbeat ||
     !shouldApplyOpenAIGptChatGuard({
       provider: params.provider,
       model: params.model,
@@ -592,7 +590,6 @@ export async function runAgentTurnWithFallback(params: {
   pendingToolTasks: Set<Promise<void>>;
   resetSessionAfterCompactionFailure: (reason: string) => Promise<boolean>;
   resetSessionAfterRoleOrderingConflict: (reason: string) => Promise<boolean>;
-  isHeartbeat: boolean;
   sessionKey?: string;
   runtimePolicySessionKey?: string;
   getActiveSessionEntry: () => SessionEntry | undefined;
@@ -676,7 +673,6 @@ export async function runAgentTurnWithFallback(params: {
     registerAgentRunContext(runId, {
       sessionKey: params.sessionKey,
       verboseLevel: params.resolvedVerboseLevel,
-      isHeartbeat: params.isHeartbeat,
       isControlUiVisible: shouldSurfaceToControlUi,
     });
   }
@@ -816,7 +812,7 @@ export async function runAgentTurnWithFallback(params: {
         if (params.followupRun.run.silentExpected) {
           return { skip: true };
         }
-        if (!params.isHeartbeat && text?.includes("HEARTBEAT_OK")) {
+        if (text?.includes("HEARTBEAT_OK")) {
           const stripped = stripHeartbeatToken(text, {
             mode: "message",
           });
@@ -977,7 +973,7 @@ export async function runAgentTurnWithFallback(params: {
                   sessionId: params.followupRun.run.sessionId,
                   sessionKey: params.sessionKey,
                   agentId: params.followupRun.run.agentId,
-                  trigger: params.isHeartbeat ? "heartbeat" : "user",
+                  trigger: "user",
                   sessionFile: params.followupRun.run.sessionFile,
                   workspaceDir: params.followupRun.run.workspaceDir,
                   config: runtimeConfig,
@@ -1095,7 +1091,7 @@ export async function runAgentTurnWithFallback(params: {
               const result = await runEmbeddedPiAgent({
                 ...embeddedContext,
                 allowGatewaySubagentBinding: true,
-                trigger: params.isHeartbeat ? "heartbeat" : "user",
+                trigger: "user",
                 groupId: resolveGroupSessionKey(params.sessionCtx)?.id,
                 groupChannel:
                   normalizeOptionalString(params.sessionCtx.GroupChannel) ??
@@ -1124,7 +1120,7 @@ export async function runAgentTurnWithFallback(params: {
                 })(),
                 suppressToolErrorWarnings: params.opts?.suppressToolErrorWarnings,
                 bootstrapContextMode: params.opts?.bootstrapContextMode,
-                bootstrapContextRunKind: params.opts?.isHeartbeat ? "heartbeat" : "default",
+                bootstrapContextRunKind: "default",
                 images: params.opts?.images,
                 imageOrder: params.opts?.imageOrder,
                 abortSignal: params.replyOperation?.abortSignal ?? params.opts?.abortSignal,
@@ -1702,7 +1698,6 @@ export async function runAgentTurnWithFallback(params: {
       provider: fallbackProvider,
       model: fallbackModel,
       commandBody: params.commandBody,
-      isHeartbeat: params.isHeartbeat,
       payloads: runResult.payloads,
     });
   }

@@ -1,17 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { stripInternalRuntimeContext } from "../../agents/internal-runtime-context.js";
-import { isHeartbeatUserMessage } from "../../auto-reply/heartbeat-filter.js";
-import { HEARTBEAT_PROMPT } from "../../auto-reply/heartbeat.js";
 import { stripInboundMetadata } from "../../auto-reply/reply/strip-inbound-meta.js";
-import { HEARTBEAT_TOKEN, isSilentReplyPayloadText } from "../../auto-reply/tokens.js";
+import { isSilentReplyPayloadText } from "../../auto-reply/tokens.js";
 import {
   isSessionArchiveArtifactName,
   isUsageCountedSessionTranscriptFileName,
 } from "../../config/sessions/artifacts.js";
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
 import { loadSessionStore } from "../../config/sessions/store-load.js";
-import { isExecCompletionEvent } from "../../infra/heartbeat-events-filter.js";
 import { redactSensitiveText } from "../../logging/redact.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { isCronRunSessionKey } from "../../sessions/session-key-utils.js";
@@ -358,10 +355,6 @@ function isGeneratedCronPromptMessage(text: string, role: "user" | "assistant"):
   return DIRECT_CRON_PROMPT_RE.test(text);
 }
 
-function isGeneratedHeartbeatPromptMessage(text: string, role: "user" | "assistant"): boolean {
-  return role === "user" && isHeartbeatUserMessage({ role, content: text }, HEARTBEAT_PROMPT);
-}
-
 function sanitizeSessionText(text: string, role: "user" | "assistant"): string | null {
   const strippedInbound = stripInboundMetadataForUserRole(text, role);
   const strippedInternal = stripInternalRuntimeContext(strippedInbound);
@@ -375,21 +368,7 @@ function sanitizeSessionText(text: string, role: "user" | "assistant"): string |
   if (isGeneratedCronPromptMessage(normalized, role)) {
     return null;
   }
-  if (isGeneratedHeartbeatPromptMessage(normalized, role)) {
-    return null;
-  }
   if (isSilentReplyPayloadText(normalized)) {
-    return null;
-  }
-  // Assistant-side machinery acks: HEARTBEAT_OK is the canonical "all clear,
-  // nothing to do" reply to a heartbeat tick. Drop on the assistant side
-  // directly so we do not have to rely on cross-message coupling with the
-  // preceding user message (which a real user could spoof).
-  if (role === "assistant" && normalized === HEARTBEAT_TOKEN) {
-    return null;
-  }
-  const withoutSystemEnvelope = normalized.replace(GENERATED_SYSTEM_MESSAGE_RE, "").trim();
-  if (isExecCompletionEvent(withoutSystemEnvelope)) {
     return null;
   }
   return normalized;

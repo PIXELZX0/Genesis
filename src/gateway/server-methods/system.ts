@@ -3,8 +3,6 @@ import {
   loadOrCreateDeviceIdentity,
   publicKeyRawBase64UrlFromPem,
 } from "../../infra/device-identity.js";
-import { getLastHeartbeatEvent } from "../../infra/heartbeat-events.js";
-import { setHeartbeatsEnabled } from "../../infra/heartbeat-runner.js";
 import { enqueueSystemEvent, isSystemEventContextChanged } from "../../infra/system-events.js";
 import { listSystemPresence, updateSystemPresence } from "../../infra/system-presence.js";
 import {
@@ -27,25 +25,6 @@ export const systemHandlers: GatewayRequestHandlers = {
       },
       undefined,
     );
-  },
-  "last-heartbeat": ({ respond }) => {
-    respond(true, getLastHeartbeatEvent(), undefined);
-  },
-  "set-heartbeats": ({ params, respond }) => {
-    const enabled = params.enabled;
-    if (typeof enabled !== "boolean") {
-      respond(
-        false,
-        undefined,
-        errorShape(
-          ErrorCodes.INVALID_REQUEST,
-          "invalid set-heartbeats params: enabled (boolean) required",
-        ),
-      );
-      return;
-    }
-    setHeartbeatsEnabled(enabled);
-    respond(true, { ok: true, enabled }, undefined);
   },
   "system-presence": ({ respond }) => {
     const presence = listSystemPresence();

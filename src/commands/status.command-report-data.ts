@@ -1,5 +1,4 @@
 import type { ConnectPairingRequiredReason } from "../gateway/protocol/connect-error-details.js";
-import type { HeartbeatEventPayload } from "../infra/heartbeat-events.js";
 import type { resolveOsSummary } from "../infra/os-summary.js";
 import type { PluginCompatibilityNotice } from "../plugins/status.js";
 import type { SecurityAuditReport } from "../security/audit.js";
@@ -39,7 +38,6 @@ export async function buildStatusCommandReportData(
     securityAudit?: SecurityAuditReport;
     health?: HealthSummary;
     usageLines?: string[];
-    lastHeartbeat: HeartbeatEventPayload | null;
     agentStatus: {
       defaultId?: string | null;
       bootstrapPendingCount: number;
@@ -97,7 +95,6 @@ export async function buildStatusCommandReportData(
     osLabel: params.osSummary.label,
     summary: params.summary,
     health: params.health,
-    lastHeartbeat: params.lastHeartbeat,
     agentStatus: params.agentStatus,
     memory: params.memory,
     memoryPlugin: params.memoryPlugin,

@@ -1,5 +1,3 @@
-import { isHeartbeatOkResponse, isHeartbeatUserMessage } from "../auto-reply/heartbeat-filter.js";
-import { HEARTBEAT_PROMPT } from "../auto-reply/heartbeat.js";
 import { stripEnvelopeFromMessages } from "./chat-sanitize.js";
 import {
   DEFAULT_CHAT_HISTORY_TEXT_MAX_CHARS,
@@ -88,10 +86,7 @@ function shouldHideSanitizedHistoryMessage(message: SessionHistoryMessage): bool
   if (roleContent.role === "user" && isEmptyTextOnlyContent(message.content ?? message.text)) {
     return true;
   }
-  if (isHeartbeatUserMessage(roleContent, HEARTBEAT_PROMPT)) {
-    return true;
-  }
-  return isHeartbeatOkResponse(roleContent);
+  return false;
 }
 
 function filterVisibleSessionHistoryMessages(
@@ -102,22 +97,8 @@ function filterVisibleSessionHistoryMessages(
   }
   let changed = false;
   const visible: SessionHistoryMessage[] = [];
-  for (let i = 0; i < messages.length; i++) {
-    const current = messages[i];
+  for (const current of messages) {
     if (!current) {
-      continue;
-    }
-    const currentRoleContent = asRoleContentMessage(current);
-    const next = messages[i + 1];
-    const nextRoleContent = next ? asRoleContentMessage(next) : null;
-    if (
-      currentRoleContent &&
-      nextRoleContent &&
-      isHeartbeatUserMessage(currentRoleContent, HEARTBEAT_PROMPT) &&
-      isHeartbeatOkResponse(nextRoleContent)
-    ) {
-      changed = true;
-      i++;
       continue;
     }
     if (shouldHideSanitizedHistoryMessage(current)) {

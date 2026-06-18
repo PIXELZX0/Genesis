@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import { CHANNEL_IDS } from "../channels/ids.js";
-import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA } from "./bundled-channel-config-metadata.generated.js";
 import { GENERATED_BASE_CONFIG_SCHEMA } from "./schema.base.generated.js";
 import type { ConfigUiHint, ConfigUiHints } from "./schema.hints.js";
@@ -276,48 +274,6 @@ function applyChannelHints(hints: ConfigUiHints, channels: ChannelUiMetadata[]):
   return next;
 }
 
-function listHeartbeatTargetChannels(channels: ChannelUiMetadata[]): string[] {
-  const seen = new Set<string>();
-  const ordered: string[] = [];
-  for (const id of CHANNEL_IDS) {
-    const normalized = normalizeLowercaseStringOrEmpty(id);
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-    seen.add(normalized);
-    ordered.push(normalized);
-  }
-  for (const channel of channels) {
-    const normalized = normalizeLowercaseStringOrEmpty(channel.id);
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-    seen.add(normalized);
-    ordered.push(normalized);
-  }
-  return ordered;
-}
-
-function applyHeartbeatTargetHints(
-  hints: ConfigUiHints,
-  channels: ChannelUiMetadata[],
-): ConfigUiHints {
-  const next: ConfigUiHints = { ...hints };
-  const channelList = listHeartbeatTargetChannels(channels);
-  const channelHelp = channelList.length ? ` Known channels: ${channelList.join(", ")}.` : "";
-  const help = `Delivery target ("last", "none", or a channel id).${channelHelp}`;
-  const paths = ["agents.defaults.heartbeat.target", "agents.list.*.heartbeat.target"];
-  for (const path of paths) {
-    const current = next[path] ?? {};
-    next[path] = {
-      ...current,
-      help: current.help ?? help,
-      placeholder: current.placeholder ?? "last",
-    };
-  }
-  return next;
-}
-
 function applyPluginSchemas(schema: ConfigSchema, plugins: PluginUiMetadata[]): ConfigSchema {
   const next = cloneSchema(schema);
   const root = asJsonSchemaObject(next);
@@ -462,10 +418,7 @@ function buildBaseConfigSchema(): ConfigSchemaResponse {
   }
   const generated = GENERATED_BASE_CONFIG_SCHEMA as unknown as ConfigSchemaResponse;
   const bundledChannels = getBundledChannelSchemaMetadata();
-  const mergedWithoutSensitiveHints = applyHeartbeatTargetHints(
-    applyChannelHints(generated.uiHints, bundledChannels),
-    bundledChannels,
-  );
+  const mergedWithoutSensitiveHints = applyChannelHints(generated.uiHints, bundledChannels);
   const mergedHints = applyDerivedTags(
     applySensitiveHints(
       mergedWithoutSensitiveHints,
@@ -500,8 +453,8 @@ export function buildConfigSchema(params?: {
       return cached;
     }
   }
-  const mergedWithoutSensitiveHints = applyHeartbeatTargetHints(
-    applyChannelHints(applyPluginHints(base.uiHints, plugins), channels),
+  const mergedWithoutSensitiveHints = applyChannelHints(
+    applyPluginHints(base.uiHints, plugins),
     channels,
   );
   const extensionHintKeys = collectExtensionHintKeys(

@@ -53,7 +53,7 @@ async function expectSharedOperatorScopesCleared(
     });
     expect(res.ok).toBe(true);
 
-    const adminRes = await rpcReq(ws, "set-heartbeats", { enabled: false });
+    const adminRes = await rpcReq(ws, "config.get");
     expect(adminRes.ok).toBe(false);
     expect(adminRes.error?.message ?? "").toContain("missing scope");
   } finally {
@@ -84,7 +84,7 @@ async function expectLocalBackendGatewayClientScopesPreserved(
       | undefined;
     expect(helloOk?.auth?.scopes).toEqual(["operator.admin"]);
 
-    const adminRes = await rpcReq(ws, "set-heartbeats", { enabled: false });
+    const adminRes = await rpcReq(ws, "config.get");
     expect(adminRes.ok).toBe(true);
   } finally {
     ws.close();

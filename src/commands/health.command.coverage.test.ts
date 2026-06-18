@@ -100,20 +100,11 @@ describe("healthCommand (coverage)", () => {
         telegram: "Telegram",
         discord: "Discord",
       },
-      heartbeatSeconds: 60,
       defaultAgentId: "main",
       agents: [
         {
           agentId: "main",
           isDefault: true,
-          heartbeat: {
-            enabled: true,
-            every: "1m",
-            everyMs: 60_000,
-            prompt: "hi",
-            target: "last",
-            ackMaxChars: 160,
-          },
           sessions: {
             path: "/tmp/sessions.json",
             count: 2,

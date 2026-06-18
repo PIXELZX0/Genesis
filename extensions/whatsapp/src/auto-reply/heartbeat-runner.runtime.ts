@@ -17,11 +17,8 @@ export {
   resolveSendableOutboundReplyParts,
 } from "genesis/plugin-sdk/reply-payload";
 export {
-  DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
   HEARTBEAT_TOKEN,
   getReplyFromConfig,
-  resolveHeartbeatPrompt,
-  resolveHeartbeatReplyPayload,
   stripHeartbeatToken,
 } from "genesis/plugin-sdk/reply-runtime";
 export { normalizeMainKey } from "genesis/plugin-sdk/routing";

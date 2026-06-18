@@ -37,14 +37,12 @@ export async function resolveAttemptBootstrapContext<TBootstrapFile, TContextFil
   const isContinuationTurn =
     params.bootstrapMode !== "full" &&
     params.contextInjectionMode === "continuation-skip" &&
-    params.bootstrapContextRunKind !== "heartbeat" &&
     (await params.hasCompletedBootstrapTurn(params.sessionFile));
   const shouldSkipBootstrapInjection =
     params.contextInjectionMode === "never" || isContinuationTurn;
   const shouldRecordCompletedBootstrapTurn =
     !shouldSkipBootstrapInjection &&
     params.bootstrapContextMode !== "lightweight" &&
-    params.bootstrapContextRunKind !== "heartbeat" &&
     params.bootstrapMode === "full";
 
   const context = shouldSkipBootstrapInjection

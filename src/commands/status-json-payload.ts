@@ -17,7 +17,6 @@ export function buildStatusJsonPayload(params: {
   securityAudit?: unknown;
   health?: unknown;
   usage?: unknown;
-  lastHeartbeat?: unknown;
   pluginCompatibility?: Array<Record<string, unknown>> | null | undefined;
 }) {
   const channelInfo = resolveStatusUpdateChannelInfo({
@@ -46,11 +45,10 @@ export function buildStatusJsonPayload(params: {
           },
         }
       : {}),
-    ...(params.health || params.usage || params.lastHeartbeat
+    ...(params.health || params.usage
       ? {
           health: params.health,
           usage: params.usage,
-          lastHeartbeat: params.lastHeartbeat,
         }
       : {}),
   };
