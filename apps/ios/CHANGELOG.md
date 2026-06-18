@@ -1,5 +1,9 @@
 # Genesis iOS Changelog
 
+## 2026.6.19 - 2026-06-19
+
+Maintenance update for the current Genesis release.
+
 ## 2026.6.13 - 2026-06-13
 
 Maintenance update for the current Genesis release.
