@@ -2,36 +2,17 @@ import { t } from "../i18n/index.ts";
 import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
+// Sidebar navigation, matching the Pencil design. The first group is unlabeled;
+// "tools" renders the TOOLS category label. Settings is rendered as a single
+// footer item (see app-render). Tabs not listed here (instances, usage, cron,
+// nodes, dreams, and the settings sub-tabs) remain URL-routable but are hidden
+// from the sidebar.
 export const TAB_GROUPS = [
   {
     label: "control",
-    tabs: [
-      "overview",
-      "agents",
-      "chat",
-      "canvas",
-      "channels",
-      "sessions",
-      "models",
-      "instances",
-      "usage",
-      "cron",
-    ],
+    tabs: ["overview", "agents", "chat", "canvas", "channels", "sessions", "models"],
   },
-  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet", "memory", "nodes", "dreams"] },
-  {
-    label: "settings",
-    tabs: [
-      "config",
-      "communications",
-      "appearance",
-      "automation",
-      "infrastructure",
-      "aiAgents",
-      "debug",
-      "logs",
-    ],
-  },
+  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet", "memory"] },
 ] as const;
 
 export type Tab =
@@ -180,19 +161,19 @@ export function inferBasePathFromPathname(pathname: string): string {
 export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
-      return "folder";
+      return "bot";
     case "chat":
-      return "messageSquare";
+      return "messageCircle";
     case "overview":
-      return "barChart";
+      return "layoutGrid";
     case "canvas":
-      return "image";
+      return "frame";
     case "channels":
-      return "link";
+      return "radioTower";
     case "instances":
       return "radio";
     case "sessions":
-      return "fileText";
+      return "messagesSquare";
     case "usage":
       return "barChart";
     case "wallet":
@@ -200,11 +181,11 @@ export function iconForTab(tab: Tab): IconName {
     case "cron":
       return "loader";
     case "skills":
-      return "zap";
+      return "sparkles";
     case "mcp":
       return "plug";
     case "plugins":
-      return "wrench";
+      return "blocks";
     case "models":
       return "cpu";
     case "memory":

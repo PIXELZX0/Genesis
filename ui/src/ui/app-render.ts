@@ -152,7 +152,13 @@ import {
 import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import {
+  normalizeBasePath,
+  pathForTab,
+  TAB_GROUPS,
+  subtitleForTab,
+  titleForTab,
+} from "./navigation.ts";
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import "./components/dashboard-header.ts";
@@ -1483,7 +1489,6 @@ export function renderApp(state: AppViewState) {
                         alt="Genesis"
                       />
                       <span class="sidebar-brand__copy">
-                        <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
                         <span class="sidebar-brand__title">Genesis</span>
                       </span>
                     `}
@@ -1513,7 +1518,7 @@ export function renderApp(state: AppViewState) {
 
                   return html`
                     <section class="nav-section ${!showItems ? "nav-section--collapsed" : ""}">
-                      ${!navCollapsed
+                      ${!navCollapsed && group.label !== "control"
                         ? html`
                             <button
                               class="nav-section__label"
@@ -1546,6 +1551,30 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="sidebar-shell__footer">
               <div class="sidebar-utility-group">
+                <a
+                  class="nav-item ${state.tab === "config" ? "nav-item--active" : ""}"
+                  href=${pathForTab("config", state.basePath)}
+                  @click=${(event: MouseEvent) => {
+                    if (
+                      event.defaultPrevented ||
+                      event.button !== 0 ||
+                      event.metaKey ||
+                      event.ctrlKey ||
+                      event.shiftKey ||
+                      event.altKey
+                    ) {
+                      return;
+                    }
+                    event.preventDefault();
+                    state.setTab("config");
+                  }}
+                  title=${t("nav.settings")}
+                >
+                  <span class="nav-item__icon" aria-hidden="true">${icons.settings}</span>
+                  ${!navCollapsed
+                    ? html`<span class="nav-item__text">${t("nav.settings")}</span>`
+                    : nothing}
+                </a>
                 <a
                   class="nav-item nav-item--external sidebar-utility-link"
                   href="https://genesis.pixelzx.com/docs"

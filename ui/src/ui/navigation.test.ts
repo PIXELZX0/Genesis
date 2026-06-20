@@ -26,16 +26,16 @@ describe("iconForTab", () => {
   });
 
   it("returns stable icons for known tabs", () => {
-    expect(iconForTab("chat")).toBe("messageSquare");
-    expect(iconForTab("overview")).toBe("barChart");
-    expect(iconForTab("canvas")).toBe("image");
-    expect(iconForTab("channels")).toBe("link");
+    expect(iconForTab("chat")).toBe("messageCircle");
+    expect(iconForTab("overview")).toBe("layoutGrid");
+    expect(iconForTab("canvas")).toBe("frame");
+    expect(iconForTab("channels")).toBe("radioTower");
     expect(iconForTab("instances")).toBe("radio");
-    expect(iconForTab("sessions")).toBe("fileText");
+    expect(iconForTab("sessions")).toBe("messagesSquare");
     expect(iconForTab("wallet")).toBe("wallet");
     expect(iconForTab("cron")).toBe("loader");
-    expect(iconForTab("skills")).toBe("zap");
-    expect(iconForTab("plugins")).toBe("wrench");
+    expect(iconForTab("skills")).toBe("sparkles");
+    expect(iconForTab("plugins")).toBe("blocks");
     expect(iconForTab("nodes")).toBe("monitor");
     expect(iconForTab("config")).toBe("settings");
     expect(iconForTab("debug")).toBe("bug");
@@ -191,7 +191,8 @@ describe("TAB_GROUPS", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
     expect(labels).toContain("control");
     expect(labels).toContain("tools");
-    expect(labels).toContain("settings");
+    // Settings is a footer item, not a sidebar group (Pencil design).
+    expect(labels).not.toContain("settings");
   });
 
   it("all tabs are unique", () => {

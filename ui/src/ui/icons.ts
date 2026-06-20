@@ -10,6 +10,73 @@ export const icons = {
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   `,
+  layoutGrid: html`
+    <svg viewBox="0 0 24 24">
+      <rect width="7" height="7" x="3" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="14" rx="1" />
+      <rect width="7" height="7" x="3" y="14" rx="1" />
+    </svg>
+  `,
+  bot: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </svg>
+  `,
+  messageCircle: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  `,
+  frame: html`
+    <svg viewBox="0 0 24 24">
+      <line x1="22" x2="2" y1="6" y2="6" />
+      <line x1="22" x2="2" y1="18" y2="18" />
+      <line x1="6" x2="6" y1="2" y2="22" />
+      <line x1="18" x2="18" y1="2" y2="22" />
+    </svg>
+  `,
+  radioTower: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9" />
+      <path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5" />
+      <circle cx="12" cy="9" r="2" />
+      <path d="M16.2 4.8c2 2 2.26 5.11.8 7.47" />
+      <path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1" />
+      <path d="M9.5 18h5" />
+      <path d="m8 22 4-11 4 11" />
+    </svg>
+  `,
+  messagesSquare: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z" />
+      <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
+    </svg>
+  `,
+  sparkles: html`
+    <svg viewBox="0 0 24 24">
+      <path
+        d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"
+      />
+      <path d="M20 3v4" />
+      <path d="M22 5h-4" />
+      <path d="M4 17v2" />
+      <path d="M5 18H3" />
+    </svg>
+  `,
+  blocks: html`
+    <svg viewBox="0 0 24 24">
+      <rect width="7" height="7" x="14" y="3" rx="1" />
+      <path
+        d="M10 21V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H3"
+      />
+    </svg>
+  `,
   barChart: html`
     <svg viewBox="0 0 24 24">
       <line x1="12" x2="12" y1="20" y2="10" />

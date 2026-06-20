@@ -5,7 +5,7 @@
 .shell {
   --shell-pad: 16px;
   --shell-gap: 16px;
-  --shell-nav-width: 258px;
+  --shell-nav-width: 240px;
   --shell-nav-rail-width: 78px;
   --shell-topbar-height: 52px;
   --shell-focus-duration: 200ms;
@@ -328,7 +328,7 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: color-mix(in srgb, var(--bg) 96%, var(--bg-elevated) 4%);
+  background: var(--bg);
 }
 
 :root[data-theme-mode="light"] .sidebar {
@@ -340,7 +340,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  padding: 14px 10px 12px;
+  padding: 24px 16px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -364,7 +364,8 @@
   justify-content: space-between;
   gap: 12px;
   min-height: 0;
-  padding: 0 8px 18px;
+  padding: 4px 8px;
+  margin-bottom: 32px;
 }
 
 .sidebar-shell__body {
@@ -374,23 +375,24 @@
 }
 
 .sidebar-shell__footer {
-  padding: 12px 0 0;
-  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  margin-top: 32px;
+  padding: 0;
+  border-top: none;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
 .sidebar-brand__logo {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 18px color-mix(in srgb, black 12%, transparent);
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 .sidebar-brand__copy {
@@ -410,11 +412,11 @@
 }
 
 .sidebar-brand__title {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text-strong);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -480,8 +482,8 @@
 
 .nav-section {
   display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 0;
 }
 
 .nav-section:last-child {
@@ -503,28 +505,26 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 0 10px;
-  min-height: 28px;
+  padding: 16px 12px 4px;
   background: transparent;
   border: none;
-  border-radius: var(--radius-md);
-  color: color-mix(in srgb, var(--muted) 72%, var(--text) 28%);
+  border-radius: 0;
+  color: var(--text-tertiary, #6b6b6b);
   cursor: pointer;
   text-align: left;
-  transition:
-    color var(--duration-fast) ease,
-    background var(--duration-fast) ease;
+  transition: color var(--duration-fast) ease;
 }
 
 .nav-section__label:hover {
-  color: var(--text);
-  background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+  color: var(--text-secondary, #a3a3a3);
+  background: transparent;
 }
 
 .nav-section__label-text {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -555,20 +555,18 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 9px;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  gap: 12px;
+  min-height: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
   background: transparent;
-  color: var(--muted);
+  color: var(--text-secondary, #a3a3a3);
   cursor: pointer;
   text-decoration: none;
   transition:
-    border-color var(--duration-fast) ease,
     background var(--duration-fast) ease,
-    color var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
+    color var(--duration-fast) ease;
 }
 
 .nav-item__icon {
@@ -578,10 +576,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  opacity: 0.72;
-  transition:
-    opacity var(--duration-fast) ease,
-    color var(--duration-fast) ease;
+  opacity: 1;
+  transition: color var(--duration-fast) ease;
 }
 
 .nav-item__icon svg {
@@ -596,14 +592,13 @@
 
 .nav-item__text {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   white-space: nowrap;
 }
 
 .nav-item:hover {
   color: var(--text);
-  background: color-mix(in srgb, var(--bg-hover) 84%, transparent);
-  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 60%, transparent);
   text-decoration: none;
 }
 
@@ -613,9 +608,9 @@
 
 .nav-item.active,
 .nav-item--active {
-  color: var(--text-strong);
+  color: var(--text);
   background: var(--bg-elevated);
-  border-color: var(--border);
+  border-color: transparent;
   font-weight: 600;
 }
 
