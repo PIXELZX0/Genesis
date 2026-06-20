@@ -2,6 +2,20 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.20
+
+### Changes
+
+- Control UI: reskinned with a flat "less but better" look — a near-black palette, hairline tables, flat cards and buttons, underline tabs, and status dots, with self-hosted Geist and Geist Mono fonts. The sidebar navigation is regrouped into Control, Tools, and Settings sections.
+- Control UI: added a Models tab (model catalog with Models | Providers sub-tabs) and a Memory tab that lists the agent `MEMORY.md` index.
+
+## 2026.6.19
+
+### Changes
+
+- Tools: `.onion` URLs in `web_fetch`, `web_search`, and citation redirects now route through Tor, so onion-only sources resolve instead of failing.
+- Agents: removed the periodic agent heartbeat and its heartbeat system prompt; agents no longer emit background heartbeat turns.
+
 ## 2026.6.13
 
 ### Changes
