@@ -65,8 +65,8 @@ android {
         applicationId = "ai.genesis.app"
         minSdk = 31
         targetSdk = 36
-        versionCode = 2026061900
-        versionName = "2026.6.19"
+        versionCode = 2026062000
+        versionName = "2026.6.20"
         ndk {
             // Support all major ABIs — native libs are tiny (~47 KB per ABI)
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
