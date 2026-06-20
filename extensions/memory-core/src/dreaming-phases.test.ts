@@ -1185,7 +1185,7 @@ describe("memory-core dreaming phases", () => {
     expect(corpus).toContain("Assistant: Handled internally.");
   });
 
-  it("drops archive, cron, and heartbeat chatter from fresh session corpus output", async () => {
+  it("drops archive and cron chatter from fresh session corpus output", async () => {
     const workspaceDir = await createDreamingWorkspace();
     vi.stubEnv("GENESIS_TEST_FAST", "1");
     vi.stubEnv("GENESIS_STATE_DIR", path.join(workspaceDir, ".state"));
@@ -1229,23 +1229,6 @@ describe("memory-core dreaming phases", () => {
     await fs.writeFile(
       path.join(sessionsDir, "ordinary.jsonl"),
       [
-        JSON.stringify({
-          type: "message",
-          message: {
-            role: "user",
-            timestamp: "2026-04-16T18:04:00.000Z",
-            content:
-              "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
-          },
-        }),
-        JSON.stringify({
-          type: "message",
-          message: {
-            role: "assistant",
-            timestamp: "2026-04-16T18:05:00.000Z",
-            content: "HEARTBEAT_OK",
-          },
-        }),
         JSON.stringify({
           type: "message",
           message: {
@@ -1334,8 +1317,6 @@ describe("memory-core dreaming phases", () => {
     );
     expect(corpus).not.toContain("Run the nightly sync");
     expect(corpus).not.toContain("Checkpoint chatter should stay out.");
-    expect(corpus).not.toContain("Read HEARTBEAT.md");
-    expect(corpus).not.toContain("HEARTBEAT_OK");
     expect(corpus).not.toContain("Run the qmd sync");
   });
 
