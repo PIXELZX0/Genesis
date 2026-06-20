@@ -189,9 +189,8 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
-    expect(labels).toContain("chat");
     expect(labels).toContain("control");
-    expect(labels).toContain("agent");
+    expect(labels).toContain("tools");
     expect(labels).toContain("settings");
   });
 

@@ -171,6 +171,13 @@ export const icons = {
       <path d="M19.967 17.484A4 4 0 0 1 18 18" />
     </svg>
   `,
+  cpu: html`
+    <svg viewBox="0 0 24 24">
+      <rect width="16" height="16" x="4" y="4" rx="2" />
+      <rect width="6" height="6" x="9" y="9" rx="1" />
+      <path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2" />
+    </svg>
+  `,
   book: html`
     <svg viewBox="0 0 24 24">
       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />

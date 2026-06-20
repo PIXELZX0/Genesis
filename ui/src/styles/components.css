@@ -226,17 +226,14 @@
 .card {
   border: 1px solid var(--border);
   background: var(--card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 18px;
   animation: rise 0.25s var(--ease-out) backwards;
-  transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
+  transition: border-color var(--duration-normal) var(--ease-out);
 }
 
 .card:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
 }
 
 .card-title {
@@ -458,6 +455,28 @@
   color: var(--danger);
 }
 
+/* Status dot — Pencil functional status indicator */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+.status-dot--ok {
+  background: var(--ok);
+}
+
+.status-dot--idle {
+  background: var(--muted);
+}
+
+.status-dot--error {
+  background: var(--danger);
+}
+
 /* ===========================================
    Theme Orb
    =========================================== */
@@ -670,7 +689,7 @@
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   padding: 8px 14px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -706,13 +725,11 @@
   border-color: var(--accent);
   background: var(--accent);
   color: var(--primary-foreground);
-  box-shadow: 0 1px 3px var(--accent-subtle);
 }
 
 .btn.primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  box-shadow: 0 2px 12px var(--accent-glow);
 }
 
 /* Keyboard shortcut badge (shadcn style) */
@@ -2099,7 +2116,11 @@
 .table {
   display: grid;
   container-type: inline-size;
-  gap: 6px;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
 }
 
 .table-head,
@@ -2111,22 +2132,30 @@
 }
 
 .table-head {
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
   font-weight: 500;
-  color: var(--muted);
-  padding: 0 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-2, var(--muted));
+  padding: 10px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
 }
 
 .table-row {
-  border: 1px solid var(--border);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--card);
-  transition: border-color var(--duration-fast) ease;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  transition: background var(--duration-fast) ease;
+}
+
+.table-row:last-child {
+  border-bottom: none;
 }
 
 .table-row:hover {
-  border-color: var(--border-strong);
+  background: var(--bg-hover);
 }
 
 @media (max-width: 1100px) {
@@ -3500,36 +3529,37 @@ td.data-table-key-col {
 
 .agent-tabs {
   display: flex;
-  gap: 6px;
+  gap: 24px;
   flex-wrap: wrap;
-  padding-bottom: 2px;
   border-bottom: 1px solid var(--border);
 }
 
 .agent-tab {
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  margin-bottom: -1px;
+  padding: 8px 2px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
   transition:
     border-color var(--duration-fast) ease,
-    background var(--duration-fast) ease,
     color var(--duration-fast) ease;
 }
 
 .agent-tab:hover {
   color: var(--text);
-  background: var(--bg-hover);
+  background: transparent;
 }
 
 .agent-tab.active {
-  background: var(--accent-subtle);
-  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
-  color: var(--accent);
+  background: transparent;
+  border-bottom-color: var(--text);
+  color: var(--text);
+  font-weight: 600;
 }
 
 .agent-tab-count {

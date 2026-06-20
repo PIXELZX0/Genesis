@@ -382,6 +382,10 @@ export async function refreshActiveTab(host: SettingsHost) {
     case "plugins":
       await loadPlugins(app);
       return;
+    case "models":
+    case "memory":
+      // Data for these tabs is lazy-loaded on render (see app-render ensure* helpers).
+      return;
     case "agents":
       await refreshAgentsTab(host, app);
       return;

@@ -208,6 +208,11 @@ export class GenesisApp extends LitElement {
   @state() chatModelOverrides: Record<string, ChatModelOverride | null> = {};
   @state() chatModelsLoading = false;
   @state() chatModelCatalog: ModelCatalogEntry[] = [];
+  @state() modelsPanel: import("./views/models.ts").ModelsPanel = "catalog";
+  @state() modelsLoading = false;
+  @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
+  @state() memoryLoading = false;
+  @state() memoryError: string | null = null;
   @state() chatQueue: ChatQueueItem[] = [];
   @state() chatAttachments: ChatAttachment[] = [];
   @state() realtimeTalkActive = false;

@@ -1,38 +1,39 @@
 :root {
-  /* Background — true black iOS base */
-  --bg: #000000;
-  --bg-accent: #0a0a0a;
-  --bg-elevated: #1c1c1e;
-  --bg-hover: #2c2c2e;
-  --bg-muted: #1c1c1e;
+  /* Background — Pencil "less but better" near-black base */
+  --bg: #0a0a0a;
+  --bg-accent: #121212;
+  --bg-elevated: #161616;
+  --bg-hover: #1f1f1f;
+  --bg-muted: #161616;
 
-  /* Card / Surface — iOS grouped-list grays */
-  --card: #1c1c1e;
+  /* Card / Surface — flat recessed grays */
+  --card: #161616;
   --card-foreground: #ffffff;
   --card-highlight: rgba(255, 255, 255, 0.05);
-  --popover: #2c2c2e;
+  --popover: #1f1f1f;
   --popover-foreground: #ffffff;
 
   /* Panel */
-  --panel: #000000;
-  --panel-strong: #1c1c1e;
-  --panel-hover: #2c2c2e;
+  --panel: #0a0a0a;
+  --panel-strong: #161616;
+  --panel-hover: #1f1f1f;
   --chrome: rgba(0, 0, 0, 0.8);
   --chrome-strong: rgba(0, 0, 0, 0.9);
 
   /* Text */
-  --text: #ffffff;
+  --text: #fafafa;
   --text-strong: #ffffff;
-  --chat-text: #ffffff;
-  --muted: #8e8e93;
-  --muted-strong: #aeaeb2;
-  --muted-foreground: #8e8e93;
+  --chat-text: #fafafa;
+  --muted: #a3a3a3;
+  --muted-strong: #c4c4c4;
+  --muted-foreground: #a3a3a3;
+  --muted-2: #6b6b6b;
 
-  /* Border — iOS hairline grays */
-  --border: #38383a;
-  --border-strong: #48484a;
-  --border-hover: #636366;
-  --input: #38383a;
+  /* Border — flat hairline grays */
+  --border: #262626;
+  --border-strong: #404040;
+  --border-hover: #525252;
+  --input: #262626;
   --ring: #ffffff;
 
   /* Accent — monochrome tint (white in dark mode) */
@@ -46,7 +47,7 @@
   --primary-foreground: #000000;
 
   /* Secondary */
-  --secondary: #1c1c1e;
+  --secondary: #161616;
   --secondary-foreground: #ffffff;
   --accent-2: #ffffff;
   --accent-2-muted: rgba(255, 255, 255, 0.7);
@@ -78,11 +79,12 @@
   --theme-switch-x: 50%;
   --theme-switch-y: 50%;
 
-  /* Typography — SF system stack */
+  /* Typography — Geist (Pencil design); SF/system fallback */
   --mono:
-    "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    "Geist Mono", "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
   --font-body:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto,
+    "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto,
     system-ui, sans-serif;
   --font-display: var(--font-body);
 
@@ -110,7 +112,7 @@
   --radius-lg: 14px;
   --radius-xl: 20px;
   --radius-full: 9999px;
-  --radius: 10px;
+  --radius: 8px;
 
   /* Transitions - Crisp and responsive */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -147,14 +149,15 @@
   --text: #000000;
   --text-strong: #000000;
   --chat-text: #000000;
-  --muted: #8e8e93;
-  --muted-strong: #6c6c70;
-  --muted-foreground: #8e8e93;
+  --muted: #737373;
+  --muted-strong: #525252;
+  --muted-foreground: #737373;
+  --muted-2: #a3a3a3;
 
-  --border: #c6c6c8;
-  --border-strong: #aeaeb2;
-  --border-hover: #8e8e93;
-  --input: #c6c6c8;
+  --border: #e5e5e5;
+  --border-strong: #d4d4d4;
+  --border-hover: #a3a3a3;
+  --input: #e5e5e5;
   --ring: #000000;
 
   --accent: #000000;

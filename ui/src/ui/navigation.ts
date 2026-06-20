@@ -3,12 +3,22 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
-  { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "canvas", "channels", "instances", "sessions", "usage", "wallet", "cron"],
+    tabs: [
+      "overview",
+      "agents",
+      "chat",
+      "canvas",
+      "channels",
+      "sessions",
+      "models",
+      "instances",
+      "usage",
+      "cron",
+    ],
   },
-  { label: "agent", tabs: ["agents", "skills", "mcp", "plugins", "nodes", "dreams"] },
+  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet", "memory", "nodes", "dreams"] },
   {
     label: "settings",
     tabs: [
@@ -37,6 +47,8 @@ export type Tab =
   | "skills"
   | "mcp"
   | "plugins"
+  | "models"
+  | "memory"
   | "nodes"
   | "chat"
   | "config"
@@ -62,6 +74,8 @@ const TAB_PATHS: Record<Tab, string> = {
   skills: "/skills",
   mcp: "/mcp",
   plugins: "/plugins",
+  models: "/models",
+  memory: "/memory",
   nodes: "/nodes",
   chat: "/chat",
   config: "/config",
@@ -191,6 +205,10 @@ export function iconForTab(tab: Tab): IconName {
       return "plug";
     case "plugins":
       return "wrench";
+    case "models":
+      return "cpu";
+    case "memory":
+      return "brain";
     case "nodes":
       return "monitor";
     case "config":

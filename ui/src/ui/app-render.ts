@@ -107,6 +107,8 @@ import {
   disconnectMcpOAuth,
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
+import { loadMemoryIndex } from "./controllers/memory.ts";
+import { loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -193,6 +195,45 @@ function loadSessionsForSessionView(state: AppViewState): Promise<void> {
   return loadSessions(state, { search: state.sessionsSearchQuery });
 }
 
+function ensureModelsLoaded(state: AppViewState): void {
+  if (!state.client || !state.connected || state.modelsLoading) {
+    return;
+  }
+  if (state.chatModelCatalog.length > 0) {
+    return;
+  }
+  state.modelsLoading = true;
+  void loadModels(state.client)
+    .then((models) => {
+      state.chatModelCatalog = models;
+    })
+    .finally(() => {
+      state.modelsLoading = false;
+    });
+}
+
+function ensureMemoryLoaded(state: AppViewState): void {
+  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
+  if (!state.client || !state.connected || state.memoryLoading || !agentId) {
+    return;
+  }
+  if (state.memoryEntries.length > 0) {
+    return;
+  }
+  state.memoryLoading = true;
+  state.memoryError = null;
+  void loadMemoryIndex(state.client, agentId)
+    .then((entries) => {
+      state.memoryEntries = entries;
+    })
+    .catch((err: unknown) => {
+      state.memoryError = String(err);
+    })
+    .finally(() => {
+      state.memoryLoading = false;
+    });
+}
+
 // Lazy-loaded view modules – deferred so the initial bundle stays small.
 // Each loader resolves once; subsequent calls return the cached module.
 type LazyState<T> = { mod: T | null; promise: Promise<void> | null };
@@ -265,6 +306,8 @@ const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
 const lazyMcp = createLazy(() => import("./views/mcp.ts"));
+const lazyModels = createLazy(() => import("./views/models.ts"));
+const lazyMemory = createLazy(() => import("./views/memory.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
@@ -2535,6 +2578,41 @@ export function renderApp(state: AppViewState) {
                 onClawHubInstall: (name) => installPluginFromClawHub(state, name),
               }),
             )
+          : nothing}
+        ${state.tab === "models"
+          ? (ensureModelsLoaded(state),
+            lazyRender(lazyModels, (m) =>
+              m.renderModels({
+                connected: state.connected,
+                loading: state.modelsLoading,
+                models: state.chatModelCatalog,
+                panel: state.modelsPanel,
+                error: null,
+                onPanelChange: (panel) => {
+                  state.modelsPanel = panel;
+                },
+                onRefresh: () => {
+                  state.chatModelCatalog = [];
+                  ensureModelsLoaded(state);
+                },
+              }),
+            ))
+          : nothing}
+        ${state.tab === "memory"
+          ? (ensureMemoryLoaded(state),
+            lazyRender(lazyMemory, (m) =>
+              m.renderMemory({
+                connected: state.connected,
+                loading: state.memoryLoading,
+                agentId: state.agentsSelectedId ?? state.assistantAgentId,
+                entries: state.memoryEntries,
+                error: state.memoryError,
+                onRefresh: () => {
+                  state.memoryEntries = [];
+                  ensureMemoryLoaded(state);
+                },
+              }),
+            ))
           : nothing}
         ${state.tab === "nodes"
           ? lazyRender(lazyNodes, (m) =>

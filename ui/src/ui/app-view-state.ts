@@ -102,6 +102,11 @@ export type AppViewState = {
   chatModelOverrides: Record<string, ChatModelOverride | null>;
   chatModelsLoading: boolean;
   chatModelCatalog: ModelCatalogEntry[];
+  modelsPanel: import("./views/models.ts").ModelsPanel;
+  modelsLoading: boolean;
+  memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
+  memoryLoading: boolean;
+  memoryError: string | null;
   chatQueue: ChatQueueItem[];
   realtimeTalkActive: boolean;
   realtimeTalkStatus: RealtimeTalkStatus;
