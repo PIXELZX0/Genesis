@@ -2233,29 +2233,46 @@
 }
 
 .data-table-search {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
-}
-
-.data-table-search input {
-  width: 100%;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--card);
+  padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  outline: none;
+  border-radius: 6px;
+  background: transparent;
   transition: border-color var(--duration-fast) ease;
 }
 
-.data-table-search input:focus {
+.data-table-search:focus-within {
   border-color: var(--border-strong);
-  box-shadow: var(--focus-ring);
+}
+
+.data-table-search svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--text-tertiary, #6b6b6b);
+}
+
+.data-table-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
 }
 
 .data-table-search input::placeholder {
-  color: var(--muted);
+  color: var(--text-tertiary, var(--muted));
 }
 
 .data-table-container {
