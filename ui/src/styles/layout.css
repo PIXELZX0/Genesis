@@ -851,7 +851,7 @@
 
 .content {
   grid-area: content;
-  padding: 16px 20px 32px;
+  padding: 32px;
   display: block;
   min-height: 0;
   overflow-y: auto;
