@@ -7,6 +7,7 @@ import type {
   PluginMessageMap,
 } from "../controllers/plugins.ts";
 import { clampText } from "../format.ts";
+import { icons } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { PluginStatusEntry, PluginStatusReport } from "../types.ts";
 
@@ -57,30 +58,25 @@ export type PluginsProps = {
   onClawHubInstall: (name: string) => void;
 };
 
-type StatusTabDef = { id: PluginsStatusFilter; label: string };
+const PLUGINS_GRID = "grid-template-columns: 1fr 120px 160px 90px;";
 
-const STATUS_TABS: StatusTabDef[] = [
-  { id: "all", label: "All" },
-  { id: "loaded", label: "Loaded" },
-  { id: "disabled", label: "Disabled" },
-  { id: "error", label: "Error" },
-  { id: "managed", label: "Managed" },
-];
-
-function pluginMatchesStatus(plugin: PluginStatusEntry, status: PluginsStatusFilter): boolean {
-  switch (status) {
-    case "all":
-      return true;
-    case "loaded":
-      return plugin.status === "loaded";
-    case "disabled":
-      return plugin.status === "disabled";
-    case "error":
-      return plugin.status === "error";
-    case "managed":
-      return Boolean(plugin.install);
+function pluginType(plugin: PluginStatusEntry): string {
+  if (plugin.channelIds.length > 0) {
+    return "channel";
   }
-  return false;
+  if (plugin.providerIds.length > 0) {
+    return "provider";
+  }
+  if (plugin.toolNames.length > 0) {
+    return "tool";
+  }
+  if (plugin.commands.length > 0) {
+    return "command";
+  }
+  if (plugin.agentHarnessIds.length > 0) {
+    return "harness";
+  }
+  return plugin.format ?? plugin.origin ?? "plugin";
 }
 
 function pluginStatusClass(plugin: PluginStatusEntry): string {
@@ -133,86 +129,41 @@ function installedFrom(plugin: PluginStatusEntry): string {
 
 export function renderPlugins(props: PluginsProps) {
   const plugins = props.report?.plugins ?? [];
-  const statusCounts: Record<PluginsStatusFilter, number> = {
-    all: plugins.length,
-    loaded: 0,
-    disabled: 0,
-    error: 0,
-    managed: 0,
-  };
-  for (const plugin of plugins) {
-    statusCounts[plugin.status]++;
-    if (plugin.install) {
-      statusCounts.managed++;
-    }
-  }
-
-  const afterStatus =
-    props.statusFilter === "all"
-      ? plugins
-      : plugins.filter((plugin) => pluginMatchesStatus(plugin, props.statusFilter));
+  const enabledCount = plugins.filter((p) => p.enabled && p.status !== "disabled").length;
   const filter = normalizeLowercaseStringOrEmpty(props.filter);
   const filtered = filter
-    ? afterStatus.filter((plugin) =>
+    ? plugins.filter((plugin) =>
         normalizeLowercaseStringOrEmpty(
           [plugin.name, plugin.id, plugin.description, plugin.source, installedFrom(plugin)].join(
             " ",
           ),
         ).includes(filter),
       )
-    : afterStatus;
+    : plugins;
   const detailPlugin = props.detailKey
     ? (plugins.find((plugin) => plugin.id === props.detailKey) ?? null)
     : null;
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
-          <div class="card-title">Plugins</div>
-          <div class="card-sub">Install, disable, and remove Gateway plugins.</div>
+          <div class="view-title">Plugins</div>
+          <div class="view-sub">${plugins.length} installed · ${enabledCount} enabled</div>
         </div>
-        <button
-          class="btn"
-          ?disabled=${props.loading || !props.connected}
-          @click=${props.onRefresh}
-        >
-          ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
-      </div>
-
-      <div class="agent-tabs" style="margin-top: 14px;">
-        ${STATUS_TABS.map(
-          (tab) => html`
-            <button
-              class="agent-tab ${props.statusFilter === tab.id ? "active" : ""}"
-              @click=${() => props.onStatusFilterChange(tab.id)}
-            >
-              ${tab.label}<span class="agent-tab-count">${statusCounts[tab.id]}</span>
-            </button>
-          `,
-        )}
-      </div>
-
-      <div
-        class="filters"
-        style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px;"
-      >
-        <label class="field" style="flex: 1; min-width: 180px;">
+        <div class="data-table-search" style="width: 220px; flex: none;">
+          ${icons.search}
           <input
+            type="search"
             .value=${props.filter}
+            placeholder="Search plugins"
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Filter installed plugins"
-            autocomplete="off"
-            name="plugins-filter"
           />
-        </label>
-        <div class="muted">${filtered.length} shown</div>
+        </div>
       </div>
 
-      ${renderClawHubPanel(props)}
       ${props.error
-        ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
+        ? html`<div class="callout danger" style="margin-top: 16px;">${props.error}</div>`
         : nothing}
       ${props.report?.diagnostics?.length
         ? html`
@@ -224,56 +175,68 @@ export function renderPlugins(props: PluginsProps) {
         : nothing}
       ${filtered.length === 0
         ? html`
-            <div class="muted" style="margin-top: 16px">
+            <div class="muted" style="padding: 16px;">
               ${!props.connected && !props.report
                 ? "Not connected to gateway."
-                : "No plugins found."}
+                : props.loading
+                  ? t("common.loading")
+                  : "No plugins found."}
             </div>
           `
-        : html`<div class="list skills-grid" style="margin-top: 16px;">
-            ${filtered.map((plugin) => renderPlugin(plugin, props))}
-          </div>`}
+        : html`
+            <div class="table" style="margin-top: 20px;">
+              <div class="table-head" style=${PLUGINS_GRID}>
+                <span>PLUGIN</span>
+                <span>VERSION</span>
+                <span>TYPE</span>
+                <span>ENABLED</span>
+              </div>
+              ${filtered.map((plugin) => renderPluginRow(plugin, props))}
+            </div>
+          `}
+
+      <details class="card" style="margin-top: 24px;">
+        <summary
+          style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="btn__icon">${icons.plus}</span> Install plugin from ClawHub
+        </summary>
+        <div style="margin-top: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <label class="field" style="flex: 1; min-width: 180px;">
+              <input
+                .value=${props.clawhubQuery}
+                @input=${(e: Event) =>
+                  props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
+                placeholder="Search ClawHub plugins..."
+                autocomplete="off"
+                name="plugin-clawhub-search"
+              />
+            </label>
+            ${props.clawhubSearchLoading ? html`<span class="muted">Searching...</span>` : nothing}
+          </div>
+          ${props.clawhubSearchError
+            ? html`<div class="callout danger" style="margin-top: 8px;">
+                ${props.clawhubSearchError}
+              </div>`
+            : nothing}
+          ${props.clawhubInstallMessage
+            ? html`<div
+                class="callout ${props.clawhubInstallMessage.kind === "error"
+                  ? "danger"
+                  : "success"}"
+                style="margin-top: 8px;"
+              >
+                ${props.clawhubInstallMessage.text}
+              </div>`
+            : nothing}
+          ${renderClawHubResults(props)}
+        </div>
+      </details>
     </section>
 
     ${detailPlugin ? renderPluginDetail(detailPlugin, props) : nothing}
     ${props.clawhubDetailName ? renderClawHubDetailDialog(props) : nothing}
-  `;
-}
-
-function renderClawHubPanel(props: PluginsProps) {
-  return html`
-    <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-        <div style="font-weight: 600;">ClawHub</div>
-        <div class="muted" style="font-size: 13px;">Search and install plugins from clawhub.ai</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <label class="field" style="flex: 1; min-width: 180px;">
-          <input
-            .value=${props.clawhubQuery}
-            @input=${(e: Event) => props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-            placeholder="Search ClawHub plugins..."
-            autocomplete="off"
-            name="plugin-clawhub-search"
-          />
-        </label>
-        ${props.clawhubSearchLoading ? html`<span class="muted">Searching...</span>` : nothing}
-      </div>
-      ${props.clawhubSearchError
-        ? html`<div class="callout danger" style="margin-top: 8px;">
-            ${props.clawhubSearchError}
-          </div>`
-        : nothing}
-      ${props.clawhubInstallMessage
-        ? html`<div
-            class="callout ${props.clawhubInstallMessage.kind === "error" ? "danger" : "success"}"
-            style="margin-top: 8px;"
-          >
-            ${props.clawhubInstallMessage.text}
-          </div>`
-        : nothing}
-      ${renderClawHubResults(props)}
-    </div>
   `;
 }
 
@@ -332,41 +295,40 @@ function renderClawHubResults(props: PluginsProps) {
   `;
 }
 
-function renderPlugin(plugin: PluginStatusEntry, props: PluginsProps) {
+function renderPluginRow(plugin: PluginStatusEntry, props: PluginsProps) {
   const busy = props.busyKey === plugin.id;
   const checked = plugin.enabled && plugin.status !== "disabled";
   return html`
-    <div class="list-item list-item-clickable" @click=${() => props.onDetailOpen(plugin.id)}>
-      <div class="list-main">
-        <div class="list-title" style="display: flex; align-items: center; gap: 8px;">
+    <div
+      class="table-row"
+      style="cursor: pointer; ${PLUGINS_GRID}"
+      @click=${() => props.onDetailOpen(plugin.id)}
+    >
+      <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+        <span
+          style="color: var(--text); font-weight: 500; display: flex; align-items: center; gap: 8px;"
+        >
           <span class="statusDot ${pluginStatusClass(plugin)}"></span>
-          <span>${plugin.name}</span>
-          ${plugin.id !== plugin.name
-            ? html`<span class="muted" style="font-size: 12px;">${plugin.id}</span>`
-            : nothing}
-        </div>
-        <div class="list-sub">
+          ${plugin.name}
+        </span>
+        <span class="muted" style="font-size: 13px; overflow: hidden; text-overflow: ellipsis;">
           ${plugin.description ? clampText(plugin.description, 140) : capabilitySummary(plugin)}
-        </div>
+        </span>
       </div>
-      <div
-        class="list-meta"
-        style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;"
-      >
-        <span class="muted" style="font-size: 12px;">${installedFrom(plugin)}</span>
-        <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
-          <input
-            type="checkbox"
-            class="skill-toggle"
-            .checked=${checked}
-            ?disabled=${busy}
-            @change=${(e: Event) => {
-              e.stopPropagation();
-              props.onToggle(plugin.id, (e.target as HTMLInputElement).checked);
-            }}
-          />
-        </label>
-      </div>
+      <span class="muted" style="font-family: var(--mono);">${plugin.version ?? "—"}</span>
+      <span class="muted">${pluginType(plugin)}</span>
+      <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          class="skill-toggle"
+          .checked=${checked}
+          ?disabled=${busy}
+          @change=${(e: Event) => {
+            e.stopPropagation();
+            props.onToggle(plugin.id, (e.target as HTMLInputElement).checked);
+          }}
+        />
+      </label>
     </div>
   `;
 }
