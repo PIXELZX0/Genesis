@@ -243,6 +243,21 @@
   color: var(--text-strong);
 }
 
+/* Pencil page header: large in-content title + secondary subtitle. */
+.view-title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.view-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-secondary, var(--muted));
+}
+
 .card-sub {
   color: var(--muted);
   font-size: 13px;

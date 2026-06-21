@@ -152,13 +152,7 @@ import {
 import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
-import {
-  normalizeBasePath,
-  pathForTab,
-  TAB_GROUPS,
-  subtitleForTab,
-  titleForTab,
-} from "./navigation.ts";
+import { normalizeBasePath, pathForTab, TAB_GROUPS } from "./navigation.ts";
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import "./components/dashboard-header.ts";
@@ -1643,12 +1637,7 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "config"
           ? nothing
           : html`<section class="content-header">
-              <div>
-                ${isChat
-                  ? renderChatSessionSelect(state)
-                  : html`<div class="page-title">${titleForTab(state.tab)}</div>`}
-                ${isChat ? nothing : html`<div class="page-sub">${subtitleForTab(state.tab)}</div>`}
-              </div>
+              <div>${isChat ? renderChatSessionSelect(state) : nothing}</div>
               <div class="page-meta">
                 ${state.tab === "dreams"
                   ? html`

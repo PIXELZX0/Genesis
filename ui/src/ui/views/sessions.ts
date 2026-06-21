@@ -138,8 +138,8 @@ export function renderSessions(props: SessionsProps) {
     <section class="card" style="border: none; background: transparent; padding: 0;">
       <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
-          <div class="card-title">${t("tabs.sessions")}</div>
-          <div class="card-sub">${activeCount} active · ${idleCount} idle</div>
+          <div class="view-title">${t("tabs.sessions")}</div>
+          <div class="view-sub">${activeCount} active · ${idleCount} idle</div>
         </div>
         <div class="data-table-search" style="width: 220px; flex: none;">
           ${icons.search}
