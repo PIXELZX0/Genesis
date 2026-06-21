@@ -88,7 +88,7 @@ describe("overview view (Pencil design)", () => {
   it("renders recent activity from attention items", async () => {
     const items: AttentionItem[] = [
       {
-        severity: "warn",
+        severity: "warning",
         icon: "alert",
         title: "Channel disconnected",
         description: "Telegram lost its connection.",

@@ -64,7 +64,7 @@ function severityDot(severity: AttentionItem["severity"]): string {
   if (severity === "error") {
     return "status-dot--error";
   }
-  if (severity === "warn") {
+  if (severity === "warning") {
     return "status-dot--idle";
   }
   return "status-dot--ok";
