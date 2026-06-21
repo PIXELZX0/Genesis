@@ -140,6 +140,8 @@ function renderWalletStatus(props: WalletProps) {
   `;
 }
 
+const WALLET_ACCOUNTS_GRID = "grid-template-columns: 1.3fr 1fr 0.8fr 1.6fr;";
+
 function renderAccount(account: WalletPublicAccount, props: WalletProps) {
   const balance = accountBalance(account, props.summary?.balances);
   const isPrimary = props.summary?.primaryAccount === account.id;
@@ -151,42 +153,25 @@ function renderAccount(account: WalletPublicAccount, props: WalletProps) {
         ? t("wallet.accounts.balanceUnavailable")
         : t("common.na");
   return html`
-    <div class="list-item">
-      <div class="list-main">
-        <div class="list-title">
+    <div class="table-row" style="${WALLET_ACCOUNTS_GRID}">
+      <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+        <span style="color: var(--text); display: flex; align-items: center; gap: 8px;">
           ${walletChainLabel(account.chain)}
           ${isPrimary
             ? html`<span class="chip chip-ok">${t("wallet.accounts.primary")}</span>`
             : nothing}
-        </div>
-        <div class="list-sub">
-          ${t("wallet.accounts.accountId")}: <span class="mono">${account.id}</span>
-          ${account.network
-            ? html` | ${t("wallet.accounts.network")}: ${account.network}`
-            : nothing}
-        </div>
-        <div
+        </span>
+        <span class="muted mono" style="font-size: 12px;">${account.id}</span>
+      </div>
+      <span class="mono">${balanceText}</span>
+      <span class="muted">${account.network ?? "—"}</span>
+      <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <span
           class="mono"
           title=${account.address}
-          style="margin-top: 8px; font-size: 12px; overflow-wrap: anywhere;"
+          style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px;"
+          >${account.address}</span
         >
-          ${account.address}
-        </div>
-        ${account.derivationPath
-          ? html`
-              <div class="chip-row" style="margin-top: 10px;">
-                <span class="chip"
-                  >${t("wallet.accounts.derivation")}: ${account.derivationPath}</span
-                >
-              </div>
-            `
-          : nothing}
-      </div>
-      <div class="list-meta">
-        <div>
-          <div class="stat-label">${t("wallet.accounts.balance")}</div>
-          <div class="mono" style="margin-top: 6px;">${balanceText}</div>
-        </div>
         <button
           class="btn btn--icon"
           title=${t("wallet.accounts.copyAddress")}
@@ -195,7 +180,7 @@ function renderAccount(account: WalletPublicAccount, props: WalletProps) {
         >
           ${icons.copy}
         </button>
-      </div>
+      </span>
     </div>
   `;
 }
@@ -207,14 +192,24 @@ function renderWalletAccounts(props: WalletProps) {
     ? t("wallet.accounts.emptyNoAccounts")
     : t("wallet.accounts.emptyMissing");
   return html`
-    <section class="card">
-      <div class="card-title">${t("wallet.accounts.title")}</div>
-      <div class="card-sub">${t("wallet.accounts.subtitle")}</div>
-      <div class="list" style="margin-top: 16px;">
-        ${accounts.length === 0
-          ? html`<div class="callout">${props.loading ? t("common.loading") : emptyText}</div>`
-          : accounts.map((account) => renderAccount(account, props))}
-      </div>
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="view-title">${t("wallet.accounts.title")}</div>
+      <div class="view-sub">${t("wallet.accounts.subtitle")}</div>
+      ${accounts.length === 0
+        ? html`<div class="callout" style="margin-top: 16px;">
+            ${props.loading ? t("common.loading") : emptyText}
+          </div>`
+        : html`
+            <div class="table" style="margin-top: 16px;">
+              <div class="table-head" style=${WALLET_ACCOUNTS_GRID}>
+                <span>ASSET</span>
+                <span>BALANCE</span>
+                <span>NETWORK</span>
+                <span>ADDRESS</span>
+              </div>
+              ${accounts.map((account) => renderAccount(account, props))}
+            </div>
+          `}
     </section>
   `;
 }
