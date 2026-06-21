@@ -15,9 +15,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>2026.6.19</string>
+    <string>2026.6.21</string>
     <key>CFBundleVersion</key>
-    <string>2026061900</string>
+    <string>2026062100</string>
     <key>CFBundleIconFile</key>
     <string>Genesis</string>
     <key>CFBundleURLTypes</key>
