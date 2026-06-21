@@ -44,8 +44,8 @@ describe("control UI routing", () => {
 
     expect(window.matchMedia("(max-width: 768px)").matches).toBe(true);
 
-    const dreamsLink = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/dreaming"]');
-    expect(dreamsLink).not.toBeNull();
+    const sessionsLink = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/sessions"]');
+    expect(sessionsLink).not.toBeNull();
 
     expect(app.querySelector(".topnav-shell")).not.toBeNull();
     expect(app.querySelector(".topnav-shell__content")).not.toBeNull();
