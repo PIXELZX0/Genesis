@@ -330,19 +330,21 @@ img.chat-avatar {
   background: transparent;
 }
 
-/* User bubbles have different styling */
+/* User bubbles: Pencil design — solid light bubble with dark ink text */
 .chat-group.user .chat-bubble {
-  background: var(--accent-subtle);
+  background: var(--text);
+  color: var(--bg);
   border-color: transparent;
 }
 
 :root[data-theme-mode="light"] .chat-group.user .chat-bubble {
-  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
-  background: var(--accent-subtle);
+  border-color: transparent;
+  background: var(--text);
+  color: var(--bg);
 }
 
 .chat-group.user .chat-bubble:hover {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--text) 90%, var(--bg));
 }
 
 /* Streaming animation */
