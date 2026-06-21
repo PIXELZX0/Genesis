@@ -172,6 +172,7 @@ const SELF_HEADED_TABS = new Set<string>([
   "agents",
   "skills",
   "plugins",
+  "mcp",
 ]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";

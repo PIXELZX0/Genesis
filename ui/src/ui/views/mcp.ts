@@ -8,7 +8,38 @@ import type {
   McpServerMetadata,
   McpServersMap,
 } from "../controllers/mcp.ts";
+import { icons } from "../icons.ts";
 import { MCP_PRESETS, type McpPreset } from "./mcp-presets.ts";
+
+const MCP_GRID = "grid-template-columns: 1fr 150px 90px 130px auto;";
+
+function transportKind(server: Record<string, unknown>): string {
+  if (typeof server.url === "string" && server.url) {
+    return typeof server.transport === "string" ? server.transport : "http";
+  }
+  if (typeof server.command === "string" && server.command) {
+    return "stdio";
+  }
+  return "—";
+}
+
+function mcpStatus(
+  status: McpOAuthStatus | undefined,
+  test: { ok: boolean; message: string } | null | undefined,
+  isOauth: boolean,
+): { dot: string; label: string } {
+  if (test) {
+    return test.ok
+      ? { dot: "status-dot--ok", label: "Online" }
+      : { dot: "status-dot--error", label: "Error" };
+  }
+  if (isOauth) {
+    return status?.connected
+      ? { dot: "status-dot--ok", label: t("mcpView.list.connected") }
+      : { dot: "status-dot--idle", label: t("mcpView.list.oauthRequired") };
+  }
+  return { dot: "status-dot--idle", label: "—" };
+}
 
 export type McpAddMode = "preset" | "link" | "json";
 
@@ -76,16 +107,6 @@ function serverDeclaresOauth(server: Record<string, unknown>): boolean {
   return (auth as Record<string, unknown>).type === "oauth";
 }
 
-function authBadgeFor(status: McpOAuthStatus | undefined, declaresOauth: boolean) {
-  if (status?.connected) {
-    return html`<span class="chip chip-ok">${t("mcpView.list.connected")}</span>`;
-  }
-  if (declaresOauth || status?.requiresAuth) {
-    return html`<span class="chip chip-warn">${t("mcpView.list.oauthRequired")}</span>`;
-  }
-  return nothing;
-}
-
 const EXAMPLE_CONFIG = `{
   "url": "https://mcp.context7.com/mcp",
   "transport": "streamable-http"
@@ -98,13 +119,15 @@ export function renderMcp(props: McpProps) {
   const canSave = props.draftName.trim().length > 0 && !props.busy;
 
   return html`
-    <section class="card">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
-          <div class="card-title">${t("mcpView.title")}</div>
-          <div class="card-sub">${t("mcpView.subtitle")}</div>
+          <div class="view-title">${t("mcpView.title")}</div>
+          <div class="view-sub">
+            ${entries.length} ${entries.length === 1 ? "server" : "servers"}
+          </div>
         </div>
-        <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
+        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
           ${props.loading ? t("common.loading") : t("common.refresh")}
         </button>
       </div>
@@ -126,9 +149,6 @@ export function renderMcp(props: McpProps) {
           </div>`
         : nothing}
       ${props.oauthFlow ? renderOAuthBanner(props) : nothing}
-
-      <div style="margin-top: 16px;">${renderAddPanel(props, canSave)}</div>
-
       ${!props.servers
         ? html`<div class="callout info" style="margin-top: 16px;">${t("common.loading")}</div>`
         : entries.length === 0
@@ -139,10 +159,26 @@ export function renderMcp(props: McpProps) {
               </div>
             </div>`
           : html`
-              <div class="list" style="margin-top: 16px;">
+              <div class="table" style="margin-top: 20px;">
+                <div class="table-head" style=${MCP_GRID}>
+                  <span>SERVER</span>
+                  <span>TRANSPORT</span>
+                  <span>TOOLS</span>
+                  <span>STATUS</span>
+                  <span></span>
+                </div>
                 ${entries.map(([name, server]) => renderServerRow(name, server, props))}
               </div>
             `}
+
+      <details class="card" style="margin-top: 24px;">
+        <summary
+          style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="btn__icon">${icons.plus}</span> ${t("mcpView.add.title")}
+        </summary>
+        <div style="margin-top: 16px;">${renderAddPanel(props, canSave)}</div>
+      </details>
     </section>
   `;
 }
@@ -500,33 +536,22 @@ function renderServerRow(name: string, server: Record<string, unknown>, props: M
   const test = props.testStatus[name];
   const declaresOauth = serverDeclaresOauth(server);
   const isOauthServer = declaresOauth || (status?.requiresAuth ?? false);
+  const st = mcpStatus(status, test, isOauthServer);
   return html`
-    <div
-      class="list-item"
-      style="display: flex; align-items: center; justify-content: space-between; gap: 12px;"
-    >
-      <div style="min-width: 0; flex: 1;">
-        <div
-          style="font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;"
-        >
-          <span>${name}</span>
-          ${authBadgeFor(status, declaresOauth)}
-        </div>
-        <div class="muted mono" style="overflow-wrap: anywhere;">${summarizeTransport(server)}</div>
-        ${test
-          ? html`<div
-              class="muted"
-              style="font-size: 12px; margin-top: 2px; color: ${test.ok
-                ? "var(--ok, inherit)"
-                : "var(--danger, inherit)"};"
-            >
-              ${test.ok ? "✓" : "✗"} ${test.message}
-            </div>`
-          : nothing}
+    <div class="table-row" style="${MCP_GRID}">
+      <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+        <span style="font-family: var(--mono); color: var(--text);">${name}</span>
+        <span class="muted" style="font-size: 13px; overflow: hidden; text-overflow: ellipsis;">
+          ${summarizeTransport(server)}
+        </span>
       </div>
-      <div
-        style="display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;"
-      >
+      <span class="muted" style="font-family: var(--mono);">${transportKind(server)}</span>
+      <span class="muted" style="font-family: var(--mono);">—</span>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span class="status-dot ${st.dot}"></span>
+        <span class="muted">${st.label}</span>
+      </span>
+      <span style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
         ${isOauthServer
           ? status?.connected
             ? html`
@@ -576,7 +601,7 @@ function renderServerRow(name: string, server: Record<string, unknown>, props: M
         >
           ${t("mcpView.list.delete")}
         </button>
-      </div>
+      </span>
     </div>
   `;
 }
