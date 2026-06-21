@@ -2,8 +2,7 @@
 
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
-import { i18n } from "../../i18n/index.ts";
-import { getSafeLocalStorage } from "../../local-storage.ts";
+import type { AttentionItem } from "../types.ts";
 import { renderOverview, type OverviewProps } from "./overview.ts";
 
 function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewProps {
@@ -62,98 +61,45 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
   };
 }
 
-describe("overview view rendering", () => {
-  it("keeps the persisted overview locale selected before i18n hydration finishes", async () => {
+describe("overview view (Pencil design)", () => {
+  it("renders the title and the stat row", async () => {
     const container = document.createElement("div");
-    const props = createOverviewProps({
-      settings: {
-        ...createOverviewProps().settings,
-        locale: "zh-CN",
+    render(renderOverview(createOverviewProps({ sessionsCount: 5, presenceCount: 3 })), container);
+    await Promise.resolve();
+    const text = container.textContent ?? "";
+    expect(container.querySelector(".view-title")?.textContent).toContain("Overview");
+    expect(text).toContain("Active sessions");
+    expect(text).toContain("Cron jobs");
+    expect(text).toContain("Uptime");
+    expect(text).toContain("5");
+  });
+
+  it("renders the status panel with gateway state", async () => {
+    const container = document.createElement("div");
+    render(renderOverview(createOverviewProps({ connected: true, cronEnabled: true })), container);
+    await Promise.resolve();
+    const text = container.textContent ?? "";
+    expect(text).toContain("STATUS");
+    expect(text).toContain("Gateway");
+    expect(text).toContain("Online");
+    expect(text).toContain("Version");
+  });
+
+  it("renders recent activity from attention items", async () => {
+    const items: AttentionItem[] = [
+      {
+        severity: "warn",
+        icon: "alert",
+        title: "Channel disconnected",
+        description: "Telegram lost its connection.",
       },
-    });
-
-    getSafeLocalStorage()?.clear();
-    await i18n.setLocale("en");
-
-    render(renderOverview(props), container);
-    await Promise.resolve();
-
-    let select = container.querySelector<HTMLSelectElement>("select");
-    expect(i18n.getLocale()).toBe("en");
-    expect(select?.value).toBe("zh-CN");
-    expect(select?.selectedOptions[0]?.textContent?.trim()).toBe("简体中文 (Simplified Chinese)");
-
-    await i18n.setLocale("zh-CN");
-    render(renderOverview(props), container);
-    await Promise.resolve();
-
-    select = container.querySelector<HTMLSelectElement>("select");
-    expect(select?.value).toBe("zh-CN");
-    expect(select?.selectedOptions[0]?.textContent?.trim()).toBe("简体中文 (简体中文)");
-
-    await i18n.setLocale("en");
-  });
-
-  it("renders a dedicated scope-upgrade approval hint with the exact approve command", async () => {
+    ];
     const container = document.createElement("div");
-    const props = createOverviewProps({
-      lastError: "scope upgrade pending approval (requestId: req-123)",
-      lastErrorCode: "PAIRING_REQUIRED",
-    });
-
-    render(renderOverview(props), container);
+    render(renderOverview(createOverviewProps({ attentionItems: items })), container);
     await Promise.resolve();
-
-    expect(container.textContent).toContain("Scope upgrade pending approval.");
-    expect(container.textContent).toContain(
-      "This device is already paired, but the requested wider scope is waiting for approval.",
-    );
-    expect(container.textContent).toContain("genesis devices approve req-123");
-  });
-
-  it("does not suggest preview-only latest approval when the request id is absent", async () => {
-    const container = document.createElement("div");
-    const props = createOverviewProps({
-      lastError: "scope upgrade pending approval",
-      lastErrorCode: "PAIRING_REQUIRED",
-    });
-
-    render(renderOverview(props), container);
-    await Promise.resolve();
-
-    expect(container.textContent).toContain("Scope upgrade pending approval.");
-    expect(container.textContent).toContain("genesis devices list");
-    expect(container.textContent).not.toContain("genesis devices approve --latest");
-  });
-
-  it("renders wallet public addresses without secret-bearing fields", async () => {
-    const container = document.createElement("div");
-    const props = createOverviewProps({
-      walletSummary: {
-        enabled: true,
-        keystore: { exists: true, locked: true },
-        primaryAccount: "evm:default",
-        accounts: [
-          {
-            id: "evm:default",
-            chain: "evm",
-            address: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
-            network: "ethereum",
-            createdAt: "2026-04-27T00:00:00.000Z",
-            updatedAt: "2026-04-27T00:00:00.000Z",
-          },
-        ],
-        warnings: [],
-      },
-    });
-
-    render(renderOverview(props), container);
-    await Promise.resolve();
-
-    expect(container.textContent).toContain("Wallet");
-    expect(container.textContent).toContain("0x9858EfFD...aEda94");
-    expect(container.textContent).toContain("ethereum");
-    expect(container.textContent).not.toMatch(/mnemonic|private|passphrase|seed/i);
-    expect(container.querySelector("button[aria-label='Copy address']")).not.toBeNull();
+    const text = container.textContent ?? "";
+    expect(text).toContain("RECENT ACTIVITY");
+    expect(text).toContain("Channel disconnected");
+    expect(text).toContain("Telegram lost its connection.");
   });
 });

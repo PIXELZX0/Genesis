@@ -1,12 +1,9 @@
 import { html, nothing } from "lit";
-import { t, i18n, SUPPORTED_LOCALES, type Locale, isSupportedLocale } from "../../i18n/index.ts";
+import { t } from "../../i18n/index.ts";
 import type { EventLogEntry } from "../app-events.ts";
-import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "../external-link.ts";
-import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
+import { formatDurationHuman } from "../format.ts";
 import type { GatewayHelloOk } from "../gateway.ts";
-import { icons } from "../icons.ts";
 import type { UiSettings } from "../storage.ts";
-import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type {
   AttentionItem,
   CronJob,
@@ -17,18 +14,10 @@ import type {
   SkillStatusReport,
   WalletSummaryResult,
 } from "../types.ts";
-import { renderConnectCommand } from "./connect-command.ts";
-import { renderOverviewAttention } from "./overview-attention.ts";
-import { renderOverviewCards } from "./overview-cards.ts";
-import { renderOverviewEventLog } from "./overview-event-log.ts";
-import {
-  resolveAuthHintKind,
-  type PairingHint,
-  resolvePairingHint,
-  shouldShowInsecureContextHint,
-} from "./overview-hints.ts";
-import { renderOverviewLogTail } from "./overview-log-tail.ts";
 
+// The controller passes the full prop bag; the Pencil-design overview only
+// consumes a subset (stats + recent activity + status). Unused fields/callbacks
+// are kept on the type so the controller wiring stays valid.
 export type OverviewProps = {
   connected: boolean;
   hello: GatewayHelloOk | null;
@@ -42,7 +31,6 @@ export type OverviewProps = {
   cronNext: number | null;
   lastChannelsRefresh: number | null;
   warnQueryToken: boolean;
-  // New dashboard data
   modelAuthStatus: ModelAuthStatusResult | null;
   usageResult: SessionsUsageResult | null;
   sessionsResult: SessionsListResult | null;
@@ -67,487 +55,107 @@ export type OverviewProps = {
   onRefreshLogs: () => void;
 };
 
-const PAIRING_HINT_COPY: Record<
-  PairingHint["kind"],
-  {
-    titleKey: string | null;
-    summaryKey: string | null;
+const PANEL_LABEL =
+  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 12px;";
+const ROW =
+  "display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border);";
+
+function severityDot(severity: AttentionItem["severity"]): string {
+  if (severity === "error") {
+    return "status-dot--error";
   }
-> = {
-  "pairing-required": {
-    titleKey: null,
-    summaryKey: null,
-  },
-  "scope-upgrade-pending": {
-    titleKey: "overview.pairing.scopeUpgradeTitle",
-    summaryKey: "overview.pairing.scopeUpgradeSummary",
-  },
-  "role-upgrade-pending": {
-    titleKey: "overview.pairing.roleUpgradeTitle",
-    summaryKey: "overview.pairing.roleUpgradeSummary",
-  },
-  "metadata-upgrade-pending": {
-    titleKey: "overview.pairing.metadataUpgradeTitle",
-    summaryKey: "overview.pairing.metadataUpgradeSummary",
-  },
-};
-
-function truncateAddress(address: string): string {
-  return address.length <= 18 ? address : `${address.slice(0, 10)}...${address.slice(-6)}`;
+  if (severity === "warn") {
+    return "status-dot--idle";
+  }
+  return "status-dot--ok";
 }
 
-function copyAddress(address: string) {
-  void navigator.clipboard?.writeText(address).catch(() => undefined);
-}
-
-function renderWalletCard(
-  props: Pick<OverviewProps, "walletSummary" | "walletSummaryError" | "onNavigate">,
-) {
-  const summary = props.walletSummary;
-  const accounts = summary?.accounts ?? [];
+function statCell(value: string, label: string, last = false) {
+  const border = last ? "" : "border-right: 1px solid var(--border);";
   return html`
-    <div class="card">
-      <div class="row" style="justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div class="card-title">${t("overview.wallet.title")}</div>
-          <div class="card-sub">${t("overview.wallet.subtitle")}</div>
-        </div>
-        <button class="btn btn--sm" @click=${() => props.onNavigate("wallet")}>
-          ${t("overview.wallet.manage")}
-        </button>
+    <div
+      style="display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; flex: 1; ${border}"
+    >
+      <div style="font-size: 28px; font-weight: 600; line-height: 1.1; color: var(--text);">
+        ${value}
       </div>
-      ${props.walletSummaryError
-        ? html`<div class="callout danger" style="margin-top: 14px">
-            ${props.walletSummaryError}
-          </div>`
-        : accounts.length === 0
-          ? html`<div class="callout" style="margin-top: 14px">
-              ${summary?.keystore.exists
-                ? t("overview.wallet.noAccounts")
-                : t("overview.wallet.empty")}
-            </div>`
-          : html`
-              <div class="mini-list" style="margin-top: 14px">
-                ${accounts.map(
-                  (account) => html`
-                    <div class="mini-row">
-                      <div>
-                        <div class="mini-row__title">
-                          ${account.chain.toUpperCase()}
-                          ${account.network
-                            ? html`<span class="muted">· ${account.network}</span>`
-                            : nothing}
-                        </div>
-                        <div class="mono" title=${account.address}>
-                          ${truncateAddress(account.address)}
-                        </div>
-                      </div>
-                      <button
-                        class="icon-btn"
-                        title=${t("overview.wallet.copyAddress")}
-                        aria-label=${t("overview.wallet.copyAddress")}
-                        @click=${() => copyAddress(account.address)}
-                      >
-                        ${icons.copy}
-                      </button>
-                    </div>
-                  `,
-                )}
-              </div>
-              ${summary?.warnings.length
-                ? html`<div class="muted" style="margin-top: 10px">
-                    ${summary.warnings.slice(0, 2).join(" · ")}
-                  </div>`
-                : nothing}
-            `}
+      <div class="muted" style="font-size: 13px;">${label}</div>
     </div>
   `;
 }
 
 export function renderOverview(props: OverviewProps) {
-  const snapshot = props.hello?.snapshot as
-    | {
-        uptimeMs?: number;
-        authMode?: "none" | "token" | "password" | "trusted-proxy";
-      }
-    | undefined;
+  const snapshot = props.hello?.snapshot as { uptimeMs?: number } | undefined;
   const uptime = snapshot?.uptimeMs ? formatDurationHuman(snapshot.uptimeMs) : t("common.na");
-  const tickIntervalMs = props.hello?.policy?.tickIntervalMs;
-  const tick = tickIntervalMs
-    ? `${(tickIntervalMs / 1000).toFixed(tickIntervalMs % 1000 === 0 ? 0 : 1)}s`
-    : t("common.na");
-  const authMode = snapshot?.authMode;
-  const isTrustedProxy = authMode === "trusted-proxy";
-
-  const pairingHint = (() => {
-    const pairingState = resolvePairingHint(props.connected, props.lastError, props.lastErrorCode);
-    if (!pairingState) {
-      return null;
-    }
-    const copy = PAIRING_HINT_COPY[pairingState.kind];
-    const title = copy.titleKey ? t(copy.titleKey) : t("overview.pairing.hint");
-    return html`
-      <div class="muted" style="margin-top: 8px">
-        ${title}
-        ${copy.summaryKey
-          ? html`<div style="margin-top: 6px">${t(copy.summaryKey)}</div>`
-          : nothing}
-        <div style="margin-top: 6px">
-          ${pairingState.requestId
-            ? html`<span class="mono">genesis devices approve ${pairingState.requestId}</span
-                ><br />`
-            : nothing}
-          <span class="mono">genesis devices list</span>
-        </div>
-        <div style="margin-top: 6px; font-size: 12px;">${t("overview.pairing.mobileHint")}</div>
-        <div style="margin-top: 6px">
-          <a
-            class="session-link"
-            href="https://genesis.pixelzx.com/docs/web/control-ui#device-pairing-first-connection"
-            target=${EXTERNAL_LINK_TARGET}
-            rel=${buildExternalLinkRel()}
-            title=${t("overview.pairing.docsTitle")}
-            >${t("overview.pairing.docsLink")}</a
-          >
-        </div>
-      </div>
-    `;
-  })();
-
-  const authHint = (() => {
-    const authHintKind = resolveAuthHintKind({
-      connected: props.connected,
-      lastError: props.lastError,
-      lastErrorCode: props.lastErrorCode,
-      hasToken: Boolean(props.settings.token.trim()),
-      hasPassword: Boolean(props.password.trim()),
-    });
-    if (authHintKind == null) {
-      return null;
-    }
-    if (authHintKind === "required") {
-      return html`
-        <div class="muted" style="margin-top: 8px">
-          ${t("overview.auth.required")}
-          <div style="margin-top: 6px">
-            <span class="mono">genesis dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">genesis doctor --generate-gateway-token</span> → set token
-          </div>
-          <div style="margin-top: 6px">
-            <a
-              class="session-link"
-              href="https://genesis.pixelzx.com/docs/web/dashboard"
-              target=${EXTERNAL_LINK_TARGET}
-              rel=${buildExternalLinkRel()}
-              title=${t("overview.connection.authDocsTitle")}
-              >${t("overview.connection.authDocsLink")}</a
-            >
-          </div>
-        </div>
-      `;
-    }
-    return html`
-      <div class="muted" style="margin-top: 8px">
-        ${t("overview.auth.failed", { command: "genesis dashboard --no-open" })}
-        <div style="margin-top: 6px">
-          <a
-            class="session-link"
-            href="https://genesis.pixelzx.com/docs/web/dashboard"
-            target=${EXTERNAL_LINK_TARGET}
-            rel=${buildExternalLinkRel()}
-            title=${t("overview.connection.authDocsTitle")}
-            >${t("overview.connection.authDocsLink")}</a
-          >
-        </div>
-      </div>
-    `;
-  })();
-
-  const insecureContextHint = (() => {
-    if (props.connected || !props.lastError) {
-      return null;
-    }
-    const isSecureContext = typeof window !== "undefined" ? window.isSecureContext : true;
-    if (isSecureContext) {
-      return null;
-    }
-    if (!shouldShowInsecureContextHint(props.connected, props.lastError, props.lastErrorCode)) {
-      return null;
-    }
-    return html`
-      <div class="muted" style="margin-top: 8px">
-        ${t("overview.insecure.hint", { url: "http://127.0.0.1:18789" })}
-        <div style="margin-top: 6px">
-          ${t("overview.insecure.stayHttp", {
-            config: "gateway.controlUi.allowInsecureAuth: true",
-          })}
-        </div>
-        <div style="margin-top: 6px">
-          <a
-            class="session-link"
-            href="https://genesis.pixelzx.com/docs/gateway/tailscale"
-            target=${EXTERNAL_LINK_TARGET}
-            rel=${buildExternalLinkRel()}
-            title=${t("overview.connection.tailscaleDocsTitle")}
-            >${t("overview.connection.tailscaleDocsLink")}</a
-          >
-          <span class="muted"> · </span>
-          <a
-            class="session-link"
-            href="https://genesis.pixelzx.com/docs/web/control-ui#insecure-http"
-            target=${EXTERNAL_LINK_TARGET}
-            rel=${buildExternalLinkRel()}
-            title=${t("overview.connection.insecureHttpDocsTitle")}
-            >${t("overview.connection.insecureHttpDocsLink")}</a
-          >
-        </div>
-      </div>
-    `;
-  })();
-
-  const queryTokenHint = (() => {
-    if (props.connected || !props.lastError || !props.warnQueryToken) {
-      return null;
-    }
-    const lower = normalizeLowercaseStringOrEmpty(props.lastError);
-    const authFailed = lower.includes("unauthorized") || lower.includes("device identity required");
-    if (!authFailed) {
-      return null;
-    }
-    return html`
-      <div class="muted" style="margin-top: 8px">
-        Auth token must be passed as a URL fragment:
-        <span class="mono">#token=&lt;token&gt;</span>. Query parameters (<span class="mono"
-          >?token=</span
-        >) may appear in server logs.
-      </div>
-    `;
-  })();
-
-  const currentLocale = isSupportedLocale(props.settings.locale)
-    ? props.settings.locale
-    : i18n.getLocale();
+  const version = props.hello?.server?.version ?? t("common.na");
+  const activity = props.attentionItems.slice(0, 6);
+  const statusRows: Array<{ label: string; value: string; ok: boolean | null }> = [
+    { label: "Gateway", value: props.connected ? "Online" : "Offline", ok: props.connected },
+    {
+      label: "Cron",
+      value: props.cronEnabled ? "Enabled" : "Disabled",
+      ok: props.cronEnabled ?? false,
+    },
+    { label: "Active sessions", value: String(props.sessionsCount ?? 0), ok: null },
+    { label: "Channels online", value: String(props.presenceCount), ok: null },
+    { label: "Version", value: version, ok: null },
+  ];
 
   return html`
-    <section class="grid">
-      <div class="card">
-        <div class="card-title">${t("overview.access.title")}</div>
-        <div class="card-sub">${t("overview.access.subtitle")}</div>
-        <div class="ov-access-grid" style="margin-top: 16px;">
-          <label class="field ov-access-grid__full">
-            <span>${t("overview.access.wsUrl")}</span>
-            <input
-              .value=${props.settings.gatewayUrl}
-              @input=${(e: Event) => {
-                const v = (e.target as HTMLInputElement).value;
-                props.onSettingsChange({
-                  ...props.settings,
-                  gatewayUrl: v,
-                  token: v.trim() === props.settings.gatewayUrl.trim() ? props.settings.token : "",
-                });
-              }}
-              placeholder="ws://100.x.y.z:18789"
-            />
-          </label>
-          ${isTrustedProxy
-            ? ""
-            : html`
-                <label class="field">
-                  <span>${t("overview.access.token")}</span>
-                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <input
-                      type=${props.showGatewayToken ? "text" : "password"}
-                      autocomplete="off"
-                      style="flex: 1 1 0%; min-width: 0; box-sizing: border-box;"
-                      .value=${props.settings.token}
-                      @input=${(e: Event) => {
-                        const v = (e.target as HTMLInputElement).value;
-                        props.onSettingsChange({ ...props.settings, token: v });
-                      }}
-                      placeholder="GENESIS_GATEWAY_TOKEN"
-                    />
-                    <button
-                      type="button"
-                      class="btn btn--icon ${props.showGatewayToken ? "active" : ""}"
-                      style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
-                      title=${props.showGatewayToken
-                        ? t("overview.access.hideToken")
-                        : t("overview.access.showToken")}
-                      aria-label=${t("overview.access.toggleTokenVisibility")}
-                      aria-pressed=${props.showGatewayToken}
-                      @click=${props.onToggleGatewayTokenVisibility}
-                    >
-                      ${props.showGatewayToken ? icons.eye : icons.eyeOff}
-                    </button>
-                  </div>
-                </label>
-                <label class="field">
-                  <span>${t("overview.access.password")}</span>
-                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <input
-                      type=${props.showGatewayPassword ? "text" : "password"}
-                      autocomplete="off"
-                      style="flex: 1 1 0%; min-width: 0; width: 100%; box-sizing: border-box;"
-                      .value=${props.password}
-                      @input=${(e: Event) => {
-                        const v = (e.target as HTMLInputElement).value;
-                        props.onPasswordChange(v);
-                      }}
-                      placeholder=${t("overview.access.passwordPlaceholder")}
-                    />
-                    <button
-                      type="button"
-                      class="btn btn--icon ${props.showGatewayPassword ? "active" : ""}"
-                      style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
-                      title=${props.showGatewayPassword
-                        ? t("overview.access.hidePassword")
-                        : t("overview.access.showPassword")}
-                      aria-label=${t("overview.access.togglePasswordVisibility")}
-                      aria-pressed=${props.showGatewayPassword}
-                      @click=${props.onToggleGatewayPasswordVisibility}
-                    >
-                      ${props.showGatewayPassword ? icons.eye : icons.eyeOff}
-                    </button>
-                  </div>
-                </label>
-              `}
-          <label class="field">
-            <span>${t("overview.access.sessionKey")}</span>
-            <input
-              .value=${props.settings.sessionKey}
-              @input=${(e: Event) => {
-                const v = (e.target as HTMLInputElement).value;
-                props.onSessionKeyChange(v);
-              }}
-            />
-          </label>
-          <label class="field">
-            <span>${t("overview.access.language")}</span>
-            <select
-              .value=${currentLocale}
-              @change=${(e: Event) => {
-                const v = (e.target as HTMLSelectElement).value as Locale;
-                void i18n.setLocale(v);
-                props.onSettingsChange({ ...props.settings, locale: v });
-              }}
-            >
-              ${SUPPORTED_LOCALES.map((loc) => {
-                const key = loc.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
-                return html`<option value=${loc} ?selected=${currentLocale === loc}>
-                  ${t(`languages.${key}`)}
-                </option>`;
-              })}
-            </select>
-          </label>
-        </div>
-        <div class="row" style="margin-top: 14px;">
-          <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>
-          <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
-          <span class="muted"
-            >${isTrustedProxy
-              ? t("overview.access.trustedProxy")
-              : t("overview.access.connectHint")}</span
-          >
-        </div>
-        ${!props.connected
-          ? html`
-              <div class="login-gate__help" style="margin-top: 16px;">
-                <div class="login-gate__help-title">${t("overview.connection.title")}</div>
-                <ol class="login-gate__steps">
-                  <li>
-                    ${t("overview.connection.step1")} ${renderConnectCommand("genesis gateway run")}
-                  </li>
-                  <li>
-                    ${t("overview.connection.step2")} ${renderConnectCommand("genesis dashboard")}
-                  </li>
-                  <li>${t("overview.connection.step3")}</li>
-                  <li>
-                    ${t("overview.connection.step4")}<code
-                      >genesis doctor --generate-gateway-token</code
-                    >
-                  </li>
-                </ol>
-                <div class="login-gate__docs">
-                  ${t("overview.connection.docsHint")}
-                  <a
-                    class="session-link"
-                    href="https://genesis.pixelzx.com/docs/web/dashboard"
-                    target="_blank"
-                    rel="noreferrer"
-                    >${t("overview.connection.docsLink")}</a
-                  >
-                </div>
-              </div>
-            `
-          : nothing}
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div>
+        <div class="view-title">${t("tabs.overview")}</div>
+        <div class="view-sub">${t("subtitles.overview")}</div>
       </div>
 
-      <div class="card">
-        <div class="card-title">${t("overview.snapshot.title")}</div>
-        <div class="card-sub">${t("overview.snapshot.subtitle")}</div>
-        <div class="stat-grid" style="margin-top: 16px;">
-          <div class="stat">
-            <div class="stat-label">${t("overview.snapshot.status")}</div>
-            <div class="stat-value ${props.connected ? "ok" : "warn"}">
-              ${props.connected ? t("common.ok") : t("common.offline")}
-            </div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">${t("overview.snapshot.uptime")}</div>
-            <div class="stat-value">${uptime}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">${t("overview.snapshot.tickInterval")}</div>
-            <div class="stat-value">${tick}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">${t("overview.snapshot.lastChannelsRefresh")}</div>
-            <div class="stat-value">
-              ${props.lastChannelsRefresh
-                ? formatRelativeTimestamp(props.lastChannelsRefresh)
-                : t("common.na")}
-            </div>
-          </div>
-        </div>
-        ${props.lastError
-          ? html`<div class="callout danger" style="margin-top: 14px;">
-              <div>${props.lastError}</div>
-              ${pairingHint ?? ""} ${authHint ?? ""} ${insecureContextHint ?? ""}
-              ${queryTokenHint ?? ""}
-            </div>`
-          : html`
-              <div class="callout" style="margin-top: 14px">
-                ${t("overview.snapshot.channelsHint")}
-              </div>
-            `}
+      <div class="card" style="display: flex; padding: 0; margin-top: 24px; overflow: hidden;">
+        ${statCell(String(props.sessionsCount ?? 0), "Active sessions")}
+        ${statCell(String(props.presenceCount), "Online channels")}
+        ${statCell(String(props.cronJobs.length), "Cron jobs")} ${statCell(uptime, "Uptime", true)}
       </div>
-      ${renderWalletCard(props)}
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
+        <div class="card">
+          <div style=${PANEL_LABEL}>RECENT ACTIVITY</div>
+          ${activity.length === 0
+            ? html`<div class="muted" style="padding: 8px 0;">${t("common.na")}</div>`
+            : activity.map(
+                (item) => html`
+                  <div style="display: flex; gap: 12px; align-items: flex-start; ${ROW}">
+                    <span
+                      class="status-dot ${severityDot(item.severity)}"
+                      style="margin-top: 6px; flex: none;"
+                    ></span>
+                    <div style="min-width: 0; flex: 1;">
+                      <div style="color: var(--text);">${item.title}</div>
+                      <div class="muted" style="font-size: 13px;">${item.description}</div>
+                    </div>
+                  </div>
+                `,
+              )}
+        </div>
+
+        <div class="card">
+          <div style=${PANEL_LABEL}>STATUS</div>
+          ${statusRows.map(
+            (row) => html`
+              <div style=${ROW}>
+                <span class="muted">${row.label}</span>
+                <span
+                  style="display: flex; align-items: center; gap: 8px; font-family: var(--mono);"
+                >
+                  ${row.ok === null
+                    ? nothing
+                    : html`<span
+                        class="status-dot ${row.ok ? "status-dot--ok" : "status-dot--idle"}"
+                      ></span>`}
+                  ${row.value}
+                </span>
+              </div>
+            `,
+          )}
+        </div>
+      </div>
     </section>
-
-    <div class="ov-section-divider"></div>
-
-    ${renderOverviewCards({
-      usageResult: props.usageResult,
-      sessionsResult: props.sessionsResult,
-      skillsReport: props.skillsReport,
-      cronJobs: props.cronJobs,
-      cronStatus: props.cronStatus,
-      modelAuthStatus: props.modelAuthStatus,
-      presenceCount: props.presenceCount,
-      onNavigate: props.onNavigate,
-    })}
-    ${renderOverviewAttention({ items: props.attentionItems })}
-
-    <div class="ov-section-divider"></div>
-
-    <div class="ov-bottom-grid">
-      ${renderOverviewEventLog({
-        events: props.eventLog,
-      })}
-      ${renderOverviewLogTail({
-        lines: props.overviewLogLines,
-        onRefreshLogs: props.onRefreshLogs,
-      })}
-    </div>
   `;
 }
