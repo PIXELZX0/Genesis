@@ -2,6 +2,13 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.21
+
+### Changes
+
+- Control UI: the dashboard is reworked to follow the Pencil design reference. The sidebar navigation is regrouped (Control / Tools / Settings) with new icons and a Settings footer entry, list tables use hairline borders with monospaced column headers, cards and panels are flat with 6px corners, and pages use consistent 32px spacing.
+- Control UI: added a Cron jobs page to the sidebar navigation.
+
 ## 2026.6.20
 
 ### Changes
