@@ -11,8 +11,8 @@ describe("TAB_GROUPS", () => {
   it("does not expose settings slices as a sidebar group", () => {
     // Settings is rendered as a single footer item (see app-render), not a
     // TAB_GROUP. The individual settings slices stay URL-routable.
-    const settings = TAB_GROUPS.find((group) => group.label === "settings");
-    expect(settings).toBeUndefined();
+    const labels: readonly string[] = TAB_GROUPS.map((group) => group.label);
+    expect(labels).not.toContain("settings");
   });
 
   it("routes every settings slice even though it is not in the sidebar groups", () => {
