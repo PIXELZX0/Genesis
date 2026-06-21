@@ -170,6 +170,7 @@ const SELF_HEADED_TABS = new Set<string>([
   "channels",
   "cron",
   "agents",
+  "skills",
 ]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";

@@ -7,10 +7,10 @@ import type {
   SkillMessageMap,
 } from "../controllers/skills.ts";
 import { clampText } from "../format.ts";
+import { icons } from "../icons.ts";
 import { resolveSafeExternalUrl } from "../open-external-url.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { SkillStatusEntry, SkillStatusReport } from "../types.ts";
-import { groupSkills } from "./skills-grouping.ts";
 import {
   computeSkillMissing,
   computeSkillReasons,
@@ -74,28 +74,7 @@ export type SkillsProps = {
   onClawHubInstall: (slug: string) => void;
 };
 
-type StatusTabDef = { id: SkillsStatusFilter; label: string };
-
-const STATUS_TABS: StatusTabDef[] = [
-  { id: "all", label: "All" },
-  { id: "ready", label: "Ready" },
-  { id: "needs-setup", label: "Needs Setup" },
-  { id: "disabled", label: "Disabled" },
-];
-
-function skillMatchesStatus(skill: SkillStatusEntry, status: SkillsStatusFilter): boolean {
-  switch (status) {
-    case "all":
-      return true;
-    case "ready":
-      return !skill.disabled && skill.eligible;
-    case "needs-setup":
-      return !skill.disabled && !skill.eligible;
-    case "disabled":
-      return skill.disabled;
-  }
-  throw new Error("Unsupported skills status filter");
-}
+const SKILLS_GRID = "grid-template-columns: 1fr 90px;";
 
 function skillStatusClass(skill: SkillStatusEntry): string {
   if (skill.disabled) {
@@ -106,162 +85,145 @@ function skillStatusClass(skill: SkillStatusEntry): string {
 
 export function renderSkills(props: SkillsProps) {
   const skills = props.report?.skills ?? [];
-
-  const statusCounts: Record<SkillsStatusFilter, number> = {
-    all: skills.length,
-    ready: 0,
-    "needs-setup": 0,
-    disabled: 0,
-  };
-  for (const s of skills) {
-    if (s.disabled) {
-      statusCounts.disabled++;
-    } else if (s.eligible) {
-      statusCounts.ready++;
-    } else {
-      statusCounts["needs-setup"]++;
-    }
-  }
-
-  const afterStatus =
-    props.statusFilter === "all"
-      ? skills
-      : skills.filter((s) => skillMatchesStatus(s, props.statusFilter));
+  const enabledCount = skills.filter((s) => !s.disabled).length;
 
   const filter = normalizeLowercaseStringOrEmpty(props.filter);
   const filtered = filter
-    ? afterStatus.filter((skill) =>
+    ? skills.filter((skill) =>
         normalizeLowercaseStringOrEmpty(
           [skill.name, skill.description, skill.source].join(" "),
         ).includes(filter),
       )
-    : afterStatus;
-  const groups = groupSkills(filtered);
+    : skills;
 
   const detailSkill = props.detailKey
     ? (skills.find((s) => s.skillKey === props.detailKey) ?? null)
     : null;
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
-          <div class="card-title">Skills</div>
-          <div class="card-sub">Installed skills and their status.</div>
+          <div class="view-title">Skills</div>
+          <div class="view-sub">${skills.length} installed · ${enabledCount} enabled</div>
         </div>
-        <button
-          class="btn"
-          ?disabled=${props.loading || !props.connected}
-          @click=${props.onRefresh}
-        >
-          ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
-      </div>
-
-      <div class="agent-tabs" style="margin-top: 14px;">
-        ${STATUS_TABS.map(
-          (tab) => html`
-            <button
-              class="agent-tab ${props.statusFilter === tab.id ? "active" : ""}"
-              @click=${() => props.onStatusFilterChange(tab.id)}
-            >
-              ${tab.label}<span class="agent-tab-count">${statusCounts[tab.id]}</span>
-            </button>
-          `,
-        )}
-      </div>
-
-      <div
-        class="filters"
-        style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px;"
-      >
-        <label class="field" style="flex: 1; min-width: 180px;">
+        <div class="data-table-search" style="width: 220px; flex: none;">
+          ${icons.search}
           <input
+            type="search"
             .value=${props.filter}
+            placeholder="Search skills"
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Filter installed skills"
-            autocomplete="off"
-            name="skills-filter"
           />
-        </label>
-        <div class="muted">${filtered.length} shown</div>
-      </div>
-
-      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <div style="font-weight: 600;">ClawHub</div>
-          <div class="muted" style="font-size: 13px;">
-            Search and install skills from the registry
-          </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <label class="field" style="flex: 1; min-width: 180px;">
-            <input
-              .value=${props.clawhubQuery}
-              @input=${(e: Event) =>
-                props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-              placeholder="Search ClawHub skills…"
-              autocomplete="off"
-              name="clawhub-search"
-            />
-          </label>
-          <button
-            class="btn btn--sm"
-            ?disabled=${!props.connected || props.clawhubSearchLoading}
-            @click=${() => props.onClawHubQueryChange("")}
-          >
-            Browse
-          </button>
-          ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
-        </div>
-        ${props.clawhubSearchError
-          ? html`<div class="callout danger" style="margin-top: 8px;">
-              ${props.clawhubSearchError}
-            </div>`
-          : nothing}
-        ${props.clawhubInstallMessage
-          ? html`<div
-              class="callout ${props.clawhubInstallMessage.kind === "error" ? "danger" : "success"}"
-              style="margin-top: 8px;"
-            >
-              ${props.clawhubInstallMessage.text}
-            </div>`
-          : nothing}
-        ${renderClawHubResults(props)}
       </div>
 
       ${props.error
-        ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
+        ? html`<div class="callout danger" style="margin-top: 16px;">${props.error}</div>`
         : nothing}
       ${filtered.length === 0
         ? html`
-            <div class="muted" style="margin-top: 16px">
+            <div class="muted" style="padding: 16px;">
               ${!props.connected && !props.report
                 ? "Not connected to gateway."
-                : "No skills found."}
+                : props.loading
+                  ? t("common.loading")
+                  : "No skills found."}
             </div>
           `
         : html`
-            <div class="agent-skills-groups" style="margin-top: 16px;">
-              ${groups.map((group) => {
-                return html`
-                  <details class="agent-skills-group" open>
-                    <summary class="agent-skills-header">
-                      <span>${group.label}</span>
-                      <span class="muted">${group.skills.length}</span>
-                    </summary>
-                    <div class="list skills-grid">
-                      ${group.skills.map((skill) => renderSkill(skill, props))}
-                    </div>
-                  </details>
-                `;
-              })}
+            <div class="table" style="margin-top: 20px;">
+              <div class="table-head" style=${SKILLS_GRID}>
+                <span>SKILL</span>
+                <span>ENABLED</span>
+              </div>
+              ${filtered.map((skill) => renderSkillRow(skill, props))}
             </div>
           `}
+
+      <details class="card" style="margin-top: 24px;">
+        <summary
+          style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="btn__icon">${icons.plus}</span> Add skill from ClawHub
+        </summary>
+        <div style="margin-top: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <label class="field" style="flex: 1; min-width: 180px;">
+              <input
+                .value=${props.clawhubQuery}
+                @input=${(e: Event) =>
+                  props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
+                placeholder="Search ClawHub skills…"
+                autocomplete="off"
+                name="clawhub-search"
+              />
+            </label>
+            <button
+              class="btn btn--sm"
+              ?disabled=${!props.connected || props.clawhubSearchLoading}
+              @click=${() => props.onClawHubQueryChange("")}
+            >
+              Browse
+            </button>
+            ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
+          </div>
+          ${props.clawhubSearchError
+            ? html`<div class="callout danger" style="margin-top: 8px;">
+                ${props.clawhubSearchError}
+              </div>`
+            : nothing}
+          ${props.clawhubInstallMessage
+            ? html`<div
+                class="callout ${props.clawhubInstallMessage.kind === "error"
+                  ? "danger"
+                  : "success"}"
+                style="margin-top: 8px;"
+              >
+                ${props.clawhubInstallMessage.text}
+              </div>`
+            : nothing}
+          ${renderClawHubResults(props)}
+        </div>
+      </details>
     </section>
 
     ${detailSkill ? renderSkillDetail(detailSkill, props) : nothing}
     ${props.clawhubDetailSlug ? renderClawHubDetailDialog(props) : nothing}
+  `;
+}
+
+function renderSkillRow(skill: SkillStatusEntry, props: SkillsProps) {
+  const busy = props.busyKey === skill.skillKey;
+  return html`
+    <div
+      class="table-row"
+      style="cursor: pointer; ${SKILLS_GRID}"
+      @click=${() => props.onDetailOpen(skill.skillKey)}
+    >
+      <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+        <span
+          style="font-family: var(--mono); color: var(--text); display: flex; align-items: center; gap: 8px;"
+        >
+          ${skill.emoji ? html`<span>${skill.emoji}</span>` : nothing}${skill.name}
+        </span>
+        <span class="muted" style="font-size: 13px; overflow: hidden; text-overflow: ellipsis;">
+          ${clampText(skill.description, 140)}
+        </span>
+      </div>
+      <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          class="skill-toggle"
+          .checked=${!skill.disabled}
+          ?disabled=${busy}
+          @change=${(e: Event) => {
+            e.stopPropagation();
+            props.onToggle(skill.skillKey, skill.disabled);
+          }}
+        />
+      </label>
+    </div>
   `;
 }
 
@@ -391,41 +353,6 @@ function renderClawHubDetailDialog(props: SkillsProps) {
         </div>
       </div>
     </dialog>
-  `;
-}
-
-function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
-  const busy = props.busyKey === skill.skillKey;
-  const dotClass = skillStatusClass(skill);
-
-  return html`
-    <div class="list-item list-item-clickable" @click=${() => props.onDetailOpen(skill.skillKey)}>
-      <div class="list-main">
-        <div class="list-title" style="display: flex; align-items: center; gap: 8px;">
-          <span class="statusDot ${dotClass}"></span>
-          ${skill.emoji ? html`<span>${skill.emoji}</span>` : nothing}
-          <span>${skill.name}</span>
-        </div>
-        <div class="list-sub">${clampText(skill.description, 140)}</div>
-      </div>
-      <div
-        class="list-meta"
-        style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;"
-      >
-        <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
-          <input
-            type="checkbox"
-            class="skill-toggle"
-            .checked=${!skill.disabled}
-            ?disabled=${busy}
-            @change=${(e: Event) => {
-              e.stopPropagation();
-              props.onToggle(skill.skillKey, skill.disabled);
-            }}
-          />
-        </label>
-      </div>
-    </div>
   `;
 }
 
