@@ -152,7 +152,18 @@ import {
 import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, pathForTab, TAB_GROUPS } from "./navigation.ts";
+import {
+  normalizeBasePath,
+  pathForTab,
+  subtitleForTab,
+  TAB_GROUPS,
+  titleForTab,
+} from "./navigation.ts";
+
+// Tabs whose view renders its own Pencil-style header (title + subtitle +
+// actions), so the shell must not render a duplicate content-header title.
+// Add a tab here as its view is rewritten to the Pencil design.
+const SELF_HEADED_TABS = new Set<string>(["config", "sessions"]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import "./components/dashboard-header.ts";
@@ -1634,10 +1645,15 @@ export function renderApp(state: AppViewState) {
               </button>
             </div>`
           : nothing}
-        ${state.tab === "config"
+        ${SELF_HEADED_TABS.has(state.tab)
           ? nothing
           : html`<section class="content-header">
-              <div>${isChat ? renderChatSessionSelect(state) : nothing}</div>
+              <div>
+                ${isChat
+                  ? renderChatSessionSelect(state)
+                  : html`<div class="view-title">${titleForTab(state.tab)}</div>
+                      <div class="view-sub">${subtitleForTab(state.tab)}</div>`}
+              </div>
               <div class="page-meta">
                 ${state.tab === "dreams"
                   ? html`
