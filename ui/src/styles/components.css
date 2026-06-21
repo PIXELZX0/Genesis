@@ -226,7 +226,7 @@
 .card {
   border: 1px solid var(--border);
   background: var(--card);
-  border-radius: var(--radius);
+  border-radius: 6px;
   padding: 18px;
   animation: rise 0.25s var(--ease-out) backwards;
   transition: border-color var(--duration-normal) var(--ease-out);
