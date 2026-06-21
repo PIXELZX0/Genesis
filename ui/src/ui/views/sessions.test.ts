@@ -1,20 +1,10 @@
 /* @vitest-environment jsdom */
 
 import { render } from "lit";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import type { SessionsListResult } from "../types.ts";
 import { renderSessions, type SessionsProps } from "./sessions.ts";
-
-function buildResult(session: SessionsListResult["sessions"][number]): SessionsListResult {
-  return {
-    ts: Date.now(),
-    path: "(multiple)",
-    count: 1,
-    defaults: { modelProvider: null, model: null, contextTokens: null },
-    sessions: [session],
-  };
-}
 
 function buildMultiResult(sessions: SessionsListResult["sessions"]): SessionsListResult {
   return {
@@ -88,149 +78,54 @@ describe("sessions view", () => {
     expect(container.textContent).toContain("newer");
   });
 
-  it("renders and patches provider-owned thinking ids", async () => {
-    const container = document.createElement("div");
-    const onPatch = vi.fn();
-    render(
-      renderSessions({
-        ...buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            thinkingLevel: "adaptive",
-            thinkingLevels: [
-              { id: "off", label: "off" },
-              { id: "adaptive", label: "adaptive" },
-              { id: "max", label: "maximum" },
-            ],
-          }),
-        ),
-        onPatch,
-      }),
-      container,
-    );
-    await Promise.resolve();
-
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
-    expect(thinking?.value).toBe("adaptive");
-    expect(Array.from(thinking?.options ?? []).map((option) => option.value)).toEqual([
-      "",
-      "off",
-      "adaptive",
-      "max",
-    ]);
-    expect(
-      Array.from(thinking?.options ?? [])
-        .find((option) => option.value === "max")
-        ?.textContent?.trim(),
-    ).toBe("maximum");
-
-    thinking!.value = "max";
-    thinking!.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(onPatch).toHaveBeenCalledWith("agent:main:main", { thinkingLevel: "max" });
-  });
-
-  it("keeps legacy binary thinking labels patching canonical ids", async () => {
-    const container = document.createElement("div");
-    const onPatch = vi.fn();
-    render(
-      renderSessions({
-        ...buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            thinkingLevel: "low",
-            thinkingOptions: ["off", "on"],
-          }),
-        ),
-        onPatch,
-      }),
-      container,
-    );
-    await Promise.resolve();
-
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
-    expect(thinking?.value).toBe("low");
-    expect(
-      Array.from(thinking?.options ?? [])
-        .find((option) => option.value === "low")
-        ?.textContent?.trim(),
-    ).toBe("on");
-
-    thinking!.value = "low";
-    thinking!.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(onPatch).toHaveBeenCalledWith("agent:main:main", { thinkingLevel: "low" });
-  });
-
-  it("keeps session selects stable and deselects only the current page", async () => {
+  it("renders the Pencil columns and one row per session", async () => {
     const container = document.createElement("div");
     render(
       renderSessions(
         buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            fastMode: true,
-            verboseLevel: "full",
-            reasoningLevel: "custom-mode",
-          }),
+          buildMultiResult([
+            {
+              key: "alpha",
+              kind: "direct",
+              updatedAt: Date.now(),
+              displayName: "orchestrator",
+              surface: "telegram",
+            },
+            { key: "beta", kind: "group", updatedAt: 1000 },
+          ]),
         ),
       ),
       container,
     );
     await Promise.resolve();
 
-    const selects = container.querySelectorAll("select");
-    const fast = selects[1] as HTMLSelectElement | undefined;
-    const verbose = selects[2] as HTMLSelectElement | undefined;
-    const reasoning = selects[3] as HTMLSelectElement | undefined;
-    expect(fast?.value).toBe("on");
-    expect(verbose?.value).toBe("full");
-    expect(Array.from(verbose?.options ?? []).some((option) => option.value === "full")).toBe(true);
-    expect(reasoning?.value).toBe("custom-mode");
-    expect(
-      Array.from(reasoning?.options ?? []).some((option) => option.value === "custom-mode"),
-    ).toBe(true);
+    const text = container.textContent ?? "";
+    expect(text).toContain("SESSION");
+    expect(text).toContain("CHANNEL");
+    expect(text).toContain("STATUS");
+    expect(text).toContain("alpha");
+    expect(text).toContain("orchestrator");
+    expect(text).toContain("telegram");
+    expect(container.querySelectorAll("a.table-row").length).toBe(2);
+  });
 
-    const onSelectPage = vi.fn();
-    const onDeselectPage = vi.fn();
-    const onDeselectAll = vi.fn();
+  it("filters rows by search query", async () => {
+    const container = document.createElement("div");
     render(
       renderSessions({
         ...buildProps(
           buildMultiResult([
-            {
-              key: "page-0",
-              kind: "direct",
-              updatedAt: 20,
-            },
-            {
-              key: "page-1",
-              kind: "direct",
-              updatedAt: 10,
-            },
+            { key: "alpha", kind: "direct", updatedAt: 1 },
+            { key: "beta", kind: "direct", updatedAt: 2 },
           ]),
         ),
-        pageSize: 1,
-        selectedKeys: new Set(["page-0", "off-page"]),
-        onSelectPage,
-        onDeselectPage,
-        onDeselectAll,
+        searchQuery: "alph",
       }),
       container,
     );
     await Promise.resolve();
 
-    const headerCheckbox = container.querySelector("thead input[type=checkbox]");
-    headerCheckbox?.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(onDeselectPage).toHaveBeenCalledWith(["page-0"]);
-    expect(onDeselectAll).not.toHaveBeenCalled();
-    expect(onSelectPage).not.toHaveBeenCalled();
+    expect(container.querySelectorAll("a.table-row").length).toBe(1);
+    expect(container.textContent).toContain("alpha");
   });
 });
