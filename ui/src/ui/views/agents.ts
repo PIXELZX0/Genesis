@@ -8,6 +8,7 @@ import type {
   ChannelsStatusSnapshot,
   CronJob,
   CronStatus,
+  GatewayAgentRow,
   ModelCatalogEntry,
   SkillStatusReport,
   ToolsCatalogResult,
@@ -21,8 +22,59 @@ import {
 } from "./agents-panels-status-files.ts";
 export type { AgentsPanel } from "./agents.types.ts";
 import { renderAgentTools, renderAgentSkills } from "./agents-panels-tools-skills.ts";
-import { agentBadgeText, buildAgentContext, normalizeAgentLabel } from "./agents-utils.ts";
+import { buildAgentContext, normalizeAgentLabel } from "./agents-utils.ts";
 import type { AgentsPanel } from "./agents.types.ts";
+
+const AGENTS_GRID = "grid-template-columns: 1.6fr 1.2fr 0.8fr 1.4fr;";
+
+function agentStat(value: string, label: string, last = false) {
+  const border = last ? "" : "border-right: 1px solid var(--border);";
+  return html`
+    <div
+      style="display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; flex: 1; min-width: 0; ${border}"
+    >
+      <div
+        style="font-family: var(--mono); font-size: 24px; font-weight: 600; line-height: 1.1; color: var(--text); overflow: hidden; text-overflow: ellipsis;"
+      >
+        ${value}
+      </div>
+      <div class="muted" style="font-size: 13px;">${label}</div>
+    </div>
+  `;
+}
+
+function renderAgentRow(
+  agent: GatewayAgentRow,
+  props: AgentsProps,
+  defaultId: string | null,
+  selectedId: string | null,
+) {
+  const isDefault = defaultId != null && agent.id === defaultId;
+  const isSelected = selectedId === agent.id;
+  const model = agent.model?.primary ?? "—";
+  const fallbacks = agent.model?.fallbacks?.length ?? 0;
+  const workspace = agent.workspace ?? "—";
+  return html`
+    <div
+      class="table-row"
+      style="cursor: pointer; ${isSelected ? "background: var(--bg-elevated);" : ""} ${AGENTS_GRID}"
+      @click=${() => props.onSelectAgent(agent.id)}
+    >
+      <span style="color: var(--text); display: flex; align-items: center; gap: 8px;">
+        <span class="status-dot ${isDefault ? "status-dot--ok" : "status-dot--idle"}"></span>
+        ${normalizeAgentLabel(agent)}
+        ${isDefault ? html`<span class="muted" style="font-size: 12px;">· default</span>` : nothing}
+      </span>
+      <span class="muted" style="font-family: var(--mono);">${model}</span>
+      <span class="muted">${fallbacks > 0 ? fallbacks : "—"}</span>
+      <span
+        class="muted"
+        style="font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+        >${workspace}</span
+      >
+    </div>
+  `;
+}
 
 export type ConfigState = {
   form: Record<string, unknown> | null;
@@ -158,34 +210,21 @@ export function renderAgents(props: AgentsProps) {
 
   return html`
     <div class="agents-layout">
-      <section class="agents-toolbar">
-        <div class="agents-toolbar-row">
-          <div class="agents-control-select">
-            <select
-              class="agents-select"
-              .value=${selectedId ?? ""}
-              ?disabled=${props.loading || agents.length === 0}
-              @change=${(e: Event) => props.onSelectAgent((e.target as HTMLSelectElement).value)}
-            >
-              ${agents.length === 0
-                ? html` <option value="">No agents</option> `
-                : agents.map(
-                    (agent) => html`
-                      <option value=${agent.id} ?selected=${agent.id === selectedId}>
-                        ${normalizeAgentLabel(agent)}${agentBadgeText(agent.id, defaultId)
-                          ? ` (${agentBadgeText(agent.id, defaultId)})`
-                          : ""}
-                      </option>
-                    `,
-                  )}
-            </select>
+      <section>
+        <div
+          class="row"
+          style="justify-content: space-between; align-items: flex-start; gap: 16px;"
+        >
+          <div>
+            <div class="view-title">${t("tabs.agents")}</div>
+            <div class="view-sub">${agents.length} ${agents.length === 1 ? "agent" : "agents"}</div>
           </div>
-          <div class="agents-toolbar-actions">
+          <div class="row" style="gap: 8px; flex: none;">
             ${selectedAgent
               ? html`
                   <button
                     type="button"
-                    class="btn btn--sm btn--ghost"
+                    class="btn"
                     @click=${() => void navigator.clipboard.writeText(selectedAgent.id)}
                     title="Copy agent ID to clipboard"
                   >
@@ -193,7 +232,7 @@ export function renderAgents(props: AgentsProps) {
                   </button>
                   <button
                     type="button"
-                    class="btn btn--sm btn--ghost"
+                    class="btn"
                     ?disabled=${Boolean(defaultId && selectedAgent.id === defaultId)}
                     @click=${() => props.onSetDefault(selectedAgent.id)}
                     title=${defaultId && selectedAgent.id === defaultId
@@ -204,27 +243,41 @@ export function renderAgents(props: AgentsProps) {
                   </button>
                 `
               : nothing}
-            <button
-              class="btn btn--sm agents-refresh-btn"
-              ?disabled=${props.loading}
-              @click=${props.onRefresh}
-            >
+            <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
               ${props.loading ? t("common.loading") : t("common.refresh")}
             </button>
           </div>
         </div>
         ${props.error
-          ? html`<div class="callout danger" style="margin-top: 8px;">${props.error}</div>`
+          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
           : nothing}
+
+        <div class="card" style="display: flex; padding: 0; margin-top: 24px; overflow: hidden;">
+          ${agentStat(String(agents.length), "Agents")}
+          ${agentStat(defaultId ?? t("common.na"), "Default")}
+          ${agentStat(String(channelEntryCount ?? 0), "Channels")}
+          ${agentStat(String(props.cron.jobs.length), "Cron jobs", true)}
+        </div>
+
+        ${agents.length === 0
+          ? html`<div class="muted" style="padding: 16px;">
+              ${props.loading ? t("common.loading") : t("common.na")}
+            </div>`
+          : html`
+              <div class="table" style="margin-top: 24px;">
+                <div class="table-head" style=${AGENTS_GRID}>
+                  <span>AGENT</span>
+                  <span>MODEL</span>
+                  <span>FALLBACKS</span>
+                  <span>WORKSPACE</span>
+                </div>
+                ${agents.map((agent) => renderAgentRow(agent, props, defaultId, selectedId))}
+              </div>
+            `}
       </section>
       <section class="agents-main">
         ${!selectedAgent
-          ? html`
-              <div class="card">
-                <div class="card-title">Select an agent</div>
-                <div class="card-sub">Pick an agent to inspect its workspace and tools.</div>
-              </div>
-            `
+          ? nothing
           : html`
               ${renderAgentTabs(
                 props.activePanel,
