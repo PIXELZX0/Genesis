@@ -163,7 +163,7 @@ import {
 // Tabs whose view renders its own Pencil-style header (title + subtitle +
 // actions), so the shell must not render a duplicate content-header title.
 // Add a tab here as its view is rewritten to the Pencil design.
-const SELF_HEADED_TABS = new Set<string>(["config", "sessions", "overview", "channels"]);
+const SELF_HEADED_TABS = new Set<string>(["config", "sessions", "overview", "channels", "cron"]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import "./components/dashboard-header.ts";
