@@ -67,9 +67,12 @@ export async function loadAgents(state: AgentsState) {
     const res = await state.client.request<AgentsListResult>("agents.list", {});
     if (res) {
       state.agentsList = res;
+      // Do not auto-select an agent on load: the Agents view shows its table as
+      // the landing state and only reveals the inspector after an explicit pick.
+      // Still clear a stale selection if that agent no longer exists.
       const selected = state.agentsSelectedId;
-      if (!selected || !res.agents.some((entry) => entry.id === selected)) {
-        state.agentsSelectedId = res.defaultId ?? res.agents[0]?.id ?? null;
+      if (selected && !res.agents.some((entry) => entry.id === selected)) {
+        state.agentsSelectedId = null;
       }
     }
   } catch (err) {

@@ -186,7 +186,9 @@ export type AgentsProps = {
 export function renderAgents(props: AgentsProps) {
   const agents = props.agentsList?.agents ?? [];
   const defaultId = props.agentsList?.defaultId ?? null;
-  const selectedId = props.selectedAgentId ?? defaultId ?? agents[0]?.id ?? null;
+  // Only show the inspector when the user has explicitly selected an agent
+  // (no default fallback); the landing state is the agents table alone.
+  const selectedId = props.selectedAgentId ?? null;
   const selectedAgent = selectedId
     ? (agents.find((agent) => agent.id === selectedId) ?? null)
     : null;

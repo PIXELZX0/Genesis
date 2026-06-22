@@ -99,7 +99,7 @@ describe("loadAgents", () => {
     expect(state.agentsSelectedId).toBe("kimi");
   });
 
-  it("resets to default when selected agent is removed", async () => {
+  it("clears the selection when the selected agent is removed", async () => {
     const { state, request } = createState();
     state.agentsSelectedId = "removed-agent";
     request.mockResolvedValue({
@@ -114,10 +114,12 @@ describe("loadAgents", () => {
 
     await loadAgents(state);
 
-    expect(state.agentsSelectedId).toBe("main");
+    // No auto-select: a stale selection is cleared so the view falls back to the
+    // table landing rather than jumping into another agent's inspector.
+    expect(state.agentsSelectedId).toBeNull();
   });
 
-  it("sets default when no agent is selected", async () => {
+  it("does not auto-select an agent when none is selected", async () => {
     const { state, request } = createState();
     state.agentsSelectedId = null;
     request.mockResolvedValue({
@@ -132,7 +134,8 @@ describe("loadAgents", () => {
 
     await loadAgents(state);
 
-    expect(state.agentsSelectedId).toBe("main");
+    // Landing state is the agents table; the inspector appears only on explicit pick.
+    expect(state.agentsSelectedId).toBeNull();
   });
 });
 
@@ -383,7 +386,7 @@ describe("saveAgentsConfig", () => {
     expect(state.agentsSelectedId).toBe("kimi");
   });
 
-  it("falls back to the default agent when the saved agent disappears", async () => {
+  it("clears the selection when the saved agent disappears", async () => {
     const { state, request } = createSaveState();
     state.agentsSelectedId = "kimi";
     request
@@ -408,6 +411,6 @@ describe("saveAgentsConfig", () => {
 
     await saveAgentsConfig(state);
 
-    expect(state.agentsSelectedId).toBe("main");
+    expect(state.agentsSelectedId).toBeNull();
   });
 });

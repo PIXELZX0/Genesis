@@ -2089,7 +2089,10 @@ export function renderApp(state: AppViewState) {
                 loading: state.agentsLoading,
                 error: state.agentsError,
                 agentsList: state.agentsList,
-                selectedAgentId: resolvedAgentId,
+                // Pass the raw (nullable) selection so the Agents view shows the
+                // inspector only after the user explicitly picks an agent; data
+                // loading below still uses the derived resolvedAgentId.
+                selectedAgentId: state.agentsSelectedId ?? null,
                 activePanel: state.agentsPanel,
                 config: {
                   form: configValue,
