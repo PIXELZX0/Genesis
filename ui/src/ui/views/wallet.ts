@@ -1,7 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { WalletRecoveryPhraseInput, WalletRecoveryPhraseMode } from "../controllers/wallet.ts";
-import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import type {
   WalletBalance,
@@ -63,11 +62,18 @@ function copyText(value: string) {
   void navigator.clipboard?.writeText(value).catch(() => undefined);
 }
 
-function renderStatusCard(label: string, value: unknown, valueClass = "") {
+const WALLET_PANEL_LABEL =
+  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 8px;";
+
+function shortenAddress(address: string): string {
+  return address.length > 14 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
+}
+
+function portfolioStat(value: string, label: string) {
   return html`
-    <div class="stat">
-      <div class="stat-label">${label}</div>
-      <div class="stat-value ${valueClass}" style="overflow-wrap: anywhere;">${value}</div>
+    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+      <div style="font-family: var(--mono); font-size: 20px; color: var(--text);">${value}</div>
+      <div class="muted" style="font-size: 13px;">${label}</div>
     </div>
   `;
 }
@@ -79,21 +85,47 @@ function renderWalletStatus(props: WalletProps) {
       ? t("wallet.status.locked")
       : t("wallet.status.available")
     : t("wallet.status.missing");
-  const lastUpdated = props.lastUpdatedAt
-    ? t("wallet.lastUpdated", { time: formatRelativeTimestamp(props.lastUpdatedAt) })
-    : null;
+  const accounts = summary?.accounts ?? [];
+  const primaryAccount =
+    accounts.find((account) => account.id === summary?.primaryAccount) ?? accounts[0] ?? null;
+  const networks = new Set(accounts.map((account) => account.chain)).size;
+  const primaryBalance = primaryAccount ? accountBalance(primaryAccount, summary?.balances) : null;
+  const headline = primaryBalance
+    ? `${primaryBalance.amount} ${primaryBalance.asset}`
+    : String(accounts.length);
+  const headlineLabel = primaryBalance ? t("wallet.accounts.balance") : t("wallet.status.accounts");
+  const subParts: string[] = [];
+  if (primaryAccount) {
+    subParts.push(shortenAddress(primaryAccount.address));
+    subParts.push(
+      `${walletChainLabel(primaryAccount.chain)}${
+        primaryAccount.network ? ` · ${primaryAccount.network}` : ""
+      }`,
+    );
+  } else {
+    subParts.push(t("wallet.subtitle"));
+  }
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between; align-items: flex-start;">
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
-          <div class="card-title">${t("wallet.status.title")}</div>
-          <div class="card-sub">
-            ${props.summary ? t("wallet.subtitle") : t("wallet.accounts.subtitle")}
-            ${lastUpdated ? html`<span> ${lastUpdated}</span>` : nothing}
-          </div>
+          <div class="view-title">${t("tabs.wallet")}</div>
+          <div class="view-sub">${subParts.join(" · ")}</div>
         </div>
         <div class="row" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+          ${primaryAccount
+            ? html`
+                <button
+                  class="btn"
+                  type="button"
+                  title=${t("wallet.accounts.copyAddress")}
+                  @click=${() => copyText(primaryAccount.address)}
+                >
+                  ${icons.copy}<span>Receive</span>
+                </button>
+              `
+            : nothing}
           <button class="btn" @click=${props.onConfigure}>${t("wallet.configure")}</button>
           <button
             class="btn primary"
@@ -107,24 +139,26 @@ function renderWalletStatus(props: WalletProps) {
         </div>
       </div>
       ${props.error
-        ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
+        ? html`<div class="callout danger" style="margin-top: 16px;">${props.error}</div>`
         : nothing}
-      <div class="stat-grid" style="margin-top: 16px;">
-        ${renderStatusCard(
-          t("wallet.status.enabled"),
-          summary?.enabled ? t("common.yes") : t("common.no"),
-          summary?.enabled ? "ok" : "warn",
-        )}
-        ${renderStatusCard(
-          t("wallet.status.keystore"),
-          keystoreLabel,
-          summary?.keystore.exists ? "ok" : "warn",
-        )}
-        ${renderStatusCard(t("wallet.status.accounts"), String(summary?.accounts.length ?? 0))}
-        ${renderStatusCard(
-          t("wallet.status.primary"),
-          summary?.primaryAccount ?? t("wallet.status.notSet"),
-        )}
+
+      <div
+        class="card"
+        style="display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 24px; padding: 24px; flex-wrap: wrap;"
+      >
+        <div>
+          <div style=${WALLET_PANEL_LABEL}>${headlineLabel}</div>
+          <div
+            style="font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--text);"
+          >
+            ${headline}
+          </div>
+        </div>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+          ${portfolioStat(String(accounts.length), t("wallet.status.accounts"))}
+          ${portfolioStat(String(networks), "Networks")}
+          ${portfolioStat(keystoreLabel, t("wallet.status.keystore"))}
+        </div>
       </div>
       ${summary?.warnings.length
         ? html`
