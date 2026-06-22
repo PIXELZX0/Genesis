@@ -2,6 +2,16 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.22
+
+### Changes
+
+- Control UI: every dashboard page now follows the Pencil design reference. Overview, Agents, Channels, Cron, Skills, Plugins, MCP, Wallet, and Canvas use hairline tables, monospaced column headers, stat strips, flat cards, and consistent spacing.
+- Control UI Agents: the page opens to an agents table, and selecting an agent opens its inspector (overview, files, tools, skills, channels, cron jobs) in a popup.
+- Control UI Wallet: reworked into a portfolio summary with an assets table.
+- Control UI Canvas: reworked into a toolbar with a centered preview workspace and a properties panel.
+- Control UI Chat: user messages now use solid Pencil bubbles.
+
 ## 2026.6.21
 
 ### Changes
