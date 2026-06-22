@@ -173,6 +173,7 @@ const SELF_HEADED_TABS = new Set<string>([
   "skills",
   "plugins",
   "mcp",
+  "canvas",
 ]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";

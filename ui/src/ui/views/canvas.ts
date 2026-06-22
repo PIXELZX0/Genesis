@@ -543,127 +543,137 @@ function renderRecentDocuments(props: CanvasProps) {
   `;
 }
 
-function renderWorkspace(props: CanvasProps) {
+const CANVAS_PANEL_LABEL =
+  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 12px;";
+
+function renderCanvasProperties(props: CanvasProps, hostLabel: string, sandbox: string) {
   const canMutate = props.connected && !canvasBusy && currentSourceReady();
   const canUpdate = canMutate && canvasDocumentIdDraft.trim().length > 0;
   return html`
-    <section class="card canvas-workspace-card">
-      <div class="canvas-workspace-layout">
-        <div class="canvas-editor-panel">
-          <div class="canvas-panel-heading">
-            <div>
-              <div class="card-title">${t("canvasView.workspaceTitle")}</div>
-              <div class="card-sub">${t("canvasView.workspaceSubtitle")}</div>
-            </div>
-          </div>
+    <aside class="card" style="align-self: start;">
+      <div style=${CANVAS_PANEL_LABEL}>PROPERTIES</div>
 
-          <div class="canvas-source-tabs">
-            ${SOURCE_MODES.map((item) => renderSourceModeButton(props, item))}
-          </div>
-
-          <div class="form-grid canvas-document-form">
-            ${renderSourceFields(props)}
-
-            <label class="field">
-              <span>${t("canvasView.fields.title")}</span>
-              <input
-                autocomplete="off"
-                type="text"
-                .value=${canvasTitleDraft}
-                @input=${(event: Event) => {
-                  canvasTitleDraft = (event.currentTarget as HTMLInputElement).value;
-                  requestCanvasUpdate(props);
-                }}
-              />
-            </label>
-
-            <label class="field">
-              <span>${t("canvasView.fields.id")}</span>
-              <input
-                autocomplete="off"
-                spellcheck="false"
-                type="text"
-                .value=${canvasDocumentIdDraft}
-                @input=${(event: Event) => {
-                  canvasDocumentIdDraft = (event.currentTarget as HTMLInputElement).value;
-                  requestCanvasUpdate(props);
-                }}
-              />
-            </label>
-
-            <label class="field">
-              <span>${t("canvasView.fields.height")}</span>
-              <input
-                min="120"
-                step="20"
-                type="number"
-                .value=${canvasPreferredHeightDraft}
-                @input=${(event: Event) => {
-                  canvasPreferredHeightDraft = (event.currentTarget as HTMLInputElement).value;
-                  requestCanvasUpdate(props);
-                }}
-              />
-            </label>
-
-            <label class="field">
-              <span>${t("canvasView.fields.kind")}</span>
-              <select
-                .value=${canvasKindDraft}
-                @change=${(event: Event) => {
-                  canvasKindDraft = (event.currentTarget as HTMLSelectElement).value;
-                  requestCanvasUpdate(props);
-                }}
-              >
-                ${CANVAS_KINDS.map(
-                  (kind) => html`<option value=${kind.value}>${kind.label}</option>`,
-                )}
-              </select>
-            </label>
-          </div>
-
-          <div class="row canvas-mutation-actions">
-            <button
-              class="btn primary canvas-create-button"
-              type="button"
-              ?disabled=${!canMutate}
-              @click=${() => void saveCanvasDocument(props, "create")}
-            >
-              ${icons.plus}<span
-                >${canvasBusy ? t("common.saving") : t("canvasView.actions.create")}</span
-              >
-            </button>
-            <button
-              class="btn canvas-update-button"
-              type="button"
-              ?disabled=${!canUpdate}
-              @click=${() => void saveCanvasDocument(props, "update")}
-            >
-              ${icons.refresh}<span>${t("canvasView.actions.update")}</span>
-            </button>
-          </div>
-          ${renderCanvasMessage()}
-        </div>
-
-        <aside class="canvas-recent-panel">
-          <div class="canvas-panel-heading canvas-recent-heading">
-            <div>
-              <div class="card-title">${t("canvasView.recentTitle")}</div>
-              <div class="card-sub">${t("canvasView.recentSubtitle")}</div>
-            </div>
-            <button
-              class="btn btn--icon"
-              type="button"
-              title=${t("common.refresh")}
-              ?disabled=${!props.connected || canvasDocumentsLoading}
-              @click=${() => void refreshCanvasDocuments(props)}
-            >
-              ${icons.refresh}
-            </button>
-          </div>
-          ${renderRecentDocuments(props)}
-        </aside>
+      <div class="canvas-source-tabs">
+        ${SOURCE_MODES.map((item) => renderSourceModeButton(props, item))}
       </div>
-    </section>
+
+      <div class="form-grid canvas-document-form">
+        ${renderSourceFields(props)}
+
+        <label class="field">
+          <span>${t("canvasView.fields.title")}</span>
+          <input
+            autocomplete="off"
+            type="text"
+            .value=${canvasTitleDraft}
+            @input=${(event: Event) => {
+              canvasTitleDraft = (event.currentTarget as HTMLInputElement).value;
+              requestCanvasUpdate(props);
+            }}
+          />
+        </label>
+
+        <label class="field">
+          <span>${t("canvasView.fields.id")}</span>
+          <input
+            autocomplete="off"
+            spellcheck="false"
+            type="text"
+            .value=${canvasDocumentIdDraft}
+            @input=${(event: Event) => {
+              canvasDocumentIdDraft = (event.currentTarget as HTMLInputElement).value;
+              requestCanvasUpdate(props);
+            }}
+          />
+        </label>
+
+        <label class="field">
+          <span>${t("canvasView.fields.height")}</span>
+          <input
+            min="120"
+            step="20"
+            type="number"
+            .value=${canvasPreferredHeightDraft}
+            @input=${(event: Event) => {
+              canvasPreferredHeightDraft = (event.currentTarget as HTMLInputElement).value;
+              requestCanvasUpdate(props);
+            }}
+          />
+        </label>
+
+        <label class="field">
+          <span>${t("canvasView.fields.kind")}</span>
+          <select
+            .value=${canvasKindDraft}
+            @change=${(event: Event) => {
+              canvasKindDraft = (event.currentTarget as HTMLSelectElement).value;
+              requestCanvasUpdate(props);
+            }}
+          >
+            ${CANVAS_KINDS.map((kind) => html`<option value=${kind.value}>${kind.label}</option>`)}
+          </select>
+        </label>
+      </div>
+
+      <div class="row canvas-mutation-actions">
+        <button
+          class="btn primary canvas-create-button"
+          type="button"
+          ?disabled=${!canMutate}
+          @click=${() => void saveCanvasDocument(props, "create")}
+        >
+          ${icons.plus}<span
+            >${canvasBusy ? t("common.saving") : t("canvasView.actions.create")}</span
+          >
+        </button>
+        <button
+          class="btn canvas-update-button"
+          type="button"
+          ?disabled=${!canUpdate}
+          @click=${() => void saveCanvasDocument(props, "update")}
+        >
+          ${icons.refresh}<span>${t("canvasView.actions.update")}</span>
+        </button>
+      </div>
+      ${renderCanvasMessage()}
+
+      <div style="border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
+        <div style=${CANVAS_PANEL_LABEL}>STATUS</div>
+        <div class="canvas-status-grid">
+          ${renderStatusItem(
+            t("canvasView.status.gateway"),
+            props.connected ? t("common.connected") : t("common.offline"),
+            props.connected ? "normal" : "danger",
+          )}
+          ${renderStatusItem(t("canvasView.status.host"), hostLabel)}
+          ${renderStatusItem(t("canvasView.status.sandbox"), sandbox || "strict")}
+          ${renderStatusItem(
+            t("canvasView.status.externalEmbeds"),
+            props.allowExternalEmbedUrls ? t("common.enabled") : t("common.disabled"),
+          )}
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <div
+            style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b);"
+          >
+            RECENT
+          </div>
+          <button
+            class="btn btn--icon"
+            type="button"
+            title=${t("common.refresh")}
+            ?disabled=${!props.connected || canvasDocumentsLoading}
+            @click=${() => void refreshCanvasDocuments(props)}
+          >
+            ${icons.refresh}
+          </button>
+        </div>
+        ${renderRecentDocuments(props)}
+      </div>
+    </aside>
   `;
 }
 
@@ -681,54 +691,16 @@ export function renderCanvas(props: CanvasProps) {
 
   return html`
     <div class="canvas-page">
-      <section class="card">
-        <div class="row canvas-header">
+      <section class="card" style="border: none; background: transparent; padding: 0;">
+        <div
+          class="row"
+          style="justify-content: space-between; align-items: flex-start; gap: 16px;"
+        >
           <div>
-            <div class="card-title">${t("tabs.canvas")}</div>
-            <div class="card-sub">${t("subtitles.canvas")}</div>
+            <div class="view-title">${t("tabs.canvas")}</div>
+            <div class="view-sub">${t("subtitles.canvas")}</div>
           </div>
           <div class="row canvas-header-actions">
-            <button class="btn" type="button" @click=${props.onNavigateToChat}>
-              ${icons.messageSquare}<span>${t("tabs.chat")}</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="canvas-status-grid">
-          ${renderStatusItem(
-            t("canvasView.status.gateway"),
-            props.connected ? t("common.connected") : t("common.offline"),
-            props.connected ? "normal" : "danger",
-          )}
-          ${renderStatusItem(t("canvasView.status.host"), hostLabel)}
-          ${renderStatusItem(t("canvasView.status.sandbox"), sandbox || "strict")}
-          ${renderStatusItem(
-            t("canvasView.status.externalEmbeds"),
-            props.allowExternalEmbedUrls ? t("common.enabled") : t("common.disabled"),
-          )}
-        </div>
-      </section>
-
-      ${renderWorkspace(props)}
-
-      <section class="card">
-        <div class="canvas-preview-toolbar">
-          <label class="field canvas-entry-field">
-            <span>${t("canvasView.fields.entryUrl")}</span>
-            <input
-              autocomplete="off"
-              spellcheck="false"
-              type="text"
-              .value=${canvasEntryDraft}
-              @input=${(event: Event) =>
-                setCanvasEntryDraft(
-                  (event.currentTarget as HTMLInputElement).value,
-                  props.onRequestUpdate,
-                )}
-              placeholder="/__genesis__/canvas/documents/<id>/index.html"
-            />
-          </label>
-          <div class="row canvas-preview-actions">
             <button
               class="btn"
               type="button"
@@ -737,27 +709,61 @@ export function renderCanvas(props: CanvasProps) {
               ${icons.refresh}<span>${t("canvasView.actions.reset")}</span>
             </button>
             ${renderOpenButton(resolvedUrl)}
+            <button class="btn" type="button" @click=${props.onNavigateToChat}>
+              ${icons.messageSquare}<span>${t("tabs.chat")}</span>
+            </button>
           </div>
         </div>
-
-        ${invalidEntry
-          ? html`
-              <div class="callout danger canvas-preview-error">
-                ${t("canvasView.errors.untrustedUrl")}
-              </div>
-            `
-          : nothing}
-        ${resolvedUrl
-          ? html`
-              <iframe
-                class="canvas-preview-frame"
-                title=${t("canvasView.previewTitle")}
-                sandbox=${sandbox}
-                src=${resolvedUrl}
-              ></iframe>
-            `
-          : html`<div class="canvas-preview-empty muted">${t("canvasView.status.noPreview")}</div>`}
       </section>
+
+      <div
+        style="display: grid; grid-template-columns: 1fr 380px; gap: 16px; margin-top: 24px; align-items: start;"
+      >
+        <section class="card" style="padding: 0; overflow: hidden;">
+          <div
+            class="canvas-preview-toolbar"
+            style="padding: 12px 16px; border-bottom: 1px solid var(--border);"
+          >
+            <label class="field canvas-entry-field">
+              <span>${t("canvasView.fields.entryUrl")}</span>
+              <input
+                autocomplete="off"
+                spellcheck="false"
+                type="text"
+                .value=${canvasEntryDraft}
+                @input=${(event: Event) =>
+                  setCanvasEntryDraft(
+                    (event.currentTarget as HTMLInputElement).value,
+                    props.onRequestUpdate,
+                  )}
+                placeholder="/__genesis__/canvas/documents/<id>/index.html"
+              />
+            </label>
+          </div>
+
+          ${invalidEntry
+            ? html`
+                <div class="callout danger canvas-preview-error" style="margin: 16px;">
+                  ${t("canvasView.errors.untrustedUrl")}
+                </div>
+              `
+            : nothing}
+          ${resolvedUrl
+            ? html`
+                <iframe
+                  class="canvas-preview-frame"
+                  title=${t("canvasView.previewTitle")}
+                  sandbox=${sandbox}
+                  src=${resolvedUrl}
+                ></iframe>
+              `
+            : html`<div class="canvas-preview-empty muted" style="padding: 48px 16px;">
+                ${t("canvasView.status.noPreview")}
+              </div>`}
+        </section>
+
+        ${renderCanvasProperties(props, hostLabel, sandbox)}
+      </div>
     </div>
   `;
 }
