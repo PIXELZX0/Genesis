@@ -2167,6 +2167,10 @@ export function renderApp(state: AppViewState) {
                   void loadAgentIdentity(state, agentId);
                   loadAgentPanelDataForSelectedAgent(agentId);
                 },
+                onCloseInspector: () => {
+                  state.agentsSelectedId = null;
+                  resetAgentSelectionPanelState();
+                },
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
                   if (
