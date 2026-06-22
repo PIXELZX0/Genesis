@@ -156,6 +156,46 @@ export function renderOverview(props: OverviewProps) {
           )}
         </div>
       </div>
+
+      <div class="card" style="margin-top: 24px;">
+        <div style=${PANEL_LABEL}>CONNECTION</div>
+        <div
+          style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end;"
+        >
+          <label class="field">
+            <span>${t("overview.access.wsUrl")}</span>
+            <input
+              .value=${props.settings.gatewayUrl}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({
+                  ...props.settings,
+                  gatewayUrl: v,
+                  token: v.trim() === props.settings.gatewayUrl.trim() ? props.settings.token : "",
+                });
+              }}
+              placeholder="ws://100.x.y.z:18789"
+            />
+          </label>
+          <label class="field">
+            <span>${t("overview.access.token")}</span>
+            <input
+              type="password"
+              autocomplete="off"
+              .value=${props.settings.token}
+              @input=${(e: Event) =>
+                props.onSettingsChange({
+                  ...props.settings,
+                  token: (e.target as HTMLInputElement).value,
+                })}
+              placeholder="GENESIS_GATEWAY_TOKEN"
+            />
+          </label>
+          <button class="btn primary" @click=${props.onConnect}>
+            ${props.connected ? t("common.connected") : t("common.connect")}
+          </button>
+        </div>
+      </div>
     </section>
   `;
 }

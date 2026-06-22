@@ -29,6 +29,8 @@ export type CronQuickCreateDraft = {
   name: string;
   schedulePreset: SchedulePresetId | "custom";
   deliveryPreset: DeliveryPresetId;
+  /** Destination URL when deliveryPreset is "webhook". */
+  deliveryWebhookUrl?: string;
 };
 
 type SchedulePresetId =
@@ -39,7 +41,7 @@ type SchedulePresetId =
   | "weekly"
   | "once";
 
-type DeliveryPresetId = "notify" | "silent" | "isolated";
+type DeliveryPresetId = "notify" | "silent" | "isolated" | "webhook";
 
 // ── Presets ──
 
@@ -69,6 +71,7 @@ const DELIVERY_PRESETS: DeliveryPreset[] = [
   { id: "notify", label: "Notify me", description: "Deliver results to chat" },
   { id: "silent", label: "Silent", description: "Run without notification" },
   { id: "isolated", label: "Independent session", description: "Run in its own session" },
+  { id: "webhook", label: "Webhook", description: "POST results to a URL" },
 ];
 
 // ── Default draft ──
@@ -79,6 +82,7 @@ export function createDefaultDraft(): CronQuickCreateDraft {
     name: "",
     schedulePreset: "every-morning",
     deliveryPreset: "notify",
+    deliveryWebhookUrl: "",
   };
 }
 
@@ -152,6 +156,12 @@ export function draftToCronFormPatch(draft: CronQuickCreateDraft): Partial<CronF
     case "isolated":
       patch.sessionTarget = "isolated";
       patch.deliveryMode = "none";
+      patch.wakeMode = "now";
+      break;
+    case "webhook":
+      patch.sessionTarget = "isolated";
+      patch.deliveryMode = "webhook";
+      patch.deliveryTo = draft.deliveryWebhookUrl?.trim() ?? "";
       patch.wakeMode = "now";
       break;
   }
@@ -286,6 +296,23 @@ function renderHowStep(props: CronQuickCreateProps) {
           `,
         )}
       </div>
+      ${props.draft.deliveryPreset === "webhook"
+        ? html`
+            <div class="cqc-field" style="margin-top: 12px;">
+              <label class="cqc-field__label">Webhook URL</label>
+              <input
+                class="cqc-input"
+                type="url"
+                placeholder="https://example.com/cron"
+                .value=${props.draft.deliveryWebhookUrl ?? ""}
+                @input=${(e: Event) =>
+                  props.onDraftChange({
+                    deliveryWebhookUrl: (e.target as HTMLInputElement).value,
+                  })}
+              />
+            </div>
+          `
+        : nothing}
     </div>
     <div class="cqc-actions">
       <button class="btn" @click=${() => props.onStepChange("when")}>Back</button>

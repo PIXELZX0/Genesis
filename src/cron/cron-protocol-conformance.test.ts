@@ -39,7 +39,13 @@ function extractConstUnionValues(schema: SchemaLike): string[] {
   );
 }
 
-const UI_FILES = ["ui/src/ui/types.ts", "ui/src/ui/ui-types.ts", "ui/src/ui/views/cron.ts"];
+const UI_FILES = [
+  "ui/src/ui/types.ts",
+  "ui/src/ui/ui-types.ts",
+  // Cron job creation (incl. delivery-mode selection) lives in the quick-create
+  // wizard; the cron view itself is a read-only Pencil table.
+  "ui/src/ui/views/cron-quick-create.ts",
+];
 
 const SWIFT_MODEL_CANDIDATES = [`${MACOS_APP_SOURCES_DIR}/CronModels.swift`];
 const SWIFT_STATUS_CANDIDATES = [`${MACOS_APP_SOURCES_DIR}/GatewayConnection.swift`];
