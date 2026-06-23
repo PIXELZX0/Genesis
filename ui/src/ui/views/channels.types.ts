@@ -40,6 +40,10 @@ export type ChannelsProps = {
   channelWizardBusy: boolean;
   channelWizardError: string | null;
   channelWizardMessage: string | null;
+  /** Channel whose settings modal is open, or null when closed. */
+  selectedChannelId: ChannelKey | null;
+  onChannelSelect: (key: ChannelKey) => void;
+  onChannelSettingsClose: () => void;
   onRefresh: (probe: boolean) => void;
   onChannelWizardStart: () => void;
   onChannelWizardSubmit: () => void;

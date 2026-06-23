@@ -138,14 +138,12 @@ describe("cron view (Pencil design)", () => {
     expect(onJobsFiltersChange).toHaveBeenCalledWith({ cronJobsQuery: "digest" });
   });
 
-  it("opens the quick-create modal from the New button and loads runs on row click", () => {
+  it("opens the quick-create modal from the New button and edits on row click", () => {
     const container = document.createElement("div");
     const onQuickCreate = vi.fn();
-    const onLoadRuns = vi.fn();
-    render(
-      renderCron(createProps({ jobs: [createJob("job-1")], onQuickCreate, onLoadRuns })),
-      container,
-    );
+    const onEdit = vi.fn();
+    const job = createJob("job-1");
+    render(renderCron(createProps({ jobs: [job], onQuickCreate, onEdit })), container);
 
     const newButton = Array.from(container.querySelectorAll("button")).find((btn) =>
       btn.textContent?.includes("New"),
@@ -155,6 +153,18 @@ describe("cron view (Pencil design)", () => {
     expect(onQuickCreate).toHaveBeenCalledTimes(1);
 
     container.querySelector<HTMLElement>(".table-row")?.click();
-    expect(onLoadRuns).toHaveBeenCalledWith("job-1");
+    expect(onEdit).toHaveBeenCalledWith(job);
+  });
+
+  it("renders the edit modal when a job is being edited", () => {
+    const container = document.createElement("div");
+    render(
+      renderCron(createProps({ jobs: [createJob("job-1")], editingJobId: "job-1" })),
+      container,
+    );
+    const modal = container.querySelector(".cron-edit-card");
+    expect(modal).not.toBeNull();
+    expect(modal?.textContent).toContain("Edit job");
+    expect(modal?.textContent).toContain("Save");
   });
 });

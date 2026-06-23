@@ -222,6 +222,7 @@ export type AppViewState = {
   channelWizardBusy: boolean;
   channelWizardError: string | null;
   channelWizardMessage: string | null;
+  channelSettingsId: string | null;
   modelProviderWizardSessionId: string | null;
   modelProviderWizardStep: ModelProviderWizardStep | null;
   modelProviderWizardInput: unknown;

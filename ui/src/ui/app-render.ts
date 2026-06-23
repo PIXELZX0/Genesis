@@ -1798,6 +1798,18 @@ export function renderApp(state: AppViewState) {
                 channelWizardBusy: state.channelWizardBusy,
                 channelWizardError: state.channelWizardError,
                 channelWizardMessage: state.channelWizardMessage,
+                selectedChannelId: state.channelSettingsId ?? null,
+                onChannelSelect: (key) => {
+                  state.channelSettingsId = key;
+                  if (!state.configSchema) {
+                    void loadConfig(state);
+                  }
+                  requestHostUpdate?.();
+                },
+                onChannelSettingsClose: () => {
+                  state.channelSettingsId = null;
+                  requestHostUpdate?.();
+                },
                 onRefresh: (probe) => loadChannels(state, probe),
                 onChannelWizardStart: () => state.handleChannelWizardStart(),
                 onChannelWizardSubmit: () => state.handleChannelWizardSubmit(),

@@ -3285,6 +3285,66 @@ td.data-table-key-col {
   width: min(620px, 100%);
 }
 
+.cron-edit-card,
+.channel-settings-card {
+  width: min(560px, 100%);
+}
+
+.cron-edit__body {
+  display: grid;
+  gap: 14px;
+  margin: 4px 0 16px;
+  max-height: min(60dvh, 520px);
+  overflow: auto;
+}
+
+.cron-edit__field {
+  display: grid;
+  gap: 6px;
+}
+
+.cron-edit__label {
+  font-size: 12px;
+  color: var(--text-secondary, var(--muted));
+}
+
+.cron-edit__error {
+  font-size: 12px;
+  color: var(--danger, #d9534f);
+}
+
+.cron-edit__segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.cron-edit__seg {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, var(--muted));
+  padding: 6px 14px;
+  border-radius: calc(var(--radius-md) - 3px);
+  cursor: pointer;
+  font: inherit;
+}
+
+.cron-edit__seg--active {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.cron-edit__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
 .channel-wizard-message {
   margin-top: 14px;
   max-height: min(28dvh, 220px);

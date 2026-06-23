@@ -4,6 +4,7 @@ import { sortCopy } from "../array.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import type { ChannelUiMetaEntry, ChannelsStatusSnapshot } from "../types.ts";
+import { renderChannelConfigSection } from "./channels.config.ts";
 import {
   channelEnabled,
   getChannelAccountCount,
@@ -69,15 +70,50 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
     ? formatRelativeTimestamp(defaultAccount.lastInboundAt)
     : t("common.na");
   return html`
-    <div class="table-row" style=${CHANNELS_GRID}>
-      <span style="color: var(--text); display: flex; align-items: center; gap: 8px;">
-        <span class="status-dot ${status.dot}"></span>
-        ${label}
+    <div
+      class="table-row"
+      style="cursor: pointer; ${CHANNELS_GRID}"
+      title=${`Configure ${label}`}
+      @click=${() => props.onChannelSelect(key)}
+    >
+      <span style="color: var(--text); display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <span class="status-dot ${status.dot}" style="flex: none;"></span>
+        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+          >${label}</span
+        >
       </span>
       <span class="muted">${providerLabel(key)}</span>
       <span class="muted" style="font-family: var(--mono);">${accounts}</span>
       <span class="muted" style="font-family: var(--mono);">${lastInbound}</span>
       <span class="muted">${status.label}</span>
+    </div>
+  `;
+}
+
+function renderChannelSettingsDialog(props: ChannelsProps) {
+  const channelId = props.selectedChannelId;
+  if (!channelId) {
+    return nothing;
+  }
+  const label = resolveChannelLabel(props.snapshot, channelId);
+  return html`
+    <div class="exec-approval-overlay" role="dialog" aria-modal="true">
+      <div class="exec-approval-card channel-settings-card">
+        <div class="exec-approval-header">
+          <div>
+            <div class="exec-approval-title">${label} settings</div>
+            <div class="exec-approval-sub">${providerLabel(channelId)}</div>
+          </div>
+          <button
+            class="icon-btn"
+            aria-label="Close"
+            @click=${() => props.onChannelSettingsClose()}
+          >
+            ${icons.x}
+          </button>
+        </div>
+        ${renderChannelConfigSection({ channelId, props })}
+      </div>
     </div>
   `;
 }
@@ -132,7 +168,7 @@ export function renderChannels(props: ChannelsProps) {
               ${ordered.map((channel) => renderRow(channel.key, props))}
             </div>
           `}
-      ${renderChannelWizardDialog(props)}
+      ${renderChannelWizardDialog(props)} ${renderChannelSettingsDialog(props)}
     </section>
   `;
 }

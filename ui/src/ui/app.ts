@@ -338,6 +338,7 @@ export class GenesisApp extends LitElement {
   @state() channelWizardBusy = false;
   @state() channelWizardError: string | null = null;
   @state() channelWizardMessage: string | null = null;
+  @state() channelSettingsId: string | null = null;
   @state() modelProviderWizardSessionId: string | null = null;
   @state() modelProviderWizardStep: ModelProviderWizardStep | null = null;
   @state() modelProviderWizardInput: unknown = null;
