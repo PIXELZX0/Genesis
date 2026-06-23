@@ -337,7 +337,7 @@ describe("skill-workshop", () => {
       | ((ctx: { workspaceDir?: string }) => AnyAgentTool | AnyAgentTool[] | null | undefined)
       | undefined;
     const api = createTestPluginApi({
-      pluginConfig: { approvalPolicy: "auto" },
+      pluginConfig: { approvalPolicy: "pending" },
       runtime: {
         agent: {
           resolveAgentWorkspaceDir: () => workspaceDir,
@@ -369,10 +369,10 @@ describe("skill-workshop", () => {
       body: "Verify dimensions, optimize the PNG, and run the relevant gate.",
     });
 
-    expect(result?.details).toMatchObject({ status: "pending" });
+    expect(result?.details).toMatchObject({ status: "applied" });
     await expect(
       fs.access(path.join(workspaceDir, "skills", "screenshot-asset-workflow", "SKILL.md")),
-    ).rejects.toMatchObject({ code: "ENOENT" });
+    ).resolves.toBeUndefined();
   });
 
   it("uses live runtime config to enable prompt guidance and capture after startup disable", async () => {
@@ -812,7 +812,7 @@ describe("skill-workshop", () => {
     }));
     const on = vi.fn();
     const api = createTestPluginApi({
-      pluginConfig: { reviewMode: "llm", reviewInterval: 1 },
+      pluginConfig: { reviewMode: "llm", reviewInterval: 1, approvalPolicy: "pending" },
       runtime: {
         agent: {
           defaults: { provider: "openai", model: "gpt-5.4" },
@@ -867,6 +867,7 @@ describe("skill-workshop", () => {
         reviewInterval: 200,
         reviewMinToolCalls: 500,
         reviewComplexTurnMinToolCalls: 5,
+        approvalPolicy: "pending",
       },
       runtime: {
         agent: {

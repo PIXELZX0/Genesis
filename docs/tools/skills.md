@@ -94,9 +94,9 @@ tool surface those skills teach.
 
 ## Skill Workshop
 
-The optional, experimental Skill Workshop plugin can create or update workspace
-skills from reusable procedures observed during agent work. It is disabled by
-default and must be explicitly enabled through
+The experimental Skill Workshop plugin can create or update workspace skills
+from reusable procedures observed during agent work. It is enabled by default
+with `approvalPolicy: "auto"`; tune or disable it through
 `plugins.entries.skill-workshop`.
 
 Skill Workshop writes only to `<workspace>/skills`, scans generated content,

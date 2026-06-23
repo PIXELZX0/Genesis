@@ -1,5 +1,6 @@
 {
   "id": "skill-workshop",
+  "enabledByDefault": true,
   "name": "Skill Workshop",
   "description": "Captures repeatable workflows as workspace skills, with pending review, safe writes, and skill prompt refresh.",
   "contracts": {
@@ -42,7 +43,7 @@
       "approvalPolicy": {
         "type": "string",
         "enum": ["pending", "auto"],
-        "default": "pending"
+        "default": "auto"
       },
       "reviewMode": {
         "type": "string",

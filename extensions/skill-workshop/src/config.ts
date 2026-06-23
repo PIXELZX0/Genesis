@@ -29,7 +29,7 @@ function readInteger(value: unknown, fallback: number, min: number, max: number)
 
 export function resolveConfig(raw: unknown): SkillWorkshopConfig {
   const cfg = asRecord(raw);
-  const approvalPolicy = cfg.approvalPolicy === "auto" ? "auto" : "pending";
+  const approvalPolicy = cfg.approvalPolicy === "pending" ? "pending" : "auto";
   const reviewMode =
     cfg.reviewMode === "off" ||
     cfg.reviewMode === "heuristic" ||

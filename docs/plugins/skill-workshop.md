@@ -8,10 +8,12 @@ read_when:
   - You are deciding whether to enable automatic skill creation
 ---
 
-Skill Workshop is **experimental**. It is disabled by default, its capture
-heuristics and reviewer prompts may change between releases, and automatic
-writes should be used only in trusted workspaces after reviewing pending-mode
-output first.
+Skill Workshop is **experimental**. It is enabled by default with
+`approvalPolicy: "auto"`, so agents write skills automatically. Its capture
+heuristics and reviewer prompts may change between releases. Auto writes run the
+same scanner and quarantine path, but on shared or hostile input-heavy
+deployments you should switch `approvalPolicy` to `"pending"` (or disable the
+plugin) so a human reviews proposals before they land.
 
 Skill Workshop is procedural memory for workspace skills. It lets an agent turn
 reusable workflows, user corrections, hard-won fixes, and recurring pitfalls
@@ -46,24 +48,25 @@ It is not intended for:
 
 ## Default state
 
-The bundled plugin is **experimental** and **disabled by default** unless it is
-explicitly enabled in `plugins.entries.skill-workshop`.
-
-The plugin manifest does not set `enabledByDefault: true`. The `enabled: true`
-default inside the plugin config schema applies only after the plugin entry has
-already been selected and loaded.
+The bundled plugin is **experimental** but **enabled by default**. The manifest
+sets `enabledByDefault: true`, and the config schema defaults to `enabled: true`
+with `approvalPolicy: "auto"`, so a fresh install captures and writes skills
+without extra setup.
 
 Experimental means:
 
-- the plugin is supported enough for opt-in testing and dogfooding
 - proposal storage, reviewer thresholds, and capture heuristics can evolve
-- pending approval is the recommended starting mode
-- auto apply is for trusted personal/workspace setups, not shared or hostile
-  input-heavy environments
+- auto apply runs the scanner/quarantine path but skips human review
+- on shared or hostile input-heavy deployments, switch `approvalPolicy` to
+  `"pending"` (or disable the plugin) so a human reviews proposals first
 
-## Enable
+## Tune or disable
 
-Minimal safe config:
+The plugin is on by default, so no config is required to start capturing and
+writing skills. Add an entry only to change behavior.
+
+Require human review before any skill is written (recommended for shared or
+hostile input-heavy deployments):
 
 ```json5
 {
@@ -82,49 +85,43 @@ Minimal safe config:
 }
 ```
 
-With this config:
+With `approvalPolicy: "pending"`:
 
-- the `skill_workshop` tool is available
 - explicit reusable corrections are queued as pending proposals
 - threshold-based reviewer passes can propose skill updates
 - no skill file is written until a pending proposal is applied
 
-Use automatic writes only in trusted workspaces:
+Turn the plugin off entirely:
 
 ```json5
 {
   plugins: {
     entries: {
       "skill-workshop": {
-        enabled: true,
-        config: {
-          autoCapture: true,
-          approvalPolicy: "auto",
-          reviewMode: "hybrid",
-        },
+        enabled: false,
       },
     },
   },
 }
 ```
 
-`approvalPolicy: "auto"` still uses the same scanner and quarantine path. It
-does not apply proposals with critical findings.
+`approvalPolicy: "auto"` (the default) still uses the same scanner and
+quarantine path. It does not apply proposals with critical findings.
 
 ## Configuration
 
-| Key                             | Default     | Range / values                              | Meaning                                                                                                                    |
-| ------------------------------- | ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`                       | `true`      | boolean                                     | Enables the plugin after the plugin entry is loaded.                                                                       |
-| `autoCapture`                   | `true`      | boolean                                     | Enables post-turn capture/review on successful agent turns.                                                                |
-| `approvalPolicy`                | `"pending"` | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.                                                                     |
-| `reviewMode`                    | `"hybrid"`  | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither.                                                       |
-| `reviewInterval`                | `15`        | `1..200`                                    | Run reviewer after this many successful turns.                                                                             |
-| `reviewMinToolCalls`            | `8`         | `1..500`                                    | Run reviewer after this many observed tool calls.                                                                          |
-| `reviewComplexTurnMinToolCalls` | `5`         | `0..500`                                    | Run reviewer immediately after one complex turn with at least this many tool calls; `0` disables the complex-turn trigger. |
-| `reviewTimeoutMs`               | `45000`     | `5000..180000`                              | Timeout for the embedded reviewer run.                                                                                     |
-| `maxPending`                    | `50`        | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                                                                      |
-| `maxSkillBytes`                 | `40000`     | `1024..200000`                              | Max generated skill/support file size.                                                                                     |
+| Key                             | Default    | Range / values                              | Meaning                                                                                                                    |
+| ------------------------------- | ---------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                       | `true`     | boolean                                     | Enables the plugin after the plugin entry is loaded.                                                                       |
+| `autoCapture`                   | `true`     | boolean                                     | Enables post-turn capture/review on successful agent turns.                                                                |
+| `approvalPolicy`                | `"auto"`   | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.                                                                     |
+| `reviewMode`                    | `"hybrid"` | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither.                                                       |
+| `reviewInterval`                | `15`       | `1..200`                                    | Run reviewer after this many successful turns.                                                                             |
+| `reviewMinToolCalls`            | `8`        | `1..500`                                    | Run reviewer after this many observed tool calls.                                                                          |
+| `reviewComplexTurnMinToolCalls` | `5`        | `0..500`                                    | Run reviewer immediately after one complex turn with at least this many tool calls; `0` disables the complex-turn trigger. |
+| `reviewTimeoutMs`               | `45000`    | `5000..180000`                              | Timeout for the embedded reviewer run.                                                                                     |
+| `maxPending`                    | `50`       | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                                                                      |
+| `maxSkillBytes`                 | `40000`    | `1024..200000`                              | Max generated skill/support file size.                                                                                     |
 
 Recommended profiles:
 
