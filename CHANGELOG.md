@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.24
+
+### Changes
+
+- Skill Workshop: the experimental procedural-memory plugin is now enabled by default with `approvalPolicy: "auto"`, so agents capture reusable procedures and write workspace skills without extra setup. The scanner and quarantine path still apply. On shared or hostile input-heavy deployments, set `approvalPolicy: "pending"` (or disable the plugin) so a human reviews proposals first.
+
 ## 2026.6.22
 
 ### Changes
