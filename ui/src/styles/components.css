@@ -3298,6 +3298,13 @@ td.data-table-key-col {
   overflow: auto;
 }
 
+.channel-settings__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
 .cron-edit__field {
   display: grid;
   gap: 6px;

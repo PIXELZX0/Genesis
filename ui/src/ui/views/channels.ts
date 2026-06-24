@@ -112,7 +112,9 @@ function renderChannelSettingsDialog(props: ChannelsProps) {
             ${icons.x}
           </button>
         </div>
-        ${renderChannelConfigSection({ channelId, props })}
+        <div class="channel-settings__body">
+          ${renderChannelConfigSection({ channelId, props })}
+        </div>
       </div>
     </div>
   `;
