@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.24-2
+
+### Changes
+
+- Control UI: the Nodes page is now in the sidebar and redesigned to a NODE/PLATFORM/ROLE/STATUS inventory table. Each row has an actions menu (Update, Permissions, Run command, Open terminal) that opens focused modals for exec approvals, node commands, and shell sessions. Device pairing stays available below the table.
+
 ## 2026.6.24
 
 ### Changes
