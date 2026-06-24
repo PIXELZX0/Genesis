@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.24-3
+
+### Fixes
+
+- Control UI: the channel settings popup now scrolls when its content is taller than the viewport, so longer provider configuration forms stay fully reachable.
+
 ## 2026.6.24-2
 
 ### Changes
