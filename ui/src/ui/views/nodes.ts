@@ -14,38 +14,211 @@ import { resolveConfigAgents, resolveNodeTargets, type NodeTargetOption } from "
 export type { NodesProps } from "./nodes.types.ts";
 import type { NodesProps } from "./nodes.types.ts";
 
+const NODES_GRID = "grid-template-columns: 1fr 160px 120px 140px 56px;";
+
 export function renderNodes(props: NodesProps) {
-  const bindingState = resolveBindingsState(props);
-  const approvalsState = resolveExecApprovalsState(props);
+  const online = props.nodes.filter((n) => nodeStatus(n).label === "Online").length;
   return html`
-    ${renderNodeInventory(props)} ${renderNodeManagement(props)}
-    ${renderExecApprovals(approvalsState)} ${renderBindings(bindingState)} ${renderDevices(props)}
+    <section class="card" style="border: none; background: transparent; padding: 0;">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
+        <div>
+          <div class="view-title">Nodes</div>
+          <div class="view-sub">
+            ${props.nodes.length} ${props.nodes.length === 1 ? "node" : "nodes"} · ${online} online
+          </div>
+        </div>
+        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+          ${props.loading ? t("common.loading") : t("common.refresh")}
+        </button>
+      </div>
+      ${props.nodes.length === 0
+        ? html`<div class="muted" style="margin-top: 16px;">No nodes found.</div>`
+        : html`
+            <div class="table" style="margin-top: 20px;">
+              <div class="table-head" style=${NODES_GRID}>
+                <span>NODE</span>
+                <span>PLATFORM</span>
+                <span>ROLE</span>
+                <span>STATUS</span>
+                <span></span>
+              </div>
+              ${props.nodes.map((node) => renderNodeRow(node, props))}
+            </div>
+          `}
+      ${renderDevices(props)} ${renderNodeModals(props)}
+    </section>
   `;
 }
 
-function renderNodeInventory(props: NodesProps) {
-  return html` <section class="card">
-    <div class="row" style="justify-content: space-between;">
-      <div>
-        <div class="card-title">Nodes</div>
-        <div class="card-sub">Paired devices and live links.</div>
-      </div>
-      <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-        ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
-      </button>
-    </div>
-    <div class="list" style="margin-top: 16px;">
-      ${props.nodes.length === 0
-        ? html` <div class="muted">No nodes found.</div> `
-        : props.nodes.map((n) => renderNode(n, props))}
-    </div>
-  </section>`;
+function nodePlatform(node: Record<string, unknown>): string {
+  const os = normalizeOptionalString(node.platform) ?? normalizeOptionalString(node.os);
+  const arch = normalizeOptionalString(node.arch);
+  if (os && arch) {
+    return `${os}-${arch}`;
+  }
+  return os ?? arch ?? "—";
 }
 
-function renderNodeManagement(props: NodesProps) {
-  const selected = resolveSelectedNode(props);
-  const nodeId = selected ? getNodeId(selected) : props.nodeManagementSelectedId;
-  const commands = selected ? getNodeCommands(selected) : [];
+function nodeRole(node: Record<string, unknown>): string {
+  return (
+    normalizeOptionalString(node.role) ??
+    normalizeOptionalString(node.kind) ??
+    (node.isGateway === true ? "Gateway" : "Node")
+  );
+}
+
+function nodeStatus(node: Record<string, unknown>): { dot: string; label: string } {
+  const online = node.online !== false && node.connected !== false;
+  return online
+    ? { dot: "status-dot--ok", label: "Online" }
+    : { dot: "status-dot--idle", label: "Offline" };
+}
+
+function renderNodeRow(node: Record<string, unknown>, props: NodesProps) {
+  const id = getNodeId(node);
+  const st = nodeStatus(node);
+  return html`
+    <div class="table-row" style=${NODES_GRID}>
+      <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+        <span style="font-family: var(--mono); color: var(--text);">${getNodeTitle(node)}</span>
+        <span class="muted" style="font-size: 13px; overflow: hidden; text-overflow: ellipsis;">
+          ${id ?? "—"}
+        </span>
+      </div>
+      <span class="muted" style="font-family: var(--mono);">${nodePlatform(node)}</span>
+      <span class="muted" style="font-family: var(--mono);">${nodeRole(node)}</span>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span class="status-dot ${st.dot}"></span>
+        <span class="muted">${st.label}</span>
+      </span>
+      <span style="position: relative; display: flex; justify-content: flex-end;">
+        <button
+          class="btn btn--sm ghost"
+          ?disabled=${!id}
+          aria-label="Node actions"
+          @click=${(event: Event) => {
+            event.stopPropagation();
+            if (id) {
+              props.onToggleActionMenu(props.nodesActionMenuId === id ? null : id);
+            }
+          }}
+        >
+          ${icons.moreHorizontal}
+        </button>
+        ${id ? renderActionMenu(id, props) : nothing}
+      </span>
+    </div>
+  `;
+}
+
+function renderActionMenu(nodeId: string, props: NodesProps) {
+  if (props.nodesActionMenuId !== nodeId) {
+    return nothing;
+  }
+  const items: Array<[string, typeof icons.refresh, () => void]> = [
+    ["Update", icons.refresh, () => props.onUpdateNode(nodeId)],
+    ["Permissions", icons.shield, () => props.onOpenNodeModal("permissions", nodeId)],
+    ["Run command", icons.play, () => props.onOpenNodeModal("run", nodeId)],
+    ["Open terminal", icons.terminal, () => props.onOpenNodeModal("terminal", nodeId)],
+  ];
+  return html`
+    <div
+      class="nodes-action-menu"
+      @click=${(event: Event) => event.stopPropagation()}
+      style="position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; min-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);"
+    >
+      ${items.map(
+        ([label, icon, onClick]) => html`
+          <button
+            class="nodes-action-menu__item"
+            @click=${onClick}
+            style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border: none; border-radius: 6px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;"
+          >
+            <span style="display: inline-flex; width: 16px; height: 16px;">${icon}</span>
+            <span>${label}</span>
+          </button>
+        `,
+      )}
+    </div>
+  `;
+}
+
+function renderModalShell(params: {
+  title: string;
+  sub: string;
+  onClose: () => void;
+  body: unknown;
+  width?: number;
+}) {
+  const width = params.width ?? 640;
+  return html`
+    <div
+      class="nodes-modal-overlay"
+      @click=${(event: Event) => {
+        if (event.target === event.currentTarget) {
+          params.onClose();
+        }
+      }}
+      style="position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);"
+    >
+      <div
+        style="width: min(${width}px, 100%); max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--border);"
+        >
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 18px; font-weight: 600; color: var(--text);">
+              ${params.title}
+            </div>
+            <div class="muted mono" style="font-size: 12px;">${params.sub}</div>
+          </div>
+          <button class="btn btn--sm ghost" aria-label="Close" @click=${params.onClose}>
+            ${icons.x}
+          </button>
+        </div>
+        <div style="padding: 24px; overflow: auto;">${params.body}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNodeModals(props: NodesProps) {
+  const modal = props.nodesModal;
+  if (!modal) {
+    return nothing;
+  }
+  const node = props.nodes.find((n) => getNodeId(n) === modal.nodeId) ?? null;
+  const title = node ? getNodeTitle(node) : modal.nodeId;
+  if (modal.kind === "permissions") {
+    return renderModalShell({
+      title: "Permissions",
+      sub: title,
+      width: 760,
+      onClose: props.onCloseNodeModal,
+      body: html`
+        ${renderExecApprovals(resolveExecApprovalsState(props))}
+        ${renderBindings(resolveBindingsState(props))}
+      `,
+    });
+  }
+  if (modal.kind === "terminal") {
+    const commands = node ? getNodeCommands(node) : [];
+    const supportsSystemRun = commands.includes("system.run");
+    const busy = props.nodeManagementBusy;
+    return renderModalShell({
+      title: "Terminal",
+      sub: title,
+      onClose: props.onCloseNodeModal,
+      body: html`
+        <div class="list">
+          ${renderNodeShellControls({ busy, supportsSystemRun, props })}
+          ${renderNodeManagementResult(props)}
+        </div>
+      `,
+    });
+  }
+  const commands = node ? getNodeCommands(node) : [];
   const commandOptions = commands.filter(
     (command) =>
       command !== "system.execApprovals.get" &&
@@ -55,58 +228,24 @@ function renderNodeManagement(props: NodesProps) {
   const supportsSystemRun = commands.includes("system.run");
   const supportsSystemWhich = commands.includes("system.which");
   const busy = props.nodeManagementBusy;
-  return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between; align-items: center;">
-        <div>
-          <div class="card-title">Node Management</div>
-          <div class="card-sub">Rename nodes, run advertised commands, and operate node hosts.</div>
-        </div>
-        <label class="field" style="min-width: min(320px, 100%);">
-          <span>Node</span>
-          <select
-            ?disabled=${busy || props.nodes.length === 0}
-            @change=${(event: Event) => {
-              const target = event.target as HTMLSelectElement;
-              props.onNodeManagementSelect(target.value);
-            }}
-          >
-            ${props.nodes.map((node) => {
-              const id = getNodeId(node);
-              if (!id) {
-                return nothing;
-              }
-              return html`<option value=${id} ?selected=${id === nodeId}>
-                ${getNodeTitle(node)}
-              </option>`;
-            })}
-          </select>
-        </label>
-      </div>
-
+  return renderModalShell({
+    title: "Run command",
+    sub: title,
+    onClose: props.onCloseNodeModal,
+    body: html`
       ${props.nodeManagementError
-        ? html`<div class="callout danger" style="margin-top: 12px;">
+        ? html`<div class="callout danger" style="margin-bottom: 12px;">
             ${props.nodeManagementError}
           </div>`
         : nothing}
-      ${!selected
-        ? html`<div class="muted" style="margin-top: 16px;">No node selected.</div>`
-        : html`
-            <div class="list" style="margin-top: 16px;">
-              ${renderNodeRenameControls(props, selected)}
-              ${renderNodePresetControls({
-                busy,
-                supportsSystemRun,
-                supportsSystemWhich,
-                props,
-              })}
-              ${renderNodeShellControls({ busy, supportsSystemRun, props })}
-              ${renderNodeCommandControls({ busy, commandOptions, props })}
-              ${renderNodeManagementResult(props)}
-            </div>
-          `}
-    </section>
-  `;
+      <div class="list">
+        ${node ? renderNodeRenameControls(props, node) : nothing}
+        ${renderNodePresetControls({ busy, supportsSystemRun, supportsSystemWhich, props })}
+        ${renderNodeCommandControls({ busy, commandOptions, props })}
+        ${renderNodeManagementResult(props)}
+      </div>
+    `,
+  });
 }
 
 function renderNodeRenameControls(props: NodesProps, node: Record<string, unknown>) {
@@ -315,14 +454,6 @@ ${payload}</pre
       </div>
     </div>
   `;
-}
-
-function resolveSelectedNode(props: NodesProps): Record<string, unknown> | null {
-  const selectedId = normalizeOptionalString(props.nodeManagementSelectedId);
-  if (!selectedId) {
-    return null;
-  }
-  return props.nodes.find((node) => getNodeId(node) === selectedId) ?? null;
 }
 
 function getNodeId(node: Record<string, unknown>): string | null {
@@ -773,45 +904,4 @@ function resolveAgentBindings(config: Record<string, unknown> | null): {
   }
 
   return { defaultBinding, agents };
-}
-
-function renderNode(node: Record<string, unknown>, props: NodesProps) {
-  const connected = Boolean(node.connected);
-  const paired = Boolean(node.paired);
-  const title =
-    (typeof node.displayName === "string" && node.displayName.trim()) ||
-    (typeof node.nodeId === "string" ? node.nodeId : "unknown");
-  const nodeId = typeof node.nodeId === "string" ? node.nodeId : "";
-  const selected = Boolean(nodeId && nodeId === props.nodeManagementSelectedId);
-  const caps = Array.isArray(node.caps) ? (node.caps as unknown[]) : [];
-  const commands = Array.isArray(node.commands) ? (node.commands as unknown[]) : [];
-  return html`
-    <div class="list-item">
-      <div class="list-main">
-        <div class="list-title">${title}</div>
-        <div class="list-sub">
-          ${typeof node.nodeId === "string" ? node.nodeId : ""}
-          ${typeof node.remoteIp === "string" ? ` · ${node.remoteIp}` : ""}
-          ${typeof node.version === "string" ? ` · ${node.version}` : ""}
-        </div>
-        <div class="chip-row" style="margin-top: 6px;">
-          <span class="chip">${paired ? "paired" : "unpaired"}</span>
-          <span class="chip ${connected ? "chip-ok" : "chip-warn"}">
-            ${connected ? "connected" : "offline"}
-          </span>
-          ${caps.slice(0, 12).map((c) => html`<span class="chip">${String(c)}</span>`)}
-          ${commands.slice(0, 8).map((c) => html`<span class="chip">${String(c)}</span>`)}
-        </div>
-      </div>
-      <div class="list-meta">
-        <button
-          class="btn btn--sm ${selected ? "primary" : ""}"
-          ?disabled=${!nodeId}
-          @click=${() => props.onNodeManagementSelect(nodeId)}
-        >
-          ${icons.settings} ${selected ? "Selected" : "Manage"}
-        </button>
-      </div>
-    </div>
-  `;
 }

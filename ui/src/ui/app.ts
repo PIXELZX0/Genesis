@@ -244,6 +244,8 @@ export class GenesisApp extends LitElement {
   @state() nodeManagementError: string | null = null;
   @state() nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null =
     null;
+  @state() nodesActionMenuId: string | null = null;
+  @state() nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null = null;
   @state() devicesLoading = false;
   @state() devicesError: string | null = null;
   @state() devicesList: DevicePairingList | null = null;

@@ -5,12 +5,22 @@ import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 // Sidebar navigation, matching the Pencil design. The first group is unlabeled;
 // "tools" renders the TOOLS category label. Settings is rendered as a single
 // footer item (see app-render). Tabs not listed here (instances, usage, cron,
-// nodes, dreams, and the settings sub-tabs) remain URL-routable but are hidden
+// dreams, and the settings sub-tabs) remain URL-routable but are hidden
 // from the sidebar.
 export const TAB_GROUPS = [
   {
     label: "control",
-    tabs: ["overview", "agents", "chat", "canvas", "channels", "sessions", "cron", "models"],
+    tabs: [
+      "overview",
+      "agents",
+      "chat",
+      "canvas",
+      "channels",
+      "sessions",
+      "cron",
+      "models",
+      "nodes",
+    ],
   },
   { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet", "memory"] },
 ] as const;

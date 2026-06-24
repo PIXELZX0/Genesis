@@ -36,7 +36,13 @@ function baseProps(overrides: Partial<NodesProps> = {}): NodesProps {
     execApprovalsSelectedAgent: null,
     execApprovalsTarget: "gateway",
     execApprovalsTargetNodeId: null,
+    nodesActionMenuId: null,
+    nodesModal: null,
     onRefresh: () => undefined,
+    onToggleActionMenu: () => undefined,
+    onOpenNodeModal: () => undefined,
+    onCloseNodeModal: () => undefined,
+    onUpdateNode: () => undefined,
     onNodeManagementSelect: () => undefined,
     onNodeManagementRenameChange: () => undefined,
     onNodeManagementCommandChange: () => undefined,
@@ -74,27 +80,44 @@ function renderNodesText(overrides: Partial<NodesProps>): string {
 }
 
 describe("nodes devices pending rendering", () => {
-  it("shows node management controls for runnable node commands", () => {
+  const runnableNode = {
+    nodeId: "node-1",
+    displayName: "Build Box",
+    connected: true,
+    paired: true,
+    commands: ["system.run", "system.which", "device.status"],
+  };
+
+  it("lists nodes in the inventory table", () => {
+    const text = renderNodesText({ nodes: [runnableNode] });
+    expect(text).toContain("Build Box");
+    expect(text).toContain("Online");
+  });
+
+  it("shows run command controls when the run modal is open", () => {
     const text = renderNodesText({
-      nodes: [
-        {
-          nodeId: "node-1",
-          displayName: "Build Box",
-          connected: true,
-          paired: true,
-          commands: ["system.run", "system.which", "device.status"],
-        },
-      ],
+      nodes: [runnableNode],
       nodeManagementSelectedId: "node-1",
       nodeManagementRename: "Build Box",
       nodeManagementCommand: "device.status",
       nodeManagementParams: "{\n}",
+      nodesModal: { kind: "run", nodeId: "node-1" },
     });
 
-    expect(text).toContain("Node Management");
+    expect(text).toContain("Run command");
     expect(text).toContain("Update Status");
-    expect(text).toContain("Shell Command");
     expect(text).toContain("device.status");
+  });
+
+  it("shows shell controls when the terminal modal is open", () => {
+    const text = renderNodesText({
+      nodes: [runnableNode],
+      nodeManagementSelectedId: "node-1",
+      nodesModal: { kind: "terminal", nodeId: "node-1" },
+    });
+
+    expect(text).toContain("Terminal");
+    expect(text).toContain("Shell Command");
   });
 
   it("shows requested and approved access for a scope upgrade", () => {

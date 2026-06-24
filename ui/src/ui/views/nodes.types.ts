@@ -31,7 +31,13 @@ export type NodesProps = {
   execApprovalsSelectedAgent: string | null;
   execApprovalsTarget: "gateway" | "node";
   execApprovalsTargetNodeId: string | null;
+  nodesActionMenuId: string | null;
+  nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null;
   onRefresh: () => void;
+  onToggleActionMenu: (nodeId: string | null) => void;
+  onOpenNodeModal: (kind: "permissions" | "run" | "terminal", nodeId: string) => void;
+  onCloseNodeModal: () => void;
+  onUpdateNode: (nodeId: string) => void;
   onNodeManagementSelect: (nodeId: string) => void;
   onNodeManagementRenameChange: (value: string) => void;
   onNodeManagementCommandChange: (command: string) => void;

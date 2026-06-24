@@ -175,6 +175,7 @@ const SELF_HEADED_TABS = new Set<string>([
   "mcp",
   "canvas",
   "wallet",
+  "nodes",
 ]);
 import { openPopupWindowSafe } from "./open-external-url.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
@@ -2684,6 +2685,8 @@ export function renderApp(state: AppViewState) {
               m.renderNodes({
                 loading: state.nodesLoading,
                 nodes: state.nodes,
+                nodesActionMenuId: state.nodesActionMenuId,
+                nodesModal: state.nodesModal,
                 nodeManagementSelectedId: state.nodeManagementSelectedId,
                 nodeManagementRename: state.nodeManagementRename,
                 nodeManagementCommand: state.nodeManagementCommand,
@@ -2713,6 +2716,27 @@ export function renderApp(state: AppViewState) {
                 execApprovalsTarget: state.execApprovalsTarget,
                 execApprovalsTargetNodeId: state.execApprovalsTargetNodeId,
                 onRefresh: () => loadNodes(state),
+                onToggleActionMenu: (nodeId) => {
+                  state.nodesActionMenuId = nodeId;
+                },
+                onUpdateNode: (nodeId) => {
+                  state.nodesActionMenuId = null;
+                  selectNodeForManagement(state, nodeId);
+                  void runSelectedNodePreset(state, "update-run");
+                },
+                onOpenNodeModal: (kind, nodeId) => {
+                  state.nodesActionMenuId = null;
+                  selectNodeForManagement(state, nodeId);
+                  if (kind === "permissions") {
+                    state.execApprovalsTarget = "node";
+                    state.execApprovalsTargetNodeId = nodeId;
+                    void loadExecApprovals(state, { kind: "node", nodeId });
+                  }
+                  state.nodesModal = { kind, nodeId };
+                },
+                onCloseNodeModal: () => {
+                  state.nodesModal = null;
+                },
                 onNodeManagementSelect: (nodeId) => selectNodeForManagement(state, nodeId),
                 onNodeManagementRenameChange: (value) => {
                   state.nodeManagementRename = value;

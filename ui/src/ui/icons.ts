@@ -550,6 +550,16 @@ export const icons = {
       <line x1="3" x2="10" y1="21" y2="14" />
     </svg>
   `,
+  shield: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  `,
+  play: html`
+    <svg viewBox="0 0 24 24">
+      <polygon points="6 4 20 12 6 20 6 4" />
+    </svg>
+  `,
 } as const;
 
 export type IconName = keyof typeof icons;

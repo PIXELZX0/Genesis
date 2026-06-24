@@ -125,6 +125,8 @@ export type AppViewState = {
   nodeManagementBusy: boolean;
   nodeManagementError: string | null;
   nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null;
+  nodesActionMenuId: string | null;
+  nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null;
   chatNewMessagesBelow: boolean;
   navDrawerOpen: boolean;
   sidebarOpen: boolean;
