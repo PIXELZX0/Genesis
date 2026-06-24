@@ -3157,6 +3157,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                               },
                               {
                                 type: "string",
+                                const: "chat-template",
+                              },
+                              {
+                                type: "string",
                                 const: "qwen-chat-template",
                               },
                               {
