@@ -5,7 +5,7 @@ import type { GenesisConfig } from "../../config/types.genesis.js";
 import { __testing as extraParamsTesting, applyExtraParamsToAgent } from "./extra-params.js";
 
 export type ExtraParamsCapture<TPayload extends Record<string, unknown>> = {
-  headers?: Record<string, string>;
+  headers?: Record<string, string | null>;
   options?: SimpleStreamOptions;
   payload: TPayload;
 };

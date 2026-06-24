@@ -8,8 +8,8 @@ import type {
   ToolCall,
   Tool,
   Usage,
-} from "@earendil-works/pi-ai";
-import { createAssistantMessageEventStream, streamSimple } from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
+import { createAssistantMessageEventStream, streamSimple } from "@earendil-works/pi-ai/compat";
 import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import type {
   GenesisConfig,

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   convertMessages,
   convertTools,
-} from "../../node_modules/@earendil-works/pi-ai/dist/providers/google-shared.js";
+} from "../../node_modules/@earendil-works/pi-ai/dist/api/google-shared.js";
 import {
   asRecord,
   expectConvertedRoles,

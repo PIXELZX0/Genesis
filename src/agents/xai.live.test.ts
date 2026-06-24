@@ -1,4 +1,4 @@
-import { completeSimple, getModel, streamSimple } from "@earendil-works/pi-ai";
+import { completeSimple, getModel, streamSimple } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import {

@@ -1,4 +1,9 @@
-import { completeSimple, type Api, type AssistantMessage, type Model } from "@earendil-works/pi-ai";
+import {
+  completeSimple,
+  type Api,
+  type AssistantMessage,
+  type Model,
+} from "@earendil-works/pi-ai/compat";
 import { loadConfig } from "../config/config.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { resolveGenesisAgentDir } from "./agent-paths.js";

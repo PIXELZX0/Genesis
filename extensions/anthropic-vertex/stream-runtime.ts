@@ -4,7 +4,7 @@ import {
   streamAnthropic as streamAnthropicDefault,
   type AnthropicOptions,
   type Model,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 import {
   applyAnthropicPayloadPolicyToParams,
   resolveAnthropicPayloadPolicy,

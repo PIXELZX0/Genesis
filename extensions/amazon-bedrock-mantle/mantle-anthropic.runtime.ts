@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { StreamFn } from "@earendil-works/pi-agent-core";
 import type { Api, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
-import { streamAnthropic } from "@earendil-works/pi-ai/anthropic";
+import { streamAnthropic } from "@earendil-works/pi-ai/compat";
 
 const MANTLE_ANTHROPIC_BETA = "fine-grained-tool-streaming-2025-05-14";
 type AnthropicOptions = ConstructorParameters<typeof Anthropic>[0];
@@ -24,12 +24,16 @@ function requiresDefaultSampling(modelId: string): boolean {
 }
 
 function mergeHeaders(
-  ...headerSources: Array<Record<string, string> | undefined>
+  ...headerSources: Array<Record<string, string | null> | undefined>
 ): Record<string, string> {
   const merged: Record<string, string> = {};
   for (const headers of headerSources) {
     if (headers) {
-      Object.assign(merged, headers);
+      for (const [key, value] of Object.entries(headers)) {
+        if (value != null) {
+          merged[key] = value;
+        }
+      }
     }
   }
   return merged;

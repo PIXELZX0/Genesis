@@ -33,7 +33,7 @@ function runSystemCacheWrapper(model: Partial<Model<"openai-completions">>) {
 
 describe("proxy stream wrappers", () => {
   it("adds OpenRouter attribution headers to stream options", () => {
-    const calls: Array<{ headers?: Record<string, string> }> = [];
+    const calls: Array<{ headers?: Record<string, string | null> }> = [];
     const baseStreamFn: StreamFn = (_model, _context, options) => {
       calls.push({
         headers: options?.headers,

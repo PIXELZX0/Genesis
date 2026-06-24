@@ -1,4 +1,4 @@
-import { type Context, complete } from "@earendil-works/pi-ai";
+import { type Context, complete } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import {

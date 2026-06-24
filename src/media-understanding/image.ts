@@ -1,5 +1,5 @@
-import type { Api, Context, Model, ProviderStreamOptions } from "@earendil-works/pi-ai";
-import { complete } from "@earendil-works/pi-ai";
+import type { Api, Context, Model, ProviderStreamOptions } from "@earendil-works/pi-ai/compat";
+import { complete } from "@earendil-works/pi-ai/compat";
 import { isMinimaxVlmModel, minimaxUnderstandImage } from "../agents/minimax-vlm.js";
 import {
   getApiKeyForModel,

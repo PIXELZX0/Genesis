@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { getModel } from "@earendil-works/pi-ai";
+import { getModel } from "@earendil-works/pi-ai/compat";
 import { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
 import type { ResolvedTtsConfig } from "genesis/plugin-sdk/agent-runtime";
 import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";

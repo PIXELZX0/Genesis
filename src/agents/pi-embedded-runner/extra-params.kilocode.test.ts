@@ -5,7 +5,7 @@ import { captureEnv } from "../../test-utils/env.js";
 import { createKilocodeWrapper, isProxyReasoningUnsupported } from "./proxy-stream-wrappers.js";
 
 type ExtraParamsCapture<TPayload extends Record<string, unknown>> = {
-  headers?: Record<string, string>;
+  headers?: Record<string, string | null>;
   payload: TPayload;
 };
 

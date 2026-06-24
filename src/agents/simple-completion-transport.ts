@@ -1,4 +1,4 @@
-import { getApiProvider, type Api, type Model } from "@earendil-works/pi-ai";
+import { getApiProvider, type Api, type Model } from "@earendil-works/pi-ai/compat";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { createAnthropicVertexStreamFnForModel } from "./anthropic-vertex-stream.js";
 import { ensureCustomApiRegistered } from "./custom-api-registry.js";

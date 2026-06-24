@@ -5,8 +5,8 @@ import type {
   AssistantMessageEvent,
   AssistantMessageEventStream,
   StopReason,
-} from "@earendil-works/pi-ai";
-import * as piAi from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
+import * as piAi from "@earendil-works/pi-ai/compat";
 /**
  * OpenAI WebSocket StreamFn Integration
  *

@@ -45,12 +45,16 @@ export function coerceTransportToolCallArguments(argumentsValue: unknown): Recor
 }
 
 export function mergeTransportHeaders(
-  ...headerSources: Array<Record<string, string> | undefined>
+  ...headerSources: Array<Record<string, string | null> | undefined>
 ): Record<string, string> | undefined {
   const merged: Record<string, string> = {};
   for (const headers of headerSources) {
     if (headers) {
-      Object.assign(merged, headers);
+      for (const [key, value] of Object.entries(headers)) {
+        if (value != null) {
+          merged[key] = value;
+        }
+      }
     }
   }
   return Object.keys(merged).length > 0 ? merged : undefined;

@@ -1,4 +1,4 @@
-import { completeSimple, type TextContent } from "@earendil-works/pi-ai";
+import { completeSimple, type TextContent } from "@earendil-works/pi-ai/compat";
 import { getApiKeyForModel, requireApiKey } from "../agents/model-auth.js";
 import {
   buildModelAliasIndex,

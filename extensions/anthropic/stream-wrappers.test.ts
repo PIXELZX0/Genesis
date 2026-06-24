@@ -11,8 +11,8 @@ import {
 const CONTEXT_1M_BETA = "context-1m-2025-08-07";
 const OAUTH_BETA = "oauth-2025-04-20";
 
-function runWrapper(apiKey: string | undefined): Record<string, string> | undefined {
-  const captured: { headers?: Record<string, string> } = {};
+function runWrapper(apiKey: string | undefined): Record<string, string | null> | undefined {
+  const captured: { headers?: Record<string, string | null> } = {};
   const base: StreamFn = (_model, _context, options) => {
     captured.headers = options?.headers;
     return {} as never;
@@ -27,7 +27,7 @@ function runWrapper(apiKey: string | undefined): Record<string, string> | undefi
 }
 
 function createPayloadCapturingBaseStream(captured: {
-  headers?: Record<string, string>;
+  headers?: Record<string, string | null>;
   payload?: Record<string, unknown>;
 }): StreamFn {
   return (model, _context, options) => {
@@ -40,7 +40,8 @@ function createPayloadCapturingBaseStream(captured: {
 }
 
 function runComposedAnthropicProviderStream(apiKey: string) {
-  const captured: { headers?: Record<string, string>; payload?: Record<string, unknown> } = {};
+  const captured: { headers?: Record<string, string | null>; payload?: Record<string, unknown> } =
+    {};
   const wrapped = wrapAnthropicProviderStream({
     streamFn: createPayloadCapturingBaseStream(captured),
     modelId: "claude-sonnet-4-6",

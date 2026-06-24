@@ -4,7 +4,7 @@ import {
   registerApiProvider,
   type Api,
   type StreamOptions,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 
 const CUSTOM_API_SOURCE_PREFIX = "genesis-custom-api:";
 

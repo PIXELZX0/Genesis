@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { streamSimple } from "@earendil-works/pi-ai";
+import { streamSimple } from "@earendil-works/pi-ai/compat";
 import { streamWithPayloadPatch } from "../agents/pi-embedded-runner/stream-payload-utils.js";
 import { visitObjectContentBlocks } from "../shared/message-content-blocks.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";

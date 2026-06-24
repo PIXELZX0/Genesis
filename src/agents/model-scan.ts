@@ -6,7 +6,7 @@ import {
   type Model,
   type OpenAICompletionsOptions,
   type Tool,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { formatErrorMessage } from "../infra/errors.js";
 import { inferParamBFromIdOrName } from "../shared/model-param-b.js";

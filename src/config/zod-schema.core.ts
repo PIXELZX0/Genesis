@@ -206,6 +206,7 @@ export const ModelCompatSchema = z
         z.literal("together"),
         z.literal("zai"),
         z.literal("qwen"),
+        z.literal("chat-template"),
         z.literal("qwen-chat-template"),
         z.literal("string-thinking"),
         z.literal("ant-ling"),

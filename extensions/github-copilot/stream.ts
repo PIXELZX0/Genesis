@@ -24,8 +24,8 @@ function patchOnPayloadResult(result: unknown): unknown {
 
 function buildCopilotRequestHeaders(
   context: Parameters<StreamFn>[1],
-  headers: Record<string, string> | undefined,
-): Record<string, string> {
+  headers: Record<string, string | null> | undefined,
+): Record<string, string | null> {
   return {
     ...buildCopilotDynamicHeaders({
       messages: context.messages,

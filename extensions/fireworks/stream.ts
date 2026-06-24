@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { streamSimple } from "@earendil-works/pi-ai";
+import { streamSimple } from "@earendil-works/pi-ai/compat";
 import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
 import { normalizeProviderId } from "genesis/plugin-sdk/provider-model-shared";
 import { streamWithPayloadPatch } from "genesis/plugin-sdk/provider-stream-shared";

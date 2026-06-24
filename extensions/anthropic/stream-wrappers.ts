@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { streamSimple } from "@earendil-works/pi-ai";
+import { streamSimple } from "@earendil-works/pi-ai/compat";
 import type { ProviderWrapStreamFnContext } from "genesis/plugin-sdk/plugin-entry";
 import {
   applyAnthropicPayloadPolicyToParams,
@@ -46,14 +46,14 @@ function parseHeaderList(value: unknown): string[] {
 }
 
 function mergeAnthropicBetaHeader(
-  headers: Record<string, string> | undefined,
+  headers: Record<string, string | null> | undefined,
   betas: string[],
-): Record<string, string> {
-  const merged = { ...headers };
+): Record<string, string | null> {
+  const merged: Record<string, string | null> = { ...headers };
   const existingKey = Object.keys(merged).find(
     (key) => normalizeLowercaseStringOrEmpty(key) === "anthropic-beta",
   );
-  const existing = existingKey ? parseHeaderList(merged[existingKey]) : [];
+  const existing = existingKey ? parseHeaderList(merged[existingKey] ?? undefined) : [];
   const values = Array.from(new Set([...existing, ...betas]));
   const key = existingKey ?? "anthropic-beta";
   merged[key] = values.join(",");

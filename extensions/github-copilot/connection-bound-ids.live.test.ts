@@ -1,4 +1,8 @@
-import { streamOpenAIResponses, type AssistantMessage, type Model } from "@earendil-works/pi-ai";
+import {
+  streamOpenAIResponses,
+  type AssistantMessage,
+  type Model,
+} from "@earendil-works/pi-ai/compat";
 import { buildCopilotDynamicHeaders } from "genesis/plugin-sdk/provider-stream-shared";
 import { describe, expect, it } from "vitest";
 import { wrapCopilotOpenAIResponsesStream } from "./stream.js";

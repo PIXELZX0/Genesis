@@ -1,4 +1,4 @@
-import { getModels } from "@earendil-works/pi-ai";
+import { getModels } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";
 import { registerProviderPlugin } from "../../test/helpers/plugins/provider-registration.js";
@@ -51,13 +51,12 @@ describe("opencode-go provider plugin", () => {
     expect([...models.keys()]).toEqual([
       "deepseek-v4-flash",
       "deepseek-v4-pro",
-      "glm-5",
       "glm-5.1",
-      "kimi-k2.5",
+      "glm-5.2",
       "kimi-k2.6",
+      "kimi-k2.7-code",
       "mimo-v2.5",
       "mimo-v2.5-pro",
-      "minimax-m2.5",
       "minimax-m2.7",
       "minimax-m3",
       "qwen3.6-plus",

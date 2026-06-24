@@ -1,5 +1,5 @@
-import type { Model } from "@earendil-works/pi-ai";
-import { getModel, streamSimple } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai/compat";
+import { getModel, streamSimple } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import type { GenesisConfig } from "../config/config.js";
 import { isLiveTestEnabled } from "./live-test-helpers.js";

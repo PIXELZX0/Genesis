@@ -21,7 +21,7 @@ let ttsRuntime: TtsRuntimeModule;
 let ttsRuntimePromise: Promise<TtsRuntimeModule> | null = null;
 let ttsRuntimeInitialized = false;
 let ttsCorePromise: Promise<TtsCoreModule> | null = null;
-let completeSimple: typeof import("@earendil-works/pi-ai").completeSimple;
+let completeSimple: typeof import("@earendil-works/pi-ai/compat").completeSimple;
 let getApiKeyForModelMock: typeof import("../../../src/agents/model-auth.js").getApiKeyForModel;
 let requireApiKeyMock: typeof import("../../../src/agents/model-auth.js").requireApiKey;
 let resolveModelAsyncMock: typeof import("../../../src/agents/pi-embedded-runner/model.js").resolveModelAsync;
@@ -510,7 +510,7 @@ function createResolvedSummarizationConfig(cfg: GenesisConfig): ResolvedTtsConfi
 async function setupSummarizationMocks() {
   ({ summarizeText: summarizeTextCore } = await loadTtsCore());
   prepareModelForSimpleCompletionMock = vi.fn(({ model }) => model);
-  ({ completeSimple } = await import("@earendil-works/pi-ai"));
+  ({ completeSimple } = await import("@earendil-works/pi-ai/compat"));
   ({ getApiKeyForModel: getApiKeyForModelMock, requireApiKey: requireApiKeyMock } =
     await import("../../../src/agents/model-auth.js"));
   ({ resolveModelAsync: resolveModelAsyncMock } =

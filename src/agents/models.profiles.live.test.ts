@@ -1,4 +1,4 @@
-import { type Api, completeSimple, type Model } from "@earendil-works/pi-ai";
+import { type Api, completeSimple, type Model } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../config/config.js";

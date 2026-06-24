@@ -157,7 +157,7 @@ type ResolveProviderRequestPolicyConfigParams = {
   discoveredHeaders?: Record<string, string>;
   providerHeaders?: Record<string, string>;
   modelHeaders?: Record<string, string>;
-  callerHeaders?: Record<string, string>;
+  callerHeaders?: Record<string, string | null>;
   precedence?: ProviderRequestHeaderPrecedence;
   authHeader?: boolean;
   compat?: unknown;
@@ -376,7 +376,7 @@ export function normalizeBaseUrl(
 }
 
 export function mergeProviderRequestHeaders(
-  ...headerSets: Array<Record<string, string> | undefined>
+  ...headerSets: Array<Record<string, string | null> | undefined>
 ): Record<string, string> | undefined {
   let merged: Record<string, string> | undefined;
   const headerNamesByLowerKey = new Map<string, string>();
@@ -384,13 +384,16 @@ export function mergeProviderRequestHeaders(
     if (!headers) {
       continue;
     }
-    if (!merged) {
-      merged = Object.create(null) as Record<string, string>;
-    }
     for (const [key, value] of Object.entries(headers)) {
+      if (value == null) {
+        continue;
+      }
       const normalizedKey = normalizeLowercaseStringOrEmpty(key);
       if (FORBIDDEN_HEADER_KEYS.has(normalizedKey)) {
         continue;
+      }
+      if (!merged) {
+        merged = Object.create(null) as Record<string, string>;
       }
       const previousKey = headerNamesByLowerKey.get(normalizedKey);
       if (previousKey && previousKey !== key) {
@@ -697,7 +700,7 @@ export function resolveProviderRequestHeaders(params: {
   baseUrl?: string;
   capability?: ProviderRequestCapability;
   transport?: ProviderRequestTransport;
-  callerHeaders?: Record<string, string>;
+  callerHeaders?: Record<string, string | null>;
   defaultHeaders?: Record<string, string>;
   precedence?: ProviderRequestHeaderPrecedence;
   request?: ProviderRequestTransportOverrides;

@@ -82,7 +82,7 @@ describe("buildProviderStreamFamilyHooks", () => {
   it("covers the stream family matrix", async () => {
     let capturedPayload: Record<string, unknown> | undefined;
     let capturedModelId: string | undefined;
-    let capturedHeaders: Record<string, string> | undefined;
+    let capturedHeaders: Record<string, string | null> | undefined;
     let payloadSeed: Record<string, unknown> | undefined;
 
     const baseStreamFn: StreamFn = (model, _context, options) => {

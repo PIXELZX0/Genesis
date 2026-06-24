@@ -6,7 +6,7 @@ import {
   type Model,
   type SimpleStreamOptions,
   type ThinkingLevel,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 import { createProviderHttpError } from "genesis/plugin-sdk/provider-http";
 import {
   buildGuardedModelFetch,
@@ -505,7 +505,7 @@ export function buildGoogleGenerativeAiParams(
 function buildGoogleHeaders(
   model: GoogleTransportModel,
   apiKey: string | undefined,
-  optionHeaders: Record<string, string> | undefined,
+  optionHeaders: Record<string, string | null> | undefined,
 ): Record<string, string> {
   const authHeaders = apiKey ? parseGeminiAuth(apiKey).headers : undefined;
   return (

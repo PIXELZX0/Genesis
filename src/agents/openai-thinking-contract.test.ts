@@ -6,8 +6,8 @@ import {
   type Model,
   type SimpleStreamOptions,
 } from "@earendil-works/pi-ai";
-import { streamSimpleOpenAICodexResponses } from "@earendil-works/pi-ai/openai-codex-responses";
-import { streamSimpleOpenAIResponses } from "@earendil-works/pi-ai/openai-responses";
+import { streamSimpleOpenAICodexResponses } from "@earendil-works/pi-ai/compat";
+import { streamSimpleOpenAIResponses } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 
 type ResponsesModel = Model<"openai-responses"> | Model<"openai-codex-responses">;

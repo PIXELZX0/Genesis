@@ -6,7 +6,7 @@ import {
   type Message,
   type Model,
   type TextContent,
-} from "@earendil-works/pi-ai";
+} from "@earendil-works/pi-ai/compat";
 import { SessionManager } from "@earendil-works/pi-coding-agent";
 import type { GetReplyOptions } from "../auto-reply/get-reply-options.types.js";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";

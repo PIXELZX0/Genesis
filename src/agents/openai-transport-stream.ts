@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { StreamFn } from "@earendil-works/pi-agent-core";
+import { convertMessages } from "@earendil-works/pi-ai/api/openai-completions";
 import {
   calculateCost,
   createAssistantMessageEventStream,
@@ -8,8 +9,7 @@ import {
   type Api,
   type Context,
   type Model,
-} from "@earendil-works/pi-ai";
-import { convertMessages } from "@earendil-works/pi-ai/openai-completions";
+} from "@earendil-works/pi-ai/compat";
 import OpenAI, { AzureOpenAI } from "openai";
 import type { ChatCompletionChunk } from "openai/resources/chat/completions.js";
 import type {
@@ -620,10 +620,10 @@ function mapResponsesStopReason(status: string | undefined): string {
 function buildOpenAIClientHeaders(
   model: Model<Api>,
   context: Context,
-  optionHeaders?: Record<string, string>,
-  turnHeaders?: Record<string, string>,
+  optionHeaders?: Record<string, string | null>,
+  turnHeaders?: Record<string, string | null>,
 ): Record<string, string> {
-  const headers = { ...model.headers };
+  const headers: Record<string, string | null> = { ...model.headers };
   if (model.provider === "github-copilot") {
     Object.assign(
       headers,
@@ -639,7 +639,13 @@ function buildOpenAIClientHeaders(
   if (turnHeaders) {
     Object.assign(headers, turnHeaders);
   }
-  return headers;
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (value != null) {
+      result[key] = value;
+    }
+  }
+  return result;
 }
 
 function resolveProviderTransportTurnState(
@@ -669,8 +675,8 @@ function createOpenAIResponsesClient(
   model: Model<Api>,
   context: Context,
   apiKey: string,
-  optionHeaders?: Record<string, string>,
-  turnHeaders?: Record<string, string>,
+  optionHeaders?: Record<string, string | null>,
+  turnHeaders?: Record<string, string | null>,
 ) {
   return new OpenAI({
     apiKey,
@@ -1006,8 +1012,8 @@ function createAzureOpenAIClient(
   model: Model<Api>,
   context: Context,
   apiKey: string,
-  optionHeaders?: Record<string, string>,
-  turnHeaders?: Record<string, string>,
+  optionHeaders?: Record<string, string | null>,
+  turnHeaders?: Record<string, string | null>,
 ) {
   return new AzureOpenAI({
     apiKey,
@@ -1044,7 +1050,7 @@ function createOpenAICompletionsClient(
   model: Model<Api>,
   context: Context,
   apiKey: string,
-  optionHeaders?: Record<string, string>,
+  optionHeaders?: Record<string, string | null>,
 ) {
   const clientConfig = buildOpenAICompletionsClientConfig(model, context, optionHeaders);
   return new OpenAI({
@@ -1068,7 +1074,7 @@ function isAzureOpenAICompatibleHost(hostname: string): boolean {
 function buildOpenAICompletionsClientConfig(
   model: Model<Api>,
   context: Context,
-  optionHeaders?: Record<string, string>,
+  optionHeaders?: Record<string, string | null>,
 ): {
   baseURL: string;
   defaultHeaders: Record<string, string>;
