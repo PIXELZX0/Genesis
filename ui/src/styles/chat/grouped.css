@@ -337,6 +337,12 @@ img.chat-avatar {
   border-color: transparent;
 }
 
+/* Inner markdown sets its own color (--chat-text); override so the
+   user's own text stays dark ink on the light bubble instead of white. */
+.chat-group.user .chat-bubble .chat-text {
+  color: var(--bg);
+}
+
 :root[data-theme-mode="light"] .chat-group.user .chat-bubble {
   border-color: transparent;
   background: var(--text);
