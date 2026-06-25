@@ -10,6 +10,7 @@ import {
   minSecurity,
 } from "../infra/exec-approvals.js";
 import { resolveExecSafeBinRuntimePolicy } from "../infra/exec-safe-bin-runtime-policy.js";
+import { evaluateExecSafeguard } from "../infra/exec-safeguard.js";
 import { sanitizeHostExecEnvWithDiagnostics } from "../infra/host-env-security.js";
 import {
   getShellPathFromLoginShell,
@@ -1492,6 +1493,32 @@ export function createExecTool(
       const bypassApprovals = elevatedRequested && elevatedMode === "full";
       if (bypassApprovals) {
         ask = "off";
+      }
+
+      // Safeguard: predict system impact before the command reaches any host.
+      // High risk is blocked outright; medium risk forces a user approval
+      // prompt. This only ever tightens the decision, never loosens it, and
+      // runs ahead of host dispatch so it covers gateway/node/sandbox alike.
+      if (defaults?.safeguard?.enabled !== false) {
+        const safeguardAnalysis = analyzeShellCommand({ command: params.command });
+        const verdict = evaluateExecSafeguard(safeguardAnalysis, {
+          rawCommand: params.command,
+        });
+        if (verdict.risk === "high") {
+          throw new Error(
+            [
+              "Safeguard blocked this command: predicted high system impact.",
+              `Reasons: ${verdict.reasons.join("; ")}`,
+              "This command was not run. If it is genuinely required, run it yourself or adjust tools.exec.safeguard.",
+            ].join("\n"),
+          );
+        }
+        if (verdict.risk === "medium" && !bypassApprovals) {
+          ask = "always";
+          warnings.push(
+            `Safeguard: medium-risk command requires approval (${verdict.reasons.join("; ")}).`,
+          );
+        }
       }
 
       const sandbox = host === "sandbox" ? defaults?.sandbox : undefined;

@@ -218,6 +218,7 @@ function resolveExecConfig(params: { cfg?: GenesisConfig; agentId?: string }) {
     notifyOnExitEmptySuccess:
       agentExec?.notifyOnExitEmptySuccess ?? globalExec?.notifyOnExitEmptySuccess,
     applyPatch: agentExec?.applyPatch ?? globalExec?.applyPatch,
+    safeguard: agentExec?.safeguard ?? globalExec?.safeguard,
   };
 }
 
@@ -509,6 +510,7 @@ export function createGenesisCodingTools(options?: {
     strictInlineEval: options?.exec?.strictInlineEval ?? execConfig.strictInlineEval,
     safeBinTrustedDirs: options?.exec?.safeBinTrustedDirs ?? execConfig.safeBinTrustedDirs,
     safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,
+    safeguard: options?.exec?.safeguard ?? execConfig.safeguard,
     agentId,
     cwd: workspaceRoot,
     allowBackground,

@@ -4,7 +4,11 @@ import { isEmbeddedMode } from "../infra/embedded-mode.js";
 import { getActiveRuntimeWebToolsMetadata } from "../secrets/runtime.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
-import { resolveAgentWorkspaceDir, resolveSessionAgentIds } from "./agent-scope.js";
+import {
+  resolveAgentConfig,
+  resolveAgentWorkspaceDir,
+  resolveSessionAgentIds,
+} from "./agent-scope.js";
 import { resolveGenesisPluginToolsForOptions } from "./genesis-plugin-tools.js";
 import { applyNodesToolWorkspaceGuard } from "./genesis-tools.nodes-workspace-guard.js";
 import {
@@ -14,6 +18,7 @@ import {
 import type { SandboxFsBridge } from "./sandbox/fs-bridge.js";
 import type { SpawnedToolContext } from "./spawned-context.js";
 import type { ToolFsPolicy } from "./tool-fs-policy.js";
+import { createAdvisorTool } from "./tools/advisor-tool.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
 import type { AnyAgentTool } from "./tools/common.js";
@@ -130,6 +135,12 @@ export function createGenesisTools(
   const spawnWorkspaceDir = resolveWorkspaceRoot(
     options?.spawnWorkspaceDir ?? options?.workspaceDir ?? inferredWorkspaceDir,
   );
+  const advisorConfig =
+    (resolvedConfig
+      ? resolveAgentConfig(resolvedConfig, sessionAgentId)?.tools?.advisor
+      : undefined) ?? resolvedConfig?.tools?.advisor;
+  const advisorModel = advisorConfig?.model?.trim();
+  const advisorEnabled = advisorConfig?.enabled === true && Boolean(advisorModel);
   const deliveryContext = normalizeDeliveryContext({
     channel: options?.agentChannel,
     to: options?.agentTo,
@@ -306,6 +317,25 @@ export function createGenesisTools(
             requesterAgentIdOverride: options?.requesterAgentIdOverride,
             workspaceDir: spawnWorkspaceDir,
           }),
+          ...(advisorEnabled && advisorModel
+            ? [
+                createAdvisorTool({
+                  model: advisorModel,
+                  timeoutSeconds: advisorConfig?.timeoutSeconds,
+                  agentSessionKey: options?.agentSessionKey,
+                  agentChannel: options?.agentChannel,
+                  agentAccountId: options?.agentAccountId,
+                  agentTo: options?.agentTo,
+                  agentThreadId: options?.agentThreadId,
+                  agentGroupId: options?.agentGroupId,
+                  agentGroupChannel: options?.agentGroupChannel,
+                  agentGroupSpace: options?.agentGroupSpace,
+                  agentMemberRoleIds: options?.agentMemberRoleIds,
+                  requesterAgentIdOverride: options?.requesterAgentIdOverride,
+                  workspaceDir: spawnWorkspaceDir,
+                }),
+              ]
+            : []),
         ]),
     createSessionsYieldTool({
       sessionId: options?.sessionId,

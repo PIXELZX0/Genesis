@@ -7426,9 +7426,35 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           },
                           additionalProperties: false,
                         },
+                        safeguard: {
+                          type: "object",
+                          properties: {
+                            enabled: {
+                              type: "boolean",
+                            },
+                          },
+                          additionalProperties: false,
+                        },
                         approvalRunningNoticeMs: {
                           type: "integer",
                           minimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                      },
+                      additionalProperties: false,
+                    },
+                    advisor: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                        },
+                        model: {
+                          type: "string",
+                        },
+                        timeoutSeconds: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
                           maximum: 9007199254740991,
                         },
                       },
@@ -17718,11 +17744,55 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 additionalProperties: false,
               },
+              safeguard: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Enable Exec Safeguard",
+                    description:
+                      "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
+                  },
+                },
+                additionalProperties: false,
+                title: "Exec Safeguard",
+                description:
+                  "Command-impact safeguard for exec. Deterministic heuristics predict the system impact of a shell command before it runs: high-risk commands (e.g. rm -rf /, mkfs, dd to a device, curl|sh) are blocked, and medium-risk commands force a human approval prompt. Only ever tightens the exec decision; never loosens it.",
+              },
             },
             additionalProperties: false,
             title: "Exec Tool",
             description:
               "Exec-tool policy grouping for shell execution host, security mode, approval behavior, and runtime bindings. Keep conservative defaults in production and tighten elevated execution paths.",
+          },
+          advisor: {
+            type: "object",
+            properties: {
+              enabled: {
+                type: "boolean",
+                title: "Enable Advisor",
+                description:
+                  "Enables the `ask_advisor` tool so the agent can escalate hard problems to a stronger model. Defaults to off; set a model to make escalation useful.",
+              },
+              model: {
+                type: "string",
+                title: "Advisor Model",
+                description:
+                  'The stronger model to consult, as "provider/model" (for example "anthropic/claude-opus-4-8"). Must be a model that is configured and authenticated for this deployment.',
+              },
+              timeoutSeconds: {
+                type: "integer",
+                exclusiveMinimum: 0,
+                maximum: 9007199254740991,
+                title: "Advisor Timeout (s)",
+                description:
+                  "Maximum seconds to wait for the advisor model to answer before returning a timeout to the agent. Defaults to 180.",
+              },
+            },
+            additionalProperties: false,
+            title: "Advisor",
+            description:
+              "Advisor lets the agent consult a stronger model when it gets stuck. When enabled, an `ask_advisor` tool is exposed: the agent sends a question (plus relevant context) to the configured stronger model and receives advice back, then continues the task itself.",
           },
           fs: {
             type: "object",
@@ -26348,6 +26418,36 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Exec Safe Bin Profiles",
       help: "Optional per-binary safe-bin profiles (positional limits + allowed/denied flags).",
       tags: ["storage", "tools"],
+    },
+    "tools.exec.safeguard": {
+      label: "Exec Safeguard",
+      help: "Command-impact safeguard for exec. Deterministic heuristics predict the system impact of a shell command before it runs: high-risk commands (e.g. rm -rf /, mkfs, dd to a device, curl|sh) are blocked, and medium-risk commands force a human approval prompt. Only ever tightens the exec decision; never loosens it.",
+      tags: ["tools"],
+    },
+    "tools.exec.safeguard.enabled": {
+      label: "Enable Exec Safeguard",
+      help: "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
+      tags: ["tools"],
+    },
+    "tools.advisor": {
+      label: "Advisor",
+      help: "Advisor lets the agent consult a stronger model when it gets stuck. When enabled, an `ask_advisor` tool is exposed: the agent sends a question (plus relevant context) to the configured stronger model and receives advice back, then continues the task itself.",
+      tags: ["tools"],
+    },
+    "tools.advisor.enabled": {
+      label: "Enable Advisor",
+      help: "Enables the `ask_advisor` tool so the agent can escalate hard problems to a stronger model. Defaults to off; set a model to make escalation useful.",
+      tags: ["tools"],
+    },
+    "tools.advisor.model": {
+      label: "Advisor Model",
+      help: 'The stronger model to consult, as "provider/model" (for example "anthropic/claude-opus-4-8"). Must be a model that is configured and authenticated for this deployment.',
+      tags: ["models", "tools"],
+    },
+    "tools.advisor.timeoutSeconds": {
+      label: "Advisor Timeout (s)",
+      help: "Maximum seconds to wait for the advisor model to answer before returning a timeout to the agent. Defaults to 180.",
+      tags: ["performance", "tools"],
     },
     approvals: {
       label: "Approvals",

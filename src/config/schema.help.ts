@@ -372,6 +372,18 @@ export const FIELD_HELP: Record<string, string> = {
     "Approval strategy for when exec commands require human confirmation before running. Use stricter ask behavior in shared channels and lower-friction settings in private operator contexts.",
   "tools.exec.node":
     "Node binding configuration for exec tooling when command execution is delegated through connected nodes. Use explicit node binding only when multi-node routing is required.",
+  "tools.exec.safeguard":
+    "Command-impact safeguard for exec. Deterministic heuristics predict the system impact of a shell command before it runs: high-risk commands (e.g. rm -rf /, mkfs, dd to a device, curl|sh) are blocked, and medium-risk commands force a human approval prompt. Only ever tightens the exec decision; never loosens it.",
+  "tools.exec.safeguard.enabled":
+    "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
+  "tools.advisor":
+    "Advisor lets the agent consult a stronger model when it gets stuck. When enabled, an `ask_advisor` tool is exposed: the agent sends a question (plus relevant context) to the configured stronger model and receives advice back, then continues the task itself.",
+  "tools.advisor.enabled":
+    "Enables the `ask_advisor` tool so the agent can escalate hard problems to a stronger model. Defaults to off; set a model to make escalation useful.",
+  "tools.advisor.model":
+    'The stronger model to consult, as "provider/model" (for example "anthropic/claude-opus-4-8"). Must be a model that is configured and authenticated for this deployment.',
+  "tools.advisor.timeoutSeconds":
+    "Maximum seconds to wait for the advisor model to answer before returning a timeout to the agent. Defaults to 180.",
   "tools.agentToAgent":
     "Policy for allowing agent-to-agent tool calls and constraining which target agents can be reached. Keep disabled or tightly scoped unless cross-agent orchestration is intentionally enabled.",
   "tools.agentToAgent.enabled":

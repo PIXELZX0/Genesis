@@ -381,6 +381,13 @@ const ToolExecSafeBinProfileSchema = z
   })
   .strict();
 
+const ToolExecSafeguardSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strict()
+  .optional();
+
 const ToolExecBaseShape = {
   host: z.enum(["auto", "sandbox", "gateway", "node"]).optional(),
   security: z.enum(["deny", "allowlist", "full"]).optional(),
@@ -397,6 +404,7 @@ const ToolExecBaseShape = {
   notifyOnExit: z.boolean().optional(),
   notifyOnExitEmptySuccess: z.boolean().optional(),
   applyPatch: ToolExecApplyPatchSchema,
+  safeguard: ToolExecSafeguardSchema,
 } as const;
 
 const AgentToolExecSchema = z
@@ -408,6 +416,15 @@ const AgentToolExecSchema = z
   .optional();
 
 const ToolExecSchema = z.object(ToolExecBaseShape).strict().optional();
+
+const AdvisorSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    model: z.string().optional(),
+    timeoutSeconds: z.number().int().positive().optional(),
+  })
+  .strict()
+  .optional();
 
 const ToolFsSchema = z
   .object({
@@ -530,6 +547,7 @@ export const AgentToolsSchema = z
       .strict()
       .optional(),
     exec: AgentToolExecSchema,
+    advisor: AdvisorSchema,
     fs: ToolFsSchema,
     loopDetection: ToolLoopDetectionSchema,
     sandbox: z
@@ -847,6 +865,7 @@ export const ToolsSchema = z
       .strict()
       .optional(),
     exec: ToolExecSchema,
+    advisor: AdvisorSchema,
     fs: ToolFsSchema,
     subagents: z
       .object({

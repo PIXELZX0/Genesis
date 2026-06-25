@@ -239,6 +239,11 @@ export function parseToolsBySenderTypedKey(
  */
 export type GroupToolPolicyBySenderConfig = Record<string, GroupToolPolicyConfig>;
 
+export type ExecSafeguardConfig = {
+  /** Enable command-impact safeguard for exec (default: true). */
+  enabled?: boolean;
+};
+
 export type ExecToolConfig = {
   /** Exec host routing (default: auto). */
   host?: "auto" | "sandbox" | "gateway" | "node";
@@ -276,6 +281,13 @@ export type ExecToolConfig = {
    * Default false to reduce context noise.
    */
   notifyOnExitEmptySuccess?: boolean;
+  /**
+   * Safeguard: predict the system impact of a command with deterministic
+   * heuristics before it runs. High-risk commands (e.g. `rm -rf /`, `mkfs`,
+   * `curl|sh`) are blocked; medium-risk commands force a user approval prompt.
+   * Only ever tightens the exec decision; never loosens it.
+   */
+  safeguard?: ExecSafeguardConfig;
   /** apply_patch subtool configuration. */
   applyPatch?: {
     /** Enable apply_patch for OpenAI models (default: true; set false to disable). */
@@ -291,6 +303,15 @@ export type ExecToolConfig = {
      */
     allowModels?: string[];
   };
+};
+
+export type AdvisorConfig = {
+  /** Enable the ask_advisor tool so the agent can consult a stronger model when stuck (default: false). */
+  enabled?: boolean;
+  /** Stronger model to consult, as "provider/model" (e.g. "anthropic/claude-opus-4-8"). */
+  model?: string;
+  /** Max seconds to wait for the advisor's answer before giving up (default: 180). */
+  timeoutSeconds?: number;
 };
 
 export type FsToolsConfig = {
@@ -319,6 +340,8 @@ export type AgentToolsConfig = {
   };
   /** Exec tool defaults for this agent. */
   exec?: ExecToolConfig;
+  /** Advisor (ask_advisor) defaults for this agent. */
+  advisor?: AdvisorConfig;
   /** Filesystem tool path guards. */
   fs?: FsToolsConfig;
   /** Runtime loop detection for repetitive/ stuck tool-call patterns. */
@@ -637,6 +660,8 @@ export type ToolsConfig = {
   };
   /** Exec tool defaults. */
   exec?: ExecToolConfig;
+  /** Advisor (ask_advisor) defaults. */
+  advisor?: AdvisorConfig;
   /** Filesystem tool path guards. */
   fs?: FsToolsConfig;
   /** Runtime loop detection for repetitive/ stuck tool-call patterns. */

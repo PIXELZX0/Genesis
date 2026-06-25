@@ -10,6 +10,14 @@ export const SESSIONS_SPAWN_TOOL_DISPLAY_SUMMARY = "Spawn sub-agent or ACP sessi
 export const SESSION_STATUS_TOOL_DISPLAY_SUMMARY = "Show session status, usage, and model state.";
 export const UPDATE_PLAN_TOOL_DISPLAY_SUMMARY = "Track a short structured work plan.";
 
+export function describeAdvisorTool(model: string): string {
+  return [
+    `Consult a stronger model (${model}) when you are stuck on a hard problem.`,
+    "Send a focused question plus the relevant context (what you tried, errors, constraints) and you will get back concrete advice.",
+    "Use this only after a genuine attempt of your own; then apply the advice and continue the task yourself.",
+  ].join(" ");
+}
+
 export function describeSessionsListTool(): string {
   return [
     "List visible sessions with optional filters for kind, label, agentId, search, recent activity, derived titles, and last-message previews.",

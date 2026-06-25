@@ -32,6 +32,12 @@ export type ExecToolDefaults = {
   notifyOnExit?: boolean;
   notifyOnExitEmptySuccess?: boolean;
   cwd?: string;
+  /** Command-impact safeguard (default: enabled). */
+  safeguard?: ExecSafeguardDefaults;
+};
+
+export type ExecSafeguardDefaults = {
+  enabled?: boolean;
 };
 
 export type ExecElevatedDefaults = {
