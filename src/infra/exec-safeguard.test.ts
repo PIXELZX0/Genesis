@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { analyzeShellCommand } from "./exec-approvals-analysis.js";
-import { evaluateExecSafeguard, type SafeguardRisk } from "./exec-safeguard.js";
+import {
+  evaluateExecSafeguard,
+  isAmbiguousForModel,
+  mergeSafeguardVerdicts,
+  parseModelRiskVerdict,
+  type SafeguardRisk,
+} from "./exec-safeguard.js";
 
 function verdictFor(command: string): { risk: SafeguardRisk; reasons: string[] } {
   const analysis = analyzeShellCommand({ command, platform: "linux" });
@@ -89,5 +95,59 @@ describe("evaluateExecSafeguard", () => {
     const v = evaluateExecSafeguard({ ok: false, reason: "bad", segments: [] });
     expect(v.risk).toBe("low");
     expect(v.reasons).toEqual([]);
+  });
+});
+
+function analyze(command: string) {
+  return analyzeShellCommand({ command, platform: "linux" });
+}
+
+describe("isAmbiguousForModel", () => {
+  it("is false for commands made only of read-only safe binaries", () => {
+    expect(isAmbiguousForModel(analyze("ls -la"))).toBe(false);
+    expect(isAmbiguousForModel(analyze("git status"))).toBe(false);
+    expect(isAmbiguousForModel(analyze("cat a.txt | grep foo"))).toBe(false);
+  });
+
+  it("is true when any segment uses a non-safe binary", () => {
+    expect(isAmbiguousForModel(analyze("systemctl restart nginx"))).toBe(true);
+    expect(isAmbiguousForModel(analyze("ls && curl https://x"))).toBe(true);
+  });
+
+  it("treats unparseable commands as ambiguous", () => {
+    expect(isAmbiguousForModel({ ok: false, segments: [] })).toBe(true);
+  });
+});
+
+describe("parseModelRiskVerdict", () => {
+  it("parses HIGH/MEDIUM/LOW with a reason", () => {
+    expect(parseModelRiskVerdict("HIGH: wipes the disk")).toMatchObject({ risk: "high" });
+    expect(parseModelRiskVerdict("medium - needs confirmation")).toMatchObject({ risk: "medium" });
+    expect(parseModelRiskVerdict("LOW: harmless")?.risk).toBe("low");
+  });
+
+  it("returns null for empty or unrecognized text", () => {
+    expect(parseModelRiskVerdict(null)).toBeNull();
+    expect(parseModelRiskVerdict("")).toBeNull();
+    expect(parseModelRiskVerdict("not a verdict")).toBeNull();
+  });
+});
+
+describe("mergeSafeguardVerdicts", () => {
+  it("keeps the higher risk and unions reasons", () => {
+    const merged = mergeSafeguardVerdicts(
+      { risk: "low", reasons: [] },
+      { risk: "high", reasons: ["model: dangerous"] },
+    );
+    expect(merged.risk).toBe("high");
+    expect(merged.reasons).toContain("model: dangerous");
+  });
+
+  it("never lowers the heuristic risk", () => {
+    const merged = mergeSafeguardVerdicts(
+      { risk: "medium", reasons: ["heuristic"] },
+      { risk: "low", reasons: ["model: fine"] },
+    );
+    expect(merged.risk).toBe("medium");
   });
 });

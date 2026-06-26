@@ -376,6 +376,10 @@ export const FIELD_HELP: Record<string, string> = {
     "Command-impact safeguard for exec. Deterministic heuristics predict the system impact of a shell command before it runs: high-risk commands (e.g. rm -rf /, mkfs, dd to a device, curl|sh) are blocked, and medium-risk commands force a human approval prompt. Only ever tightens the exec decision; never loosens it.",
   "tools.exec.safeguard.enabled":
     "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
+  "tools.exec.safeguard.model":
+    'Optional stronger model ("provider/model", for example "anthropic/claude-opus-4-8") consulted for commands the built-in heuristics cannot classify as obviously safe. The model returns a HIGH/MEDIUM/LOW impact verdict that is merged with the heuristic result and can only tighten the decision (block or require approval), never loosen it. Must be a configured, authenticated model. Leave unset to rely on heuristics alone.',
+  "tools.exec.safeguard.timeoutSeconds":
+    "Maximum seconds to wait for the safeguard model verdict before falling back to the heuristic result. Defaults to 20.",
   "tools.advisor":
     "Advisor lets the agent consult a stronger model when it gets stuck. When enabled, an `ask_advisor` tool is exposed: the agent sends a question (plus relevant context) to the configured stronger model and receives advice back, then continues the task itself.",
   "tools.advisor.enabled":

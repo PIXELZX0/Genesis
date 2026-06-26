@@ -38,6 +38,17 @@ export type ExecToolDefaults = {
 
 export type ExecSafeguardDefaults = {
   enabled?: boolean;
+  /** Stronger model ("provider/model") consulted for ambiguous commands. */
+  model?: string;
+  /** Max seconds to wait for the model verdict (default: 20). */
+  timeoutSeconds?: number;
+  /**
+   * Injected evaluator that asks {@link model} to classify a command's impact.
+   * Returns the raw model reply text (or null on error/no-model). Bound with
+   * config + auth at tool-creation time so the exec tool stays decoupled from
+   * the model runtime. Only invoked for commands the heuristics cannot clear.
+   */
+  evaluateCommandImpact?: (command: string, signal?: AbortSignal) => Promise<string | null>;
 };
 
 export type ExecElevatedDefaults = {

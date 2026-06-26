@@ -7432,6 +7432,14 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                             enabled: {
                               type: "boolean",
                             },
+                            model: {
+                              type: "string",
+                            },
+                            timeoutSeconds: {
+                              type: "integer",
+                              exclusiveMinimum: 0,
+                              maximum: 9007199254740991,
+                            },
                           },
                           additionalProperties: false,
                         },
@@ -17753,6 +17761,20 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     description:
                       "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
                   },
+                  model: {
+                    type: "string",
+                    title: "Safeguard Model",
+                    description:
+                      'Optional stronger model ("provider/model", for example "anthropic/claude-opus-4-8") consulted for commands the built-in heuristics cannot classify as obviously safe. The model returns a HIGH/MEDIUM/LOW impact verdict that is merged with the heuristic result and can only tighten the decision (block or require approval), never loosen it. Must be a configured, authenticated model. Leave unset to rely on heuristics alone.',
+                  },
+                  timeoutSeconds: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                    title: "Safeguard Model Timeout (s)",
+                    description:
+                      "Maximum seconds to wait for the safeguard model verdict before falling back to the heuristic result. Defaults to 20.",
+                  },
                 },
                 additionalProperties: false,
                 title: "Exec Safeguard",
@@ -26428,6 +26450,16 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Enable Exec Safeguard",
       help: "Enables the exec command-impact safeguard. Defaults to on. Disable only in trusted automation where the heuristic prompts/blocks get in the way.",
       tags: ["tools"],
+    },
+    "tools.exec.safeguard.model": {
+      label: "Safeguard Model",
+      help: 'Optional stronger model ("provider/model", for example "anthropic/claude-opus-4-8") consulted for commands the built-in heuristics cannot classify as obviously safe. The model returns a HIGH/MEDIUM/LOW impact verdict that is merged with the heuristic result and can only tighten the decision (block or require approval), never loosen it. Must be a configured, authenticated model. Leave unset to rely on heuristics alone.',
+      tags: ["models", "tools"],
+    },
+    "tools.exec.safeguard.timeoutSeconds": {
+      label: "Safeguard Model Timeout (s)",
+      help: "Maximum seconds to wait for the safeguard model verdict before falling back to the heuristic result. Defaults to 20.",
+      tags: ["performance", "tools"],
     },
     "tools.advisor": {
       label: "Advisor",

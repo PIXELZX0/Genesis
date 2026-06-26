@@ -332,6 +332,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "tools.exec.safeBinProfiles": "Exec Safe Bin Profiles",
   "tools.exec.safeguard": "Exec Safeguard",
   "tools.exec.safeguard.enabled": "Enable Exec Safeguard",
+  "tools.exec.safeguard.model": "Safeguard Model",
+  "tools.exec.safeguard.timeoutSeconds": "Safeguard Model Timeout (s)",
   "tools.advisor": "Advisor",
   "tools.advisor.enabled": "Enable Advisor",
   "tools.advisor.model": "Advisor Model",

@@ -242,6 +242,15 @@ export type GroupToolPolicyBySenderConfig = Record<string, GroupToolPolicyConfig
 export type ExecSafeguardConfig = {
   /** Enable command-impact safeguard for exec (default: true). */
   enabled?: boolean;
+  /**
+   * Optional stronger model ("provider/model") consulted for commands the
+   * heuristics cannot classify as obviously safe. The model returns a HIGH/
+   * MEDIUM/LOW impact verdict that is merged with the heuristic result (only
+   * ever tightening). Leave unset to use heuristics alone.
+   */
+  model?: string;
+  /** Max seconds to wait for the safeguard model verdict (default: 20). */
+  timeoutSeconds?: number;
 };
 
 export type ExecToolConfig = {

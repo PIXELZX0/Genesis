@@ -14,7 +14,7 @@ import { resolveGatewayMessageChannel } from "../utils/message-channel.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 import { createApplyPatchTool } from "./apply-patch.js";
 import { describeExecTool, describeProcessTool } from "./bash-tools.descriptions.js";
-import type { ExecToolDefaults } from "./bash-tools.exec-types.js";
+import type { ExecSafeguardDefaults, ExecToolDefaults } from "./bash-tools.exec-types.js";
 import type { ProcessToolDefaults } from "./bash-tools.process.js";
 import { execSchema, processSchema } from "./bash-tools.schemas.js";
 import { listChannelAgentTools } from "./channel-tools.js";
@@ -189,6 +189,78 @@ function isApplyPatchAllowedForModel(params: {
     }
     return normalized === normalizedModelId || normalized === normalizedFull;
   });
+}
+
+/**
+ * Build an evaluator that asks the configured safeguard model to classify a
+ * command's system impact. Returns null on any failure so the gate fails open
+ * to the heuristic verdict. Lazily imports the model runtime so the tool
+ * factory does not pull it into its static graph or the exec hot path.
+ */
+function createSafeguardModelEvaluator(params: {
+  cfg?: GenesisConfig;
+  agentDir?: string;
+  model: string;
+}): (command: string, signal?: AbortSignal) => Promise<string | null> {
+  const { cfg, agentDir, model } = params;
+  return async (command: string, signal?: AbortSignal): Promise<string | null> => {
+    const slash = model.indexOf("/");
+    if (slash <= 0 || slash >= model.length - 1) {
+      return null;
+    }
+    const provider = model.slice(0, slash);
+    const modelId = model.slice(slash + 1);
+    try {
+      const { prepareSimpleCompletionModel, completeWithPreparedSimpleCompletionModel } =
+        await import("./simple-completion-runtime.js");
+      const { buildSafeguardModelPrompt } = await import("../infra/exec-safeguard.js");
+      const prepared = await prepareSimpleCompletionModel({ cfg, provider, modelId, agentDir });
+      if ("error" in prepared) {
+        return null;
+      }
+      const result = await completeWithPreparedSimpleCompletionModel({
+        model: prepared.model,
+        auth: prepared.auth,
+        context: {
+          messages: [
+            { role: "user", content: buildSafeguardModelPrompt(command), timestamp: Date.now() },
+          ],
+        },
+        options: { maxTokens: 200, signal },
+      });
+      const text = result.content
+        .filter((c): c is { type: "text"; text: string } => c.type === "text")
+        .map((c) => c.text)
+        .join(" ")
+        .trim();
+      return text || null;
+    } catch {
+      return null;
+    }
+  };
+}
+
+function resolveSafeguardDefaults(params: {
+  resolved?: ExecSafeguardDefaults;
+  cfg?: GenesisConfig;
+  agentDir?: string;
+}): ExecSafeguardDefaults | undefined {
+  const resolved = params.resolved;
+  if (!resolved) {
+    return undefined;
+  }
+  const model = resolved.model?.trim();
+  if (!model || resolved.enabled === false) {
+    return resolved;
+  }
+  return {
+    ...resolved,
+    evaluateCommandImpact: createSafeguardModelEvaluator({
+      cfg: params.cfg,
+      agentDir: params.agentDir,
+      model,
+    }),
+  };
 }
 
 function resolveExecConfig(params: { cfg?: GenesisConfig; agentId?: string }) {
@@ -510,7 +582,11 @@ export function createGenesisCodingTools(options?: {
     strictInlineEval: options?.exec?.strictInlineEval ?? execConfig.strictInlineEval,
     safeBinTrustedDirs: options?.exec?.safeBinTrustedDirs ?? execConfig.safeBinTrustedDirs,
     safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,
-    safeguard: options?.exec?.safeguard ?? execConfig.safeguard,
+    safeguard: resolveSafeguardDefaults({
+      resolved: options?.exec?.safeguard ?? execConfig.safeguard,
+      cfg: options?.config,
+      agentDir: workspaceRoot,
+    }),
     agentId,
     cwd: workspaceRoot,
     allowBackground,

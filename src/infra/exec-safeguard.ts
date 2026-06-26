@@ -366,3 +366,121 @@ export function evaluateExecSafeguard(
   const reasons = [...new Set(findings.map((f) => f.reason))];
   return { risk, reasons };
 }
+
+// ---------------------------------------------------------------------------
+// Optional model-backed second opinion (tools.exec.safeguard.model)
+// ---------------------------------------------------------------------------
+
+/**
+ * Binaries that are read-only / obviously safe. When every segment of a command
+ * resolves to one of these, the heuristic verdict is trusted as-is and the
+ * model is not consulted (keeps latency/cost off the common case).
+ */
+const READONLY_SAFE_BINS = new Set<string>([
+  "ls",
+  "cat",
+  "pwd",
+  "echo",
+  "printf",
+  "grep",
+  "egrep",
+  "fgrep",
+  "rg",
+  "find",
+  "head",
+  "tail",
+  "wc",
+  "which",
+  "whereis",
+  "type",
+  "file",
+  "stat",
+  "du",
+  "df",
+  "env",
+  "printenv",
+  "date",
+  "whoami",
+  "id",
+  "hostname",
+  "uname",
+  "uptime",
+  "ps",
+  "top",
+  "tree",
+  "realpath",
+  "readlink",
+  "basename",
+  "dirname",
+  "sort",
+  "uniq",
+  "cut",
+  "tr",
+  "diff",
+  "cmp",
+  "less",
+  "more",
+  "true",
+  "false",
+  "test",
+  "seq",
+  "tac",
+  "nl",
+  "column",
+  // Read-only VCS/inspection. Dangerous git subcommands are still caught by the
+  // heuristic (force push, reset --hard, clean -f) regardless of this list.
+  "git",
+]);
+
+/**
+ * Whether a command is "ambiguous" enough to warrant a model second opinion:
+ * at least one segment uses a binary not on the read-only safe list. Commands
+ * made up entirely of obviously-safe binaries skip the model.
+ */
+export function isAmbiguousForModel(analysis: ExecCommandAnalysis): boolean {
+  if (!analysis.ok || analysis.segments.length === 0) {
+    // Unparseable commands are inherently ambiguous.
+    return true;
+  }
+  return analysis.segments.some((segment) => !READONLY_SAFE_BINS.has(segmentBin(segment)));
+}
+
+/** Build the prompt asking a model to classify a command's system impact. */
+export function buildSafeguardModelPrompt(command: string): string {
+  return [
+    "You are a security safeguard for a shell-command execution tool.",
+    "Classify the SYSTEM IMPACT risk of running the command below on the host.",
+    "Consider data loss, irreversible changes, privilege escalation, exfiltration, and service disruption.",
+    "",
+    "Reply with EXACTLY one line in the form:",
+    "<HIGH|MEDIUM|LOW>: <short reason>",
+    "",
+    "HIGH = destructive/irreversible or system-compromising. MEDIUM = needs human confirmation. LOW = ordinary/safe.",
+    "",
+    `Command:\n${command}`,
+  ].join("\n");
+}
+
+/** Parse a model reply of the form `HIGH: reason` into a verdict. */
+export function parseModelRiskVerdict(text: string | null | undefined): SafeguardVerdict | null {
+  if (!text) {
+    return null;
+  }
+  const match = /\b(high|medium|low)\b\s*[:\-–]?\s*(.*)/i.exec(text.trim());
+  if (!match) {
+    return null;
+  }
+  const risk = match[1].toLowerCase() as SafeguardRisk;
+  const reason = match[2]?.trim();
+  return {
+    risk,
+    reasons: reason ? [`model: ${reason}`] : ["model assessment"],
+  };
+}
+
+/** Merge two verdicts, keeping the higher risk and concatenating reasons. */
+export function mergeSafeguardVerdicts(a: SafeguardVerdict, b: SafeguardVerdict): SafeguardVerdict {
+  const risk = RISK_ORDER[b.risk] > RISK_ORDER[a.risk] ? b.risk : a.risk;
+  const reasons = [...new Set([...a.reasons, ...b.reasons])];
+  return { risk, reasons };
+}

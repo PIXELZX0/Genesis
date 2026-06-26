@@ -10,7 +10,12 @@ import {
   minSecurity,
 } from "../infra/exec-approvals.js";
 import { resolveExecSafeBinRuntimePolicy } from "../infra/exec-safe-bin-runtime-policy.js";
-import { evaluateExecSafeguard } from "../infra/exec-safeguard.js";
+import {
+  evaluateExecSafeguard,
+  isAmbiguousForModel,
+  mergeSafeguardVerdicts,
+  parseModelRiskVerdict,
+} from "../infra/exec-safeguard.js";
 import { sanitizeHostExecEnvWithDiagnostics } from "../infra/host-env-security.js";
 import {
   getShellPathFromLoginShell,
@@ -1501,9 +1506,35 @@ export function createExecTool(
       // runs ahead of host dispatch so it covers gateway/node/sandbox alike.
       if (defaults?.safeguard?.enabled !== false) {
         const safeguardAnalysis = analyzeShellCommand({ command: params.command });
-        const verdict = evaluateExecSafeguard(safeguardAnalysis, {
+        let verdict = evaluateExecSafeguard(safeguardAnalysis, {
           rawCommand: params.command,
         });
+        // Optional model second opinion for ambiguous commands the heuristics
+        // could not clear. Only consult when a model is configured, the
+        // heuristic has not already decided to block, and the command is not
+        // made entirely of obviously-safe binaries. Fails open to the heuristic
+        // verdict on any error/timeout — the model can only tighten.
+        const evaluateModel = defaults?.safeguard?.evaluateCommandImpact;
+        if (evaluateModel && verdict.risk !== "high" && isAmbiguousForModel(safeguardAnalysis)) {
+          const timeoutMs =
+            Math.max(1, Math.floor(defaults?.safeguard?.timeoutSeconds ?? 20)) * 1000;
+          const controller = new AbortController();
+          const onOuterAbort = () => controller.abort();
+          signal?.addEventListener("abort", onOuterAbort, { once: true });
+          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          try {
+            const reply = await evaluateModel(params.command, controller.signal);
+            const modelVerdict = parseModelRiskVerdict(reply);
+            if (modelVerdict) {
+              verdict = mergeSafeguardVerdicts(verdict, modelVerdict);
+            }
+          } catch {
+            // Fail open: keep the heuristic verdict.
+          } finally {
+            clearTimeout(timer);
+            signal?.removeEventListener("abort", onOuterAbort);
+          }
+        }
         if (verdict.risk === "high") {
           throw new Error(
             [

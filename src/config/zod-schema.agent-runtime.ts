@@ -384,6 +384,8 @@ const ToolExecSafeBinProfileSchema = z
 const ToolExecSafeguardSchema = z
   .object({
     enabled: z.boolean().optional(),
+    model: z.string().optional(),
+    timeoutSeconds: z.number().int().positive().optional(),
   })
   .strict()
   .optional();
