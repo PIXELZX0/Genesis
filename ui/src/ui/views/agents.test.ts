@@ -129,6 +129,11 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     onAgentSkillsClear: () => undefined,
     onAgentSkillsDisableAll: () => undefined,
     onSetDefault: () => undefined,
+    createDialog: null,
+    onOpenCreate: () => undefined,
+    onCreateFieldChange: () => undefined,
+    onCreateCancel: () => undefined,
+    onCreateSubmit: () => undefined,
     ...overrides,
   };
 }

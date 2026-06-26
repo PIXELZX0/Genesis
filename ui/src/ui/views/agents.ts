@@ -21,9 +21,11 @@ import {
   renderAgentCron,
 } from "./agents-panels-status-files.ts";
 export type { AgentsPanel } from "./agents.types.ts";
+import { icons } from "../icons.ts";
 import { renderAgentTools, renderAgentSkills } from "./agents-panels-tools-skills.ts";
 import { buildAgentContext, normalizeAgentLabel } from "./agents-utils.ts";
 import type { AgentsPanel } from "./agents.types.ts";
+import { renderAgentsCreateDialog, type AgentsCreateDialog } from "./entity-dialogs.ts";
 
 const AGENTS_GRID = "grid-template-columns: 1.6fr 1.2fr 0.8fr 1.4fr;";
 
@@ -183,6 +185,11 @@ export type AgentsProps = {
   onSetDefault: (agentId: string) => void;
   /** Close the agent inspector popup (clears the selection). */
   onCloseInspector?: () => void;
+  createDialog: AgentsCreateDialog | null;
+  onOpenCreate: () => void;
+  onCreateFieldChange: (field: string, value: string) => void;
+  onCreateCancel: () => void;
+  onCreateSubmit: () => void;
 };
 
 export function renderAgents(props: AgentsProps) {
@@ -226,6 +233,9 @@ export function renderAgents(props: AgentsProps) {
           <div class="row" style="gap: 8px; flex: none;">
             <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
               ${props.loading ? t("common.loading") : t("common.refresh")}
+            </button>
+            <button class="btn primary" ?disabled=${!props.connected} @click=${props.onOpenCreate}>
+              ${icons.plus} ${t("agentsView.create")}
             </button>
           </div>
         </div>
@@ -456,6 +466,16 @@ export function renderAgents(props: AgentsProps) {
               </div>
             </div>
           `
+        : nothing}
+      ${props.createDialog
+        ? renderAgentsCreateDialog(props.createDialog, {
+            models: [...new Set(props.modelCatalog.map((m) => m.id))].toSorted((a, b) =>
+              a.localeCompare(b),
+            ),
+            onFieldChange: props.onCreateFieldChange,
+            onCancel: props.onCreateCancel,
+            onSubmit: props.onCreateSubmit,
+          })
         : nothing}
     </div>
   `;

@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import type { ModelCatalogEntry } from "../types.ts";
+import { renderModelsDialog, type ModelsDialog } from "./entity-dialogs.ts";
 
 export type ModelsPanel = "catalog" | "providers";
 
@@ -11,8 +12,13 @@ export interface ModelsProps {
   models: ModelCatalogEntry[];
   panel: ModelsPanel;
   error: string | null;
+  dialog: ModelsDialog | null;
   onPanelChange: (panel: ModelsPanel) => void;
   onRefresh: () => void;
+  onOpenAdd: (kind: ModelsDialog["kind"]) => void;
+  onDialogFieldChange: (field: string, value: string) => void;
+  onDialogCancel: () => void;
+  onDialogSubmit: () => void;
 }
 
 const MODELS_GRID = "grid-template-columns: 2fr 1fr 0.8fr 0.8fr;";
@@ -108,6 +114,11 @@ function renderProviders(props: ModelsProps) {
 }
 
 export function renderModels(props: ModelsProps) {
+  const providerNames = [
+    ...new Set(props.models.map((m) => entryProvider(m)).filter((p) => p && p !== "—")),
+  ].toSorted((a, b) => a.localeCompare(b));
+  const addKind: ModelsDialog["kind"] = props.panel === "providers" ? "provider" : "model";
+  const addLabel = addKind === "provider" ? t("modelsView.addProvider") : t("modelsView.addModel");
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
       <div class="row" style="justify-content: space-between; align-items: flex-start;">
@@ -115,9 +126,18 @@ export function renderModels(props: ModelsProps) {
           <div class="card-title">${t("tabs.models")}</div>
           <div class="card-sub">${t("subtitles.models")}</div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
+        <div class="row" style="gap: 8px; flex: none;">
+          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
+          </button>
+          <button
+            class="btn primary"
+            ?disabled=${!props.connected}
+            @click=${() => props.onOpenAdd(addKind)}
+          >
+            ${icons.plus} ${addLabel}
+          </button>
+        </div>
       </div>
 
       <div class="agent-tabs" style="margin-top: 20px;">
@@ -142,6 +162,12 @@ export function renderModels(props: ModelsProps) {
       <div style="margin-top: 16px;">
         ${props.panel === "providers" ? renderProviders(props) : renderCatalog(props)}
       </div>
+      ${renderModelsDialog(props.dialog, {
+        providers: providerNames,
+        onFieldChange: props.onDialogFieldChange,
+        onCancel: props.onDialogCancel,
+        onSubmit: props.onDialogSubmit,
+      })}
     </section>
   `;
 }

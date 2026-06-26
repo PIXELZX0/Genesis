@@ -53,6 +53,7 @@ const BASE_METHODS = [
   "talk.mode",
   "commands.list",
   "models.list",
+  "models.add",
   "models.authStatus",
   "models.authProfileAdd",
   "models.authProfileRemove",

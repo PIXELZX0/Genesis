@@ -24,6 +24,7 @@ import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-iden
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import {
   buildToolsEffectiveRequestKey,
+  createAgent,
   loadAgents,
   loadToolsCatalog,
   loadToolsEffective,
@@ -108,7 +109,7 @@ import {
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
 import { loadMemoryIndex } from "./controllers/memory.ts";
-import { loadModels } from "./controllers/models.ts";
+import { addModel, addProvider, loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -159,6 +160,12 @@ import {
   TAB_GROUPS,
   titleForTab,
 } from "./navigation.ts";
+import {
+  emptyAgentsCreateDialog,
+  emptyModelsDialog,
+  setAgentsCreateDialogField,
+  setModelsDialogField,
+} from "./views/entity-dialogs.ts";
 
 // Tabs whose view renders its own Pencil-style header (title + subtitle +
 // actions), so the shell must not render a duplicate content-header title.
@@ -234,6 +241,56 @@ function ensureModelsLoaded(state: AppViewState): void {
     .finally(() => {
       state.modelsLoading = false;
     });
+}
+
+async function submitModelsDialog(state: AppViewState): Promise<void> {
+  const dialog = state.modelsDialog;
+  if (!dialog || !state.client) {
+    return;
+  }
+  state.modelsDialog = { ...dialog, busy: true, error: null };
+  try {
+    if (dialog.kind === "model") {
+      const ctx = dialog.form.contextWindow.trim();
+      await addModel(state.client, {
+        provider: dialog.form.provider.trim(),
+        id: dialog.form.id.trim(),
+        name: dialog.form.name.trim() || undefined,
+        contextWindow: ctx ? Number(ctx) : undefined,
+      });
+    } else {
+      await addProvider(state.client, {
+        provider: dialog.form.provider.trim(),
+        apiKey: dialog.form.apiKey,
+        displayName: dialog.form.displayName.trim() || undefined,
+      });
+    }
+    state.modelsDialog = null;
+    state.chatModelCatalog = [];
+    ensureModelsLoaded(state);
+  } catch (err) {
+    const current = state.modelsDialog ?? dialog;
+    state.modelsDialog = { ...current, busy: false, error: String(err) };
+  }
+}
+
+async function submitAgentsCreateDialog(state: AppViewState): Promise<void> {
+  const dialog = state.agentsCreateDialog;
+  if (!dialog || !state.client) {
+    return;
+  }
+  state.agentsCreateDialog = { ...dialog, busy: true, error: null };
+  try {
+    await createAgent(state, {
+      name: dialog.form.name.trim(),
+      workspace: dialog.form.workspace.trim(),
+      model: dialog.form.model.trim() || undefined,
+    });
+    state.agentsCreateDialog = null;
+  } catch (err) {
+    const current = state.agentsCreateDialog ?? dialog;
+    state.agentsCreateDialog = { ...current, busy: false, error: String(err) };
+  }
 }
 
 function ensureMemoryLoaded(state: AppViewState): void {
@@ -2424,6 +2481,25 @@ export function renderApp(state: AppViewState) {
                   }
                   updateConfigFormValue(state, ["agents", "defaultId"], agentId);
                 },
+                createDialog: state.agentsCreateDialog,
+                onOpenCreate: () => {
+                  state.agentsCreateDialog = emptyAgentsCreateDialog();
+                },
+                onCreateFieldChange: (field, value) => {
+                  if (state.agentsCreateDialog) {
+                    state.agentsCreateDialog = setAgentsCreateDialogField(
+                      state.agentsCreateDialog,
+                      field,
+                      value,
+                    );
+                  }
+                },
+                onCreateCancel: () => {
+                  state.agentsCreateDialog = null;
+                },
+                onCreateSubmit: () => {
+                  void submitAgentsCreateDialog(state);
+                },
               }),
             )
           : nothing}
@@ -2654,12 +2730,27 @@ export function renderApp(state: AppViewState) {
                 models: state.chatModelCatalog,
                 panel: state.modelsPanel,
                 error: null,
+                dialog: state.modelsDialog,
                 onPanelChange: (panel) => {
                   state.modelsPanel = panel;
                 },
                 onRefresh: () => {
                   state.chatModelCatalog = [];
                   ensureModelsLoaded(state);
+                },
+                onOpenAdd: (kind) => {
+                  state.modelsDialog = emptyModelsDialog(kind);
+                },
+                onDialogFieldChange: (field, value) => {
+                  if (state.modelsDialog) {
+                    state.modelsDialog = setModelsDialogField(state.modelsDialog, field, value);
+                  }
+                },
+                onDialogCancel: () => {
+                  state.modelsDialog = null;
+                },
+                onDialogSubmit: () => {
+                  void submitModelsDialog(state);
                 },
               }),
             ))

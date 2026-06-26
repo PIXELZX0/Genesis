@@ -210,6 +210,8 @@ export class GenesisApp extends LitElement {
   @state() chatModelCatalog: ModelCatalogEntry[] = [];
   @state() modelsPanel: import("./views/models.ts").ModelsPanel = "catalog";
   @state() modelsLoading = false;
+  @state() modelsDialog: import("./views/entity-dialogs.ts").ModelsDialog | null = null;
+  @state() agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null = null;
   @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
   @state() memoryLoading = false;
   @state() memoryError: string | null = null;

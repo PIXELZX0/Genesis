@@ -104,6 +104,8 @@ export type AppViewState = {
   chatModelCatalog: ModelCatalogEntry[];
   modelsPanel: import("./views/models.ts").ModelsPanel;
   modelsLoading: boolean;
+  modelsDialog: import("./views/entity-dialogs.ts").ModelsDialog | null;
+  agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null;
   memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
   memoryLoading: boolean;
   memoryError: string | null;

@@ -57,6 +57,28 @@ function resolveToolsErrorMessage(
     : String(err);
 }
 
+export interface CreateAgentParams {
+  name: string;
+  workspace: string;
+  model?: string;
+}
+
+/**
+ * Create a new agent via the gateway (`agents.create`) and refresh the list.
+ */
+export async function createAgent(state: AgentsState, params: CreateAgentParams) {
+  if (!state.client) {
+    return;
+  }
+  await state.client.request("agents.create", {
+    name: params.name,
+    workspace: params.workspace,
+    ...(params.model ? { model: params.model } : {}),
+  });
+  state.agentsList = null;
+  await loadAgents(state);
+}
+
 export async function loadAgents(state: AgentsState) {
   if (!state.client || !state.connected || state.agentsLoading) {
     return;
