@@ -1,4 +1,8 @@
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import {
+  isContactSessionUnifyEnabled,
+  resolveEffectiveIdentityLinks,
+} from "../../routing/identity-links.runtime.js";
 import { buildAgentSessionKey, type RoutePeer } from "../../routing/resolve-route.js";
 
 export function buildOutboundBaseSessionKey(params: {
@@ -14,6 +18,7 @@ export function buildOutboundBaseSessionKey(params: {
     accountId: params.accountId,
     peer: params.peer,
     dmScope: params.cfg.session?.dmScope ?? "main",
-    identityLinks: params.cfg.session?.identityLinks,
+    identityLinks: resolveEffectiveIdentityLinks({ cfg: params.cfg, agentId: params.agentId }),
+    unifyContacts: isContactSessionUnifyEnabled(params.cfg),
   });
 }

@@ -1,6 +1,10 @@
 import { normalizeChatType } from "../../channels/chat-type.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import {
+  isContactSessionUnifyEnabled,
+  resolveEffectiveIdentityLinks,
+} from "../../routing/identity-links.runtime.js";
+import {
   buildAgentMainSessionKey,
   buildAgentPeerSessionKey,
   normalizeAgentId,
@@ -120,6 +124,7 @@ export function resolveRuntimePolicySessionKey(params: {
     peerKind: "direct",
     peerId,
     dmScope: "per-account-channel-peer",
-    identityLinks: params.cfg?.session?.identityLinks,
+    identityLinks: resolveEffectiveIdentityLinks({ cfg: params.cfg, agentId }),
+    unifyContacts: isContactSessionUnifyEnabled(params.cfg),
   });
 }

@@ -36,6 +36,13 @@ export const SessionSchema = z
       ])
       .optional(),
     identityLinks: z.record(z.string(), z.array(z.string())).optional(),
+    contacts: z
+      .object({
+        enabled: z.boolean().optional(),
+        unifySessions: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
     resetTriggers: z.array(z.string()).optional(),
     idleMinutes: z.number().int().positive().optional(),
     reset: SessionResetConfigSchema.optional(),

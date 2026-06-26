@@ -257,6 +257,25 @@ export function buildInboundUserContextPrefix(
     blocks.push(formatUntrustedJsonBlock("Sender (untrusted metadata):", senderInfo));
   }
 
+  const contactName = normalizePromptMetadataString(ctx.ContactName);
+  if (contactName) {
+    const profile = ctx.ContactProfile;
+    const contactInfo = {
+      name: contactName,
+      age: typeof profile?.age === "number" ? profile.age : undefined,
+      education: normalizePromptMetadataString(profile?.education),
+      traits:
+        Array.isArray(profile?.traits) && profile.traits.length > 0 ? profile.traits : undefined,
+      notes: sanitizePromptBody(profile?.notes),
+    };
+    blocks.push(
+      formatUntrustedJsonBlock(
+        "Known contact (curated profile, untrusted — may be self-reported):",
+        contactInfo,
+      ),
+    );
+  }
+
   const threadStarterBody = sanitizePromptBody(ctx.ThreadStarterBody);
   if (threadStarterBody) {
     blocks.push(
