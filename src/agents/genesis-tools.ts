@@ -22,6 +22,7 @@ import { createAdvisorTool } from "./tools/advisor-tool.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
 import type { AnyAgentTool } from "./tools/common.js";
+import { createContactsTool } from "./tools/contacts-tool.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createEmbeddedCallGateway } from "./tools/embedded-gateway-stub.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
@@ -196,6 +197,12 @@ export function createGenesisTools(
         fsPolicy: options?.fsPolicy,
       })
     : null;
+  const contactsTool = options?.agentDir?.trim()
+    ? createContactsTool({
+        agentDir: options.agentDir,
+        config: resolvedConfig,
+      })
+    : null;
   const webSearchTool = createWebSearchTool({
     config: options?.config,
     sandboxed: options?.sandboxed,
@@ -349,7 +356,7 @@ export function createGenesisTools(
       config: resolvedConfig,
       sandboxed: options?.sandboxed,
     }),
-    ...collectPresentGenesisTools([webSearchTool, webFetchTool, imageTool, pdfTool]),
+    ...collectPresentGenesisTools([webSearchTool, webFetchTool, imageTool, pdfTool, contactsTool]),
   ];
 
   if (options?.disablePluginTools) {

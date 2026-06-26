@@ -153,6 +153,15 @@ export type MsgContext = {
   SenderName?: string;
   SenderId?: string;
   SenderUsername?: string;
+  /** Matched contact identity (curated). Populated when contacts are enabled. */
+  ContactId?: string;
+  ContactName?: string;
+  ContactProfile?: {
+    age?: number;
+    education?: string;
+    traits?: string[];
+    notes?: string;
+  };
   SenderTag?: string;
   SenderE164?: string;
   Timestamp?: number;

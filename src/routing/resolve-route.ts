@@ -11,6 +11,10 @@ import {
   routeBindingScopeMatches,
 } from "./binding-scope.js";
 import { listBindings } from "./bindings.js";
+import {
+  isContactSessionUnifyEnabled,
+  resolveEffectiveIdentityLinks,
+} from "./identity-links.runtime.js";
 import { peerKindMatches } from "./peer-kind-match.js";
 import {
   buildAgentMainSessionKey,
@@ -98,6 +102,7 @@ export function buildAgentSessionKey(params: {
   /** DM session scope. */
   dmScope?: "main" | "per-peer" | "per-channel-peer" | "per-account-channel-peer";
   identityLinks?: Record<string, string[]>;
+  unifyContacts?: boolean;
 }): string {
   const channel = normalizeToken(params.channel) || "unknown";
   const peer = params.peer;
@@ -110,6 +115,7 @@ export function buildAgentSessionKey(params: {
     peerId: peer ? normalizeId(peer.id) || "unknown" : null,
     dmScope: params.dmScope,
     identityLinks: params.identityLinks,
+    unifyContacts: params.unifyContacts,
   });
 }
 
@@ -622,6 +628,8 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   const memberRoleIdSet = new Set(memberRoleIds);
   const dmScope = input.cfg.session?.dmScope ?? "main";
   const identityLinks = input.cfg.session?.identityLinks;
+  const contactsEnabled = input.cfg.session?.contacts?.enabled === true;
+  const unifyContacts = isContactSessionUnifyEnabled(input.cfg);
   const shouldLogDebug = shouldLogVerbose();
   const parentPeer = input.parentPeer
     ? {
@@ -631,7 +639,9 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
     : null;
 
   const routeCache =
-    !shouldLogDebug && !identityLinks ? resolveRouteCacheForConfig(input.cfg) : null;
+    !shouldLogDebug && !identityLinks && !contactsEnabled
+      ? resolveRouteCacheForConfig(input.cfg)
+      : null;
   const routeCacheKey = routeCache
     ? buildResolvedRouteCacheKey({
         channel,
@@ -656,6 +666,9 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
 
   const choose = (agentId: string, matchedBy: ResolvedAgentRoute["matchedBy"]) => {
     const resolvedAgentId = pickFirstExistingAgentId(input.cfg, agentId);
+    const effectiveIdentityLinks = contactsEnabled
+      ? resolveEffectiveIdentityLinks({ cfg: input.cfg, agentId: resolvedAgentId })
+      : identityLinks;
     const sessionKey = normalizeLowercaseStringOrEmpty(
       buildAgentSessionKey({
         agentId: resolvedAgentId,
@@ -663,7 +676,8 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
         accountId,
         peer,
         dmScope,
-        identityLinks,
+        identityLinks: effectiveIdentityLinks,
+        unifyContacts,
       }),
     );
     const mainSessionKey = normalizeLowercaseStringOrEmpty(

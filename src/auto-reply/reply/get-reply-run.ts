@@ -42,6 +42,7 @@ import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { applySessionHints } from "./body.js";
 import type { buildCommandContext } from "./commands.js";
+import { applyContactContext } from "./contact-context.js";
 import type { InlineDirectives } from "./directive-handling.js";
 import { shouldUseReplyFastTestRuntime } from "./get-reply-fast-path.js";
 import { resolvePreparedReplyQueueState } from "./get-reply-run-queue.js";
@@ -337,6 +338,10 @@ export async function runPreparedReply(
       })
     : "";
   const groupSystemPrompt = normalizeOptionalString(sessionCtx.GroupSystemPrompt) ?? "";
+  // Resolve/auto-capture the contact for this direct sender and stash a curated
+  // profile onto sessionCtx so the inbound prompts can tell the model who it is
+  // talking to. No-op unless session.contacts.enabled.
+  await applyContactContext({ cfg, agentDir, sessionCtx });
   const inboundMetaPrompt = buildInboundMetaSystemPrompt(
     isNewSession ? sessionCtx : { ...sessionCtx, ThreadStarterBody: undefined },
     { includeFormattingHints: !useFastReplyRuntime },

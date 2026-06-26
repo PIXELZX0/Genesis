@@ -135,6 +135,13 @@ export function buildAgentPeerSessionKey(params: {
   peerKind?: ChatType | null;
   peerId?: string | null;
   identityLinks?: Record<string, string[]>;
+  /**
+   * When true, a direct peer that resolves to a linked canonical identity
+   * (e.g. a saved contact) is routed to a per-peer DM session keyed on that
+   * canonical id, even when dmScope is "main". Group/channel keys are
+   * unaffected. Used by contact-driven session unification.
+   */
+  unifyContacts?: boolean;
   /** DM session scope. */
   dmScope?: "main" | "per-peer" | "per-channel-peer" | "per-account-channel-peer";
 }): string {
@@ -143,7 +150,7 @@ export function buildAgentPeerSessionKey(params: {
     const dmScope = params.dmScope ?? "main";
     let peerId = (params.peerId ?? "").trim();
     const linkedPeerId =
-      dmScope === "main"
+      dmScope === "main" && !params.unifyContacts
         ? null
         : resolveLinkedPeerId({
             identityLinks: params.identityLinks,
@@ -154,6 +161,11 @@ export function buildAgentPeerSessionKey(params: {
       peerId = linkedPeerId;
     }
     peerId = normalizeLowercaseStringOrEmpty(peerId);
+    // Contact-matched peers collapse into one per-peer DM session regardless of
+    // dmScope, so the same human shares a session across messengers.
+    if (params.unifyContacts && linkedPeerId && peerId) {
+      return `agent:${normalizeAgentId(params.agentId)}:direct:${peerId}`;
+    }
     if (dmScope === "per-account-channel-peer" && peerId) {
       const channel = normalizeLowercaseStringOrEmpty(params.channel) || "unknown";
       const accountId = normalizeAccountId(params.accountId);

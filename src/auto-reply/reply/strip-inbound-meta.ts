@@ -21,6 +21,7 @@ const LEADING_TIMESTAMP_PREFIX_RE = /^\[[A-Za-z]{3} \d{4}-\d{2}-\d{2} \d{2}:\d{2
 const INBOUND_META_SENTINELS = [
   "Conversation info (untrusted metadata):",
   "Sender (untrusted metadata):",
+  "Known contact (curated profile, untrusted — may be self-reported):",
   "Thread starter (untrusted, for context):",
   "Replied message (untrusted, for context):",
   "Forwarded message context (untrusted metadata):",
