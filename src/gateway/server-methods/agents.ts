@@ -42,6 +42,7 @@ import {
   writeFileWithinRoot,
 } from "../../infra/fs-safe.js";
 import { movePathToTrash } from "../../plugin-sdk/browser-maintenance.js";
+import { getActiveMemorySearchManager } from "../../plugins/memory-runtime.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import { resolveUserPath } from "../../utils.js";
 import {
@@ -53,6 +54,7 @@ import {
   validateAgentsFilesGetParams,
   validateAgentsFilesListParams,
   validateAgentsFilesSetParams,
+  validateAgentsMemoryGraphParams,
   validateAgentsListParams,
   validateAgentsUpdateParams,
 } from "../protocol/index.js";
@@ -793,5 +795,39 @@ export const agentsHandlers: GatewayRequestHandlers = {
       },
       undefined,
     );
+  },
+  "agents.memory.graph": async ({ params, respond }) => {
+    if (!validateAgentsMemoryGraphParams(params)) {
+      respondInvalidMethodParams(
+        respond,
+        "agents.memory.graph",
+        validateAgentsMemoryGraphParams.errors,
+      );
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(params.agentId, cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    const { manager } = await getActiveMemorySearchManager({ cfg, agentId });
+    if (!manager || typeof manager.graph !== "function") {
+      respond(true, { agentId, nodes: [], edges: [], generatedAtMs: Date.now() }, undefined);
+      return;
+    }
+    try {
+      const graph = await manager.graph({ agentId });
+      respond(true, { agentId, ...graph }, undefined);
+    } catch (err) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          err instanceof Error ? err.message : "memory graph unavailable",
+        ),
+      );
+    }
   },
 };

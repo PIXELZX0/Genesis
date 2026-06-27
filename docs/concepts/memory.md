@@ -30,13 +30,17 @@ prefer TypeScript." It will write it to the appropriate file.
 
 ## Memory tools
 
-The agent has two tools for working with memory:
+The agent has three tools for working with memory:
 
 - **`memory_search`** -- finds relevant notes using semantic search, even when
   the wording differs from the original.
 - **`memory_get`** -- reads a specific memory file or line range.
+- **`memory_suggest_links`** -- surfaces semantically related memory files that
+  are not yet connected by a `[[wikilink]]`, so you can add the suggested links
+  manually. Read-only: it never writes files. Optional `name` narrows
+  suggestions to one memory; `maxResults` and `minScore` tune the ranked output.
 
-Both tools are provided by the active memory plugin (default: `memory-core`).
+All three tools are provided by the active memory plugin (default: `memory-core`).
 
 ## Memory Wiki companion plugin
 
@@ -73,6 +77,22 @@ enabled automatically.
 
 For details on how search works, tuning options, and provider setup, see
 [Memory Search](/concepts/memory-search).
+
+## Memory graph
+
+The Control UI memory page can render your memory as an interactive
+force-directed graph (similar to an Obsidian graph view). Nodes are memory files
+of the selected agent; edges connect them three ways:
+
+- **Link** -- an explicit `[[wikilink]]` between two memory files.
+- **Similar** -- high embedding similarity (semantically related files), so you
+  can spot connections you have not linked yet.
+- **Tag** -- shared concept tags derived from file content.
+
+Toggle between the table and graph views from the memory page header. Drag nodes
+to rearrange, scroll to zoom, and click a node to see its description. The graph
+is served by the `agents.memory.graph` gateway method; the same similarity edges
+power the `memory_suggest_links` tool.
 
 ## Memory backends
 

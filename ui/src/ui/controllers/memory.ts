@@ -6,6 +6,30 @@ export interface MemoryEntry {
   file?: string;
 }
 
+export interface MemoryGraphNode {
+  name: string;
+  path: string;
+  description?: string;
+  type?: string;
+  size: number;
+  mtimeMs: number;
+}
+
+export type MemoryGraphEdgeType = "wikilink" | "similarity" | "tag";
+
+export interface MemoryGraphEdge {
+  source: string;
+  target: string;
+  type: MemoryGraphEdgeType;
+  weight: number;
+}
+
+export interface MemoryGraph {
+  nodes: MemoryGraphNode[];
+  edges: MemoryGraphEdge[];
+  generatedAtMs: number;
+}
+
 const INDEX_LINE = /^\s*[-*]\s*\[([^\]]+)\]\(([^)]+)\)\s*(?:[—–-]\s*(.*))?$/;
 
 /** Parse a `MEMORY.md` index body into entries. Lines look like:
@@ -37,5 +61,22 @@ export async function loadMemoryIndex(
     return parseMemoryIndex(content);
   } catch {
     return [];
+  }
+}
+
+/** Load the force-graph of an agent's memory via the `agents.memory.graph` RPC. */
+export async function loadMemoryGraph(
+  client: GatewayBrowserClient,
+  agentId: string,
+): Promise<MemoryGraph> {
+  try {
+    const res = await client.request<MemoryGraph | null>("agents.memory.graph", { agentId });
+    return {
+      nodes: res?.nodes ?? [],
+      edges: res?.edges ?? [],
+      generatedAtMs: res?.generatedAtMs ?? 0,
+    };
+  } catch {
+    return { nodes: [], edges: [], generatedAtMs: 0 };
   }
 }

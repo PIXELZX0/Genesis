@@ -215,6 +215,14 @@ export class GenesisApp extends LitElement {
   @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
   @state() memoryLoading = false;
   @state() memoryError: string | null = null;
+  @state() memoryGraph: import("./controllers/memory.ts").MemoryGraph = {
+    nodes: [],
+    edges: [],
+    generatedAtMs: 0,
+  };
+  @state() memoryGraphLoading = false;
+  @state() memoryGraphError: string | null = null;
+  @state() memoryViewMode: "table" | "graph" = "table";
   @state() chatQueue: ChatQueueItem[] = [];
   @state() chatAttachments: ChatAttachment[] = [];
   @state() realtimeTalkActive = false;

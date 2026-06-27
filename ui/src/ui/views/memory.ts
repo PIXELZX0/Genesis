@@ -1,7 +1,9 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { MemoryEntry } from "../controllers/memory.ts";
+import type { MemoryEntry, MemoryGraph } from "../controllers/memory.ts";
 import { icons } from "../icons.ts";
+
+export type MemoryViewMode = "table" | "graph";
 
 export interface MemoryProps {
   connected: boolean;
@@ -10,6 +12,12 @@ export interface MemoryProps {
   entries: MemoryEntry[];
   error: string | null;
   onRefresh: () => void;
+  viewMode: MemoryViewMode;
+  graph: MemoryGraph;
+  graphLoading: boolean;
+  graphError: string | null;
+  onToggleView: (mode: MemoryViewMode) => void;
+  renderGraph: () => unknown;
 }
 
 const MEMORY_GRID = "grid-template-columns: 1.2fr 2fr;";
@@ -38,6 +46,34 @@ function renderTable(props: MemoryProps) {
   `;
 }
 
+function renderToggle(props: MemoryProps) {
+  const btn = (mode: MemoryViewMode, label: string) => html`
+    <button
+      class="btn ${props.viewMode === mode ? "active" : ""}"
+      aria-pressed=${props.viewMode === mode}
+      @click=${() => props.onToggleView(mode)}
+    >
+      ${label}
+    </button>
+  `;
+  return html`<div class="row" style="gap: 4px;">
+    ${btn("table", t("memoryView.viewTable"))}${btn("graph", t("memoryView.viewGraph"))}
+  </div>`;
+}
+
+function renderBody(props: MemoryProps) {
+  if (props.viewMode === "graph") {
+    if (props.graphError) {
+      return html`<div class="callout danger">${props.graphError}</div>`;
+    }
+    if (props.graphLoading && props.graph.nodes.length === 0) {
+      return html`<div class="muted" style="padding: 16px;">${t("common.loading")}</div>`;
+    }
+    return props.renderGraph();
+  }
+  return renderTable(props);
+}
+
 export function renderMemory(props: MemoryProps) {
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
@@ -50,9 +86,12 @@ export function renderMemory(props: MemoryProps) {
               : nothing}
           </div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
+        <div class="row" style="gap: 8px; align-items: center;">
+          ${renderToggle(props)}
+          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
+          </button>
+        </div>
       </div>
 
       ${props.error
@@ -62,7 +101,7 @@ export function renderMemory(props: MemoryProps) {
       <div style="margin-top: 20px;">
         ${!props.agentId
           ? html`<div class="muted" style="padding: 16px;">${t("memoryView.noAgent")}</div>`
-          : renderTable(props)}
+          : renderBody(props)}
       </div>
     </section>
   `;

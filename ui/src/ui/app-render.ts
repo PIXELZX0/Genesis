@@ -108,7 +108,7 @@ import {
   disconnectMcpOAuth,
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
-import { loadMemoryIndex } from "./controllers/memory.ts";
+import { loadMemoryGraph, loadMemoryIndex } from "./controllers/memory.ts";
 import { addModel, addProvider, loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
@@ -293,7 +293,33 @@ async function submitAgentsCreateDialog(state: AppViewState): Promise<void> {
   }
 }
 
+function ensureMemoryGraphLoaded(state: AppViewState): void {
+  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
+  if (!state.client || !state.connected || state.memoryGraphLoading || !agentId) {
+    return;
+  }
+  if (state.memoryGraph.nodes.length > 0) {
+    return;
+  }
+  const client = state.client;
+  state.memoryGraphLoading = true;
+  state.memoryGraphError = null;
+  void loadMemoryGraph(client, agentId)
+    .then((graph) => {
+      state.memoryGraph = graph;
+    })
+    .catch((err: unknown) => {
+      state.memoryGraphError = String(err);
+    })
+    .finally(() => {
+      state.memoryGraphLoading = false;
+    });
+}
+
 function ensureMemoryLoaded(state: AppViewState): void {
+  if (state.memoryViewMode === "graph") {
+    ensureMemoryGraphLoaded(state);
+  }
   const agentId = state.agentsSelectedId ?? state.assistantAgentId;
   if (!state.client || !state.connected || state.memoryLoading || !agentId) {
     return;
@@ -389,6 +415,7 @@ const lazyLogs = createLazy(() => import("./views/logs.ts"));
 const lazyMcp = createLazy(() => import("./views/mcp.ts"));
 const lazyModels = createLazy(() => import("./views/models.ts"));
 const lazyMemory = createLazy(() => import("./views/memory.ts"));
+const lazyMemoryGraph = createLazy(() => import("./views/memory-graph.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
@@ -2765,9 +2792,28 @@ export function renderApp(state: AppViewState) {
                 entries: state.memoryEntries,
                 error: state.memoryError,
                 onRefresh: () => {
-                  state.memoryEntries = [];
+                  if (state.memoryViewMode === "graph") {
+                    state.memoryGraph = { nodes: [], edges: [], generatedAtMs: 0 };
+                  } else {
+                    state.memoryEntries = [];
+                  }
                   ensureMemoryLoaded(state);
                 },
+                viewMode: state.memoryViewMode,
+                graph: state.memoryGraph,
+                graphLoading: state.memoryGraphLoading,
+                graphError: state.memoryGraphError,
+                onToggleView: (mode) => {
+                  state.memoryViewMode = mode;
+                  ensureMemoryLoaded(state);
+                },
+                renderGraph: () =>
+                  lazyRender(lazyMemoryGraph, (g) =>
+                    g.renderMemoryGraph({
+                      graph: state.memoryGraph,
+                      onSelect: () => {},
+                    }),
+                  ),
               }),
             ))
           : nothing}

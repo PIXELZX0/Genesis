@@ -178,6 +178,17 @@ export const AgentsFilesSetResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export type AgentsMemoryGraphParams = {
+  agentId: string;
+};
+
+export const AgentsMemoryGraphParamsSchema = Type.Object(
+  {
+    agentId: NonEmptyString,
+  },
+  { additionalProperties: false },
+);
+
 export const ModelsListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const ModelsListResultSchema = Type.Object(

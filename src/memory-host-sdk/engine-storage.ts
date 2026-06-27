@@ -31,6 +31,10 @@ export type {
 } from "./host/backend-config.js";
 export type {
   MemoryEmbeddingProbeResult,
+  MemoryGraphEdge,
+  MemoryGraphEdgeType,
+  MemoryGraphNode,
+  MemoryGraphResult,
   MemoryProviderStatus,
   MemorySearchManager,
   MemorySearchRuntimeDebug,

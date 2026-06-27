@@ -13,6 +13,7 @@ import { extractKeywords } from "genesis/plugin-sdk/memory-core-host-engine-qmd"
 import {
   readMemoryFile,
   type MemoryEmbeddingProbeResult,
+  type MemoryGraphResult,
   type MemoryProviderStatus,
   type MemorySearchManager,
   type MemorySearchRuntimeDebug,
@@ -28,6 +29,7 @@ import {
   type EmbeddingProviderResult,
   type EmbeddingProviderRuntime,
 } from "./embeddings.js";
+import { buildMemoryGraph } from "./graph.js";
 import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js";
 import { awaitPendingManagerWork, startAsyncSearchSync } from "./manager-async-state.js";
 import { MEMORY_BATCH_FAILURE_LIMIT } from "./manager-batch-state.js";
@@ -830,6 +832,23 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       const message = formatErrorMessage(err);
       return { ok: false, error: message };
     }
+  }
+
+  async graph(): Promise<MemoryGraphResult> {
+    if (!this.hasIndexedContent()) {
+      try {
+        await this.sync({ reason: "graph", force: true });
+      } catch (err) {
+        log.warn(`memory sync failed (graph): ${String(err)}`);
+      }
+    }
+    await this.ensureProviderInitialized();
+    return await buildMemoryGraph({
+      db: this.db,
+      workspaceDir: this.workspaceDir,
+      provider: this.provider,
+      warn: (message) => log.warn(message),
+    });
   }
 
   async close(): Promise<void> {

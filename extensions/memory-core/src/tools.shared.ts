@@ -44,6 +44,12 @@ export const MemoryGetSchema = Type.Object({
   ),
 });
 
+export const MemorySuggestLinksSchema = Type.Object({
+  name: Type.Optional(Type.String()),
+  maxResults: Type.Optional(Type.Number()),
+  minScore: Type.Optional(Type.Number()),
+});
+
 export function resolveMemoryToolContext(options: {
   config?: GenesisConfig;
   agentSessionKey?: string;
@@ -105,7 +111,7 @@ export function createMemoryTool(params: {
   label: string;
   name: string;
   description: string;
-  parameters: typeof MemorySearchSchema | typeof MemoryGetSchema;
+  parameters: typeof MemorySearchSchema | typeof MemoryGetSchema | typeof MemorySuggestLinksSchema;
   execute: (ctx: { cfg: GenesisConfig; agentId: string }) => AnyAgentTool["execute"];
 }): AnyAgentTool | null {
   const ctx = resolveMemoryToolContext(params.options);

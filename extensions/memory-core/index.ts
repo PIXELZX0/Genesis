@@ -12,7 +12,11 @@ import { registerBuiltInMemoryEmbeddingProviders } from "./src/memory/provider-a
 import { buildPromptSection } from "./src/prompt-section.js";
 import { listMemoryCorePublicArtifacts } from "./src/public-artifacts.js";
 import { memoryRuntime } from "./src/runtime-provider.js";
-import { createMemoryGetTool, createMemorySearchTool } from "./src/tools.js";
+import {
+  createMemoryGetTool,
+  createMemorySearchTool,
+  createMemorySuggestLinksTool,
+} from "./src/tools.js";
 export {
   buildMemoryFlushPlan,
   DEFAULT_MEMORY_FLUSH_FORCE_TRANSCRIPT_BYTES,
@@ -56,6 +60,15 @@ export default definePluginEntry({
           agentSessionKey: ctx.sessionKey,
         }),
       { names: ["memory_get"] },
+    );
+
+    api.registerTool(
+      (ctx) =>
+        createMemorySuggestLinksTool({
+          config: ctx.config,
+          agentSessionKey: ctx.sessionKey,
+        }),
+      { names: ["memory_suggest_links"] },
     );
 
     api.registerCli(
