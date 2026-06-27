@@ -215,6 +215,9 @@ export class GenesisApp extends LitElement {
   @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
   @state() memoryLoading = false;
   @state() memoryError: string | null = null;
+  @state() contactsEntries: import("./controllers/contacts.ts").ContactEntry[] = [];
+  @state() contactsLoading = false;
+  @state() contactsError: string | null = null;
   @state() memoryGraph: import("./controllers/memory.ts").MemoryGraph = {
     nodes: [],
     edges: [],

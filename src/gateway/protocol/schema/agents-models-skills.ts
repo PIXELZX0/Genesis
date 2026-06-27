@@ -189,6 +189,89 @@ export const AgentsMemoryGraphParamsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const ContactMessengerIdSchema = Type.Object(
+  {
+    channel: NonEmptyString,
+    id: NonEmptyString,
+    username: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
+export type ContactEntry = {
+  id: string;
+  name: string;
+  age?: number;
+  education?: string;
+  traits?: string[];
+  notes?: string;
+  messengerIds: { channel: string; id: string; username?: string }[];
+  createdAt: number;
+  updatedAt: number;
+};
+
+export const ContactEntrySchema = Type.Object(
+  {
+    id: NonEmptyString,
+    name: Type.String(),
+    age: Type.Optional(Type.Number()),
+    education: Type.Optional(Type.String()),
+    traits: Type.Optional(Type.Array(Type.String())),
+    notes: Type.Optional(Type.String()),
+    messengerIds: Type.Array(ContactMessengerIdSchema),
+    createdAt: Type.Number(),
+    updatedAt: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
+export type ContactsListParams = { agentId: string };
+
+export const ContactsListParamsSchema = Type.Object(
+  { agentId: NonEmptyString },
+  { additionalProperties: false },
+);
+
+export const ContactsListResultSchema = Type.Object(
+  {
+    agentId: NonEmptyString,
+    contacts: Type.Array(ContactEntrySchema),
+  },
+  { additionalProperties: false },
+);
+
+export type ContactsSaveParams = {
+  agentId: string;
+  id?: string;
+  name?: string;
+  age?: number;
+  education?: string;
+  traits?: string[];
+  notes?: string;
+  messengers?: { channel: string; id: string; username?: string }[];
+};
+
+export const ContactsSaveParamsSchema = Type.Object(
+  {
+    agentId: NonEmptyString,
+    id: Type.Optional(Type.String()),
+    name: Type.Optional(Type.String()),
+    age: Type.Optional(Type.Number()),
+    education: Type.Optional(Type.String()),
+    traits: Type.Optional(Type.Array(Type.String())),
+    notes: Type.Optional(Type.String()),
+    messengers: Type.Optional(Type.Array(ContactMessengerIdSchema)),
+  },
+  { additionalProperties: false },
+);
+
+export type ContactsDeleteParams = { agentId: string; id: string };
+
+export const ContactsDeleteParamsSchema = Type.Object(
+  { agentId: NonEmptyString, id: NonEmptyString },
+  { additionalProperties: false },
+);
+
 export const ModelsListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const ModelsListResultSchema = Type.Object(

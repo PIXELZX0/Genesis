@@ -124,6 +124,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "talk.config",
     "agents.files.list",
     "agents.files.get",
+    "contacts.list",
   ],
   [WRITE_SCOPE]: [
     "message.action",
@@ -203,6 +204,8 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "web.login.wait",
     "system-event",
     "agents.files.set",
+    "contacts.save",
+    "contacts.delete",
   ],
   [TALK_SECRETS_SCOPE]: [],
 };

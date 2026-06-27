@@ -238,6 +238,15 @@ export const icons = {
       <path d="M19.967 17.484A4 4 0 0 1 18 18" />
     </svg>
   `,
+  contactRound: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M16 18a4 4 0 0 0-8 0" />
+      <circle cx="12" cy="11" r="3" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M8 2v2" />
+      <path d="M16 2v2" />
+    </svg>
+  `,
   cpu: html`
     <svg viewBox="0 0 24 24">
       <rect width="16" height="16" x="4" y="4" rx="2" />

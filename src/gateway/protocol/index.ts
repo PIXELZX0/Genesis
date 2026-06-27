@@ -40,6 +40,12 @@ import {
   AgentsFilesSetResultSchema,
   type AgentsMemoryGraphParams,
   AgentsMemoryGraphParamsSchema,
+  type ContactsListParams,
+  ContactsListParamsSchema,
+  type ContactsSaveParams,
+  ContactsSaveParamsSchema,
+  type ContactsDeleteParams,
+  ContactsDeleteParamsSchema,
   type AgentsListParams,
   AgentsListParamsSchema,
   type AgentsListResult,
@@ -424,6 +430,11 @@ export const validateAgentsFilesSetParams = ajv.compile<AgentsFilesSetParams>(
 );
 export const validateAgentsMemoryGraphParams = ajv.compile<AgentsMemoryGraphParams>(
   AgentsMemoryGraphParamsSchema,
+);
+export const validateContactsListParams = ajv.compile<ContactsListParams>(ContactsListParamsSchema);
+export const validateContactsSaveParams = ajv.compile<ContactsSaveParams>(ContactsSaveParamsSchema);
+export const validateContactsDeleteParams = ajv.compile<ContactsDeleteParams>(
+  ContactsDeleteParamsSchema,
 );
 export const validateNodePairRequestParams = ajv.compile<NodePairRequestParams>(
   NodePairRequestParamsSchema,

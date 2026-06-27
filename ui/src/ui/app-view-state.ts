@@ -109,6 +109,9 @@ export type AppViewState = {
   memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
   memoryLoading: boolean;
   memoryError: string | null;
+  contactsEntries: import("./controllers/contacts.ts").ContactEntry[];
+  contactsLoading: boolean;
+  contactsError: string | null;
   memoryGraph: import("./controllers/memory.ts").MemoryGraph;
   memoryGraphLoading: boolean;
   memoryGraphError: string | null;

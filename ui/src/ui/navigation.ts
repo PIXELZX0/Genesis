@@ -22,7 +22,8 @@ export const TAB_GROUPS = [
       "nodes",
     ],
   },
-  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet", "memory"] },
+  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet"] },
+  { label: "memory", tabs: ["memory", "contact"] },
 ] as const;
 
 export type Tab =
@@ -40,6 +41,7 @@ export type Tab =
   | "plugins"
   | "models"
   | "memory"
+  | "contact"
   | "nodes"
   | "chat"
   | "config"
@@ -67,6 +69,7 @@ const TAB_PATHS: Record<Tab, string> = {
   plugins: "/plugins",
   models: "/models",
   memory: "/memory",
+  contact: "/contact",
   nodes: "/nodes",
   chat: "/chat",
   config: "/config",
@@ -200,6 +203,8 @@ export function iconForTab(tab: Tab): IconName {
       return "cpu";
     case "memory":
       return "brain";
+    case "contact":
+      return "contactRound";
     case "nodes":
       return "monitor";
     case "config":

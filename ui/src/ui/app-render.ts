@@ -50,6 +50,7 @@ import {
   removeConfigFormValue,
 } from "./controllers/config.ts";
 import { cloneConfigObject, serializeConfigForm } from "./controllers/config/form-utils.ts";
+import { loadContacts } from "./controllers/contacts.ts";
 import {
   loadCronJobsPage,
   loadCronRuns,
@@ -341,6 +342,28 @@ function ensureMemoryLoaded(state: AppViewState): void {
     });
 }
 
+function ensureContactsLoaded(state: AppViewState): void {
+  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
+  if (!state.client || !state.connected || state.contactsLoading || !agentId) {
+    return;
+  }
+  if (state.contactsEntries.length > 0) {
+    return;
+  }
+  state.contactsLoading = true;
+  state.contactsError = null;
+  void loadContacts(state.client, agentId)
+    .then((entries) => {
+      state.contactsEntries = entries;
+    })
+    .catch((err: unknown) => {
+      state.contactsError = String(err);
+    })
+    .finally(() => {
+      state.contactsLoading = false;
+    });
+}
+
 // Lazy-loaded view modules – deferred so the initial bundle stays small.
 // Each loader resolves once; subsequent calls return the cached module.
 type LazyState<T> = { mod: T | null; promise: Promise<void> | null };
@@ -416,6 +439,7 @@ const lazyMcp = createLazy(() => import("./views/mcp.ts"));
 const lazyModels = createLazy(() => import("./views/models.ts"));
 const lazyMemory = createLazy(() => import("./views/memory.ts"));
 const lazyMemoryGraph = createLazy(() => import("./views/memory-graph.ts"));
+const lazyContacts = createLazy(() => import("./views/contacts.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazyPlugins = createLazy(() => import("./views/plugins.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
@@ -2814,6 +2838,22 @@ export function renderApp(state: AppViewState) {
                       onSelect: () => {},
                     }),
                   ),
+              }),
+            ))
+          : nothing}
+        ${state.tab === "contact"
+          ? (ensureContactsLoaded(state),
+            lazyRender(lazyContacts, (c) =>
+              c.renderContacts({
+                connected: state.connected,
+                loading: state.contactsLoading,
+                agentId: state.agentsSelectedId ?? state.assistantAgentId,
+                entries: state.contactsEntries,
+                error: state.contactsError,
+                onRefresh: () => {
+                  state.contactsEntries = [];
+                  ensureContactsLoaded(state);
+                },
               }),
             ))
           : nothing}

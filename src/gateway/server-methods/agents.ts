@@ -34,6 +34,12 @@ import {
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
 import type { IdentityConfig } from "../../config/types.base.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import {
+  deleteContact,
+  loadContactStore,
+  updateContactStoreWithLock,
+  upsertContact,
+} from "../../contacts/store.js";
 import { sameFileIdentity } from "../../infra/file-identity.js";
 import {
   openFileWithinRoot,
@@ -57,6 +63,9 @@ import {
   validateAgentsMemoryGraphParams,
   validateAgentsListParams,
   validateAgentsUpdateParams,
+  validateContactsDeleteParams,
+  validateContactsListParams,
+  validateContactsSaveParams,
 } from "../protocol/index.js";
 import { listAgentsForGateway } from "../session-utils.js";
 import type { GatewayRequestHandlers, RespondFn } from "./types.js";
@@ -829,5 +838,74 @@ export const agentsHandlers: GatewayRequestHandlers = {
         ),
       );
     }
+  },
+  "contacts.list": ({ params, respond }) => {
+    if (!validateContactsListParams(params)) {
+      respondInvalidMethodParams(respond, "contacts.list", validateContactsListParams.errors);
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(params.agentId, cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    const store = loadContactStore(resolveAgentDir(cfg, agentId));
+    respond(true, { agentId, contacts: Object.values(store.contacts) }, undefined);
+  },
+  "contacts.save": async ({ params, respond }) => {
+    if (!validateContactsSaveParams(params)) {
+      respondInvalidMethodParams(respond, "contacts.save", validateContactsSaveParams.errors);
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(params.agentId, cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    const agentDir = resolveAgentDir(cfg, agentId);
+    let savedId: string | undefined;
+    const store = await updateContactStoreWithLock({
+      agentDir,
+      updater: (s) => {
+        savedId = upsertContact(s, {
+          id: params.id,
+          name: params.name,
+          age: params.age,
+          education: params.education,
+          traits: params.traits,
+          notes: params.notes,
+          messengerIds: params.messengers ?? [],
+        }).id;
+        return true;
+      },
+    });
+    if (!store || !savedId) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "failed to save contact"));
+      return;
+    }
+    respond(true, { agentId, contact: store.contacts[savedId] }, undefined);
+  },
+  "contacts.delete": async ({ params, respond }) => {
+    if (!validateContactsDeleteParams(params)) {
+      respondInvalidMethodParams(respond, "contacts.delete", validateContactsDeleteParams.errors);
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(params.agentId, cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    let removed = false;
+    await updateContactStoreWithLock({
+      agentDir: resolveAgentDir(cfg, agentId),
+      updater: (s) => {
+        removed = deleteContact(s, params.id);
+        return removed;
+      },
+    });
+    respond(true, { agentId, deleted: removed, id: params.id }, undefined);
   },
 };
