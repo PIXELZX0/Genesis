@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Memory graph: the Control UI memory page can now render your memory as an interactive force-directed graph (Obsidian-style). Nodes are memory files; edges show explicit `[[wikilinks]]`, embedding-similarity connections, and shared tags. Toggle between table and graph views, drag/zoom/pan, and click a node for its description. A new read-only `memory_suggest_links` tool surfaces semantically related memory files that are not yet linked so you can connect them.
 - Advisor: agents can now consult a stronger model when they get stuck. Enable the new `ask_advisor` tool with `tools.advisor.enabled` and point `tools.advisor.model` at a stronger model (for example `anthropic/claude-opus-4-8`); the agent sends a focused question, gets advice back, and continues the task itself.
 - Exec safeguard: shell commands are now screened for system impact before they run. High-risk commands (such as `rm -rf /`, `mkfs`, writing to a raw block device, or piping a download straight into a shell) are blocked, and medium-risk commands (such as `sudo`, global package installs, or `git push --force`) require approval. Enabled by default; configure with `tools.exec.safeguard.enabled`.
 

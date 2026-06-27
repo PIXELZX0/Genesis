@@ -39,6 +39,30 @@ export type MemoryReadResult = {
   nextFrom?: number;
 };
 
+export type MemoryGraphNode = {
+  name: string;
+  path: string;
+  description?: string;
+  type?: string;
+  size: number;
+  mtimeMs: number;
+};
+
+export type MemoryGraphEdgeType = "wikilink" | "similarity" | "tag";
+
+export type MemoryGraphEdge = {
+  source: string;
+  target: string;
+  type: MemoryGraphEdgeType;
+  weight: number;
+};
+
+export type MemoryGraphResult = {
+  nodes: MemoryGraphNode[];
+  edges: MemoryGraphEdge[];
+  generatedAtMs: number;
+};
+
 export type MemoryProviderStatus = {
   backend: "builtin" | "qmd";
   provider: string;
@@ -98,5 +122,6 @@ export interface MemorySearchManager {
   }): Promise<void>;
   probeEmbeddingAvailability(): Promise<MemoryEmbeddingProbeResult>;
   probeVectorAvailability(): Promise<boolean>;
+  graph?(params?: { agentId?: string }): Promise<MemoryGraphResult>;
   close?(): Promise<void>;
 }

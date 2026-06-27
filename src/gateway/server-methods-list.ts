@@ -81,6 +81,7 @@ const BASE_METHODS = [
   "agents.files.list",
   "agents.files.get",
   "agents.files.set",
+  "agents.memory.graph",
   "skills.status",
   "skills.search",
   "skills.detail",

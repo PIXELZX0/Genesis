@@ -109,6 +109,10 @@ export type AppViewState = {
   memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
   memoryLoading: boolean;
   memoryError: string | null;
+  memoryGraph: import("./controllers/memory.ts").MemoryGraph;
+  memoryGraphLoading: boolean;
+  memoryGraphError: string | null;
+  memoryViewMode: "table" | "graph";
   chatQueue: ChatQueueItem[];
   realtimeTalkActive: boolean;
   realtimeTalkStatus: RealtimeTalkStatus;

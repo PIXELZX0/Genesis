@@ -214,6 +214,13 @@ export const zh_CN: TranslationMap = {
     noAgent: "No agent selected. Open an agent to view its memory.",
     colMemory: "Memory",
     colDetail: "Detail",
+    viewTable: "Table",
+    viewGraph: "Graph",
+    graphEmpty: "No linked memories to graph yet.",
+    nodeType: "Type",
+    edgeWikilink: "Link",
+    edgeSimilarity: "Similar",
+    edgeTag: "Tag",
   },
   modelsView: {
     empty: "No models available.",

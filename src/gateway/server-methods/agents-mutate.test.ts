@@ -11,6 +11,12 @@ const mocks = vi.hoisted(() => ({
   applyAgentConfig: vi.fn((_cfg: unknown, _opts: unknown) => ({})),
   pruneAgentConfig: vi.fn(() => ({ config: {}, removedBindings: 0 })),
   writeConfigFile: vi.fn(async () => {}),
+  getActiveMemorySearchManager: vi.fn(
+    async (): Promise<{ manager: unknown; error: unknown }> => ({
+      manager: null,
+      error: undefined,
+    }),
+  ),
   ensureAgentWorkspace: vi.fn(
     async (params?: { dir?: string }): Promise<{ dir: string; identityPathCreated: boolean }> => ({
       dir: params?.dir
@@ -111,6 +117,10 @@ vi.mock("../../infra/fs-safe.js", async () => {
     writeFileWithinRoot: mocks.writeFileWithinRoot,
   };
 });
+
+vi.mock("../../plugins/memory-runtime.js", () => ({
+  getActiveMemorySearchManager: mocks.getActiveMemorySearchManager,
+}));
 
 // Mock node:fs/promises – agents.ts uses `import fs from "node:fs/promises"`
 // which resolves to the module namespace default, so we spread actual and
@@ -1238,6 +1248,83 @@ describe("agents.files.get/set symlink safety", () => {
         }),
       }),
       undefined,
+    );
+  });
+});
+
+describe("agents.memory.graph", () => {
+  beforeEach(() => {
+    mocks.loadConfigReturn = {
+      agents: { list: [{ id: "main", workspace: "/workspace/main" }] },
+    };
+    mocks.getActiveMemorySearchManager.mockResolvedValue({ manager: null, error: undefined });
+  });
+
+  it("responds with graph nodes and edges when manager.graph() is present", async () => {
+    const graphResult = {
+      nodes: [
+        { name: "note.md", path: "/workspace/main/memory/note.md", size: 100, mtimeMs: 1000 },
+      ],
+      edges: [{ source: "note.md", target: "other.md", type: "wikilink" as const, weight: 1 }],
+      generatedAtMs: 9999,
+    };
+    mocks.getActiveMemorySearchManager.mockResolvedValue({
+      manager: { graph: vi.fn(async () => graphResult) } as unknown,
+      error: undefined,
+    });
+
+    const { respond, promise } = makeCall("agents.memory.graph", { agentId: "main" });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        agentId: "main",
+        nodes: graphResult.nodes,
+        edges: graphResult.edges,
+        generatedAtMs: 9999,
+      }),
+      undefined,
+    );
+  });
+
+  it("responds with empty graph when manager is null", async () => {
+    mocks.getActiveMemorySearchManager.mockResolvedValue({ manager: null, error: undefined });
+
+    const { respond, promise } = makeCall("agents.memory.graph", { agentId: "main" });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ agentId: "main", nodes: [], edges: [] }),
+      undefined,
+    );
+  });
+
+  it("responds with empty graph when manager.graph is undefined", async () => {
+    mocks.getActiveMemorySearchManager.mockResolvedValue({
+      manager: { status: vi.fn() } as unknown,
+      error: undefined,
+    });
+
+    const { respond, promise } = makeCall("agents.memory.graph", { agentId: "main" });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ agentId: "main", nodes: [], edges: [] }),
+      undefined,
+    );
+  });
+
+  it("responds with invalid-params error when agentId is missing", async () => {
+    const { respond, promise } = makeCall("agents.memory.graph", {});
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({ message: expect.stringContaining("agents.memory.graph") }),
     );
   });
 });

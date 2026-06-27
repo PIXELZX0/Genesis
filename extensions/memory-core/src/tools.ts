@@ -32,6 +32,7 @@ import {
   loadMemoryToolRuntime,
   MemoryGetSchema,
   MemorySearchSchema,
+  MemorySuggestLinksSchema,
   searchMemoryCorpusSupplements,
 } from "./tools.shared.js";
 
@@ -418,6 +419,151 @@ export function createMemoryGetTool(options: { config?: GenesisConfig; agentSess
           from: from ?? undefined,
           lines: lines ?? undefined,
           agentSessionKey: options.agentSessionKey,
+        });
+      },
+  });
+}
+
+export function createMemorySuggestLinksTool(options: {
+  config?: GenesisConfig;
+  agentSessionKey?: string;
+}) {
+  return createMemoryTool({
+    options,
+    label: "Memory Suggest Links",
+    name: "memory_suggest_links",
+    description:
+      "Surfaces semantically-related memory files that are not yet wiki-linked. Compares similarity edges from the memory graph against existing [[wikilink]] edges and returns unlinked pairs ranked by semantic score. The agent or user can add the suggested [[links]] manually — this tool is read-only and never writes files.",
+    parameters: MemorySuggestLinksSchema,
+    execute:
+      ({ cfg, agentId }) =>
+      async (_toolCallId, params) => {
+        const rawParams = asToolParamsRecord(params);
+        const name = readStringParam(rawParams, "name");
+        const maxResults = readNumberParam(rawParams, "maxResults") ?? 20;
+        const minScore = readNumberParam(rawParams, "minScore") ?? 0;
+
+        const memory = await getMemoryManagerContext({ cfg, agentId });
+        if ("error" in memory) {
+          return jsonResult({
+            ...buildMemorySearchUnavailableResult(memory.error),
+            suggestions: [],
+          });
+        }
+
+        if (typeof memory.manager.graph !== "function") {
+          return jsonResult({ disabled: true, reason: "graph unavailable", suggestions: [] });
+        }
+
+        const graph = await memory.manager.graph({ agentId });
+
+        // Build set of existing wikilink unordered pairs.
+        const linkedPairs = new Set<string>();
+        for (const edge of graph.edges) {
+          if (edge.type === "wikilink") {
+            const lo = edge.source < edge.target ? edge.source : edge.target;
+            const hi = edge.source < edge.target ? edge.target : edge.source;
+            linkedPairs.add(`${lo}|${hi}`);
+          }
+        }
+
+        // Build a lookup from path to node for name/description access.
+        const nodeByPath = new Map<string, { name: string; path: string }>();
+        for (const node of graph.nodes) {
+          nodeByPath.set(node.path, node);
+        }
+
+        // Candidate suggestions: similarity edges whose unordered pair is NOT already wikilinked.
+        const candidates = graph.edges.filter((edge) => {
+          if (edge.type !== "similarity") {
+            return false;
+          }
+          const lo = edge.source < edge.target ? edge.source : edge.target;
+          const hi = edge.source < edge.target ? edge.target : edge.source;
+          return !linkedPairs.has(`${lo}|${hi}`);
+        });
+
+        // If `name` param given, keep only candidates where one endpoint matches.
+        const normalizedName = name ? name.toLowerCase() : null;
+        const filtered = normalizedName
+          ? candidates.filter((edge) => {
+              const srcNode = nodeByPath.get(edge.source);
+              const tgtNode = nodeByPath.get(edge.target);
+              const srcStem =
+                edge.source
+                  .replace(/\.[^/.]+$/, "")
+                  .split("/")
+                  .at(-1) ?? "";
+              const tgtStem =
+                edge.target
+                  .replace(/\.[^/.]+$/, "")
+                  .split("/")
+                  .at(-1) ?? "";
+              return (
+                srcNode?.name.toLowerCase() === normalizedName ||
+                tgtNode?.name.toLowerCase() === normalizedName ||
+                srcStem.toLowerCase() === normalizedName ||
+                tgtStem.toLowerCase() === normalizedName
+              );
+            })
+          : candidates;
+
+        // Sort by score descending, apply minScore, slice to maxResults.
+        const suggestions = filtered
+          .toSorted((a, b) => b.weight - a.weight)
+          .filter((edge) => edge.weight >= minScore)
+          .slice(0, Math.max(1, maxResults))
+          .map((edge) => {
+            const srcNode = nodeByPath.get(edge.source);
+            const tgtNode = nodeByPath.get(edge.target);
+            const fromPath = edge.source;
+            const toPath = edge.target;
+            const fromName = srcNode?.name ?? fromPath;
+            const toName = tgtNode?.name ?? toPath;
+
+            // If name filter was provided, orient `from` = the matched node.
+            let orientedFrom = fromPath;
+            let orientedTo = toPath;
+            let orientedFromName = fromName;
+            let orientedToName = toName;
+            if (normalizedName) {
+              const srcStem =
+                edge.source
+                  .replace(/\.[^/.]+$/, "")
+                  .split("/")
+                  .at(-1) ?? "";
+              const srcMatches =
+                srcNode?.name.toLowerCase() === normalizedName ||
+                srcStem.toLowerCase() === normalizedName;
+              if (!srcMatches) {
+                orientedFrom = toPath;
+                orientedTo = fromPath;
+                orientedFromName = toName;
+                orientedToName = fromName;
+              }
+            }
+
+            return {
+              from: orientedFrom,
+              to: orientedTo,
+              fromName: orientedFromName,
+              toName: orientedToName,
+              score: edge.weight,
+              suggestedLink: `[[${orientedToName}]]`,
+            };
+          });
+
+        const readyToPaste =
+          suggestions.length > 0
+            ? `## Related (suggested)\n${suggestions.map((s) => `- [[${s.toName}]]`).join("\n")}\n`
+            : undefined;
+
+        return jsonResult({
+          disabled: false,
+          count: suggestions.length,
+          suggestions,
+          generatedAtMs: graph.generatedAtMs,
+          ...(readyToPaste !== undefined ? { readyToPaste } : {}),
         });
       },
   });
