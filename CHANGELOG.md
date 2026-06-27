@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.28
+
+### Changes
+
+- Control UI: a new Contacts page lives under a new MEMORY sidebar category (alongside Memory). It lists the people an agent remembers with their per-messenger IDs, traits, age, and last-updated time, backed by new gateway `contacts.list`/`contacts.save`/`contacts.delete` methods that read the per-agent contacts store.
+
 ## 2026.6.27
 
 ### Changes
