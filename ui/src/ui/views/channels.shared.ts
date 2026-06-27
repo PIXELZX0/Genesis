@@ -7,6 +7,7 @@ type ChannelDisplayState = {
   configured: boolean | null;
   running: boolean | null;
   connected: boolean | null;
+  restartPending: boolean | null;
   defaultAccount: ChannelAccountSnapshot | null;
   hasAnyActiveAccount: boolean;
   status: Record<string, unknown> | undefined;
@@ -55,6 +56,14 @@ export function resolveChannelDisplayState(
         : null;
   const running = typeof status?.running === "boolean" ? status.running : null;
   const connected = typeof status?.connected === "boolean" ? status.connected : null;
+  const restartPending =
+    typeof status?.restartPending === "boolean"
+      ? status.restartPending
+      : typeof defaultAccount?.restartPending === "boolean"
+        ? defaultAccount.restartPending
+        : accounts.some((account) => account.restartPending === true)
+          ? true
+          : null;
   const hasAnyActiveAccount = accounts.some(
     (account) => account.configured || account.running || account.connected,
   );
@@ -63,6 +72,7 @@ export function resolveChannelDisplayState(
     configured,
     running,
     connected,
+    restartPending,
     defaultAccount,
     hasAnyActiveAccount,
     status,

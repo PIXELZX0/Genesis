@@ -48,6 +48,7 @@ export type ChannelAccountSnapshot = {
   linked?: boolean | null;
   running?: boolean | null;
   connected?: boolean | null;
+  restartPending?: boolean | null;
   reconnectAttempts?: number | null;
   lastConnectedAt?: number | null;
   lastError?: string | null;

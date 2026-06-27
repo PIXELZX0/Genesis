@@ -120,6 +120,21 @@ describe("channel display selectors", () => {
     expect(displayState.defaultAccount?.accountId).toBe("workspace-a");
   });
 
+  it("resolves restartPending from the channel summary", () => {
+    const props = createProps({
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: { guildchat: { configured: true, running: false, restartPending: true } },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    });
+
+    expect(resolveChannelDisplayState("guildchat", props).restartPending).toBe(true);
+  });
+
   it("keeps disabled channels hidden when neither summary nor accounts are active", () => {
     const props = createProps({
       ts: Date.now(),
@@ -159,6 +174,31 @@ describe("channel setup wizard rendering", () => {
 
     expect(container.textContent).toContain("Channels");
     expect(container.textContent).toContain("Guild Chat");
+  });
+
+  it("shows Restarting status while a restart is pending, even with a last error", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: {
+        guildchat: {
+          configured: true,
+          running: false,
+          restartPending: true,
+          lastError: "socket closed",
+        },
+      },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    render(renderChannels(createProps(snapshot)), container);
+
+    expect(container.textContent).toContain("Restarting");
   });
 
   it("starts the guided add flow from the channel toolbar", () => {

@@ -14,6 +14,7 @@ function createMockChannelManager(overrides?: Partial<ChannelManager>): ChannelM
     isHealthMonitorEnabled: vi.fn(() => true),
     isManuallyStopped: vi.fn(() => false),
     resetRestartAttempts: vi.fn(),
+    markRestartPending: vi.fn(),
     ...overrides,
   };
 }
@@ -289,6 +290,7 @@ describe("channel-health-monitor", () => {
       },
     });
     const monitor = await startAndRunCheck(manager);
+    expect(manager.markRestartPending).toHaveBeenCalledWith("whatsapp", "default");
     expect(manager.stopChannel).toHaveBeenCalledWith("whatsapp", "default");
     expect(manager.resetRestartAttempts).toHaveBeenCalledWith("whatsapp", "default");
     expect(manager.startChannel).toHaveBeenCalledWith("whatsapp", "default");

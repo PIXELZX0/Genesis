@@ -196,6 +196,8 @@ export type ChannelManager = {
   isManuallyStopped: (channelId: ChannelId, accountId: string) => boolean;
   resetRestartAttempts: (channelId: ChannelId, accountId: string) => void;
   isHealthMonitorEnabled: (channelId: ChannelId, accountId: string) => boolean;
+  /** Mark an account as restarting so status surfaces can show "Restarting". */
+  markRestartPending: (channelId: ChannelId, accountId: string) => void;
 };
 
 // Channel docking: lifecycle hooks (`plugin.gateway`) flow through this manager.
@@ -710,6 +712,10 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
     restartAttempts.delete(restartKey(channelId, accountId));
   };
 
+  const markRestartPending_ = (channelId: ChannelId, accountId: string): void => {
+    setRuntime(channelId, accountId, { accountId, restartPending: true });
+  };
+
   return {
     getRuntimeSnapshot,
     startChannels,
@@ -719,5 +725,6 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
     isManuallyStopped: isManuallyStopped_,
     resetRestartAttempts: resetRestartAttempts_,
     isHealthMonitorEnabled,
+    markRestartPending: markRestartPending_,
   };
 }

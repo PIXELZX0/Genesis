@@ -29,6 +29,7 @@ function createManager(snapshot: ChannelRuntimeSnapshot): ChannelManager {
     isHealthMonitorEnabled: vi.fn(() => true),
     isManuallyStopped: vi.fn(() => false),
     resetRestartAttempts: vi.fn(),
+    markRestartPending: vi.fn(),
   };
 }
 

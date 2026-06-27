@@ -19,6 +19,9 @@ type ChannelStatus = { label: string; dot: string; online: boolean };
 
 function resolveChannelStatus(key: ChannelKey, props: ChannelsProps): ChannelStatus {
   const state = resolveChannelDisplayState(key, props);
+  if (state.restartPending === true) {
+    return { label: "Restarting", dot: "status-dot--idle", online: false };
+  }
   const lastError =
     typeof state.status?.lastError === "string" ? state.status.lastError : undefined;
   if (lastError) {

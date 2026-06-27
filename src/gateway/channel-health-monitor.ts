@@ -158,6 +158,7 @@ export function startChannelHealthMonitor(deps: ChannelHealthMonitorDeps): Chann
           log.info?.(`[${channelId}:${accountId}] health-monitor: restarting (reason: ${reason})`);
 
           try {
+            channelManager.markRestartPending(channelId as ChannelId, accountId);
             if (status.running) {
               await channelManager.stopChannel(channelId as ChannelId, accountId);
             }
