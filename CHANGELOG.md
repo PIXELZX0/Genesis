@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.6.29
+
+### Changes
+
+- Control UI: channels now show a Restarting status while the health monitor auto-restarts a managed channel, so monitor-driven restarts are visible instead of appearing as Idle or Error.
+
 ## 2026.6.28
 
 ### Changes
