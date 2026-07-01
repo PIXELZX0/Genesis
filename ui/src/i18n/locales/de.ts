@@ -341,6 +341,12 @@ export const de: TranslationMap = {
       waiting: "Waiting for callback…",
       success: "Connected to {name}.",
       failed: "OAuth failed: {message}",
+      embedded: {
+        title: "Sign in to {name}",
+        subtitle: "Sign in below — the gateway runs the browser and streams it here.",
+        loading: "Starting the sign-in browser…",
+        cancel: "Cancel",
+      },
       cancelled: "Authorization was cancelled.",
       missingMetadata:
         "Server does not advertise OAuth metadata. Provide a bearer token in the JSON tab.",

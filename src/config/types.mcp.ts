@@ -42,4 +42,17 @@ export type McpConfig = {
      */
     allowedHosts?: string[];
   };
+  /**
+   * Embedded (server-side headless-browser) OAuth flow. When a Chromium is
+   * available the Control UI can drive an in-gateway browser instead of opening
+   * the provider's authorize URL in the operator's own browser. Optional and
+   * capability-gated; falls back to the popup flow when unavailable.
+   */
+  embeddedOAuth?: {
+    /**
+     * Explicit path to a Chromium/Chrome executable. When unset, the gateway
+     * probes `PUPPETEER_EXECUTABLE_PATH`/`CHROME_PATH` and platform defaults.
+     */
+    chromiumPath?: string;
+  };
 };

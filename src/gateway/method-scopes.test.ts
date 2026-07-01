@@ -108,6 +108,23 @@ describe("operator scope authorization", () => {
     });
   });
 
+  it("requires admin for embedded MCP OAuth methods", () => {
+    for (const method of [
+      "mcp.oauth.embedded.start",
+      "mcp.oauth.embedded.poll",
+      "mcp.oauth.embedded.input",
+      "mcp.oauth.embedded.cancel",
+    ]) {
+      expect(authorizeOperatorScopesForMethod(method, ["operator.write"])).toEqual({
+        allowed: false,
+        missingScope: "operator.admin",
+      });
+      expect(authorizeOperatorScopesForMethod(method, ["operator.admin"])).toEqual({
+        allowed: true,
+      });
+    }
+  });
+
   it("requires pairing scope for node pairing approvals", () => {
     expect(authorizeOperatorScopesForMethod("node.pair.approve", ["operator.pairing"])).toEqual({
       allowed: true,

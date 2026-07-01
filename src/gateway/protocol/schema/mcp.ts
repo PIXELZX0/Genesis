@@ -166,3 +166,106 @@ export const McpOAuthRefreshResultSchema = Type.Object(
   },
   { additionalProperties: false },
 );
+
+/**
+ * Embedded OAuth: the gateway drives a server-side headless browser and streams
+ * screenshots to the Control UI, which relays pointer/keyboard input. Reuses the
+ * same PKCE state and `completeMcpOAuthFlow` token exchange as the popup flow.
+ * MVP transport is polling (`mcp.oauth.embedded.poll`) rather than events.
+ */
+const McpOAuthEmbeddedViewportSchema = Type.Object(
+  {
+    w: Type.Integer(),
+    h: Type.Integer(),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedStartParamsSchema = Type.Object(
+  {
+    name: NonEmptyString,
+    scopes: Type.Optional(Type.Array(Type.String())),
+    viewport: Type.Optional(McpOAuthEmbeddedViewportSchema),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedStartResultSchema = Type.Object(
+  {
+    sessionId: NonEmptyString,
+    viewport: McpOAuthEmbeddedViewportSchema,
+    providerName: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedPollParamsSchema = Type.Object(
+  {
+    sessionId: NonEmptyString,
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedPollResultSchema = Type.Object(
+  {
+    phase: Type.Union([
+      Type.Literal("loading"),
+      Type.Literal("interactive"),
+      Type.Literal("done"),
+      Type.Literal("error"),
+    ]),
+    seq: Type.Integer(),
+    frame: Type.Optional(
+      Type.Object(
+        {
+          dataBase64: Type.String(),
+          w: Type.Integer(),
+          h: Type.Integer(),
+        },
+        { additionalProperties: false },
+      ),
+    ),
+    message: Type.Optional(Type.String()),
+    providerName: Type.Optional(Type.String()),
+    expiresAtMs: Type.Optional(Type.Union([Type.Null(), Type.Integer()])),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedInputParamsSchema = Type.Object(
+  {
+    sessionId: NonEmptyString,
+    kind: Type.Union([Type.Literal("mouse"), Type.Literal("wheel"), Type.Literal("key")]),
+    action: Type.Optional(
+      Type.Union([
+        Type.Literal("move"),
+        Type.Literal("down"),
+        Type.Literal("up"),
+        Type.Literal("click"),
+        Type.Literal("press"),
+        Type.Literal("type"),
+      ]),
+    ),
+    x: Type.Optional(Type.Number()),
+    y: Type.Optional(Type.Number()),
+    button: Type.Optional(
+      Type.Union([Type.Literal("left"), Type.Literal("right"), Type.Literal("middle")]),
+    ),
+    deltaX: Type.Optional(Type.Number()),
+    deltaY: Type.Optional(Type.Number()),
+    text: Type.Optional(Type.String()),
+    key: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedInputResultSchema = Type.Object(
+  {
+    ok: Type.Boolean(),
+  },
+  { additionalProperties: false },
+);
+
+export const McpOAuthEmbeddedCancelParamsSchema = McpOAuthEmbeddedPollParamsSchema;
+
+export const McpOAuthEmbeddedCancelResultSchema = McpOAuthEmbeddedInputResultSchema;

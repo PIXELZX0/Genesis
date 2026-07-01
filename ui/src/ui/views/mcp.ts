@@ -2,6 +2,8 @@ import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
 import { sortCopy } from "../array.ts";
 import type {
+  McpEmbeddedFlow,
+  McpEmbeddedInput,
   McpMessage,
   McpOAuthFlow,
   McpOAuthStatus,
@@ -64,6 +66,7 @@ export type McpProps = {
   presetId: string | null;
   oauthStatus: Record<string, McpOAuthStatus>;
   oauthFlow: McpOAuthFlow | null;
+  embeddedFlow: McpEmbeddedFlow | null;
   testStatus: Record<string, { ok: boolean; message: string } | null>;
   onAddModeChange: (mode: McpAddMode) => void;
   onLinkUrlChange: (next: string) => void;
@@ -83,6 +86,8 @@ export type McpProps = {
   onOAuthConnect: (name: string) => void;
   onOAuthDisconnect: (name: string) => void;
   onOAuthCancel: () => void;
+  onEmbeddedInput: (ev: McpEmbeddedInput) => void;
+  onEmbeddedCancel: () => void;
 };
 
 function summarizeTransport(server: Record<string, unknown>): string {
@@ -149,6 +154,7 @@ export function renderMcp(props: McpProps) {
           </div>`
         : nothing}
       ${props.oauthFlow ? renderOAuthBanner(props) : nothing}
+      ${props.embeddedFlow ? renderEmbeddedViewport(props) : nothing}
       ${!props.servers
         ? html`<div class="callout info" style="margin-top: 16px;">${t("common.loading")}</div>`
         : entries.length === 0
@@ -527,6 +533,159 @@ function renderOAuthBanner(props: McpProps) {
           ${t("mcpView.oauth.waiting")}
         </button>
       </div>
+    </div>
+  </div>`;
+}
+
+/** Map a special keyboard key to a CDP/puppeteer key name, or null if printable. */
+function mapSpecialKey(key: string): string | null {
+  switch (key) {
+    case "Enter":
+    case "Tab":
+    case "Backspace":
+    case "Delete":
+    case "Escape":
+    case "ArrowUp":
+    case "ArrowDown":
+    case "ArrowLeft":
+    case "ArrowRight":
+    case "Home":
+    case "End":
+    case "PageUp":
+    case "PageDown":
+      return key;
+    default:
+      return null;
+  }
+}
+
+// Module-level pointer state: the view is stateless, so drag tracking and
+// move-throttling live here.
+let embeddedPointerDown = false;
+let embeddedLastMoveMs = 0;
+
+function embeddedPoint(
+  ev: MouseEvent,
+  viewport: { w: number; h: number },
+): { x: number; y: number } {
+  const target = ev.currentTarget as HTMLElement;
+  const rect = target.getBoundingClientRect();
+  const x = rect.width > 0 ? ((ev.clientX - rect.left) / rect.width) * viewport.w : 0;
+  const y = rect.height > 0 ? ((ev.clientY - rect.top) / rect.height) * viewport.h : 0;
+  return { x: Math.round(x), y: Math.round(y) };
+}
+
+function renderEmbeddedViewport(props: McpProps) {
+  const flow = props.embeddedFlow!;
+  const { w, h } = flow.viewport;
+  const interactive = flow.phase === "interactive";
+  const src = flow.frame ? `data:image/jpeg;base64,${flow.frame.dataBase64}` : null;
+
+  const onMouseDown = (ev: MouseEvent) => {
+    if (!interactive) {
+      return;
+    }
+    ev.preventDefault();
+    embeddedPointerDown = true;
+    const p = embeddedPoint(ev, flow.viewport);
+    props.onEmbeddedInput({ kind: "mouse", action: "down", x: p.x, y: p.y });
+  };
+  const onMouseUp = (ev: MouseEvent) => {
+    if (!interactive) {
+      return;
+    }
+    embeddedPointerDown = false;
+    const p = embeddedPoint(ev, flow.viewport);
+    props.onEmbeddedInput({ kind: "mouse", action: "up", x: p.x, y: p.y });
+  };
+  const onMouseMove = (ev: MouseEvent) => {
+    if (!interactive || !embeddedPointerDown) {
+      return;
+    }
+    const now = Date.now();
+    if (now - embeddedLastMoveMs < 40) {
+      return;
+    }
+    embeddedLastMoveMs = now;
+    const p = embeddedPoint(ev, flow.viewport);
+    props.onEmbeddedInput({ kind: "mouse", action: "move", x: p.x, y: p.y });
+  };
+  const onClick = (ev: MouseEvent) => {
+    if (!interactive) {
+      return;
+    }
+    const p = embeddedPoint(ev, flow.viewport);
+    props.onEmbeddedInput({ kind: "mouse", action: "click", x: p.x, y: p.y });
+  };
+  const onWheel = (ev: WheelEvent) => {
+    if (!interactive) {
+      return;
+    }
+    ev.preventDefault();
+    const p = embeddedPoint(ev, flow.viewport);
+    props.onEmbeddedInput({
+      kind: "wheel",
+      x: p.x,
+      y: p.y,
+      deltaX: Math.round(ev.deltaX),
+      deltaY: Math.round(ev.deltaY),
+    });
+  };
+  const onKeyDown = (ev: KeyboardEvent) => {
+    if (!interactive) {
+      return;
+    }
+    const special = mapSpecialKey(ev.key);
+    if (special) {
+      ev.preventDefault();
+      props.onEmbeddedInput({ kind: "key", action: "press", key: special });
+    } else if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      ev.preventDefault();
+      props.onEmbeddedInput({ kind: "key", action: "type", text: ev.key });
+    }
+  };
+
+  return html`<div class="callout info" style="margin-top: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+      <div>
+        <div style="font-weight: 600;">
+          ${t("mcpView.oauth.embedded.title", { name: flow.name })}
+        </div>
+        <div class="muted" style="font-size: 13px;">
+          ${flow.phase === "loading"
+            ? t("mcpView.oauth.embedded.loading")
+            : t("mcpView.oauth.embedded.subtitle")}
+        </div>
+      </div>
+      <button class="btn btn--sm ghost" style="margin-left: auto;" @click=${props.onEmbeddedCancel}>
+        ${t("mcpView.oauth.embedded.cancel")}
+      </button>
+    </div>
+    <div
+      tabindex="0"
+      style="position: relative; width: 100%; max-width: ${w}px; aspect-ratio: ${w} / ${h}; margin: 0 auto; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; outline: none; cursor: ${interactive
+        ? "crosshair"
+        : "progress"}; background: var(--surface);"
+      @mousedown=${onMouseDown}
+      @mouseup=${onMouseUp}
+      @mousemove=${onMouseMove}
+      @click=${onClick}
+      @wheel=${onWheel}
+      @keydown=${onKeyDown}
+    >
+      ${src
+        ? html`<img
+            src=${src}
+            alt=${t("mcpView.oauth.embedded.title", { name: flow.name })}
+            draggable="false"
+            style="display: block; width: 100%; height: 100%; user-select: none; pointer-events: none;"
+          />`
+        : html`<div
+            class="muted"
+            style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 13px;"
+          >
+            ${t("mcpView.oauth.embedded.loading")}
+          </div>`}
     </div>
   </div>`;
 }

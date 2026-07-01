@@ -23,6 +23,8 @@ function createState(request: RequestFn, overrides: Partial<McpState> = {}): Mcp
     mcpOAuthStatus: {},
     mcpOAuthFlow: null,
     mcpOAuthPopup: null,
+    mcpEmbeddedFlow: null,
+    mcpEmbeddedPollTimer: null,
     mcpTestStatus: {},
     ...overrides,
   };

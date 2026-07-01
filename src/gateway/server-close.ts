@@ -7,6 +7,7 @@ import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
+import { teardownAllEmbeddedOAuth } from "./mcp-oauth-embedded.js";
 
 const shutdownLog = createSubsystemLogger("gateway/shutdown");
 const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
@@ -60,6 +61,7 @@ export async function runGatewayClosePrelude(params: {
   params.stopModelPricingRefresh?.();
   params.stopChannelHealthMonitor?.();
   params.clearSecretsRuntimeSnapshot?.();
+  teardownAllEmbeddedOAuth();
   await params.closeMcpServer?.().catch(() => {});
 }
 

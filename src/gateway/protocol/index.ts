@@ -342,6 +342,22 @@ import {
   McpOAuthRefreshParamsSchema,
   type McpOAuthRefreshResult,
   McpOAuthRefreshResultSchema,
+  type McpOAuthEmbeddedStartParams,
+  McpOAuthEmbeddedStartParamsSchema,
+  type McpOAuthEmbeddedStartResult,
+  McpOAuthEmbeddedStartResultSchema,
+  type McpOAuthEmbeddedPollParams,
+  McpOAuthEmbeddedPollParamsSchema,
+  type McpOAuthEmbeddedPollResult,
+  McpOAuthEmbeddedPollResultSchema,
+  type McpOAuthEmbeddedInputParams,
+  McpOAuthEmbeddedInputParamsSchema,
+  type McpOAuthEmbeddedInputResult,
+  McpOAuthEmbeddedInputResultSchema,
+  type McpOAuthEmbeddedCancelParams,
+  McpOAuthEmbeddedCancelParamsSchema,
+  type McpOAuthEmbeddedCancelResult,
+  McpOAuthEmbeddedCancelResultSchema,
   type ToolsEffectiveParams,
   ToolsEffectiveParamsSchema,
   type ToolsEffectiveResult,
@@ -592,6 +608,18 @@ export const validateMcpOAuthDisconnectParams = ajv.compile<McpOAuthDisconnectPa
 );
 export const validateMcpOAuthRefreshParams = ajv.compile<McpOAuthRefreshParams>(
   McpOAuthRefreshParamsSchema,
+);
+export const validateMcpOAuthEmbeddedStartParams = ajv.compile<McpOAuthEmbeddedStartParams>(
+  McpOAuthEmbeddedStartParamsSchema,
+);
+export const validateMcpOAuthEmbeddedPollParams = ajv.compile<McpOAuthEmbeddedPollParams>(
+  McpOAuthEmbeddedPollParamsSchema,
+);
+export const validateMcpOAuthEmbeddedInputParams = ajv.compile<McpOAuthEmbeddedInputParams>(
+  McpOAuthEmbeddedInputParamsSchema,
+);
+export const validateMcpOAuthEmbeddedCancelParams = ajv.compile<McpOAuthEmbeddedCancelParams>(
+  McpOAuthEmbeddedCancelParamsSchema,
 );
 export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
   ToolsEffectiveParamsSchema,
@@ -854,6 +882,14 @@ export {
   McpOAuthDisconnectParamsSchema,
   McpOAuthRefreshParamsSchema,
   McpOAuthRefreshResultSchema,
+  McpOAuthEmbeddedStartParamsSchema,
+  McpOAuthEmbeddedStartResultSchema,
+  McpOAuthEmbeddedPollParamsSchema,
+  McpOAuthEmbeddedPollResultSchema,
+  McpOAuthEmbeddedInputParamsSchema,
+  McpOAuthEmbeddedInputResultSchema,
+  McpOAuthEmbeddedCancelParamsSchema,
+  McpOAuthEmbeddedCancelResultSchema,
   ToolsEffectiveParamsSchema,
   SkillsInstallParamsSchema,
   SkillsSearchParamsSchema,
@@ -992,6 +1028,14 @@ export type {
   McpOAuthDisconnectParams,
   McpOAuthRefreshParams,
   McpOAuthRefreshResult,
+  McpOAuthEmbeddedStartParams,
+  McpOAuthEmbeddedStartResult,
+  McpOAuthEmbeddedPollParams,
+  McpOAuthEmbeddedPollResult,
+  McpOAuthEmbeddedInputParams,
+  McpOAuthEmbeddedInputResult,
+  McpOAuthEmbeddedCancelParams,
+  McpOAuthEmbeddedCancelResult,
   ToolsEffectiveParams,
   ToolsEffectiveResult,
   SkillsBinsParams,

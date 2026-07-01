@@ -105,6 +105,9 @@ import {
   loadMcpServers,
   saveMcpServer,
   startMcpOAuth,
+  startMcpOAuthEmbedded,
+  sendMcpEmbeddedInput,
+  cancelMcpOAuthEmbedded,
   testMcpServer,
   disconnectMcpOAuth,
   cancelMcpOAuth,
@@ -454,6 +457,12 @@ type McpOAuthHostState = {
 };
 
 async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {
+  // Prefer the server-side embedded (headless-browser) flow when the gateway
+  // can run it; fall back to the popup flow when it reports unavailable.
+  const embedded = await startMcpOAuthEmbedded(state as never, name);
+  if (embedded.ok) {
+    return;
+  }
   const flow = await startMcpOAuth(state as never, name);
   if (!flow) {
     return;
@@ -2621,6 +2630,7 @@ export function renderApp(state: AppViewState) {
                 presetId: state.mcpPresetId,
                 oauthStatus: state.mcpOAuthStatus,
                 oauthFlow: state.mcpOAuthFlow,
+                embeddedFlow: state.mcpEmbeddedFlow,
                 testStatus: state.mcpTestStatus,
                 onAddModeChange: (mode) => (state.mcpAddMode = mode),
                 onLinkUrlChange: (next) => (state.mcpLinkUrl = next),
@@ -2723,6 +2733,12 @@ export function renderApp(state: AppViewState) {
                 },
                 onOAuthCancel: () => {
                   cancelMcpOAuth(state);
+                },
+                onEmbeddedInput: (ev) => {
+                  void sendMcpEmbeddedInput(state, ev);
+                },
+                onEmbeddedCancel: () => {
+                  cancelMcpOAuthEmbedded(state);
                 },
               }),
             )

@@ -411,6 +411,8 @@ export class GenesisApp extends LitElement {
   @state() mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus> = {};
   @state() mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null = null;
   @state() mcpOAuthPopup: Window | null = null;
+  @state() mcpEmbeddedFlow: import("./controllers/mcp.ts").McpEmbeddedFlow | null = null;
+  mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null = null;
   @state() mcpTestStatus: Record<string, { ok: boolean; message: string } | null> = {};
 
   @state() sessionsLoading = false;

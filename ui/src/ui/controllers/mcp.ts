@@ -27,6 +27,8 @@ export type McpState = {
   mcpOAuthStatus: Record<string, McpOAuthStatus>;
   mcpOAuthFlow: McpOAuthFlow | null;
   mcpOAuthPopup: Window | null;
+  mcpEmbeddedFlow: McpEmbeddedFlow | null;
+  mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null;
   mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
 };
 
@@ -83,6 +85,33 @@ export type McpOAuthFlow = {
   error?: string;
 };
 
+export type McpEmbeddedPhase = "loading" | "interactive" | "done" | "error";
+
+export type McpEmbeddedFrame = { dataBase64: string; w: number; h: number };
+
+/** Live state of a server-side headless-browser (embedded) OAuth flow. */
+export type McpEmbeddedFlow = {
+  name: string;
+  sessionId: string;
+  viewport: { w: number; h: number };
+  phase: McpEmbeddedPhase;
+  frame: McpEmbeddedFrame | null;
+  seq: number;
+  providerName?: string;
+  message?: string;
+};
+
+export type McpEmbeddedInput =
+  | {
+      kind: "mouse";
+      action: "move" | "down" | "up" | "click";
+      x: number;
+      y: number;
+      button?: "left" | "right" | "middle";
+    }
+  | { kind: "wheel"; x: number; y: number; deltaX: number; deltaY: number }
+  | { kind: "key"; action: "press" | "type"; text?: string; key?: string };
+
 type McpServersResult = {
   path: string;
   servers: McpServersMap;
@@ -110,6 +139,23 @@ type McpTestResult = {
   ok: boolean;
   message: string;
 };
+
+type McpEmbeddedStartResult = {
+  sessionId: string;
+  viewport: { w: number; h: number };
+  providerName?: string;
+};
+
+type McpEmbeddedPollResult = {
+  phase: McpEmbeddedPhase;
+  seq: number;
+  frame?: McpEmbeddedFrame;
+  message?: string;
+  providerName?: string;
+  expiresAtMs?: number | null;
+};
+
+const EMBEDDED_POLL_INTERVAL_MS = 500;
 
 const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
@@ -326,6 +372,138 @@ export async function completeMcpOAuth(
     state.mcpMessage = { kind: "error", text: `OAuth failed: ${getErrorMessage(err)}` };
     state.mcpOAuthFlow = null;
     return false;
+  }
+}
+
+function stopEmbeddedPoll(state: McpState) {
+  if (state.mcpEmbeddedPollTimer) {
+    clearTimeout(state.mcpEmbeddedPollTimer);
+    state.mcpEmbeddedPollTimer = null;
+  }
+}
+
+/**
+ * Start a server-side headless-browser (embedded) OAuth flow. Returns
+ * `{ unavailable: true }` when the gateway cannot run a headless browser so the
+ * caller can fall back to the popup flow.
+ */
+export async function startMcpOAuthEmbedded(
+  state: McpState,
+  name: string,
+  scopes?: string[],
+): Promise<{ ok: boolean; unavailable?: boolean }> {
+  if (!state.client || !state.connected) {
+    return { ok: false };
+  }
+  cancelMcpOAuthEmbedded(state);
+  try {
+    const res = await state.client.request<McpEmbeddedStartResult>("mcp.oauth.embedded.start", {
+      name,
+      scopes,
+    });
+    state.mcpEmbeddedFlow = {
+      name,
+      sessionId: res.sessionId,
+      viewport: res.viewport,
+      phase: "loading",
+      frame: null,
+      seq: 0,
+      providerName: res.providerName,
+    };
+    scheduleEmbeddedPoll(state, 0);
+    return { ok: true };
+  } catch {
+    // Any start failure means the embedded path is not usable right now; signal
+    // the caller to fall back to the popup flow.
+    return { ok: false, unavailable: true };
+  }
+}
+
+function scheduleEmbeddedPoll(state: McpState, delayMs: number) {
+  stopEmbeddedPoll(state);
+  state.mcpEmbeddedPollTimer = setTimeout(() => {
+    void pollMcpEmbeddedOnce(state);
+  }, delayMs);
+}
+
+async function pollMcpEmbeddedOnce(state: McpState) {
+  const flow = state.mcpEmbeddedFlow;
+  if (!flow || !state.client || !state.connected) {
+    return;
+  }
+  try {
+    const res = await state.client.request<McpEmbeddedPollResult>("mcp.oauth.embedded.poll", {
+      sessionId: flow.sessionId,
+    });
+    // The flow may have been cancelled/replaced while the request was in flight.
+    if (state.mcpEmbeddedFlow?.sessionId !== flow.sessionId) {
+      return;
+    }
+    state.mcpEmbeddedFlow = {
+      ...flow,
+      phase: res.phase,
+      seq: res.seq,
+      frame: res.frame ?? flow.frame,
+      providerName: res.providerName ?? flow.providerName,
+      message: res.message,
+    };
+    if (res.phase === "done") {
+      stopEmbeddedPoll(state);
+      state.mcpOAuthStatus = {
+        ...state.mcpOAuthStatus,
+        [flow.name]: {
+          connected: true,
+          requiresAuth: false,
+          providerName: res.providerName ?? flow.providerName,
+          expiresAtMs: res.expiresAtMs ?? null,
+        },
+      };
+      state.mcpMessage = { kind: "success", text: `Connected to "${flow.name}".` };
+      state.mcpEmbeddedFlow = null;
+      return;
+    }
+    if (res.phase === "error") {
+      stopEmbeddedPoll(state);
+      state.mcpMessage = {
+        kind: "error",
+        text: res.message ?? "Embedded OAuth failed.",
+      };
+      state.mcpEmbeddedFlow = null;
+      return;
+    }
+    scheduleEmbeddedPoll(state, EMBEDDED_POLL_INTERVAL_MS);
+  } catch (err) {
+    if (state.mcpEmbeddedFlow?.sessionId !== flow.sessionId) {
+      return;
+    }
+    stopEmbeddedPoll(state);
+    state.mcpMessage = { kind: "error", text: `Embedded OAuth failed: ${getErrorMessage(err)}` };
+    state.mcpEmbeddedFlow = null;
+  }
+}
+
+/** Relay a pointer/keyboard event into the embedded headless browser. */
+export async function sendMcpEmbeddedInput(state: McpState, ev: McpEmbeddedInput) {
+  const flow = state.mcpEmbeddedFlow;
+  if (!flow || !state.client || !state.connected || flow.phase !== "interactive") {
+    return;
+  }
+  try {
+    await state.client.request("mcp.oauth.embedded.input", { sessionId: flow.sessionId, ...ev });
+  } catch {
+    // Best effort; the next poll surfaces any terminal error.
+  }
+}
+
+/** Cancel and tear down the active embedded OAuth flow. */
+export function cancelMcpOAuthEmbedded(state: McpState) {
+  stopEmbeddedPoll(state);
+  const flow = state.mcpEmbeddedFlow;
+  state.mcpEmbeddedFlow = null;
+  if (flow && state.client && state.connected) {
+    void state.client
+      .request("mcp.oauth.embedded.cancel", { sessionId: flow.sessionId })
+      .catch(() => {});
   }
 }
 

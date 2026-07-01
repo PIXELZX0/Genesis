@@ -4,6 +4,7 @@ read_when:
   - Connecting a remote MCP server that requires OAuth (Notion, Linear, Slack, and similar)
   - Debugging the Control UI MCP OAuth popup flow
   - Configuring a self-hosted MCP server behind a private network
+  - Enabling the embedded server-side headless-browser sign-in flow
 title: "MCP OAuth"
 ---
 
@@ -40,6 +41,72 @@ sequenceDiagram
    [Callback origin checks](#callback-origin-checks)).
 5. `mcp.oauth.callback` exchanges the code (plus the PKCE verifier and any client
    secret) at the token endpoint and stores the resulting tokens.
+
+## Embedded browser flow
+
+By default the operator authorizes in their own browser (the popup above). When
+the Control UI is accessed remotely and the provider redirect cannot reach the
+operator's browser, Genesis can instead run the sign-in inside a headless
+browser on the gateway and stream it into the panel. When the operator clicks
+**Connect**, the UI tries `mcp.oauth.embedded.start` first and falls back to the
+popup flow if the gateway reports it unavailable.
+
+```mermaid
+sequenceDiagram
+    participant UI as Control UI
+    participant GW as Gateway
+    participant B as Headless browser
+    participant P as OAuth provider
+    UI->>GW: mcp.oauth.embedded.start
+    GW->>B: launch, navigate to authorize URL (PKCE S256)
+    loop until done
+        UI->>GW: mcp.oauth.embedded.poll
+        GW-->>UI: phase + JPEG frame
+        UI->>GW: mcp.oauth.embedded.input (pointer/key)
+        GW->>B: relay input
+    end
+    P-->>B: redirect to /mcp-oauth-callback.html?code&state
+    GW->>P: exchange code + verifier for tokens
+    GW-->>UI: phase=done, connected
+```
+
+The embedded path reuses the same PKCE state and token exchange as the popup
+flow — only the front end differs. The browser runs with an ephemeral profile
+that is deleted on teardown, one flow per connection, and a hard timeout. All
+four `mcp.oauth.embedded.*` methods are admin-scoped.
+
+### Enabling it
+
+The gateway needs a Chromium/Chrome executable and the `puppeteer-core` package.
+`puppeteer-core` is an optional runtime dependency that is not installed by
+default; install it on the gateway host (`pnpm add puppeteer-core`, or your
+package manager of choice) to enable the embedded flow. It is imported lazily,
+so when it is absent the gateway simply reports the flow unavailable. Chromium
+resolution order is the configured path, then `PUPPETEER_EXECUTABLE_PATH` /
+`CHROME_PATH` / `CHROMIUM_PATH`, then platform defaults.
+
+```json
+{
+  "mcp": {
+    "embeddedOAuth": {
+      "chromiumPath": "/usr/bin/chromium"
+    }
+  }
+}
+```
+
+When no Chromium resolves (for example mobile-node or mac-app gateways), the
+embedded flow is unavailable and the UI uses the popup flow.
+
+### Security tradeoffs
+
+Unlike the popup flow, provider credentials are entered into a browser running
+on the gateway host and screenshots of those pages stream over the connection.
+This is a larger trust surface: prefer it only on a gateway you control, always
+over TLS. Many providers also block headless browsers (captcha, device
+verification), in which case the sign-in will fail and you should use the popup
+flow or a provider that supports it. For a lighter alternative without
+credential transit, an RFC 8628 device-code flow is the recommended direction.
 
 ## Token storage
 

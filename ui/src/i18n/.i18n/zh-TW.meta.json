@@ -104,6 +104,10 @@
     "mcpView.list.transportHttp",
     "mcpView.list.transportStdio",
     "mcpView.oauth.cancelled",
+    "mcpView.oauth.embedded.cancel",
+    "mcpView.oauth.embedded.loading",
+    "mcpView.oauth.embedded.subtitle",
+    "mcpView.oauth.embedded.title",
     "mcpView.oauth.failed",
     "mcpView.oauth.manualHint",
     "mcpView.oauth.manualTitle",
@@ -232,12 +236,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-06-27T08:10:27.648Z",
+  "generatedAt": "2026-07-01T04:01:22.557Z",
   "locale": "zh-TW",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "5712719061b6d8d302f62aba9f9c196d2e759915dfb9496b66bd796eb8a16ba1",
-  "totalKeys": 963,
+  "sourceHash": "aea857f04ac648478321784fba84f1965c8ea7b3d656f8a3d5a0ce765dab0cfb",
+  "totalKeys": 967,
   "translatedKeys": 732,
   "workflow": 1
 }

@@ -290,6 +290,8 @@ export type AppViewState = {
   mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus>;
   mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null;
   mcpOAuthPopup: Window | null;
+  mcpEmbeddedFlow: import("./controllers/mcp.ts").McpEmbeddedFlow | null;
+  mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null;
   mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;

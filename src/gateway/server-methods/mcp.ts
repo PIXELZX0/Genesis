@@ -11,11 +11,21 @@ import {
   ensureFreshMcpOAuthToken,
   getStoredMcpOAuthStatus,
   listStoredMcpOAuthStatuses,
+  redirectUriFor,
   refreshMcpOAuthToken,
   revokeMcpOAuthToken,
   setMcpServerConfigCache,
   startMcpOAuthFlow,
 } from "../mcp-metadata.js";
+import {
+  cancelEmbeddedOAuth,
+  type EmbeddedInputEvent,
+  inputEmbeddedOAuth,
+  normalizeViewport,
+  pollEmbeddedOAuth,
+  resolveChromiumPath,
+  startEmbeddedOAuth,
+} from "../mcp-oauth-embedded.js";
 import { deleteMcpOAuthToken, pruneExpiredMcpOAuthStates } from "../mcp-oauth-store.js";
 import {
   ErrorCodes,
@@ -38,6 +48,14 @@ import {
   validateMcpOAuthStatusParams,
   validateMcpOAuthDisconnectParams,
   validateMcpOAuthRefreshParams,
+  validateMcpOAuthEmbeddedStartParams,
+  validateMcpOAuthEmbeddedPollParams,
+  validateMcpOAuthEmbeddedInputParams,
+  validateMcpOAuthEmbeddedCancelParams,
+  type McpOAuthEmbeddedStartResult,
+  type McpOAuthEmbeddedPollResult,
+  type McpOAuthEmbeddedInputResult,
+  type McpOAuthEmbeddedCancelResult,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
@@ -55,6 +73,7 @@ export type McpRuntime = {
 let _runtime: McpRuntime | null = null;
 let _lastConfigCacheKey: string | null = null;
 let _allowedHosts: string[] = [];
+let _embeddedChromiumPath: string | undefined;
 
 const DEFAULT_MCP_CLIENT_ID = "genesis-control-ui";
 
@@ -124,6 +143,8 @@ async function refreshServerConfigCache(): Promise<Record<string, Record<string,
     return {};
   }
   _allowedHosts = normalizeAllowedHosts(loaded.config?.mcp?.metadataFetch?.allowedHosts);
+  const configuredChromium = loaded.config?.mcp?.embeddedOAuth?.chromiumPath;
+  _embeddedChromiumPath = typeof configuredChromium === "string" ? configuredChromium : undefined;
   const cacheKey = JSON.stringify(loaded.mcpServers);
   if (_lastConfigCacheKey !== cacheKey) {
     setMcpServerConfigCache(loaded.mcpServers as never);
@@ -492,7 +513,214 @@ export const mcpHandlers: GatewayRequestHandlers = {
     });
     respond(true, result satisfies McpOAuthRefreshResult, undefined);
   },
+  "mcp.oauth.embedded.start": async ({ params, client, respond }) => {
+    if (!validateMcpOAuthEmbeddedStartParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid mcp.oauth.embedded.start params: ${formatValidationErrors(validateMcpOAuthEmbeddedStartParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    if (!_runtime) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          "MCP OAuth runtime is not configured. Set a gateway web URL in the server config.",
+        ),
+      );
+      return;
+    }
+    const connId = client?.connId;
+    if (!connId) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "Embedded OAuth requires a connected client."),
+      );
+      return;
+    }
+    const servers = await refreshServerConfigCache();
+    const server = servers[params.name];
+    if (!server) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `No MCP server named "${params.name}".`),
+      );
+      return;
+    }
+    const chromiumPath = resolveChromiumPath(_embeddedChromiumPath);
+    if (!chromiumPath) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          "Embedded OAuth is unavailable: no Chromium executable found on this gateway. Use the popup flow instead.",
+        ),
+      );
+      return;
+    }
+    const gatewayWebUrl = _runtime.gatewayWebUrl;
+    const allowedHosts = _allowedHosts;
+    try {
+      pruneExpiredMcpOAuthStates();
+      const flow = await startMcpOAuthFlow(
+        {
+          gatewayWebUrl,
+          resolveClientId: (name, srv) => resolveClientIdFor(name, srv as Record<string, unknown>),
+        },
+        params.name,
+        server as never,
+        params.scopes,
+      );
+      const viewport = normalizeViewport(params.viewport);
+      const result = await startEmbeddedOAuth({
+        connId,
+        name: params.name,
+        authorizeUrl: flow.authorizeUrl,
+        oauthState: flow.state,
+        chromiumPath,
+        redirectUriPrefix: redirectUriFor(gatewayWebUrl),
+        viewport,
+        providerName: flow.providerName,
+        onComplete: (args) =>
+          completeMcpOAuthFlow(
+            {
+              gatewayWebUrl,
+              resolveClientId: (name, srv) =>
+                resolveClientIdFor(name, srv as Record<string, unknown>),
+            },
+            args,
+            { allowedHosts },
+          ),
+      });
+      respond(true, result satisfies McpOAuthEmbeddedStartResult, undefined);
+    } catch (err) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, getErrorMessage(err)));
+    }
+  },
+  "mcp.oauth.embedded.poll": async ({ params, respond }) => {
+    if (!validateMcpOAuthEmbeddedPollParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid mcp.oauth.embedded.poll params: ${formatValidationErrors(validateMcpOAuthEmbeddedPollParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const poll = await pollEmbeddedOAuth(params.sessionId);
+    if (!poll) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "No such embedded OAuth session."),
+      );
+      return;
+    }
+    respond(true, poll satisfies McpOAuthEmbeddedPollResult, undefined);
+  },
+  "mcp.oauth.embedded.input": async ({ params, respond }) => {
+    if (!validateMcpOAuthEmbeddedInputParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid mcp.oauth.embedded.input params: ${formatValidationErrors(validateMcpOAuthEmbeddedInputParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const event = toEmbeddedInputEvent(params);
+    if (!event) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "Malformed embedded OAuth input event."),
+      );
+      return;
+    }
+    const ok = await inputEmbeddedOAuth(params.sessionId, event);
+    respond(true, { ok } satisfies McpOAuthEmbeddedInputResult, undefined);
+  },
+  "mcp.oauth.embedded.cancel": async ({ params, respond }) => {
+    if (!validateMcpOAuthEmbeddedCancelParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid mcp.oauth.embedded.cancel params: ${formatValidationErrors(validateMcpOAuthEmbeddedCancelParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const ok = cancelEmbeddedOAuth(params.sessionId);
+    respond(true, { ok } satisfies McpOAuthEmbeddedCancelResult, undefined);
+  },
 };
+
+/**
+ * Translate a validated `mcp.oauth.embedded.input` payload into the registry's
+ * discriminated input event, or `null` when required fields are missing.
+ */
+function toEmbeddedInputEvent(params: {
+  kind: "mouse" | "wheel" | "key";
+  action?: "move" | "down" | "up" | "click" | "press" | "type";
+  x?: number;
+  y?: number;
+  button?: "left" | "right" | "middle";
+  deltaX?: number;
+  deltaY?: number;
+  text?: string;
+  key?: string;
+}): EmbeddedInputEvent | null {
+  if (params.kind === "mouse") {
+    const action = params.action;
+    if (
+      (action === "move" || action === "down" || action === "up" || action === "click") &&
+      typeof params.x === "number" &&
+      typeof params.y === "number"
+    ) {
+      return { kind: "mouse", action, x: params.x, y: params.y, button: params.button };
+    }
+    return null;
+  }
+  if (params.kind === "wheel") {
+    if (
+      typeof params.x === "number" &&
+      typeof params.y === "number" &&
+      typeof params.deltaX === "number" &&
+      typeof params.deltaY === "number"
+    ) {
+      return {
+        kind: "wheel",
+        x: params.x,
+        y: params.y,
+        deltaX: params.deltaX,
+        deltaY: params.deltaY,
+      };
+    }
+    return null;
+  }
+  if (params.action === "type" && typeof params.text === "string") {
+    return { kind: "key", action: "type", text: params.text };
+  }
+  if (params.action === "press" && typeof params.key === "string") {
+    return { kind: "key", action: "press", key: params.key };
+  }
+  return null;
+}
 
 export function listAllStoredMcpOAuthStatuses() {
   return listStoredMcpOAuthStatuses();

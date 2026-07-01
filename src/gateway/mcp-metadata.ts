@@ -786,7 +786,7 @@ function deriveNameFromUrl(url: string): string {
   }
 }
 
-function redirectUriFor(gatewayWebUrl: string): string {
+export function redirectUriFor(gatewayWebUrl: string): string {
   return `${gatewayWebUrl.replace(/\/$/, "")}${CALLBACK_PATH}`;
 }
 
