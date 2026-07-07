@@ -32,7 +32,7 @@ jobs:
   validate:
     name: Validate npm release package
     if: github.repository == 'PIXELZX0/Genesis'
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     outputs:
       npm_dist_tag: ${{ steps.publish-target.outputs.npm_dist_tag }}
@@ -217,7 +217,7 @@ jobs:
     name: Verify published npm package
     needs: [validate, publish]
     if: github.repository == 'PIXELZX0/Genesis'
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     env:

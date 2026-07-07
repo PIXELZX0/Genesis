@@ -27,7 +27,7 @@ concurrency:
 jobs:
   build:
     name: Build docs site
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -79,7 +79,7 @@ jobs:
   deploy:
     name: Deploy docs site
     needs: build
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
       name: github-pages
