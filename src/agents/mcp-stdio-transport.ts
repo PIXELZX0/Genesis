@@ -36,6 +36,9 @@ export class GenesisStdioClientTransport implements Transport {
   constructor(private readonly serverParams: GenesisStdioServerParameters) {
     if (serverParams.stderr === "pipe" || serverParams.stderr === "overlapped") {
       this.stderrStream = new PassThrough();
+      this.stderrStream.on("error", () => {
+        // best-effort log pipe; consumer disconnect must not crash the transport
+      });
     }
   }
 
@@ -82,6 +85,7 @@ export class GenesisStdioClientTransport implements Transport {
       });
       child.stdout?.on("error", (error: Error) => this.onerror?.(error));
       if (this.stderrStream && child.stderr) {
+        child.stderr.on("error", (error: Error) => this.onerror?.(error));
         child.stderr.pipe(this.stderrStream);
       }
     });
