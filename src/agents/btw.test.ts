@@ -20,9 +20,13 @@ const prepareProviderRuntimeAuthMock = vi.fn();
 const registerProviderStreamForModelMock = vi.fn();
 const diagDebugMock = vi.fn();
 
-vi.mock("@earendil-works/pi-ai", async () => {
-  const original =
-    await vi.importActual<typeof import("@earendil-works/pi-ai")>("@earendil-works/pi-ai");
+// btw.ts imports streamSimple from the "/compat" subpath (post pi-ai 0.80.2
+// migration), not the package root, so the mock must target that same
+// specifier or it silently falls through to the real implementation.
+vi.mock("@earendil-works/pi-ai/compat", async () => {
+  const original = await vi.importActual<typeof import("@earendil-works/pi-ai/compat")>(
+    "@earendil-works/pi-ai/compat",
+  );
   return {
     ...original,
     streamSimple: (...args: unknown[]) => streamSimpleMock(...args),
