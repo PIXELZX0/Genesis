@@ -2,6 +2,16 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.8
+
+### Changes
+
+- MCP: added an opt-in embedded OAuth flow for the Control UI. The gateway can run a headless Chromium, stream it to the browser, and relay pointer/keyboard input so you can complete an MCP server's OAuth login without leaving the dashboard; it falls back to the existing popup flow when Chromium isn't available.
+
+### Fixes
+
+- Agents: fixed a crash-and-restart loop that could happen when a bundled MCP or LSP server failed to start (bad command, broken stderr pipe) during a new session's first turn, and parallelized bundled MCP/LSP server startup so a new session no longer waits through each configured server's connection timeout one at a time.
+
 ## 2026.6.29
 
 ### Changes
