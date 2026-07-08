@@ -225,6 +225,15 @@ export function createSessionMcpRuntime(params: {
       const usedServerNames = new Set<string>();
 
       try {
+        // Resolve transports and sanitize names synchronously first, in
+        // config-declaration order, so tool/server ordering stays deterministic
+        // for prompt caching regardless of which server connects fastest below.
+        type PreparedServer = {
+          serverName: string;
+          safeServerName: string;
+          resolved: NonNullable<ReturnType<typeof resolveMcpTransport>>;
+        };
+        const prepared: PreparedServer[] = [];
         for (const [serverName, rawServer] of Object.entries(loaded.mcpServers)) {
           failIfDisposed();
           const resolved = resolveMcpTransport(serverName, rawServer);
@@ -237,60 +246,78 @@ export function createSessionMcpRuntime(params: {
               `bundle-mcp: server key "${serverName}" registered as "${safeServerName}" for provider-safe tool names.`,
             );
           }
+          prepared.push({ serverName, safeServerName, resolved });
+        }
 
-          const client = new Client(
-            {
-              name: "genesis-bundle-mcp",
-              version: "0.0.0",
-            },
-            {
-              jsonSchemaValidator: createBundleMcpJsonSchemaValidator(),
-            },
-          );
-          const session: BundleMcpSession = {
-            serverName,
-            client,
-            transport: resolved.transport,
-            transportType: resolved.transportType,
-            detachStderr: resolved.detachStderr,
-          };
-          sessions.set(serverName, session);
-
-          try {
-            failIfDisposed();
-            await connectWithTimeout(client, resolved.transport, resolved.connectionTimeoutMs);
-            failIfDisposed();
-            const listedTools = await listAllTools(client);
-            failIfDisposed();
-            servers[serverName] = {
+        // Connect to all configured MCP servers concurrently instead of one at
+        // a time; a single slow/unreachable server otherwise serializes its
+        // full connectionTimeoutMs onto every other server's session startup.
+        const results = await Promise.allSettled(
+          prepared.map(async ({ serverName, safeServerName, resolved }) => {
+            const client = new Client(
+              {
+                name: "genesis-bundle-mcp",
+                version: "0.0.0",
+              },
+              {
+                jsonSchemaValidator: createBundleMcpJsonSchemaValidator(),
+              },
+            );
+            const session: BundleMcpSession = {
               serverName,
-              launchSummary: resolved.description,
-              toolCount: listedTools.length,
+              client,
+              transport: resolved.transport,
+              transportType: resolved.transportType,
+              detachStderr: resolved.detachStderr,
             };
-            for (const tool of listedTools) {
-              const toolName = tool.name.trim();
-              if (!toolName) {
-                continue;
+            sessions.set(serverName, session);
+
+            try {
+              failIfDisposed();
+              await connectWithTimeout(client, resolved.transport, resolved.connectionTimeoutMs);
+              failIfDisposed();
+              const listedTools = await listAllTools(client);
+              failIfDisposed();
+              return { serverName, safeServerName, resolved, listedTools };
+            } catch (error) {
+              if (!disposed) {
+                logWarn(
+                  `bundle-mcp: failed to start server "${serverName}" (${resolved.description}): ${redactErrorUrls(error)}`,
+                );
               }
-              tools.push({
-                serverName,
-                safeServerName,
-                toolName,
-                title: tool.title,
-                description: normalizeOptionalString(tool.description),
-                inputSchema: tool.inputSchema,
-                fallbackDescription: `Provided by bundle MCP server "${serverName}" (${resolved.description}).`,
-              });
+              await disposeSession(session);
+              sessions.delete(serverName);
+              throw error;
             }
-          } catch (error) {
-            if (!disposed) {
-              logWarn(
-                `bundle-mcp: failed to start server "${serverName}" (${resolved.description}): ${redactErrorUrls(error)}`,
-              );
+          }),
+        );
+
+        failIfDisposed();
+
+        for (const result of results) {
+          if (result.status !== "fulfilled") {
+            continue;
+          }
+          const { serverName, safeServerName, resolved, listedTools } = result.value;
+          servers[serverName] = {
+            serverName,
+            launchSummary: resolved.description,
+            toolCount: listedTools.length,
+          };
+          for (const tool of listedTools) {
+            const toolName = tool.name.trim();
+            if (!toolName) {
+              continue;
             }
-            await disposeSession(session);
-            sessions.delete(serverName);
-            failIfDisposed();
+            tools.push({
+              serverName,
+              safeServerName,
+              toolName,
+              title: tool.title,
+              description: normalizeOptionalString(tool.description),
+              inputSchema: tool.inputSchema,
+              fallbackDescription: `Provided by bundle MCP server "${serverName}" (${resolved.description}).`,
+            });
           }
         }
 

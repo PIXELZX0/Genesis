@@ -8,6 +8,7 @@ import { loadEmbeddedPiLspConfig } from "./embedded-pi-lsp.js";
 import {
   resolveStdioMcpServerLaunchConfig,
   describeStdioMcpServerLaunchConfig,
+  type StdioMcpServerLaunchConfig,
 } from "./mcp-stdio.js";
 import type { AnyAgentTool } from "./tools/common.js";
 
@@ -318,19 +319,51 @@ export async function createBundleLspToolRuntime(params: {
   const tools: AnyAgentTool[] = [];
 
   try {
+    // Resolve launch configs synchronously first, in config-declaration order,
+    // so tool ordering stays deterministic for prompt caching regardless of
+    // which server finishes spawning/initializing first below.
+    const prepared: Array<{ serverName: string; launchConfig: StdioMcpServerLaunchConfig }> = [];
     for (const [serverName, rawServer] of Object.entries(loaded.lspServers)) {
       const launch = resolveStdioMcpServerLaunchConfig(rawServer);
       if (!launch.ok) {
         logWarn(`bundle-lsp: skipped server "${serverName}" because ${launch.reason}.`);
         continue;
       }
-      const launchConfig = launch.config;
+      prepared.push({ serverName, launchConfig: launch.config });
+    }
 
-      try {
+    // Spawn and initialize all configured LSP servers concurrently instead of
+    // one at a time; a single slow-starting server otherwise serializes onto
+    // every other server's session startup.
+    const results = await Promise.allSettled(
+      prepared.map(async ({ serverName, launchConfig }) => {
         const child = spawn(launchConfig.command, launchConfig.args ?? [], {
           stdio: ["pipe", "pipe", "pipe"],
           env: { ...process.env, ...launchConfig.env },
           cwd: launchConfig.cwd,
+        });
+
+        // spawn() reports launch failures (e.g. command not found) via an async
+        // "error" event; without a listener this throws uncaught and crashes the
+        // whole gateway process (src/index.ts uncaughtException handler).
+        await new Promise<void>((resolve, reject) => {
+          child.once("error", reject);
+          child.once("spawn", () => {
+            child.off("error", reject);
+            resolve();
+          });
+        });
+        child.on("error", (error: Error) => {
+          logWarn(`bundle-lsp: ${serverName} process error: ${String(error)}`);
+        });
+        child.stdin?.on("error", (error: Error) => {
+          logWarn(`bundle-lsp: ${serverName} stdin error: ${String(error)}`);
+        });
+        child.stdout?.on("error", (error: Error) => {
+          logWarn(`bundle-lsp: ${serverName} stdout error: ${String(error)}`);
+        });
+        child.stderr?.on("error", (error: Error) => {
+          logWarn(`bundle-lsp: ${serverName} stderr error: ${String(error)}`);
         });
 
         const session: LspSession = {
@@ -343,46 +376,59 @@ export async function createBundleLspToolRuntime(params: {
           capabilities: {},
         };
 
-        child.stdout?.setEncoding("utf-8");
-        child.stdout?.on("data", (chunk: string) => handleIncomingData(session, chunk));
-        child.stderr?.setEncoding("utf-8");
-        child.stderr?.on("data", (chunk: string) => {
-          for (const line of chunk.split(/\r?\n/).filter(Boolean)) {
-            logDebug(`bundle-lsp:${serverName}: ${line.trim()}`);
-          }
-        });
-
-        const capabilities = await initializeSession(session);
-        session.capabilities = capabilities;
-        sessions.push(session);
-
-        const serverTools = buildLspTools(session);
-        for (const tool of serverTools) {
-          const normalizedName = normalizeOptionalLowercaseString(tool.name);
-          if (!normalizedName) {
-            continue;
-          }
-          if (reservedNames.has(normalizedName)) {
-            logWarn(
-              `bundle-lsp: skipped tool "${tool.name}" from server "${serverName}" because the name already exists.`,
-            );
-            continue;
-          }
-          reservedNames.add(normalizedName);
-          setPluginToolMeta(tool, {
-            pluginId: "bundle-lsp",
-            optional: false,
+        try {
+          child.stdout?.setEncoding("utf-8");
+          child.stdout?.on("data", (chunk: string) => handleIncomingData(session, chunk));
+          child.stderr?.setEncoding("utf-8");
+          child.stderr?.on("data", (chunk: string) => {
+            for (const line of chunk.split(/\r?\n/).filter(Boolean)) {
+              logDebug(`bundle-lsp:${serverName}: ${line.trim()}`);
+            }
           });
-          tools.push(tool);
-        }
 
-        logDebug(
-          `bundle-lsp: started "${serverName}" (${describeStdioMcpServerLaunchConfig(launchConfig)}) with ${serverTools.length} tools`,
-        );
-      } catch (error) {
+          const capabilities = await initializeSession(session);
+          session.capabilities = capabilities;
+
+          const serverTools = buildLspTools(session);
+          logDebug(
+            `bundle-lsp: started "${serverName}" (${describeStdioMcpServerLaunchConfig(launchConfig)}) with ${serverTools.length} tools`,
+          );
+          return { serverName, session, serverTools };
+        } catch (error) {
+          child.kill();
+          throw error;
+        }
+      }),
+    );
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const { serverName, launchConfig } = prepared[i];
+      if (result.status === "rejected") {
         logWarn(
-          `bundle-lsp: failed to start server "${serverName}" (${describeStdioMcpServerLaunchConfig(launchConfig)}): ${String(error)}`,
+          `bundle-lsp: failed to start server "${serverName}" (${describeStdioMcpServerLaunchConfig(launchConfig)}): ${String(result.reason)}`,
         );
+        continue;
+      }
+      const { session, serverTools } = result.value;
+      sessions.push(session);
+      for (const tool of serverTools) {
+        const normalizedName = normalizeOptionalLowercaseString(tool.name);
+        if (!normalizedName) {
+          continue;
+        }
+        if (reservedNames.has(normalizedName)) {
+          logWarn(
+            `bundle-lsp: skipped tool "${tool.name}" from server "${serverName}" because the name already exists.`,
+          );
+          continue;
+        }
+        reservedNames.add(normalizedName);
+        setPluginToolMeta(tool, {
+          pluginId: "bundle-lsp",
+          optional: false,
+        });
+        tools.push(tool);
       }
     }
 
