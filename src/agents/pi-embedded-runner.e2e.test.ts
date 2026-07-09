@@ -24,9 +24,14 @@ const resolveStoredSessionKeyForSessionIdMock = vi.fn();
 const loggerWarnMock = vi.fn();
 let refreshRuntimeAuthOnFirstPromptError = false;
 
-vi.mock("@earendil-works/pi-ai", async () => {
-  const actual =
-    await vi.importActual<typeof import("@earendil-works/pi-ai")>("@earendil-works/pi-ai");
+// The embedded runner's provider stream stack imports from the "/compat"
+// subpath (post pi-ai 0.80.2 migration), not the package root, so the mock
+// must target that same specifier or it silently falls through to the real
+// implementation and makes live network calls.
+vi.mock("@earendil-works/pi-ai/compat", async () => {
+  const actual = await vi.importActual<typeof import("@earendil-works/pi-ai/compat")>(
+    "@earendil-works/pi-ai/compat",
+  );
 
   const buildAssistantMessage = (model: { api: string; provider: string; id: string }) => ({
     role: "assistant" as const,
