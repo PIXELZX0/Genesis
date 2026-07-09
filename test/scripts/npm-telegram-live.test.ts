@@ -57,8 +57,8 @@ describe("npm Telegram live Docker E2E", () => {
     const workflow = readFileSync(WORKFLOW_PATH, "utf8");
 
     expect(workflow).toContain("prepare_docker_e2e_image:");
-    expect(workflow).toContain("useblacksmith/setup-docker-builder");
-    expect(workflow).toContain("useblacksmith/build-push-action");
+    expect(workflow).toContain("docker/setup-buildx-action");
+    expect(workflow).toContain("docker/build-push-action");
     expect(workflow).not.toContain("cache-from: type=gha");
     expect(workflow).not.toContain("cache-to: type=gha");
     expect(workflow).toContain("needs: [approve_release_manager, prepare_docker_e2e_image]");
