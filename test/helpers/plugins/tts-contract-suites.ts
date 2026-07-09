@@ -68,7 +68,7 @@ async function withIsolatedSpeechProviderEnvAsync<T>(
   return await withEnvAsync(isolatedSpeechProviderEnv(overrides), fn);
 }
 
-vi.mock("@earendil-works/pi-ai", () => {
+function createPiAiMockExports() {
   const getApiProvider = vi.fn(() => undefined);
   return {
     completeSimple: vi.fn(),
@@ -80,7 +80,13 @@ vi.mock("@earendil-works/pi-ai", () => {
     streamSimple: vi.fn(),
     streamSimpleOpenAICompletions: vi.fn(),
   };
-});
+}
+
+vi.mock("@earendil-works/pi-ai", createPiAiMockExports);
+// completeSimple is imported from the "/compat" subpath (post pi-ai 0.80.2
+// migration) below, not the package root, so it must be mocked too or it
+// silently falls through to the real implementation.
+vi.mock("@earendil-works/pi-ai/compat", createPiAiMockExports);
 
 vi.mock("@earendil-works/pi-ai/oauth", () => {
   return {
