@@ -2,11 +2,11 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.7.8-1
+## 2026.7.9
 
 ### Fixes
 
-- Packaging: declared `puppeteer-core` as an optional dependency of the npm package. The published 2026.7.8 package referenced it from the embedded MCP OAuth runtime without declaring it, which failed postpublish package verification; this correction release fixes that without any other functional change.
+- Packaging: declared `puppeteer-core` as an optional dependency of the npm package. The published 2026.7.8 package referenced it from the embedded MCP OAuth runtime without declaring it, which failed postpublish package verification; this release fixes that without any other functional change.
 
 ## 2026.7.8
 
