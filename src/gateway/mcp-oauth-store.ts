@@ -34,6 +34,11 @@ export type McpOAuthStateRecord = {
   createdAtMs: number;
   /** Scopes that were requested. */
   scopes?: string[];
+  /**
+   * Token endpoint auto-discovered at flow start (well-known metadata), used
+   * when `mcp.servers.<name>.auth.tokenUrl` is not explicitly configured.
+   */
+  discoveredTokenUrl?: string;
 };
 
 type McpOAuthStore = {

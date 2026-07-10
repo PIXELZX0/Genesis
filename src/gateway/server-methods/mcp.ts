@@ -389,6 +389,7 @@ export const mcpHandlers: GatewayRequestHandlers = {
         params.name,
         server as never,
         params.scopes,
+        { allowedHosts: _allowedHosts },
       );
       respond(true, result satisfies McpOAuthStartResult, undefined);
     } catch (err) {
@@ -579,6 +580,7 @@ export const mcpHandlers: GatewayRequestHandlers = {
         params.name,
         server as never,
         params.scopes,
+        { allowedHosts },
       );
       const viewport = normalizeViewport(params.viewport);
       const result = await startEmbeddedOAuth({

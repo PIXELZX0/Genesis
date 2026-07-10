@@ -812,15 +812,26 @@ export async function startMcpOAuthFlow(
   name: string,
   server: McpServerConfig,
   scopes?: string[],
+  opts: McpFetchOptions = {},
 ): Promise<McpOAuthStartResult> {
   const auth = authRecord(server);
-  const authorizeUrl = optionalString(auth.authorizeUrl);
-  const tokenUrl = optionalString(auth.tokenUrl);
+  let authorizeUrl = optionalString(auth.authorizeUrl);
+  let tokenUrl = optionalString(auth.tokenUrl);
+  let discoveredScopes: string[] | undefined;
+  const serverUrl = optionalString(server.url);
+  // Auto-discover the authorize/token endpoints from well-known OAuth/OIDC
+  // metadata when the operator did not configure them explicitly.
+  if ((!authorizeUrl || !tokenUrl) && serverUrl) {
+    const probe = await probeOAuth(serverUrl, resolveFetch(opts));
+    authorizeUrl = authorizeUrl ?? probe.authorizeUrl;
+    tokenUrl = tokenUrl ?? probe.tokenUrl;
+    discoveredScopes = probe.scopes;
+  }
   const clientId = runtime.resolveClientId(name, server);
   const redirectUri = redirectUriFor(runtime.gatewayWebUrl);
   if (!authorizeUrl || !tokenUrl) {
     throw new Error(
-      "Server config is missing authorizeUrl/tokenUrl. Add them under `mcp.servers.<name>.auth` or use the JSON tab.",
+      "Server config is missing authorizeUrl/tokenUrl, and automatic discovery found none. Add them under `mcp.servers.<name>.auth` or use the JSON tab.",
     );
   }
   // PKCE (S256) is on by default; opt out with `auth.usePkce: false`.
@@ -830,13 +841,19 @@ export async function startMcpOAuthFlow(
     name,
     scopes,
     codeVerifier: pkce?.codeVerifier,
+    // Only needed when the flow filled in a gap left by config; explicit
+    // config always wins on completion (see `completeMcpOAuthFlow`).
+    discoveredTokenUrl: optionalString(auth.tokenUrl) ? undefined : tokenUrl,
   });
   const url = buildMcpOAuthAuthorizeUrl({
     authorizeUrl,
     clientId,
     redirectUri,
     state,
-    scopes: scopes ?? (Array.isArray(auth.scopes) ? (auth.scopes as string[]) : undefined),
+    scopes:
+      scopes ??
+      (Array.isArray(auth.scopes) ? (auth.scopes as string[]) : undefined) ??
+      discoveredScopes,
     codeChallenge: pkce?.codeChallenge,
     codeChallengeMethod: pkce ? "S256" : undefined,
   });
@@ -887,7 +904,7 @@ export async function completeMcpOAuthFlow(
     return { ok: false, message: `No MCP server named "${input.name}" configured.` };
   }
   const auth = authRecord(server);
-  const tokenUrl = optionalString(auth.tokenUrl);
+  const tokenUrl = optionalString(auth.tokenUrl) ?? record.discoveredTokenUrl;
   const clientId = runtime.resolveClientId(input.name, server);
   const clientSecret = optionalString(auth.clientSecret);
   const redirectUri = redirectUriFor(runtime.gatewayWebUrl);

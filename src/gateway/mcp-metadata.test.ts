@@ -114,6 +114,35 @@ describe("startMcpOAuthFlow", () => {
       /authorizeUrl/,
     );
   });
+
+  it("auto-discovers authorizeUrl/tokenUrl via well-known metadata when auth config omits them", async () => {
+    const noAuthUrls = { url: "https://srv.test/mcp" } as McpServerConfig;
+    const fetchImpl = vi.fn<FetchStub>(async (input) => {
+      const url = urlOf(input);
+      if (url === "https://srv.test/.well-known/oauth-authorization-server") {
+        return json({
+          authorization_endpoint: "https://as.test/auth",
+          token_endpoint: "https://as.test/token",
+          scopes_supported: ["read"],
+        });
+      }
+      return new Response("", { status: 404 });
+    });
+    const res = await startMcpOAuthFlow(runtime, "srv", noAuthUrls, undefined, { fetchImpl });
+    const url = new URL(res.authorizeUrl);
+    expect(url.origin + url.pathname).toBe("https://as.test/auth");
+    expect(url.searchParams.get("scope")).toBe("read");
+    // Discovered tokenUrl travels with the state for the later exchange.
+    expect(stores.states.get(res.state)?.discoveredTokenUrl).toBe("https://as.test/token");
+  });
+
+  it("still throws when discovery finds nothing and config has no authorizeUrl/tokenUrl", async () => {
+    const noAuthUrls = { url: "https://srv.test/mcp" } as McpServerConfig;
+    const fetchImpl = vi.fn<FetchStub>(async () => new Response("", { status: 404 }));
+    await expect(
+      startMcpOAuthFlow(runtime, "srv", noAuthUrls, undefined, { fetchImpl }),
+    ).rejects.toThrow(/automatic discovery found none/);
+  });
 });
 
 describe("completeMcpOAuthFlow", () => {
@@ -146,6 +175,32 @@ describe("completeMcpOAuthFlow", () => {
     expect(token?.refreshToken).toBe("RT");
     expect(token?.tokenUrl).toBe("https://prov.test/token");
     expect(token?.revokeUrl).toBe("https://prov.test/revoke");
+  });
+
+  it("completes against a tokenUrl discovered at start when auth config omits it", async () => {
+    const noAuthUrls = { url: "https://srv.test/mcp" } as McpServerConfig;
+    setMcpServerConfigCache({ srv: noAuthUrls });
+    const start = await startMcpOAuthFlow(runtime, "srv", noAuthUrls, undefined, {
+      fetchImpl: vi.fn<FetchStub>(async (input) => {
+        const url = urlOf(input);
+        if (url === "https://srv.test/.well-known/oauth-authorization-server") {
+          return json({
+            authorization_endpoint: "https://as.test/auth",
+            token_endpoint: "https://as.test/token",
+          });
+        }
+        return new Response("", { status: 404 });
+      }),
+    });
+    const tokenFetch = vi.fn<FetchStub>(async () => json({ access_token: "AT", expires_in: 3600 }));
+    const done = await completeMcpOAuthFlow(
+      runtime,
+      { name: "srv", state: start.state, code: "CODE" },
+      { fetchImpl: tokenFetch },
+    );
+    expect(done.ok).toBe(true);
+    expect(urlOf(tokenFetch.mock.calls[0]?.[0] ?? "")).toBe("https://as.test/token");
+    expect(stores.tokens.get("srv")?.tokenUrl).toBe("https://as.test/token");
   });
 
   it("rejects a state/name mismatch", async () => {
