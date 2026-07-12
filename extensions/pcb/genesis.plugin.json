@@ -1,0 +1,10 @@
+{
+  "id": "pcb",
+  "enabledByDefault": false,
+  "name": "PCB Design",
+  "description": "Create and edit PCB designs, compute ratsnest, and export Gerber/Excellon files with a live SVG preview for Canvas.",
+  "contracts": {
+    "tools": ["pcb"]
+  },
+  "skills": ["./skills"]
+}

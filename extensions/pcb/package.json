@@ -1,0 +1,19 @@
+{
+  "name": "@genesis/pcb",
+  "version": "2026.7.11",
+  "private": true,
+  "description": "Genesis PCB design plugin",
+  "type": "module",
+  "dependencies": {
+    "pcb-stackup": "^4.2.8",
+    "typebox": "1.1.31"
+  },
+  "devDependencies": {
+    "@genesis/plugin-sdk": "workspace:*"
+  },
+  "genesis": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

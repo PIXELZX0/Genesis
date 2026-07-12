@@ -4,6 +4,10 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## 2026.7.9
 
+### Changes
+
+- Plugins: added a PCB design plugin (disabled by default). Its `pcb` tool builds a board from a netlist with deterministic grid placement, computes the ratsnest, routes traces/vias/pours, exports Gerber (RS-274X) and Excellon drill files, and renders a live SVG preview you can open in the canvas.
+
 ### Fixes
 
 - Packaging: declared `puppeteer-core` as an optional dependency of the npm package. The published 2026.7.8 package referenced it from the embedded MCP OAuth runtime without declaring it, which failed postpublish package verification; this release fixes that without any other functional change.
