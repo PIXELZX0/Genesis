@@ -19,34 +19,41 @@ const NODES_GRID = "grid-template-columns: 1fr 160px 120px 140px 56px;";
 export function renderNodes(props: NodesProps) {
   const online = props.nodes.filter((n) => nodeStatus(n).label === "Online").length;
   return html`
-    <section class="card" style="border: none; background: transparent; padding: 0;">
-      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
-        <div>
-          <div class="view-title">Nodes</div>
-          <div class="view-sub">
-            ${props.nodes.length} ${props.nodes.length === 1 ? "node" : "nodes"} · ${online} online
-          </div>
-        </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? t("common.loading") : t("common.refresh")}
-        </button>
-      </div>
-      ${props.nodes.length === 0
-        ? html`<div class="muted" style="margin-top: 16px;">No nodes found.</div>`
-        : html`
-            <div class="table" style="margin-top: 20px;">
-              <div class="table-head" style=${NODES_GRID}>
-                <span>NODE</span>
-                <span>PLATFORM</span>
-                <span>ROLE</span>
-                <span>STATUS</span>
-                <span></span>
-              </div>
-              ${props.nodes.map((node) => renderNodeRow(node, props))}
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <section class="card">
+        <div
+          class="row"
+          style="justify-content: space-between; align-items: flex-start; gap: 16px;"
+        >
+          <div>
+            <div class="card-title">${t("tabs.nodes")}</div>
+            <div class="card-sub">
+              ${props.nodes.length} ${props.nodes.length === 1 ? "node" : "nodes"} · ${online}
+              online
             </div>
-          `}
-      ${renderDevices(props)} ${renderNodeModals(props)}
-    </section>
+          </div>
+          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${props.loading ? t("common.loading") : t("common.refresh")}
+          </button>
+        </div>
+        ${props.nodes.length === 0
+          ? html`<div class="muted" style="margin-top: 16px;">No nodes found.</div>`
+          : html`
+              <div class="table" style="margin-top: 16px;">
+                <div class="table-head" style=${NODES_GRID}>
+                  <span>NODE</span>
+                  <span>PLATFORM</span>
+                  <span>ROLE</span>
+                  <span>STATUS</span>
+                  <span></span>
+                </div>
+                ${props.nodes.map((node) => renderNodeRow(node, props))}
+              </div>
+            `}
+      </section>
+      ${renderDevices(props)}
+    </div>
+    ${renderNodeModals(props)}
   `;
 }
 
