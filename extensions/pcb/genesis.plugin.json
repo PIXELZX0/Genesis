@@ -6,5 +6,10 @@
   "contracts": {
     "tools": ["pcb"]
   },
-  "skills": ["./skills"]
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

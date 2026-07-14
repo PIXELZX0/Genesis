@@ -2,6 +2,19 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.14
+
+### Changes
+
+- Control UI: added a mobile tab bar for narrow viewports, with an overflow "More" entry for tabs that don't fit.
+- Plugins: added an Orca IDE plugin (disabled by default) with `orca_worktree` and `orca_terminal` agent tools that wrap the `orca` CLI for worktree lifecycle and terminal read/send/wait.
+
+### Fixes
+
+- Control UI: the channel settings dialog close button is visible again, and advanced channel config fields now collapse behind an "Advanced" toggle instead of always showing.
+- Control UI: the Nodes list card style now matches Devices, with consistent section spacing.
+- Plugins: the PCB design plugin shipped in 2026.7.9 was missing a `configSchema`, which failed plugin manifest validation; added the (empty, no-config) schema.
+
 ## 2026.7.9
 
 ### Changes
