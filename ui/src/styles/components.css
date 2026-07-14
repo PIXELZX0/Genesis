@@ -305,6 +305,11 @@
 .icon-btn svg {
   width: 16px;
   height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ===========================================
@@ -5196,15 +5201,32 @@ details[open] > .ov-expandable-toggle::after {
   }
 
   .exec-approval-overlay {
-    padding: 12px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    align-items: flex-end;
+    padding: 0;
   }
 
   .exec-approval-card {
-    padding: 16px;
+    position: relative;
+    width: 100%;
+    padding: 24px 16px 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     max-height: 90dvh;
     display: flex;
     flex-direction: column;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    animation: ios-sheet-up var(--duration-normal) var(--ease-out);
+  }
+
+  .exec-approval-card::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--border-strong);
   }
 
   .exec-approval-actions {
@@ -5227,9 +5249,41 @@ details[open] > .ov-expandable-toggle::after {
     display: none;
   }
 
+  .table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: none;
+    background: transparent;
+  }
+
   .table-row {
+    grid-template-columns: 1fr !important;
+    gap: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--card);
+    padding: 12px 14px;
+  }
+
+  .table-row:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-row > span:first-child {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .table-row > span:not(:first-child) {
+    font-size: 12px;
+  }
+
+  .list-item {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 8px;
+    padding: 14px;
   }
 }
 

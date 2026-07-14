@@ -1330,6 +1330,15 @@
   background: transparent;
 }
 
+.cfg-advanced {
+  border-style: dashed;
+}
+
+.cfg-advanced > .cfg-object__header .cfg-object__title {
+  font-weight: 500;
+  color: var(--muted);
+}
+
 .cfg-object__header {
   display: flex;
   align-items: flex-start;

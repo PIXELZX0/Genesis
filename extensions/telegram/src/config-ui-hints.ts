@@ -17,6 +17,32 @@ export const telegramChannelConfigUiHints = {
     label: "Telegram DM Policy",
     help: 'Direct message access control ("pairing" recommended). "open" requires channels.telegram.allowFrom=["*"].',
   },
+  ackReaction: {
+    label: "Ack Reaction",
+    help: "Emoji reaction Telegram adds to acknowledge a received message.",
+    advanced: true,
+  },
+  actions: {
+    label: "Actions",
+    help: "Optional Telegram bot actions (message reactions, forum topic and message management).",
+    advanced: true,
+  },
+  "actions.reactions": {
+    label: "React To Messages",
+    advanced: true,
+  },
+  "actions.deleteMessage": {
+    label: "Delete Message",
+    advanced: true,
+  },
+  "actions.createForumTopic": {
+    label: "Create Forum Topic",
+    advanced: true,
+  },
+  "actions.editForumTopic": {
+    label: "Edit Forum Topic",
+    advanced: true,
+  },
   configWrites: {
     label: "Telegram Config Writes",
     help: "Allow Telegram to write config in response to channel events/commands (default: true).",

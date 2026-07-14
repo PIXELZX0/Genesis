@@ -989,39 +989,62 @@ function renderObject(params: {
   const additional = schema.additionalProperties;
   const allowExtra = Boolean(additional) && typeof additional === "object";
 
-  const fields = html`
-    ${sorted.map(([propKey, node]) =>
-      renderNode({
-        schema: node,
-        value: obj[propKey],
-        path: [...path, propKey],
+  const renderProp = ([propKey, node]: (typeof sorted)[number]) =>
+    renderNode({
+      schema: node,
+      value: obj[propKey],
+      path: [...path, propKey],
+      hints,
+      rawAvailable,
+      unsupported,
+      disabled,
+      searchCriteria: childSearchCriteria,
+      revealSensitive,
+      isSensitivePathRevealed,
+      onToggleSensitivePath,
+      onPatch,
+    });
+
+  const primary = sorted.filter(([propKey]) => !hintForPath([...path, propKey], hints)?.advanced);
+  const advanced = sorted.filter(([propKey]) => hintForPath([...path, propKey], hints)?.advanced);
+  // Custom/arbitrary-key entries are power-user territory; fold them into Advanced
+  // unless they're the object's only content (nothing else to show by default).
+  const foldMapIntoAdvanced = allowExtra && primary.length > 0;
+  const mapField = allowExtra
+    ? renderMapField({
+        schema: additional,
+        value: obj,
+        path,
         hints,
         rawAvailable,
         unsupported,
         disabled,
+        reservedKeys: reserved,
         searchCriteria: childSearchCriteria,
         revealSensitive,
         isSensitivePathRevealed,
         onToggleSensitivePath,
         onPatch,
-      }),
-    )}
-    ${allowExtra
-      ? renderMapField({
-          schema: additional,
-          value: obj,
-          path,
-          hints,
-          rawAvailable,
-          unsupported,
-          disabled,
-          reservedKeys: reserved,
-          searchCriteria: childSearchCriteria,
-          revealSensitive,
-          isSensitivePathRevealed,
-          onToggleSensitivePath,
-          onPatch,
-        })
+      })
+    : nothing;
+  const hasAdvanced = advanced.length > 0 || foldMapIntoAdvanced;
+
+  const fields = html`
+    ${primary.map(renderProp)} ${foldMapIntoAdvanced ? nothing : mapField}
+    ${hasAdvanced
+      ? html`
+          <details class="cfg-object cfg-advanced" ?open=${hasSearchCriteria(childSearchCriteria)}>
+            <summary class="cfg-object__header">
+              <span class="cfg-object__title-wrap">
+                <span class="cfg-object__title">Advanced</span>
+              </span>
+              <span class="cfg-object__chevron">${icons.chevronDown}</span>
+            </summary>
+            <div class="cfg-object__content">
+              ${advanced.map(renderProp)} ${foldMapIntoAdvanced ? mapField : nothing}
+            </div>
+          </details>
+        `
       : nothing}
   `;
 
