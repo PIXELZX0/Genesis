@@ -1,0 +1,18 @@
+{
+  "name": "@genesis/orca-ide",
+  "version": "2026.7.14",
+  "private": true,
+  "description": "Genesis Orca IDE plugin",
+  "type": "module",
+  "dependencies": {
+    "typebox": "1.1.31"
+  },
+  "devDependencies": {
+    "@genesis/plugin-sdk": "workspace:*"
+  },
+  "genesis": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
