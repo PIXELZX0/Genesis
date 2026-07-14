@@ -151,6 +151,7 @@ export const en: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Settings",
+    more: "More",
     expand: "Expand sidebar",
     collapse: "Collapse sidebar",
     resize: "Resize sidebar",

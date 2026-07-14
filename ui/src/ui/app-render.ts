@@ -19,6 +19,7 @@ import {
 import { warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { sortCopy } from "./array.ts";
+import { renderMobileTabBar } from "./components/mobile-tab-bar.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -3224,7 +3225,8 @@ export function renderApp(state: AppViewState) {
             })
           : nothing}
       </main>
-      ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)} ${nothing}
+      ${state.onboarding ? nothing : renderMobileTabBar(state)} ${renderExecApprovalPrompt(state)}
+      ${renderGatewayUrlConfirmation(state)} ${nothing}
     </div>
   `;
 }
