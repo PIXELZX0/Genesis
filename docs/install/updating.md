@@ -8,7 +8,7 @@ title: "Updating"
 
 Keep Genesis up to date.
 
-Current stable release: `2026.7.17-2`.
+Current stable release: `2026.7.17-3`.
 
 ## Recommended: `genesis update`
 

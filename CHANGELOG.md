@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.17-3
+
+### Fixes
+
+- MCP OAuth: the popup (non-embedded) flow's `redirect_uri` is now built from the caller's own browser origin instead of the gateway's statically resolved (often loopback) web URL, so it still resolves when the operator reaches Control UI over a LAN address, tailnet hostname, or tunnel domain.
+- MCP OAuth: the embedded (headless-browser) flow now streams into its own popup window instead of an inline viewport, matching the real-browser popup flow's UX, and falls back to the real popup flow if the streaming popup itself is blocked. When embedded start fails (no Chromium, provider blocks automated browsers, streaming popup blocked), Control UI now shows an info banner explaining why instead of silently falling back.
+
+### Changes
+
+- Control UI: added a manual restart action for channels stuck Idle/Offline/Error, instead of only waiting on the health monitor's auto-restart.
+
 ## 2026.7.17-2
 
 ### Fixes
