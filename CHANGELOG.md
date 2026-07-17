@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.17
+
+### Fixes
+
+- Control UI: the mobile tab bar added in 2026.7.14 shipped without CSS and rendered as a static block on every viewport, including desktop; it's now hidden by default and only shows as a fixed bottom bar under the mobile breakpoint.
+
 ## 2026.7.14
 
 ### Changes
