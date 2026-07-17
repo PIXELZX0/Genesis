@@ -63,6 +63,20 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+// Google (and some other IdPs) reject sign-in from an automated/embedded
+// browser outright ("Error 403: disallowed_useragent") — no puppeteer flag
+// works around it, so route these straight to the real-browser popup flow
+// instead of burning a doomed headless session.
+const EMBEDDED_OAUTH_BLOCKED_HOSTS = new Set(["accounts.google.com"]);
+
+function isEmbeddedOAuthBlocked(authorizeUrl: string): boolean {
+  try {
+    return EMBEDDED_OAUTH_BLOCKED_HOSTS.has(new URL(authorizeUrl).hostname);
+  } catch {
+    return false;
+  }
+}
+
 export type McpRuntime = {
   /** Base URL of the gateway web server (used to build OAuth redirect URI). */
   gatewayWebUrl: string;
@@ -582,6 +596,17 @@ export const mcpHandlers: GatewayRequestHandlers = {
         params.scopes,
         { allowedHosts },
       );
+      if (isEmbeddedOAuthBlocked(flow.authorizeUrl)) {
+        respond(
+          false,
+          undefined,
+          errorShape(
+            ErrorCodes.UNAVAILABLE,
+            "This provider blocks sign-in from an automated browser. Use the popup flow instead.",
+          ),
+        );
+        return;
+      }
       const viewport = normalizeViewport(params.viewport);
       const result = await startEmbeddedOAuth({
         connId,
