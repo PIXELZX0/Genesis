@@ -611,13 +611,6 @@ function renderEmbeddedViewport(props: McpProps) {
     const p = embeddedPoint(ev, flow.viewport);
     props.onEmbeddedInput({ kind: "mouse", action: "move", x: p.x, y: p.y });
   };
-  const onClick = (ev: MouseEvent) => {
-    if (!interactive) {
-      return;
-    }
-    const p = embeddedPoint(ev, flow.viewport);
-    props.onEmbeddedInput({ kind: "mouse", action: "click", x: p.x, y: p.y });
-  };
   const onWheel = (ev: WheelEvent) => {
     if (!interactive) {
       return;
@@ -645,6 +638,16 @@ function renderEmbeddedViewport(props: McpProps) {
       props.onEmbeddedInput({ kind: "key", action: "type", text: ev.key });
     }
   };
+  const onPaste = (ev: ClipboardEvent) => {
+    if (!interactive) {
+      return;
+    }
+    const text = ev.clipboardData?.getData("text");
+    if (text) {
+      ev.preventDefault();
+      props.onEmbeddedInput({ kind: "key", action: "type", text });
+    }
+  };
 
   return html`<div class="callout info" style="margin-top: 12px;">
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -670,9 +673,9 @@ function renderEmbeddedViewport(props: McpProps) {
       @mousedown=${onMouseDown}
       @mouseup=${onMouseUp}
       @mousemove=${onMouseMove}
-      @click=${onClick}
       @wheel=${onWheel}
       @keydown=${onKeyDown}
+      @paste=${onPaste}
     >
       ${src
         ? html`<img

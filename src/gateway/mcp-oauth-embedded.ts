@@ -10,10 +10,10 @@
  * that imports it) stays free of the optional dependency.
  */
 import { randomUUID } from "node:crypto";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { platform } from "node:process";
+import { resolveConfigDir } from "../utils.js";
 
 export type EmbeddedPhase = "loading" | "interactive" | "done" | "error";
 
@@ -189,11 +189,39 @@ function teardownSession(session: EmbeddedSession): void {
   if (handle) {
     void handle.close().catch(() => {});
   }
-  try {
-    rmSync(session.userDataDir, { recursive: true, force: true });
-  } catch {
-    // best effort
+  // userDataDir is a persistent per-server profile (cookies/session for fast
+  // re-login), not scratch space — intentionally not deleted here.
+}
+
+/**
+ * Persistent Chromium profile dir for a given MCP server's embedded OAuth
+ * flow, so cookies from a prior login (e.g. an already-signed-in Google
+ * session) carry over and speed up reconnects.
+ */
+function resolveProfileDir(name: string): string {
+  const safeName = name.replace(/[^a-zA-Z0-9._-]/g, "_") || "default";
+  const dir = join(resolveConfigDir(), "mcp-oauth-profiles", safeName);
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+/** (Re)arm the idle timeout; called on session start and on each user input. */
+function armSessionTimeout(session: EmbeddedSession): void {
+  if (session.timer) {
+    clearTimeout(session.timer);
   }
+  session.timer = setTimeout(() => {
+    const s = sessions.get(session.sessionId);
+    if (s && s.phase !== "done") {
+      s.phase = "error";
+      s.message = "Embedded OAuth flow timed out.";
+      const handle = s.handle;
+      s.handle = null;
+      if (handle) {
+        void handle.close().catch(() => {});
+      }
+    }
+  }, SESSION_TIMEOUT_MS);
 }
 
 function disposeSession(sessionId: string): void {
@@ -224,7 +252,7 @@ export async function startEmbeddedOAuth(
   }
 
   const sessionId = randomUUID();
-  const userDataDir = mkdtempSync(join(tmpdir(), "genesis-mcp-oauth-"));
+  const userDataDir = resolveProfileDir(args.name);
   const session: EmbeddedSession = {
     sessionId,
     connId: args.connId,
@@ -239,18 +267,7 @@ export async function startEmbeddedOAuth(
   };
   sessions.set(sessionId, session);
 
-  session.timer = setTimeout(() => {
-    const s = sessions.get(sessionId);
-    if (s && s.phase !== "done") {
-      s.phase = "error";
-      s.message = "Embedded OAuth flow timed out.";
-      const handle = s.handle;
-      s.handle = null;
-      if (handle) {
-        void handle.close().catch(() => {});
-      }
-    }
-  }, SESSION_TIMEOUT_MS);
+  armSessionTimeout(session);
 
   const onRedirect = (result: EmbeddedRedirectResult): void => {
     const s = sessions.get(sessionId);
@@ -367,6 +384,7 @@ export async function inputEmbeddedOAuth(
   }
   try {
     await session.handle.input(ev);
+    armSessionTimeout(session);
     return true;
   } catch {
     return false;
