@@ -1132,6 +1132,11 @@
   display: none;
 }
 
+/* Mobile bottom tab bar — hidden on desktop, shown in layout.mobile.css */
+.mobile-tab-bar {
+  display: none;
+}
+
 .chat-controls-mobile-toggle {
   display: none;
   border-radius: var(--radius-full);
