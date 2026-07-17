@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.17-1
+
+### Fixes
+
+- Control UI: the embedded MCP OAuth viewport now focuses on mousedown, so keyboard input streams to the embedded page instead of being swallowed by the host.
+
 ## 2026.7.17
 
 ### Fixes
