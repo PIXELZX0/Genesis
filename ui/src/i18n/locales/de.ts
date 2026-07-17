@@ -156,6 +156,7 @@ export const de: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Einstellungen",
+    more: "More",
     expand: "Seitenleiste ausklappen",
     collapse: "Seitenleiste einklappen",
     resize: "Seitenleiste in der Größe ändern",

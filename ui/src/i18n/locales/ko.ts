@@ -152,6 +152,7 @@ export const ko: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "설정",
+    more: "More",
     expand: "사이드바 펼치기",
     collapse: "사이드바 접기",
     resize: "사이드바 크기 조절",

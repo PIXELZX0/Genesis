@@ -153,6 +153,7 @@ export const id: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Pengaturan",
+    more: "More",
     expand: "Perluas bilah samping",
     collapse: "Ciutkan bilah samping",
     resize: "Ubah ukuran bilah samping",

@@ -292,6 +292,7 @@ export type AppViewState = {
   mcpOAuthPopup: Window | null;
   mcpEmbeddedFlow: import("./controllers/mcp.ts").McpEmbeddedFlow | null;
   mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null;
+  mcpEmbeddedPopup: Window | null;
   mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;

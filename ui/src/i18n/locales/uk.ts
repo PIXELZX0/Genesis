@@ -154,6 +154,7 @@ export const uk: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Налаштування",
+    more: "More",
     expand: "Розгорнути бічну панель",
     collapse: "Згорнути бічну панель",
     resize: "Змінити розмір бічної панелі",

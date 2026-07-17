@@ -107,7 +107,6 @@ import {
   saveMcpServer,
   startMcpOAuth,
   startMcpOAuthEmbedded,
-  sendMcpEmbeddedInput,
   cancelMcpOAuthEmbedded,
   testMcpServer,
   disconnectMcpOAuth,
@@ -2734,9 +2733,6 @@ export function renderApp(state: AppViewState) {
                 },
                 onOAuthCancel: () => {
                   cancelMcpOAuth(state);
-                },
-                onEmbeddedInput: (ev) => {
-                  void sendMcpEmbeddedInput(state, ev);
                 },
                 onEmbeddedCancel: () => {
                   cancelMcpOAuthEmbedded(state);

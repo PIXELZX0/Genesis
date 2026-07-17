@@ -101,6 +101,14 @@ export const McpOAuthStartParamsSchema = Type.Object(
   {
     name: NonEmptyString,
     scopes: Type.Optional(Type.Array(Type.String())),
+    /**
+     * `window.location.origin` of the browser starting a popup OAuth flow.
+     * Used to build a `redirect_uri` that the user's own browser can reach,
+     * instead of the gateway's static (often loopback) web URL. Ignored by
+     * the embedded (headless-browser) flow, which always uses the gateway's
+     * own origin since the gateway process is the one navigating.
+     */
+    origin: Type.Optional(NonEmptyString),
   },
   { additionalProperties: false },
 );

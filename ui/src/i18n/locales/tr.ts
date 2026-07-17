@@ -155,6 +155,7 @@ export const tr: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Ayarlar",
+    more: "More",
     expand: "Kenar çubuğunu genişlet",
     collapse: "Kenar çubuğunu daralt",
     resize: "Kenar çubuğunu yeniden boyutlandır",

@@ -807,12 +807,34 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+/**
+ * Reduce a caller-supplied `window.location.origin` to a bare `scheme://host`
+ * string, dropping any path/query an untrusted caller might have appended.
+ * Returns `undefined` for anything that doesn't parse as http/https so the
+ * caller falls back to the gateway's own web URL.
+ */
+function sanitizeRedirectOrigin(origin: string | undefined): string | undefined {
+  if (!origin) {
+    return undefined;
+  }
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return undefined;
+    }
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function startMcpOAuthFlow(
   runtime: McpOAuthRuntime,
   name: string,
   server: McpServerConfig,
   scopes?: string[],
   opts: McpFetchOptions = {},
+  redirectOrigin?: string,
 ): Promise<McpOAuthStartResult> {
   const auth = authRecord(server);
   let authorizeUrl = optionalString(auth.authorizeUrl);
@@ -828,7 +850,13 @@ export async function startMcpOAuthFlow(
     discoveredScopes = probe.scopes;
   }
   const clientId = runtime.resolveClientId(name, server);
-  const redirectUri = redirectUriFor(runtime.gatewayWebUrl);
+  // Prefer the popup caller's own browser origin so the provider redirects
+  // back to a page the user's browser can actually reach (it may not share a
+  // host with the gateway's own resolved web URL). Falls back to the
+  // gateway's static web URL for the embedded flow and any invalid origin.
+  const redirectUri = redirectUriFor(
+    sanitizeRedirectOrigin(redirectOrigin) ?? runtime.gatewayWebUrl,
+  );
   if (!authorizeUrl || !tokenUrl) {
     throw new Error(
       "Server config is missing authorizeUrl/tokenUrl, and automatic discovery found none. Add them under `mcp.servers.<name>.auth` or use the JSON tab.",
@@ -844,6 +872,8 @@ export async function startMcpOAuthFlow(
     // Only needed when the flow filled in a gap left by config; explicit
     // config always wins on completion (see `completeMcpOAuthFlow`).
     discoveredTokenUrl: optionalString(auth.tokenUrl) ? undefined : tokenUrl,
+    // Reused verbatim on token exchange so both legs always agree.
+    redirectUri,
   });
   const url = buildMcpOAuthAuthorizeUrl({
     authorizeUrl,
@@ -907,7 +937,10 @@ export async function completeMcpOAuthFlow(
   const tokenUrl = optionalString(auth.tokenUrl) ?? record.discoveredTokenUrl;
   const clientId = runtime.resolveClientId(input.name, server);
   const clientSecret = optionalString(auth.clientSecret);
-  const redirectUri = redirectUriFor(runtime.gatewayWebUrl);
+  // Reuse the exact redirect_uri sent with the authorize request (it may have
+  // been the caller's browser origin, not the gateway's own web URL) so the
+  // token exchange matches what the provider recorded.
+  const redirectUri = record.redirectUri ?? redirectUriFor(runtime.gatewayWebUrl);
   if (!tokenUrl) {
     return { ok: false, message: "Server config is missing `auth.tokenUrl`." };
   }

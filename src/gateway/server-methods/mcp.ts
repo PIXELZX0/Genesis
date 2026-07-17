@@ -404,6 +404,7 @@ export const mcpHandlers: GatewayRequestHandlers = {
         server as never,
         params.scopes,
         { allowedHosts: _allowedHosts },
+        params.origin,
       );
       respond(true, result satisfies McpOAuthStartResult, undefined);
     } catch (err) {

@@ -154,6 +154,7 @@ export const pl: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Ustawienia",
+    more: "More",
     expand: "Rozwiń pasek boczny",
     collapse: "Zwiń pasek boczny",
     resize: "Zmień rozmiar paska bocznego",

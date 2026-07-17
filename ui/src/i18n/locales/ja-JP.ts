@@ -156,6 +156,7 @@ export const ja_JP: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "設定",
+    more: "More",
     expand: "サイドバーを展開",
     collapse: "サイドバーを折りたたむ",
     resize: "サイドバーのサイズを変更",

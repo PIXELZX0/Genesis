@@ -154,6 +154,7 @@
     "modelsView.tabModels",
     "modelsView.tabProviders",
     "nav.memory",
+    "nav.more",
     "nav.tools",
     "overview.wallet.copyAddress",
     "overview.wallet.empty",
@@ -236,12 +237,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-07-01T04:01:25.065Z",
+  "generatedAt": "2026-07-17T10:33:25.203Z",
   "locale": "uk",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "aea857f04ac648478321784fba84f1965c8ea7b3d656f8a3d5a0ce765dab0cfb",
-  "totalKeys": 967,
+  "sourceHash": "a78ce14a02adc35b9ddd2e08d48ceeed43cbb0a5190b9adb175e4ac946038db2",
+  "totalKeys": 968,
   "translatedKeys": 732,
   "workflow": 1
 }
