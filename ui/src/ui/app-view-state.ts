@@ -277,7 +277,7 @@ export type AppViewState = {
   mcpServersPath: string | null;
   mcpServersError: string | null;
   mcpBusy: boolean;
-  mcpMessage: { kind: "success" | "error"; text: string } | null;
+  mcpMessage: { kind: "success" | "error" | "info"; text: string } | null;
   mcpDraftName: string;
   mcpDraftConfig: string;
   mcpAddMode: "preset" | "link" | "json";

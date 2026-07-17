@@ -145,7 +145,11 @@ export function renderMcp(props: McpProps) {
         : nothing}
       ${props.message
         ? html`<div
-            class="callout ${props.message.kind === "error" ? "danger" : "success"}"
+            class="callout ${props.message.kind === "error"
+              ? "danger"
+              : props.message.kind === "info"
+                ? "info"
+                : "success"}"
             style="margin-top: 12px;"
           >
             ${props.message.text}

@@ -453,7 +453,7 @@ type McpOAuthHostState = {
   mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null;
   mcpOAuthPopup: Window | null;
   mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus>;
-  mcpMessage: { kind: "success" | "error"; text: string } | null;
+  mcpMessage: { kind: "success" | "error" | "info"; text: string } | null;
 };
 
 async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {

@@ -3,7 +3,7 @@ import type { GatewayBrowserClient } from "../gateway.ts";
 
 export type McpServersMap = Record<string, Record<string, unknown>>;
 
-export type McpMessage = { kind: "success" | "error"; text: string };
+export type McpMessage = { kind: "success" | "error" | "info"; text: string };
 
 /**
  * Structural subset of the app view-state consumed by the MCP controller.
@@ -626,14 +626,23 @@ export async function startMcpOAuthEmbedded(
       // Popup blocked: tear down the server-side session we just started and
       // signal the caller to fall back to the real-browser popup flow.
       cancelMcpOAuthEmbedded(state);
+      state.mcpMessage = {
+        kind: "info",
+        text: "The embedded sign-in popup was blocked by your browser. Falling back to the direct sign-in popup.",
+      };
       return { ok: false, unavailable: true };
     }
     state.mcpEmbeddedPopup = popup;
     scheduleEmbeddedPoll(state, 0);
     return { ok: true };
-  } catch {
-    // Any start failure means the embedded path is not usable right now; signal
-    // the caller to fall back to the popup flow.
+  } catch (err) {
+    // Any start failure means the embedded path is not usable right now; surface
+    // why (e.g. no Chromium on the gateway, provider blocks automated browsers)
+    // and signal the caller to fall back to the popup flow.
+    state.mcpMessage = {
+      kind: "info",
+      text: `Embedded sign-in unavailable (${getErrorMessage(err)}). Falling back to the popup.`,
+    };
     return { ok: false, unavailable: true };
   }
 }
