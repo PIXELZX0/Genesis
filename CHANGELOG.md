@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.17-2
+
+### Fixes
+
+- Control UI: the embedded MCP OAuth viewport double-toggled checkboxes (a redundant synthetic click was replayed alongside the real click), silently dropped clipboard paste, timed out mid-flow on slow logins (2FA, email verification) instead of resetting on activity, and lost cookies between sessions because its Chromium profile dir was wiped on every teardown. All fixed; profile now persists under `~/.genesis/mcp-oauth-profiles/<name>`. Google and similar IdPs that reject automated browsers now fail fast into the existing real-browser popup fallback instead of hanging.
+
 ## 2026.7.17-1
 
 ### Fixes
