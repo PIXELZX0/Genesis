@@ -2,6 +2,7 @@ import { resolveControlUiAuthHeader } from "./control-ui-auth.ts";
 import {
   loadChannels,
   logoutWhatsApp,
+  restartChannel,
   startWhatsAppLogin,
   waitWhatsAppLogin,
   type ChannelsState,
@@ -65,6 +66,15 @@ export async function handleWhatsAppWait(host: ChannelsActionHost) {
 
 export async function handleWhatsAppLogout(host: ChannelsActionHost) {
   await logoutWhatsApp(host as ChannelsState);
+  await loadChannels(host as ChannelsState, true);
+}
+
+export async function handleChannelRestart(
+  host: ChannelsActionHost,
+  channel: string,
+  accountId?: string | null,
+) {
+  await restartChannel(host as ChannelsState, channel, accountId);
   await loadChannels(host as ChannelsState, true);
 }
 

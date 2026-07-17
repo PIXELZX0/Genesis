@@ -22,6 +22,7 @@ import {
   errorShape,
   formatValidationErrors,
   validateChannelsStartParams,
+  validateChannelsRestartParams,
   validateChannelsLogoutParams,
   validateChannelsStatusParams,
 } from "../protocol/index.js";
@@ -123,6 +124,33 @@ export async function startChannelAccount(params: {
     throw new Error(`Channel ${params.channelId} does not support runtime start`);
   }
   const resolvedAccountId = resolveChannelGatewayAccountId(params);
+  await params.context.startChannel(params.channelId, resolvedAccountId);
+  const runtime = params.context.getRuntimeSnapshot();
+  const started =
+    resolveRuntimeAccountSnapshot({
+      runtime,
+      channelId: params.channelId,
+      accountId: resolvedAccountId,
+    })?.running === true;
+  return {
+    channel: params.channelId,
+    accountId: resolvedAccountId,
+    started,
+  };
+}
+
+export async function restartChannelAccount(params: {
+  channelId: ChannelId;
+  accountId?: string | null;
+  cfg: GenesisConfig;
+  context: GatewayRequestContext;
+  plugin: ChannelPlugin;
+}): Promise<ChannelStartPayload> {
+  if (!params.plugin.gateway?.startAccount) {
+    throw new Error(`Channel ${params.channelId} does not support runtime start`);
+  }
+  const resolvedAccountId = resolveChannelGatewayAccountId(params);
+  await params.context.stopChannel(params.channelId, resolvedAccountId);
   await params.context.startChannel(params.channelId, resolvedAccountId);
   const runtime = params.context.getRuntimeSnapshot();
   const started =
@@ -383,6 +411,62 @@ export const channelsHandlers: GatewayRequestHandlers = {
         env: process.env,
       }).config;
       const payload = await startChannelAccount({
+        channelId,
+        accountId: (params as { accountId?: string | null }).accountId,
+        cfg,
+        context,
+        plugin,
+      });
+      respond(true, payload, undefined);
+    } catch (error) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatForLog(error)));
+    }
+  },
+  "channels.restart": async ({ params, respond, context }) => {
+    if (!validateChannelsRestartParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid channels.restart params: ${formatValidationErrors(validateChannelsRestartParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const rawChannel = (params as { channel?: unknown }).channel;
+    const channelId = typeof rawChannel === "string" ? normalizeChannelId(rawChannel) : null;
+    if (!channelId) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "invalid channels.restart channel"),
+      );
+      return;
+    }
+    const plugin = getChannelPlugin(channelId);
+    if (!plugin) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unknown channel: ${formatForLog(rawChannel)}`),
+      );
+      return;
+    }
+    if (!plugin.gateway?.startAccount) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `channel ${channelId} does not support restart`),
+      );
+      return;
+    }
+    try {
+      const cfg = applyPluginAutoEnable({
+        config: loadConfig(),
+        env: process.env,
+      }).config;
+      const payload = await restartChannelAccount({
         channelId,
         accountId: (params as { accountId?: string | null }).accountId,
         cfg,

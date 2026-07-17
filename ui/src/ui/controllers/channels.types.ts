@@ -12,4 +12,6 @@ export type ChannelsState = {
   whatsappLoginQrDataUrl: string | null;
   whatsappLoginConnected: boolean | null;
   whatsappBusy: boolean;
+  /** Channel key currently being manually restarted, or null when idle. */
+  channelRestartingKey: string | null;
 };

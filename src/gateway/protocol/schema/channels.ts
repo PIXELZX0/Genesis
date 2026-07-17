@@ -215,6 +215,14 @@ export const ChannelsStartParamsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const ChannelsRestartParamsSchema = Type.Object(
+  {
+    channel: NonEmptyString,
+    accountId: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
 export const WebLoginStartParamsSchema = Type.Object(
   {
     force: Type.Optional(Type.Boolean()),

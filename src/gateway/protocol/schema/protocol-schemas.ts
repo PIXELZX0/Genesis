@@ -58,6 +58,7 @@ import {
 } from "./canvas.js";
 import {
   ChannelsStartParamsSchema,
+  ChannelsRestartParamsSchema,
   ChannelsLogoutParamsSchema,
   TalkConfigParamsSchema,
   TalkConfigResultSchema,
@@ -364,6 +365,7 @@ export const ProtocolSchemas = {
   ChannelsStatusParams: ChannelsStatusParamsSchema,
   ChannelsStatusResult: ChannelsStatusResultSchema,
   ChannelsStartParams: ChannelsStartParamsSchema,
+  ChannelsRestartParams: ChannelsRestartParamsSchema,
   ChannelsLogoutParams: ChannelsLogoutParamsSchema,
   WebLoginStartParams: WebLoginStartParamsSchema,
   WebLoginWaitParams: WebLoginWaitParamsSchema,

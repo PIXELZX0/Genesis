@@ -4,6 +4,7 @@ import { i18n, I18nController, isSupportedLocale } from "../i18n/index.ts";
 import {
   handleChannelConfigReload as handleChannelConfigReloadInternal,
   handleChannelConfigSave as handleChannelConfigSaveInternal,
+  handleChannelRestart as handleChannelRestartInternal,
   handleChannelWizardCancel as handleChannelWizardCancelInternal,
   handleChannelWizardClose as handleChannelWizardCloseInternal,
   handleChannelWizardInput as handleChannelWizardInputInternal,
@@ -345,6 +346,7 @@ export class GenesisApp extends LitElement {
   @state() whatsappLoginQrDataUrl: string | null = null;
   @state() whatsappLoginConnected: boolean | null = null;
   @state() whatsappBusy = false;
+  @state() channelRestartingKey: string | null = null;
   @state() nostrProfileFormState: NostrProfileFormState | null = null;
   @state() nostrProfileAccountId: string | null = null;
   @state() channelWizardSessionId: string | null = null;
@@ -964,6 +966,10 @@ export class GenesisApp extends LitElement {
 
   async handleWhatsAppLogout() {
     await handleWhatsAppLogoutInternal(this);
+  }
+
+  async handleChannelRestart(channel: string, accountId?: string | null) {
+    await handleChannelRestartInternal(this, channel, accountId);
   }
 
   async handleChannelConfigSave() {

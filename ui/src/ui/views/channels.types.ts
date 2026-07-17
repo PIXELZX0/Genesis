@@ -42,7 +42,10 @@ export type ChannelsProps = {
   channelWizardMessage: string | null;
   /** Channel whose settings modal is open, or null when closed. */
   selectedChannelId: ChannelKey | null;
+  /** Channel key currently being manually restarted, or null when idle. */
+  channelRestartingKey: ChannelKey | null;
   onChannelSelect: (key: ChannelKey) => void;
+  onChannelRestart: (key: ChannelKey) => void;
   onChannelSettingsClose: () => void;
   onRefresh: (probe: boolean) => void;
   onChannelWizardStart: () => void;

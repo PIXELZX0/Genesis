@@ -90,6 +90,25 @@ export async function waitWhatsAppLogin(state: ChannelsState) {
   }
 }
 
+export async function restartChannel(
+  state: ChannelsState,
+  channel: string,
+  accountId?: string | null,
+) {
+  if (!state.client || !state.connected || state.channelRestartingKey) {
+    return;
+  }
+  state.channelRestartingKey = channel;
+  state.channelsError = null;
+  try {
+    await state.client.request("channels.restart", { channel, accountId: accountId ?? undefined });
+  } catch (err) {
+    state.channelsError = String(err);
+  } finally {
+    state.channelRestartingKey = null;
+  }
+}
+
 export async function logoutWhatsApp(state: ChannelsState) {
   if (!state.client || !state.connected || state.whatsappBusy) {
     return;

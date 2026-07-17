@@ -72,6 +72,8 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
   const lastInbound = defaultAccount?.lastInboundAt
     ? formatRelativeTimestamp(defaultAccount.lastInboundAt)
     : t("common.na");
+  const restarting = props.channelRestartingKey === key;
+  const canRestart = !status.online && !restarting;
   return html`
     <div
       class="table-row"
@@ -88,7 +90,25 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
       <span class="muted">${providerLabel(key)}</span>
       <span class="muted" style="font-family: var(--mono);">${accounts}</span>
       <span class="muted" style="font-family: var(--mono);">${lastInbound}</span>
-      <span class="muted">${status.label}</span>
+      <span class="muted" style="display: flex; align-items: center; gap: 8px;">
+        ${status.label}
+        ${status.label !== "Restarting"
+          ? html`
+              <button
+                class="icon-btn"
+                aria-label=${`Restart ${label}`}
+                title=${`Restart ${label}`}
+                ?disabled=${!canRestart}
+                @click=${(event: Event) => {
+                  event.stopPropagation();
+                  props.onChannelRestart(key);
+                }}
+              >
+                ${icons.refresh}
+              </button>
+            `
+          : nothing}
+      </span>
     </div>
   `;
 }

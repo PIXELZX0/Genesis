@@ -14,6 +14,7 @@ const BASE_METHODS = [
   "logs.tail",
   "channels.status",
   "channels.start",
+  "channels.restart",
   "channels.logout",
   "status",
   "usage.status",

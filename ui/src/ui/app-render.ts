@@ -1917,6 +1917,7 @@ export function renderApp(state: AppViewState) {
                 channelWizardError: state.channelWizardError,
                 channelWizardMessage: state.channelWizardMessage,
                 selectedChannelId: state.channelSettingsId ?? null,
+                channelRestartingKey: state.channelRestartingKey,
                 onChannelSelect: (key) => {
                   state.channelSettingsId = key;
                   if (!state.configSchema) {
@@ -1924,6 +1925,7 @@ export function renderApp(state: AppViewState) {
                   }
                   requestHostUpdate?.();
                 },
+                onChannelRestart: (key) => void state.handleChannelRestart(key),
                 onChannelSettingsClose: () => {
                   state.channelSettingsId = null;
                   requestHostUpdate?.();

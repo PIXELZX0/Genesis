@@ -39,7 +39,9 @@ function createProps(
     channelWizardError: null,
     channelWizardMessage: null,
     selectedChannelId: null,
+    channelRestartingKey: null,
     onChannelSelect: () => {},
+    onChannelRestart: () => {},
     onChannelSettingsClose: () => {},
     onRefresh: () => {},
     onChannelWizardStart: () => {},
@@ -199,6 +201,74 @@ describe("channel setup wizard rendering", () => {
     render(renderChannels(createProps(snapshot)), container);
 
     expect(container.textContent).toContain("Restarting");
+  });
+
+  it("restarts an idle channel via the row restart button", () => {
+    const onChannelRestart = vi.fn();
+    const onChannelSelect = vi.fn();
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: { guildchat: { configured: true, running: false } },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    render(renderChannels(createProps(snapshot, { onChannelRestart, onChannelSelect })), container);
+
+    expect(container.textContent).toContain("Idle");
+    const restartButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Restart Guild Chat"]',
+    );
+    expect(restartButton).toBeTruthy();
+    expect(restartButton?.disabled).toBe(false);
+    restartButton?.click();
+
+    expect(onChannelRestart).toHaveBeenCalledWith("guildchat");
+    expect(onChannelSelect).not.toHaveBeenCalled();
+  });
+
+  it("disables the restart button for an online channel", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: { guildchat: { configured: true, running: true } },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    render(renderChannels(createProps(snapshot)), container);
+
+    const restartButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Restart Guild Chat"]',
+    );
+    expect(restartButton?.disabled).toBe(true);
+  });
+
+  it("hides the restart button while a restart is pending", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: { guildchat: { configured: true, running: false, restartPending: true } },
+      channelAccounts: {
+        guildchat: [{ accountId: "guild-main", configured: true }],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    render(renderChannels(createProps(snapshot, { channelRestartingKey: "guildchat" })), container);
+
+    expect(container.querySelector('button[aria-label="Restart Guild Chat"]')).toBeNull();
   });
 
   it("starts the guided add flow from the channel toolbar", () => {

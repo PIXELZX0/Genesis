@@ -46,6 +46,8 @@ describe("method scope resolution", () => {
     ["wizard.start", ["operator.admin"]],
     ["update.run", ["operator.admin"]],
     ["wallet.recoveryPhrase.set", ["operator.admin"]],
+    ["channels.start", ["operator.admin"]],
+    ["channels.restart", ["operator.admin"]],
   ])("resolves least-privilege scopes for %s", (method, expected) => {
     expect(resolveLeastPrivilegeOperatorScopesForMethod(method)).toEqual(expected);
   });

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { waitWhatsAppLogin, type ChannelsState } from "./channels.ts";
+import { restartChannel, waitWhatsAppLogin, type ChannelsState } from "./channels.ts";
 
 function createState(): ChannelsState {
   return {
@@ -15,6 +15,7 @@ function createState(): ChannelsState {
     whatsappLoginQrDataUrl: "data:image/png;base64,current-qr",
     whatsappLoginConnected: false,
     whatsappBusy: false,
+    channelRestartingKey: null,
   };
 }
 
@@ -44,5 +45,47 @@ describe("channels controller WhatsApp wait", () => {
     expect(state.whatsappLoginConnected).toBe(false);
     expect(state.whatsappLoginQrDataUrl).toBe("data:image/png;base64,next-qr");
     expect(state.whatsappBusy).toBe(false);
+  });
+});
+
+describe("channels controller manual restart", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("calls channels.restart for the given channel and clears the busy flag", async () => {
+    const state = createState();
+    const request = vi.mocked(state.client!.request);
+    request.mockResolvedValueOnce({ channel: "guildchat", accountId: "default", started: true });
+
+    await restartChannel(state, "guildchat");
+
+    expect(request).toHaveBeenCalledWith("channels.restart", {
+      channel: "guildchat",
+      accountId: undefined,
+    });
+    expect(state.channelRestartingKey).toBeNull();
+    expect(state.channelsError).toBeNull();
+  });
+
+  it("records the error and clears the busy flag when the restart fails", async () => {
+    const state = createState();
+    const request = vi.mocked(state.client!.request);
+    request.mockRejectedValueOnce(new Error("boom"));
+
+    await restartChannel(state, "guildchat");
+
+    expect(state.channelsError).toContain("boom");
+    expect(state.channelRestartingKey).toBeNull();
+  });
+
+  it("ignores a restart request while another restart is already in flight", async () => {
+    const state = createState();
+    state.channelRestartingKey = "guildchat";
+    const request = vi.mocked(state.client!.request);
+
+    await restartChannel(state, "quietchat");
+
+    expect(request).not.toHaveBeenCalled();
   });
 });
