@@ -6,7 +6,8 @@
   "type": "module",
   "dependencies": {
     "pcb-stackup": "^4.2.8",
-    "typebox": "1.1.31"
+    "typebox": "1.1.31",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"
