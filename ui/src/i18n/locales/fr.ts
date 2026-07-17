@@ -155,6 +155,7 @@ export const fr: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Paramètres",
+    more: "More",
     expand: "Développer la barre latérale",
     collapse: "Réduire la barre latérale",
     resize: "Redimensionner la barre latérale",

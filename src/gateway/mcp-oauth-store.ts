@@ -39,6 +39,13 @@ export type McpOAuthStateRecord = {
    * when `mcp.servers.<name>.auth.tokenUrl` is not explicitly configured.
    */
   discoveredTokenUrl?: string;
+  /**
+   * The exact `redirect_uri` sent with the authorize request. Reused verbatim
+   * on token exchange so the two legs always agree, even if the gateway's
+   * resolved web URL changes between them (e.g. restart, or a popup flow that
+   * used the caller's browser origin instead).
+   */
+  redirectUri?: string;
 };
 
 type McpOAuthStore = {

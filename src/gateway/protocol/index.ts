@@ -54,6 +54,8 @@ import {
   AgentWaitParamsSchema,
   type ChannelsStartParams,
   ChannelsStartParamsSchema,
+  type ChannelsRestartParams,
+  ChannelsRestartParamsSchema,
   type ChannelsLogoutParams,
   ChannelsLogoutParamsSchema,
   type CanvasDocumentCreateParams,
@@ -577,6 +579,9 @@ export const validateChannelsStatusParams = ajv.compile<ChannelsStatusParams>(
 );
 export const validateChannelsStartParams =
   ajv.compile<ChannelsStartParams>(ChannelsStartParamsSchema);
+export const validateChannelsRestartParams = ajv.compile<ChannelsRestartParams>(
+  ChannelsRestartParamsSchema,
+);
 export const validateChannelsLogoutParams = ajv.compile<ChannelsLogoutParams>(
   ChannelsLogoutParamsSchema,
 );
@@ -832,6 +837,7 @@ export {
   ChannelsStatusParamsSchema,
   ChannelsStatusResultSchema,
   ChannelsStartParamsSchema,
+  ChannelsRestartParamsSchema,
   ChannelsLogoutParamsSchema,
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
@@ -985,6 +991,7 @@ export type {
   ChannelsStatusParams,
   ChannelsStatusResult,
   ChannelsStartParams,
+  ChannelsRestartParams,
   ChannelsLogoutParams,
   WebLoginStartParams,
   WebLoginWaitParams,

@@ -225,6 +225,7 @@ export type AppViewState = {
   whatsappLoginQrDataUrl: string | null;
   whatsappLoginConnected: boolean | null;
   whatsappBusy: boolean;
+  channelRestartingKey: string | null;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
   channelWizardSessionId: string | null;
@@ -277,7 +278,7 @@ export type AppViewState = {
   mcpServersPath: string | null;
   mcpServersError: string | null;
   mcpBusy: boolean;
-  mcpMessage: { kind: "success" | "error"; text: string } | null;
+  mcpMessage: { kind: "success" | "error" | "info"; text: string } | null;
   mcpDraftName: string;
   mcpDraftConfig: string;
   mcpAddMode: "preset" | "link" | "json";
@@ -292,6 +293,7 @@ export type AppViewState = {
   mcpOAuthPopup: Window | null;
   mcpEmbeddedFlow: import("./controllers/mcp.ts").McpEmbeddedFlow | null;
   mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null;
+  mcpEmbeddedPopup: Window | null;
   mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
@@ -493,6 +495,7 @@ export type AppViewState = {
     handleWhatsAppStart: (force: boolean) => Promise<void>;
     handleWhatsAppWait: () => Promise<void>;
     handleWhatsAppLogout: () => Promise<void>;
+    handleChannelRestart: (channel: string, accountId?: string | null) => Promise<void>;
     handleChannelConfigSave: () => Promise<void>;
     handleChannelConfigReload: () => Promise<void>;
     handleChannelWizardStart: () => Promise<void>;

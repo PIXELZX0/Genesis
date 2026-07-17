@@ -152,6 +152,7 @@ export const zh_TW: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "設置",
+    more: "More",
     expand: "展開側邊欄",
     collapse: "折疊側邊欄",
     resize: "調整側邊欄大小",

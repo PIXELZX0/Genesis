@@ -107,7 +107,6 @@ import {
   saveMcpServer,
   startMcpOAuth,
   startMcpOAuthEmbedded,
-  sendMcpEmbeddedInput,
   cancelMcpOAuthEmbedded,
   testMcpServer,
   disconnectMcpOAuth,
@@ -454,7 +453,7 @@ type McpOAuthHostState = {
   mcpOAuthFlow: import("./controllers/mcp.ts").McpOAuthFlow | null;
   mcpOAuthPopup: Window | null;
   mcpOAuthStatus: Record<string, import("./controllers/mcp.ts").McpOAuthStatus>;
-  mcpMessage: { kind: "success" | "error"; text: string } | null;
+  mcpMessage: { kind: "success" | "error" | "info"; text: string } | null;
 };
 
 async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {
@@ -1918,6 +1917,7 @@ export function renderApp(state: AppViewState) {
                 channelWizardError: state.channelWizardError,
                 channelWizardMessage: state.channelWizardMessage,
                 selectedChannelId: state.channelSettingsId ?? null,
+                channelRestartingKey: state.channelRestartingKey,
                 onChannelSelect: (key) => {
                   state.channelSettingsId = key;
                   if (!state.configSchema) {
@@ -1925,6 +1925,7 @@ export function renderApp(state: AppViewState) {
                   }
                   requestHostUpdate?.();
                 },
+                onChannelRestart: (key) => void state.handleChannelRestart(key),
                 onChannelSettingsClose: () => {
                   state.channelSettingsId = null;
                   requestHostUpdate?.();
@@ -2734,9 +2735,6 @@ export function renderApp(state: AppViewState) {
                 },
                 onOAuthCancel: () => {
                   cancelMcpOAuth(state);
-                },
-                onEmbeddedInput: (ev) => {
-                  void sendMcpEmbeddedInput(state, ev);
                 },
                 onEmbeddedCancel: () => {
                   cancelMcpOAuthEmbedded(state);

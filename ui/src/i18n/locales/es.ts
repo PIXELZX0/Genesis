@@ -153,6 +153,7 @@ export const es: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "Ajustes",
+    more: "More",
     expand: "Expandir barra lateral",
     collapse: "Contraer barra lateral",
     resize: "Redimensionar la barra lateral",

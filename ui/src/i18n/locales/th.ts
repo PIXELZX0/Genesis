@@ -152,6 +152,7 @@ export const th: TranslationMap = {
     tools: "Tools",
     memory: "Memory",
     settings: "การตั้งค่า",
+    more: "More",
     expand: "ขยายแถบด้านข้าง",
     collapse: "ย่อแถบด้านข้าง",
     resize: "ปรับขนาดแถบด้านข้าง",

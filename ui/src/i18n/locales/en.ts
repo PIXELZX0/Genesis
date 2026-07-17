@@ -339,7 +339,7 @@ export const en: TranslationMap = {
       failed: "OAuth failed: {message}",
       embedded: {
         title: "Sign in to {name}",
-        subtitle: "Sign in below — the gateway runs the browser and streams it here.",
+        subtitle: "Sign in using the popup window that just opened.",
         loading: "Starting the sign-in browser…",
         cancel: "Cancel",
       },

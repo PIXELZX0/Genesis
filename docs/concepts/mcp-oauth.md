@@ -34,8 +34,13 @@ sequenceDiagram
 2. `mcp.oauth.start` builds the provider authorize URL. Genesis generates a PKCE
    verifier and sends the S256 challenge; the verifier is bound to the request
    `state` and never leaves the gateway.
-3. A popup opens the provider consent screen. After consent the provider
-   redirects to the gateway-served callback page at `/mcp-oauth-callback.html`.
+3. A popup opens the provider consent screen. The redirect URI sent with the
+   authorize request is built from the popup-opening browser's own origin (not
+   the gateway's statically resolved web URL), so it still resolves correctly
+   when the operator reaches the Control UI over a LAN address, tailnet
+   hostname, or tunnel domain that differs from the gateway's own view of
+   itself. After consent the provider redirects to that origin's
+   gateway-served callback page at `/mcp-oauth-callback.html`.
 4. The callback page posts the `code` and `state` back to the Control UI. The UI
    only accepts that message when it comes from the gateway origin (see
    [Callback origin checks](#callback-origin-checks)).
@@ -47,9 +52,11 @@ sequenceDiagram
 By default the operator authorizes in their own browser (the popup above). When
 the Control UI is accessed remotely and the provider redirect cannot reach the
 operator's browser, Genesis can instead run the sign-in inside a headless
-browser on the gateway and stream it into the panel. When the operator clicks
-**Connect**, the UI tries `mcp.oauth.embedded.start` first and falls back to the
-popup flow if the gateway reports it unavailable.
+browser on the gateway and stream it into its own popup window — the same UX
+as the real-browser flow, just backed by a remote session. When the operator
+clicks **Connect**, the UI tries `mcp.oauth.embedded.start` first and falls
+back to the real-browser popup flow if the gateway reports it unavailable (or
+if the streaming popup itself is blocked by the browser's popup blocker).
 
 ```mermaid
 sequenceDiagram

@@ -1,8 +1,9 @@
+import { t } from "../../i18n/index.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 
 export type McpServersMap = Record<string, Record<string, unknown>>;
 
-export type McpMessage = { kind: "success" | "error"; text: string };
+export type McpMessage = { kind: "success" | "error" | "info"; text: string };
 
 /**
  * Structural subset of the app view-state consumed by the MCP controller.
@@ -29,6 +30,7 @@ export type McpState = {
   mcpOAuthPopup: Window | null;
   mcpEmbeddedFlow: McpEmbeddedFlow | null;
   mcpEmbeddedPollTimer: ReturnType<typeof setTimeout> | null;
+  mcpEmbeddedPopup: Window | null;
   mcpTestStatus: Record<string, { ok: boolean; message: string } | null>;
 };
 
@@ -307,6 +309,10 @@ export async function startMcpOAuth(
     const res = await state.client.request<McpOAuthStartResult>("mcp.oauth.start", {
       name,
       scopes,
+      // The popup opens in this browser, so the OAuth provider must redirect
+      // back to an origin this browser can reach — which may differ from the
+      // gateway's own (often loopback) resolved web URL.
+      origin: window.location.origin,
     });
     const flow: McpOAuthFlow = {
       name,
@@ -382,6 +388,211 @@ function stopEmbeddedPoll(state: McpState) {
   }
 }
 
+const EMBEDDED_POPUP_CLOSE_DELAY_OK_MS = 800;
+const EMBEDDED_POPUP_CLOSE_DELAY_ERROR_MS = 1500;
+
+/** Map a special keyboard key to a CDP/puppeteer key name, or null if printable. */
+function mapEmbeddedSpecialKey(key: string): string | null {
+  switch (key) {
+    case "Enter":
+    case "Tab":
+    case "Backspace":
+    case "Delete":
+    case "Escape":
+    case "ArrowUp":
+    case "ArrowDown":
+    case "ArrowLeft":
+    case "ArrowRight":
+    case "Home":
+    case "End":
+    case "PageUp":
+    case "PageDown":
+      return key;
+    default:
+      return null;
+  }
+}
+
+function embeddedPopupPoint(
+  ev: MouseEvent,
+  stage: HTMLElement,
+  viewport: { w: number; h: number },
+): { x: number; y: number } {
+  const rect = stage.getBoundingClientRect();
+  const x = rect.width > 0 ? ((ev.clientX - rect.left) / rect.width) * viewport.w : 0;
+  const y = rect.height > 0 ? ((ev.clientY - rect.top) / rect.height) * viewport.h : 0;
+  return { x: Math.round(x), y: Math.round(y) };
+}
+
+function closeEmbeddedPopup(state: McpState) {
+  const popup = state.mcpEmbeddedPopup;
+  state.mcpEmbeddedPopup = null;
+  if (popup && !popup.closed) {
+    try {
+      popup.close();
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function scheduleEmbeddedPopupClose(state: McpState, delayMs: number) {
+  const popup = state.mcpEmbeddedPopup;
+  if (!popup) {
+    return;
+  }
+  setTimeout(() => {
+    // Only close it if a newer flow hasn't already replaced it.
+    if (state.mcpEmbeddedPopup === popup) {
+      closeEmbeddedPopup(state);
+    }
+  }, delayMs);
+}
+
+/** Refresh the popup's status text and streamed frame from current state. */
+function updateEmbeddedPopup(state: McpState) {
+  const popup = state.mcpEmbeddedPopup;
+  const flow = state.mcpEmbeddedFlow;
+  if (!popup || popup.closed || !flow) {
+    return;
+  }
+  const statusEl = popup.document.getElementById("status");
+  if (statusEl) {
+    statusEl.textContent =
+      flow.phase === "loading"
+        ? t("mcpView.oauth.embedded.loading")
+        : t("mcpView.oauth.embedded.subtitle");
+  }
+  const stage = popup.document.getElementById("stage");
+  if (stage) {
+    stage.style.cursor = flow.phase === "interactive" ? "crosshair" : "progress";
+    if (flow.frame) {
+      let img = stage.querySelector("img");
+      if (!img) {
+        img = popup.document.createElement("img");
+        img.draggable = false;
+        stage.appendChild(img);
+      }
+      img.src = `data:image/jpeg;base64,${flow.frame.dataBase64}`;
+    }
+  }
+}
+
+/**
+ * Open the popup window that hosts a streamed embedded OAuth session and wire
+ * pointer/keyboard/paste input straight into `sendMcpEmbeddedInput`. Mirrors
+ * the real-browser popup flow's UX (a dedicated window) even though the
+ * gateway's headless browser is doing the actual navigating.
+ */
+function openEmbeddedPopup(state: McpState, flow: McpEmbeddedFlow): Window | null {
+  const { w, h } = flow.viewport;
+  const popup = window.open(
+    "",
+    `mcp-oauth-embedded-${encodeURIComponent(flow.name)}`,
+    `width=${w},height=${h + 40},noopener=no`,
+  );
+  if (!popup) {
+    return null;
+  }
+  popup.document.open();
+  popup.document.write(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8" /><title>Genesis · MCP OAuth</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #status { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid #1e293b; color: #94a3b8; }
+  #stage { position: relative; width: 100vw; height: calc(100vh - 37px); overflow: hidden; background: #111; outline: none; }
+  #stage img { display: block; width: 100%; height: 100%; user-select: none; pointer-events: none; }
+</style></head>
+<body>
+<div id="status"></div>
+<div id="stage" tabindex="0"></div>
+</body></html>`);
+  popup.document.close();
+  popup.document.title = t("mcpView.oauth.embedded.title", { name: flow.name });
+
+  const stage = popup.document.getElementById("stage")!;
+  const currentFlow = () => state.mcpEmbeddedFlow;
+  const isInteractive = () => currentFlow()?.phase === "interactive";
+  let pointerDown = false;
+  let lastMoveMs = 0;
+
+  stage.addEventListener("mousedown", (ev) => {
+    if (!isInteractive()) {
+      return;
+    }
+    ev.preventDefault();
+    stage.focus();
+    pointerDown = true;
+    const p = embeddedPopupPoint(ev, stage, currentFlow()!.viewport);
+    void sendMcpEmbeddedInput(state, { kind: "mouse", action: "down", x: p.x, y: p.y });
+  });
+  stage.addEventListener("mouseup", (ev) => {
+    if (!isInteractive()) {
+      return;
+    }
+    pointerDown = false;
+    const p = embeddedPopupPoint(ev, stage, currentFlow()!.viewport);
+    void sendMcpEmbeddedInput(state, { kind: "mouse", action: "up", x: p.x, y: p.y });
+  });
+  stage.addEventListener("mousemove", (ev) => {
+    if (!isInteractive() || !pointerDown) {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastMoveMs < 40) {
+      return;
+    }
+    lastMoveMs = now;
+    const p = embeddedPopupPoint(ev, stage, currentFlow()!.viewport);
+    void sendMcpEmbeddedInput(state, { kind: "mouse", action: "move", x: p.x, y: p.y });
+  });
+  stage.addEventListener(
+    "wheel",
+    (ev) => {
+      if (!isInteractive()) {
+        return;
+      }
+      ev.preventDefault();
+      const p = embeddedPopupPoint(ev, stage, currentFlow()!.viewport);
+      void sendMcpEmbeddedInput(state, {
+        kind: "wheel",
+        x: p.x,
+        y: p.y,
+        deltaX: Math.round(ev.deltaX),
+        deltaY: Math.round(ev.deltaY),
+      });
+    },
+    { passive: false },
+  );
+  stage.addEventListener("keydown", (ev) => {
+    if (!isInteractive()) {
+      return;
+    }
+    const special = mapEmbeddedSpecialKey(ev.key);
+    if (special) {
+      ev.preventDefault();
+      void sendMcpEmbeddedInput(state, { kind: "key", action: "press", key: special });
+    } else if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      ev.preventDefault();
+      void sendMcpEmbeddedInput(state, { kind: "key", action: "type", text: ev.key });
+    }
+  });
+  stage.addEventListener("paste", (ev) => {
+    if (!isInteractive()) {
+      return;
+    }
+    const text = ev.clipboardData?.getData("text");
+    if (text) {
+      ev.preventDefault();
+      void sendMcpEmbeddedInput(state, { kind: "key", action: "type", text });
+    }
+  });
+
+  stage.focus();
+  return popup;
+}
+
 /**
  * Start a server-side headless-browser (embedded) OAuth flow. Returns
  * `{ unavailable: true }` when the gateway cannot run a headless browser so the
@@ -410,11 +621,28 @@ export async function startMcpOAuthEmbedded(
       seq: 0,
       providerName: res.providerName,
     };
+    const popup = openEmbeddedPopup(state, state.mcpEmbeddedFlow);
+    if (!popup) {
+      // Popup blocked: tear down the server-side session we just started and
+      // signal the caller to fall back to the real-browser popup flow.
+      cancelMcpOAuthEmbedded(state);
+      state.mcpMessage = {
+        kind: "info",
+        text: "The embedded sign-in popup was blocked by your browser. Falling back to the direct sign-in popup.",
+      };
+      return { ok: false, unavailable: true };
+    }
+    state.mcpEmbeddedPopup = popup;
     scheduleEmbeddedPoll(state, 0);
     return { ok: true };
-  } catch {
-    // Any start failure means the embedded path is not usable right now; signal
-    // the caller to fall back to the popup flow.
+  } catch (err) {
+    // Any start failure means the embedded path is not usable right now; surface
+    // why (e.g. no Chromium on the gateway, provider blocks automated browsers)
+    // and signal the caller to fall back to the popup flow.
+    state.mcpMessage = {
+      kind: "info",
+      text: `Embedded sign-in unavailable (${getErrorMessage(err)}). Falling back to the popup.`,
+    };
     return { ok: false, unavailable: true };
   }
 }
@@ -429,6 +657,12 @@ function scheduleEmbeddedPoll(state: McpState, delayMs: number) {
 async function pollMcpEmbeddedOnce(state: McpState) {
   const flow = state.mcpEmbeddedFlow;
   if (!flow || !state.client || !state.connected) {
+    return;
+  }
+  if (state.mcpEmbeddedPopup?.closed) {
+    // The user closed the popup window directly; treat it the same as
+    // clicking the inline Cancel button.
+    cancelMcpOAuthEmbedded(state);
     return;
   }
   try {
@@ -447,6 +681,7 @@ async function pollMcpEmbeddedOnce(state: McpState) {
       providerName: res.providerName ?? flow.providerName,
       message: res.message,
     };
+    updateEmbeddedPopup(state);
     if (res.phase === "done") {
       stopEmbeddedPoll(state);
       state.mcpOAuthStatus = {
@@ -460,6 +695,7 @@ async function pollMcpEmbeddedOnce(state: McpState) {
       };
       state.mcpMessage = { kind: "success", text: `Connected to "${flow.name}".` };
       state.mcpEmbeddedFlow = null;
+      scheduleEmbeddedPopupClose(state, EMBEDDED_POPUP_CLOSE_DELAY_OK_MS);
       return;
     }
     if (res.phase === "error") {
@@ -469,6 +705,7 @@ async function pollMcpEmbeddedOnce(state: McpState) {
         text: res.message ?? "Embedded OAuth failed.",
       };
       state.mcpEmbeddedFlow = null;
+      scheduleEmbeddedPopupClose(state, EMBEDDED_POPUP_CLOSE_DELAY_ERROR_MS);
       return;
     }
     scheduleEmbeddedPoll(state, EMBEDDED_POLL_INTERVAL_MS);
@@ -479,6 +716,7 @@ async function pollMcpEmbeddedOnce(state: McpState) {
     stopEmbeddedPoll(state);
     state.mcpMessage = { kind: "error", text: `Embedded OAuth failed: ${getErrorMessage(err)}` };
     state.mcpEmbeddedFlow = null;
+    closeEmbeddedPopup(state);
   }
 }
 
@@ -500,6 +738,7 @@ export function cancelMcpOAuthEmbedded(state: McpState) {
   stopEmbeddedPoll(state);
   const flow = state.mcpEmbeddedFlow;
   state.mcpEmbeddedFlow = null;
+  closeEmbeddedPopup(state);
   if (flow && state.client && state.connected) {
     void state.client
       .request("mcp.oauth.embedded.cancel", { sessionId: flow.sessionId })
