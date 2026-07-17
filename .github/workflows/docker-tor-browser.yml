@@ -1,0 +1,57 @@
+name: Docker Tor Browser
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - Dockerfile.tor-browser
+      - .github/workflows/docker-tor-browser.yml
+
+concurrency:
+  group: docker-tor-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.repository == 'PIXELZX0/Genesis'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build the base Genesis image locally so Dockerfile.tor-browser can layer
+      # tor + chromium on top of it (load into the runner's docker image store).
+      - name: Build Genesis base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: genesis:latest
+          load: true
+          push: false
+
+      - name: Build & push Genesis + Tor + Chromium image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.tor-browser
+          build-args: GENESIS_IMAGE=genesis:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/genesis-tor-browser:latest
+            ghcr.io/${{ github.repository }}/genesis-tor-browser:${{ github.sha }}
+          push: true

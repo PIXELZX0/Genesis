@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1.7
+#
+# Genesis + Tor + Chromium in one image.
+#
+# Builds ON TOP of a prebuilt Genesis image (node:24-bookworm base), so build it
+# first:
+#   docker build -t genesis:latest .
+#   docker build -f Dockerfile.tor-browser -t genesis-tor-browser .
+#
+# Or point at an existing tag:
+#   docker build -f Dockerfile.tor-browser --build-arg GENESIS_IMAGE=ghcr.io/pixelzx0/genesis:latest -t genesis-tor-browser .
+ARG GENESIS_IMAGE=genesis:latest
+
+FROM ${GENESIS_IMAGE}
+
+USER root
+
+# Debian bookworm ships a real chromium package (unlike Ubuntu's snap shim).
+RUN --mount=type=cache,id=genesis-tor-apt-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=genesis-tor-apt-lists,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      chromium \
+      fonts-liberation \
+      fonts-noto-cjk \
+      fonts-noto-color-emoji \
+      tor \
+      xvfb
+
+COPY <<'EOF' /etc/tor/torrc
+User debian-tor
+SocksPort 0.0.0.0:9050
+ControlPort 127.0.0.1:9051
+CookieAuthentication 1
+Log notice stdout
+DataDirectory /var/lib/tor
+EOF
+
+# pid-1 shim: run tor (drops to debian-tor per torrc) alongside the Genesis
+# gateway (runs as node, preserving the base image's non-root hardening).
+COPY --chmod=755 <<'EOF' /usr/local/bin/genesis-tor-entrypoint
+#!/bin/sh
+set -e
+runuser -u debian-tor -- tor -f /etc/tor/torrc &
+exec runuser -u node -- "$@"
+EOF
+
+EXPOSE 9050 18789
+
+# Browse over Tor from inside the container:
+#   chromium --headless --no-sandbox --proxy-server=socks5://127.0.0.1:9050 <url>
+ENTRYPOINT ["genesis-tor-entrypoint"]
+CMD ["node", "genesis.mjs", "gateway", "--allow-unconfigured"]
