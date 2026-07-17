@@ -586,6 +586,7 @@ function renderEmbeddedViewport(props: McpProps) {
       return;
     }
     ev.preventDefault();
+    (ev.currentTarget as HTMLElement).focus();
     embeddedPointerDown = true;
     const p = embeddedPoint(ev, flow.viewport);
     props.onEmbeddedInput({ kind: "mouse", action: "down", x: p.x, y: p.y });
