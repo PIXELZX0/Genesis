@@ -4,10 +4,6 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## 2026.7.18
 
-### Changes
-
-- Config: added `genesis doctor --split-config` (plus an opt-in interactive prompt) to move splittable top-level `genesis.json` sections into `~/.genesis/config/<section>.json` `$include` files, keeping only root metadata and restart-bound infra (gateway, discovery, canvasHost) in `genesis.json`. Monolithic configs stay fully supported; migration verifies the resolved config is unchanged and restores the previous root on mismatch.
-
 ### Fixes
 
 - Matrix: named/multi-account configs persisting `avatarUrl` under `channels.matrix.accounts.<id>.avatarUrl` no longer trigger a channel restart loop on every gateway boot. The startup avatar self-write is now recognized as a no-op for named accounts, matching the existing default-account exemption.
