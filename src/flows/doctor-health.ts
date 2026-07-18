@@ -40,6 +40,22 @@ export async function doctorCommand(runtime?: RuntimeEnv, options: DoctorOptions
   noteSourceInstallIssues(root);
   noteStartupOptimizationHints();
 
+  const { maybeSplitConfigLayout } = await import("../commands/doctor-config-split.js");
+  const { note } = await import("../terminal/note.js");
+  await maybeSplitConfigLayout({
+    options,
+    confirmSplit: async (message) => {
+      const { confirm } = await import("@clack/prompts");
+      const { guardCancel } = await import("../commands/onboard-helpers.js");
+      const { stylePromptMessage } = await import("../terminal/prompt-style.js");
+      return guardCancel(
+        await confirm({ message: stylePromptMessage(message), initialValue: false }),
+        effectiveRuntime,
+      );
+    },
+    note,
+  });
+
   const { loadAndMaybeMigrateDoctorConfig } = await import("../commands/doctor-config-flow.js");
   const configResult = await loadAndMaybeMigrateDoctorConfig({
     options,

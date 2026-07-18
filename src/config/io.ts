@@ -18,6 +18,7 @@ import {
   collectRelevantDoctorPluginIds,
   listPluginDoctorLegacyConfigRules,
 } from "../plugins/doctor-contract-registry.js";
+import { isPathInside } from "../security/scan-paths.js";
 import { sanitizeTerminalText } from "../terminal/safe-text.js";
 import { isRecord } from "../utils.js";
 import { VERSION } from "../version.js";
@@ -61,6 +62,7 @@ import {
   resolvePersistCandidateForWrite,
   resolveWriteEnvSnapshotForPath,
   unsetPathForWrite,
+  type RoutedIncludeSectionWrite,
 } from "./io.write-prepare.js";
 import { findLegacyConfigIssues } from "./legacy.js";
 import {
@@ -301,6 +303,50 @@ function collectEnvRefPaths(value: unknown, path: string, output: Map<string, st
       const childPath = path ? `${path}.${key}` : key;
       collectEnvRefPaths(child, childPath, output);
     }
+  }
+}
+
+export async function writeIncludeSectionFileAtomic(params: {
+  filePath: string;
+  value: unknown;
+  fsModule: typeof fs;
+}): Promise<void> {
+  const { filePath, value, fsModule } = params;
+  const dir = path.dirname(filePath);
+  const tmp = path.join(
+    dir,
+    `${path.basename(filePath)}.${process.pid}.${crypto.randomUUID()}.tmp`,
+  );
+  try {
+    await fsModule.promises.mkdir(dir, { recursive: true, mode: 0o700 });
+    await fsModule.promises.writeFile(tmp, `${JSON.stringify(value, null, 2)}\n`, {
+      encoding: "utf-8",
+      mode: 0o600,
+    });
+    if (fsModule.existsSync(filePath)) {
+      await maintainConfigBackups(filePath, fsModule.promises);
+    }
+    try {
+      await fsModule.promises.rename(tmp, filePath);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      // Windows doesn't reliably support atomic replace via rename when dest exists.
+      if (code !== "EPERM" && code !== "EEXIST") {
+        throw err;
+      }
+      await fsModule.promises.copyFile(tmp, filePath);
+      await fsModule.promises.unlink(tmp).catch(() => {
+        // best-effort
+      });
+    }
+    await fsModule.promises.chmod(filePath, 0o600).catch(() => {
+      // best-effort
+    });
+  } catch (err) {
+    await fsModule.promises.unlink(tmp).catch(() => {
+      // best-effort
+    });
+    throw err;
   }
 }
 
@@ -1637,16 +1683,28 @@ export function createConfigIO(
   ): Promise<ConfigWriteResult> {
     clearConfigCache();
     let persistCandidate: unknown = cfg;
+    let mergedCandidate: unknown;
+    let routedSections: RoutedIncludeSectionWrite[] = [];
     const snapshot = options.baseSnapshot ?? (await readConfigFileSnapshotInternal()).snapshot;
     let envRefMap: Map<string, string> | null = null;
     let changedPaths: Set<string> | null = null;
     if (snapshot.valid && snapshot.exists) {
-      persistCandidate = resolvePersistCandidateForWrite({
+      const rootDir = path.dirname(configPath);
+      const prepared = resolvePersistCandidateForWrite({
         runtimeConfig: snapshot.config,
         sourceConfig: snapshot.resolved,
         nextConfig: cfg,
         rootAuthoredConfig: snapshot.parsed,
+        resolveIncludeTargetPath: (includeRef) => {
+          const resolved = path.normalize(
+            path.isAbsolute(includeRef) ? includeRef : path.resolve(rootDir, includeRef),
+          );
+          return isPathInside(rootDir, resolved) ? resolved : null;
+        },
       });
+      persistCandidate = prepared.persistCandidate;
+      mergedCandidate = prepared.mergedCandidate;
+      routedSections = prepared.routedSections;
       try {
         const resolvedIncludes = resolveConfigIncludes(snapshot.parsed, configPath, {
           readFile: (candidate) => deps.fs.readFileSync(candidate, "utf-8"),
@@ -1671,7 +1729,12 @@ export function createConfigIO(
       }
     }
 
-    const validated = validateConfigObjectRawWithPlugins(persistCandidate, { env: deps.env });
+    // Validate the merged candidate (include-owned values inlined) rather than
+    // the root payload: the root keeps `$include` markers, which the strict
+    // schema would reject, while the merged candidate is the effective config.
+    const validated = validateConfigObjectRawWithPlugins(mergedCandidate ?? persistCandidate, {
+      env: deps.env,
+    });
     if (!validated.ok) {
       const issue = validated.issues[0];
       const pathLabel = issue?.path ? issue.path : "<root>";
@@ -1859,6 +1922,39 @@ export function createConfigIO(
       throw err;
     }
 
+    // Route include-owned section values into their owning files before the root
+    // write, so a failed section write leaves the root (and its markers) untouched.
+    for (const section of routedSections) {
+      let sectionValue: unknown = section.value;
+      if (envRefMap && changedPaths) {
+        sectionValue = restoreEnvRefsFromMap(sectionValue, section.key, envRefMap, changedPaths);
+      }
+      if (options.unsetPaths?.length) {
+        for (const unsetPath of options.unsetPaths) {
+          if (
+            !Array.isArray(unsetPath) ||
+            unsetPath.length < 2 ||
+            unsetPath[0] !== section.key ||
+            !isRecord(sectionValue)
+          ) {
+            continue;
+          }
+          const unsetResult = unsetPathForWrite(
+            coerceConfig({ [section.key]: sectionValue }),
+            unsetPath,
+          );
+          if (unsetResult.changed) {
+            sectionValue = (unsetResult.next as Record<string, unknown>)[section.key] ?? {};
+          }
+        }
+      }
+      await writeIncludeSectionFileAtomic({
+        filePath: section.filePath,
+        value: sectionValue,
+        fsModule: deps.fs,
+      });
+    }
+
     const tmp = path.join(
       dir,
       `${path.basename(configPath)}.${process.pid}.${crypto.randomUUID()}.tmp`,
@@ -1897,7 +1993,7 @@ export function createConfigIO(
           return {
             persistedHash: nextHash,
             persistedConfig: stampedOutputConfig,
-            resolvedSourceConfig: coerceConfig(persistCandidate),
+            resolvedSourceConfig: coerceConfig(mergedCandidate ?? persistCandidate),
           };
         }
         await deps.fs.promises.unlink(tmp).catch(() => {
@@ -1915,7 +2011,7 @@ export function createConfigIO(
       return {
         persistedHash: nextHash,
         persistedConfig: stampedOutputConfig,
-        resolvedSourceConfig: coerceConfig(persistCandidate),
+        resolvedSourceConfig: coerceConfig(mergedCandidate ?? persistCandidate),
       };
     } catch (err) {
       await appendWriteAudit("failed", err);

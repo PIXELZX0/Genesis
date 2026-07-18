@@ -1,5 +1,3 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
 import { ConfigMutationConflictError, mutateConfigFile, replaceConfigFile } from "./mutate.js";
@@ -137,24 +135,10 @@ describe("config mutate helpers", () => {
     );
   });
 
-  it("writes through a single-file top-level plugins include", async () => {
-    const home = await suiteRootTracker.make("include");
-    const configPath = path.join(home, ".genesis", "genesis.json");
-    const pluginsPath = path.join(home, ".genesis", "config", "plugins.json5");
-    await fs.mkdir(path.dirname(pluginsPath), { recursive: true });
-    await fs.writeFile(
-      configPath,
-      `${JSON.stringify({ plugins: { $include: "./config/plugins.json5" } }, null, 2)}\n`,
-      "utf-8",
-    );
-    await fs.writeFile(
-      pluginsPath,
-      `${JSON.stringify({ entries: { old: { enabled: true } } }, null, 2)}\n`,
-      "utf-8",
-    );
+  it("delegates a single-file top-level plugins include mutation to the write funnel", async () => {
     const snapshot = createSnapshot({
       hash: "hash-include",
-      path: configPath,
+      path: "/tmp/genesis.json",
       parsed: { plugins: { $include: "./config/plugins.json5" } },
       sourceConfig: {
         plugins: {
@@ -163,38 +147,28 @@ describe("config mutate helpers", () => {
       },
     });
 
+    const nextConfig = {
+      plugins: {
+        entries: {
+          old: { enabled: true },
+          demo: { enabled: true },
+        },
+      },
+    };
     await replaceConfigFile({
       baseHash: snapshot.hash,
       snapshot,
       writeOptions: { expectedConfigPath: snapshot.path },
-      nextConfig: {
-        plugins: {
-          entries: {
-            old: { enabled: true },
-            demo: { enabled: true },
-          },
-          installs: {
-            demo: {
-              source: "npm",
-              spec: "demo",
-              installPath: "/tmp/demo",
-            },
-          },
-        },
-      },
+      nextConfig,
     });
 
-    expect(ioMocks.writeConfigFile).not.toHaveBeenCalled();
-    await expect(fs.readFile(configPath, "utf-8")).resolves.toContain(
-      '"$include": "./config/plugins.json5"',
-    );
-    await expect(fs.readFile(`${pluginsPath}.bak`, "utf-8")).resolves.toContain('"old"');
-    const persistedPlugins = JSON.parse(await fs.readFile(pluginsPath, "utf-8")) as {
-      entries?: Record<string, unknown>;
-      installs?: Record<string, unknown>;
-    };
-    expect(persistedPlugins.entries?.demo).toEqual({ enabled: true });
-    expect(persistedPlugins.installs?.demo).toMatchObject({ source: "npm", spec: "demo" });
+    // Include-owned section routing happens inside writeConfigFile (see
+    // io.include-write-routing.test.ts); mutate must always delegate to it so
+    // write notifications, backups, and audit records fire.
+    expect(ioMocks.writeConfigFile).toHaveBeenCalledWith(nextConfig, {
+      baseSnapshot: snapshot,
+      expectedConfigPath: snapshot.path,
+    });
   });
 
   it("falls back to the root writer when a plugins include write is not isolated", async () => {

@@ -35,6 +35,7 @@ genesis doctor --generate-gateway-token
 - `--non-interactive`: run without prompts; safe migrations only
 - `--generate-gateway-token`: generate and configure a gateway token
 - `--deep`: scan system services for extra gateway installs
+- `--split-config`: split monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files (also offered as an opt-in prompt in interactive runs; never applied implicitly by `--yes`/`--fix`). See [Configuration](/gateway/configuration)
 
 Notes:
 

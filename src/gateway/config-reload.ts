@@ -8,6 +8,7 @@ import type {
   GatewayReloadMode,
 } from "../config/config.js";
 import { shouldAttemptLastKnownGoodRecovery } from "../config/config.js";
+import { collectIncludePathsRecursive } from "../config/includes-scan.js";
 import { formatConfigIssueLines } from "../config/issue-format.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
 import { isPlainObject } from "../utils.js";
@@ -472,6 +473,33 @@ export function startGatewayConfigReloader(opts: {
     }
   };
 
+  // Config content can live in $include files (e.g. ~/.genesis/config/*.json);
+  // watch them too so hand edits trigger reloads, and re-reconcile as the
+  // include set changes across reloads.
+  let watchedIncludePaths = new Set<string>();
+  const reconcileIncludeWatches = async (snapshot: ConfigFileSnapshot) => {
+    try {
+      const includePaths = await collectIncludePathsRecursive({
+        configPath: snapshot.path,
+        parsed: snapshot.parsed,
+      });
+      const next = new Set(includePaths);
+      for (const includePath of watchedIncludePaths) {
+        if (!next.has(includePath)) {
+          watcher.unwatch(includePath);
+        }
+      }
+      for (const includePath of next) {
+        if (!watchedIncludePaths.has(includePath)) {
+          watcher.add(includePath);
+        }
+      }
+      watchedIncludePaths = next;
+    } catch (err) {
+      opts.log.warn(`config include watch refresh failed: ${String(err)}`);
+    }
+  };
+
   const runReload = async () => {
     if (stopped) {
       return;
@@ -495,6 +523,7 @@ export function startGatewayConfigReloader(opts: {
         return;
       }
       let snapshot = await opts.readSnapshot();
+      await reconcileIncludeWatches(snapshot);
       if (lastAppliedWriteHash && typeof snapshot.hash === "string") {
         if (snapshot.hash === lastAppliedWriteHash) {
           return;
@@ -552,6 +581,11 @@ export function startGatewayConfigReloader(opts: {
   watcher.on("add", scheduleFromWatcher);
   watcher.on("change", scheduleFromWatcher);
   watcher.on("unlink", scheduleFromWatcher);
+  // Seed include-file watches from the current on-disk config.
+  void opts
+    .readSnapshot()
+    .then((snapshot) => reconcileIncludeWatches(snapshot))
+    .catch(() => {});
   let watcherClosed = false;
   watcher.on("error", (err) => {
     if (watcherClosed) {

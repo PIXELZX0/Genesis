@@ -486,13 +486,26 @@ cannot roll back unrelated user settings.
     - **Sibling keys**: merged after includes (override included values)
     - **Nested includes**: supported up to 10 levels deep
     - **Relative paths**: resolved relative to the including file
-    - **Genesis-owned writes**: when a write changes only one top-level section
-      backed by a single-file include such as `plugins: { $include: "./plugins.json5" }`,
-      Genesis updates that included file and leaves `genesis.json` intact
-    - **Unsupported write-through**: root includes, include arrays, and includes
-      with sibling overrides fail closed for Genesis-owned writes instead of
-      flattening the config
+    - **Genesis-owned writes**: when a write changes top-level sections backed by
+      single-file includes such as `plugins: { $include: "./plugins.json5" }`,
+      Genesis updates each owning include file and leaves `genesis.json` intact —
+      this covers `genesis config set`, the config RPC, and the Control UI
+    - **Unsupported write-through**: root includes, include arrays, nested
+      includes, and includes with sibling overrides fail closed for
+      Genesis-owned writes instead of flattening the config
+    - **Watched**: the Gateway watches include files too, so hand edits to a
+      section file hot-reload (or restart) just like edits to `genesis.json`
     - **Error handling**: clear errors for missing files, parse errors, and circular includes
+
+    To migrate an existing monolithic config to this layout automatically, run
+    `genesis doctor --split-config`. It moves every splittable top-level section
+    into `~/.genesis/config/<section>.json` (for example `config/models.json`,
+    `config/plugins.json`, `config/skills.json`, `config/agents.json`) and keeps
+    only root metadata and restart-bound infrastructure (`gateway`, `discovery`,
+    `canvasHost`) in `genesis.json`. Interactive `genesis doctor` runs offer the
+    split as an opt-in prompt; `--yes`/`--fix` never apply it implicitly. The
+    migration verifies that the resolved config is unchanged and restores the
+    previous `genesis.json` if not. Monolithic configs remain fully supported.
 
   </Accordion>
 </AccordionGroup>

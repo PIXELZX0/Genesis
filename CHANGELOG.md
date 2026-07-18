@@ -17,6 +17,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Config: `genesis doctor --split-config` (also an opt-in prompt in interactive doctor runs) splits a monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files, keeping only root metadata and restart-bound infra (`gateway`, `discovery`, `canvasHost`) in `genesis.json`. Config writes (`genesis config set`, config RPC, Control UI) now route section changes into their owning `$include` file — for any single-file top-level include, not just `plugins` — and the Gateway watches include files so hand edits hot-reload like `genesis.json` edits. Monolithic configs remain fully supported.
 - Control UI: added a manual restart action for channels stuck Idle/Offline/Error, instead of only waiting on the health monitor's auto-restart.
 
 ## 2026.7.17-2

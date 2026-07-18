@@ -121,19 +121,71 @@ function setPathValue(value: unknown, path: string[], nextValue: unknown): unkno
   };
 }
 
+export type RoutedIncludeSectionWrite = {
+  /** Top-level config key owned by a single `$include` file. */
+  key: string;
+  /** The authored `$include` reference string. */
+  includeRef: string;
+  /** Resolved absolute path of the include file (confined to the config dir). */
+  filePath: string;
+  /** New source-shaped section value to persist into the include file. */
+  value: unknown;
+};
+
+export type PersistCandidateForWrite = {
+  /** Root-file payload with untouched/routed `$include` markers restored. */
+  persistCandidate: unknown;
+  /** Same candidate with include-owned section values inlined (no markers). */
+  mergedCandidate: unknown;
+  /** Top-level sections whose new values must be written to their include file. */
+  routedSections: RoutedIncludeSectionWrite[];
+};
+
+function getSingleIncludeRef(value: unknown): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const keys = Object.keys(value);
+  const includeValue = value.$include;
+  return keys.length === 1 && typeof includeValue === "string" ? includeValue : null;
+}
+
 function preserveUntouchedIncludes(params: {
   patch: unknown;
   rootAuthoredConfig: unknown;
   persistedCandidate: unknown;
+  resolveIncludeTargetPath?: (includeRef: string) => string | null;
+  routedSections: RoutedIncludeSectionWrite[];
 }): unknown {
   let next = params.persistedCandidate;
   for (const includePath of collectIncludeOwnedPaths(params.rootAuthoredConfig)) {
     if (patchTouchesPath(params.patch, includePath)) {
-      throw new Error(
-        `Config write would flatten $include-owned config at ${formatConfigPath(
-          includePath,
-        )}; edit that include file directly or remove the $include first.`,
-      );
+      // Top-level sections authored as exactly `{ "$include": "<file>" }` route
+      // the new value into the owning include file instead of flattening.
+      const includeRef =
+        includePath.length === 1
+          ? getSingleIncludeRef(getPathValue(params.rootAuthoredConfig, includePath))
+          : null;
+      const filePath =
+        includeRef !== null ? (params.resolveIncludeTargetPath?.(includeRef) ?? null) : null;
+      if (includeRef === null || filePath === null) {
+        throw new Error(
+          `Config write would flatten $include-owned config at ${formatConfigPath(
+            includePath,
+          )}; edit that include file directly or remove the $include first.`,
+        );
+      }
+      const nextValue = getPathValue(next, includePath);
+      if (nextValue === undefined) {
+        // Whole-section delete: drop the marker from the root instead of routing.
+        continue;
+      }
+      params.routedSections.push({
+        key: includePath[0],
+        includeRef,
+        filePath,
+        value: nextValue,
+      });
     }
     next = setPathValue(next, includePath, getPathValue(params.rootAuthoredConfig, includePath));
   }
@@ -145,19 +197,33 @@ export function resolvePersistCandidateForWrite(params: {
   sourceConfig: unknown;
   nextConfig: unknown;
   rootAuthoredConfig?: unknown;
-}): unknown {
+  resolveIncludeTargetPath?: (includeRef: string) => string | null;
+}): PersistCandidateForWrite {
   const patch = createMergePatch(params.runtimeConfig, params.nextConfig);
   const projectedSource = projectSourceOntoRuntimeShape(params.sourceConfig, params.runtimeConfig);
+  const rootAuthoredConfig = params.rootAuthoredConfig ?? params.sourceConfig;
+  const merged = applyMergePatch(projectedSource, patch);
+  const routedSections: RoutedIncludeSectionWrite[] = [];
   const persisted = preserveUntouchedIncludes({
     patch,
-    rootAuthoredConfig: params.rootAuthoredConfig ?? params.sourceConfig,
-    persistedCandidate: applyMergePatch(projectedSource, patch),
+    rootAuthoredConfig,
+    persistedCandidate: merged,
+    resolveIncludeTargetPath: params.resolveIncludeTargetPath,
+    routedSections,
   });
-  return preserveRootSchemaUri({
-    rootAuthoredConfig: params.rootAuthoredConfig ?? params.sourceConfig,
-    nextConfig: params.nextConfig,
-    persistedCandidate: persisted,
-  });
+  return {
+    persistCandidate: preserveRootSchemaUri({
+      rootAuthoredConfig,
+      nextConfig: params.nextConfig,
+      persistedCandidate: persisted,
+    }),
+    mergedCandidate: preserveRootSchemaUri({
+      rootAuthoredConfig,
+      nextConfig: params.nextConfig,
+      persistedCandidate: merged,
+    }),
+    routedSections,
+  };
 }
 
 function readRootSchemaUri(value: unknown): string | undefined {

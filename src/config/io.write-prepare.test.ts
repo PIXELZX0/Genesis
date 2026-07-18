@@ -27,7 +27,7 @@ describe("config io write prepare", () => {
           auth: { mode: "token" },
         },
       },
-    }) as Record<string, unknown>;
+    }).persistCandidate as Record<string, unknown>;
 
     expect(persisted.gateway).toEqual({
       port: 18789,
@@ -73,7 +73,7 @@ describe("config io write prepare", () => {
           },
         },
       },
-    }) as {
+    }).persistCandidate as {
       plugins?: {
         installs?: Record<string, Record<string, unknown>>;
       };
@@ -112,7 +112,7 @@ describe("config io write prepare", () => {
         },
         gateway: { mode: "local", port: 18789 },
       },
-    }) as Record<string, unknown>;
+    }).persistCandidate as Record<string, unknown>;
 
     expect(persisted.agents).toEqual({ $include: "./config/agents.json" });
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
@@ -407,7 +407,7 @@ describe("config io write prepare", () => {
       runtimeConfig,
       sourceConfig,
       nextConfig,
-    }) as Record<string, unknown>;
+    }).persistCandidate as Record<string, unknown>;
 
     expect(persisted.gateway).toEqual({
       port: 18789,
@@ -445,7 +445,7 @@ describe("config io write prepare", () => {
       runtimeConfig: sourceConfig,
       sourceConfig,
       nextConfig,
-    }) as {
+    }).persistCandidate as {
       channels?: {
         discord?: { dm?: Record<string, unknown>; dmPolicy?: unknown };
         slack?: { dm?: Record<string, unknown>; dmPolicy?: unknown };
@@ -500,7 +500,7 @@ describe("config io write prepare", () => {
       runtimeConfig: sourceConfig,
       sourceConfig,
       nextConfig,
-    }) as {
+    }).persistCandidate as {
       channels?: {
         slack?: { channels?: Record<string, Record<string, unknown>> };
         googlechat?: { groups?: Record<string, Record<string, unknown>> };
@@ -533,7 +533,7 @@ describe("config io write prepare", () => {
       nextConfig: {
         gateway: { mode: "local", port: 18789 },
       } satisfies GenesisConfig,
-    }) as GenesisConfig;
+    }).persistCandidate as GenesisConfig;
 
     expect(persisted.$schema).toBe("https://genesis.pixelzx.com/config.json");
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
@@ -573,7 +573,7 @@ describe("config io write prepare", () => {
         $schema: null,
         gateway: { mode: "local", port: 18789 },
       },
-    }) as Record<string, unknown>;
+    }).persistCandidate as Record<string, unknown>;
 
     expect(persisted).not.toHaveProperty("$schema");
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
@@ -592,7 +592,7 @@ describe("config io write prepare", () => {
         $schema: 123,
         gateway: { mode: "local", port: 18789 },
       },
-    }) as Record<string, unknown>;
+    }).persistCandidate as Record<string, unknown>;
 
     expect(persisted.$schema).toBe(123);
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
