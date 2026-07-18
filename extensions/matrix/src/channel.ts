@@ -341,7 +341,16 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount, MatrixProbe> =
         configPrefixes: ["channels.matrix"],
         // avatarUrl is written back during startup when an HTTP URL is converted to mxc://.
         // This is a self-write that must not restart the channel it originates from.
-        noopPrefixes: ["channels.matrix.avatarUrl", "channels.matrix.name"],
+        // Named/multi-account configs store fields under channels.matrix.accounts.<id>.*
+        // instead of the top-level channels.matrix.* path (see
+        // shouldStoreMatrixAccountAtTopLevel in matrix/config-paths.ts), so both shapes
+        // need a noop entry or every startup retriggers a channel restart.
+        noopPrefixes: [
+          "channels.matrix.avatarUrl",
+          "channels.matrix.name",
+          "channels.matrix.accounts.*.avatarUrl",
+          "channels.matrix.accounts.*.name",
+        ],
       },
       configSchema: buildChannelConfigSchema(MatrixConfigSchema),
       config: {

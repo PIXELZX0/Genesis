@@ -216,6 +216,9 @@ function normalizeArrayIndexes(path: string): string {
 }
 
 function pathMatchesPrefix(path: string, prefix: string): boolean {
+  if (prefix.includes("*")) {
+    return pathMatchesWildcardPrefix(path, prefix);
+  }
   const normalizedPath = normalizeArrayIndexes(path);
   const normalizedPrefix = normalizeArrayIndexes(prefix);
   return (
@@ -223,6 +226,19 @@ function pathMatchesPrefix(path: string, prefix: string): boolean {
     normalizedPath.startsWith(`${normalizedPrefix}.`) ||
     normalizedPath.startsWith(`${normalizedPrefix}[`)
   );
+}
+
+// Supports a single "*" wildcard segment standing in for one dynamic key,
+// e.g. "channels.matrix.accounts.*.avatarUrl" matching any account id.
+// Kept separate from pathMatchesPrefix's bracket-suffix handling above so
+// existing non-wildcard rules are untouched.
+function pathMatchesWildcardPrefix(path: string, prefix: string): boolean {
+  const pathSegments = normalizeArrayIndexes(path).split(".");
+  const prefixSegments = normalizeArrayIndexes(prefix).split(".");
+  if (prefixSegments.length > pathSegments.length) {
+    return false;
+  }
+  return prefixSegments.every((segment, i) => segment === "*" || segment === pathSegments[i]);
 }
 
 function isPluginInstallTimestampPath(path: string): boolean {
