@@ -10,6 +10,7 @@ export type MatrixResolvedConfig = {
   deviceName?: string;
   initialSyncLimit?: number;
   encryption?: boolean;
+  processIsolation?: boolean;
   allowPrivateNetwork?: boolean;
   ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
@@ -33,6 +34,7 @@ export type MatrixAuth = {
   deviceName?: string;
   initialSyncLimit?: number;
   encryption?: boolean;
+  processIsolation?: boolean;
   allowPrivateNetwork?: boolean;
   ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;

@@ -2,6 +2,14 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Changes
+
+- Matrix: startup maintenance now auto-prunes stale Genesis-managed devices (non-current, idle 72h+) instead of only warning, and ensures a server-side room key backup exists (creating the first backup when missing). Stale devices force expensive Megolm key re-sharing on every encrypted send — enough to stall the gateway event loop for minutes in rooms with a long device history. Opt out with `channels.matrix.autoPruneStaleDevices: false`; `genesis matrix devices prune-stale` remains for manual cleanup.
+- Matrix: added an opt-in `channels.matrix.processIsolation` flag that runs the Matrix client (matrix-js-sdk plus its WASM/native crypto) in a dedicated `child_process` instead of the gateway's main thread. matrix-js-sdk's Rust-crypto WASM backend runs synchronous computation on whatever thread calls it, so a large Megolm key-share can block the entire gateway event loop — not just Matrix — for minutes; this fully isolates that risk regardless of how many stale devices exist. Off by default pending manual validation; the in-process path remains the default.
+- Matrix: bumped `matrix-js-sdk` from `41.4.0-rc.0` to `41.9.0` (the latest full stable release, not a release candidate). `42.0.0-rc.0` was evaluated and rejected: its `lib/oauth/authorize.js` does an illegal directory import (`import { Method } from "../http-api"` with no `/index.js`) that Node's strict ESM resolver rejects on any import of the SDK's main entry — a packaging defect in that release candidate, not something fixable on our side.
+
 ## 2026.7.18
 
 ### Fixes

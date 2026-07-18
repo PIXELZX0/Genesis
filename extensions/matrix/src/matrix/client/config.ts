@@ -525,6 +525,10 @@ export function resolveMatrixConfigForAccount(
     accountInitialSyncLimit ?? clampMatrixInitialSyncLimit(matrix.initialSyncLimit);
   const encryption =
     typeof account.encryption === "boolean" ? account.encryption : (matrix.encryption ?? false);
+  const processIsolation =
+    typeof account.processIsolation === "boolean"
+      ? account.processIsolation
+      : matrix.processIsolation;
   const allowPrivateNetwork =
     isPrivateNetworkOptInEnabled(account) || isPrivateNetworkOptInEnabled(matrix)
       ? true
@@ -539,6 +543,7 @@ export function resolveMatrixConfigForAccount(
     deviceName: resolvedStrings.deviceName || undefined,
     initialSyncLimit,
     encryption,
+    processIsolation,
     ...buildMatrixNetworkFields({
       allowPrivateNetwork,
       proxy: account.proxy ?? matrix.proxy,
@@ -690,6 +695,7 @@ export async function resolveMatrixAuth(params?: {
       deviceName: resolved.deviceName,
       initialSyncLimit: resolved.initialSyncLimit,
       encryption: resolved.encryption,
+      processIsolation: resolved.processIsolation,
       ...buildMatrixNetworkFields({
         allowPrivateNetwork: resolved.allowPrivateNetwork,
         dispatcherPolicy: resolved.dispatcherPolicy,
@@ -710,6 +716,7 @@ export async function resolveMatrixAuth(params?: {
       deviceName: resolved.deviceName,
       initialSyncLimit: resolved.initialSyncLimit,
       encryption: resolved.encryption,
+      processIsolation: resolved.processIsolation,
       ...buildMatrixNetworkFields({
         allowPrivateNetwork: resolved.allowPrivateNetwork,
         dispatcherPolicy: resolved.dispatcherPolicy,
@@ -774,6 +781,7 @@ export async function resolveMatrixAuth(params?: {
     deviceName: resolved.deviceName,
     initialSyncLimit: resolved.initialSyncLimit,
     encryption: resolved.encryption,
+    processIsolation: resolved.processIsolation,
     ...buildMatrixNetworkFields({
       allowPrivateNetwork: resolved.allowPrivateNetwork,
       dispatcherPolicy: resolved.dispatcherPolicy,

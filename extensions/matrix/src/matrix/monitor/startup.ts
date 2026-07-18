@@ -1,12 +1,15 @@
 import type { RuntimeLogger } from "../../runtime-api.js";
 import type { CoreConfig, MatrixConfig } from "../../types.js";
 import type { MatrixAuth } from "../client.js";
+import { selectAutoPrunableMatrixDevices } from "../device-health.js";
 import type { MatrixClient } from "../sdk.js";
 import { isMatrixStartupAbortError, throwIfMatrixStartupAborted } from "../startup-abort.js";
 
 type MatrixStartupClient = Pick<
   MatrixClient,
   | "crypto"
+  | "deleteOwnDevices"
+  | "ensureRoomKeyBackup"
   | "getOwnDeviceVerificationStatus"
   | "getUserProfile"
   | "listOwnDevices"
@@ -119,9 +122,30 @@ export async function runMatrixStartupMaintenance(
     const deviceHealth = runtimeDeps.summarizeMatrixDeviceHealth(
       await params.client.listOwnDevices(),
     );
-    if (deviceHealth.staleGenesisDevices.length > 0) {
+    let staleDevices = deviceHealth.staleGenesisDevices;
+    if (staleDevices.length > 0 && params.accountConfig.autoPruneStaleDevices !== false) {
+      const prunable = selectAutoPrunableMatrixDevices(staleDevices);
+      if (prunable.length > 0) {
+        try {
+          const pruned = await params.client.deleteOwnDevices(
+            prunable.map((device) => device.deviceId),
+          );
+          params.logger.info(
+            `matrix: auto-pruned ${pruned.deletedDeviceIds.length} stale Genesis device(s) for ${params.auth.userId}: ${pruned.deletedDeviceIds.join(", ")}`,
+          );
+          const prunedIds = new Set(pruned.deletedDeviceIds);
+          staleDevices = staleDevices.filter((device) => !prunedIds.has(device.deviceId));
+        } catch (err) {
+          params.logger.warn(
+            `matrix: failed auto-pruning stale Genesis devices for ${params.auth.userId}: ${String(err)}`,
+          );
+        }
+      }
+    }
+    throwIfMatrixStartupAborted(params.abortSignal);
+    if (staleDevices.length > 0) {
       params.logger.warn(
-        `matrix: stale Genesis devices detected for ${params.auth.userId}: ${deviceHealth.staleGenesisDevices.map((device) => device.deviceId).join(", ")}. Run 'genesis matrix devices prune-stale --account ${params.effectiveAccountId}' to keep encrypted-room trust healthy.`,
+        `matrix: stale Genesis devices detected for ${params.auth.userId}: ${staleDevices.map((device) => device.deviceId).join(", ")}. Run 'genesis matrix devices prune-stale --account ${params.effectiveAccountId}' to keep encrypted-room trust healthy.`,
       );
     }
   } catch (err) {
@@ -131,6 +155,25 @@ export async function runMatrixStartupMaintenance(
     params.logger.debug?.("Failed to inspect matrix device hygiene (non-fatal)", {
       error: String(err),
     });
+  }
+
+  try {
+    throwIfMatrixStartupAborted(params.abortSignal);
+    const backup = await params.client.ensureRoomKeyBackup();
+    if (backup.serverVersion) {
+      params.logVerboseMessage(
+        `matrix: room key backup ready (version ${backup.serverVersion}, active=${backup.activeVersion ?? "none"})`,
+      );
+    } else {
+      params.logger.warn(
+        "matrix: room key backup is still missing after startup bootstrap; undecryptable-history recovery will not work until it exists",
+      );
+    }
+  } catch (err) {
+    if (isMatrixStartupAbortError(err)) {
+      throw err;
+    }
+    params.logger.warn(`matrix: failed ensuring room key backup: ${String(err)}`);
   }
 
   try {

@@ -43,6 +43,7 @@ export async function createMatrixClient(params: {
   initialSyncLimit?: number;
   accountId?: string | null;
   autoBootstrapCrypto?: boolean;
+  processIsolation?: boolean;
   allowPrivateNetwork?: boolean;
   ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
@@ -86,7 +87,7 @@ export async function createMatrixClient(params: {
     ? `genesis-matrix-${storagePaths.accountKey}-${storagePaths.tokenHash}`
     : undefined;
 
-  return new MatrixClient(homeserver, params.accessToken, {
+  const clientOpts = {
     userId: matrixClientUserId,
     password: params.password,
     deviceId: params.deviceId,
@@ -101,5 +102,20 @@ export async function createMatrixClient(params: {
     ssrfPolicy:
       params.ssrfPolicy ?? ssrfPolicyFromDangerouslyAllowPrivateNetwork(params.allowPrivateNetwork),
     dispatcherPolicy: params.dispatcherPolicy,
-  });
+  };
+
+  if (params.processIsolation) {
+    // Run the client (matrix-js-sdk + WASM/native crypto) in a child_process so a
+    // synchronous Megolm key-share can never block the gateway event loop. The proxy
+    // has the same public surface as MatrixClient; the cast bridges TypeScript's
+    // nominal check on MatrixClient's private fields (structurally identical at runtime).
+    const { MatrixClientProcessProxy } = await import("./process-proxy.js");
+    return new MatrixClientProcessProxy(
+      homeserver,
+      params.accessToken,
+      clientOpts,
+    ) as unknown as MatrixClient;
+  }
+
+  return new MatrixClient(homeserver, params.accessToken, clientOpts);
 }

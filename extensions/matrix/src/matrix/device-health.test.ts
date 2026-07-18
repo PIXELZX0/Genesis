@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isGenesisManagedMatrixDevice, summarizeMatrixDeviceHealth } from "./device-health.js";
+import {
+  isGenesisManagedMatrixDevice,
+  MATRIX_STALE_DEVICE_AUTO_PRUNE_MIN_AGE_MS,
+  selectAutoPrunableMatrixDevices,
+  summarizeMatrixDeviceHealth,
+} from "./device-health.js";
 
 describe("matrix device health", () => {
   it("detects Genesis-managed device names", () => {
@@ -41,5 +46,27 @@ describe("matrix device health", () => {
       expect.objectContaining({ deviceId: "BritdXC6iL" }),
       expect.objectContaining({ deviceId: "G6NJU9cTgs" }),
     ]);
+  });
+
+  it("selects only stale devices idle past the auto-prune threshold", () => {
+    const now = 1_000_000_000_000;
+    const oldEnough = now - MATRIX_STALE_DEVICE_AUTO_PRUNE_MIN_AGE_MS - 1;
+    const tooRecent = now - MATRIX_STALE_DEVICE_AUTO_PRUNE_MIN_AGE_MS + 1;
+    const prunable = selectAutoPrunableMatrixDevices(
+      [
+        { deviceId: "OLD1", displayName: "Genesis Gateway", current: false, lastSeenTs: oldEnough },
+        {
+          deviceId: "FRESH",
+          displayName: "Genesis Gateway",
+          current: false,
+          lastSeenTs: tooRecent,
+        },
+        { deviceId: "NOSEEN", displayName: "Genesis Gateway", current: false, lastSeenTs: null },
+        { deviceId: "UNSET", displayName: "Genesis Gateway", current: false },
+      ],
+      { now },
+    );
+
+    expect(prunable).toEqual([expect.objectContaining({ deviceId: "OLD1" })]);
   });
 });

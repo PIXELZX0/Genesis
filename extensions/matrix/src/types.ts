@@ -185,6 +185,18 @@ export type MatrixConfig = {
   threadBindings?: MatrixThreadBindingsConfig;
   /** Whether Matrix should auto-request self verification on startup when unverified. */
   startupVerification?: "off" | "if-unverified";
+  /**
+   * Auto-delete stale Genesis-managed devices (non-current, idle 72h+) at startup.
+   * Default: true. Stale devices force expensive Megolm key re-sharing on every
+   * encrypted send and accumulate undecryptable sessions.
+   */
+  autoPruneStaleDevices?: boolean;
+  /**
+   * Run the Matrix client (matrix-js-sdk + WASM/native crypto) in a dedicated
+   * child_process so Megolm key sharing can never block the gateway event loop.
+   * Default: false (in-process). Opt-in, pending manual validation.
+   */
+  processIsolation?: boolean;
   /** Cooldown window for automatic startup verification requests. Default: 24 hours. */
   startupVerificationCooldownHours?: number;
   /** Max outbound media size in MB. */

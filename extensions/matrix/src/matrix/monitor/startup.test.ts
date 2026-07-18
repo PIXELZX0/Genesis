@@ -104,6 +104,12 @@ describe("runMatrixStartupMaintenance", () => {
       client: {
         crypto: {},
         listOwnDevices: vi.fn(async () => []),
+        deleteOwnDevices: vi.fn(async (deviceIds: string[]) => ({
+          currentDeviceId: "DEVICE",
+          deletedDeviceIds: deviceIds,
+          remainingDevices: [],
+        })),
+        ensureRoomKeyBackup: vi.fn(async () => createVerificationStatus().backup),
         getOwnDeviceVerificationStatus: vi.fn(async () => createVerificationStatus()),
       } as never,
       auth: {
@@ -207,6 +213,109 @@ describe("runMatrixStartupMaintenance", () => {
     );
     expect(params.logger.warn).toHaveBeenCalledWith(
       "matrix: 1 legacy local-only room key(s) were never backed up and could not be restored automatically",
+    );
+  });
+
+  it("auto-prunes stale Genesis devices idle past the threshold", async () => {
+    const params = createParams();
+    params.auth.encryption = true;
+    const staleLastSeen = Date.now() - 8 * 24 * 60 * 60 * 1000;
+    vi.mocked(deps.summarizeMatrixDeviceHealth).mockReturnValue({
+      currentDeviceId: "DEVICE",
+      staleGenesisDevices: [
+        {
+          deviceId: "OLD1",
+          displayName: "Genesis Gateway",
+          current: false,
+          lastSeenTs: staleLastSeen,
+        },
+        { deviceId: "NOSEEN", displayName: "Genesis Gateway", current: false, lastSeenTs: null },
+      ],
+      currentGenesisDevices: [],
+    });
+
+    await runMatrixStartupMaintenance(params, deps);
+
+    expect(params.client.deleteOwnDevices).toHaveBeenCalledWith(["OLD1"]);
+    expect(params.logger.info).toHaveBeenCalledWith(
+      "matrix: auto-pruned 1 stale Genesis device(s) for @bot:example.org: OLD1",
+    );
+    expect(params.logger.warn).toHaveBeenCalledWith(
+      "matrix: stale Genesis devices detected for @bot:example.org: NOSEEN. Run 'genesis matrix devices prune-stale --account ops' to keep encrypted-room trust healthy.",
+    );
+  });
+
+  it("skips auto-pruning when autoPruneStaleDevices is false", async () => {
+    const params = createParams();
+    params.auth.encryption = true;
+    params.accountConfig.autoPruneStaleDevices = false;
+    vi.mocked(deps.summarizeMatrixDeviceHealth).mockReturnValue({
+      currentDeviceId: "DEVICE",
+      staleGenesisDevices: [
+        {
+          deviceId: "OLD1",
+          displayName: "Genesis Gateway",
+          current: false,
+          lastSeenTs: Date.now() - 8 * 24 * 60 * 60 * 1000,
+        },
+      ],
+      currentGenesisDevices: [],
+    });
+
+    await runMatrixStartupMaintenance(params, deps);
+
+    expect(params.client.deleteOwnDevices).not.toHaveBeenCalled();
+    expect(params.logger.warn).toHaveBeenCalledWith(
+      "matrix: stale Genesis devices detected for @bot:example.org: OLD1. Run 'genesis matrix devices prune-stale --account ops' to keep encrypted-room trust healthy.",
+    );
+  });
+
+  it("keeps startup going when auto-prune or backup bootstrap fails", async () => {
+    const params = createParams();
+    params.auth.encryption = true;
+    vi.mocked(params.client.deleteOwnDevices).mockRejectedValue(new Error("uia required"));
+    vi.mocked(params.client.ensureRoomKeyBackup).mockRejectedValue(new Error("backup boom"));
+    vi.mocked(deps.summarizeMatrixDeviceHealth).mockReturnValue({
+      currentDeviceId: "DEVICE",
+      staleGenesisDevices: [
+        {
+          deviceId: "OLD1",
+          displayName: "Genesis Gateway",
+          current: false,
+          lastSeenTs: Date.now() - 8 * 24 * 60 * 60 * 1000,
+        },
+      ],
+      currentGenesisDevices: [],
+    });
+
+    await runMatrixStartupMaintenance(params, deps);
+
+    expect(params.logger.warn).toHaveBeenCalledWith(
+      "matrix: failed auto-pruning stale Genesis devices for @bot:example.org: Error: uia required",
+    );
+    expect(params.logger.warn).toHaveBeenCalledWith(
+      "matrix: failed ensuring room key backup: Error: backup boom",
+    );
+    expect(deps.ensureMatrixStartupVerification).toHaveBeenCalled();
+  });
+
+  it("reports room key backup readiness after startup bootstrap", async () => {
+    const params = createParams();
+    params.auth.encryption = true;
+    vi.mocked(params.client.ensureRoomKeyBackup).mockResolvedValue({
+      serverVersion: "3",
+      activeVersion: "3",
+      trusted: true,
+      matchesDecryptionKey: true,
+      decryptionKeyCached: true,
+      keyLoadAttempted: false,
+      keyLoadError: null,
+    });
+
+    await runMatrixStartupMaintenance(params, deps);
+
+    expect(params.logVerboseMessage).toHaveBeenCalledWith(
+      "matrix: room key backup ready (version 3, active=3)",
     );
   });
 

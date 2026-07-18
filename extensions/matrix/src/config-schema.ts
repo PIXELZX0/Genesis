@@ -98,6 +98,8 @@ export const MatrixConfigSchema = z.object({
   threadBindings: matrixThreadBindingsSchema,
   startupVerification: z.enum(["off", "if-unverified"]).optional(),
   startupVerificationCooldownHours: z.number().optional(),
+  autoPruneStaleDevices: z.boolean().optional(),
+  processIsolation: z.boolean().optional(),
   mediaMaxMb: z.number().optional(),
   historyLimit: z.number().int().min(0).optional(),
   autoJoin: z.enum(["always", "allowlist", "off"]).optional(),

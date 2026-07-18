@@ -19,6 +19,8 @@ export const matrixSingleAccountKeysToMove = [
   "threadBindings",
   "startupVerification",
   "startupVerificationCooldownHours",
+  "autoPruneStaleDevices",
+  "processIsolation",
   "mediaMaxMb",
   "autoJoin",
   "autoJoinAllowlist",

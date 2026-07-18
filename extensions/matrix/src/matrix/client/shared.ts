@@ -62,6 +62,7 @@ async function createSharedMatrixClient(params: {
     localTimeoutMs: params.timeoutMs,
     initialSyncLimit: params.auth.initialSyncLimit,
     accountId: params.auth.accountId,
+    processIsolation: params.auth.processIsolation,
     allowPrivateNetwork: params.auth.allowPrivateNetwork,
     ssrfPolicy: params.auth.ssrfPolicy,
     dispatcherPolicy: params.auth.dispatcherPolicy,

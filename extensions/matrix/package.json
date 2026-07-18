@@ -9,7 +9,7 @@
     "fake-indexeddb": "^6.2.5",
     "jiti": "^2.6.1",
     "markdown-it": "14.1.1",
-    "matrix-js-sdk": "41.4.0-rc.0",
+    "matrix-js-sdk": "41.9.0",
     "music-metadata": "^11.12.3",
     "typebox": "1.1.31"
   },

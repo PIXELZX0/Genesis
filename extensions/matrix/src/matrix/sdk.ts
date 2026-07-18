@@ -1823,6 +1823,23 @@ export class MatrixClient {
     }
   }
 
+  /**
+   * Best-effort startup hook: create the first server-side room key backup when
+   * none exists, then report the (self-healing) backup status. Never resets or
+   * replaces an existing backup.
+   */
+  async ensureRoomKeyBackup(): Promise<MatrixRoomKeyBackupStatus> {
+    if (!this.encryptionEnabled) {
+      return await this.getRoomKeyBackupStatus();
+    }
+    await this.ensureStartedForCryptoControlPlane();
+    const crypto = this.client.getCrypto() as MatrixCryptoBootstrapApi | undefined;
+    if (crypto) {
+      await this.ensureRoomKeyBackupEnabled(crypto);
+    }
+    return await this.getRoomKeyBackupStatus();
+  }
+
   private async enableTrustedRoomKeyBackupIfPossible(
     crypto: MatrixCryptoBootstrapApi,
   ): Promise<void> {
