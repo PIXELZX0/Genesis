@@ -89,6 +89,7 @@ describe("production lint suppressions", () => {
       "scripts/e2e/mcp-channels-harness.ts|unicorn/prefer-add-event-listener|1",
       "scripts/lib/extension-package-boundary.ts|typescript/no-unnecessary-type-parameters|1",
       "scripts/lib/plugin-npm-release.ts|typescript/no-unnecessary-type-parameters|1",
+      "scripts/test-built-bundled-channel-entry-smoke.mjs|unicorn/prefer-array-find|1",
       "src/agents/agent-scope.ts|no-control-regex|1",
       "src/agents/pi-embedded-runner/run/images.ts|no-control-regex|1",
       "src/agents/skills-clawhub.ts|no-control-regex|1",

@@ -94,7 +94,9 @@ function collectBundledChannelEntryFiles() {
       Array.isArray(packageJson.genesis.extensions) && packageJson.genesis.extensions.length > 0
         ? packageJson.genesis.extensions
         : ["./index.ts"]
-    ).filter((entry) => typeof entry === "string" && entry.trim().length > 0);
+    )
+      // oxlint-disable-next-line unicorn/prefer-array-find -- keeps every matching entry, not just the first.
+      .filter((entry) => typeof entry === "string" && entry.trim().length > 0);
     // Only the first genesis.extensions entry is the channel loader contract; any
     // further entries (e.g. process-isolation runtime boundary files) are extra
     // build targets that just need to exist in dist, not bundled-channel-entry shaped.
