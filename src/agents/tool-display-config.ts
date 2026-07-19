@@ -567,6 +567,16 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
       title: "TTS",
       detailKeys: ["text", "channel"],
     },
+    ask_advisor: {
+      emoji: "🧑‍🏫",
+      title: "Advisor",
+      detailKeys: ["question"],
+    },
+    contacts: {
+      emoji: "📇",
+      title: "Contacts",
+      detailKeys: ["action", "id", "name", "channel", "messenger_id"],
+    },
   },
 };
 

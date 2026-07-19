@@ -4,6 +4,8 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## Unreleased
 
+## 2026.7.19
+
 ### Changes
 
 - Matrix: startup maintenance now auto-prunes stale Genesis-managed devices (non-current, idle 72h+) instead of only warning, and ensures a server-side room key backup exists (creating the first backup when missing). Stale devices force expensive Megolm key re-sharing on every encrypted send — enough to stall the gateway event loop for minutes in rooms with a long device history. Opt out with `channels.matrix.autoPruneStaleDevices: false`; `genesis matrix devices prune-stale` remains for manual cleanup.

@@ -6926,6 +6926,12 @@ export const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA = [
         startupVerificationCooldownHours: {
           type: "number",
         },
+        autoPruneStaleDevices: {
+          type: "boolean",
+        },
+        processIsolation: {
+          type: "boolean",
+        },
         mediaMaxMb: {
           type: "number",
         },
