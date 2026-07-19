@@ -711,9 +711,20 @@ export class MatrixClient {
       await this.client.initRustCrypto({
         cryptoDatabasePrefix: this.cryptoDatabasePrefix,
       });
-      this.cryptoInitialized = true;
-      throwIfMatrixStartupAborted(abortSignal);
+    } catch (err) {
+      // Do not swallow this: this.crypto (created in ensureCryptoSupportInitialized)
+      // is a facade object that exists regardless of whether the underlying rust
+      // crypto engine actually came up, so callers checking `Boolean(client.crypto)`
+      // (e.g. the process-isolation host's crypto-state event) would otherwise see
+      // "ready" and proceed to send real messages through a client with no working
+      // E2EE backend — silently producing ciphertext no recipient device can decrypt.
+      LogService.warn("MatrixClientLite", "Failed to initialize rust crypto:", err);
+      throw err;
+    }
+    this.cryptoInitialized = true;
+    throwIfMatrixStartupAborted(abortSignal);
 
+    try {
       // Persist the crypto store after successful init (captures fresh keys on first run).
       await persistIdbToDisk({
         snapshotPath: this.idbSnapshotPath,
@@ -730,7 +741,7 @@ export class MatrixClient {
       }, MATRIX_IDB_PERSIST_INTERVAL_MS);
       this.idbPersistTimer.unref?.();
     } catch (err) {
-      LogService.warn("MatrixClientLite", "Failed to initialize rust crypto:", err);
+      LogService.warn("MatrixClientLite", "Failed to persist crypto store after init:", err);
     }
   }
 
