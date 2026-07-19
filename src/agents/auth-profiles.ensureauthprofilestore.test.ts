@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProviderExternalAuthProfile } from "../plugins/provider-external-auth.types.js";
 import { AUTH_STORE_VERSION, log } from "./auth-profiles/constants.js";
 import {
@@ -56,7 +56,18 @@ vi.mock("./cli-credentials.js", () => ({
 }));
 
 describe("ensureAuthProfileStore", () => {
+  let previousCodexHome: string | undefined;
+
+  beforeEach(() => {
+    // Isolate from the real host Codex CLI login (CODEX_HOME/auth.json):
+    // the readCodexCliCredentialsCached mock below reads this env var directly,
+    // and an inherited real value leaks live OAuth credentials into these tests.
+    previousCodexHome = process.env.CODEX_HOME;
+    delete process.env.CODEX_HOME;
+  });
+
   afterEach(() => {
+    restoreEnvValue("CODEX_HOME", previousCodexHome);
     clearRuntimeAuthProfileStoreSnapshots();
     resolveExternalAuthProfilesWithPluginsMock.mockReset();
     resolveExternalAuthProfilesWithPluginsMock.mockReturnValue([]);
