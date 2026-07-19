@@ -90,17 +90,26 @@ function collectBundledChannelEntryFiles() {
       continue;
     }
 
-    const extensionEntries =
+    const extensionEntries = (
       Array.isArray(packageJson.genesis.extensions) && packageJson.genesis.extensions.length > 0
         ? packageJson.genesis.extensions
-        : ["./index.ts"];
-    for (const entry of extensionEntries) {
-      if (typeof entry !== "string" || entry.trim().length === 0) {
-        continue;
-      }
+        : ["./index.ts"]
+    ).filter((entry) => typeof entry === "string" && entry.trim().length > 0);
+    // Only the first genesis.extensions entry is the channel loader contract; any
+    // further entries (e.g. process-isolation runtime boundary files) are extra
+    // build targets that just need to exist in dist, not bundled-channel-entry shaped.
+    const [channelEntry, ...runtimeBoundaryEntries] = extensionEntries;
+    if (channelEntry) {
       files.push({
         id: dirent.name,
         kind: "channel",
+        path: path.join(extensionRoot, extensionEntryToDistFilename(channelEntry)),
+      });
+    }
+    for (const entry of runtimeBoundaryEntries) {
+      files.push({
+        id: dirent.name,
+        kind: "runtime-boundary",
         path: path.join(extensionRoot, extensionEntryToDistFilename(entry)),
       });
     }
@@ -215,11 +224,17 @@ const entryFiles = collectBundledChannelEntryFiles();
 let channelCount = 0;
 let setupCount = 0;
 let legacySetupCount = 0;
+let runtimeBoundaryCount = 0;
 
 for (const entryFile of entryFiles) {
   if (entryFile.kind === "channel") {
     await smokeChannelEntry(entryFile);
     channelCount += 1;
+    continue;
+  }
+  if (entryFile.kind === "runtime-boundary") {
+    assertEntryFileExists(entryFile);
+    runtimeBoundaryCount += 1;
     continue;
   }
   if (await smokeSetupEntry(entryFile)) {
@@ -231,5 +246,5 @@ for (const entryFile of entryFiles) {
 
 assert.ok(channelCount > 0, "no bundled channel entries found");
 process.stdout.write(
-  `[build-smoke] bundled channel entry smoke passed packageRoot=${packageRoot} channel=${channelCount} setup=${setupCount} legacySetup=${legacySetupCount}\n`,
+  `[build-smoke] bundled channel entry smoke passed packageRoot=${packageRoot} channel=${channelCount} setup=${setupCount} legacySetup=${legacySetupCount} runtimeBoundary=${runtimeBoundaryCount}\n`,
 );
