@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.20
+
+### Changes
+
+- Control UI: added a channel account delete action (`channels.delete` admin RPC backed by `plugin.config.deleteAccount()`) with a confirm guard in the channel settings dialog.
+
+### Fixes
+
+- Matrix: `initializeCryptoIfNeeded` no longer swallows `initRustCrypto()` failures. `this.crypto` is created up front as an always-present facade, so downstream readiness checks (e.g. the process-isolation host's crypto-state event) previously reported "ready" even when the rust crypto engine never came up, letting E2EE-enabled accounts send events through a non-functional crypto backend that no recipient device could decrypt. Init failures now rethrow so `start()`/`prepareForOneOff()` fail closed instead of silently degrading.
+- Tor Browser installer: `install-genesis-tor-browser.sh` now installs Node.js itself instead of relying solely on downstream `install.sh` delegation.
+
 ## 2026.7.19-1
 
 ### Fixes
