@@ -1909,6 +1909,7 @@ export function renderApp(state: AppViewState) {
                 channelWizardMessage: state.channelWizardMessage,
                 selectedChannelId: state.channelSettingsId ?? null,
                 channelRestartingKey: state.channelRestartingKey,
+                channelDeletingKey: state.channelDeletingKey,
                 onChannelSelect: (key) => {
                   state.channelSettingsId = key;
                   if (!state.configSchema) {
@@ -1917,6 +1918,13 @@ export function renderApp(state: AppViewState) {
                   requestHostUpdate?.();
                 },
                 onChannelRestart: (key) => void state.handleChannelRestart(key),
+                onChannelDelete: (key) =>
+                  void state.handleChannelDelete(key).then((deleted) => {
+                    if (deleted) {
+                      state.channelSettingsId = null;
+                      requestHostUpdate?.();
+                    }
+                  }),
                 onChannelSettingsClose: () => {
                   state.channelSettingsId = null;
                   requestHostUpdate?.();

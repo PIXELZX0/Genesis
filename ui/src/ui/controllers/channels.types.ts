@@ -14,4 +14,6 @@ export type ChannelsState = {
   whatsappBusy: boolean;
   /** Channel key currently being manually restarted, or null when idle. */
   channelRestartingKey: string | null;
+  /** Channel key currently being deleted, or null when idle. */
+  channelDeletingKey: string | null;
 };

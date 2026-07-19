@@ -1,5 +1,6 @@
 import { resolveControlUiAuthHeader } from "./control-ui-auth.ts";
 import {
+  deleteChannelAccount,
   loadChannels,
   logoutWhatsApp,
   restartChannel,
@@ -76,6 +77,17 @@ export async function handleChannelRestart(
 ) {
   await restartChannel(host as ChannelsState, channel, accountId);
   await loadChannels(host as ChannelsState, true);
+}
+
+export async function handleChannelDelete(
+  host: ChannelsActionHost,
+  channel: string,
+  accountId?: string | null,
+): Promise<boolean> {
+  const deleted = await deleteChannelAccount(host as ChannelsState, channel, accountId);
+  await loadConfig(host as ConfigState);
+  await loadChannels(host as ChannelsState, true);
+  return deleted;
 }
 
 export async function handleChannelConfigSave(host: ChannelsActionHost) {

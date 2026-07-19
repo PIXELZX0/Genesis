@@ -44,8 +44,11 @@ export type ChannelsProps = {
   selectedChannelId: ChannelKey | null;
   /** Channel key currently being manually restarted, or null when idle. */
   channelRestartingKey: ChannelKey | null;
+  /** Channel key currently being deleted, or null when idle. */
+  channelDeletingKey: ChannelKey | null;
   onChannelSelect: (key: ChannelKey) => void;
   onChannelRestart: (key: ChannelKey) => void;
+  onChannelDelete: (key: ChannelKey) => void;
   onChannelSettingsClose: () => void;
   onRefresh: (probe: boolean) => void;
   onChannelWizardStart: () => void;

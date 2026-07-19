@@ -226,6 +226,7 @@ export type AppViewState = {
   whatsappLoginConnected: boolean | null;
   whatsappBusy: boolean;
   channelRestartingKey: string | null;
+  channelDeletingKey: string | null;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
   channelWizardSessionId: string | null;
@@ -496,6 +497,7 @@ export type AppViewState = {
     handleWhatsAppWait: () => Promise<void>;
     handleWhatsAppLogout: () => Promise<void>;
     handleChannelRestart: (channel: string, accountId?: string | null) => Promise<void>;
+    handleChannelDelete: (channel: string, accountId?: string | null) => Promise<boolean>;
     handleChannelConfigSave: () => Promise<void>;
     handleChannelConfigReload: () => Promise<void>;
     handleChannelWizardStart: () => Promise<void>;

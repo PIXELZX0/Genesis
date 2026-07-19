@@ -73,6 +73,10 @@ export const ko: TranslationMap = {
     generic: {
       subtitle: "채널 상태 및 구성.",
     },
+    settings: {
+      delete: "Delete account",
+      deleting: "Deleting…",
+    },
     wizard: {
       addChannel: "Add channel",
       toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",

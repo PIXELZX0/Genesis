@@ -73,6 +73,10 @@ export const ja_JP: TranslationMap = {
     generic: {
       subtitle: "チャネルの状態と設定。",
     },
+    settings: {
+      delete: "Delete account",
+      deleting: "Deleting…",
+    },
     wizard: {
       addChannel: "Add channel",
       toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",

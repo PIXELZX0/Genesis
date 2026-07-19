@@ -43,6 +43,8 @@
     "canvasView.status.selected",
     "canvasView.workspaceSubtitle",
     "canvasView.workspaceTitle",
+    "channels.settings.delete",
+    "channels.settings.deleting",
     "channels.wizard.addChannel",
     "channels.wizard.continue",
     "channels.wizard.doneTitle",
@@ -237,12 +239,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-07-17T10:33:25.498Z",
+  "generatedAt": "2026-07-19T13:39:33.842Z",
   "locale": "id",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "a78ce14a02adc35b9ddd2e08d48ceeed43cbb0a5190b9adb175e4ac946038db2",
-  "totalKeys": 968,
+  "sourceHash": "a74c8c6df10c5347d0691199f780f7c3834a0d45a69583f6efc19c9855690c15",
+  "totalKeys": 970,
   "translatedKeys": 732,
   "workflow": 1
 }

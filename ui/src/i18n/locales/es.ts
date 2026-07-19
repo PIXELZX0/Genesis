@@ -73,6 +73,10 @@ export const es: TranslationMap = {
     generic: {
       subtitle: "Estado y configuración del canal.",
     },
+    settings: {
+      delete: "Delete account",
+      deleting: "Deleting…",
+    },
     wizard: {
       addChannel: "Add channel",
       toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",

@@ -1,4 +1,4 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { ConfigUiHints } from "../types.ts";
 import { formatChannelExtraValue, resolveChannelConfigValue } from "./channel-config-extras.ts";
@@ -116,6 +116,7 @@ export function renderChannelConfigSection(params: { channelId: string; props: C
   const { channelId, props } = params;
   const showSchemaLoading = props.configSchemaLoading && !props.configSchema;
   const disabled = props.configSaving || showSchemaLoading;
+  const deleting = props.channelDeletingKey === channelId;
   return html`
     <div style="margin-top: 16px;">
       ${showSchemaLoading
@@ -128,16 +129,28 @@ export function renderChannelConfigSection(params: { channelId: string; props: C
             disabled,
             onPatch: props.onConfigPatch,
           })}
-      <div class="row" style="margin-top: 12px;">
+      ${props.lastError
+        ? html`<div class="callout danger" style="margin-top: 12px;">${props.lastError}</div>`
+        : nothing}
+      <div class="row" style="margin-top: 12px; justify-content: space-between;">
+        <div class="row">
+          <button
+            class="btn primary"
+            ?disabled=${disabled || !props.configFormDirty}
+            @click=${() => props.onConfigSave()}
+          >
+            ${props.configSaving ? "Saving…" : "Save"}
+          </button>
+          <button class="btn" ?disabled=${disabled} @click=${() => props.onConfigReload()}>
+            ${t("common.reload")}
+          </button>
+        </div>
         <button
-          class="btn primary"
-          ?disabled=${disabled || !props.configFormDirty}
-          @click=${() => props.onConfigSave()}
+          class="btn danger"
+          ?disabled=${disabled || deleting}
+          @click=${() => props.onChannelDelete(channelId)}
         >
-          ${props.configSaving ? "Saving…" : "Save"}
-        </button>
-        <button class="btn" ?disabled=${disabled} @click=${() => props.onConfigReload()}>
-          ${t("common.reload")}
+          ${deleting ? t("channels.settings.deleting") : t("channels.settings.delete")}
         </button>
       </div>
     </div>

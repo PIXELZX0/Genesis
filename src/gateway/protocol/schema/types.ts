@@ -94,6 +94,7 @@ export type ChannelsStatusResult = SchemaType<"ChannelsStatusResult">;
 export type ChannelsStartParams = SchemaType<"ChannelsStartParams">;
 export type ChannelsRestartParams = SchemaType<"ChannelsRestartParams">;
 export type ChannelsLogoutParams = SchemaType<"ChannelsLogoutParams">;
+export type ChannelsDeleteParams = SchemaType<"ChannelsDeleteParams">;
 export type WebLoginStartParams = SchemaType<"WebLoginStartParams">;
 export type WebLoginWaitParams = SchemaType<"WebLoginWaitParams">;
 export type AgentSummary = SchemaType<"AgentSummary">;

@@ -73,6 +73,10 @@ export const zh_TW: TranslationMap = {
     generic: {
       subtitle: "頻道狀態與設定。",
     },
+    settings: {
+      delete: "Delete account",
+      deleting: "Deleting…",
+    },
     wizard: {
       addChannel: "Add channel",
       toolbarSubtitle: "Add or update channel accounts with the guided setup flow.",

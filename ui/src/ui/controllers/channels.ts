@@ -109,6 +109,33 @@ export async function restartChannel(
   }
 }
 
+export async function deleteChannelAccount(
+  state: ChannelsState,
+  channel: string,
+  accountId?: string | null,
+): Promise<boolean> {
+  if (!state.client || !state.connected || state.channelDeletingKey) {
+    return false;
+  }
+  const confirmed = window.confirm(
+    `Delete this ${channel} account? This removes it from the config and cannot be undone.`,
+  );
+  if (!confirmed) {
+    return false;
+  }
+  state.channelDeletingKey = channel;
+  state.channelsError = null;
+  try {
+    await state.client.request("channels.delete", { channel, accountId: accountId ?? undefined });
+    return true;
+  } catch (err) {
+    state.channelsError = String(err);
+    return false;
+  } finally {
+    state.channelDeletingKey = null;
+  }
+}
+
 export async function logoutWhatsApp(state: ChannelsState) {
   if (!state.client || !state.connected || state.whatsappBusy) {
     return;

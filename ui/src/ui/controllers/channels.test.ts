@@ -1,5 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { restartChannel, waitWhatsAppLogin, type ChannelsState } from "./channels.ts";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  deleteChannelAccount,
+  restartChannel,
+  waitWhatsAppLogin,
+  type ChannelsState,
+} from "./channels.ts";
 
 function createState(): ChannelsState {
   return {
@@ -16,6 +21,7 @@ function createState(): ChannelsState {
     whatsappLoginConnected: false,
     whatsappBusy: false,
     channelRestartingKey: null,
+    channelDeletingKey: null,
   };
 }
 
@@ -87,5 +93,55 @@ describe("channels controller manual restart", () => {
     await restartChannel(state, "quietchat");
 
     expect(request).not.toHaveBeenCalled();
+  });
+});
+
+describe("channels controller delete", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("calls channels.delete after confirming and clears the busy flag", async () => {
+    const state = createState();
+    const request = vi.mocked(state.client!.request);
+    request.mockResolvedValueOnce({ channel: "guildchat", accountId: "default", deleted: true });
+
+    const result = await deleteChannelAccount(state, "guildchat");
+
+    expect(request).toHaveBeenCalledWith("channels.delete", {
+      channel: "guildchat",
+      accountId: undefined,
+    });
+    expect(result).toBe(true);
+    expect(state.channelDeletingKey).toBeNull();
+    expect(state.channelsError).toBeNull();
+  });
+
+  it("does not call channels.delete when the confirmation is declined", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const state = createState();
+    const request = vi.mocked(state.client!.request);
+
+    const result = await deleteChannelAccount(state, "guildchat");
+
+    expect(request).not.toHaveBeenCalled();
+    expect(result).toBe(false);
+  });
+
+  it("records the error and clears the busy flag when delete fails", async () => {
+    const state = createState();
+    const request = vi.mocked(state.client!.request);
+    request.mockRejectedValueOnce(new Error("boom"));
+
+    const result = await deleteChannelAccount(state, "guildchat");
+
+    expect(result).toBe(false);
+    expect(state.channelsError).toContain("boom");
+    expect(state.channelDeletingKey).toBeNull();
   });
 });

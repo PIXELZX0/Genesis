@@ -9,7 +9,7 @@ import {
 import { buildChannelAccountSnapshot } from "../../channels/plugins/status.js";
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
 import type { ChannelAccountSnapshot } from "../../channels/plugins/types.public.js";
-import { loadConfig, readConfigFileSnapshot } from "../../config/config.js";
+import { loadConfig, readConfigFileSnapshot, replaceConfigFile } from "../../config/config.js";
 import { applyPluginAutoEnable } from "../../config/plugin-auto-enable.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getChannelActivity } from "../../infra/channel-activity.js";
@@ -24,6 +24,7 @@ import {
   validateChannelsStartParams,
   validateChannelsRestartParams,
   validateChannelsLogoutParams,
+  validateChannelsDeleteParams,
   validateChannelsStatusParams,
 } from "../protocol/index.js";
 import type { ChannelRuntimeSnapshot } from "../server-channel-runtime.types.js";
@@ -111,6 +112,32 @@ export async function logoutChannelAccount(params: {
     ...result,
     cleared,
   };
+}
+
+export async function deleteChannelAccount(params: {
+  channelId: ChannelId;
+  accountId?: string | null;
+  cfg: GenesisConfig;
+  context: GatewayRequestContext;
+  plugin: ChannelPlugin;
+}): Promise<{ channel: ChannelId; accountId: string; deleted: boolean }> {
+  if (!params.plugin.config.deleteAccount) {
+    throw new Error(`Channel ${params.channelId} does not support delete`);
+  }
+  const resolvedAccountId = resolveChannelGatewayAccountId(params);
+  await params.context.stopChannel(params.channelId, resolvedAccountId);
+  const prevCfg = params.cfg;
+  const nextCfg = params.plugin.config.deleteAccount({
+    cfg: { ...params.cfg },
+    accountId: resolvedAccountId,
+  });
+  await params.plugin.lifecycle?.onAccountRemoved?.({
+    prevCfg,
+    accountId: resolvedAccountId,
+    runtime: defaultRuntime,
+  });
+  await replaceConfigFile({ nextConfig: nextCfg });
+  return { channel: params.channelId, accountId: resolvedAccountId, deleted: true };
 }
 
 export async function startChannelAccount(params: {
@@ -522,6 +549,61 @@ export const channelsHandlers: GatewayRequestHandlers = {
     }
     try {
       const payload = await logoutChannelAccount({
+        channelId,
+        accountId,
+        cfg: snapshot.config ?? {},
+        context,
+        plugin,
+      });
+      respond(true, payload, undefined);
+    } catch (err) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatForLog(err)));
+    }
+  },
+  "channels.delete": async ({ params, respond, context }) => {
+    if (!validateChannelsDeleteParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid channels.delete params: ${formatValidationErrors(validateChannelsDeleteParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const rawChannel = (params as { channel?: unknown }).channel;
+    const channelId = typeof rawChannel === "string" ? normalizeChannelId(rawChannel) : null;
+    if (!channelId) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "invalid channels.delete channel"),
+      );
+      return;
+    }
+    const plugin = getChannelPlugin(channelId);
+    if (!plugin?.config.deleteAccount) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `channel ${channelId} does not support delete`),
+      );
+      return;
+    }
+    const accountIdRaw = (params as { accountId?: unknown }).accountId;
+    const accountId = normalizeOptionalString(accountIdRaw);
+    const snapshot = await readConfigFileSnapshot();
+    if (!snapshot.valid) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "config invalid; fix it before deleting"),
+      );
+      return;
+    }
+    try {
+      const payload = await deleteChannelAccount({
         channelId,
         accountId,
         cfg: snapshot.config ?? {},
