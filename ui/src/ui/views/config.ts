@@ -72,13 +72,10 @@ export type ConfigProps = {
   gatewayUrl: string;
   assistantName: string;
   configPath?: string | null;
-  navRootLabel?: string;
   includeSections?: string[];
   excludeSections?: string[];
   includeVirtualSections?: boolean;
-  /** Layout mode: "tabs" (default flat scroll) or "accordion" (grouped collapsible). */
-  settingsLayout?: "tabs" | "accordion";
-  /** Callback to navigate back to Quick Settings. Shown in accordion mode. */
+  /** Callback to navigate back to Quick Settings. */
   onBackToQuick?: () => void;
   onRequestUpdate?: () => void;
 };
@@ -758,21 +755,13 @@ export function renderConfig(props: ConfigProps) {
   // Config subsections are always rendered as a single page per section.
   const effectiveSubsection = null;
 
-  const topTabs = [
-    { key: null as string | null, label: props.navRootLabel ?? "Settings" },
-    ...[...visibleCategories, ...(otherCategory ? [otherCategory] : [])].flatMap((cat) =>
-      cat.sections.map((s) => ({ key: s.key, label: s.label })),
-    ),
-  ];
-
-  const settingsLayout = props.settingsLayout ?? "tabs";
   const allCategories = [...visibleCategories, ...(otherCategory ? [otherCategory] : [])];
 
   const resetContentScroll = (target: EventTarget | null) => {
     queueMicrotask(() => {
       const origin = target instanceof Element ? target : null;
       const content = origin
-        ?.closest(".config-main")
+        ?.closest(".config-layout")
         ?.querySelector<HTMLElement>(".config-content");
       if (!content) {
         return;
@@ -786,12 +775,12 @@ export function renderConfig(props: ConfigProps) {
     });
   };
 
-  function renderAccordionNav() {
+  function renderSettingsSidebar() {
     return html`
-      <div class="config-accordion-nav">
+      <aside class="config-settings-sidebar">
         ${props.onBackToQuick
           ? html`
-              <button class="config-accordion-nav__back" @click=${props.onBackToQuick}>
+              <button class="config-settings-sidebar__back" @click=${props.onBackToQuick}>
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -806,71 +795,72 @@ export function renderConfig(props: ConfigProps) {
               </button>
             `
           : nothing}
-        ${allCategories.map(
-          (cat) => html`
-            <div class="config-accordion-group">
-              <button
-                class="config-accordion-group__header ${props.activeSection != null &&
-                cat.sections.some((s) => s.key === props.activeSection)
-                  ? "config-accordion-group__header--active"
-                  : ""}"
-                @click=${(e: Event) => {
-                  const firstKey = cat.sections[0]?.key ?? null;
-                  const isCurrentlyInGroup = cat.sections.some(
-                    (s) => s.key === props.activeSection,
-                  );
-                  props.onSectionChange(isCurrentlyInGroup ? null : firstKey);
-                  resetContentScroll(e.currentTarget);
-                }}
-              >
-                <span class="config-accordion-group__icon">
-                  ${getSectionIcon(cat.sections[0]?.key ?? "default")}
-                </span>
-                <span>${cat.label}</span>
-                <svg
-                  class="config-accordion-group__chevron ${cat.sections.some(
-                    (s) => s.key === props.activeSection,
-                  )
-                    ? "config-accordion-group__chevron--open"
-                    : ""}"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  width="14"
-                  height="14"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              ${cat.sections.some((s) => s.key === props.activeSection)
-                ? html`
-                    <div class="config-accordion-group__items">
-                      ${cat.sections.map(
-                        (s) => html`
-                          <button
-                            class="config-accordion-group__item ${props.activeSection === s.key
-                              ? "config-accordion-group__item--active"
-                              : ""}"
-                            @click=${(e: Event) => {
-                              props.onSectionChange(s.key);
-                              resetContentScroll(e.currentTarget);
-                            }}
-                          >
-                            <span class="config-accordion-group__item-icon">
-                              ${getSectionIcon(s.key)}
-                            </span>
-                            ${s.label}
-                          </button>
-                        `,
-                      )}
-                    </div>
-                  `
-                : nothing}
-            </div>
-          `,
-        )}
-      </div>
+        ${formMode === "form"
+          ? html`
+              <div class="config-search config-search--sidebar">
+                <div class="config-search__input-row">
+                  <svg
+                    class="config-search__icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                  </svg>
+                  <input
+                    type="text"
+                    class="config-search__input"
+                    placeholder="Search settings..."
+                    aria-label="Search settings"
+                    .value=${props.searchQuery}
+                    @input=${(e: Event) =>
+                      props.onSearchChange((e.target as HTMLInputElement).value)}
+                  />
+                  ${props.searchQuery
+                    ? html`
+                        <button
+                          class="config-search__clear"
+                          aria-label="Clear search"
+                          @click=${() => props.onSearchChange("")}
+                        >
+                          ×
+                        </button>
+                      `
+                    : nothing}
+                </div>
+              </div>
+            `
+          : nothing}
+        <nav class="config-settings-sidebar__nav" aria-label="${t("common.settingsSections")}">
+          ${allCategories.map(
+            (cat) => html`
+              <div class="config-settings-sidebar__group">
+                <div class="config-settings-sidebar__label">${cat.label}</div>
+                ${cat.sections.map(
+                  (s) => html`
+                    <button
+                      class="config-settings-sidebar__item ${props.activeSection === s.key
+                        ? "config-settings-sidebar__item--active"
+                        : ""}"
+                      @click=${(e: Event) => {
+                        props.onSectionChange(s.key);
+                        resetContentScroll(e.currentTarget);
+                      }}
+                    >
+                      <span class="config-settings-sidebar__item-icon">
+                        ${getSectionIcon(s.key)}
+                      </span>
+                      ${s.label}
+                    </button>
+                  `,
+                )}
+              </div>
+            `,
+          )}
+        </nav>
+      </aside>
     `;
   }
 
@@ -937,6 +927,7 @@ export function renderConfig(props: ConfigProps) {
             </div>
           `
         : nothing}
+      ${renderSettingsSidebar()}
       <main class="config-main">
         <div class="config-actions">
           <div class="config-actions__left">
@@ -1013,75 +1004,6 @@ export function renderConfig(props: ConfigProps) {
           </div>
         </div>
 
-        ${settingsLayout === "accordion"
-          ? renderAccordionNav()
-          : html`
-              <div class="config-top-tabs">
-                ${formMode === "form"
-                  ? html`
-                      <div class="config-search config-search--top">
-                        <div class="config-search__input-row">
-                          <svg
-                            class="config-search__icon"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="M21 21l-4.35-4.35"></path>
-                          </svg>
-                          <input
-                            type="text"
-                            class="config-search__input"
-                            placeholder="Search settings..."
-                            aria-label="Search settings"
-                            .value=${props.searchQuery}
-                            @input=${(e: Event) =>
-                              props.onSearchChange((e.target as HTMLInputElement).value)}
-                          />
-                          ${props.searchQuery
-                            ? html`
-                                <button
-                                  class="config-search__clear"
-                                  aria-label="Clear search"
-                                  @click=${() => props.onSearchChange("")}
-                                >
-                                  ×
-                                </button>
-                              `
-                            : nothing}
-                        </div>
-                      </div>
-                    `
-                  : nothing}
-
-                <div
-                  class="config-top-tabs__scroller"
-                  role="tablist"
-                  aria-label="${t("common.settingsSections")}"
-                >
-                  ${topTabs.map(
-                    (tab) => html`
-                      <button
-                        class="config-top-tabs__tab ${props.activeSection === tab.key
-                          ? "active"
-                          : ""}"
-                        role="tab"
-                        aria-selected=${props.activeSection === tab.key}
-                        @click=${(e: Event) => {
-                          props.onSectionChange(tab.key);
-                          resetContentScroll(e.currentTarget);
-                        }}
-                        title=${tab.label}
-                      >
-                        ${tab.label}
-                      </button>
-                    `,
-                  )}
-                </div>
-              </div>
-            `}
         ${validity === "invalid" && !cvs.validityDismissed
           ? html`
               <div class="config-validity-warning">

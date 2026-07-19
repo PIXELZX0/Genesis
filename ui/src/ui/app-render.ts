@@ -704,11 +704,9 @@ type ConfigTabOverrides = Pick<
     Pick<
       ConfigProps,
       | "showModeToggle"
-      | "navRootLabel"
       | "includeSections"
       | "excludeSections"
       | "includeVirtualSections"
-      | "settingsLayout"
       | "onBackToQuick"
     >
   >;
@@ -1227,7 +1225,6 @@ export function renderApp(state: AppViewState) {
     | "onSectionChange"
     | "onSubsectionChange"
     | "showModeToggle"
-    | "navRootLabel"
     | "includeSections"
     | "excludeSections"
     | "includeVirtualSections"
@@ -1386,7 +1383,6 @@ export function renderApp(state: AppViewState) {
           },
           onSubsectionChange: (section) => (state.configActiveSubsection = section),
           showModeToggle: true,
-          settingsLayout: "accordion",
           onBackToQuick: () => {
             state.configSettingsMode = "quick";
             requestHostUpdate?.();
@@ -1414,7 +1410,6 @@ export function renderApp(state: AppViewState) {
             state.communicationsActiveSubsection = null;
           },
           onSubsectionChange: (section) => (state.communicationsActiveSubsection = section),
-          navRootLabel: "Communication",
           includeSections: [...COMMUNICATION_SECTION_KEYS],
         });
       case "appearance":
@@ -1430,7 +1425,6 @@ export function renderApp(state: AppViewState) {
             state.appearanceActiveSubsection = null;
           },
           onSubsectionChange: (section) => (state.appearanceActiveSubsection = section),
-          navRootLabel: t("tabs.appearance"),
           includeSections: [...APPEARANCE_SECTION_KEYS],
           includeVirtualSections: true,
         });
@@ -1447,7 +1441,6 @@ export function renderApp(state: AppViewState) {
             state.automationActiveSubsection = null;
           },
           onSubsectionChange: (section) => (state.automationActiveSubsection = section),
-          navRootLabel: "Automation",
           includeSections: [...AUTOMATION_SECTION_KEYS],
         });
       case "infrastructure":
@@ -1463,7 +1456,6 @@ export function renderApp(state: AppViewState) {
             state.infrastructureActiveSubsection = null;
           },
           onSubsectionChange: (section) => (state.infrastructureActiveSubsection = section),
-          navRootLabel: "Infrastructure",
           includeSections: [...INFRASTRUCTURE_SECTION_KEYS],
         });
       case "aiAgents":
@@ -1479,7 +1471,6 @@ export function renderApp(state: AppViewState) {
             state.aiAgentsActiveSubsection = null;
           },
           onSubsectionChange: (section) => (state.aiAgentsActiveSubsection = section),
-          navRootLabel: "AI & Agents",
           includeSections: [...AI_AGENTS_SECTION_KEYS],
         });
       default:

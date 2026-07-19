@@ -294,10 +294,9 @@ describe("config view", () => {
       container,
     );
 
-    const tabs = Array.from(container.querySelectorAll(".config-top-tabs__tab")).map((tab) =>
-      tab.textContent?.trim(),
+    const tabs = Array.from(container.querySelectorAll(".config-settings-sidebar__item")).map(
+      (tab) => tab.textContent?.trim(),
     );
-    expect(tabs).toContain("Settings");
     expect(tabs).toContain("Agents");
     expect(tabs).toContain("Gateway");
 
@@ -309,10 +308,9 @@ describe("config view", () => {
     expect(onSectionChange).toHaveBeenCalledWith("gateway");
   });
 
-  it("resets config content scroll when switching top-tab sections", async () => {
+  it("resets config content scroll when switching sidebar sections", async () => {
     const { container } = renderConfigView({
       activeSection: "channels",
-      navRootLabel: "Communication",
       includeSections: ["channels", "messages"],
       schema: {
         type: "object",
