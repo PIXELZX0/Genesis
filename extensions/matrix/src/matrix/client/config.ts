@@ -525,10 +525,15 @@ export function resolveMatrixConfigForAccount(
     accountInitialSyncLimit ?? clampMatrixInitialSyncLimit(matrix.initialSyncLimit);
   const encryption =
     typeof account.encryption === "boolean" ? account.encryption : (matrix.encryption ?? false);
+  // Default on: matrix-js-sdk's Rust-crypto WASM backend runs synchronous
+  // computation on whatever thread calls it, so without isolation a large
+  // Megolm key-share can block the entire gateway event loop for minutes.
   const processIsolation =
     typeof account.processIsolation === "boolean"
       ? account.processIsolation
-      : matrix.processIsolation;
+      : typeof matrix.processIsolation === "boolean"
+        ? matrix.processIsolation
+        : true;
   const allowPrivateNetwork =
     isPrivateNetworkOptInEnabled(account) || isPrivateNetworkOptInEnabled(matrix)
       ? true

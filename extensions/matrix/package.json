@@ -27,7 +27,9 @@
   },
   "genesis": {
     "extensions": [
-      "./index.ts"
+      "./index.ts",
+      "./src/matrix/client/process-proxy.ts",
+      "./src/matrix/client/process-host.ts"
     ],
     "setupEntry": "./setup-entry.ts",
     "setupFeatures": {

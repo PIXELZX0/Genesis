@@ -61,6 +61,7 @@ describe("Matrix auth/config live surfaces", () => {
       deviceName: "CfgDevice",
       initialSyncLimit: 5,
       encryption: false,
+      processIsolation: true,
     });
   });
 

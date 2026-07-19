@@ -4,9 +4,13 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## Unreleased
 
+### Fixes
+
+- Matrix: `channels.matrix.processIsolation` (shipped 2026.7.19, off by default) crash-looped instead of isolating: `process-host.ts` was never declared as a build entry, so bundled builds dropped it entirely and `defaultHostModulePath()`'s sibling-filename lookup silently forked `process-proxy`'s own (unrelated) chunk instead. The forked process had nothing keeping it alive, exited immediately, and every subsequent call failed with "Matrix client process is not connected" — an unrecoverable restart loop. Fixed by declaring `process-proxy.ts` and `process-host.ts` as stable-named build entries in `extensions/matrix/package.json`, matching the existing "long-lived lazy runtime boundary" convention.
+
 ### Changes
 
-- Config: `genesis doctor` now always splits a monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files when splittable sections exist, with no flag or prompt required — removes the opt-in `--split-config` flag. The migration also now applies even when a section currently fails schema validation (e.g. a stale bundled channel schema), as long as splitting itself doesn't change the resolved config.
+- Matrix: `channels.matrix.processIsolation` (and its per-account override) now defaults to `true`, so the Matrix client's WASM/native crypto runs in a dedicated `child_process` by default instead of the gateway's main thread — keeps a large Megolm key-share from blocking the whole gateway event loop for minutes. Set `channels.matrix.processIsolation: false` to opt back out.
 
 ## 2026.7.19
 
