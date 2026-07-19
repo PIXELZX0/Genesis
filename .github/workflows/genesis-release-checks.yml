@@ -18,3 +18,43 @@ jobs:
     with:
       ref: ${{ inputs.ref }}
       run_bun_global_install_smoke: true
+
+  docker_build_release_checks:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Genesis image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: genesis:${{ inputs.ref }}
+          load: true
+          push: false
+
+      - name: Build & push Genesis + Tor + Chromium image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.tor-browser
+          build-args: GENESIS_IMAGE=genesis:${{ inputs.ref }}
+          tags: ghcr.io/${{ github.repository }}/genesis-tor-browser:${{ inputs.ref }}
+          push: true
