@@ -85,37 +85,31 @@ describe("doctor config split", () => {
     });
   });
 
-  it("never auto-splits under --yes/--fix/non-interactive without --split-config", async () => {
+  it("always splits, regardless of --yes/--fix/non-interactive", async () => {
     await withTempHomeConfig(MONOLITH, async ({ configPath }) => {
-      const confirmSplit = vi.fn().mockResolvedValue(true);
-      const note = vi.fn();
-      for (const options of [{ yes: true }, { repair: true, nonInteractive: true }]) {
-        const result = await maybeSplitConfigLayout({ options, confirmSplit, note });
-        expect(result).toBeNull();
-      }
-      expect(confirmSplit).not.toHaveBeenCalled();
-      const root = JSON.parse(await fs.readFile(configPath, "utf-8")) as Record<string, unknown>;
-      expect(root.agents).toEqual(MONOLITH.agents);
-    });
-  });
-
-  it("applies without prompting when --split-config is passed explicitly", async () => {
-    await withTempHomeConfig(MONOLITH, async ({ configPath }) => {
-      const confirmSplit = vi.fn().mockResolvedValue(false);
       const note = vi.fn();
       const result = await maybeSplitConfigLayout({
-        options: { splitConfig: true, nonInteractive: true },
-        confirmSplit,
+        options: { yes: true },
         note,
       });
       expect(result?.status).toBe("split");
-      expect(confirmSplit).not.toHaveBeenCalled();
       const root = JSON.parse(await fs.readFile(configPath, "utf-8")) as Record<string, unknown>;
       expect(root.agents).toEqual({ $include: "config/agents.json" });
       expect(note).toHaveBeenCalledWith(
         expect.stringContaining("config/agents.json"),
         "Config split",
       );
+    });
+  });
+
+  it("splits a schema-invalid config (e.g. a stale bundled-schema false positive) as long as the resolved structure is unchanged by the move", async () => {
+    await withTempHomeConfig(MONOLITH, async ({ configPath }) => {
+      const realSnapshot = await readConfigFileSnapshot();
+      const fakeInvalidSnapshot = { ...realSnapshot, valid: false };
+      const result = await applyConfigSplitMigration(fakeInvalidSnapshot);
+      expect(result.status).toBe("split");
+      const root = JSON.parse(await fs.readFile(configPath, "utf-8")) as Record<string, unknown>;
+      expect(root.agents).toEqual({ $include: "config/agents.json" });
     });
   });
 });

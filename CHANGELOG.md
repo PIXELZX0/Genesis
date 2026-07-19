@@ -4,6 +4,10 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## Unreleased
 
+### Changes
+
+- Config: `genesis doctor` now always splits a monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files when splittable sections exist, with no flag or prompt required — removes the opt-in `--split-config` flag. The migration also now applies even when a section currently fails schema validation (e.g. a stale bundled channel schema), as long as splitting itself doesn't change the resolved config.
+
 ## 2026.7.19
 
 ### Changes

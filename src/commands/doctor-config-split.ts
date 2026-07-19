@@ -4,7 +4,6 @@ import { isDeepStrictEqual } from "node:util";
 import { readConfigFileSnapshot, writeIncludeSectionFileAtomic } from "../config/io.js";
 import type { ConfigFileSnapshot } from "../config/types.js";
 import { isRecord } from "../utils.js";
-import { resolveDoctorRepairMode } from "./doctor-repair-mode.js";
 import type { DoctorOptions } from "./doctor.types.js";
 
 export const SPLIT_CONFIG_DIRNAME = "config";
@@ -48,7 +47,9 @@ export async function applyConfigSplitMigration(
   if (!snapshot.exists) {
     return { status: "skipped", reason: "missing" };
   }
-  if (!snapshot.valid || !isRecord(snapshot.parsed) || typeof snapshot.raw !== "string") {
+  // Splitting only reshuffles top-level keys into $include files; it doesn't need
+  // full schema validity (channel/plugin section errors shouldn't block the move).
+  if (!isRecord(snapshot.parsed) || typeof snapshot.raw !== "string") {
     return { status: "skipped", reason: "invalid" };
   }
   const keys = collectSplittableTopLevelKeys(snapshot.parsed);
@@ -80,7 +81,11 @@ export async function applyConfigSplitMigration(
     });
 
     const after = await readConfigFileSnapshot();
-    if (!after.valid || !isDeepStrictEqual(after.resolved, beforeResolved)) {
+    // Only require the resolved structure to survive the move, and that splitting
+    // didn't newly break a config that validated before; a config already invalid
+    // (e.g. a stale schema false-positive) is allowed to stay invalid post-split.
+    const validityRegressed = snapshot.valid && !after.valid;
+    if (validityRegressed || !isDeepStrictEqual(after.resolved, beforeResolved)) {
       await fs.promises.writeFile(snapshot.path, previousRaw, {
         encoding: "utf-8",
         mode: 0o600,
@@ -103,35 +108,18 @@ export async function applyConfigSplitMigration(
 }
 
 /**
- * Opt-in doctor step: offer to split a monolithic genesis.json into per-domain
- * `config/<section>.json` include files. Never auto-applies under --yes /
- * --fix / non-interactive runs unless `--split-config` was passed explicitly.
+ * Doctor step: always split a monolithic genesis.json into per-domain
+ * `config/<section>.json` include files. Runs unconditionally on every doctor
+ * invocation (no prompt, no flag) whenever splittable sections exist.
  */
 export async function maybeSplitConfigLayout(params: {
   options: DoctorOptions;
-  confirmSplit: (message: string) => Promise<boolean>;
   note: (message: string, title?: string) => void;
 }): Promise<ConfigSplitResult | null> {
-  const explicit = params.options.splitConfig === true;
-  const mode = resolveDoctorRepairMode(params.options);
-  if (!explicit && !mode.canPrompt) {
-    return null;
-  }
   const snapshot = await readConfigFileSnapshot();
-  const keys = collectSplittableTopLevelKeys(snapshot.valid ? snapshot.parsed : null);
+  const keys = collectSplittableTopLevelKeys(snapshot.parsed);
   if (!snapshot.exists || keys.length === 0) {
-    if (explicit) {
-      params.note("Nothing to split: config is already split or has no splittable sections.");
-    }
     return null;
-  }
-  if (!explicit) {
-    const approved = await params.confirmSplit(
-      `Split genesis.json into ${SPLIT_CONFIG_DIRNAME}/<section>.json files? (${keys.length} sections: ${keys.join(", ")})`,
-    );
-    if (!approved) {
-      return null;
-    }
   }
   const result = await applyConfigSplitMigration(snapshot);
   if (result.status === "split") {

@@ -35,10 +35,10 @@ genesis doctor --generate-gateway-token
 - `--non-interactive`: run without prompts; safe migrations only
 - `--generate-gateway-token`: generate and configure a gateway token
 - `--deep`: scan system services for extra gateway installs
-- `--split-config`: split monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files (also offered as an opt-in prompt in interactive runs; never applied implicitly by `--yes`/`--fix`). See [Configuration](/gateway/configuration)
 
 Notes:
 
+- Every `doctor` run automatically splits a monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files when splittable sections exist — no flag or prompt needed. See [Configuration](/gateway/configuration).
 - Interactive prompts (like keychain/OAuth fixes) only run when stdin is a TTY and `--non-interactive` is **not** set. Headless runs (cron, Telegram, no terminal) will skip prompts.
 - Performance: non-interactive `doctor` runs skip eager plugin loading so headless health checks stay fast. Interactive sessions still fully load plugins when a check needs their contribution.
 - `--fix` (alias for `--repair`) writes a backup to `~/.genesis/genesis.json.bak` and drops unknown config keys, listing each removal.

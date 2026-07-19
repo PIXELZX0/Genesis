@@ -497,15 +497,16 @@ cannot roll back unrelated user settings.
       section file hot-reload (or restart) just like edits to `genesis.json`
     - **Error handling**: clear errors for missing files, parse errors, and circular includes
 
-    To migrate an existing monolithic config to this layout automatically, run
-    `genesis doctor --split-config`. It moves every splittable top-level section
+    `genesis doctor` migrates an existing monolithic config to this layout
+    automatically on every run. It moves every splittable top-level section
     into `~/.genesis/config/<section>.json` (for example `config/models.json`,
     `config/plugins.json`, `config/skills.json`, `config/agents.json`) and keeps
     only root metadata and restart-bound infrastructure (`gateway`, `discovery`,
-    `canvasHost`) in `genesis.json`. Interactive `genesis doctor` runs offer the
-    split as an opt-in prompt; `--yes`/`--fix` never apply it implicitly. The
-    migration verifies that the resolved config is unchanged and restores the
-    previous `genesis.json` if not. Monolithic configs remain fully supported.
+    `canvasHost`) in `genesis.json`. The migration verifies that the resolved
+    config is unchanged and restores the previous `genesis.json` if not; it
+    still applies even if some sections currently fail schema validation, as
+    long as splitting itself doesn't change the resolved config. Monolithic
+    configs remain fully supported.
 
   </Accordion>
 </AccordionGroup>
