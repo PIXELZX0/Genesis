@@ -25,9 +25,9 @@ const HEX_KEY_SHAPE = /^[0-9a-fA-F]{64}$/;
 // See the matching comment in types.ts: nostr-tools may not be staged yet
 // when this setup-only surface is reached during onboarding listing. Load it
 // lazily and let callers degrade instead of crashing.
-function tryLoadNostrKeyUtilExport<T>(exportName: string): T | null {
+function tryLoadNostrKeyUtilExport(exportName: string): unknown {
   try {
-    return loadBundledEntryExportSync<T>(
+    return loadBundledEntryExportSync(
       import.meta.url,
       { specifier: "./nostr-key-utils.js", exportName },
       { installRuntimeDeps: false },
@@ -83,7 +83,9 @@ function parseRelayUrls(raw: string): { relays: string[]; error?: string } {
 function parseNostrAllowFrom(raw: string): { entries: string[]; error?: string } {
   return parseSetupEntriesWithParser(raw, (entry) => {
     const cleaned = entry.replace(/^nostr:/i, "").trim();
-    const normalizePubkey = tryLoadNostrKeyUtilExport<(input: string) => string>("normalizePubkey");
+    const normalizePubkey = tryLoadNostrKeyUtilExport("normalizePubkey") as
+      | ((input: string) => string)
+      | null;
     if (!normalizePubkey) {
       // Can't bech32-decode npub without nostr-tools staged yet. Hex passes
       // through untouched (already the normalized form); npub would need
@@ -143,8 +145,9 @@ export const nostrSetupAdapter: ChannelSetupAdapter = {
       if (!privateKey) {
         return "Nostr requires --private-key or --use-env.";
       }
-      const getPublicKeyFromPrivate =
-        tryLoadNostrKeyUtilExport<(key: string) => string>("getPublicKeyFromPrivate");
+      const getPublicKeyFromPrivate = tryLoadNostrKeyUtilExport("getPublicKeyFromPrivate") as
+        | ((key: string) => string)
+        | null;
       if (getPublicKeyFromPrivate) {
         try {
           getPublicKeyFromPrivate(privateKey);
