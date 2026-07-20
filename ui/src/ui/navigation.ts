@@ -22,7 +22,7 @@ export const TAB_GROUPS = [
       "nodes",
     ],
   },
-  { label: "tools", tabs: ["skills", "plugins", "mcp", "wallet"] },
+  { label: "tools", tabs: ["skills", "plugins", "mcp", "files", "wallet"] },
   { label: "memory", tabs: ["memory", "contact"] },
 ] as const;
 
@@ -40,6 +40,7 @@ export type Tab =
   | "mcp"
   | "plugins"
   | "models"
+  | "files"
   | "memory"
   | "contact"
   | "nodes"
@@ -68,6 +69,7 @@ const TAB_PATHS: Record<Tab, string> = {
   mcp: "/mcp",
   plugins: "/plugins",
   models: "/models",
+  files: "/files",
   memory: "/memory",
   contact: "/contact",
   nodes: "/nodes",

@@ -387,6 +387,33 @@ export type AgentsFilesSetResult = {
   file: AgentFileEntry;
 };
 
+export type FileExplorerEntry = {
+  name: string;
+  type: "file" | "dir" | "symlink" | "other";
+  size?: number;
+  mtimeMs?: number;
+};
+
+export type FilesListResult = {
+  path: string;
+  entries: FileExplorerEntry[];
+};
+
+export type FilesReadResult = {
+  path: string;
+  size: number;
+  mtimeMs: number;
+  encoding: "utf8" | "base64";
+  content: string;
+};
+
+export type FilesWriteResult = {
+  ok: true;
+  path: string;
+  size: number;
+  mtimeMs: number;
+};
+
 export type SessionRunStatus = "running" | "done" | "failed" | "killed" | "timeout";
 export type SubagentRunState = "active" | "interrupted" | "historical";
 

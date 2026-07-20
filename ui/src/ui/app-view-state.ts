@@ -267,6 +267,13 @@ export type AppViewState = {
   agentFileDrafts: Record<string, string>;
   agentFileActive: string | null;
   agentFileSaving: boolean;
+  filesPath: string;
+  filesList: import("./types.js").FilesListResult | null;
+  filesLoading: boolean;
+  filesError: string | null;
+  filesActive: import("./types.js").FilesReadResult | null;
+  filesDraft: string;
+  filesSaving: boolean;
   agentIdentityLoading: boolean;
   agentIdentityError: string | null;
   agentIdentityById: Record<string, AgentIdentityResult>;

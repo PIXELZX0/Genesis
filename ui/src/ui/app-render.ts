@@ -98,6 +98,16 @@ import {
   saveExecApprovals,
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
+import {
+  createFilesDir,
+  deleteFilesEntry,
+  downloadFilesFile,
+  loadFilesDir,
+  openFilesFile,
+  renameFilesEntry,
+  saveFilesFile,
+  uploadFilesFile,
+} from "./controllers/files.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import {
   deleteMcpServer,
@@ -438,6 +448,7 @@ const lazyCron = createLazy(() => import("./views/cron.ts"));
 const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
+const lazyFiles = createLazy(() => import("./views/files.ts"));
 const lazyMcp = createLazy(() => import("./views/mcp.ts"));
 const lazyModels = createLazy(() => import("./views/models.ts"));
 const lazyMemory = createLazy(() => import("./views/memory.ts"));
@@ -2738,6 +2749,47 @@ export function renderApp(state: AppViewState) {
                 onEmbeddedCancel: () => {
                   cancelMcpOAuthEmbedded(state);
                 },
+              }),
+            )
+          : nothing}
+        ${state.tab === "files"
+          ? lazyRender(lazyFiles, (m) =>
+              m.renderFiles({
+                connected: state.connected,
+                path: state.filesPath,
+                list: state.filesList,
+                loading: state.filesLoading,
+                error: state.filesError,
+                active: state.filesActive,
+                draft: state.filesDraft,
+                saving: state.filesSaving,
+                onNavigate: (path) => void loadFilesDir(state, path),
+                onOpenFile: (path) => void openFilesFile(state, path),
+                onCloseFile: () => {
+                  state.filesActive = null;
+                  state.filesDraft = "";
+                },
+                onDraftChange: (content) => (state.filesDraft = content),
+                onSave: () => void saveFilesFile(state),
+                onDelete: (path, isDir) => {
+                  if (confirm(`Delete "${path}"?`)) {
+                    void deleteFilesEntry(state, path, isDir);
+                  }
+                },
+                onRename: (path) => {
+                  const next = prompt("New path", path);
+                  if (next && next !== path) {
+                    void renameFilesEntry(state, path, next);
+                  }
+                },
+                onMkdir: () => {
+                  const name = prompt("Folder name");
+                  if (name) {
+                    void createFilesDir(state, name);
+                  }
+                },
+                onUpload: (file) => void uploadFilesFile(state, file),
+                onDownload: (path, name) => void downloadFilesFile(state, path, name),
               }),
             )
           : nothing}

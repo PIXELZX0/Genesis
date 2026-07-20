@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Control UI: added a Files tab backed by new admin-scoped `files.*` gateway RPCs (`files.list`, `files.read`, `files.write`, `files.delete`, `files.rename`, `files.mkdir`) for browsing, editing, uploading, downloading, renaming, and deleting files on the gateway host.
 - Control UI: added a channel account delete action (`channels.delete` admin RPC backed by `plugin.config.deleteAccount()`) with a confirm guard in the channel settings dialog.
 
 ### Fixes

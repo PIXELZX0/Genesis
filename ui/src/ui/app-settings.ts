@@ -34,6 +34,7 @@ import {
   type DreamingState,
 } from "./controllers/dreaming.ts";
 import { loadExecApprovals, type ExecApprovalsState } from "./controllers/exec-approvals.ts";
+import { loadFilesDir, type FilesState } from "./controllers/files.ts";
 import { loadLogs, type LogsState } from "./controllers/logs.ts";
 import { loadMcpOAuthStatuses, loadMcpServers, type McpState } from "./controllers/mcp.ts";
 import {
@@ -111,6 +112,7 @@ type LocalUserIdentityHost = {
 
 type SettingsAppHost = SettingsHost &
   AgentFilesState &
+  FilesState &
   AgentIdentityState &
   AgentSkillsState &
   McpState &
@@ -381,6 +383,9 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "plugins":
       await loadPlugins(app);
+      return;
+    case "files":
+      await loadFilesDir(app, app.filesPath);
       return;
     case "models":
     case "memory":

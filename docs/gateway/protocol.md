@@ -345,6 +345,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `agents.list` returns configured agent entries.
     - `agents.create`, `agents.update`, and `agents.delete` manage agent records and workspace wiring.
     - `agents.files.list`, `agents.files.get`, and `agents.files.set` manage the bootstrap workspace files exposed for an agent.
+    - `files.list`, `files.read`, `files.write`, `files.delete`, `files.rename`, and `files.mkdir` back the Control UI Files tab with host filesystem access. All `files.*` methods require the admin scope. Reads/writes are capped (1MB for utf8 text, 10MB for base64 transfers).
     - `agent.identity.get` returns the effective assistant identity for an agent or session.
     - `agent.wait` waits for a run to finish and returns the terminal snapshot when available.
   </Accordion>

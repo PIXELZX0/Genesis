@@ -166,6 +166,7 @@
     "overview.wallet.title",
     "subtitles.canvas",
     "subtitles.contact",
+    "subtitles.files",
     "subtitles.mcp",
     "subtitles.memory",
     "subtitles.models",
@@ -173,6 +174,7 @@
     "subtitles.wallet",
     "tabs.canvas",
     "tabs.contact",
+    "tabs.files",
     "tabs.mcp",
     "tabs.memory",
     "tabs.models",
@@ -239,12 +241,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-07-19T13:39:34.433Z",
+  "generatedAt": "2026-07-20T05:18:20.621Z",
   "locale": "th",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "a74c8c6df10c5347d0691199f780f7c3834a0d45a69583f6efc19c9855690c15",
-  "totalKeys": 970,
+  "sourceHash": "bd6e1ff768ca636d400e7aea941badacde7ff36283be23cb2c2256aed1677464",
+  "totalKeys": 972,
   "translatedKeys": 732,
   "workflow": 1
 }

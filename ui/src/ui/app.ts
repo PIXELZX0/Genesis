@@ -111,6 +111,8 @@ import type {
   CronJob,
   CronRunLogEntry,
   CronStatus,
+  FilesListResult,
+  FilesReadResult,
   HealthSummary,
   LogEntry,
   LogLevel,
@@ -390,6 +392,13 @@ export class GenesisApp extends LitElement {
   @state() agentFileDrafts: Record<string, string> = {};
   @state() agentFileActive: string | null = null;
   @state() agentFileSaving = false;
+  @state() filesPath = "/";
+  @state() filesList: FilesListResult | null = null;
+  @state() filesLoading = false;
+  @state() filesError: string | null = null;
+  @state() filesActive: FilesReadResult | null = null;
+  @state() filesDraft = "";
+  @state() filesSaving = false;
   @state() agentIdentityLoading = false;
   @state() agentIdentityError: string | null = null;
   @state() agentIdentityById: Record<string, AgentIdentityResult> = {};

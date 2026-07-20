@@ -211,6 +211,14 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "web.login.wait",
     "system-event",
     "agents.files.set",
+    // files.* expose arbitrary host filesystem access, so every method
+    // (including reads) requires admin.
+    "files.list",
+    "files.read",
+    "files.write",
+    "files.delete",
+    "files.rename",
+    "files.mkdir",
     "contacts.save",
     "contacts.delete",
   ],
