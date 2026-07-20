@@ -7,12 +7,34 @@ import {
   listCombinedAccountIds,
   resolveListedDefaultAccountId,
 } from "genesis/plugin-sdk/account-resolution";
+import { loadBundledEntryExportSync } from "genesis/plugin-sdk/channel-entry-contract";
 import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { normalizeSecretInputString, type SecretInput } from "genesis/plugin-sdk/secret-input";
 import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import type { NostrProfile } from "./config-schema.js";
 import { DEFAULT_RELAYS } from "./default-relays.js";
-import { getPublicKeyFromPrivate } from "./nostr-key-utils.js";
+
+// nostr-tools is a real dependency of nostr-key-utils.ts, not always staged
+// when this module is reached from the setup-only surface (Genesis skips
+// installing bundled runtime deps just to list/status-check a not-yet-enabled
+// channel). Load it through the same synchronous, dev/test/prod-safe loader
+// the channel entry itself uses (extensions/nostr/index.ts), with
+// installRuntimeDeps disabled so a cold listing pass degrades to an empty
+// publicKey instead of crashing. Once the channel is actually activated,
+// nostr-tools is already staged, so this resolves synchronously and
+// correctly like a normal import.
+function resolvePublicKeyBestEffort(privateKey: string): string {
+  try {
+    const getPublicKeyFromPrivate = loadBundledEntryExportSync<(key: string) => string>(
+      import.meta.url,
+      { specifier: "./nostr-key-utils.js", exportName: "getPublicKeyFromPrivate" },
+      { installRuntimeDeps: false },
+    );
+    return getPublicKeyFromPrivate(privateKey);
+  } catch {
+    return "";
+  }
+}
 
 export interface NostrAccountConfig {
   enabled?: boolean;
@@ -86,14 +108,7 @@ export function resolveNostrAccount(opts: {
   const privateKey = normalizeSecretInputString(nostrCfg?.privateKey) ?? "";
   const configured = Boolean(privateKey);
 
-  let publicKey = "";
-  if (privateKey) {
-    try {
-      publicKey = getPublicKeyFromPrivate(privateKey);
-    } catch {
-      // Invalid key - leave publicKey empty, configured will indicate issues
-    }
-  }
+  const publicKey = privateKey ? resolvePublicKeyBestEffort(privateKey) : "";
 
   return {
     accountId,

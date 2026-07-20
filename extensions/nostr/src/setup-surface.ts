@@ -1,3 +1,4 @@
+import { loadBundledEntryExportSync } from "genesis/plugin-sdk/channel-entry-contract";
 import type { ChannelSetupAdapter } from "genesis/plugin-sdk/channel-setup";
 import { DEFAULT_ACCOUNT_ID } from "genesis/plugin-sdk/routing";
 import {
@@ -16,8 +17,25 @@ import {
   splitSetupEntries,
 } from "genesis/plugin-sdk/setup";
 import { DEFAULT_RELAYS } from "./default-relays.js";
-import { getPublicKeyFromPrivate, normalizePubkey } from "./nostr-key-utils.js";
 import { resolveDefaultNostrAccountId, resolveNostrAccount } from "./types.js";
+
+const NSEC_SHAPE = /^nsec1[0-9ac-hj-np-z]{20,}$/i;
+const HEX_KEY_SHAPE = /^[0-9a-fA-F]{64}$/;
+
+// See the matching comment in types.ts: nostr-tools may not be staged yet
+// when this setup-only surface is reached during onboarding listing. Load it
+// lazily and let callers degrade instead of crashing.
+function tryLoadNostrKeyUtilExport<T>(exportName: string): T | null {
+  try {
+    return loadBundledEntryExportSync<T>(
+      import.meta.url,
+      { specifier: "./nostr-key-utils.js", exportName },
+      { installRuntimeDeps: false },
+    );
+  } catch {
+    return null;
+  }
+}
 
 const channel = "nostr" as const;
 
@@ -65,6 +83,19 @@ function parseRelayUrls(raw: string): { relays: string[]; error?: string } {
 function parseNostrAllowFrom(raw: string): { entries: string[]; error?: string } {
   return parseSetupEntriesWithParser(raw, (entry) => {
     const cleaned = entry.replace(/^nostr:/i, "").trim();
+    const normalizePubkey = tryLoadNostrKeyUtilExport<(input: string) => string>("normalizePubkey");
+    if (!normalizePubkey) {
+      // Can't bech32-decode npub without nostr-tools staged yet. Hex passes
+      // through untouched (already the normalized form); npub would need
+      // real decoding to normalize correctly, so fail closed instead of
+      // storing an unnormalized allowlist entry.
+      if (HEX_KEY_SHAPE.test(cleaned)) {
+        return { value: cleaned.toLowerCase() };
+      }
+      return {
+        error: `Can't validate "${entry}" right now (Nostr dependency not staged yet). Use 64-character hex instead of npub, or retry in a moment.`,
+      };
+    }
     try {
       return { value: normalizePubkey(cleaned) };
     } catch {
@@ -112,9 +143,17 @@ export const nostrSetupAdapter: ChannelSetupAdapter = {
       if (!privateKey) {
         return "Nostr requires --private-key or --use-env.";
       }
-      try {
-        getPublicKeyFromPrivate(privateKey);
-      } catch {
+      const getPublicKeyFromPrivate =
+        tryLoadNostrKeyUtilExport<(key: string) => string>("getPublicKeyFromPrivate");
+      if (getPublicKeyFromPrivate) {
+        try {
+          getPublicKeyFromPrivate(privateKey);
+        } catch {
+          return "Nostr private key must be valid nsec or 64-character hex.";
+        }
+      } else if (!NSEC_SHAPE.test(privateKey) && !HEX_KEY_SHAPE.test(privateKey)) {
+        // Nostr dependency not staged yet: fall back to a shape-only check.
+        // Full cryptographic validation runs again once the channel activates.
         return "Nostr private key must be valid nsec or 64-character hex.";
       }
     }
