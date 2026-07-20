@@ -297,6 +297,7 @@ export async function applyAuthChoiceLoadedPluginProvider(
     workspaceDir,
     env: params.env,
     mode: "setup",
+    installBundledRuntimeDeps: false,
   });
   let resolved = resolveProviderPluginChoice({
     providers,
@@ -324,6 +325,7 @@ export async function applyAuthChoiceLoadedPluginProvider(
       workspaceDir,
       env: params.env,
       mode: "setup",
+      installBundledRuntimeDeps: false,
     });
     resolved = resolveProviderPluginChoice({
       providers,
@@ -413,6 +415,7 @@ export async function applyAuthChoicePluginProvider(
     workspaceDir,
     env: params.env,
     mode: "setup",
+    onlyPluginIds: [options.pluginId],
   });
   const provider = resolveProviderMatch(providers, options.providerId);
   if (!provider) {
