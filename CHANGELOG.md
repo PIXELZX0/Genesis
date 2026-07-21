@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.21
+
+### Changes
+
+- Control UI: added an admin-scoped Files tab for browsing, editing, uploading, downloading, renaming, and deleting files on the gateway host, backed by new `files.*` gateway RPCs (`files.list`, `files.read`, `files.write`, `files.delete`, `files.rename`, `files.mkdir`).
+
+### Fixes
+
+- Onboarding: fixed a crash (`ERR_MODULE_NOT_FOUND` for `nostr-tools`) when the setup-only channel listing reached the Nostr setup surface, by deferring the `nostr-tools` import instead of loading it eagerly during setup.
+- Onboarding: selecting a provider auth choice no longer runs `npm install` for ~50 unrelated bundled provider plugins before continuing; provider setup listing now skips bundled runtime dependency installs it doesn't need.
+
 ## 2026.7.20
 
 ### Changes
