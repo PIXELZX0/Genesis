@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { vi } from "vitest";
+import { resolveConfigIncludes } from "../config/includes.js";
 import type { ReadConfigFileSnapshotForWriteResult } from "../config/io.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import type { AgentBinding } from "../config/types.agents.js";
@@ -148,6 +149,21 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
     } as GenesisConfig;
   };
 
+  // Top-level sections (e.g. "gateway") can be routed into their own $include-owned
+  // file (see splitConfigSectionsForInitialWrite in config/io.ts). composeTestConfig
+  // shallow-spreads section keys straight off the raw parsed JSON, so an unresolved
+  // marker here would silently drop everything the include file actually holds.
+  const resolveTestConfigIncludes = (
+    parsed: unknown,
+    configPath: string,
+  ): Record<string, unknown> => {
+    try {
+      return resolveConfigIncludes(parsed, configPath) as Record<string, unknown>;
+    } catch {
+      return parsed as Record<string, unknown>;
+    }
+  };
+
   const readConfigFileSnapshot = async (): Promise<ConfigFileSnapshot> => {
     if (testState.legacyIssues.length > 0) {
       const raw = JSON.stringify(testState.legacyParsed ?? {});
@@ -189,7 +205,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
         raw,
         parsed,
         valid: true,
-        config: composeTestConfig(parsed),
+        config: composeTestConfig(resolveTestConfigIncludes(parsed, configPath)),
         issues: [],
         legacyIssues: [],
       });
@@ -229,7 +245,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
     try {
       if (fsSync.existsSync(configPath)) {
         const raw = fsSync.readFileSync(configPath, "utf-8");
-        fileConfig = JSON.parse(raw) as Record<string, unknown>;
+        fileConfig = resolveTestConfigIncludes(JSON.parse(raw), configPath);
       }
     } catch {
       fileConfig = {};
