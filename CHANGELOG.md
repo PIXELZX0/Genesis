@@ -2,6 +2,14 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.21-1
+
+### Fixes
+
+- Onboarding: fixed a channel setup failure (e.g. a Matrix dependency install failure) aborting the whole `genesis onboard` wizard; a channel's `configure`/`configureInteractive` throwing is now caught per-channel and surfaced as a note instead.
+- Matrix: the nested npm install for Matrix's WASM/native crypto dependency no longer inherits `npm_config_global`/`location`/`prefix` from a parent `npm install -g`, which made it always try (and fail) to write into the global prefix instead of the plugin directory.
+- Bedrock: fixed onboarding failing to list Bedrock when the AWS SDK wasn't installed yet; the setup-api helper no longer top-level-imports the lazily-installed `@aws-sdk/client-bedrock`.
+
 ## 2026.7.21
 
 ### Changes
