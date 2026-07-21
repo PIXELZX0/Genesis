@@ -34,6 +34,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute lowercase image repository
+        id: repo
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       # Build the base Genesis image locally so Dockerfile.tor-browser can layer
       # tor + chromium on top of it (load into the runner's docker image store).
       - name: Build Genesis base image
@@ -52,6 +56,6 @@ jobs:
           file: Dockerfile.tor-browser
           build-args: GENESIS_IMAGE=genesis:latest
           tags: |
-            ghcr.io/${{ github.repository }}/genesis-tor-browser:latest
-            ghcr.io/${{ github.repository }}/genesis-tor-browser:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}/genesis-tor-browser:latest
+            ghcr.io/${{ steps.repo.outputs.name }}/genesis-tor-browser:${{ github.sha }}
           push: true
