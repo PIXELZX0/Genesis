@@ -166,12 +166,11 @@ describe("config io write", () => {
       };
       expect(livePersisted.gateway).toEqual({ mode: "local", port: 18789 });
 
-      const overridePersisted = JSON.parse(
-        await fs.readFile(path.join(overrideDir, "genesis.json"), "utf-8"),
-      ) as {
-        session?: { store?: unknown };
-      };
-      expect(overridePersisted.session?.store).toBe(path.join(overrideDir, "sessions.json"));
+      // Initial writes split top-level sections into their own $include-owned
+      // files, so read back through the resolved snapshot rather than the raw
+      // root JSON.
+      const overrideSnapshot = await io.readConfigFileSnapshot();
+      expect(overrideSnapshot.config.session?.store).toBe(path.join(overrideDir, "sessions.json"));
     });
   });
 

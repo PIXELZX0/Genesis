@@ -34,6 +34,7 @@ import {
 import { applyConfigEnvVars } from "./env-vars.js";
 import {
   ConfigIncludeError,
+  INCLUDE_KEY,
   readConfigIncludeFileWithGuards,
   resolveConfigIncludes,
 } from "./includes.js";
@@ -72,6 +73,7 @@ import {
 } from "./materialize.js";
 import { applyMergePatch } from "./merge-patch.js";
 import { resolveConfigPath, resolveStateDir } from "./paths.js";
+import { isBlockedObjectKey } from "./prototype-keys.js";
 import { applyConfigOverrides } from "./runtime-overrides.js";
 import {
   clearRuntimeConfigSnapshot as clearRuntimeConfigSnapshotState,
@@ -1677,6 +1679,32 @@ export function createConfigIO(
     }
   }
 
+  /**
+   * On first-ever write (no config file exists yet), route every non-empty
+   * top-level section into its own `$include`-owned file instead of one flat
+   * genesis.json. Later writes stay split automatically via `routedSections`
+   * (see `resolvePersistCandidateForWrite`), which follows the markers this
+   * produces.
+   */
+  function splitConfigSectionsForInitialWrite(
+    cfg: GenesisConfig,
+    configDir: string,
+  ): { rootConfig: GenesisConfig; sections: Array<{ filePath: string; value: unknown }> } {
+    const sections: Array<{ filePath: string; value: unknown }> = [];
+    const root: Record<string, unknown> = { ...cfg };
+    for (const [key, value] of Object.entries(cfg)) {
+      if (key === "$schema" || key === INCLUDE_KEY || isBlockedObjectKey(key)) {
+        continue;
+      }
+      if (!isRecord(value) || Object.keys(value).length === 0) {
+        continue;
+      }
+      root[key] = { [INCLUDE_KEY]: `./${key}.json` };
+      sections.push({ filePath: path.join(configDir, `${key}.json`), value });
+    }
+    return { rootConfig: root as GenesisConfig, sections };
+  }
+
   async function writeConfigFile(
     cfg: GenesisConfig,
     options: ConfigWriteOptions = {},
@@ -1805,6 +1833,12 @@ export function createConfigIO(
           outputConfig = unsetResult.next;
         }
       }
+    }
+    let initialSplitSections: Array<{ filePath: string; value: unknown }> = [];
+    if (!snapshot.exists) {
+      const split = splitConfigSectionsForInitialWrite(outputConfig, dir);
+      outputConfig = split.rootConfig;
+      initialSplitSections = split.sections;
     }
     // Do NOT apply runtime defaults when writing - user config should only contain
     // explicitly set values. Runtime defaults are applied when loading (issue #6070).
@@ -1951,6 +1985,13 @@ export function createConfigIO(
       await writeIncludeSectionFileAtomic({
         filePath: section.filePath,
         value: sectionValue,
+        fsModule: deps.fs,
+      });
+    }
+    for (const section of initialSplitSections) {
+      await writeIncludeSectionFileAtomic({
+        filePath: section.filePath,
+        value: section.value,
         fsModule: deps.fs,
       });
     }
