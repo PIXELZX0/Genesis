@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import path from "node:path";
+import { isPathInside } from "../security/scan-paths.js";
 import { isRecord } from "../utils.js";
 import {
   appendConfigAuditRecord,
@@ -310,6 +311,44 @@ function parseConfigRawOrEmpty(deps: ObserveRecoveryDeps, raw: string): unknown 
   }
 }
 
+/**
+ * Gateway section source for fingerprinting. Split layouts keep the gateway
+ * section in an include file (`{ "$include": "config/gateway.json" }`), which
+ * would fingerprint as a missing gateway mode; resolve the marker one level
+ * deep (best-effort, confined to the config dir) so raw-root fingerprints stay
+ * comparable with resolved-config baselines.
+ */
+function resolveGatewayFingerprintSource(
+  deps: ObserveRecoveryDeps,
+  configPath: string,
+  parsed: unknown,
+): unknown {
+  if (!isRecord(parsed)) {
+    return parsed;
+  }
+  const gateway = parsed.gateway;
+  if (!isRecord(gateway)) {
+    return parsed;
+  }
+  const includeRef = gateway.$include;
+  if (Object.keys(gateway).length !== 1 || typeof includeRef !== "string") {
+    return parsed;
+  }
+  try {
+    const rootDir = path.dirname(configPath);
+    const resolvedPath = path.normalize(
+      path.isAbsolute(includeRef) ? includeRef : path.resolve(rootDir, includeRef),
+    );
+    if (!isPathInside(rootDir, resolvedPath)) {
+      return parsed;
+    }
+    const includeParsed = deps.json5.parse(deps.fs.readFileSync(resolvedPath, "utf-8"));
+    return { ...parsed, gateway: includeParsed };
+  } catch {
+    return parsed;
+  }
+}
+
 function resolveConfigHealthStatePath(env: NodeJS.ProcessEnv, homedir: () => string): string {
   return path.join(resolveStateDir(env, homedir), "logs", "config-health.json");
 }
@@ -489,7 +528,7 @@ async function readConfigFingerprintForPath(
       hash: hashConfigRaw(raw),
       raw,
       parsed,
-      gatewaySource: parsed,
+      gatewaySource: resolveGatewayFingerprintSource(deps, targetPath, parsed),
       stat: stat as ConfigStatMetadataSource,
       observedAt: new Date().toISOString(),
     });
@@ -510,7 +549,7 @@ function readConfigFingerprintForPathSync(
       hash: hashConfigRaw(raw),
       raw,
       parsed,
-      gatewaySource: parsed,
+      gatewaySource: resolveGatewayFingerprintSource(deps, targetPath, parsed),
       stat,
       observedAt: new Date().toISOString(),
     });
@@ -614,7 +653,7 @@ export async function maybeRecoverSuspiciousConfigRead(params: {
     hash: hashConfigRaw(params.raw),
     raw: params.raw,
     parsed: params.parsed,
-    gatewaySource: params.parsed,
+    gatewaySource: resolveGatewayFingerprintSource(params.deps, params.configPath, params.parsed),
     stat: stat as ConfigStatMetadataSource,
     observedAt: now,
   });
@@ -704,7 +743,7 @@ export function maybeRecoverSuspiciousConfigReadSync(params: {
     hash: hashConfigRaw(params.raw),
     raw: params.raw,
     parsed: params.parsed,
-    gatewaySource: params.parsed,
+    gatewaySource: resolveGatewayFingerprintSource(params.deps, params.configPath, params.parsed),
     stat,
     observedAt: now,
   });

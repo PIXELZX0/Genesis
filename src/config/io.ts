@@ -114,6 +114,9 @@ export { MissingEnvVarError } from "./env-substitution.js";
 export { resolveShellEnvExpectedKeys } from "./shell-env-expected-keys.js";
 
 const CONFIG_HEALTH_STATE_FILENAME = "config-health.json";
+// Initial-write section files live under `<stateDir>/config/`, matching the
+// doctor split-config layout (SPLIT_CONFIG_DIRNAME in doctor-config-split.ts).
+const INITIAL_SPLIT_SECTION_DIRNAME = "config";
 const loggedInvalidConfigs = new Set<string>();
 
 type ConfigHealthFingerprint = {
@@ -1681,10 +1684,10 @@ export function createConfigIO(
 
   /**
    * On first-ever write (no config file exists yet), route every non-empty
-   * top-level section into its own `$include`-owned file instead of one flat
-   * genesis.json. Later writes stay split automatically via `routedSections`
-   * (see `resolvePersistCandidateForWrite`), which follows the markers this
-   * produces.
+   * top-level section into its own `$include`-owned file under `config/`
+   * instead of one flat genesis.json. Later writes stay split automatically
+   * via `routedSections` (see `resolvePersistCandidateForWrite`), which
+   * follows the markers this produces.
    */
   function splitConfigSectionsForInitialWrite(
     cfg: GenesisConfig,
@@ -1699,8 +1702,11 @@ export function createConfigIO(
       if (!isRecord(value) || Object.keys(value).length === 0) {
         continue;
       }
-      root[key] = { [INCLUDE_KEY]: `./${key}.json` };
-      sections.push({ filePath: path.join(configDir, `${key}.json`), value });
+      root[key] = { [INCLUDE_KEY]: `${INITIAL_SPLIT_SECTION_DIRNAME}/${key}.json` };
+      sections.push({
+        filePath: path.join(configDir, INITIAL_SPLIT_SECTION_DIRNAME, `${key}.json`),
+        value,
+      });
     }
     return { rootConfig: root as GenesisConfig, sections };
   }
@@ -1856,7 +1862,10 @@ export function createConfigIO(
     const hasMetaBefore = hasConfigMeta(snapshot.parsed);
     const hasMetaAfter = hasConfigMeta(stampedOutputConfig);
     const gatewayModeBefore = resolveGatewayMode(snapshot.resolved);
-    const gatewayModeAfter = resolveGatewayMode(stampedOutputConfig);
+    // Compare against the effective post-write config (include-owned values
+    // inlined): the stamped root keeps `$include` markers for split sections,
+    // which would otherwise read as a removed gateway mode.
+    const gatewayModeAfter = resolveGatewayMode(mergedCandidate ?? stampedOutputConfig);
     const suspiciousReasons = resolveConfigWriteSuspiciousReasons({
       existsBefore: snapshot.exists,
       previousBytes,

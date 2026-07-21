@@ -117,10 +117,12 @@ describe("secrets runtime snapshot gateway-auth integration", () => {
         expect(loadConfig().gateway?.auth?.token).toBe("gateway-runtime-token");
         expect(activeAfterFailure?.sourceConfig.gateway?.auth?.token).toEqual(initialTokenRef);
 
-        const persistedConfig = JSON.parse(
-          await fs.readFile(path.join(home, ".genesis", "genesis.json"), "utf8"),
-        ) as GenesisConfig;
-        expect(persistedConfig.gateway?.auth?.token).toEqual(missingTokenRef);
+        // First writes split top-level sections into config/<section>.json
+        // include files, so the persisted gateway section lives in its own file.
+        const persistedGateway = JSON.parse(
+          await fs.readFile(path.join(home, ".genesis", "config", "gateway.json"), "utf8"),
+        ) as NonNullable<GenesisConfig["gateway"]>;
+        expect(persistedGateway.auth?.token).toEqual(missingTokenRef);
       });
     },
     SECRETS_RUNTIME_INTEGRATION_TIMEOUT_MS,
