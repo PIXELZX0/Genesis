@@ -1,6 +1,6 @@
 import { definePluginEntry } from "genesis/plugin-sdk/plugin-entry";
+import { resolveBedrockConfigApiKey } from "./config-api-key.js";
 import { migrateAmazonBedrockLegacyConfig } from "./config-api.js";
-import { resolveBedrockConfigApiKey } from "./discovery.js";
 
 export default definePluginEntry({
   id: "amazon-bedrock",
