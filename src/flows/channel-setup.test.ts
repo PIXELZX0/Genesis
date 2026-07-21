@@ -400,6 +400,70 @@ describe("setupChannels workspace shadow exclusion", () => {
     });
   });
 
+  it("surfaces a channel configure failure as a note instead of aborting the whole wizard", async () => {
+    const setupWizard = {
+      channel: "custom-chat",
+      getStatus: vi.fn(async () => ({
+        channel: "custom-chat",
+        configured: false,
+        statusLines: [],
+      })),
+      configureInteractive: vi.fn(async () => {
+        throw new Error("Matrix dependency install failed.");
+      }),
+    };
+    const activePlugin = makeSetupPlugin({
+      id: "custom-chat",
+      label: "Custom Chat",
+      setupWizard,
+    });
+    listActiveChannelSetupPlugins.mockReturnValue([activePlugin]);
+    resolveChannelSetupEntries.mockReturnValue(
+      makeChannelSetupEntries({
+        entries: [
+          {
+            id: "custom-chat",
+            meta: makeMeta("custom-chat", "Custom Chat"),
+          },
+        ],
+        installedCatalogEntries: [],
+        installableCatalogEntries: [],
+        installedCatalogById: new Map(),
+        installableCatalogById: new Map(),
+      }),
+    );
+    const select = vi.fn().mockResolvedValueOnce("custom-chat").mockResolvedValueOnce("__done__");
+    const note = vi.fn(async () => undefined);
+    const runtimeError = vi.fn();
+
+    const next = await setupChannels(
+      {} as never,
+      { error: runtimeError } as never,
+      {
+        confirm: vi.fn(async () => true),
+        note,
+        select,
+      } as never,
+      {
+        deferStatusUntilSelection: true,
+        skipConfirm: true,
+        skipDmPolicyPrompt: true,
+      },
+    );
+
+    expect(setupWizard.configureInteractive).toHaveBeenCalled();
+    expect(runtimeError).toHaveBeenCalledWith(
+      expect.stringContaining("Matrix dependency install failed."),
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.stringContaining("Matrix dependency install failed."),
+      "Channel setup",
+    );
+    // The wizard kept running afterward (reached __done__) instead of throwing.
+    expect(select).toHaveBeenCalledTimes(2);
+    expect(next).toEqual({});
+  });
+
   it("loads the selected bundled catalog plugin without writing explicit plugin enablement", async () => {
     const configure = vi.fn(async ({ cfg }: { cfg: Record<string, unknown> }) => ({
       cfg: {

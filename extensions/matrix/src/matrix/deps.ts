@@ -56,6 +56,20 @@ type CommandResult = {
   stderr: string;
 };
 
+// Strip global-npm-install env markers inherited from a parent `npm
+// install -g` process. Without this, a nested `npm install` here tries to
+// write into the global prefix instead of `cwd` and fails.
+export function sanitizeNestedNpmEnv(
+  env: NodeJS.ProcessEnv,
+  overrides?: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const merged = { ...env, ...overrides };
+  delete merged.npm_config_global;
+  delete merged.npm_config_location;
+  delete merged.npm_config_prefix;
+  return merged;
+}
+
 async function runFixedCommandWithTimeout(params: {
   argv: string[];
   cwd: string;
@@ -75,7 +89,7 @@ async function runFixedCommandWithTimeout(params: {
 
     const proc = spawn(command, args, {
       cwd: params.cwd,
-      env: { ...process.env, ...params.env },
+      env: sanitizeNestedNpmEnv(process.env, params.env),
       stdio: ["ignore", "pipe", "pipe"],
     });
 

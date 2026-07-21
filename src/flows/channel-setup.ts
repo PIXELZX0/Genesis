@@ -598,6 +598,19 @@ export async function setupChannels(
     return "done";
   };
 
+  const handleChannelChoiceSafely = async (
+    channel: ChannelChoice,
+  ): Promise<"done" | "retry_selection"> => {
+    try {
+      return await handleChannelChoice(channel);
+    } catch (err) {
+      const message = formatErrorMessage(err);
+      runtime.error(`Channel ${channel} setup failed: ${message}`);
+      await prompter.note(`${channel} setup failed: ${message}`, "Channel setup");
+      return "done";
+    }
+  };
+
   if (options?.quickstartDefaults) {
     while (true) {
       const { entries } = getChannelEntries();
@@ -621,7 +634,7 @@ export async function setupChannels(
       if (choice === "__skip__") {
         break;
       }
-      if ((await handleChannelChoice(choice)) === "done") {
+      if ((await handleChannelChoiceSafely(choice)) === "done") {
         break;
       }
     }
@@ -649,7 +662,7 @@ export async function setupChannels(
       if (choice === doneValue) {
         break;
       }
-      await handleChannelChoice(choice);
+      await handleChannelChoiceSafely(choice);
     }
   }
 

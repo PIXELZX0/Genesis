@@ -1,7 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
-import { ensureMatrixCryptoRuntime } from "./deps.js";
+import { ensureMatrixCryptoRuntime, sanitizeNestedNpmEnv } from "./deps.js";
 
 const logStub = vi.fn();
+
+describe("sanitizeNestedNpmEnv", () => {
+  it("strips global-npm-install markers inherited from a parent `npm install -g`", () => {
+    const result = sanitizeNestedNpmEnv({
+      npm_config_global: "true",
+      npm_config_location: "global",
+      npm_config_prefix: "/usr/local",
+      PATH: "/usr/bin",
+    });
+
+    expect(result).toEqual({ PATH: "/usr/bin" });
+  });
+
+  it("keeps other env vars and applies overrides on top", () => {
+    const result = sanitizeNestedNpmEnv(
+      { npm_config_global: "true", HOME: "/home/yuchan" },
+      { COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" },
+    );
+
+    expect(result).toEqual({
+      HOME: "/home/yuchan",
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+    });
+  });
+});
 
 describe("ensureMatrixCryptoRuntime", () => {
   it("returns immediately when matrix SDK loads", async () => {
