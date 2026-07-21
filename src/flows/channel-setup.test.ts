@@ -408,6 +408,9 @@ describe("setupChannels workspace shadow exclusion", () => {
         configured: false,
         statusLines: [],
       })),
+      configure: vi.fn(async () => {
+        throw new Error("Matrix dependency install failed.");
+      }),
       configureInteractive: vi.fn(async () => {
         throw new Error("Matrix dependency install failed.");
       }),
