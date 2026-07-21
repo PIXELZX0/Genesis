@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.7.21-2
+
+### Changes
+
+- Config: the first-ever write of `genesis.json` now routes each non-empty top-level section (e.g. `gateway`, `channels`, `agents`) into its own `<section>.json` file via the existing `$include` mechanism, instead of one flat file. Later writes stay split automatically.
+
 ## 2026.7.21-1
 
 ### Fixes
