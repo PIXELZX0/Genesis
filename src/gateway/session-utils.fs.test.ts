@@ -475,7 +475,7 @@ describe("readLatestSessionUsageFromTranscript cache", () => {
       { message: { role: "assistant", usage: { input: 10, output: 5 } } },
     ]);
 
-    const readSpy = vi.spyOn(fs, "readFileSync");
+    const readSpy = vi.spyOn(fs, "readSync");
 
     const first = readLatestSessionUsageFromTranscript(sessionId, storePath);
     const readsAfterFirst = readSpy.mock.calls.length;
@@ -496,7 +496,7 @@ describe("readLatestSessionUsageFromTranscript cache", () => {
       { message: { role: "assistant", usage: { input: 2, output: 3 } } },
     ]);
 
-    const readSpy = vi.spyOn(fs, "readFileSync");
+    const readSpy = vi.spyOn(fs, "readSync");
 
     const first = readLatestSessionUsageFromTranscript(sessionId, storePath);
     const readsAfterFirst = readSpy.mock.calls.length;
@@ -512,6 +512,9 @@ describe("readLatestSessionUsageFromTranscript cache", () => {
     expect(second?.inputTokens).toBe(7);
     expect(second?.outputTokens).toBe(10);
     expect(readSpy.mock.calls.length).toBeGreaterThan(readsAfterFirst);
+    // The rescan reads only the appended bytes, not the whole transcript.
+    const appendedReadLength = (readSpy.mock.calls.at(-1) as unknown as unknown[])?.[3] as number;
+    expect(appendedReadLength).toBeLessThan(fs.statSync(transcriptPath).size);
     readSpy.mockRestore();
   });
 });
@@ -556,6 +559,53 @@ describe("readSessionMessages", () => {
     expect(marker.__genesis?.kind).toBe("compaction");
     expect(marker.__genesis?.id).toBe("comp-1");
     expect(typeof marker.timestamp).toBe("number");
+  });
+
+  test("returns only the tail without reading the whole transcript when limited", () => {
+    const sessionId = "test-session-tail-limit";
+    const transcriptPath = path.join(tmpDir, `${sessionId}.jsonl`);
+    // Big enough that the tail window cannot cover the whole file.
+    const filler = "x".repeat(4096);
+    const lines = [JSON.stringify({ type: "session", version: 1, id: sessionId })];
+    for (let index = 0; index < 200; index += 1) {
+      lines.push(
+        JSON.stringify({
+          id: `m-${index}`,
+          message: { role: "user", content: `${index} ${filler}` },
+        }),
+      );
+    }
+    fs.writeFileSync(transcriptPath, lines.join("\n"), "utf-8");
+
+    const readFileSpy = vi.spyOn(fs, "readFileSync");
+    const out = readSessionMessages(sessionId, storePath, undefined, { limit: 5 });
+    expect(readFileSpy).not.toHaveBeenCalledWith(transcriptPath, "utf-8");
+    readFileSpy.mockRestore();
+
+    expect(out.length).toBeGreaterThanOrEqual(5);
+    const last = out.at(-1) as { content?: string; __genesis?: { id?: string; seq?: number } };
+    expect(last.__genesis?.id).toBe("m-199");
+    // A partial read cannot know absolute record positions.
+    expect(last.__genesis?.seq).toBeUndefined();
+  });
+
+  test("keeps absolute sequence numbers when the limited read covers the whole file", () => {
+    const sessionId = "test-session-tail-small";
+    const transcriptPath = path.join(tmpDir, `${sessionId}.jsonl`);
+    fs.writeFileSync(
+      transcriptPath,
+      [
+        JSON.stringify({ type: "session", version: 1, id: sessionId }),
+        JSON.stringify({ id: "a", message: { role: "user", content: "Hello" } }),
+        JSON.stringify({ id: "b", message: { role: "assistant", content: "World" } }),
+      ].join("\n"),
+      "utf-8",
+    );
+
+    const out = readSessionMessages(sessionId, storePath, undefined, { limit: 10 });
+    expect(out).toHaveLength(2);
+    expect((out[0] as { __genesis?: { seq?: number } }).__genesis?.seq).toBe(1);
+    expect((out[1] as { __genesis?: { seq?: number } }).__genesis?.seq).toBe(2);
   });
 
   test.each([

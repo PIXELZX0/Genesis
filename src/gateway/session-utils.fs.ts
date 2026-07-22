@@ -141,10 +141,48 @@ export function attachGenesisTranscriptMeta(
   };
 }
 
+// Tail-read window growth for limited reads. Transcript records are typically
+// well under a KB, so the first window usually already holds the requested
+// messages; the loop only grows for unusually large records.
+const SESSION_MESSAGES_TAIL_START_BYTES = 256 * 1024;
+const SESSION_MESSAGES_TAIL_MAX_BYTES = 8 * 1024 * 1024;
+
+function readTranscriptTailLines(
+  filePath: string,
+  limit: number,
+): { lines: string[]; fromStart: boolean } | null {
+  return withOpenTranscriptFd(filePath, (fd) => {
+    const size = fs.fstatSync(fd).size;
+    if (size === 0) {
+      return { lines: [], fromStart: true };
+    }
+    let windowBytes = SESSION_MESSAGES_TAIL_START_BYTES;
+    while (true) {
+      const readLen = Math.min(size, windowBytes);
+      const readStart = size - readLen;
+      const buf = Buffer.alloc(readLen);
+      fs.readSync(fd, buf, 0, readLen, readStart);
+      const fromStart = readStart === 0;
+      const lines = buf.toString("utf-8").split(/\r?\n/);
+      if (!fromStart) {
+        // The window almost certainly starts mid-record; that fragment is not
+        // parseable JSON and would be dropped anyway, but drop it explicitly.
+        lines.shift();
+      }
+      const nonEmpty = lines.filter((line) => line.trim());
+      if (fromStart || nonEmpty.length > limit || readLen >= SESSION_MESSAGES_TAIL_MAX_BYTES) {
+        return { lines, fromStart };
+      }
+      windowBytes = Math.min(windowBytes * 4, SESSION_MESSAGES_TAIL_MAX_BYTES);
+    }
+  });
+}
+
 export function readSessionMessages(
   sessionId: string,
   storePath: string | undefined,
   sessionFile?: string,
+  opts?: { limit?: number },
 ): unknown[] {
   const candidates = resolveSessionTranscriptCandidates(sessionId, storePath, sessionFile);
 
@@ -153,7 +191,17 @@ export function readSessionMessages(
     return [];
   }
 
-  const lines = fs.readFileSync(filePath, "utf-8").split(/\r?\n/);
+  // Callers that only render the tail (chat.history) pass a limit so long-lived
+  // multi-MB transcripts are not read and parsed in full on every request.
+  const limit = opts?.limit;
+  const tail =
+    typeof limit === "number" && Number.isFinite(limit) && limit > 0
+      ? readTranscriptTailLines(filePath, limit)
+      : null;
+  const lines = tail ? tail.lines : fs.readFileSync(filePath, "utf-8").split(/\r?\n/);
+  // Sequence numbers are absolute record positions; a partial read cannot know
+  // them, so those records are identified by id alone.
+  const withSeq = !tail || tail.fromStart;
   const messages: unknown[] = [];
   let messageSeq = 0;
   for (const line of lines) {
@@ -167,7 +215,7 @@ export function readSessionMessages(
         messages.push(
           attachGenesisTranscriptMeta(parsed.message, {
             ...(typeof parsed.id === "string" ? { id: parsed.id } : {}),
-            seq: messageSeq,
+            ...(withSeq ? { seq: messageSeq } : {}),
           }),
         );
         continue;
@@ -186,7 +234,7 @@ export function readSessionMessages(
           __genesis: {
             kind: "compaction",
             id: typeof parsed.id === "string" ? parsed.id : undefined,
-            seq: messageSeq,
+            ...(withSeq ? { seq: messageSeq } : {}),
           },
         });
       }
@@ -492,22 +540,66 @@ function resolvePositiveUsageNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
 }
 
-function extractLatestUsageFromTranscriptChunk(
+/**
+ * Running totals for a transcript scan. Kept separate from the emitted snapshot
+ * so a scan can resume from where the previous one stopped instead of re-reading
+ * the whole file every time the transcript grows.
+ */
+type TranscriptUsageAccumulator = {
+  snapshot: SessionTranscriptUsageSnapshot;
+  sawSnapshot: boolean;
+  inputTokens: number;
+  outputTokens: number;
+  cacheRead: number;
+  cacheWrite: number;
+  sawInputTokens: boolean;
+  sawOutputTokens: boolean;
+  sawCacheRead: boolean;
+  sawCacheWrite: boolean;
+  costUsdTotal: number;
+  sawCost: boolean;
+};
+
+function createTranscriptUsageAccumulator(): TranscriptUsageAccumulator {
+  return {
+    snapshot: {},
+    sawSnapshot: false,
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    sawInputTokens: false,
+    sawOutputTokens: false,
+    sawCacheRead: false,
+    sawCacheWrite: false,
+    costUsdTotal: 0,
+    sawCost: false,
+  };
+}
+
+function cloneTranscriptUsageAccumulator(
+  accumulator: TranscriptUsageAccumulator,
+): TranscriptUsageAccumulator {
+  return { ...accumulator, snapshot: { ...accumulator.snapshot } };
+}
+
+function accumulateTranscriptUsageChunk(
   chunk: string,
-): SessionTranscriptUsageSnapshot | null {
+  accumulator: TranscriptUsageAccumulator,
+): TranscriptUsageAccumulator {
   const lines = chunk.split(/\r?\n/).filter((line) => line.trim().length > 0);
-  const snapshot: SessionTranscriptUsageSnapshot = {};
-  let sawSnapshot = false;
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let cacheRead = 0;
-  let cacheWrite = 0;
-  let sawInputTokens = false;
-  let sawOutputTokens = false;
-  let sawCacheRead = false;
-  let sawCacheWrite = false;
-  let costUsdTotal = 0;
-  let sawCost = false;
+  const snapshot = accumulator.snapshot;
+  let sawSnapshot = accumulator.sawSnapshot;
+  let inputTokens = accumulator.inputTokens;
+  let outputTokens = accumulator.outputTokens;
+  let cacheRead = accumulator.cacheRead;
+  let cacheWrite = accumulator.cacheWrite;
+  let sawInputTokens = accumulator.sawInputTokens;
+  let sawOutputTokens = accumulator.sawOutputTokens;
+  let sawCacheRead = accumulator.sawCacheRead;
+  let sawCacheWrite = accumulator.sawCacheWrite;
+  let costUsdTotal = accumulator.costUsdTotal;
+  let sawCost = accumulator.sawCost;
 
   for (const line of lines) {
     try {
@@ -595,23 +687,43 @@ function extractLatestUsageFromTranscriptChunk(
     }
   }
 
-  if (!sawSnapshot) {
+  return {
+    snapshot,
+    sawSnapshot,
+    inputTokens,
+    outputTokens,
+    cacheRead,
+    cacheWrite,
+    sawInputTokens,
+    sawOutputTokens,
+    sawCacheRead,
+    sawCacheWrite,
+    costUsdTotal,
+    sawCost,
+  };
+}
+
+function buildUsageSnapshotFromAccumulator(
+  accumulator: TranscriptUsageAccumulator,
+): SessionTranscriptUsageSnapshot | null {
+  if (!accumulator.sawSnapshot) {
     return null;
   }
-  if (sawInputTokens) {
-    snapshot.inputTokens = inputTokens;
+  const snapshot: SessionTranscriptUsageSnapshot = { ...accumulator.snapshot };
+  if (accumulator.sawInputTokens) {
+    snapshot.inputTokens = accumulator.inputTokens;
   }
-  if (sawOutputTokens) {
-    snapshot.outputTokens = outputTokens;
+  if (accumulator.sawOutputTokens) {
+    snapshot.outputTokens = accumulator.outputTokens;
   }
-  if (sawCacheRead) {
-    snapshot.cacheRead = cacheRead;
+  if (accumulator.sawCacheRead) {
+    snapshot.cacheRead = accumulator.cacheRead;
   }
-  if (sawCacheWrite) {
-    snapshot.cacheWrite = cacheWrite;
+  if (accumulator.sawCacheWrite) {
+    snapshot.cacheWrite = accumulator.cacheWrite;
   }
-  if (sawCost) {
-    snapshot.costUsd = costUsdTotal;
+  if (accumulator.sawCost) {
+    snapshot.costUsd = accumulator.costUsdTotal;
   }
   return snapshot;
 }
@@ -645,10 +757,79 @@ export function readLatestSessionUsageFromTranscript(
   }
 
   return withOpenTranscriptFd(filePath, (fd) => {
-    const chunk = fs.readFileSync(fd, "utf-8");
-    const snapshot = extractLatestUsageFromTranscriptChunk(chunk);
+    // Transcripts are append-only, so a grown file is scanned from where the
+    // previous scan stopped instead of re-reading megabytes on every append.
+    const resumeFrom = readUsageScanCheckpoint(filePath, stat.size);
+    const accumulator = resumeFrom
+      ? cloneTranscriptUsageAccumulator(resumeFrom.accumulator)
+      : createTranscriptUsageAccumulator();
+    const startOffset = resumeFrom?.offset ?? 0;
+    const readLen = stat.size - startOffset;
+    let chunk = "";
+    if (readLen > 0) {
+      const buf = Buffer.alloc(readLen);
+      fs.readSync(fd, buf, 0, readLen, startOffset);
+      chunk = buf.toString("utf-8");
+    }
+    // Only newline-terminated records are checkpointed: the file may end with a
+    // record that is still being written, and re-reading that tail next time is
+    // cheaper than losing or double-counting it.
+    const lastNewline = chunk.lastIndexOf("\n");
+    const completeChunk = lastNewline >= 0 ? chunk.slice(0, lastNewline + 1) : "";
+    const checkpointAccumulator = accumulateTranscriptUsageChunk(completeChunk, accumulator);
+    const nextAccumulator = accumulateTranscriptUsageChunk(
+      chunk.slice(completeChunk.length),
+      cloneTranscriptUsageAccumulator(checkpointAccumulator),
+    );
+    const snapshot = buildUsageSnapshotFromAccumulator(nextAccumulator);
+    writeUsageScanCheckpoint(
+      filePath,
+      startOffset + Buffer.byteLength(completeChunk, "utf-8"),
+      checkpointAccumulator,
+    );
     setCachedSessionUsageSnapshot(filePath, stat, snapshot);
     return cloneSessionUsageSnapshot(snapshot);
+  });
+}
+
+type UsageScanCheckpoint = {
+  offset: number;
+  accumulator: TranscriptUsageAccumulator;
+};
+
+const USAGE_SCAN_CHECKPOINTS = new Map<string, UsageScanCheckpoint>();
+const USAGE_SCAN_CHECKPOINT_LIMIT = 500;
+
+function readUsageScanCheckpoint(filePath: string, size: number): UsageScanCheckpoint | null {
+  const checkpoint = USAGE_SCAN_CHECKPOINTS.get(filePath);
+  if (!checkpoint) {
+    return null;
+  }
+  // A shrunk or rewritten transcript invalidates the running totals.
+  if (checkpoint.offset > size) {
+    USAGE_SCAN_CHECKPOINTS.delete(filePath);
+    return null;
+  }
+  return checkpoint;
+}
+
+function writeUsageScanCheckpoint(
+  filePath: string,
+  offset: number,
+  accumulator: TranscriptUsageAccumulator,
+): void {
+  if (
+    !USAGE_SCAN_CHECKPOINTS.has(filePath) &&
+    USAGE_SCAN_CHECKPOINTS.size >= USAGE_SCAN_CHECKPOINT_LIMIT
+  ) {
+    const oldest = USAGE_SCAN_CHECKPOINTS.keys().next().value;
+    if (oldest) {
+      USAGE_SCAN_CHECKPOINTS.delete(oldest);
+    }
+  }
+  USAGE_SCAN_CHECKPOINTS.set(filePath, {
+    offset,
+    accumulator: cloneTranscriptUsageAccumulator(accumulator),
   });
 }
 
