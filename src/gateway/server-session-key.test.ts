@@ -69,7 +69,11 @@ describe("resolveSessionKeyForRun", () => {
     expect(resolveSessionKeyForRun("missing-run")).toBeUndefined();
     expect(hoisted.loadCombinedSessionStoreForGatewayMock).toHaveBeenCalledTimes(1);
 
-    vi.advanceTimersByTime(1_001);
+    vi.advanceTimersByTime(2_000);
+    expect(resolveSessionKeyForRun("missing-run")).toBeUndefined();
+    expect(hoisted.loadCombinedSessionStoreForGatewayMock).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(5_001);
 
     expect(resolveSessionKeyForRun("missing-run")).toBeUndefined();
     expect(hoisted.loadCombinedSessionStoreForGatewayMock).toHaveBeenCalledTimes(2);

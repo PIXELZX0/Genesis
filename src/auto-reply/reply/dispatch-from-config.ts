@@ -211,18 +211,31 @@ const resolveSessionStoreLookup = (
   }
 };
 
+// The store is re-read so a verbose directive issued mid-run takes effect, but
+// this runs per tool-start and per plan update; without a short cache a single
+// run reloads (and deep-clones) the whole session store dozens of times.
+const VERBOSE_LEVEL_REREAD_TTL_MS = 1_000;
+
 const createShouldEmitVerboseProgress = (params: {
   sessionKey?: string;
   storePath?: string;
   fallbackLevel: string;
 }) => {
+  let cachedLevel: string | null = null;
+  let cachedAt = 0;
   return () => {
     if (params.sessionKey && params.storePath) {
+      const now = Date.now();
+      if (cachedLevel !== null && now - cachedAt < VERBOSE_LEVEL_REREAD_TTL_MS) {
+        return cachedLevel !== "off";
+      }
       try {
         const store = loadSessionStore(params.storePath);
         const entry = resolveSessionStoreEntry({ store, sessionKey: params.sessionKey }).existing;
         const currentLevel = normalizeVerboseLevel(entry?.verboseLevel ?? "");
         if (currentLevel) {
+          cachedLevel = currentLevel;
+          cachedAt = now;
           return currentLevel !== "off";
         }
       } catch {

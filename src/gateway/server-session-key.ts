@@ -6,7 +6,10 @@ import { resolvePreferredSessionKeyForSessionIdMatches } from "../sessions/sessi
 import { loadCombinedSessionStoreForGateway } from "./session-utils.js";
 
 const RUN_LOOKUP_CACHE_LIMIT = 256;
-const RUN_LOOKUP_MISS_TTL_MS = 1_000;
+// Unknown run ids repeat across a run's lifecycle events; re-scanning every
+// session of every agent once a second for each of them is wasted work. Kept
+// short enough that a run whose store entry lands moments later still resolves.
+const RUN_LOOKUP_MISS_TTL_MS = 5_000;
 
 type RunLookupCacheEntry = {
   sessionKey: string | null;

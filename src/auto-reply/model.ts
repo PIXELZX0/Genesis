@@ -1,6 +1,24 @@
 import { splitTrailingAuthProfile } from "../agents/model-ref-profile.js";
 import { escapeRegExp } from "../utils.js";
 
+// Alias lists come from config and rarely change; compiling the pattern per
+// inbound message is pure overhead.
+const aliasDirectivePatterns = new Map<string, RegExp>();
+
+function resolveAliasDirectivePattern(aliases: string[]): RegExp {
+  const key = aliases.join("\u0000");
+  const cached = aliasDirectivePatterns.get(key);
+  if (cached) {
+    return cached;
+  }
+  const pattern = new RegExp(
+    `(?:^|\\s)\\/(${aliases.map(escapeRegExp).join("|")})(?=$|\\s|:)(?:\\s*:\\s*)?`,
+    "i",
+  );
+  aliasDirectivePatterns.set(key, pattern);
+  return pattern;
+}
+
 export function extractModelDirective(
   body?: string,
   options?: { aliases?: string[] },
@@ -21,14 +39,7 @@ export function extractModelDirective(
 
   const aliases = (options?.aliases ?? []).map((alias) => alias.trim()).filter(Boolean);
   const aliasMatch =
-    modelMatch || aliases.length === 0
-      ? null
-      : body.match(
-          new RegExp(
-            `(?:^|\\s)\\/(${aliases.map(escapeRegExp).join("|")})(?=$|\\s|:)(?:\\s*:\\s*)?`,
-            "i",
-          ),
-        );
+    modelMatch || aliases.length === 0 ? null : body.match(resolveAliasDirectivePattern(aliases));
 
   const match = modelMatch ?? aliasMatch;
   const raw = modelMatch ? modelMatch?.[1]?.trim() : aliasMatch?.[1]?.trim();

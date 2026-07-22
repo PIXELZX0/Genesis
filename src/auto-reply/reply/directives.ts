@@ -20,12 +20,37 @@ type ExtractedLevel<T> = {
   hasDirective: boolean;
 };
 
+// Directive name lists are fixed per call site, so the compiled patterns are
+// memoized instead of rebuilt for every inbound message.
+const levelDirectivePatterns = new Map<string, RegExp>();
+const simpleDirectivePatterns = new Map<string, RegExp>();
+
+const resolveDirectivePattern = (
+  cache: Map<string, RegExp>,
+  names: string[],
+  build: (namePattern: string) => RegExp,
+): RegExp => {
+  const key = names.join("\u0000");
+  const cached = cache.get(key);
+  if (cached) {
+    return cached;
+  }
+  const pattern = build(names.map(escapeRegExp).join("|"));
+  cache.set(key, pattern);
+  return pattern;
+};
+
 const matchLevelDirective = (
   body: string,
   names: string[],
 ): { start: number; end: number; rawLevel?: string } | null => {
-  const namePattern = names.map(escapeRegExp).join("|");
-  const match = body.match(new RegExp(`(?:^|\\s)\\/(?:${namePattern})(?=$|\\s|:)`, "i"));
+  const match = body.match(
+    resolveDirectivePattern(
+      levelDirectivePatterns,
+      names,
+      (namePattern) => new RegExp(`(?:^|\\s)\\/(?:${namePattern})(?=$|\\s|:)`, "i"),
+    ),
+  );
   if (!match || match.index === undefined) {
     return null;
   }
@@ -79,9 +104,12 @@ const extractSimpleDirective = (
   body: string,
   names: string[],
 ): { cleaned: string; hasDirective: boolean } => {
-  const namePattern = names.map(escapeRegExp).join("|");
   const match = body.match(
-    new RegExp(`(?:^|\\s)\\/(?:${namePattern})(?=$|\\s|:)(?:\\s*:\\s*)?`, "i"),
+    resolveDirectivePattern(
+      simpleDirectivePatterns,
+      names,
+      (namePattern) => new RegExp(`(?:^|\\s)\\/(?:${namePattern})(?=$|\\s|:)(?:\\s*:\\s*)?`, "i"),
+    ),
   );
   const cleaned = match ? body.replace(match[0], " ").replace(/\s+/g, " ").trim() : body.trim();
   return {
