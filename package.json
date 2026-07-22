@@ -1691,10 +1691,6 @@
   "pnpm": {
     "overrides": {
       "@anthropic-ai/sdk": "0.90.0",
-      "@earendil-works/pi-agent-core": "0.80.2",
-      "@earendil-works/pi-ai": "0.80.2",
-      "@earendil-works/pi-coding-agent": "0.80.2",
-      "@earendil-works/pi-tui": "0.80.2",
       "hono": "4.12.14",
       "@hono/node-server": "1.19.14",
       "axios": "1.15.0",

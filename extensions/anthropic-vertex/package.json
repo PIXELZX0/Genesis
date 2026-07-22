@@ -6,8 +6,8 @@
   "type": "module",
   "dependencies": {
     "@anthropic-ai/vertex-sdk": "^0.16.0",
-    "@earendil-works/pi-agent-core": "latest",
-    "@earendil-works/pi-ai": "latest"
+    "@earendil-works/pi-agent-core": "0.80.2",
+    "@earendil-works/pi-ai": "0.80.2"
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"
