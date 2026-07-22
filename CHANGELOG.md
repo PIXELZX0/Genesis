@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Fixes
+
+- Bonjour: a cancelled mDNS announcement during an advertiser restart no longer surfaces as an unhandled rejection that can take down the gateway. The plugin now registers its rejection filter with the runtime by default (it previously only did so when a handler was injected, which the gateway never did), so headless hosts where the advertiser gets stuck announcing stop crash-looping behind a 502.
+
 ## 2026.7.22
 
 ### Changes

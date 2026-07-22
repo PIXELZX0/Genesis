@@ -1,5 +1,8 @@
 import type { PluginLogger } from "genesis/plugin-sdk/plugin-entry";
-import { isTruthyEnvValue } from "genesis/plugin-sdk/runtime-env";
+import {
+  isTruthyEnvValue,
+  registerUnhandledRejectionHandler as registerGlobalUnhandledRejectionHandler,
+} from "genesis/plugin-sdk/runtime-env";
 import { classifyCiaoUnhandledRejection } from "./ciao.js";
 import { formatBonjourError } from "./errors.js";
 
@@ -173,6 +176,8 @@ export async function startGatewayBonjourAdvertiser(
     debug: deps.logger?.debug ?? defaultLogger.debug,
   };
   const { getResponder, Protocol } = await loadCiaoModule();
+  const registerRejectionHandler =
+    deps.registerUnhandledRejectionHandler ?? registerGlobalUnhandledRejectionHandler;
   const restoreConsoleLog = installCiaoConsoleNoiseFilter();
 
   const handleCiaoUnhandledRejection = (reason: unknown): boolean => {
@@ -252,9 +257,7 @@ export async function startGatewayBonjourAdvertiser(
       });
 
       const cleanupUnhandledRejection =
-        services.length > 0 && deps.registerUnhandledRejectionHandler
-          ? deps.registerUnhandledRejectionHandler(handleCiaoUnhandledRejection)
-          : undefined;
+        services.length > 0 ? registerRejectionHandler(handleCiaoUnhandledRejection) : undefined;
 
       return { responder, services, cleanupUnhandledRejection };
     }
