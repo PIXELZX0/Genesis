@@ -2,11 +2,10 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.7.21-2
+## 2026.7.22
 
 ### Changes
 
-- Config: the first-ever write of `genesis.json` now routes each non-empty top-level section (e.g. `gateway`, `channels`, `agents`) into its own `<section>.json` file via the existing `$include` mechanism, instead of one flat file. Later writes stay split automatically.
 - Gateway security: failed-auth throttling is now always on (10 attempts per minute, 5-minute lockout by default); `gateway.auth.rateLimit` only tunes the thresholds instead of deciding whether throttling exists. Requests that reach the gateway over loopback but carry forwarded headers from an untrusted proxy (Tailscale serve/funnel, a same-host reverse proxy) no longer inherit the local-CLI loopback exemption.
 - Gateway security: bind resolution now fails closed. `bind: loopback`, `bind: tailnet`, and `bind: custom` report a startup error when the requested address is missing, invalid, or unavailable, instead of silently listening on every interface.
 - Gateway security: the Control UI assistant-media route no longer accepts the shared gateway token in the query string. Media element URLs carry a short-lived, media-only capability minted at `GET /__genesis__/assistant-media-token`, so a URL captured in proxy logs or browser history cannot be used to control the gateway.
@@ -22,6 +21,13 @@ Docs: https://genesis.pixelzx.com/docs
 - Plugins: a failed marketplace download now cancels the response stream instead of leaving the connection streaming in the background.
 - Config: `applyMergePatch` no longer shares array references with the patch it was given, so later mutation of either side cannot silently alter the other.
 - Gateway: a config reload whose snapshot lacks a hash no longer leaves a stale one-shot write marker behind, which could make a later genuine on-disk change be ignored.
+- Config: split section files from a first-ever config write now land under `config/<section>.json`, matching the layout `genesis doctor` produces, and follow-up writes to a split config are no longer rejected as if gateway mode had been removed.
+
+## 2026.7.21-2
+
+### Changes
+
+- Config: the first-ever write of `genesis.json` now routes each non-empty top-level section (e.g. `gateway`, `channels`, `agents`) into its own `<section>.json` file via the existing `$include` mechanism, instead of one flat file. Later writes stay split automatically.
 
 ## 2026.7.21-1
 
