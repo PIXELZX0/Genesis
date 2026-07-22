@@ -16,7 +16,7 @@
  *   {@link createAuthRateLimiter} and pass it where needed.
  */
 
-import { isLoopbackAddress, resolveClientIp } from "./net.js";
+import { FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX, isLoopbackAddress, resolveClientIp } from "./net.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,7 +90,11 @@ const PRUNE_INTERVAL_MS = 60_000; // prune stale entries every minute
  * share one representation (including IPv4-mapped IPv6 forms).
  */
 export function normalizeRateLimitClientIp(ip: string | undefined): string {
-  if (typeof ip === "string" && ip.startsWith(BROWSER_ORIGIN_RATE_LIMIT_KEY_PREFIX)) {
+  if (
+    typeof ip === "string" &&
+    (ip.startsWith(BROWSER_ORIGIN_RATE_LIMIT_KEY_PREFIX) ||
+      ip.startsWith(FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX))
+  ) {
     return ip;
   }
   return resolveClientIp({ remoteAddr: ip }) ?? "unknown";

@@ -14,7 +14,7 @@ import {
 import { type ResolvedGatewayAuth } from "./auth-resolve.js";
 import {
   isLoopbackAddress,
-  resolveRequestClientIp,
+  resolveRateLimitClientKey,
   isTrustedProxyAddress,
   resolveClientIp,
 } from "./net.js";
@@ -366,7 +366,7 @@ export async function authorizeGatewayConnect(
   const limiter = params.rateLimiter;
   const ip =
     params.clientIp ??
-    resolveRequestClientIp(req, trustedProxies, params.allowRealIpFallback === true) ??
+    resolveRateLimitClientKey(req, trustedProxies, params.allowRealIpFallback === true) ??
     req?.socket?.remoteAddress;
   const rateLimitScope = params.rateLimitScope ?? AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET;
   const localDirect = isLocalDirectRequest(
@@ -403,7 +403,7 @@ async function authorizeGatewayConnectCore(
   const limiter = params.rateLimiter;
   const ip =
     params.clientIp ??
-    resolveRequestClientIp(req, trustedProxies, params.allowRealIpFallback === true) ??
+    resolveRateLimitClientKey(req, trustedProxies, params.allowRealIpFallback === true) ??
     req?.socket?.remoteAddress;
   const rateLimitScope = params.rateLimitScope ?? AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET;
   const localDirect = isLocalDirectRequest(

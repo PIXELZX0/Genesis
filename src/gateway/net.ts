@@ -203,6 +203,35 @@ export function resolveRequestClientIp(
   });
 }
 
+/**
+ * Rate-limit bucket prefix for loopback peers that arrive through a loopback
+ * proxy (Tailscale serve/funnel, a same-host reverse proxy). Not an IP literal,
+ * so the loopback exemption never applies to it.
+ */
+export const FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX = "forwarded-loopback:";
+
+/**
+ * Resolve the identity used for auth throttling. This is the client IP, except
+ * for loopback peers presenting forwarded headers from an untrusted proxy: those
+ * are every remote client of a loopback proxy, so they share one non-exempt
+ * bucket instead of silently inheriting the local-CLI exemption. The forwarded
+ * header itself is not used as the key — an attacker controls it.
+ */
+export function resolveRateLimitClientKey(
+  req?: IncomingMessage,
+  trustedProxies?: string[],
+  allowRealIpFallback = false,
+): string | undefined {
+  const resolved = resolveRequestClientIp(req, trustedProxies, allowRealIpFallback);
+  if (!resolved || !isLoopbackAddress(resolved)) {
+    return resolved;
+  }
+  const hasForwardedHeaders = Boolean(
+    headerValue(req?.headers?.["x-forwarded-for"]) ?? headerValue(req?.headers?.["x-real-ip"]),
+  );
+  return hasForwardedHeaders ? `${FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX}${resolved}` : resolved;
+}
+
 export function isLocalGatewayAddress(ip: string | undefined): boolean {
   if (isLoopbackAddress(ip)) {
     return true;
@@ -301,12 +330,18 @@ export async function resolveGatewayBindHost(
 ): Promise<string> {
   const mode = bind ?? "loopback";
 
+  // Widening a failed or misconfigured bind to 0.0.0.0 would turn a config typo
+  // or a downed interface into a network-exposed gateway, so the narrow modes
+  // fail closed. Only `lan` and container `auto` resolve to all interfaces,
+  // because that is what those modes mean.
   if (mode === "loopback") {
     // 127.0.0.1 rarely fails, but handle gracefully
     if (await canBindToHost("127.0.0.1")) {
       return "127.0.0.1";
     }
-    return "0.0.0.0"; // extreme fallback
+    throw new Error(
+      "gateway bind=loopback could not bind 127.0.0.1; refusing to fall back to a network bind",
+    );
   }
 
   if (mode === "tailnet") {
@@ -317,7 +352,9 @@ export async function resolveGatewayBindHost(
     if (await canBindToHost("127.0.0.1")) {
       return "127.0.0.1";
     }
-    return "0.0.0.0";
+    throw new Error(
+      "gateway bind=tailnet could not bind the tailnet address or 127.0.0.1; refusing to fall back to a network bind",
+    );
   }
 
   if (mode === "lan") {
@@ -327,14 +364,17 @@ export async function resolveGatewayBindHost(
   if (mode === "custom") {
     const host = customHost?.trim();
     if (!host) {
-      return "0.0.0.0";
-    } // invalid config → fall back to all
-
-    if (isValidIPv4(host) && (await canBindToHost(host))) {
+      throw new Error("gateway.bind=custom requires gateway.customBindHost");
+    }
+    if (!isValidIPv4(host)) {
+      throw new Error(`gateway.bind=custom requires a valid IPv4 customBindHost (got ${host})`);
+    }
+    if (await canBindToHost(host)) {
       return host;
     }
-    // Custom IP failed → fall back to LAN
-    return "0.0.0.0";
+    throw new Error(
+      `gateway bind=custom could not bind ${host}; refusing to fall back to a network bind`,
+    );
   }
 
   if (mode === "auto") {
@@ -349,7 +389,7 @@ export async function resolveGatewayBindHost(
     return "0.0.0.0";
   }
 
-  return "0.0.0.0";
+  throw new Error(`unknown gateway bind mode ${String(mode)}`);
 }
 
 /**
@@ -543,18 +583,12 @@ export function isSecureWebSocketUrl(
   if (isLoopbackHost(parsed.hostname)) {
     return true;
   }
-  // Optional break-glass for trusted private-network overlays.
+  // Optional break-glass for trusted private-network overlays. Restricted to
+  // address literals: a DNS name cannot be checked without resolution, and
+  // accepting any name here sent credentials in cleartext to whatever an
+  // attacker-influenced hostname pointed at.
   if (opts?.allowPrivateWs) {
-    if (isPrivateOrLoopbackHost(parsed.hostname)) {
-      return true;
-    }
-    // Hostnames may resolve to private networks (for example in VPN/Tailnet DNS),
-    // but resolution is not available in this synchronous validator.
-    const hostForIpCheck =
-      parsed.hostname.startsWith("[") && parsed.hostname.endsWith("]")
-        ? parsed.hostname.slice(1, -1)
-        : parsed.hostname;
-    return net.isIP(hostForIpCheck) === 0;
+    return isPrivateOrLoopbackHost(parsed.hostname);
   }
   return false;
 }

@@ -59,7 +59,7 @@ import {
   getBearerToken,
   resolveHttpBrowserOriginPolicy,
 } from "./http-utils.js";
-import { resolveRequestClientIp } from "./net.js";
+import { resolveRateLimitClientKey, resolveRequestClientIp } from "./net.js";
 import { DEDUPE_MAX, DEDUPE_TTL_MS } from "./server-constants.js";
 import { authorizeCanvasRequest, isCanvasPath } from "./server/http-auth.js";
 import { resolvePluginRouteRuntimeOperatorScopes } from "./server/plugin-route-runtime-scopes.js";
@@ -522,7 +522,7 @@ export function createHooksRequestHandler(
   const resolveHookClientKey = (req: IncomingMessage): string => {
     const clientIpConfig = getClientIpConfig?.();
     const clientIp =
-      resolveRequestClientIp(
+      resolveRateLimitClientKey(
         req,
         clientIpConfig?.trustedProxies,
         clientIpConfig?.allowRealIpFallback === true,
@@ -1105,6 +1105,17 @@ export function createGatewayHttpServer(opts: {
       });
 
       if (controlUiEnabled) {
+        requestStages.push({
+          name: "control-ui-assistant-media-token",
+          run: async () =>
+            (await getControlUiModule()).handleControlUiAssistantMediaTokenRequest(req, res, {
+              basePath: controlUiBasePath,
+              auth: resolvedAuth,
+              trustedProxies,
+              allowRealIpFallback,
+              rateLimiter,
+            }),
+        });
         requestStages.push({
           name: "control-ui-assistant-media",
           run: async () =>

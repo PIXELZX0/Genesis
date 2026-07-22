@@ -6,6 +6,7 @@ import {
   createAuthRateLimiter,
   type AuthRateLimiter,
 } from "./auth-rate-limit.js";
+import { FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX } from "./net.js";
 
 describe("auth rate limiter", () => {
   let limiter: AuthRateLimiter;
@@ -29,6 +30,22 @@ describe("auth rate limiter", () => {
 
   afterEach(() => {
     limiter?.dispose();
+  });
+
+  it("throttles loopback peers that arrive through a loopback proxy", () => {
+    // Default exemption keeps local CLI sessions unthrottled...
+    const local = createLimiter();
+    local.recordFailure("127.0.0.1", AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+    local.recordFailure("127.0.0.1", AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+    expect(local.check("127.0.0.1", AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET).allowed).toBe(true);
+    local.dispose();
+
+    // ...but not requests forwarded by a loopback proxy (Tailscale serve/funnel).
+    const forwardedKey = `${FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX}127.0.0.1`;
+    limiter = createAuthRateLimiter(baseConfig);
+    limiter.recordFailure(forwardedKey, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+    limiter.recordFailure(forwardedKey, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+    expect(limiter.check(forwardedKey, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET).allowed).toBe(false);
   });
 
   // ---------- basic sliding window ----------

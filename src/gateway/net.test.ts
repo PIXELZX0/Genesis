@@ -14,6 +14,8 @@ import {
   pickPrimaryLanIPv4,
   resolveClientIp,
   resolveGatewayBindHost,
+  resolveRateLimitClientKey,
+  FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX,
   resolveGatewayListenHosts,
   resolveHostName,
 } from "./net.js";
@@ -286,6 +288,45 @@ describe("resolveClientIp", () => {
       allowRealIpFallback: testCase.allowRealIpFallback,
     });
     expect(ip).toBe(testCase.expected);
+  });
+});
+
+describe("resolveRateLimitClientKey", () => {
+  function fakeRequest(params: {
+    remoteAddress: string;
+    headers?: Record<string, string>;
+  }): Parameters<typeof resolveRateLimitClientKey>[0] {
+    return {
+      headers: params.headers ?? {},
+      socket: { remoteAddress: params.remoteAddress },
+    } as unknown as Parameters<typeof resolveRateLimitClientKey>[0];
+  }
+
+  it("keys direct loopback callers on the loopback address (stays exempt)", () => {
+    expect(resolveRateLimitClientKey(fakeRequest({ remoteAddress: "127.0.0.1" }))).toBe(
+      "127.0.0.1",
+    );
+  });
+
+  it("keys loopback callers behind an untrusted loopback proxy on a non-exempt bucket", () => {
+    const key = resolveRateLimitClientKey(
+      fakeRequest({
+        remoteAddress: "127.0.0.1",
+        headers: { "x-forwarded-for": "203.0.113.10" },
+      }),
+    );
+    expect(key).toBe(`${FORWARDED_LOOPBACK_RATE_LIMIT_PREFIX}127.0.0.1`);
+  });
+
+  it("keeps the forwarded client IP when the proxy is trusted", () => {
+    const key = resolveRateLimitClientKey(
+      fakeRequest({
+        remoteAddress: "127.0.0.1",
+        headers: { "x-forwarded-for": "203.0.113.10" },
+      }),
+      ["127.0.0.1"],
+    );
+    expect(key).toBe("203.0.113.10");
   });
 });
 
@@ -593,6 +634,20 @@ describe("resolveGatewayBindHost", () => {
     expect(await resolveGatewayBindHost("auto")).toBe("0.0.0.0");
   });
 
+  it("fails closed for custom mode without a customBindHost", async () => {
+    await expect(resolveGatewayBindHost("custom")).rejects.toThrow(/customBindHost/);
+  });
+
+  it("fails closed for custom mode with an invalid host instead of binding all interfaces", async () => {
+    await expect(resolveGatewayBindHost("custom", "not-an-ip")).rejects.toThrow(/valid IPv4/);
+  });
+
+  it("fails closed for custom mode when the requested host cannot be bound", async () => {
+    await expect(resolveGatewayBindHost("custom", "203.0.113.10")).rejects.toThrow(
+      /could not bind 203\.0\.113\.10/,
+    );
+  });
+
   it("defaults to loopback when bind is undefined (non-container)", async () => {
     const fs = require("node:fs");
     vi.spyOn(fs, "accessSync").mockImplementation(() => {
@@ -694,11 +749,23 @@ describe("isSecureWebSocketUrl", () => {
       "ws://169.254.10.20:18789",
       "ws://[fc00::1]:18789",
       "ws://[fe80::1]:18789",
-      "ws://gateway.private.example:18789",
     ];
 
     for (const input of allowedWhenOptedIn) {
       expect(isSecureWebSocketUrl(input, { allowPrivateWs: true }), input).toBe(true);
+    }
+  });
+
+  it("rejects ws:// DNS hostnames even when opt-in is enabled", () => {
+    // A hostname cannot be checked without resolution, and it may point anywhere.
+    const hostnameWsUrls = [
+      "ws://gateway.private.example:18789",
+      "ws://host.tailnet.ts.net:18789",
+      "ws://attacker.example.com:18789",
+    ];
+
+    for (const input of hostnameWsUrls) {
+      expect(isSecureWebSocketUrl(input, { allowPrivateWs: true }), input).toBe(false);
     }
   });
 
