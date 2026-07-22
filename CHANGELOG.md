@@ -7,6 +7,21 @@ Docs: https://genesis.pixelzx.com/docs
 ### Changes
 
 - Config: the first-ever write of `genesis.json` now routes each non-empty top-level section (e.g. `gateway`, `channels`, `agents`) into its own `<section>.json` file via the existing `$include` mechanism, instead of one flat file. Later writes stay split automatically.
+- Gateway security: failed-auth throttling is now always on (10 attempts per minute, 5-minute lockout by default); `gateway.auth.rateLimit` only tunes the thresholds instead of deciding whether throttling exists. Requests that reach the gateway over loopback but carry forwarded headers from an untrusted proxy (Tailscale serve/funnel, a same-host reverse proxy) no longer inherit the local-CLI loopback exemption.
+- Gateway security: bind resolution now fails closed. `bind: loopback`, `bind: tailnet`, and `bind: custom` report a startup error when the requested address is missing, invalid, or unavailable, instead of silently listening on every interface.
+- Gateway security: the Control UI assistant-media route no longer accepts the shared gateway token in the query string. Media element URLs carry a short-lived, media-only capability minted at `GET /__genesis__/assistant-media-token`, so a URL captured in proxy logs or browser history cannot be used to control the gateway.
+- Gateway security: with the `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1` break-glass, plaintext `ws://` now requires a private-network or loopback IP literal; DNS hostnames (which cannot be verified to stay inside the private network) are rejected.
+- Performance: `chat.history` reads only the tail of a session transcript instead of reading and parsing the whole file, session usage totals are updated from appended bytes instead of a full re-read, and `sessions.list` reuses a merged session-store snapshot until a store file changes.
+
+### Fixes
+
+- Config: concurrent config writes are no longer silently reverted. `mutateConfigFile` now hands its read snapshot to the writer, so a change made by another writer between read and write is detected instead of being overwritten with stale values.
+- Gateway: a channel that fails to restart now consumes its health-monitor cooldown and per-hour restart budget, so a permanently failing channel (bad credentials, provider outage) no longer restarts on every check cycle; a failed restart also clears the "Restarting" status mark.
+- Gateway client: a pending reconnect timer is now tracked and cancelled, and `start()` refuses to open a second socket while one is live, preventing duplicate event delivery and leaked connections.
+- Gateway client: an exception thrown by a consumer event handler is reported as a handler error instead of being logged as a parse error and silently dropping the event.
+- Plugins: a failed marketplace download now cancels the response stream instead of leaving the connection streaming in the background.
+- Config: `applyMergePatch` no longer shares array references with the patch it was given, so later mutation of either side cannot silently alter the other.
+- Gateway: a config reload whose snapshot lacks a hash no longer leaves a stale one-shot write marker behind, which could make a later genuine on-disk change be ignored.
 
 ## 2026.7.21-1
 
