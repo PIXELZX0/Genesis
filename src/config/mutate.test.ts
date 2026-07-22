@@ -90,8 +90,34 @@ describe("config mutate helpers", () => {
           auth: { mode: "token" },
         },
       },
-      { expectedConfigPath: snapshot.path },
+      { baseSnapshot: snapshot, expectedConfigPath: snapshot.path },
     );
+  });
+
+  it("passes the read snapshot to the writer so concurrent writes are not silently reverted", async () => {
+    const snapshot = createSnapshot({
+      hash: "hash-mutate",
+      sourceConfig: { gateway: { port: 18789 } },
+    });
+    ioMocks.readConfigFileSnapshotForWrite.mockResolvedValue({
+      snapshot,
+      writeOptions: { expectedConfigPath: snapshot.path },
+    });
+
+    await mutateConfigFile({
+      baseHash: snapshot.hash,
+      base: "source",
+      mutate(draft) {
+        draft.gateway = { ...draft.gateway, port: 19001 };
+      },
+    });
+
+    // Without baseSnapshot the writer re-reads a fresh snapshot and diffs the
+    // stale draft against it, reverting whatever another writer changed.
+    const writeOptions = ioMocks.writeConfigFile.mock.calls[0]?.[1] as {
+      baseSnapshot?: ConfigFileSnapshot;
+    };
+    expect(writeOptions.baseSnapshot).toBe(snapshot);
   });
 
   it("rejects stale replace attempts when the base hash changed", async () => {

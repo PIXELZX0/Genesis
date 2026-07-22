@@ -75,6 +75,7 @@ export async function mutateConfigFile<T = void>(params: {
   const draft = structuredClone(baseConfig) as GenesisConfig;
   const result = (await params.mutate(draft, { snapshot, previousHash })) as T | undefined;
   await writeConfigFile(draft, {
+    baseSnapshot: snapshot,
     ...writeOptions,
     ...params.writeOptions,
   });
