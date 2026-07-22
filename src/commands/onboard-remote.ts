@@ -39,7 +39,7 @@ function validateGatewayWebSocketUrl(value: string): string | undefined {
   ) {
     return (
       "Use wss:// for remote hosts, or ws://127.0.0.1/localhost via SSH tunnel. " +
-      "Break-glass: GENESIS_ALLOW_INSECURE_PRIVATE_WS=1 for trusted private networks."
+      "Break-glass: GENESIS_ALLOW_INSECURE_PRIVATE_WS=1 with a private-network IP literal (not a hostname) for trusted private networks."
     );
   }
   return undefined;

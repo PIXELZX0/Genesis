@@ -31,6 +31,11 @@ import { resolveUserPath } from "../utils.js";
 import { resolveRuntimeServiceVersion } from "../version.js";
 import { DEFAULT_ASSISTANT_IDENTITY, resolveAssistantIdentity } from "./assistant-identity.js";
 import {
+  ASSISTANT_MEDIA_CAPABILITY_QUERY_PARAM,
+  mintAssistantMediaCapability,
+  verifyAssistantMediaCapability,
+} from "./assistant-media-capability.js";
+import {
   AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN,
   AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET,
   type AuthRateLimiter,
@@ -66,11 +71,12 @@ import {
   resolveTrustedHttpOperatorScopes,
 } from "./http-utils.js";
 import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
-import { resolveRequestClientIp } from "./net.js";
+import { resolveRateLimitClientKey } from "./net.js";
 import type { ReadinessChecker } from "./server/readiness.js";
 
 const ROOT_PREFIX = "/";
 const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__genesis__/assistant-media";
+const CONTROL_UI_ASSISTANT_MEDIA_TOKEN_PREFIX = "/__genesis__/assistant-media-token";
 const CONTROL_UI_CANVAS_UPLOAD_PREFIX = "/__genesis__/canvas-upload";
 const CONTROL_UI_ASSETS_MISSING_MESSAGE =
   "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.";
@@ -249,6 +255,12 @@ function resolveAssistantMediaRoutePath(basePath?: string): string {
   const normalizedBasePath =
     basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
   return `${normalizedBasePath}${CONTROL_UI_ASSISTANT_MEDIA_PREFIX}`;
+}
+
+function resolveAssistantMediaTokenRoutePath(basePath?: string): string {
+  const normalizedBasePath =
+    basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
+  return `${normalizedBasePath}${CONTROL_UI_ASSISTANT_MEDIA_TOKEN_PREFIX}`;
 }
 
 function resolveCanvasUploadRoutePath(basePath?: string): string {
@@ -430,36 +442,10 @@ async function writeRequestBodyToFile(
   });
 }
 
-function resolveAssistantMediaAuthToken(req: IncomingMessage): string | undefined {
-  const bearer = getBearerToken(req);
-  if (bearer) {
-    return bearer;
-  }
-  const urlRaw = req.url;
-  if (!urlRaw) {
-    return undefined;
-  }
-  try {
-    const url = new URL(urlRaw, "http://localhost");
-    const token = url.searchParams.get("token")?.trim();
-    return token || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function resolveControlUiReadAuthToken(
-  req: IncomingMessage,
-  opts?: { allowQueryToken?: boolean },
-): string | undefined {
-  const bearer = getBearerToken(req);
-  if (bearer) {
-    return bearer;
-  }
-  if (!opts?.allowQueryToken) {
-    return undefined;
-  }
-  return resolveAssistantMediaAuthToken(req);
+function resolveControlUiReadAuthToken(req: IncomingMessage): string | undefined {
+  // Header only: a shared gateway token in a query string ends up in proxy logs,
+  // browser history, and Referer headers.
+  return getBearerToken(req);
 }
 
 async function authorizeControlUiReadRequest(
@@ -470,18 +456,15 @@ async function authorizeControlUiReadRequest(
     trustedProxies?: string[];
     allowRealIpFallback?: boolean;
     rateLimiter?: AuthRateLimiter;
-    allowQueryToken?: boolean;
   },
 ): Promise<boolean> {
   if (!opts?.auth) {
     return true;
   }
 
-  const token = resolveControlUiReadAuthToken(req, {
-    allowQueryToken: opts.allowQueryToken,
-  });
+  const token = resolveControlUiReadAuthToken(req);
   const clientIp =
-    resolveRequestClientIp(req, opts.trustedProxies, opts.allowRealIpFallback === true) ??
+    resolveRateLimitClientKey(req, opts.trustedProxies, opts.allowRealIpFallback === true) ??
     req.socket?.remoteAddress;
   const authResult = await authorizeHttpGatewayConnect({
     auth: opts.auth,
@@ -565,7 +548,7 @@ async function authorizeControlUiWriteRequest(
 
   const token = resolveControlUiReadAuthToken(req);
   const clientIp =
-    resolveRequestClientIp(req, opts.trustedProxies, opts.allowRealIpFallback === true) ??
+    resolveRateLimitClientKey(req, opts.trustedProxies, opts.allowRealIpFallback === true) ??
     req.socket?.remoteAddress;
   const authResult = await authorizeHttpGatewayConnect({
     auth: opts.auth,
@@ -727,6 +710,45 @@ async function resolveAssistantMediaAvailability(
   }
 }
 
+/**
+ * Exchanges header-authenticated gateway auth for a short-lived media capability
+ * the Control UI can put in media element URLs.
+ */
+export async function handleControlUiAssistantMediaTokenRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  opts?: {
+    basePath?: string;
+    auth?: ResolvedGatewayAuth;
+    trustedProxies?: string[];
+    allowRealIpFallback?: boolean;
+    rateLimiter?: AuthRateLimiter;
+  },
+): Promise<boolean> {
+  const urlRaw = req.url;
+  if (!urlRaw || !isReadHttpMethod(req.method)) {
+    return false;
+  }
+  const url = new URL(urlRaw, "http://localhost");
+  if (url.pathname !== resolveAssistantMediaTokenRoutePath(opts?.basePath)) {
+    return false;
+  }
+
+  applyControlUiSecurityHeaders(res);
+  if (
+    !(await authorizeControlUiReadRequest(req, res, {
+      auth: opts?.auth,
+      trustedProxies: opts?.trustedProxies,
+      allowRealIpFallback: opts?.allowRealIpFallback,
+      rateLimiter: opts?.rateLimiter,
+    }))
+  ) {
+    return true;
+  }
+  sendJson(res, 200, mintAssistantMediaCapability());
+  return true;
+}
+
 export async function handleControlUiAssistantMediaRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -750,13 +772,18 @@ export async function handleControlUiAssistantMediaRequest(
   }
 
   applyControlUiSecurityHeaders(res);
+  // Media elements can only carry a credential in the URL, so this route takes a
+  // short-lived media-scoped capability there. The shared operator token is
+  // header-only: a leaked media URL must not grant gateway control.
+  const mediaCapability = url.searchParams.get(ASSISTANT_MEDIA_CAPABILITY_QUERY_PARAM);
+  const capabilityAuthorized = verifyAssistantMediaCapability(mediaCapability ?? undefined);
   if (
+    !capabilityAuthorized &&
     !(await authorizeControlUiReadRequest(req, res, {
       auth: opts?.auth,
       trustedProxies: opts?.trustedProxies,
       allowRealIpFallback: opts?.allowRealIpFallback,
       rateLimiter: opts?.rateLimiter,
-      allowQueryToken: true,
     }))
   ) {
     return true;

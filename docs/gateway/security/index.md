@@ -861,7 +861,9 @@ Optional: pin remote TLS with `gateway.remote.tlsFingerprint` when using `wss://
 Plaintext `ws://` is loopback-only by default. For trusted private-network
 paths, set `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1` on the client process as
 break-glass. This is intentionally process environment only, not an
-`genesis.json` config key.
+`genesis.json` config key. Even with the break-glass set, the target must be a
+private-network or loopback IP literal: DNS hostnames are rejected for plaintext
+`ws://` because a name cannot be verified to stay inside the private network.
 Mobile pairing and Android manual or scanned gateway routes are stricter:
 cleartext is accepted for loopback, but private-LAN, link-local, `.local`, and
 dotless hostnames must use TLS unless you explicitly opt into the trusted

@@ -137,7 +137,9 @@ Short version: **keep the Gateway loopback-only** unless you’re sure you need 
 - **Loopback + SSH/Tailscale Serve** is the safest default (no public exposure).
 - Plaintext `ws://` is loopback-only by default. For trusted private networks,
   set `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1` on the client process as
-  break-glass. There is no `genesis.json` equivalent; this must be process
+  break-glass, and address the gateway by private-network IP literal (for
+  example `ws://100.64.0.1:18789`) — hostnames stay rejected for plaintext
+  `ws://`. There is no `genesis.json` equivalent; this must be process
   environment for the client making the WebSocket connection.
 - **Non-loopback binds** (`lan`/`tailnet`/`custom`, or `auto` when loopback is unavailable) must use gateway auth: token, password, or an identity-aware reverse proxy with `gateway.auth.mode: "trusted-proxy"`.
 - `gateway.remote.token` / `.password` are client credential sources. They do **not** configure server auth by themselves.

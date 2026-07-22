@@ -75,7 +75,8 @@ Options:
 - Node host auth resolution only honors `GENESIS_GATEWAY_*` env vars.
 
 For a node connecting to a non-loopback `ws://` Gateway on a trusted private
-network, set `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1`. Without it, node startup
+network, set `GENESIS_ALLOW_INSECURE_PRIVATE_WS=1` and point the node at a
+private-network IP literal rather than a hostname. Without it, node startup
 fails closed and asks you to use `wss://`, an SSH tunnel, or Tailscale.
 This is a process-environment opt-in, not an `genesis.json` config key.
 `genesis node install` persists it into the supervised node service when it is

@@ -705,9 +705,7 @@ describe("grouped chat rendering", () => {
     });
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
-    ).toBe(
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png&token=session-token",
-    );
+    ).toBe("/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png");
 
     container = renderUserMedia({
       id: "user-history-image-octet-stream",
@@ -719,9 +717,7 @@ describe("grouped chat rendering", () => {
     });
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
-    ).toBe(
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png&token=session-token",
-    );
+    ).toBe("/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fuser-upload.png");
 
     container = renderUserMedia({
       id: "user-history-images",
@@ -736,8 +732,8 @@ describe("grouped chat rendering", () => {
         image.getAttribute("src"),
       ),
     ).toEqual([
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ffirst.png&token=session-token",
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fsecond.jpg&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ffirst.png",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Fsecond.jpg",
     ]);
 
     container = renderUserMedia({
@@ -969,33 +965,96 @@ describe("grouped chat rendering", () => {
     await flushAssistantAttachmentAvailabilityChecks();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=session-token&meta=1",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
+    const metaCall = fetchMock.mock.calls.find(([url]) => url.includes("meta=1")) as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(new Headers(metaCall[1].headers).get("Authorization")).toBe("Bearer session-token");
 
     const image = container.querySelector<HTMLImageElement>(".chat-message-image");
     const docLink = container.querySelector<HTMLAnchorElement>(
       ".chat-assistant-attachment-card__link",
     );
     expect(image?.getAttribute("src")).toBe(
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png",
     );
     expect(docLink?.getAttribute("href")).toBe(
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest-doc.pdf&token=session-token",
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest-doc.pdf",
     );
     expect(container.textContent).not.toContain("test image.png");
     vi.unstubAllGlobals();
   });
 
-  it("rechecks local assistant attachment availability when the auth token changes", async () => {
+  it("puts a minted media capability, not the gateway token, in media URLs", async () => {
     resetAssistantAttachmentAvailabilityCacheForTest();
     const fetchMock = vi.fn(async (url: string) => {
-      if (!url.includes("meta=1")) {
-        throw new Error(`Unexpected fetch: ${url}`);
+      if (url.includes("assistant-media-token")) {
+        return {
+          ok: true,
+          json: async () => ({ token: "media-cap-1", expiresInMs: 600_000 }),
+        };
       }
+      if (url.includes("meta=1")) {
+        return { ok: true, json: async () => ({ available: true }) };
+      }
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+    const container = document.createElement("div");
+    const renderMessage = () =>
+      renderAssistantMessage(
+        container,
+        {
+          id: "assistant-local-media-capability",
+          role: "assistant",
+          content: "Local image\nMEDIA:/tmp/genesis/test image.png",
+          timestamp: Date.now(),
+        },
+        {
+          showToolCalls: false,
+          basePath: "/genesis",
+          assistantAttachmentAuthToken: "session-token",
+          localMediaPreviewRoots: ["/tmp/genesis"],
+          onRequestUpdate: renderMessage,
+        },
+      );
+
+    // First render resolves availability, the next one requests the capability,
+    // and the render after that can finally use it.
+    renderMessage();
+    await flushAssistantAttachmentAvailabilityChecks();
+    renderMessage();
+    await flushAssistantAttachmentAvailabilityChecks();
+    renderMessage();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/genesis/__genesis__/assistant-media-token",
+      expect.objectContaining({ credentials: "same-origin", method: "GET" }),
+    );
+    const src = container
+      .querySelector<HTMLImageElement>(".chat-message-image")
+      ?.getAttribute("src");
+    expect(src).toBe(
+      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&mt=media-cap-1",
+    );
+    expect(src).not.toContain("session-token");
+    vi.unstubAllGlobals();
+  });
+
+  it("rechecks local assistant attachment availability when the auth token changes", async () => {
+    resetAssistantAttachmentAvailabilityCacheForTest();
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (!url.includes("meta=1")) {
+        // The media-capability exchange is not under test here.
+        return { ok: false, json: async () => ({}) };
+      }
+      const authorization = new Headers(init?.headers).get("Authorization");
       return {
         ok: true,
-        json: async () => ({ available: url.includes("token=fresh-token") }),
+        json: async () => ({ available: authorization === "Bearer fresh-token" }),
       };
     });
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
@@ -1026,17 +1085,17 @@ describe("grouped chat rendering", () => {
     renderWithToken("fresh-token");
     await flushAssistantAttachmentAvailabilityChecks();
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&meta=1",
-      expect.objectContaining({ credentials: "same-origin", method: "GET" }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&token=fresh-token&meta=1",
-      expect.objectContaining({ credentials: "same-origin", method: "GET" }),
-    );
+    const metaCalls = fetchMock.mock.calls.filter(([url]) =>
+      url.includes("meta=1"),
+    ) as unknown as Array<[string, RequestInit]>;
+    expect(metaCalls).toHaveLength(2);
+    for (const [url] of metaCalls) {
+      expect(url).toBe(
+        "/genesis/__genesis__/assistant-media?source=%2Ftmp%2Fgenesis%2Ftest+image.png&meta=1",
+      );
+    }
+    expect(new Headers(metaCalls[0]?.[1]?.headers).get("Authorization")).toBe(null);
+    expect(new Headers(metaCalls[1]?.[1]?.headers).get("Authorization")).toBe("Bearer fresh-token");
     expect(container.querySelector(".chat-message-image")).not.toBeNull();
     expect(container.textContent).not.toContain("Unavailable");
     vi.unstubAllGlobals();

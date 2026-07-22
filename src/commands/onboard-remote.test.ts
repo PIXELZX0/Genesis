@@ -294,13 +294,15 @@ describe("promptRemoteGatewayConfig", () => {
     expect(next.gateway?.remote?.token).toBeUndefined();
   });
 
-  it("allows ws:// hostname remote URLs when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", async () => {
+  it("allows ws:// private-network remote URLs when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", async () => {
     process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
     const text: WizardPrompter["text"] = vi.fn(async (params) => {
       if (params.message === "Gateway WebSocket URL") {
-        expect(params.validate?.("ws://genesis-gateway.ai:18789")).toBeUndefined();
+        expect(params.validate?.("ws://100.64.0.1:18789")).toBeUndefined();
         expect(params.validate?.("ws://1.1.1.1:18789")).toContain("Use wss://");
-        return "ws://genesis-gateway.ai:18789";
+        // Hostnames cannot be verified to stay inside the private network.
+        expect(params.validate?.("ws://genesis-gateway.ai:18789")).toContain("Use wss://");
+        return "ws://100.64.0.1:18789";
       }
       return "";
     }) as WizardPrompter["text"];
@@ -312,7 +314,7 @@ describe("promptRemoteGatewayConfig", () => {
     });
 
     expect(next.gateway?.mode).toBe("remote");
-    expect(next.gateway?.remote?.url).toBe("ws://genesis-gateway.ai:18789");
+    expect(next.gateway?.remote?.url).toBe("ws://100.64.0.1:18789");
   });
 
   it("supports storing remote auth as an external env secret ref", async () => {

@@ -416,6 +416,20 @@ When gateway auth is configured, the Control UI avatar endpoint requires the sam
 
 If you disable gateway auth (not recommended on shared hosts), the avatar route also becomes unauthenticated, in line with the rest of the gateway.
 
+## Assistant media route auth
+
+`GET /__genesis__/assistant-media` serves local attachments to the chat view. The
+gateway token is accepted only as an `Authorization: Bearer` header — never in the
+query string, because URLs end up in reverse-proxy access logs, browser history,
+and `Referer` headers.
+
+Media elements (`<img>`, `<audio>`, `<video>`) cannot send headers, so the Control
+UI first exchanges its gateway token for a short-lived, media-only capability at
+`GET /__genesis__/assistant-media-token` (header-authenticated) and passes that
+capability as `?mt=<token>`. The capability expires after 10 minutes and grants
+nothing beyond reads of the assistant-media route, so a leaked media URL cannot be
+used to control the gateway.
+
 ## Building the UI
 
 The Gateway serves static files from `dist/control-ui`. Build them with:

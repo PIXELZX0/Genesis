@@ -57,6 +57,8 @@ export function resetAssistantAttachmentAvailabilityCacheForTest() {
   managedImageBlobUrlCache.clear();
   managedImageBlobUrlResolvedCache.clear();
   managedImageBlobUrlMissCache.clear();
+  assistantMediaCapability = null;
+  assistantMediaCapabilityPending = null;
 }
 
 type ImageBlock = {
@@ -71,6 +73,7 @@ type ImageRenderOptions = {
   localMediaPreviewRoots?: readonly string[];
   basePath?: string;
   authToken?: string | null;
+  onRequestUpdate?: () => void;
 };
 
 type RenderableImageBlock = ImageBlock & {
@@ -813,7 +816,7 @@ function resolveRenderableMessageImages(
       return [];
     }
     const displayUrl = canProxyLocalImage
-      ? buildAssistantAttachmentUrl(img.url, opts?.basePath, opts?.authToken)
+      ? buildAssistantAttachmentUrl(img.url, opts?.basePath, opts?.authToken, opts?.onRequestUpdate)
       : img.url;
     return [{ ...img, displayUrl }];
   });
@@ -962,10 +965,80 @@ function isLocalAttachmentPreviewAllowed(
   });
 }
 
+// The gateway shared token must never travel in a URL (proxy logs, history,
+// Referer). Media element URLs carry a short-lived media-only capability that the
+// gateway mints for header-authenticated callers instead.
+const ASSISTANT_MEDIA_CAPABILITY_QUERY_PARAM = "mt";
+const ASSISTANT_MEDIA_CAPABILITY_REFRESH_MARGIN_MS = 30_000;
+
+let assistantMediaCapability: { token: string; expiresAt: number } | null = null;
+let assistantMediaCapabilityPending: Promise<void> | null = null;
+
+function readAssistantMediaCapability(): string | null {
+  if (!assistantMediaCapability) {
+    return null;
+  }
+  return assistantMediaCapability.expiresAt > Date.now() ? assistantMediaCapability.token : null;
+}
+
+function ensureAssistantMediaCapability(
+  basePath: string | undefined,
+  authToken: string | null | undefined,
+  onReady?: () => void,
+): void {
+  const normalizedToken = authToken?.trim();
+  if (!normalizedToken || readAssistantMediaCapability() || assistantMediaCapabilityPending) {
+    return;
+  }
+  if (typeof fetch !== "function") {
+    return;
+  }
+  const normalizedBasePath =
+    basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
+  assistantMediaCapabilityPending = fetch(
+    `${normalizedBasePath}/__genesis__/assistant-media-token`,
+    {
+      method: "GET",
+      headers: new Headers({
+        Accept: "application/json",
+        Authorization: `Bearer ${normalizedToken}`,
+      }),
+      credentials: "same-origin",
+    },
+  )
+    .then(async (res) => {
+      if (!res.ok) {
+        return;
+      }
+      const payload = (await res.json().catch(() => null)) as {
+        token?: string;
+        expiresInMs?: number;
+      } | null;
+      const token = payload?.token?.trim();
+      const expiresInMs =
+        typeof payload?.expiresInMs === "number" && Number.isFinite(payload.expiresInMs)
+          ? payload.expiresInMs
+          : 0;
+      if (!token || expiresInMs <= ASSISTANT_MEDIA_CAPABILITY_REFRESH_MARGIN_MS) {
+        return;
+      }
+      assistantMediaCapability = {
+        token,
+        expiresAt: Date.now() + expiresInMs - ASSISTANT_MEDIA_CAPABILITY_REFRESH_MARGIN_MS,
+      };
+      onReady?.();
+    })
+    .catch(() => undefined)
+    .finally(() => {
+      assistantMediaCapabilityPending = null;
+    });
+}
+
 function buildAssistantAttachmentUrl(
   source: string,
   basePath?: string,
   authToken?: string | null,
+  onRequestUpdate?: () => void,
 ): string {
   if (!isLocalAssistantAttachmentSource(source)) {
     return source;
@@ -973,9 +1046,11 @@ function buildAssistantAttachmentUrl(
   const normalizedBasePath =
     basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
   const params = new URLSearchParams({ source });
-  const normalizedToken = authToken?.trim();
-  if (normalizedToken) {
-    params.set("token", normalizedToken);
+  const capability = readAssistantMediaCapability();
+  if (capability) {
+    params.set(ASSISTANT_MEDIA_CAPABILITY_QUERY_PARAM, capability);
+  } else {
+    ensureAssistantMediaCapability(basePath, authToken, onRequestUpdate);
   }
   return `${normalizedBasePath}/__genesis__/assistant-media?${params.toString()}`;
 }
@@ -1068,13 +1143,11 @@ async function resolveManagedOutgoingImageBlobUrl(
   return pending;
 }
 
-function buildAssistantAttachmentMetaUrl(
-  source: string,
-  basePath?: string,
-  authToken?: string | null,
-): string {
-  const attachmentUrl = buildAssistantAttachmentUrl(source, basePath, authToken);
-  return `${attachmentUrl}${attachmentUrl.includes("?") ? "&" : "?"}meta=1`;
+function buildAssistantAttachmentMetaUrl(source: string, basePath?: string): string {
+  const normalizedBasePath =
+    basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
+  const params = new URLSearchParams({ source, meta: "1" });
+  return `${normalizedBasePath}/__genesis__/assistant-media?${params.toString()}`;
 }
 
 function resolveAssistantAttachmentAvailability(
@@ -1105,9 +1178,13 @@ function resolveAssistantAttachmentAvailability(
   }
   assistantAttachmentAvailabilityCache.set(cacheKey, { status: "checking" });
   if (typeof fetch === "function") {
-    void fetch(buildAssistantAttachmentMetaUrl(source, basePath, authToken), {
+    const metaHeaders = new Headers({ Accept: "application/json" });
+    if (normalizedAuthToken) {
+      metaHeaders.set("Authorization", `Bearer ${normalizedAuthToken}`);
+    }
+    void fetch(buildAssistantAttachmentMetaUrl(source, basePath), {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: metaHeaders,
       credentials: "same-origin",
     })
       .then(async (res) => {
@@ -1191,7 +1268,7 @@ function renderAssistantAttachments(
         );
         const attachmentUrl =
           availability.status === "available"
-            ? buildAssistantAttachmentUrl(attachment.url, basePath, authToken)
+            ? buildAssistantAttachmentUrl(attachment.url, basePath, authToken, onRequestUpdate)
             : null;
         if (attachment.kind === "image") {
           if (!attachmentUrl) {
@@ -1486,6 +1563,7 @@ function renderGroupedMessage(
     localMediaPreviewRoots: opts.localMediaPreviewRoots ?? [],
     basePath: opts.basePath,
     authToken: opts.assistantAttachmentAuthToken,
+    onRequestUpdate: opts.onRequestUpdate,
   };
   const images = resolveRenderableMessageImages(extractImages(message), imageRenderOptions);
   const hasImages = images.length > 0;

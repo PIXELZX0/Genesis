@@ -702,7 +702,25 @@ describe("buildGatewayConnectionDetails", () => {
     expect(details.urlSource).toBe("config gateway.remote.url");
   });
 
-  it("allows ws:// hostname remote URLs when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+  it("allows ws:// private-network remote URLs when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
+    loadConfig.mockReturnValue({
+      gateway: {
+        mode: "remote",
+        bind: "loopback",
+        remote: { url: "ws://100.64.0.1:18789" },
+      },
+    });
+    resolveGatewayPort.mockReturnValue(18789);
+
+    const details = buildGatewayConnectionDetails();
+
+    expect(details.url).toBe("ws://100.64.0.1:18789");
+    expect(details.urlSource).toBe("config gateway.remote.url");
+  });
+
+  it("still rejects ws:// hostnames when GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    // A hostname cannot be verified to stay inside the private network.
     process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
     loadConfig.mockReturnValue({
       gateway: {
@@ -713,10 +731,7 @@ describe("buildGatewayConnectionDetails", () => {
     });
     resolveGatewayPort.mockReturnValue(18789);
 
-    const details = buildGatewayConnectionDetails();
-
-    expect(details.url).toBe("ws://genesis-gateway.ai:18789");
-    expect(details.urlSource).toBe("config gateway.remote.url");
+    expect(() => buildGatewayConnectionDetails()).toThrow(/SECURITY ERROR/);
   });
 
   it("allows ws:// for loopback addresses in local mode", () => {

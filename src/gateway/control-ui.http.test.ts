@@ -9,6 +9,7 @@ import { resolveStateDir } from "../config/paths.js";
 import { approveDevicePairing, requestDevicePairing } from "../infra/device-pairing.js";
 import { resolvePreferredGenesisTmpDir } from "../infra/tmp-genesis-dir.js";
 import { MAX_DOCUMENT_BYTES } from "../media/constants.js";
+import { mintAssistantMediaCapability } from "./assistant-media-capability.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import { CONTROL_UI_BOOTSTRAP_CONFIG_PATH } from "./control-ui-contract.js";
 import {
@@ -550,8 +551,9 @@ describe("handleControlUiHttpRequest", () => {
         const filePath = path.join(tmpRoot, "photo.png");
         await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
         const { res, handled } = await runAssistantMediaRequest({
-          url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&token=test-token`,
+          url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}`,
           method: "GET",
+          headers: { authorization: "Bearer test-token" },
           auth: { mode: "token", token: "test-token", allowTailscale: false },
         });
         expect(handled).toBe(true);
@@ -569,8 +571,9 @@ describe("handleControlUiHttpRequest", () => {
 
     try {
       const { res, handled } = await runAssistantMediaRequest({
-        url: `/__genesis__/assistant-media?source=${encodeURIComponent(`media://inbound/${id}`)}&token=test-token`,
+        url: `/__genesis__/assistant-media?source=${encodeURIComponent(`media://inbound/${id}`)}`,
         method: "GET",
+        headers: { authorization: "Bearer test-token" },
         auth: { mode: "token", token: "test-token", allowTailscale: false },
       });
       expect(handled).toBe(true);
@@ -589,8 +592,9 @@ describe("handleControlUiHttpRequest", () => {
 
     try {
       const { res, handled, end } = await runAssistantMediaRequest({
-        url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent(`media://inbound/${id}`)}&token=test-token`,
+        url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent(`media://inbound/${id}`)}`,
         method: "GET",
+        headers: { authorization: "Bearer test-token" },
         auth: { mode: "token", token: "test-token", allowTailscale: false },
       });
       expect(handled).toBe(true);
@@ -607,8 +611,9 @@ describe("handleControlUiHttpRequest", () => {
       const filePath = path.join(tmp, "photo.png");
       await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
       const { res, handled, end } = await runAssistantMediaRequest({
-        url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&token=test-token`,
+        url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}`,
         method: "GET",
+        headers: { authorization: "Bearer test-token" },
         auth: { mode: "token", token: "test-token", allowTailscale: false },
       });
       expectNotFoundResponse({ handled, res, end });
@@ -624,8 +629,9 @@ describe("handleControlUiHttpRequest", () => {
         const filePath = path.join(tmpRoot, "photo.png");
         await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
         const { res, handled, end } = await runAssistantMediaRequest({
-          url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent(filePath)}&token=test-token`,
+          url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent(filePath)}`,
           method: "GET",
+          headers: { authorization: "Bearer test-token" },
           auth: { mode: "token", token: "test-token", allowTailscale: false },
         });
         expect(handled).toBe(true);
@@ -637,8 +643,9 @@ describe("handleControlUiHttpRequest", () => {
 
   it("reports assistant local media availability failures with a reason", async () => {
     const { res, handled, end } = await runAssistantMediaRequest({
-      url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent("/Users/test/Documents/private.pdf")}&token=test-token`,
+      url: `/__genesis__/assistant-media?meta=1&source=${encodeURIComponent("/Users/test/Documents/private.pdf")}`,
       method: "GET",
+      headers: { authorization: "Bearer test-token" },
       auth: { mode: "token", token: "test-token", allowTailscale: false },
     });
     expect(handled).toBe(true);
@@ -692,23 +699,76 @@ describe("handleControlUiHttpRequest", () => {
     });
   });
 
-  it("accepts paired operator device tokens in assistant media query auth", async () => {
+  it("accepts paired operator device tokens in assistant media header auth", async () => {
     await withPairedOperatorDeviceToken({
       fn: async (operatorToken) => {
         await withAllowedAssistantMediaRoot({
-          prefix: "ui-media-device-token-query-",
+          prefix: "ui-media-device-token-header-",
           fn: async (tmpRoot) => {
             const filePath = path.join(tmpRoot, "photo.png");
             await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
             const { res, handled } = await runAssistantMediaRequest({
-              url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&token=${encodeURIComponent(operatorToken)}`,
+              url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}`,
               method: "GET",
+              headers: { authorization: `Bearer ${operatorToken}` },
               auth: { mode: "token", token: "shared-token", allowTailscale: false },
             });
             expect(handled).toBe(true);
             expect(res.statusCode).toBe(200);
           },
         });
+      },
+    });
+  });
+
+  it("rejects the shared gateway token in the assistant media query string", async () => {
+    await withAllowedAssistantMediaRoot({
+      prefix: "ui-media-query-token-",
+      fn: async (tmpRoot) => {
+        const filePath = path.join(tmpRoot, "photo.png");
+        await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
+        const { res, handled } = await runAssistantMediaRequest({
+          url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&token=test-token`,
+          method: "GET",
+          auth: { mode: "token", token: "test-token", allowTailscale: false },
+        });
+        expect(handled).toBe(true);
+        expect(res.statusCode).toBe(401);
+      },
+    });
+  });
+
+  it("serves assistant media for a minted media capability without any other credential", async () => {
+    await withAllowedAssistantMediaRoot({
+      prefix: "ui-media-capability-",
+      fn: async (tmpRoot) => {
+        const filePath = path.join(tmpRoot, "photo.png");
+        await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
+        const { token } = mintAssistantMediaCapability();
+        const { res, handled } = await runAssistantMediaRequest({
+          url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&mt=${encodeURIComponent(token)}`,
+          method: "GET",
+          auth: { mode: "token", token: "test-token", allowTailscale: false },
+        });
+        expect(handled).toBe(true);
+        expect(res.statusCode).toBe(200);
+      },
+    });
+  });
+
+  it("rejects an unknown media capability", async () => {
+    await withAllowedAssistantMediaRoot({
+      prefix: "ui-media-bad-capability-",
+      fn: async (tmpRoot) => {
+        const filePath = path.join(tmpRoot, "photo.png");
+        await fs.writeFile(filePath, Buffer.from("not-a-real-png"));
+        const { res, handled } = await runAssistantMediaRequest({
+          url: `/__genesis__/assistant-media?source=${encodeURIComponent(filePath)}&mt=not-a-real-capability`,
+          method: "GET",
+          auth: { mode: "token", token: "test-token", allowTailscale: false },
+        });
+        expect(handled).toBe(true);
+        expect(res.statusCode).toBe(401);
       },
     });
   });

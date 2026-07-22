@@ -77,7 +77,7 @@ export function buildGatewayConnectionDetailsWithResolvers(
         "- or use Tailscale Serve/Funnel for HTTPS remote access",
         allowPrivateWs
           ? undefined
-          : "Break-glass (trusted private networks only): set GENESIS_ALLOW_INSECURE_PRIVATE_WS=1",
+          : "Break-glass (trusted private networks only): set GENESIS_ALLOW_INSECURE_PRIVATE_WS=1 and use a private-network IP literal, not a hostname",
         "Doctor: genesis doctor --fix",
         "Docs: https://genesis.pixelzx.com/docs/gateway/remote",
       ].join("\n"),
