@@ -524,11 +524,10 @@ export function startGatewayConfigReloader(opts: {
       }
       let snapshot = await opts.readSnapshot();
       await reconcileIncludeWatches(snapshot);
-      if (lastAppliedWriteHash && typeof snapshot.hash === "string") {
-        if (snapshot.hash === lastAppliedWriteHash) {
-          return;
-        }
-        lastAppliedWriteHash = null;
+      const pendingWriteHash = lastAppliedWriteHash;
+      lastAppliedWriteHash = null;
+      if (pendingWriteHash && snapshot.hash === pendingWriteHash) {
+        return;
       }
       if (handleMissingSnapshot(snapshot)) {
         return;

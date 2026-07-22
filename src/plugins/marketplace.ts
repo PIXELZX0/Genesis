@@ -714,6 +714,8 @@ async function streamMarketplaceResponseToFile(params: {
     }
   } finally {
     await fileHandle.close().catch(() => undefined);
+    // releaseLock alone leaves the response body streaming; cancel aborts it.
+    await reader.cancel().catch(() => undefined);
     try {
       reader.releaseLock();
     } catch {}

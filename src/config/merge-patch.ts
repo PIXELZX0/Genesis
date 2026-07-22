@@ -90,7 +90,7 @@ export function applyMergePatch(
       result[key] = applyMergePatch(isPlainObject(baseValue) ? baseValue : {}, value, options);
       continue;
     }
-    result[key] = value;
+    result[key] = Array.isArray(value) ? structuredClone(value) : value;
   }
 
   return result;

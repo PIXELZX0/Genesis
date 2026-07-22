@@ -30,6 +30,17 @@ describe("applyMergePatch", () => {
     ]);
   });
 
+  it("does not alias patch arrays into the merged result", () => {
+    const patchArray = ["/tmp/one"];
+    const merged = applyMergePatch(
+      { agents: { extraPaths: [] } },
+      { agents: { extraPaths: patchArray } },
+    ) as { agents?: { extraPaths?: string[] } };
+
+    patchArray.push("/tmp/two");
+    expect(merged.agents?.extraPaths).toEqual(["/tmp/one"]);
+  });
+
   it("merges object arrays by id when enabled", () => {
     const { base, patch } = makeAgentListBaseAndPatch();
 
