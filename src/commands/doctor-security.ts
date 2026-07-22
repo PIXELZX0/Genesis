@@ -153,9 +153,24 @@ export async function noteSecurityWarnings(cfg: GenesisConfig) {
   const bindMode = bindModes.includes(gatewayBind as GatewayBindMode)
     ? (gatewayBind as GatewayBindMode)
     : undefined;
-  const resolvedBindHost = bindMode
-    ? await resolveGatewayBindHost(bindMode, customBindHost)
-    : "0.0.0.0";
+  // A bind that cannot be resolved is a startup failure, not an exposure; report
+  // it instead of letting the doctor run die on it.
+  let resolvedBindHost = "0.0.0.0";
+  let bindResolutionError: string | undefined;
+  if (bindMode) {
+    try {
+      resolvedBindHost = await resolveGatewayBindHost(bindMode, customBindHost);
+    } catch (error) {
+      bindResolutionError = error instanceof Error ? error.message : String(error);
+      resolvedBindHost = "127.0.0.1";
+    }
+  }
+  if (bindResolutionError) {
+    warnings.push(
+      `- WARNING: Gateway bind "${gatewayBind}" cannot be resolved: ${bindResolutionError}`,
+      `  The gateway will refuse to start until gateway.bind/gateway.customBindHost is corrected.`,
+    );
+  }
   const isExposed = !isLoopbackHost(resolvedBindHost);
 
   const resolvedAuth = resolveGatewayAuth({
