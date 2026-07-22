@@ -15,6 +15,7 @@ function createMockChannelManager(overrides?: Partial<ChannelManager>): ChannelM
     isManuallyStopped: vi.fn(() => false),
     resetRestartAttempts: vi.fn(),
     markRestartPending: vi.fn(),
+    clearRestartPending: vi.fn(),
     ...overrides,
   };
 }
@@ -434,6 +435,32 @@ describe("channel-health-monitor", () => {
     });
     await vi.advanceTimersByTimeAsync(5_001);
     expect(manager.startChannel).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(1_001);
+    expect(manager.startChannel).toHaveBeenCalledTimes(3);
+    monitor.stop();
+  });
+
+  it("counts failed restarts against the cooldown and the per-hour cap", async () => {
+    const manager = createSnapshotManager(
+      {
+        discord: {
+          default: managedStoppedAccount("bad credentials"),
+        },
+      },
+      {
+        startChannel: vi.fn(async () => {
+          throw new Error("bad credentials");
+        }),
+      },
+    );
+    const monitor = startDefaultMonitor(manager, {
+      checkIntervalMs: 1_000,
+      cooldownCycles: 1,
+      maxRestartsPerHour: 3,
+    });
+    await vi.advanceTimersByTimeAsync(5_001);
+    expect(manager.startChannel).toHaveBeenCalledTimes(3);
+    expect(manager.clearRestartPending).toHaveBeenCalledTimes(3);
     await vi.advanceTimersByTimeAsync(1_001);
     expect(manager.startChannel).toHaveBeenCalledTimes(3);
     monitor.stop();

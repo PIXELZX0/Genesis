@@ -262,7 +262,22 @@ describe("GatewayClient security checks", () => {
     client.stop();
   });
 
-  it("allows ws:// hostnames with GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+  it("allows ws:// private IP literals with GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
+    const onConnectError = vi.fn();
+    const client = new GatewayClient({
+      url: "ws://100.64.0.1:18789",
+      onConnectError,
+    });
+
+    client.start();
+
+    expect(onConnectError).not.toHaveBeenCalled();
+    expect(wsInstances.length).toBe(1);
+    client.stop();
+  });
+
+  it("blocks ws:// hostnames even with GENESIS_ALLOW_INSECURE_PRIVATE_WS=1", () => {
     process.env.GENESIS_ALLOW_INSECURE_PRIVATE_WS = "1";
     const onConnectError = vi.fn();
     const client = new GatewayClient({
@@ -272,8 +287,8 @@ describe("GatewayClient security checks", () => {
 
     client.start();
 
-    expect(onConnectError).not.toHaveBeenCalled();
-    expect(wsInstances.length).toBe(1);
+    expectSecurityConnectError(onConnectError);
+    expect(wsInstances.length).toBe(0);
     client.stop();
   });
 });
@@ -333,6 +348,59 @@ describe("GatewayClient request errors", () => {
       details: { method: "chat.history" },
     });
 
+    client.stop();
+  });
+});
+
+describe("GatewayClient socket lifecycle", () => {
+  beforeEach(() => {
+    wsInstances.length = 0;
+    logDebugMock.mockClear();
+  });
+
+  it("does not open a second socket while one is live", () => {
+    const client = new GatewayClient({ url: "ws://127.0.0.1:18789" });
+
+    client.start();
+    getLatestWs().emitOpen();
+    client.start();
+
+    expect(wsInstances.length).toBe(1);
+    client.stop();
+  });
+
+  it("reconnects after the live socket closed", () => {
+    const client = new GatewayClient({ url: "ws://127.0.0.1:18789" });
+
+    client.start();
+    getLatestWs().emitClose(1006, "dropped");
+    client.start();
+
+    expect(wsInstances.length).toBe(2);
+    client.stop();
+  });
+
+  it("reports consumer event handler failures as handler errors, not parse errors", () => {
+    const client = new GatewayClient({
+      url: "ws://127.0.0.1:18789",
+      onEvent: () => {
+        throw new Error("consumer boom");
+      },
+    });
+
+    client.start();
+    const ws = getLatestWs();
+    ws.emitOpen();
+    expect(() => {
+      ws.emitMessage(JSON.stringify({ type: "event", event: "tick", payload: {} }));
+    }).not.toThrow();
+
+    expect(logDebugMock).toHaveBeenCalledWith(
+      expect.stringContaining("gateway client event handler error"),
+    );
+    expect(logDebugMock).not.toHaveBeenCalledWith(
+      expect.stringContaining("gateway client parse error"),
+    );
     client.stop();
   });
 });

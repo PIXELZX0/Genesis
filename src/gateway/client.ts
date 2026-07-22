@@ -197,6 +197,7 @@ export class GatewayClient {
   private lastTick: number | null = null;
   private tickIntervalMs = 30_000;
   private tickTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: NodeJS.Timeout | null = null;
   private readonly requestTimeoutMs: number;
   private pendingStop: PendingStop | null = null;
   private socketOpened = false;
@@ -217,6 +218,12 @@ export class GatewayClient {
 
   start() {
     if (this.closed) {
+      return;
+    }
+    this.clearReconnectTimer();
+    // A second socket would keep feeding the shared handleMessage/pending map
+    // while the displaced one leaks; only connect when none is live.
+    if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
       return;
     }
     this.clearConnectChallengeTimeout();
@@ -247,7 +254,7 @@ export class GatewayClient {
           "(ssh -N -L 18789:127.0.0.1:18789 user@gateway-host), or use Tailscale Serve/Funnel. " +
           (allowPrivateWs
             ? ""
-            : "Break-glass (trusted private networks only): set GENESIS_ALLOW_INSECURE_PRIVATE_WS=1. ") +
+            : "Break-glass (trusted private networks only): set GENESIS_ALLOW_INSECURE_PRIVATE_WS=1 and use a private-network IP literal, not a hostname. ") +
           "Run `genesis doctor --fix` for guidance.",
       );
       this.opts.onConnectError?.(error);
@@ -388,6 +395,7 @@ export class GatewayClient {
       clearInterval(this.tickTimer);
       this.tickTimer = null;
     }
+    this.clearReconnectTimer();
     this.clearConnectChallengeTimeout();
     if (this.pendingStop) {
       this.flushPendingErrors(new Error("gateway client stopped"));
@@ -760,7 +768,7 @@ export class GatewayClient {
         if (evt.event === "tick") {
           this.lastTick = Date.now();
         }
-        this.opts.onEvent?.(evt);
+        this.emitEvent(evt);
         return;
       }
       if (validateResponseFrame(parsed)) {
@@ -795,6 +803,16 @@ export class GatewayClient {
       }
     } catch (err) {
       logDebug(`gateway client parse error: ${String(err)}`);
+    }
+  }
+
+  // Consumer callback failures are not parse failures; keep them out of the
+  // parse try so they are reported accurately instead of silently dropped.
+  private emitEvent(evt: Parameters<NonNullable<GatewayClientOptions["onEvent"]>>[0]) {
+    try {
+      this.opts.onEvent?.(evt);
+    } catch (err) {
+      logDebug(`gateway client event handler error: ${String(err)}`);
     }
   }
 
@@ -845,7 +863,19 @@ export class GatewayClient {
     }
     const delay = this.backoffMs;
     this.backoffMs = Math.min(this.backoffMs * 2, 30_000);
-    setTimeout(() => this.start(), delay).unref();
+    this.clearReconnectTimer();
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.start();
+    }, delay);
+    this.reconnectTimer.unref?.();
+  }
+
+  private clearReconnectTimer() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
   }
 
   private flushPendingErrors(err: Error) {

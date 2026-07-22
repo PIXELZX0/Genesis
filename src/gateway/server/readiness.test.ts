@@ -30,6 +30,7 @@ function createManager(snapshot: ChannelRuntimeSnapshot): ChannelManager {
     isManuallyStopped: vi.fn(() => false),
     resetRestartAttempts: vi.fn(),
     markRestartPending: vi.fn(),
+    clearRestartPending: vi.fn(),
   };
 }
 

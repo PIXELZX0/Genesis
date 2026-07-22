@@ -157,6 +157,13 @@ export function startChannelHealthMonitor(deps: ChannelHealthMonitorDeps): Chann
 
           log.info?.(`[${channelId}:${accountId}] health-monitor: restarting (reason: ${reason})`);
 
+          // Record the attempt before it runs: a restart that keeps failing must
+          // still consume the cooldown and the per-hour budget, otherwise a
+          // permanently broken channel is restarted on every check cycle.
+          record.lastRestartAt = now;
+          record.restartsThisHour.push({ at: now });
+          restartRecords.set(key, record);
+
           try {
             channelManager.markRestartPending(channelId as ChannelId, accountId);
             if (status.running) {
@@ -164,10 +171,8 @@ export function startChannelHealthMonitor(deps: ChannelHealthMonitorDeps): Chann
             }
             channelManager.resetRestartAttempts(channelId as ChannelId, accountId);
             await channelManager.startChannel(channelId as ChannelId, accountId);
-            record.lastRestartAt = now;
-            record.restartsThisHour.push({ at: now });
-            restartRecords.set(key, record);
           } catch (err) {
+            channelManager.clearRestartPending(channelId as ChannelId, accountId);
             log.error?.(
               `[${channelId}:${accountId}] health-monitor: restart failed: ${String(err)}`,
             );
