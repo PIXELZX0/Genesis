@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Fixes
 
+- CLI startup: commands like `genesis pairing approve` and the TUI no longer stall for over a minute re-staging bundled plugin runtime dependencies on every invocation. Dependency specs given as dist-tags (e.g. `@earendil-works/pi-ai: "latest"`) never matched the installed semver, so the sentinel check reported them missing forever and each run copied entire plugin `node_modules` trees (100MB+ per provider) from the staging cache; an installed version now satisfies a dist-tag sentinel.
 - Bonjour: a cancelled mDNS announcement during an advertiser restart no longer surfaces as an unhandled rejection that can take down the gateway. The plugin now registers its rejection filter with the runtime by default (it previously only did so when a handler was injected, which the gateway never did), so headless hosts where the advertiser gets stuck announcing stop crash-looping behind a 502.
 
 ## 2026.7.22

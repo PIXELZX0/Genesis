@@ -650,6 +650,55 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     expect(second).toEqual({ installedSpecs: [], retainSpecs: [] });
   });
 
+  it("treats installed dist-tag runtime deps as satisfied on later passes", () => {
+    // Regression guard: dist-tag specs (e.g. "latest") never equal the
+    // installed semver, so a naive sentinel check re-staged node_modules on
+    // every CLI invocation. The installed version must satisfy the tag.
+    const packageRoot = makeTempDir();
+    const stageDir = makeTempDir();
+    fs.writeFileSync(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "genesis", version: "2026.4.22" }),
+    );
+    const pluginRoot = path.join(packageRoot, "dist", "extensions", "anthropic");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      JSON.stringify({
+        dependencies: {
+          "@earendil-works/pi-ai": "latest",
+        },
+      }),
+    );
+
+    const env = { GENESIS_PLUGIN_STAGE_DIR: stageDir };
+    const first = ensureBundledPluginRuntimeDeps({
+      env,
+      installDeps: (params) => {
+        fs.mkdirSync(path.join(params.installRoot, "node_modules", "@earendil-works", "pi-ai"), {
+          recursive: true,
+        });
+        fs.writeFileSync(
+          path.join(params.installRoot, "node_modules", "@earendil-works", "pi-ai", "package.json"),
+          JSON.stringify({ name: "@earendil-works/pi-ai", version: "0.80.2" }),
+        );
+      },
+      pluginId: "anthropic",
+      pluginRoot,
+    });
+    expect(first.installedSpecs).toEqual(["@earendil-works/pi-ai@latest"]);
+
+    const second = ensureBundledPluginRuntimeDeps({
+      env,
+      installDeps: () => {
+        throw new Error("dist-tag runtime deps should not reinstall");
+      },
+      pluginId: "anthropic",
+      pluginRoot,
+    });
+    expect(second).toEqual({ installedSpecs: [], retainSpecs: [] });
+  });
+
   it("uses package export entries for external runtime dependency aliases", () => {
     const packageRoot = makeTempDir();
     const installRoot = makeTempDir();

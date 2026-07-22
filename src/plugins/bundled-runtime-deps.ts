@@ -660,6 +660,13 @@ function isInstalledDependencyVersionSatisfied(installedVersion: string, spec: s
       includePrerelease: true,
     });
   }
+  if (normalizedRange === null && normalizedInstalledVersion !== null) {
+    // Dist-tag specs (e.g. "latest") are resolved against the package manager
+    // at install time, so any successfully installed version satisfies the
+    // sentinel. Requiring equality with the tag would re-stage node_modules
+    // on every invocation.
+    return true;
+  }
   return installedVersion === spec;
 }
 
