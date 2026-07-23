@@ -29965,6 +29965,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2026.7.22",
+  version: "2026.7.23",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };
