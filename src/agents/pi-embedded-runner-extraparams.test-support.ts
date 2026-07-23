@@ -16,7 +16,7 @@ export function runExtraParamsPayloadCase(params: {
     payloads.push(payload);
     return {} as ReturnType<StreamFn>;
   };
-  const agent = { streamFn: baseStreamFn };
+  const agent = { streamFunction: baseStreamFn };
 
   applyExtraParamsToAgent(
     agent,
@@ -33,7 +33,7 @@ export function runExtraParamsPayloadCase(params: {
     id: params.modelId,
   } as Model<"openai-completions">;
   const context: Context = { messages: [] };
-  void agent.streamFn?.(model, context, {});
+  void agent.streamFunction?.(model, context, {});
 
   return payloads[0] ?? {};
 }

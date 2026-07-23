@@ -60,7 +60,7 @@ type PrepareGooglePromptCacheStreamFnParams = {
   provider: string;
   sessionManager: GooglePromptCacheSessionManager;
   signal?: AbortSignal;
-  streamFn: StreamFn | undefined;
+  streamFunction: StreamFn | undefined;
   systemPrompt?: string;
 };
 
@@ -355,7 +355,7 @@ export async function prepareGooglePromptCacheStreamFn(
   params: PrepareGooglePromptCacheStreamFnParams,
   deps: GooglePromptCacheDeps = {},
 ): Promise<StreamFn | undefined> {
-  if (!params.streamFn) {
+  if (!params.streamFunction) {
     return undefined;
   }
   if (resolveExplicitCachedContent(params.extraParams)) {
@@ -398,7 +398,7 @@ export async function prepareGooglePromptCacheStreamFn(
     return undefined;
   }
 
-  const inner = params.streamFn;
+  const inner = params.streamFunction;
   return (model, context, options) =>
     streamWithPayloadPatch(
       inner,

@@ -1,10 +1,5 @@
 import type { Api, Model } from "@earendil-works/pi-ai";
-import {
-  AuthStorage as PiAuthStorageClass,
-  ModelRegistry as PiModelRegistryClass,
-  type AuthStorage,
-  type ModelRegistry,
-} from "@earendil-works/pi-coding-agent";
+import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import {
@@ -28,7 +23,12 @@ import {
   shouldSuppressBuiltInModel,
 } from "../model-suppression.js";
 import { isLegacyModelsAddCodexMetadataModel } from "../openai-codex-models-add-legacy.js";
-import { discoverAuthStorage, discoverModels } from "../pi-model-discovery.js";
+import {
+  createRuntimeCredentialStore,
+  discoverAuthStorage,
+  discoverModels,
+  type RuntimeCredentialStore,
+} from "../pi-model-discovery.js";
 import {
   attachModelProviderRequestTransport,
   resolveProviderRequestConfig,
@@ -92,18 +92,14 @@ const STATIC_PROVIDER_RUNTIME_HOOKS: ProviderRuntimeHooks = {
   normalizeProviderTransportWithPlugin: () => undefined,
 };
 
-function createEmptyPiDiscoveryStores(): {
-  authStorage: AuthStorage;
+async function createEmptyPiDiscoveryStores(): Promise<{
+  authStorage: RuntimeCredentialStore;
   modelRegistry: ModelRegistry;
-} {
-  const authStorage =
-    typeof PiAuthStorageClass.inMemory === "function"
-      ? PiAuthStorageClass.inMemory({})
-      : PiAuthStorageClass.create();
-  const modelRegistry =
-    typeof PiModelRegistryClass.inMemory === "function"
-      ? PiModelRegistryClass.inMemory(authStorage)
-      : PiModelRegistryClass.create(authStorage);
+}> {
+  const authStorage: RuntimeCredentialStore = createRuntimeCredentialStore({});
+  const modelRegistry = await discoverModels(authStorage, resolveGenesisAgentDir(), {
+    modelsPath: null,
+  });
   return { authStorage, modelRegistry };
 }
 
@@ -708,30 +704,31 @@ export function resolveModelWithRegistry(params: {
   return resolveConfiguredFallbackModel(normalizedParams);
 }
 
-export function resolveModel(
+export async function resolveModel(
   provider: string,
   modelId: string,
   agentDir?: string,
   cfg?: GenesisConfig,
   options?: {
-    authStorage?: AuthStorage;
+    authStorage?: RuntimeCredentialStore;
     modelRegistry?: ModelRegistry;
     runtimeHooks?: ProviderRuntimeHooks;
     skipProviderRuntimeHooks?: boolean;
   },
-): {
+): Promise<{
   model?: Model<Api>;
   error?: string;
-  authStorage: AuthStorage;
+  authStorage: RuntimeCredentialStore;
   modelRegistry: ModelRegistry;
-} {
+}> {
   const normalizedRef = {
     provider,
     model: normalizeStaticProviderModelId(normalizeProviderId(provider), modelId),
   };
   const resolvedAgentDir = agentDir ?? resolveGenesisAgentDir();
   const authStorage = options?.authStorage ?? discoverAuthStorage(resolvedAgentDir);
-  const modelRegistry = options?.modelRegistry ?? discoverModels(authStorage, resolvedAgentDir);
+  const modelRegistry =
+    options?.modelRegistry ?? (await discoverModels(authStorage, resolvedAgentDir));
   const runtimeHooks = resolveRuntimeHooks(options);
   const model = resolveModelWithRegistry({
     provider: normalizedRef.provider,
@@ -764,7 +761,7 @@ export async function resolveModelAsync(
   agentDir?: string,
   cfg?: GenesisConfig,
   options?: {
-    authStorage?: AuthStorage;
+    authStorage?: RuntimeCredentialStore;
     modelRegistry?: ModelRegistry;
     retryTransientProviderRuntimeMiss?: boolean;
     runtimeHooks?: ProviderRuntimeHooks;
@@ -774,7 +771,7 @@ export async function resolveModelAsync(
 ): Promise<{
   model?: Model<Api>;
   error?: string;
-  authStorage: AuthStorage;
+  authStorage: RuntimeCredentialStore;
   modelRegistry: ModelRegistry;
 }> {
   const normalizedRef = {
@@ -784,7 +781,7 @@ export async function resolveModelAsync(
   const resolvedAgentDir = agentDir ?? resolveGenesisAgentDir();
   const emptyDiscoveryStores =
     options?.skipPiDiscovery && (!options.authStorage || !options.modelRegistry)
-      ? createEmptyPiDiscoveryStores()
+      ? await createEmptyPiDiscoveryStores()
       : undefined;
   const authStorage =
     options?.authStorage ??
@@ -793,7 +790,7 @@ export async function resolveModelAsync(
   const modelRegistry =
     options?.modelRegistry ??
     emptyDiscoveryStores?.modelRegistry ??
-    discoverModels(authStorage, resolvedAgentDir);
+    (await discoverModels(authStorage, resolvedAgentDir));
   const runtimeHooks = resolveRuntimeHooks(options);
   const explicitModel = resolveExplicitModelWithRegistry({
     provider: normalizedRef.provider,

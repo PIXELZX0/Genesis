@@ -72,6 +72,7 @@ import {
   consumeCompactionSafeguardCancelReason,
   setCompactionSafeguardCancelReason,
 } from "../pi-hooks/compaction-safeguard-runtime.js";
+import { createPiModelRuntime } from "../pi-model-discovery.js";
 import { createPreparedEmbeddedPiSettingsManager } from "../pi-project-settings.js";
 import { applyPiCompactionSettingsFromConfig } from "../pi-settings.js";
 import { createGenesisCodingTools } from "../pi-tools.js";
@@ -159,7 +160,7 @@ function createCompactionDiagId(): string {
 }
 
 function prepareCompactionSessionAgent(params: {
-  session: { agent: { streamFn?: unknown } };
+  session: { agent: { streamFunction?: unknown } };
   providerStreamFn: unknown;
   shouldUseWebSocketTransport: boolean;
   wsApiKey?: string;
@@ -177,7 +178,7 @@ function prepareCompactionSessionAgent(params: {
   agentDir: string;
   runtimePlan?: AgentRuntimePlan;
 }) {
-  params.session.agent.streamFn = resolveEmbeddedAgentStreamFn({
+  params.session.agent.streamFunction = resolveEmbeddedAgentStreamFn({
     currentStreamFn: resolveEmbeddedAgentBaseStreamFn({ session: params.session as never }),
     providerStreamFn: params.providerStreamFn as never,
     shouldUseWebSocketTransport: params.shouldUseWebSocketTransport,
@@ -194,8 +195,8 @@ function prepareCompactionSessionAgent(params: {
     workspaceDir: params.effectiveWorkspace,
   });
   if (providerTextTransforms) {
-    params.session.agent.streamFn = wrapStreamFnTextTransforms({
-      streamFn: params.session.agent.streamFn as never,
+    params.session.agent.streamFunction = wrapStreamFnTextTransforms({
+      streamFunction: params.session.agent.streamFunction as never,
       input: providerTextTransforms.input,
       output: providerTextTransforms.output,
       transformSystemPrompt: false,
@@ -358,7 +359,7 @@ export async function compactEmbeddedPiSessionDirect(
   };
   const agentDir = params.agentDir ?? resolveGenesisAgentDir();
   await ensureGenesisModelsJson(params.config, agentDir);
-  const { model, error, authStorage, modelRegistry } = await resolveModelAsync(
+  const { model, error, authStorage } = await resolveModelAsync(
     provider,
     modelId,
     agentDir,
@@ -861,6 +862,7 @@ export async function compactEmbeddedPiSessionDirect(
       // Pi treats `tools` as a name allowlist during session creation. Pass the
       // exact Genesis-managed registrations so custom tools survive startup.
       const sessionToolAllowlist = toSessionToolAllowlist(collectRegisteredToolNames(customTools));
+      const modelRuntime = await createPiModelRuntime(authStorage, `${agentDir}/models.json`);
 
       const providerStreamFn = resolveCompactionProviderStream({
         effectiveModel,
@@ -894,8 +896,7 @@ export async function compactEmbeddedPiSessionDirect(
           const createdSession = await createAgentSession({
             cwd: effectiveWorkspace,
             agentDir,
-            authStorage,
-            modelRegistry,
+            modelRuntime,
             model: effectiveModel,
             thinkingLevel: mapThinkingLevel(thinkLevel),
             tools: sessionToolAllowlist,

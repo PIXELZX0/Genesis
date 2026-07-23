@@ -28,7 +28,7 @@ function findConfiguredRegistryModel(params: {
   return model;
 }
 
-export function loadConfiguredListModelRegistry(
+export async function loadConfiguredListModelRegistry(
   cfg: GenesisConfig,
   entries: ConfiguredEntry[],
   opts?: { providerFilter?: string },
@@ -39,7 +39,7 @@ export function loadConfiguredListModelRegistry(
     readOnly: true,
     resolveSyntheticAuth: false,
   });
-  const registry = discoverModels(authStorage, agentDir, {
+  const registry = await discoverModels(authStorage, agentDir, {
     providerFilter: opts?.providerFilter,
     allowPluginNormalization: false,
   });

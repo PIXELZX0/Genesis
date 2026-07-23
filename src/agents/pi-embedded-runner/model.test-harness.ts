@@ -128,9 +128,9 @@ export function mockGoogleGeminiCliFlashTemplateModel(
 }
 
 export function resetMockDiscoverModels(discoverModelsMock: DiscoverModelsMock): void {
-  vi.mocked(discoverModelsMock).mockReturnValue({
+  vi.mocked(discoverModelsMock).mockResolvedValue({
     find: vi.fn(() => null),
-  } as unknown as ReturnType<DiscoverModelsMock>);
+  } as unknown as Awaited<ReturnType<DiscoverModelsMock>>);
 }
 
 export function mockDiscoveredModel(
@@ -141,12 +141,12 @@ export function mockDiscoveredModel(
     templateModel: unknown;
   },
 ): void {
-  vi.mocked(discoverModelsMock).mockReturnValue({
+  vi.mocked(discoverModelsMock).mockResolvedValue({
     find: vi.fn((provider: string, modelId: string) => {
       if (provider === params.provider && modelId === params.modelId) {
         return params.templateModel;
       }
       return null;
     }),
-  } as unknown as ReturnType<DiscoverModelsMock>);
+  } as unknown as Awaited<ReturnType<DiscoverModelsMock>>);
 }

@@ -236,7 +236,7 @@ describe("compactEmbeddedPiSessionDirect hooks", () => {
     });
     const session = {
       agent: {
-        streamFn: vi.fn(),
+        streamFunction: vi.fn(),
       },
       messages: [{ role: "user", content: "hello" }],
     };
@@ -267,7 +267,7 @@ describe("compactEmbeddedPiSessionDirect hooks", () => {
     );
     expect(applyExtraParamsToAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        streamFn: resolvedStreamFn,
+        streamFunction: resolvedStreamFn,
       }),
       undefined,
       "openai",

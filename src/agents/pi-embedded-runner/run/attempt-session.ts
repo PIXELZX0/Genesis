@@ -3,6 +3,7 @@ import type { CreateAgentSessionOptions } from "@earendil-works/pi-coding-agent"
 export type EmbeddedAgentSessionOptions = {
   cwd: string;
   agentDir: string;
+  modelRuntime?: CreateAgentSessionOptions["modelRuntime"];
   authStorage: unknown;
   modelRegistry: unknown;
   model: unknown;

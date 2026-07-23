@@ -602,14 +602,15 @@ export const agentHandlers: GatewayRequestHandlers = {
           isPrimaryRun:
             !isSubagentSessionKey(requestedSessionKey) && !isAcpSessionKey(requestedSessionKey),
           isCanonicalWorkspace,
-          hasBootstrapFileAccess: resolveBareResetBootstrapFileAccess({
-            cfg: resetCfg,
-            agentId: resetSessionAgentId,
-            sessionKey: requestedSessionKey,
-            workspaceDir: runtimeWorkspaceDir,
-            modelProvider: resetEffectiveModelRef.provider,
-            modelId: resetEffectiveModelRef.model,
-          }),
+          hasBootstrapFileAccess: async () =>
+            resolveBareResetBootstrapFileAccess({
+              cfg: resetCfg,
+              agentId: resetSessionAgentId,
+              sessionKey: requestedSessionKey,
+              workspaceDir: runtimeWorkspaceDir,
+              modelProvider: resetEffectiveModelRef.provider,
+              modelId: resetEffectiveModelRef.model,
+            }),
         });
         // Keep bare /new and /reset behavior aligned with chat.send:
         // reset first, then run a fresh-session greeting prompt in-place.

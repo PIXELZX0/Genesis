@@ -8,15 +8,40 @@ const mocks = vi.hoisted(() => ({
   formatOpenAIOAuthTlsPreflightFix: vi.fn(),
 }));
 
-vi.mock("@earendil-works/pi-ai/oauth", async () => {
-  const actual = await vi.importActual<typeof import("@earendil-works/pi-ai/oauth")>(
-    "@earendil-works/pi-ai/oauth",
-  );
-  return {
-    ...actual,
-    loginOpenAICodex: mocks.loginOpenAICodex,
-  };
-});
+vi.mock("@earendil-works/pi-ai/providers/openai-codex", () => ({
+  openaiCodexProvider: () => ({
+    auth: {
+      oauth: {
+        login: async (interaction: {
+          prompt: (prompt: {
+            type: "text" | "manual_code";
+            message: string;
+            placeholder?: string;
+          }) => Promise<string>;
+          notify: (event: {
+            type: "auth_url" | "progress";
+            url?: string;
+            message?: string;
+          }) => void;
+        }) =>
+          await mocks.loginOpenAICodex({
+            originator: "genesis",
+            onAuth: async (event: { url: string }) =>
+              interaction.notify({ type: "auth_url", url: event.url }),
+            onPrompt: (prompt: { message: string; placeholder?: string }) =>
+              interaction.prompt({
+                type: "text",
+                message: prompt.message,
+                placeholder: prompt.placeholder,
+              }),
+            onManualCodeInput: () =>
+              interaction.prompt({ type: "manual_code", message: "Paste the authorization code" }),
+            onProgress: (message: string) => interaction.notify({ type: "progress", message }),
+          }),
+      },
+    },
+  }),
+}));
 
 vi.mock("./provider-openai-codex-oauth-tls.js", () => ({
   runOpenAIOAuthTlsPreflight: mocks.runOpenAIOAuthTlsPreflight,

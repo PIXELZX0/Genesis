@@ -141,7 +141,7 @@ function mapThinkingLevelToEffort(level: ThinkingLevel, modelId: string): Anthro
 }
 
 function clampReasoningLevel(level: ThinkingLevel): "minimal" | "low" | "medium" | "high" {
-  return level === "xhigh" ? "high" : level;
+  return level === "xhigh" || level === "max" ? "high" : level;
 }
 
 function resolvePositiveAnthropicMaxTokens(value: unknown): number | undefined {

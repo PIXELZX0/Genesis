@@ -820,6 +820,8 @@ export type ProviderCreateStreamFnContext = {
 export type ProviderWrapStreamFnContext = ProviderPrepareExtraParamsContext & {
   model?: ProviderRuntimeModel;
   streamFn?: StreamFn;
+  /** Internal 0.81+ Agent property alias. Prefer `streamFn` in plugins. */
+  streamFunction?: StreamFn;
 };
 
 /**

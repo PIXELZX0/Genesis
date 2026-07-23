@@ -354,7 +354,13 @@ export function registerAmazonBedrockPlugin(api: GenesisPluginApi): void {
       // Apply cache + guardrail wrapping.
       const wrapped =
         currentGuardrail?.guardrailIdentifier && currentGuardrail?.guardrailVersion
-          ? createGuardrailWrapStreamFn(baseWrapStreamFn, currentGuardrail)({ modelId, streamFn })
+          ? createGuardrailWrapStreamFn(
+              baseWrapStreamFn,
+              currentGuardrail,
+            )({
+              modelId,
+              streamFn,
+            })
           : baseWrapStreamFn({ modelId, streamFn });
       const region = resolveBedrockRegion(config) ?? extractRegionFromBaseUrl(model?.baseUrl);
       const mayNeedCacheInjection =

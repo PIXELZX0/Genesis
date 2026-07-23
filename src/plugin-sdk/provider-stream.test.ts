@@ -29,12 +29,12 @@ function requireWrapStreamFn(
   return wrapStreamFn;
 }
 
-function requireStreamFn(streamFn: StreamFn | null | undefined) {
-  expect(streamFn).toBeTypeOf("function");
-  if (!streamFn) {
+function requireStreamFn(streamFunction: StreamFn | null | undefined) {
+  expect(streamFunction).toBeTypeOf("function");
+  if (!streamFunction) {
     throw new Error("expected wrapped streamFn to be defined");
   }
-  return streamFn;
+  return streamFunction;
 }
 
 describe("composeProviderStreamWrappers", () => {
@@ -56,10 +56,10 @@ describe("composeProviderStreamWrappers", () => {
 
     const wrap =
       (label: string) =>
-      (streamFn: StreamFn | undefined): StreamFn =>
+      (streamFunction: StreamFn | undefined): StreamFn =>
       (model, context, options) => {
         order.push(`${label}:before`);
-        const result = (streamFn ?? baseStreamFn)(model, context, options);
+        const result = (streamFunction ?? baseStreamFn)(model, context, options);
         order.push(`${label}:after`);
         return result;
       };

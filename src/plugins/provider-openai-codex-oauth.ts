@@ -1,4 +1,5 @@
-import { loginOpenAICodex, type OAuthCredentials } from "@earendil-works/pi-ai/oauth";
+import { openaiCodexProvider } from "@earendil-works/pi-ai/providers/openai-codex";
+import type { OAuthCredentials } from "../agents/auth-profiles/types.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { ensureGlobalUndiciEnvProxyDispatcher } from "../infra/net/undici-global-dispatcher.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -11,11 +12,22 @@ import {
 } from "./provider-openai-codex-oauth-tls.js";
 
 const manualInputPromptMessage = "Paste the authorization code (or full redirect URL):";
-const openAICodexOAuthOriginator = "genesis";
 const localManualFallbackDelayMs = 15_000;
 const localManualFallbackGraceMs = 1_000;
 
 type OpenAICodexOAuthFailureCode = "callback_timeout" | "callback_validation_failed";
+
+function stripOAuthCredentialType(credential: {
+  access: string;
+  refresh: string;
+  expires: number;
+  type?: string;
+  [key: string]: unknown;
+}): OAuthCredentials {
+  const { type: _type, ...rest } = credential;
+  void _type;
+  return rest as OAuthCredentials;
+}
 
 function waitForDelayOrLoginSettle(params: {
   delayMs: number;
@@ -173,22 +185,60 @@ export async function loginOpenAICodexOAuth(params: {
       await baseOnAuth(event);
     };
 
-    const creds = await loginOpenAICodex({
-      onAuth,
-      onPrompt,
-      originator: openAICodexOAuthOriginator,
-      onManualCodeInput: createManualCodeInputHandler({
-        isRemote,
-        onPrompt,
-        runtime,
-        spin,
-        waitForLoginToSettle,
-        hasBrowserAuthStarted: () => browserAuthStarted,
-      }),
-      onProgress: (msg: string) => spin.update(msg),
+    const oauth = openaiCodexProvider().auth.oauth;
+    if (!oauth) {
+      throw new Error("OpenAI Codex OAuth flow is not available in this build");
+    }
+    const creds = await oauth.login({
+      signal: undefined,
+      prompt: async (prompt) => {
+        if (prompt.type === "select") {
+          // Preserve the previous flow, which only supported the browser path.
+          const browser = prompt.options.find((option) => option.id === "browser");
+          return (browser ?? prompt.options[0])?.id ?? "browser";
+        }
+        if (prompt.type === "manual_code") {
+          const handler = createManualCodeInputHandler({
+            isRemote,
+            onPrompt,
+            runtime,
+            spin,
+            waitForLoginToSettle,
+            hasBrowserAuthStarted: () => browserAuthStarted,
+          });
+          if (!handler) {
+            throw new Error("OpenAI Codex OAuth manual code input is unavailable");
+          }
+          const value = await handler();
+          if (value) {
+            return value;
+          }
+          throw new Error("OpenAI Codex OAuth manual code input was cancelled");
+        }
+        return onPrompt({
+          message: prompt.message,
+          placeholder: prompt.placeholder,
+        });
+      },
+      notify: (event) => {
+        if (event.type === "auth_url") {
+          void onAuth({ url: event.url });
+          return;
+        }
+        if (event.type === "progress") {
+          spin.update(event.message);
+          return;
+        }
+        if (event.type === "info") {
+          spin.update(event.message);
+        }
+      },
     });
     spin.stop("OpenAI OAuth complete");
-    return creds ?? null;
+    if (!creds) {
+      return null;
+    }
+    return stripOAuthCredentialType(creds);
   } catch (err) {
     spin.stop("OpenAI OAuth failed");
     const rewrittenError = rewriteOpenAICodexOAuthError(err);

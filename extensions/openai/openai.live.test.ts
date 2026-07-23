@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { InMemoryCredentialStore } from "@earendil-works/pi-ai";
 import { getModel } from "@earendil-works/pi-ai/compat";
-import { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import { ModelRegistry, ModelRuntime } from "@earendil-works/pi-coding-agent";
 import type { ResolvedTtsConfig } from "genesis/plugin-sdk/agent-runtime";
 import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import { loadConfig } from "genesis/plugin-sdk/config-runtime";
@@ -23,9 +24,6 @@ const LIVE_VISION_MODEL = process.env.GENESIS_LIVE_OPENAI_VISION_MODEL?.trim() |
 const liveEnabled = OPENAI_API_KEY.trim().length > 0 && process.env.GENESIS_LIVE_TEST === "1";
 const describeLive = liveEnabled ? describe : describe.skip;
 const EMPTY_AUTH_STORE = { version: 1, profiles: {} } as const;
-const ModelRegistryCtor = ModelRegistry as unknown as {
-  new (authStorage: AuthStorage, modelsJsonPath?: string): ModelRegistry;
-};
 
 function resolveTemplateModelId(modelId: string) {
   switch (modelId) {
@@ -42,8 +40,12 @@ function resolveTemplateModelId(modelId: string) {
   }
 }
 
-function createTemplateModelRegistry(modelId: string): ModelRegistry {
-  const registry = new ModelRegistryCtor(AuthStorage.inMemory());
+async function createTemplateModelRegistry(modelId: string): Promise<ModelRegistry> {
+  const runtime = await ModelRuntime.create({
+    credentials: new InMemoryCredentialStore(),
+    modelsPath: null,
+  });
+  const registry = new ModelRegistry(runtime);
   const template = getModel("openai", resolveTemplateModelId(modelId));
   registry.registerProvider("openai", {
     apiKey: "test",
@@ -186,7 +188,7 @@ describeLive("openai plugin live", () => {
     const resolved = provider.resolveDynamicModel?.({
       provider: "openai",
       modelId: LIVE_MODEL_ID,
-      modelRegistry: createTemplateModelRegistry(LIVE_MODEL_ID),
+      modelRegistry: await createTemplateModelRegistry(LIVE_MODEL_ID),
     });
 
     if (!resolved) {

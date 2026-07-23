@@ -115,7 +115,7 @@ export async function loadModelRegistry(cfg: GenesisConfig, opts?: { providerFil
     readOnly: true,
     resolveSyntheticAuth: false,
   });
-  const registry = discoverModels(authStorage, agentDir, {
+  const registry = await discoverModels(authStorage, agentDir, {
     providerFilter: opts?.providerFilter,
     allowPluginNormalization: false,
   });

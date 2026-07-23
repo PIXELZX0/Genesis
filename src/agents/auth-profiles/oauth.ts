@@ -1,9 +1,3 @@
-import {
-  getOAuthApiKey,
-  getOAuthProviders,
-  type OAuthCredentials,
-  type OAuthProvider,
-} from "@earendil-works/pi-ai/oauth";
 import { loadConfig } from "../../config/config.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { coerceSecretRef } from "../../config/types.secrets.js";
@@ -23,7 +17,12 @@ import { createOAuthManager, OAuthManagerRefreshError } from "./oauth-manager.js
 import { assertNoOAuthSecretRefPolicyViolations } from "./policy.js";
 import { suggestOAuthProfileIdForLegacyDefault } from "./repair.js";
 import { loadAuthProfileStoreForSecretsRuntime } from "./store.js";
-import type { AuthProfileStore, OAuthCredential } from "./types.js";
+import type {
+  AuthProfileStore,
+  OAuthCredential,
+  OAuthCredentials,
+  OAuthProvider,
+} from "./types.js";
 
 export {
   isSafeToCopyOAuthIdentity,
@@ -35,24 +34,10 @@ export {
 export type { OAuthMirrorDecision, OAuthMirrorDecisionReason } from "./oauth-identity.js";
 
 function listOAuthProviderIds(): string[] {
-  if (typeof getOAuthProviders !== "function") {
-    return [];
-  }
-  const providers = getOAuthProviders();
-  if (!Array.isArray(providers)) {
-    return [];
-  }
-  return providers
-    .map((provider) =>
-      provider &&
-      typeof provider === "object" &&
-      "id" in provider &&
-      typeof provider.id === "string"
-        ? provider.id
-        : undefined,
-    )
-    .filter((providerId): providerId is string => typeof providerId === "string");
+  return STATIC_OAUTH_PROVIDER_IDS;
 }
+
+const STATIC_OAUTH_PROVIDER_IDS: string[] = ["anthropic", "openai-codex", "github-copilot", "xai"];
 
 const OAUTH_PROVIDER_IDS = new Set<string>(listOAuthProviderIds());
 
@@ -61,6 +46,24 @@ const isOAuthProvider = (provider: string): provider is OAuthProvider =>
 
 const resolveOAuthProvider = (provider: string): OAuthProvider | null =>
   isOAuthProvider(provider) ? provider : null;
+
+async function loadLegacyGetOAuthApiKey(): Promise<
+  | ((
+      provider: string,
+      credentials: Record<string, OAuthCredentials>,
+    ) => Promise<{ newCredentials?: OAuthCredentials } | null>)
+  | undefined
+> {
+  // pi-ai 0.81 removed this legacy export. Dynamic loading preserves the
+  // extension-provided refresh fallback when older compatibility shims supply it.
+  const legacy = (await import("@earendil-works/pi-ai/oauth")) as unknown as {
+    getOAuthApiKey?: (
+      provider: string,
+      credentials: Record<string, OAuthCredentials>,
+    ) => Promise<{ newCredentials?: OAuthCredentials } | null>;
+  };
+  return legacy.getOAuthApiKey;
+}
 
 /** Bearer-token auth modes that are interchangeable (oauth tokens and raw tokens). */
 const BEARER_AUTH_MODES = new Set(["oauth", "token"]);
@@ -147,7 +150,11 @@ async function refreshOAuthCredential(
   }
 
   const oauthProvider = resolveOAuthProvider(credential.provider);
-  if (!oauthProvider || typeof getOAuthApiKey !== "function") {
+  if (!oauthProvider) {
+    return null;
+  }
+  const getOAuthApiKey = await loadLegacyGetOAuthApiKey();
+  if (typeof getOAuthApiKey !== "function") {
     return null;
   }
   const result = await getOAuthApiKey(oauthProvider, {

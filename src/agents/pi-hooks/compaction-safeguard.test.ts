@@ -80,6 +80,7 @@ function stubSessionManager(): ExtensionContext["sessionManager"] {
     getBranch: () => [],
     getHeader: () => null,
     getEntries: () => [],
+    buildContextEntries: () => [],
     getTree: () => [],
     getSessionName: () => undefined,
   };

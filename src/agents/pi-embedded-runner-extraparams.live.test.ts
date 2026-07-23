@@ -35,11 +35,11 @@ describeLive("pi embedded extra params (live)", () => {
       },
     };
 
-    const agent = { streamFn: streamSimple };
+    const agent = { streamFunction: streamSimple };
 
     applyExtraParamsToAgent(agent, cfg, "openai", model.id);
 
-    const stream = agent.streamFn(
+    const stream = agent.streamFunction(
       model,
       {
         messages: [
@@ -182,9 +182,9 @@ describeGeminiLive("pi embedded extra params (gemini live)", () => {
       options?.onPayload?.(payload);
       return {} as ReturnType<typeof streamSimple>;
     };
-    const agent = { streamFn: baseStreamFn as typeof streamSimple };
+    const agent = { streamFunction: baseStreamFn as typeof streamSimple };
     applyExtraParamsToAgent(agent, undefined, "google", params.model.id, undefined, "high");
-    void agent.streamFn(
+    void agent.streamFunction(
       params.model,
       { messages: [] },
       {

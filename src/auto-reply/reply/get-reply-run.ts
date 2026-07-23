@@ -411,7 +411,7 @@ export async function runPreparedReply(
           workspaceDir,
           isPrimaryRun: !isSubagentSessionKey(sessionKey) && !isAcpSessionKey(sessionKey),
           isCanonicalWorkspace: !spawnedWorkspaceOverride,
-          hasBootstrapFileAccess: () =>
+          hasBootstrapFileAccess: async () =>
             resolveBareResetBootstrapFileAccess({
               cfg,
               agentId,

@@ -1,19 +1,37 @@
-import {
-  getOAuthApiKey as getOAuthApiKeyFromPi,
-  refreshOpenAICodexToken as refreshOpenAICodexTokenFromPi,
-} from "@earendil-works/pi-ai/oauth";
+import { openaiCodexProvider } from "@earendil-works/pi-ai/providers/openai-codex";
 import { ensureGlobalUndiciEnvProxyDispatcher } from "genesis/plugin-sdk/runtime-env";
 
-export async function getOAuthApiKey(
-  ...args: Parameters<typeof getOAuthApiKeyFromPi>
-): Promise<Awaited<ReturnType<typeof getOAuthApiKeyFromPi>>> {
+type OpenAICodexRefreshed = {
+  access: string;
+  refresh: string;
+  expires: number;
+  accountId?: string;
+  [key: string]: unknown;
+};
+
+export async function refreshOpenAICodexToken(refreshToken: string): Promise<OpenAICodexRefreshed> {
   ensureGlobalUndiciEnvProxyDispatcher();
-  return await getOAuthApiKeyFromPi(...args);
+  const oauth = openaiCodexProvider().auth.oauth;
+  if (!oauth) {
+    throw new Error("OpenAI Codex OAuth flow is not available in this build");
+  }
+  const refreshed = await oauth.refresh({
+    type: "oauth",
+    access: "",
+    refresh: refreshToken,
+    expires: 0,
+  });
+  return {
+    access: refreshed.access,
+    refresh: refreshed.refresh,
+    expires: refreshed.expires,
+    ...(refreshed as Record<string, unknown>),
+  };
 }
 
-export async function refreshOpenAICodexToken(
-  ...args: Parameters<typeof refreshOpenAICodexTokenFromPi>
-): Promise<Awaited<ReturnType<typeof refreshOpenAICodexTokenFromPi>>> {
+export async function getOAuthApiKey(): Promise<never> {
   ensureGlobalUndiciEnvProxyDispatcher();
-  return await refreshOpenAICodexTokenFromPi(...args);
+  throw new Error(
+    "getOAuthApiKey from pi-ai/oauth is no longer available in 0.81+. Use loginOpenAICodexOAuth for the full interactive flow instead.",
+  );
 }

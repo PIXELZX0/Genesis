@@ -111,7 +111,7 @@ function resolveTrustedToolsEffectiveContext(params: {
 }
 
 export const toolsEffectiveHandlers: GatewayRequestHandlers = {
-  "tools.effective": ({ params, respond, client }) => {
+  "tools.effective": async ({ params, respond, client }) => {
     if (!validateToolsEffectiveParams(params)) {
       respond(
         false,
@@ -145,7 +145,7 @@ export const toolsEffectiveHandlers: GatewayRequestHandlers = {
     }
     respond(
       true,
-      resolveEffectiveToolInventory({
+      await resolveEffectiveToolInventory({
         cfg: trustedContext.cfg,
         agentId: trustedContext.agentId,
         sessionKey: params.sessionKey,

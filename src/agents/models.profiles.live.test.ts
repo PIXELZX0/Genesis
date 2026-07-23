@@ -714,7 +714,7 @@ describeLive("live models (profile keys)", () => {
       const authStorage = discoverAuthStorage(agentDir);
       logProgress("[live-models] loading model registry");
       const models = await withLiveStageTimeout(
-        Promise.resolve().then(() => discoverModels(authStorage, agentDir).getAll()),
+        discoverModels(authStorage, agentDir).then((registry) => registry.getAll()),
         "[live-models] load model registry",
       );
 

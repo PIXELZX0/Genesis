@@ -1,5 +1,4 @@
 export {
-  AuthStorage,
   addEnvBackedPiCredentials,
   discoverAuthStorage,
   discoverModels,

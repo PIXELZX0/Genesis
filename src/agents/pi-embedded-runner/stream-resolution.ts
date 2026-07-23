@@ -10,13 +10,13 @@ import type { EmbeddedRunAttemptParams } from "./run/types.js";
 let embeddedAgentBaseStreamFnCache = new WeakMap<object, StreamFn | undefined>();
 
 export function resolveEmbeddedAgentBaseStreamFn(params: {
-  session: { agent: { streamFn?: StreamFn } };
+  session: { agent: { streamFunction?: StreamFn } };
 }): StreamFn | undefined {
   const cached = embeddedAgentBaseStreamFnCache.get(params.session);
   if (cached !== undefined || embeddedAgentBaseStreamFnCache.has(params.session)) {
     return cached;
   }
-  const baseStreamFn = params.session.agent.streamFn;
+  const baseStreamFn = params.session.agent.streamFunction;
   embeddedAgentBaseStreamFnCache.set(params.session, baseStreamFn);
   return baseStreamFn;
 }
@@ -52,13 +52,23 @@ export function describeEmbeddedAgentStreamStrategy(params: {
 export async function resolveEmbeddedAgentApiKey(params: {
   provider: string;
   resolvedApiKey?: string;
-  authStorage?: { getApiKey(provider: string): Promise<string | undefined> };
+  authStorage?: {
+    getApiKey?(provider: string): Promise<string | undefined>;
+    read?(provider: string): Promise<unknown>;
+  };
 }): Promise<string | undefined> {
   const resolvedApiKey = params.resolvedApiKey?.trim();
   if (resolvedApiKey) {
     return resolvedApiKey;
   }
-  return params.authStorage ? await params.authStorage.getApiKey(params.provider) : undefined;
+  const authStorage = params.authStorage;
+  if (!authStorage) {
+    return undefined;
+  }
+  if (typeof authStorage.getApiKey === "function") {
+    return await authStorage.getApiKey(params.provider);
+  }
+  return undefined;
 }
 
 export function resolveEmbeddedAgentStreamFn(params: {

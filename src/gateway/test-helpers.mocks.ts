@@ -1,4 +1,3 @@
-import path from "node:path";
 import { vi } from "vitest";
 import { createGatewayConfigModuleMock } from "./test-helpers.config-runtime.js";
 import {
@@ -99,69 +98,20 @@ vi.mock("../agents/pi-model-discovery.js", async () => {
     "../agents/pi-model-discovery.js",
   );
 
-  const createActualRegistry = (...args: Parameters<typeof actual.discoverModels>) => {
-    const modelsFile = path.join(args[1], "models.json");
-    const Registry = actual.ModelRegistry as unknown as {
-      create?: (
-        authStorage: unknown,
-        modelsFile: string,
-      ) => {
-        getAll: () => Array<{ provider?: string; id?: string }>;
-        getAvailable: () => Array<{ provider?: string; id?: string }>;
-        find: (provider: string, modelId: string) => unknown;
-      };
-      new (
-        authStorage: unknown,
-        modelsFile: string,
-      ): {
-        getAll: () => Array<{ provider?: string; id?: string }>;
-        getAvailable: () => Array<{ provider?: string; id?: string }>;
-        find: (provider: string, modelId: string) => unknown;
-      };
-    };
-    if (typeof Registry.create === "function") {
-      return Registry.create(args[0], modelsFile);
-    }
-    return new Registry(args[0], modelsFile);
-  };
-
-  class MockModelRegistry {
-    private readonly actualRegistry?: ReturnType<typeof createActualRegistry>;
-
-    constructor(authStorage: unknown, modelsFile: string) {
-      if (!piSdkMock.enabled) {
-        this.actualRegistry = createActualRegistry(authStorage as never, path.dirname(modelsFile));
-      }
-    }
-
-    getAll() {
-      if (!piSdkMock.enabled) {
-        return this.actualRegistry?.getAll() ?? [];
-      }
-      piSdkMock.discoverCalls += 1;
-      return piSdkMock.models as Array<{ provider?: string; id?: string }>;
-    }
-
-    getAvailable() {
-      if (!piSdkMock.enabled) {
-        return this.actualRegistry?.getAvailable() ?? [];
-      }
-      return piSdkMock.models as Array<{ provider?: string; id?: string }>;
-    }
-
-    find(provider: string, modelId: string) {
-      if (!piSdkMock.enabled) {
-        return this.actualRegistry?.find(provider, modelId);
-      }
-      return (piSdkMock.models as Array<{ provider?: string; id?: string }>).find(
-        (model) => model.provider === provider && model.id === modelId,
-      );
-    }
-  }
-
   return {
     ...actual,
-    ModelRegistry: MockModelRegistry,
+    discoverModels: async (...args: Parameters<typeof actual.discoverModels>) => {
+      if (!piSdkMock.enabled) {
+        return await actual.discoverModels(...args);
+      }
+      piSdkMock.discoverCalls += 1;
+      return {
+        getAll: () => piSdkMock.models,
+        getAvailable: () => piSdkMock.models,
+        find: (provider: string, modelId: string) =>
+          piSdkMock.models.find((model) => model.provider === provider && model.id === modelId),
+      } as Awaited<ReturnType<typeof actual.discoverModels>>;
+    },
   };
 });
 

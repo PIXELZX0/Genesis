@@ -84,33 +84,35 @@ function disambiguateLabels(entries: EffectiveToolInventoryEntry[]): EffectiveTo
   });
 }
 
-function resolveEffectiveModelCompat(params: {
+async function resolveEffectiveModelCompat(params: {
   cfg: GenesisConfig;
   agentDir: string;
   modelProvider?: string;
   modelId?: string;
-}) {
+}): Promise<ReturnType<typeof extractModelCompat> | undefined> {
   const provider = params.modelProvider?.trim();
   const modelId = params.modelId?.trim();
   if (!provider || !modelId) {
     return undefined;
   }
   try {
-    return extractModelCompat(resolveModel(provider, modelId, params.agentDir, params.cfg).model);
+    return extractModelCompat(
+      (await resolveModel(provider, modelId, params.agentDir, params.cfg)).model,
+    );
   } catch {
     return undefined;
   }
 }
 
-export function resolveEffectiveToolInventory(
+export async function resolveEffectiveToolInventory(
   params: ResolveEffectiveToolInventoryParams,
-): EffectiveToolInventoryResult {
+): Promise<EffectiveToolInventoryResult> {
   const agentId =
     params.agentId?.trim() ||
     resolveSessionAgentId({ sessionKey: params.sessionKey, config: params.cfg });
   const workspaceDir = params.workspaceDir ?? resolveAgentWorkspaceDir(params.cfg, agentId);
   const agentDir = params.agentDir ?? resolveAgentDir(params.cfg, agentId);
-  const modelCompat = resolveEffectiveModelCompat({
+  const modelCompat = await resolveEffectiveModelCompat({
     cfg: params.cfg,
     agentDir,
     modelProvider: params.modelProvider,

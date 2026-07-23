@@ -35,12 +35,9 @@ function mockCatalogImportFailThenRecover() {
     }
     return {
       discoverAuthStorage: () => ({}),
-      AuthStorage: function AuthStorage() {},
-      ModelRegistry: class {
-        getAll() {
-          return [{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }];
-        }
-      },
+      discoverModels: async () => ({
+        getAll: () => [{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }],
+      }),
     } as unknown as PiSdkModule;
   });
   return () => call;
@@ -51,12 +48,7 @@ function mockPiDiscoveryModels(models: unknown[]) {
     async () =>
       ({
         discoverAuthStorage: () => ({}),
-        AuthStorage: function AuthStorage() {},
-        ModelRegistry: class {
-          getAll() {
-            return models;
-          }
-        },
+        discoverModels: async () => ({ getAll: () => models }),
       }) as unknown as PiSdkModule,
   );
 }
@@ -131,21 +123,18 @@ describe("loadModelCatalog", () => {
         async () =>
           ({
             discoverAuthStorage: () => ({}),
-            AuthStorage: function AuthStorage() {},
-            ModelRegistry: class {
-              getAll() {
-                return [
-                  { id: "gpt-4.1", name: "GPT-4.1", provider: "openai" },
-                  {
-                    get id() {
-                      throw new Error("boom");
-                    },
-                    provider: "openai",
-                    name: "bad",
+            discoverModels: async () => ({
+              getAll: () => [
+                { id: "gpt-4.1", name: "GPT-4.1", provider: "openai" },
+                {
+                  get id() {
+                    throw new Error("boom");
                   },
-                ];
-              }
-            },
+                  provider: "openai",
+                  name: "bad",
+                },
+              ],
+            }),
           }) as unknown as PiSdkModule,
       );
 
@@ -163,12 +152,9 @@ describe("loadModelCatalog", () => {
       async () =>
         ({
           discoverAuthStorage,
-          AuthStorage: function AuthStorage() {},
-          ModelRegistry: class {
-            getAll() {
-              return [{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }];
-            }
-          },
+          discoverModels: async () => ({
+            getAll: () => [{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }],
+          }),
         }) as unknown as PiSdkModule,
     );
 

@@ -18,6 +18,7 @@ const openaiModel = {
   id: "gpt-5.5",
   input: ["text"],
   reasoning: true,
+  baseUrl: "https://api.openai.com/v1",
 } as Model<"openai-responses">;
 
 const codexModel = {
@@ -80,7 +81,7 @@ describe("OpenAI thinking contract", () => {
   it("serializes OpenAI Responses reasoning effort from pi-ai simple options", async () => {
     const payload = await captureProviderPayload({
       model: openaiModel,
-      streamFn: streamSimpleOpenAIResponses,
+      streamFunction: streamSimpleOpenAIResponses,
       options: { reasoning: "high" },
     });
 
@@ -90,7 +91,7 @@ describe("OpenAI thinking contract", () => {
   it("serializes Codex Responses reasoning effort from pi-ai simple options", async () => {
     const payload = await captureProviderPayload({
       model: codexModel,
-      streamFn: streamSimpleOpenAICodexResponses,
+      streamFunction: streamSimpleOpenAICodexResponses,
       options: { reasoning: "high", transport: "sse" },
     });
 
@@ -100,7 +101,7 @@ describe("OpenAI thinking contract", () => {
   it("leaves Codex Responses reasoning absent when pi-agent-core disables thinking", async () => {
     const payload = await captureProviderPayload({
       model: codexModel,
-      streamFn: streamSimpleOpenAICodexResponses,
+      streamFunction: streamSimpleOpenAICodexResponses,
       options: { transport: "sse" },
     });
 
@@ -110,7 +111,7 @@ describe("OpenAI thinking contract", () => {
   it("keeps OpenAI Responses reasoning explicitly disabled when pi-agent-core disables thinking", async () => {
     const payload = await captureProviderPayload({
       model: openaiModel,
-      streamFn: streamSimpleOpenAIResponses,
+      streamFunction: streamSimpleOpenAIResponses,
       options: {},
     });
 
@@ -160,7 +161,7 @@ async function captureProviderPayload<
   TApi extends "openai-responses" | "openai-codex-responses",
 >(params: {
   model: Model<TApi>;
-  streamFn: (
+  streamFunction: (
     model: Model<TApi>,
     context: Context,
     options?: SimpleStreamOptions,
@@ -172,7 +173,7 @@ async function captureProviderPayload<
       () => reject(new Error(`provider payload callback was not invoked for ${params.model.api}`)),
       1_000,
     );
-    const stream = params.streamFn(
+    const stream = params.streamFunction(
       params.model,
       {
         messages: [{ role: "user", content: "hello", timestamp: 0 }],

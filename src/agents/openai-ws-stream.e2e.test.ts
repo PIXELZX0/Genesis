@@ -89,7 +89,7 @@ function makeToolResultMessage(
 }
 
 async function runWebsocketToolFollowupTurn(params: {
-  streamFn: ReturnType<StreamFactory>;
+  streamFunction: ReturnType<StreamFactory>;
   context: StreamFnParams[1];
   firstDone: AssistantMessage;
   toolCallId: string;
@@ -106,7 +106,7 @@ async function runWebsocketToolFollowupTurn(params: {
 
   return expectDone(
     await collectEvents(
-      params.streamFn(model, secondContext, {
+      params.streamFunction(model, secondContext, {
         transport: "websocket",
         maxTokens: 128,
       }),
@@ -283,7 +283,7 @@ describe("OpenAI WebSocket e2e", () => {
       expect(toolCall?.id).toBeTruthy();
 
       const secondDone = await runWebsocketToolFollowupTurn({
-        streamFn,
+        streamFunction: streamFn,
         context: firstContext,
         firstDone,
         toolCallId: toolCall!.id,
@@ -360,7 +360,7 @@ describe("OpenAI WebSocket e2e", () => {
       );
 
       const secondDone = await runWebsocketToolFollowupTurn({
-        streamFn,
+        streamFunction: streamFn,
         context: firstContext,
         firstDone,
         toolCallId: toolCall!.id,

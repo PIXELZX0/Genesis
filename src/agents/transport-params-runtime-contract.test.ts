@@ -103,7 +103,7 @@ describe("transport params runtime contract (Pi/OpenAI path)", () => {
     const { agent, calls } = createOptionsCaptureAgent();
     applyExtraParamsToAgent(agent, undefined, "openai", "gpt-5.4");
 
-    void agent.streamFn?.(
+    void agent.streamFunction?.(
       {
         api: "openai-responses",
         provider: "openai",
@@ -125,7 +125,10 @@ describe("transport params runtime contract (Pi/OpenAI path)", () => {
       prepareProviderExtraParams: () => undefined,
       resolveProviderExtraParamsForTransport: () => undefined,
       wrapProviderStreamFn: (params) =>
-        createOpenAIThinkingLevelWrapper(params.context.streamFn, params.context.thinkingLevel),
+        createOpenAIThinkingLevelWrapper(
+          params.context.streamFunction,
+          params.context.thinkingLevel,
+        ),
     });
 
     const payload = runPayloadMutation({
@@ -158,7 +161,7 @@ describe("transport params runtime contract (Pi/OpenAI path)", () => {
         preparedByProvider: true,
       }),
       resolveProviderExtraParamsForTransport,
-      wrapProviderStreamFn: (params) => params.context.streamFn,
+      wrapProviderStreamFn: (params) => params.context.streamFunction,
     });
 
     const prepared = resolvePreparedExtraParams({
@@ -204,7 +207,7 @@ function runPayloadMutation(params: {
     options?.onPayload?.(payload, model);
     return {} as ReturnType<StreamFn>;
   };
-  const agent = { streamFn: baseStreamFn };
+  const agent = { streamFunction: baseStreamFn };
   applyExtraParamsToAgent(
     agent,
     undefined,
@@ -214,7 +217,7 @@ function runPayloadMutation(params: {
     params.thinkingLevel,
   );
   const context: Context = { messages: [] };
-  void agent.streamFn?.(params.model, context, {} as SimpleStreamOptions);
+  void agent.streamFunction?.(params.model, context, {} as SimpleStreamOptions);
   return payload;
 }
 
@@ -222,7 +225,7 @@ function installNoopProviderRuntimeDeps() {
   extraParamsTesting.setProviderRuntimeDepsForTest({
     prepareProviderExtraParams: () => undefined,
     resolveProviderExtraParamsForTransport: () => undefined,
-    wrapProviderStreamFn: (params) => params.context.streamFn,
+    wrapProviderStreamFn: (params) => params.context.streamFunction,
   });
 }
 
@@ -234,6 +237,6 @@ function createOptionsCaptureAgent() {
   };
   return {
     calls,
-    agent: { streamFn: baseStreamFn },
+    agent: { streamFunction: baseStreamFn },
   };
 }

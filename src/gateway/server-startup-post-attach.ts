@@ -115,7 +115,7 @@ async function prewarmConfiguredPrimaryModel(params: {
   const agentDir = resolveGenesisAgentDir();
   try {
     await ensureGenesisModelsJson(params.cfg, agentDir);
-    const resolved = resolveModel(provider, model, agentDir, params.cfg, {
+    const resolved = await resolveModel(provider, model, agentDir, params.cfg, {
       skipProviderRuntimeHooks: true,
     });
     if (!resolved.model) {

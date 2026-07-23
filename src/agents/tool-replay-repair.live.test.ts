@@ -191,7 +191,7 @@ describeLive("tool replay repair live", () => {
 
         const agentDir = resolveGenesisAgentDir();
         const authStorage = discoverAuthStorage(agentDir);
-        const modelRegistry = discoverModels(authStorage, agentDir);
+        const modelRegistry = await discoverModels(authStorage, agentDir);
         const model = modelRegistry.find(target.provider, target.modelId) as Model<Api> | null;
 
         if (!model) {
@@ -306,7 +306,7 @@ describeLive("tool replay repair live", () => {
 
         const agentDir = resolveGenesisAgentDir();
         const authStorage = discoverAuthStorage(agentDir);
-        const modelRegistry = discoverModels(authStorage, agentDir);
+        const modelRegistry = await discoverModels(authStorage, agentDir);
         const model = modelRegistry.find(target.provider, target.modelId) as Model<Api> | null;
 
         if (!model) {

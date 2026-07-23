@@ -127,7 +127,7 @@ export const handleToolsCommand: CommandHandler = async (params, allowTextComman
       config: params.cfg,
       hasRepliedRef: undefined,
     });
-    const result = resolveEffectiveToolInventory({
+    const result = await resolveEffectiveToolInventory({
       cfg: params.cfg,
       agentId,
       sessionKey: params.sessionKey,

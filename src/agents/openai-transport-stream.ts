@@ -9,6 +9,7 @@ import {
   type Api,
   type Context,
   type Model,
+  type OpenAICompletionsCompat,
 } from "@earendil-works/pi-ai/compat";
 import OpenAI, { AzureOpenAI } from "openai";
 import type { ChatCompletionChunk } from "openai/resources/chat/completions.js";
@@ -1537,7 +1538,11 @@ function getCompat(model: OpenAIModeModel): {
   visibleReasoningDetailTypes: string[];
 } {
   const detected = detectCompat(model);
-  const compat = model.compat ?? {};
+  const compat = (model.compat ?? {}) as OpenAICompletionsCompat &
+    Pick<
+      ModelCompatConfig,
+      "supportsPromptCacheKey" | "requiresStringContent" | "visibleReasoningDetailTypes"
+    >;
   const supportsStore =
     typeof compat.supportsStore === "boolean" ? compat.supportsStore : detected.supportsStore;
   const supportsReasoningEffort =

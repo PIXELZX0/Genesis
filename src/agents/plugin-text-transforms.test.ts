@@ -122,7 +122,7 @@ describe("plugin text transforms", () => {
     };
 
     const wrapped = wrapStreamFnTextTransforms({
-      streamFn: baseStreamFn,
+      streamFunction: baseStreamFn,
       input: [{ from: /red basket/g, to: "blue basket" }],
       output: [
         { from: /blue basket/g, to: "red basket" },

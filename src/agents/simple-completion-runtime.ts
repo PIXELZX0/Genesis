@@ -159,7 +159,7 @@ export async function prepareSimpleCompletionModel(params: {
   preferredProfile?: string;
   allowMissingApiKeyModes?: ReadonlyArray<AllowedMissingApiKeyMode>;
 }): Promise<PreparedSimpleCompletionModel> {
-  const resolved = resolveModel(params.provider, params.modelId, params.agentDir, params.cfg);
+  const resolved = await resolveModel(params.provider, params.modelId, params.agentDir, params.cfg);
   if (!resolved.model) {
     return {
       error: resolved.error ?? `Unknown model: ${params.provider}/${params.modelId}`,

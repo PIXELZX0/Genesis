@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import { loadConfig } from "../config/config.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -8,7 +7,7 @@ import {
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
 import { resolveGenesisAgentDir } from "./agent-paths.js";
-import type { ModelCatalogEntry, ModelInputType } from "./model-catalog.types.js";
+import type { ModelCatalogEntry } from "./model-catalog.types.js";
 import { ensureGenesisModelsJson } from "./models-config.js";
 import { readPiAiPackageMtimeMs } from "./pi-ai-package.js";
 import { normalizeProviderId } from "./provider-id.js";
@@ -17,25 +16,7 @@ const log = createSubsystemLogger("model-catalog");
 
 export type { ModelCatalogEntry, ModelInputType } from "./model-catalog.types.js";
 
-type DiscoveredModel = {
-  id: string;
-  name?: string;
-  provider: string;
-  contextWindow?: number;
-  reasoning?: boolean;
-  input?: ModelInputType[];
-};
-
 type PiSdkModule = typeof import("./pi-model-discovery-runtime.js");
-type PiRegistryInstance =
-  | Array<DiscoveredModel>
-  | {
-      getAll: () => Array<DiscoveredModel>;
-    };
-type PiRegistryClassLike = {
-  create?: (authStorage: unknown, modelsFile: string) => PiRegistryInstance;
-  new (authStorage: unknown, modelsFile: string): PiRegistryInstance;
-};
 
 let modelCatalogPromise: Promise<ModelCatalogEntry[]> | null = null;
 let cachedPiAiPackageMtimeMs: number | null = null;
@@ -67,18 +48,6 @@ export function resetModelCatalogCacheForTest() {
 // Test-only escape hatch: allow mocking the dynamic import to simulate transient failures.
 export function __setModelCatalogImportForTest(loader?: () => Promise<PiSdkModule>) {
   importPiSdk = loader ?? defaultImportPiSdk;
-}
-
-function instantiatePiModelRegistry(
-  piSdk: PiSdkModule,
-  authStorage: unknown,
-  modelsFile: string,
-): PiRegistryInstance {
-  const Registry = piSdk.ModelRegistry as unknown as PiRegistryClassLike;
-  if (typeof Registry.create === "function") {
-    return Registry.create(authStorage, modelsFile);
-  }
-  return new Registry(authStorage, modelsFile);
 }
 
 export async function loadModelCatalog(params?: {
@@ -143,13 +112,9 @@ export async function loadModelCatalog(params?: {
         readOnly ? { readOnly: true, resolveSyntheticAuth: false } : undefined,
       );
       logStage("auth-storage-ready");
-      const registry = instantiatePiModelRegistry(
-        piSdk,
-        authStorage,
-        join(agentDir, "models.json"),
-      );
+      const registry = await piSdk.discoverModels(authStorage, agentDir);
       logStage("registry-ready");
-      const entries = Array.isArray(registry) ? registry : registry.getAll();
+      const entries = registry.getAll();
       logStage("registry-read", `entries=${entries.length}`);
       for (const entry of entries) {
         const id = normalizeOptionalString(entry?.id) ?? "";

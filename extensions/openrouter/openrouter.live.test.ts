@@ -1,4 +1,5 @@
-import { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import { InMemoryCredentialStore } from "@earendil-works/pi-ai";
+import { ModelRegistry, ModelRuntime } from "@earendil-works/pi-coding-agent";
 import OpenAI from "openai";
 import { describe, expect, it } from "vitest";
 import {
@@ -16,9 +17,13 @@ const liveEnabled = OPENROUTER_API_KEY.trim().length > 0 && process.env.GENESIS_
 const describeLive = liveEnabled ? describe : describe.skip;
 const describeCacheLive =
   liveEnabled && process.env.GENESIS_LIVE_CACHE_TEST === "1" ? describe : describe.skip;
-const ModelRegistryCtor = ModelRegistry as unknown as {
-  new (authStorage: AuthStorage, modelsJsonPath?: string): ModelRegistry;
-};
+async function createModelRegistry(): Promise<ModelRegistry> {
+  const runtime = await ModelRuntime.create({
+    credentials: new InMemoryCredentialStore(),
+    modelsPath: null,
+  });
+  return new ModelRegistry(runtime);
+}
 
 const registerOpenRouterPlugin = async () =>
   registerProviderPlugin({
@@ -57,7 +62,7 @@ describeLive("openrouter plugin live", () => {
     const resolved = provider.resolveDynamicModel?.({
       provider: "openrouter",
       modelId: LIVE_MODEL_ID,
-      modelRegistry: new ModelRegistryCtor(AuthStorage.inMemory()),
+      modelRegistry: await createModelRegistry(),
     });
     if (!resolved) {
       throw new Error(`openrouter provider did not resolve ${LIVE_MODEL_ID}`);
@@ -91,7 +96,7 @@ describeCacheLive("openrouter plugin live cache", () => {
     const resolved = provider.resolveDynamicModel?.({
       provider: "openrouter",
       modelId: LIVE_CACHE_MODEL_ID,
-      modelRegistry: new ModelRegistryCtor(AuthStorage.inMemory()),
+      modelRegistry: await createModelRegistry(),
     });
     if (!resolved) {
       throw new Error(`openrouter provider did not resolve ${LIVE_CACHE_MODEL_ID}`);

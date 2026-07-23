@@ -51,7 +51,7 @@ export function runExtraParamsCase<
     options?.onPayload?.(params.payload, model);
     return createMockStream();
   };
-  const agent = { streamFn: baseStreamFn };
+  const agent = { streamFunction: baseStreamFn };
 
   if (params.mockProviderRuntime === true) {
     extraParamsTesting.setProviderRuntimeDepsForTest({
@@ -76,7 +76,7 @@ export function runExtraParamsCase<
   }
 
   const context: Context = { messages: [] };
-  void agent.streamFn?.(params.model, context, {
+  void agent.streamFunction?.(params.model, context, {
     ...params.options,
     headers: params.callerHeaders ?? params.options?.headers,
   });

@@ -167,7 +167,7 @@ export async function resolveLiveDirectModel(params: {
   await ensureGenesisModelsJson(cfg);
   const agentDir = resolveGenesisAgentDir();
   const authStorage = discoverAuthStorage(agentDir);
-  const models = discoverModels(authStorage, agentDir).getAll();
+  const models = (await discoverModels(authStorage, agentDir)).getAll();
 
   const rawModel = process.env[params.envVar]?.trim();
   const parsed = rawModel ? parseModelRef(rawModel, params.provider) : null;

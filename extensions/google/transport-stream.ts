@@ -226,12 +226,12 @@ function getGoogleThinkingBudget(
   effort: ThinkingLevel,
   customBudgets?: GoogleTransportOptions["thinkingBudgets"],
 ): number | undefined {
-  const normalizedEffort = effort === "xhigh" ? "high" : effort;
+  const normalizedEffort = effort === "xhigh" || effort === "max" ? "high" : effort;
   if (customBudgets?.[normalizedEffort] !== undefined) {
     return customBudgets[normalizedEffort];
   }
   if (modelId.includes("2.5-pro")) {
-    return { minimal: 128, low: 2048, medium: 8192, high: 32768 }[normalizedEffort];
+    return { minimal: 128, low: 2048, medium: 8192, high: 32768, max: 32768 }[normalizedEffort];
   }
   if (modelId.includes("2.5-flash")) {
     return { minimal: 128, low: 2048, medium: 8192, high: 24576 }[normalizedEffort];

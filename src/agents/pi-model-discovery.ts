@@ -1,10 +1,11 @@
 import path from "node:path";
-import type { Api, Model } from "@earendil-works/pi-ai";
-import * as PiCodingAgent from "@earendil-works/pi-coding-agent";
-import type {
-  AuthStorage as PiAuthStorage,
-  ModelRegistry as PiModelRegistry,
+import { InMemoryCredentialStore } from "@earendil-works/pi-ai";
+import type { Api, CredentialStore, Model } from "@earendil-works/pi-ai";
+import {
+  ModelRegistry as PiModelRegistryClass,
+  ModelRuntime,
 } from "@earendil-works/pi-coding-agent";
+import type { ModelRegistry as PiModelRegistry } from "@earendil-works/pi-coding-agent";
 import { normalizeModelCompat } from "../plugins/provider-model-compat.js";
 import {
   applyProviderResolvedModelCompatWithPlugins,
@@ -20,10 +21,7 @@ import {
 } from "./pi-auth-discovery.js";
 import { normalizeProviderId } from "./provider-id.js";
 
-const PiAuthStorageClass = PiCodingAgent.AuthStorage;
-const PiModelRegistryClass = PiCodingAgent.ModelRegistry;
-
-export { PiAuthStorageClass as AuthStorage, PiModelRegistryClass as ModelRegistry };
+export { PiModelRegistryClass as ModelRegistry };
 
 type ProviderRuntimeModelLike = Model<Api> & {
   contextTokens?: number;
@@ -36,35 +34,57 @@ type DiscoveredProviderRuntimeModelLike = Omit<ProviderRuntimeModelLike, "api"> 
 type DiscoverModelsOptions = {
   providerFilter?: string;
   allowPluginNormalization?: boolean;
+  modelsPath?: string | null;
 };
 
-type InMemoryAuthStorageBackendLike = {
-  withLock<T>(
-    update: (current: string) => {
-      result: T;
-      next?: string;
+export type RuntimeCredentialStore = CredentialStore & {
+  setRuntimeApiKey(providerId: string, apiKey: string): void;
+  removeRuntimeApiKey(providerId: string): void;
+  hasRuntimeApiKey(providerId: string): boolean;
+  getApiKey(providerId: string): Promise<string | undefined>;
+};
+
+export function createRuntimeCredentialStore(creds: PiCredentialMap): RuntimeCredentialStore {
+  const store = new InMemoryCredentialStore();
+  const overrides = new Map<string, string>();
+  const wrapper: RuntimeCredentialStore = {
+    setRuntimeApiKey(providerId, apiKey) {
+      overrides.set(providerId, apiKey);
     },
-  ): T;
-};
-
-function createInMemoryAuthStorageBackend(
-  initialData: PiCredentialMap,
-): InMemoryAuthStorageBackendLike {
-  let snapshot = JSON.stringify(initialData, null, 2);
-  return {
-    withLock<T>(
-      update: (current: string) => {
-        result: T;
-        next?: string;
-      },
-    ): T {
-      const { result, next } = update(snapshot);
-      if (typeof next === "string") {
-        snapshot = next;
+    removeRuntimeApiKey(providerId) {
+      overrides.delete(providerId);
+    },
+    hasRuntimeApiKey(providerId) {
+      return overrides.has(providerId);
+    },
+    async getApiKey(providerId) {
+      const override = overrides.get(providerId);
+      if (override !== undefined) {
+        return override;
       }
-      return result;
+      const credential = await store.read(providerId);
+      if (credential && credential.type === "api_key") {
+        return credential.key;
+      }
+      return undefined;
     },
+    read(providerId) {
+      const override = overrides.get(providerId);
+      if (override !== undefined) {
+        return Promise.resolve({ type: "api_key", key: override } as never);
+      }
+      return store.read(providerId);
+    },
+    list: () => store.list(),
+    modify: (providerId, fn) => store.modify(providerId, fn),
+    delete: (providerId) => store.delete(providerId),
   };
+  for (const [providerId, credential] of Object.entries(creds)) {
+    if (credential && (credential.type === "api_key" || credential.type === "oauth")) {
+      void store.modify(providerId, async () => credential as never);
+    }
+  }
+  return wrapper;
 }
 
 export function normalizeDiscoveredPiModel<T>(
@@ -128,29 +148,29 @@ export function normalizeDiscoveredPiModel<T>(
   return normalizeModelCompat(transportNormalized as Model<Api>) as T;
 }
 
-type PiModelRegistryClassLike = {
-  create?: (authStorage: PiAuthStorage, modelsJsonPath: string) => PiModelRegistry;
-  new (authStorage: PiAuthStorage, modelsJsonPath: string): PiModelRegistry;
-};
+export async function createPiModelRuntime(
+  authStorage: CredentialStore,
+  modelsPath: string | null,
+) {
+  return await ModelRuntime.create({
+    credentials: authStorage,
+    modelsPath,
+  });
+}
 
-function instantiatePiModelRegistry(
-  authStorage: PiAuthStorage,
-  modelsJsonPath: string,
-): PiModelRegistry {
-  const Registry = PiModelRegistryClass as unknown as PiModelRegistryClassLike;
-  if (typeof Registry.create === "function") {
-    return Registry.create(authStorage, modelsJsonPath);
-  }
-  return new Registry(authStorage, modelsJsonPath);
+async function instantiatePiModelRegistry(
+  authStorage: CredentialStore,
+  modelsPath: string | null,
+): Promise<PiModelRegistry> {
+  const runtime = await createPiModelRuntime(authStorage, modelsPath);
+  return new PiModelRegistryClass(runtime);
 }
 
 function createGenesisModelRegistry(
-  authStorage: PiAuthStorage,
-  modelsJsonPath: string,
+  registry: PiModelRegistry,
   agentDir: string,
   options?: DiscoverModelsOptions,
 ): PiModelRegistry {
-  const registry = instantiatePiModelRegistry(authStorage, modelsJsonPath);
   const getAll = registry.getAll.bind(registry);
   const getAvailable = registry.getAvailable.bind(registry);
   const find = registry.find.bind(registry);
@@ -172,75 +192,35 @@ function createGenesisModelRegistry(
   return registry;
 }
 
-function createAuthStorage(AuthStorageLike: unknown, path: string, creds: PiCredentialMap) {
-  const withInMemory = AuthStorageLike as { inMemory?: (data?: unknown) => unknown };
-  if (typeof withInMemory.inMemory === "function") {
-    return withInMemory.inMemory(creds) as PiAuthStorage;
-  }
-
-  const withFromStorage = AuthStorageLike as {
-    fromStorage?: (storage: unknown) => unknown;
-  };
-  if (typeof withFromStorage.fromStorage === "function") {
-    const backendCtor = (
-      PiCodingAgent as { InMemoryAuthStorageBackend?: new () => InMemoryAuthStorageBackendLike }
-    ).InMemoryAuthStorageBackend;
-    const backend =
-      typeof backendCtor === "function"
-        ? new backendCtor()
-        : createInMemoryAuthStorageBackend(creds);
-    backend.withLock(() => ({
-      result: undefined,
-      next: JSON.stringify(creds, null, 2),
-    }));
-    return withFromStorage.fromStorage(backend) as PiAuthStorage;
-  }
-
-  const withFactory = AuthStorageLike as { create?: (path: string) => unknown };
-  const withRuntimeOverride = (
-    typeof withFactory.create === "function"
-      ? withFactory.create(path)
-      : new (AuthStorageLike as { new (path: string): unknown })(path)
-  ) as PiAuthStorage & {
-    setRuntimeApiKey?: (provider: string, apiKey: string) => void; // pragma: allowlist secret
-  };
-  const hasRuntimeApiKeyOverride = typeof withRuntimeOverride.setRuntimeApiKey === "function"; // pragma: allowlist secret
-  if (hasRuntimeApiKeyOverride) {
-    for (const [provider, credential] of Object.entries(creds)) {
-      if (credential.type === "api_key") {
-        withRuntimeOverride.setRuntimeApiKey(provider, credential.key);
-        continue;
-      }
-      withRuntimeOverride.setRuntimeApiKey(provider, credential.access);
-    }
-  }
-  return withRuntimeOverride;
+function createAuthStorage(_path: string, creds: PiCredentialMap): RuntimeCredentialStore {
+  return createRuntimeCredentialStore(creds);
 }
 
 // Compatibility helpers for pi-coding-agent 0.50+ (discover* helpers removed).
 export function discoverAuthStorage(
   agentDir: string,
   options?: DiscoverAuthStorageOptions,
-): PiAuthStorage {
+): RuntimeCredentialStore {
   const credentials = resolvePiCredentialsForDiscovery(agentDir, options);
   const authPath = path.join(agentDir, "auth.json");
   if (options?.readOnly !== true) {
     scrubLegacyStaticAuthJsonEntriesForDiscovery(authPath);
   }
-  return createAuthStorage(PiAuthStorageClass, authPath, credentials);
+  return createAuthStorage(authPath, credentials);
 }
 
-export function discoverModels(
-  authStorage: PiAuthStorage,
+export async function discoverModels(
+  authStorage: CredentialStore,
   agentDir: string,
   options?: DiscoverModelsOptions,
-): PiModelRegistry {
-  return createGenesisModelRegistry(
+): Promise<PiModelRegistry> {
+  const registry = await instantiatePiModelRegistry(
     authStorage,
-    path.join(agentDir, "models.json"),
-    agentDir,
-    options,
+    options && "modelsPath" in options
+      ? (options.modelsPath ?? null)
+      : path.join(agentDir, "models.json"),
   );
+  return createGenesisModelRegistry(registry, agentDir, options);
 }
 
 export {

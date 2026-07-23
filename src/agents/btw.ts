@@ -266,7 +266,7 @@ async function resolveRuntimeModel(params: {
 }> {
   await ensureGenesisModelsJson(params.cfg, params.agentDir);
   const authStorage = discoverAuthStorage(params.agentDir);
-  const modelRegistry = discoverModels(authStorage, params.agentDir);
+  const modelRegistry = await discoverModels(authStorage, params.agentDir);
   const model = resolveModelWithRegistry({
     provider: params.provider,
     modelId: params.model,

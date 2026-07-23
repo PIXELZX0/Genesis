@@ -2,8 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { Api, Model } from "@earendil-works/pi-ai";
-import type { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
+import type { RuntimeCredentialStore } from "../../pi-model-discovery.js";
 import type { AnyAgentTool } from "../../pi-tools.types.js";
 import { buildEmbeddedAttemptToolRunContext } from "./attempt.tool-run-context.js";
 
@@ -27,7 +28,7 @@ function createAttemptParams(workspaceDir: string) {
       input: ["text"],
       contextWindow: 128_000,
     } as Model<Api>,
-    authStorage: {} as AuthStorage,
+    authStorage: {} as RuntimeCredentialStore,
     modelRegistry: {} as ModelRegistry,
     thinkLevel: "off" as const,
     trigger: "memory" as const,

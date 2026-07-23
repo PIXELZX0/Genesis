@@ -146,7 +146,7 @@ function wrapStreamTextTransforms(
 }
 
 export function wrapStreamFnTextTransforms(params: {
-  streamFn: StreamFn;
+  streamFunction: StreamFn;
   input?: PluginTextReplacement[];
   output?: PluginTextReplacement[];
   transformSystemPrompt?: boolean;
@@ -155,7 +155,7 @@ export function wrapStreamFnTextTransforms(params: {
     const nextContext = transformStreamContextText(context, params.input, {
       systemPrompt: params.transformSystemPrompt,
     });
-    const maybeStream = params.streamFn(model, nextContext, options);
+    const maybeStream = params.streamFunction(model, nextContext, options);
     if (maybeStream && typeof maybeStream === "object" && "then" in maybeStream) {
       return Promise.resolve(maybeStream).then((stream) =>
         wrapStreamTextTransforms(stream, params.output),

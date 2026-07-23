@@ -62,7 +62,7 @@ function createCacheFetchMock(params: { name: string; expireTime: string }) {
 
 function createCapturingStreamFn(result = "stream") {
   let capturedPayload: Record<string, unknown> | undefined;
-  const streamFn = vi.fn(
+  const streamFunction = vi.fn(
     (
       model: Parameters<StreamFn>[0],
       _context: Parameters<StreamFn>[1],
@@ -75,7 +75,7 @@ function createCapturingStreamFn(result = "stream") {
     },
   );
   return {
-    streamFn,
+    streamFunction,
     getCapturedPayload: () => capturedPayload,
   };
 }
@@ -84,7 +84,7 @@ function preparePromptCacheStream(params: {
   fetchMock: ReturnType<typeof vi.fn>;
   now: number;
   sessionManager: ReturnType<typeof makeSessionManager>;
-  streamFn: StreamFn;
+  streamFunction: StreamFn;
 }) {
   return prepareGooglePromptCacheStreamFn(
     {
@@ -94,7 +94,7 @@ function preparePromptCacheStream(params: {
       modelId: "gemini-3.1-pro-preview",
       provider: "google",
       sessionManager: params.sessionManager,
-      streamFn: params.streamFn,
+      streamFunction: params.streamFunction,
       systemPrompt: "Follow policy.",
     },
     {
@@ -113,13 +113,13 @@ describe("google prompt cache", () => {
       name: "cachedContents/system-cache-1",
       expireTime: new Date(now + 3_600_000).toISOString(),
     });
-    const { streamFn: innerStreamFn, getCapturedPayload } = createCapturingStreamFn();
+    const { streamFunction: innerStreamFn, getCapturedPayload } = createCapturingStreamFn();
 
     const wrapped = await preparePromptCacheStream({
       fetchMock,
       now,
       sessionManager,
-      streamFn: innerStreamFn,
+      streamFunction: innerStreamFn,
     });
 
     expect(wrapped).toBeTypeOf("function");
@@ -190,16 +190,16 @@ describe("google prompt cache", () => {
       fetchMock,
       now,
       sessionManager,
-      streamFn: vi.fn(() => "first" as never),
+      streamFunction: vi.fn(() => "first" as never),
     });
 
     fetchMock.mockClear();
-    const { streamFn: innerStreamFn, getCapturedPayload } = createCapturingStreamFn("second");
+    const { streamFunction: innerStreamFn, getCapturedPayload } = createCapturingStreamFn("second");
     const wrapped = await preparePromptCacheStream({
       fetchMock,
       now: now + 30_000,
       sessionManager,
-      streamFn: innerStreamFn,
+      streamFunction: innerStreamFn,
     });
 
     void wrapped?.(
@@ -248,13 +248,13 @@ describe("google prompt cache", () => {
       name: "cachedContents/system-cache-3",
       expireTime: new Date(now + 3_600_000).toISOString(),
     });
-    const { streamFn: innerStreamFn, getCapturedPayload } = createCapturingStreamFn();
+    const { streamFunction: innerStreamFn, getCapturedPayload } = createCapturingStreamFn();
 
     const wrapped = await preparePromptCacheStream({
       fetchMock,
       now,
       sessionManager,
-      streamFn: innerStreamFn,
+      streamFunction: innerStreamFn,
     });
 
     void wrapped?.(
@@ -292,7 +292,7 @@ describe("google prompt cache", () => {
         modelId: "gemini-3.1-pro-preview",
         provider: "google",
         sessionManager: makeSessionManager(),
-        streamFn: vi.fn(() => "stream" as never),
+        streamFunction: vi.fn(() => "stream" as never),
         systemPrompt: "Follow policy.",
       },
       {

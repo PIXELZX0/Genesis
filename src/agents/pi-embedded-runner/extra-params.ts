@@ -326,7 +326,7 @@ function createStreamFnWithExtraParams(
     const debugParams = initialCacheRetention
       ? { ...streamParams, cacheRetention: initialCacheRetention }
       : streamParams;
-    log.debug(`creating streamFn wrapper with params: ${JSON.stringify(debugParams)}`);
+    log.debug(`creating streamFunction wrapper with params: ${JSON.stringify(debugParams)}`);
   }
 
   const underlying = baseStreamFn ?? streamSimple;
@@ -462,7 +462,7 @@ function createOpenAICompletionsExtraBodyWrapper(
 }
 
 type ApplyExtraParamsContext = {
-  agent: { streamFn?: StreamFn };
+  agent: { streamFunction?: StreamFn };
   cfg: GenesisConfig | undefined;
   provider: string;
   modelId: string;
@@ -477,15 +477,15 @@ type ApplyExtraParamsContext = {
 
 function applyPrePluginStreamWrappers(ctx: ApplyExtraParamsContext): void {
   const wrappedStreamFn = createStreamFnWithExtraParams(
-    ctx.agent.streamFn,
+    ctx.agent.streamFunction,
     ctx.effectiveExtraParams,
     ctx.provider,
     ctx.model,
   );
 
   if (wrappedStreamFn) {
-    log.debug(`applying extraParams to agent streamFn for ${ctx.provider}/${ctx.modelId}`);
-    ctx.agent.streamFn = wrappedStreamFn;
+    log.debug(`applying extraParams to agent streamFunction for ${ctx.provider}/${ctx.modelId}`);
+    ctx.agent.streamFunction = wrappedStreamFn;
   }
 
   if (
@@ -498,26 +498,29 @@ function applyPrePluginStreamWrappers(ctx: ApplyExtraParamsContext): void {
     log.debug(
       `normalizing thinking=off to thinking=null for SiliconFlow compatibility (${ctx.provider}/${ctx.modelId})`,
     );
-    ctx.agent.streamFn = createSiliconFlowThinkingWrapper(ctx.agent.streamFn);
+    ctx.agent.streamFunction = createSiliconFlowThinkingWrapper(ctx.agent.streamFunction);
   }
 }
 
 function applyPostPluginStreamWrappers(
   ctx: ApplyExtraParamsContext & { providerWrapperHandled: boolean },
 ): void {
-  ctx.agent.streamFn = createOpenRouterSystemCacheWrapper(ctx.agent.streamFn);
-  ctx.agent.streamFn = createOpenAIStringContentWrapper(ctx.agent.streamFn);
+  ctx.agent.streamFunction = createOpenRouterSystemCacheWrapper(ctx.agent.streamFunction);
+  ctx.agent.streamFunction = createOpenAIStringContentWrapper(ctx.agent.streamFunction);
 
   if (!ctx.providerWrapperHandled) {
     // Guard Google-family payloads against invalid negative thinking budgets
     // emitted by upstream model-ID heuristics for Gemini 3.1 variants.
-    ctx.agent.streamFn = createGoogleThinkingPayloadWrapper(ctx.agent.streamFn, ctx.thinkingLevel);
+    ctx.agent.streamFunction = createGoogleThinkingPayloadWrapper(
+      ctx.agent.streamFunction,
+      ctx.thinkingLevel,
+    );
 
     // Work around upstream pi-ai hardcoding `store: false` for Responses API.
     // Force `store=true` for direct OpenAI Responses models and auto-enable
     // server-side compaction for compatible Responses payloads.
-    ctx.agent.streamFn = createOpenAIResponsesContextManagementWrapper(
-      ctx.agent.streamFn,
+    ctx.agent.streamFunction = createOpenAIResponsesContextManagementWrapper(
+      ctx.agent.streamFunction,
       ctx.effectiveExtraParams,
     );
   }
@@ -525,7 +528,7 @@ function applyPostPluginStreamWrappers(
   // MiniMax's Anthropic-compatible stream can leak reasoning_content into the
   // visible reply path because it does not emit native Anthropic thinking
   // blocks. Disable thinking unless an earlier wrapper already set it.
-  ctx.agent.streamFn = createMinimaxThinkingDisabledWrapper(ctx.agent.streamFn);
+  ctx.agent.streamFunction = createMinimaxThinkingDisabledWrapper(ctx.agent.streamFunction);
 
   const rawExtraBody = resolveAliasedParamValue(
     [ctx.effectiveExtraParams, ctx.override],
@@ -534,9 +537,12 @@ function applyPostPluginStreamWrappers(
   );
   const extraBody = resolveExtraBodyParam(rawExtraBody);
   if (extraBody) {
-    ctx.agent.streamFn = createOpenAICompletionsExtraBodyWrapper(ctx.agent.streamFn, extraBody);
+    ctx.agent.streamFunction = createOpenAICompletionsExtraBodyWrapper(
+      ctx.agent.streamFunction,
+      extraBody,
+    );
   }
-  ctx.agent.streamFn = createOpenAICompletionsStoreCompatWrapper(ctx.agent.streamFn);
+  ctx.agent.streamFunction = createOpenAICompletionsStoreCompatWrapper(ctx.agent.streamFunction);
 
   const rawParallelToolCalls = resolveAliasedParamValue(
     [ctx.effectiveExtraParams, ctx.override],
@@ -547,7 +553,10 @@ function applyPostPluginStreamWrappers(
     return;
   }
   if (typeof rawParallelToolCalls === "boolean") {
-    ctx.agent.streamFn = createParallelToolCallsWrapper(ctx.agent.streamFn, rawParallelToolCalls);
+    ctx.agent.streamFunction = createParallelToolCallsWrapper(
+      ctx.agent.streamFunction,
+      rawParallelToolCalls,
+    );
     return;
   }
   if (rawParallelToolCalls === null) {
@@ -560,13 +569,13 @@ function applyPostPluginStreamWrappers(
 }
 
 /**
- * Apply extra params (like temperature) to an agent's streamFn.
+ * Apply extra params (like temperature) to an agent's streamFunction.
  * Also applies verified provider-specific request wrappers, such as OpenRouter attribution.
  *
  * @internal Exported for testing
  */
 export function applyExtraParamsToAgent(
-  agent: { streamFn?: StreamFn },
+  agent: { streamFunction?: StreamFn },
   cfg: GenesisConfig | undefined,
   provider: string,
   modelId: string,
@@ -620,7 +629,7 @@ export function applyExtraParamsToAgent(
     override,
   };
 
-  const providerStreamBase = agent.streamFn;
+  const providerStreamBase = agent.streamFunction;
   const pluginWrappedStreamFn = providerRuntimeDeps.wrapProviderStreamFn({
     provider,
     config: cfg,
@@ -632,9 +641,10 @@ export function applyExtraParamsToAgent(
       thinkingLevel,
       model,
       streamFn: providerStreamBase,
+      streamFunction: providerStreamBase,
     },
   });
-  agent.streamFn = pluginWrappedStreamFn ?? providerStreamBase;
+  agent.streamFunction = pluginWrappedStreamFn ?? providerStreamBase;
   // Apply caller/config extra params outside provider defaults so explicit values
   // like `openaiWsWarmup=false` can override provider-added defaults.
   applyPrePluginStreamWrappers(wrapperContext);

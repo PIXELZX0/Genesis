@@ -81,7 +81,7 @@ export async function modelsListCommand(
     if (shouldLoadRegistry) {
       await loadRegistryState();
     } else if (!opts.all) {
-      const loaded = loadConfiguredListModelRegistry(cfg, entries, { providerFilter });
+      const loaded = await loadConfiguredListModelRegistry(cfg, entries, { providerFilter });
       modelRegistry = loaded.registry;
       discoveredKeys = loaded.discoveredKeys;
       availableKeys = loaded.availableKeys;

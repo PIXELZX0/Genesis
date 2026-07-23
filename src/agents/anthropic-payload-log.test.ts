@@ -35,12 +35,12 @@ describe("createAnthropicPayloadLogger", () => {
         tokenBudget: 1024,
       },
     };
-    const streamFn: StreamFn = ((model, __, options) => {
+    const streamFunction: StreamFn = ((model, __, options) => {
       options?.onPayload?.(payload, model);
       return {} as never;
     }) as StreamFn;
 
-    const wrapped = logger?.wrapStreamFn(streamFn);
+    const wrapped = logger?.wrapStreamFn(streamFunction);
     await wrapped?.({ api: "anthropic-messages" } as never, { messages: [] } as never, {});
 
     const event = JSON.parse(lines[0]?.trim() ?? "{}") as Record<string, unknown>;

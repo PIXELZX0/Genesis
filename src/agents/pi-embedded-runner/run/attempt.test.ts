@@ -507,12 +507,12 @@ describe("resolveEmbeddedAgentStreamFn", () => {
     const wrapperStreamFn = vi.fn();
     const session = {
       agent: {
-        streamFn: baseStreamFn,
+        streamFunction: baseStreamFn,
       },
     };
 
     expect(resolveEmbeddedAgentBaseStreamFn({ session })).toBe(baseStreamFn);
-    session.agent.streamFn = wrapperStreamFn;
+    session.agent.streamFunction = wrapperStreamFn;
     expect(resolveEmbeddedAgentBaseStreamFn({ session })).toBe(baseStreamFn);
   });
 

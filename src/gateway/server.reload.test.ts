@@ -589,11 +589,7 @@ describe("gateway hot reload", () => {
       async () =>
         ({
           discoverAuthStorage: () => ({}),
-          ModelRegistry: class {
-            getAll() {
-              return registryEntries;
-            }
-          },
+          discoverModels: async () => ({ getAll: () => registryEntries }),
         }) as unknown as PiDiscoveryRuntimeModule,
     );
     resetModelCatalogCacheForTest();
@@ -652,11 +648,7 @@ describe("gateway hot reload", () => {
           async () =>
             ({
               discoverAuthStorage: () => ({}),
-              ModelRegistry: class {
-                getAll() {
-                  return registryEntries;
-                }
-              },
+              discoverModels: async () => ({ getAll: () => registryEntries }),
             }) as unknown as PiDiscoveryRuntimeModule,
         );
         const after = await buildModelsProviderData(nextConfig);
