@@ -27,15 +27,45 @@ function loadCompilerOptions(): ts.CompilerOptions {
   return ts.parseJsonConfigFileContent(config.config, ts.sys, repoRoot).options;
 }
 
+function importDeclarationHasRuntimeEdge(node: ts.ImportDeclaration): boolean {
+  if (!node.importClause) {
+    return true;
+  }
+  if (node.importClause.isTypeOnly) {
+    return false;
+  }
+  const bindings = node.importClause.namedBindings;
+  if (node.importClause.name || !bindings || ts.isNamespaceImport(bindings)) {
+    return true;
+  }
+  return bindings.elements.some((element) => !element.isTypeOnly);
+}
+
+function exportDeclarationHasRuntimeEdge(node: ts.ExportDeclaration): boolean {
+  if (!node.moduleSpecifier || node.isTypeOnly) {
+    return false;
+  }
+  const clause = node.exportClause;
+  if (!clause || ts.isNamespaceExport(clause)) {
+    return true;
+  }
+  return clause.elements.some((element) => !element.isTypeOnly);
+}
+
 function collectStaticModuleSpecifiers(sourceFile: ts.SourceFile): string[] {
   const specifiers: string[] = [];
   const visit = (node: ts.Node) => {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      importDeclarationHasRuntimeEdge(node)
+    ) {
       specifiers.push(node.moduleSpecifier.text);
     } else if (
       ts.isExportDeclaration(node) &&
       node.moduleSpecifier &&
-      ts.isStringLiteral(node.moduleSpecifier)
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      exportDeclarationHasRuntimeEdge(node)
     ) {
       specifiers.push(node.moduleSpecifier.text);
     }
