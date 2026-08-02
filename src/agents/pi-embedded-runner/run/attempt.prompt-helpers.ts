@@ -25,7 +25,7 @@ export type PromptBuildHookRunner = {
     event: { prompt: string; messages: unknown[] },
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforePromptBuildResult | undefined>;
-  runBeforeAgentStart: (
+  runBeforeAgentStart?: (
     event: { prompt: string; messages: unknown[] },
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentStartResult | undefined>;
@@ -54,7 +54,7 @@ export async function resolvePromptBuildHookResult(params: {
     : undefined;
   const legacyResult =
     params.legacyBeforeAgentStartResult ??
-    (params.hookRunner?.hasHooks("before_agent_start")
+    (params.hookRunner?.hasHooks("before_agent_start") && params.hookRunner.runBeforeAgentStart
       ? await params.hookRunner
           .runBeforeAgentStart(
             {

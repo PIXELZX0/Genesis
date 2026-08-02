@@ -9,7 +9,8 @@ import {
   renderChatSessionSelect as renderChatSessionSelectBase,
   renderChatThinkingSelect,
   resolveSessionDisplayName,
-  resolveSessionOptionGroups,
+  resolveSessionOptionGroups as buildSessionOptionGroups,
+  type SessionOptionGroup,
 } from "./chat/session-controls.ts";
 import { refreshSlashCommands } from "./chat/slash-commands.ts";
 import { resolveControlUiAuthToken } from "./control-ui-auth.ts";
@@ -22,7 +23,47 @@ import { normalizeOptionalString } from "./string-coerce.ts";
 import type { ThemeMode } from "./theme.ts";
 import type { SessionsListResult } from "./types.ts";
 
-export { isCronSessionKey, parseSessionKey, resolveSessionDisplayName, resolveSessionOptionGroups };
+export { isCronSessionKey, parseSessionKey, resolveSessionDisplayName };
+
+type SessionOptionGroupsCacheEntry = {
+  sessionKey: string;
+  hideCron: boolean;
+  sessionRows: SessionsListResult["sessions"] | undefined;
+  agentRows: NonNullable<AppViewState["agentsList"]>["agents"] | undefined;
+  groups: SessionOptionGroup[];
+};
+
+const sessionOptionGroupsCache = new WeakMap<AppViewState, SessionOptionGroupsCacheEntry>();
+
+export function resolveSessionOptionGroups(
+  state: AppViewState,
+  sessionKey: string,
+  sessions: SessionsListResult | null,
+): SessionOptionGroup[] {
+  const hideCron = state.sessionsHideCron ?? true;
+  // Controllers replace these arrays whenever grouping-relevant row or label data changes.
+  const sessionRows = sessions?.sessions;
+  const agentRows = state.agentsList?.agents;
+  const cached = sessionOptionGroupsCache.get(state);
+  if (
+    cached?.sessionKey === sessionKey &&
+    cached.hideCron === hideCron &&
+    cached.sessionRows === sessionRows &&
+    cached.agentRows === agentRows
+  ) {
+    return cached.groups;
+  }
+
+  const groups = buildSessionOptionGroups(state, sessionKey, sessions);
+  sessionOptionGroupsCache.set(state, {
+    sessionKey,
+    hideCron,
+    sessionRows,
+    agentRows,
+    groups,
+  });
+  return groups;
+}
 
 type SessionDefaultsSnapshot = {
   mainSessionKey?: string;
@@ -170,8 +211,8 @@ function renderCronFilterIcon(hiddenCount: number) {
   `;
 }
 
-export function renderChatSessionSelect(state: AppViewState) {
-  return renderChatSessionSelectBase(state, switchChatSession);
+export function renderChatSessionSelect(state: AppViewState, sessionGroups: SessionOptionGroup[]) {
+  return renderChatSessionSelectBase(state, switchChatSession, sessionGroups);
 }
 
 export function renderChatControls(state: AppViewState) {
@@ -291,8 +332,7 @@ export function renderChatControls(state: AppViewState) {
  * Rendered in the topbar so it doesn't consume content-header space.
  * Hidden on desktop via CSS.
  */
-export function renderChatMobileToggle(state: AppViewState) {
-  const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
+export function renderChatMobileToggle(state: AppViewState, sessionGroups: SessionOptionGroup[]) {
   const disableFocusToggle = state.onboarding;
   const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
   const focusIcon = html`
@@ -411,21 +451,37 @@ export function renderChatMobileToggle(state: AppViewState) {
   `;
 }
 
-export function switchChatSession(state: AppViewState, nextSessionKey: string) {
+export function switchChatSession(
+  state: AppViewState,
+  nextSessionKey: string,
+  options: { refresh?: boolean } = {},
+) {
   resetChatStateForSessionSwitch(state, nextSessionKey);
   void state.loadAssistantIdentity();
-  void refreshChatAvatar(state);
-  void refreshSlashCommands({
-    client: state.client,
-    agentId: parseAgentSessionKey(nextSessionKey)?.agentId,
-  });
   syncUrlWithSessionKey(
     state as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
     nextSessionKey,
     true,
   );
+  if (options.refresh === false) {
+    return;
+  }
+  void refreshChatAvatar(state);
+  void refreshSlashCommands({
+    client: state.client,
+    agentId: parseAgentSessionKey(nextSessionKey)?.agentId,
+  });
   void loadChatHistory(state as unknown as ChatState);
   void refreshSessionOptions(state);
+}
+
+export function navigateToChatSession(state: AppViewState, nextSessionKey: string) {
+  if (state.tab === "chat") {
+    switchChatSession(state, nextSessionKey);
+    return;
+  }
+  switchChatSession(state, nextSessionKey, { refresh: false });
+  state.setTab("chat");
 }
 
 async function refreshSessionOptions(state: AppViewState) {

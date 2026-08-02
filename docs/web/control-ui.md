@@ -120,7 +120,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
-- Model providers: guided provider auth setup from Agents -> Overview (`wizard.start` with `target: "models"`)
+- Model providers: guided provider auth setup from Models -> Providers or Agents -> Overview (`wizard.start` with `target: "models"`)
 - Auth profiles: per-provider multi-credential panel with name, priority, masked key, expiry, and source (env / SecretRef / plaintext); Add / Rename / Remove / Set Priority actions via the new `models.authProfile*` RPCs; the Quick Settings API Keys card shows one row per profile when a provider has multiple credentials.
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)
@@ -183,6 +183,10 @@ Cron jobs panel notes:
   `chat.history` reloads when the final assistant payload is already complete.
   If a fallback history reload is still needed, local optimistic user/assistant
   messages stay visible until the canonical transcript catches up.
+- The Control UI keeps global `sessions.changed` list/lifecycle updates but
+  subscribes to `session.message` only for the active chat session. Switching
+  chats or reconnecting rotates that scoped subscription instead of streaming
+  every session transcript into the browser.
 - `chat.inject` appends an assistant note to the session transcript and broadcasts a `chat` event for UI-only updates (no agent run, no channel delivery).
 - The chat header model and thinking pickers patch the active session immediately through `sessions.patch`; they are persistent session overrides, not one-turn-only send options.
 - When fresh Gateway session usage reports show high context pressure, the chat

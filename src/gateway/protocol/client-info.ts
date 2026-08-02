@@ -55,6 +55,17 @@ export const GATEWAY_CLIENT_CAPS = {
    * message. Clients without this cap keep receiving full `message` snapshots.
    */
   CHAT_INCREMENTAL: "chat-incremental",
+  /**
+   * Client keeps the legacy global session list subscription for metadata but
+   * scopes transcript `session.message` events to the active session.
+   */
+  SCOPED_SESSION_MESSAGES: "scoped-session-messages",
+  /**
+   * Client consumes dedicated `chat` events for assistant text and does not
+   * need duplicate generic `agent` events whose stream is `assistant`. Other
+   * agent streams, including tool and lifecycle events, remain enabled.
+   */
+  SUPPRESS_ASSISTANT_AGENT_EVENTS: "suppress-assistant-agent-events",
 } as const;
 
 export type GatewayClientCap = (typeof GATEWAY_CLIENT_CAPS)[keyof typeof GATEWAY_CLIENT_CAPS];

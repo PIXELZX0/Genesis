@@ -1,4 +1,9 @@
-import { listAgentIds, resolveDefaultAgentId } from "../../agents/agent-scope.js";
+import {
+  listAgentIds,
+  resolveAgentWorkspaceDir,
+  resolveDefaultAgentId,
+} from "../../agents/agent-scope.js";
+import { getSkillsSnapshotVersion } from "../../agents/skills/refresh-state.js";
 import { listChatCommandsForConfig } from "../../auto-reply/commands-registry.js";
 import type {
   ChatCommandDefinition,
@@ -35,6 +40,51 @@ import type { GatewayRequestHandlers, RespondFn } from "./types.js";
 
 type SerializedArg = NonNullable<CommandEntry["args"]>[number];
 type CommandNameSurface = "text" | "native";
+
+const SKILL_DISCOVERY_CACHE_MAX_ENTRIES = 32;
+const SKILL_DISCOVERY_CACHE_TTL_MS = 5_000;
+
+type SkillDiscoveryCacheEntry = {
+  cfg: GenesisConfig;
+  version: number;
+  expiresAt: number;
+  commands: ReturnType<typeof listSkillCommandsForAgents>;
+};
+
+const skillDiscoveryCache = new Map<string, SkillDiscoveryCacheEntry>();
+
+function listCachedSkillCommands(params: {
+  cfg: GenesisConfig;
+  agentId: string;
+}): ReturnType<typeof listSkillCommandsForAgents> {
+  const workspaceDir = resolveAgentWorkspaceDir(params.cfg, params.agentId);
+  const version = getSkillsSnapshotVersion(workspaceDir);
+  const cacheKey = `${params.agentId}\0${workspaceDir}`;
+  const now = Date.now();
+  const cached = skillDiscoveryCache.get(cacheKey);
+  if (cached && cached.cfg === params.cfg && cached.version === version && cached.expiresAt > now) {
+    skillDiscoveryCache.delete(cacheKey);
+    skillDiscoveryCache.set(cacheKey, cached);
+    return cached.commands;
+  }
+
+  const commands = listSkillCommandsForAgents({ cfg: params.cfg, agentIds: [params.agentId] });
+  skillDiscoveryCache.delete(cacheKey);
+  skillDiscoveryCache.set(cacheKey, {
+    cfg: params.cfg,
+    version,
+    expiresAt: now + SKILL_DISCOVERY_CACHE_TTL_MS,
+    commands,
+  });
+  while (skillDiscoveryCache.size > SKILL_DISCOVERY_CACHE_MAX_ENTRIES) {
+    const oldestKey = skillDiscoveryCache.keys().next().value;
+    if (oldestKey === undefined) {
+      break;
+    }
+    skillDiscoveryCache.delete(oldestKey);
+  }
+  return commands;
+}
 
 function clampString(value: string, maxLength: number): string {
   return value.length > maxLength ? value.slice(0, maxLength) : value;
@@ -212,7 +262,7 @@ export function buildCommandsListResult(params: {
   const nameSurface: CommandNameSurface = scopeFilter === "text" ? "text" : "native";
   const provider = normalizeOptionalLowercaseString(params.provider);
 
-  const skillCommands = listSkillCommandsForAgents({ cfg: params.cfg, agentIds: [params.agentId] });
+  const skillCommands = listCachedSkillCommands({ cfg: params.cfg, agentId: params.agentId });
   const chatCommands = listChatCommandsForConfig(params.cfg, { skillCommands });
   const skillKeys = new Set(skillCommands.map((sc) => `skill:${sc.skillName}`));
 
@@ -267,4 +317,11 @@ export const commandsHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
+};
+
+export const __testing = {
+  resetSkillDiscoveryCache: () => skillDiscoveryCache.clear(),
+  skillDiscoveryCacheSize: () => skillDiscoveryCache.size,
+  skillDiscoveryCacheMaxEntries: SKILL_DISCOVERY_CACHE_MAX_ENTRIES,
+  skillDiscoveryCacheTtlMs: SKILL_DISCOVERY_CACHE_TTL_MS,
 };

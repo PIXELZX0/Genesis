@@ -182,9 +182,10 @@ export type ToolEventRecipientRegistry = {
 };
 
 export type SessionEventSubscriberRegistry = {
-  subscribe: (connId: string) => void;
+  subscribe: (connId: string, includeMessages?: boolean) => void;
   unsubscribe: (connId: string) => void;
   getAll: () => ReadonlySet<string>;
+  getMessageSubscribers: () => ReadonlySet<string>;
   clear: () => void;
 };
 
@@ -193,6 +194,7 @@ export type SessionMessageSubscriberRegistry = {
   unsubscribe: (connId: string, sessionKey: string) => void;
   unsubscribeAll: (connId: string) => void;
   get: (sessionKey: string) => ReadonlySet<string>;
+  hasAny: () => boolean;
   clear: () => void;
 };
 
@@ -212,15 +214,21 @@ const AGENT_LIFECYCLE_ERROR_RETRY_GRACE_MS = 15_000;
 
 export function createSessionEventSubscriberRegistry(): SessionEventSubscriberRegistry {
   const connIds = new Set<string>();
+  const messageConnIds = new Set<string>();
   const empty = new Set<string>();
 
   return {
-    subscribe: (connId: string) => {
+    subscribe: (connId: string, includeMessages = true) => {
       const normalized = connId.trim();
       if (!normalized) {
         return;
       }
       connIds.add(normalized);
+      if (includeMessages) {
+        messageConnIds.add(normalized);
+      } else {
+        messageConnIds.delete(normalized);
+      }
     },
     unsubscribe: (connId: string) => {
       const normalized = connId.trim();
@@ -228,10 +236,13 @@ export function createSessionEventSubscriberRegistry(): SessionEventSubscriberRe
         return;
       }
       connIds.delete(normalized);
+      messageConnIds.delete(normalized);
     },
     getAll: () => (connIds.size > 0 ? connIds : empty),
+    getMessageSubscribers: () => (messageConnIds.size > 0 ? messageConnIds : empty),
     clear: () => {
       connIds.clear();
+      messageConnIds.clear();
     },
   };
 }
@@ -307,6 +318,7 @@ export function createSessionMessageSubscriberRegistry(): SessionMessageSubscrib
       }
       return sessionToConnIds.get(normalizedSessionKey) ?? empty;
     },
+    hasAny: () => sessionToConnIds.size > 0,
     clear: () => {
       sessionToConnIds.clear();
       connToSessionKeys.clear();

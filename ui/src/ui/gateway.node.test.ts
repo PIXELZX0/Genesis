@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GATEWAY_CLIENT_CAPS } from "../../../src/gateway/protocol/client-info.js";
 import { PROTOCOL_VERSION as GATEWAY_PROTOCOL_VERSION } from "../../../src/gateway/protocol/version.js";
 import { createStorageMock } from "../test-helpers/storage.ts";
 import { loadDeviceAuthToken, storeDeviceAuthToken } from "./device-auth.ts";
@@ -93,6 +94,7 @@ type ConnectFrame = {
     minProtocol?: number;
     maxProtocol?: number;
     scopes?: string[];
+    caps?: string[];
   };
 };
 
@@ -237,6 +239,22 @@ describe("GatewayBrowserClient", () => {
     expect(connectFrame.params?.minProtocol).toBe(GATEWAY_PROTOCOL_VERSION);
     expect(connectFrame.params?.maxProtocol).toBe(GATEWAY_PROTOCOL_VERSION);
     expect(connectFrame.params?.scopes).toEqual([...CONTROL_UI_OPERATOR_SCOPES]);
+  });
+
+  it("advertises incremental chat and scoped streaming capabilities", async () => {
+    const client = new GatewayBrowserClient({
+      url: "ws://127.0.0.1:18789",
+      token: "shared-auth-token",
+    });
+
+    const { connectFrame } = await startConnect(client);
+
+    expect(connectFrame.params?.caps).toEqual([
+      GATEWAY_CLIENT_CAPS.TOOL_EVENTS,
+      GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL,
+      GATEWAY_CLIENT_CAPS.SCOPED_SESSION_MESSAGES,
+      GATEWAY_CLIENT_CAPS.SUPPRESS_ASSISTANT_AGENT_EVENTS,
+    ]);
   });
 
   it("closes and reconnects when the connect response times out", async () => {

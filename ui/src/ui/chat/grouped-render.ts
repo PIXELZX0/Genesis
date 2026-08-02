@@ -240,6 +240,7 @@ export function renderStreamingGroup(
   assistant?: AssistantIdentity,
   basePath?: string,
   authToken?: string | null,
+  active = true,
 ) {
   const timestamp = new Date(startedAt).toLocaleTimeString([], {
     hour: "numeric",
@@ -258,7 +259,7 @@ export function renderStreamingGroup(
             timestamp: startedAt,
           },
           `stream:${startedAt}`,
-          { isStreaming: true, showReasoning: false },
+          { isStreaming: active, showReasoning: false },
           onOpenSidebar,
         )}
         <div class="chat-group-footer">
@@ -1448,6 +1449,17 @@ function renderExpandButton(markdown: string, onOpenSidebar: (content: SidebarCo
   `;
 }
 
+function renderMessageText(markdown: string, isStreaming: boolean) {
+  const direction = detectTextDirection(markdown);
+  if (isStreaming) {
+    // Cumulative snapshots change on every delta; parsing them blocks rendering and churns the cache.
+    return html`<div class="chat-text chat-text--streaming" dir="${direction}">${markdown}</div>`;
+  }
+  return html`<div class="chat-text" dir="${direction}">
+    ${unsafeHTML(toSanitizedMarkdownHtml(markdown))}
+  </div>`;
+}
+
 // A single step inside a turn's work block: either a thinking segment or a tool call/result.
 type TurnWorkItem = { kind: "thinking"; markdown: string } | { kind: "tool"; card: ToolCard };
 
@@ -1722,9 +1734,7 @@ function renderGroupedMessage(
                             <pre class="chat-json-content"><code>${jsonResult.pretty}</code></pre>
                           </details>`
                         : markdown
-                          ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">
-                              ${unsafeHTML(toSanitizedMarkdownHtml(markdown))}
-                            </div>`
+                          ? renderMessageText(markdown, opts.isStreaming)
                           : nothing}
                       ${hasToolCards
                         ? singleToolCard && !markdown && !hasImages
@@ -1784,9 +1794,7 @@ function renderGroupedMessage(
                   <pre class="chat-json-content"><code>${jsonResult.pretty}</code></pre>
                 </details>`
               : markdown
-                ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">
-                    ${unsafeHTML(toSanitizedMarkdownHtml(markdown))}
-                  </div>`
+                ? renderMessageText(markdown, opts.isStreaming)
                 : nothing}
             ${hasToolCards
               ? renderInlineToolCards(toolCards, {

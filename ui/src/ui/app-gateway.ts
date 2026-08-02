@@ -131,6 +131,15 @@ type GatewayHostWithSessionsViewFilters = GatewayHost & {
   sessionsSearchQuery?: string;
 };
 
+type SessionMessageEventPayload = {
+  sessionKey?: string;
+  message?: unknown;
+  messageId?: unknown;
+  messageSeq?: unknown;
+};
+
+const appliedSessionMessageRows = new WeakMap<object, string>();
+
 function enqueueApprovalRequest(host: GatewayHost, entry: ExecApprovalRequest | null) {
   if (!entry) {
     return;
@@ -160,12 +169,56 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object");
 }
 
+function isRedundantAssistantAgentEvent(evt: GatewayEventFrame): boolean {
+  return evt.event === "agent" && isRecord(evt.payload) && evt.payload.stream === "assistant";
+}
+
 function isUserSessionMessage(message: unknown): boolean {
   if (!isRecord(message)) {
     return false;
   }
   const role = message.role;
   return typeof role === "string" && role.trim().toLowerCase() === "user";
+}
+
+function sessionTranscriptEventIdentity(payload: unknown): string | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+  const sessionKey = typeof payload.sessionKey === "string" ? payload.sessionKey.trim() : "";
+  if (!sessionKey) {
+    return null;
+  }
+  const messageId = typeof payload.messageId === "string" ? payload.messageId.trim() : "";
+  if (messageId) {
+    return `${sessionKey}\u0000id:${messageId}`;
+  }
+  const messageSeq = payload.messageSeq;
+  return typeof messageSeq === "number" && Number.isFinite(messageSeq)
+    ? `${sessionKey}\u0000seq:${messageSeq}`
+    : null;
+}
+
+function rememberAppliedSessionMessageRow(host: GatewayHost, payload: unknown) {
+  if (!isRecord(payload) || !isRecord(payload.session)) {
+    return;
+  }
+  const identity = sessionTranscriptEventIdentity(payload);
+  if (identity) {
+    appliedSessionMessageRows.set(host, identity);
+  }
+}
+
+function consumeMatchingSessionMessageRow(host: GatewayHost, payload: unknown): boolean {
+  if (!isRecord(payload) || !isRecord(payload.session) || payload.phase !== "message") {
+    return false;
+  }
+  const identity = sessionTranscriptEventIdentity(payload);
+  if (!identity || appliedSessionMessageRows.get(host) !== identity) {
+    return false;
+  }
+  appliedSessionMessageRows.delete(host);
+  return true;
 }
 
 const SESSION_CHANGED_LOCAL_PATCH_FIELDS = [
@@ -545,9 +598,12 @@ function handleChatGatewayEvent(host: GatewayHost, payload: ChatEventPayload | u
 
 function handleSessionMessageGatewayEvent(
   host: GatewayHost,
-  payload: { sessionKey?: string; message?: unknown } | undefined,
+  payload: SessionMessageEventPayload | undefined,
 ) {
-  applySessionsChangedEvent(host as unknown as SessionsState, payload);
+  const sessionsResult = applySessionsChangedEvent(host as unknown as SessionsState, payload);
+  if (sessionsResult) {
+    rememberAppliedSessionMessageRow(host, payload);
+  }
   const deferredReloadHost = host as GatewayHostWithDeferredSessionMessageReload;
   const sessionKey = payload?.sessionKey?.trim();
   if (!sessionKey || sessionKey !== host.sessionKey) {
@@ -582,6 +638,11 @@ function handleSessionMessageGatewayEvent(
 }
 
 function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
+  // Older gateways do not honor the suppression capability. Drop the duplicate
+  // assistant stream before it reaches either the event log or agent parser.
+  if (isRedundantAssistantAgentEvent(evt)) {
+    return;
+  }
   host.eventLogBuffer = [
     { ts: Date.now(), event: evt.event, payload: evt.payload },
     ...host.eventLogBuffer,
@@ -618,10 +679,7 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
   }
 
   if (evt.event === "session.message") {
-    handleSessionMessageGatewayEvent(
-      host,
-      evt.payload as { sessionKey?: string; message?: unknown } | undefined,
-    );
+    handleSessionMessageGatewayEvent(host, evt.payload as SessionMessageEventPayload | undefined);
     return;
   }
 
@@ -652,7 +710,9 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
   }
 
   if (evt.event === "sessions.changed") {
-    const applied = applySessionsChangedEvent(host as unknown as SessionsState, evt.payload);
+    const applied =
+      consumeMatchingSessionMessageRow(host, evt.payload) ||
+      applySessionsChangedEvent(host as unknown as SessionsState, evt.payload) !== null;
     const refreshOptions = resolveSessionsChangedRefreshOptions(host, evt.payload, applied);
     if (refreshOptions) {
       void loadSessions(host as unknown as SessionsState, refreshOptions);

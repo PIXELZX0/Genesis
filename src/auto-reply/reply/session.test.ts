@@ -710,6 +710,41 @@ describe("initSessionState RawBody", () => {
     expect(result.triggerBodyNormalized).toBe("/NEW KeepThisCase");
   });
 
+  it("carries the existing skills snapshot through an explicit /new rotation", async () => {
+    const storePath = await createStorePath("genesis-new-skills-snapshot-");
+    const sessionKey = "agent:main:webchat:direct:user";
+    const skillsSnapshot = {
+      prompt: "cached skills",
+      skills: [{ name: "calendar" }],
+      skillFilter: ["calendar"],
+      version: 42,
+    };
+    await writeSessionStoreFast(storePath, {
+      [sessionKey]: {
+        sessionId: "existing-session",
+        updatedAt: Date.now(),
+        systemSent: true,
+        skillsSnapshot,
+      },
+    });
+
+    const result = await initSessionState({
+      ctx: {
+        Body: "/new",
+        RawBody: "/new",
+        CommandBody: "/new",
+        SessionKey: sessionKey,
+      },
+      cfg: { session: { store: storePath } } as GenesisConfig,
+      commandAuthorized: true,
+    });
+
+    expect(result.resetTriggered).toBe(true);
+    expect(result.sessionId).not.toBe("existing-session");
+    expect(result.sessionEntry.skillsSnapshot).toEqual(skillsSnapshot);
+    expect(result.sessionStore[sessionKey]?.skillsSnapshot).toEqual(skillsSnapshot);
+  });
+
   it("rotates local session state for /new on bound ACP sessions", async () => {
     const root = await makeCaseDir("genesis-rawbody-acp-reset-");
     const storePath = path.join(root, "sessions.json");

@@ -322,6 +322,7 @@ export function buildChatItems(props: BuildChatItemsProps): Array<ChatItem | Mes
         key: `stream-seg:${props.sessionKey}:${i}`,
         text: segments[i].text,
         startedAt: segments[i].ts,
+        active: false,
       });
     }
     if (i < tools.length && props.showToolCalls) {
@@ -341,6 +342,7 @@ export function buildChatItems(props: BuildChatItemsProps): Array<ChatItem | Mes
         key,
         text: props.stream,
         startedAt: props.streamStartedAt ?? Date.now(),
+        active: true,
       });
     } else {
       items.push({ kind: "reading-indicator", key });

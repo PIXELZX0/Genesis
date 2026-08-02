@@ -538,6 +538,40 @@ describe("connectGateway", () => {
     expect(loadControlUiBootstrapConfigMock).toHaveBeenCalledWith(host);
   });
 
+  it("restores list-only and active-session subscriptions after reconnect", async () => {
+    const host = createHost();
+
+    connectGateway(host);
+    const client = gatewayClientInstances[0];
+    expect(client).toBeDefined();
+
+    client.emitHello();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(client.request.mock.calls.filter(([method]) => method === "sessions.subscribe")).toEqual(
+      [["sessions.subscribe", {}]],
+    );
+    expect(
+      client.request.mock.calls.filter(([method]) => method === "sessions.messages.subscribe"),
+    ).toEqual([["sessions.messages.subscribe", { key: "main" }]]);
+
+    client.emitClose({ code: 1006 });
+    client.emitHello();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      client.request.mock.calls.filter(([method]) => method === "sessions.subscribe"),
+    ).toHaveLength(2);
+    expect(
+      client.request.mock.calls.filter(([method]) => method === "sessions.messages.subscribe"),
+    ).toEqual([
+      ["sessions.messages.subscribe", { key: "main" }],
+      ["sessions.messages.subscribe", { key: "main" }],
+    ]);
+  });
+
   it("sends queued chat aborts after reconnect before clearing pending state", async () => {
     const host = createHost();
     host.chatRunId = "run-main";
@@ -626,6 +660,35 @@ describe("connectGateway", () => {
     emitToolResultEvent(client);
 
     expect(loadChatHistoryMock).not.toHaveBeenCalled();
+  });
+
+  it("drops legacy assistant agent duplicates before logging but retains tool events", () => {
+    const { host, client } = connectHostGateway();
+
+    client.emitEvent({
+      event: "agent",
+      payload: {
+        runId: "engine-run-1",
+        seq: 1,
+        stream: "assistant",
+        ts: 1,
+        sessionKey: "main",
+        data: { text: "redundant", delta: "redundant" },
+      },
+    });
+
+    expect(host.eventLogBuffer).toEqual([]);
+    expect(host.eventLog).toEqual([]);
+
+    emitToolResultEvent(client);
+
+    expect(host.eventLogBuffer).toHaveLength(1);
+    expect(host.eventLogBuffer[0]).toMatchObject({
+      event: "agent",
+      payload: { stream: "tool" },
+    });
+    expect(host.eventLog).toEqual(host.eventLogBuffer);
+    expect(host.toolStreamOrder).toEqual(["tool-1"]);
   });
 
   it("stores BTW side results for the active session", () => {

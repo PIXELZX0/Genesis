@@ -33,6 +33,7 @@ vi.mock("./controllers/sessions.ts", () => ({
 
 import {
   isCronSessionKey,
+  navigateToChatSession,
   parseSessionKey,
   resolveAssistantAttachmentAuthToken,
   resolveSessionOptionGroups,
@@ -490,6 +491,137 @@ describe("resolveSessionOptionGroups", () => {
     expect(labels).toContain("Deep Chat (alpha) / main · named-main");
     expect(labels).toContain("Coding (beta) / main");
     expect(labels).not.toContain("main");
+  });
+
+  it("keeps every option and reuses grouping across reactive renders", () => {
+    const sessionCount = 4_000;
+    const sessions = Array.from({ length: sessionCount }, (_, index) =>
+      row({ key: `agent:main:chat:${index}`, label: `Session ${index}` }),
+    );
+    const state = { sessionsHideCron: true, agentsList: null } as AppViewState;
+    const result = {
+      ts: 0,
+      path: "",
+      count: sessions.length,
+      defaults: { modelProvider: "openai", model: "gpt-5", contextTokens: null },
+      sessions,
+    } satisfies SessionsListResult;
+    const groups = resolveSessionOptionGroups(state, sessions[0].key, result);
+    const options = groups.flatMap((group) => group.options);
+
+    expect(options).toHaveLength(sessionCount);
+    expect(new Set(options.map((option) => option.key)).size).toBe(sessionCount);
+    expect(options.at(-1)?.key).toBe(`agent:main:chat:${sessionCount - 1}`);
+    for (let render = 0; render < 100; render += 1) {
+      expect(resolveSessionOptionGroups(state, sessions[0].key, result)).toBe(groups);
+    }
+    expect(resolveSessionOptionGroups(state, sessions[0].key, { ...result, ts: 1 })).toBe(groups);
+  });
+
+  it("invalidates grouping when a grouping input changes", () => {
+    const activeKey = "agent:main:main";
+    const cronKey = "agent:main:cron:nightly";
+    const rows = [row({ key: activeKey }), row({ key: cronKey, label: "Nightly" })];
+    const result = {
+      ts: 0,
+      path: "",
+      count: rows.length,
+      defaults: { modelProvider: "openai", model: "gpt-5", contextTokens: null },
+      sessions: rows,
+    } satisfies SessionsListResult;
+    const state = {
+      sessionsHideCron: true,
+      agentsList: {
+        defaultId: "main",
+        mainKey: activeKey,
+        scope: "all",
+        agents: [{ id: "main", name: "Primary" }],
+      },
+    } as AppViewState;
+
+    const initial = resolveSessionOptionGroups(state, activeKey, result);
+
+    const activeChanged = resolveSessionOptionGroups(state, cronKey, result);
+    expect(activeChanged).not.toBe(initial);
+    expect(activeChanged.flatMap((group) => group.options.map((option) => option.key))).toContain(
+      cronKey,
+    );
+
+    const rowsChanged = { ...result, sessions: [...rows, row({ key: "agent:main:other" })] };
+    const rowsChangedGroups = resolveSessionOptionGroups(state, activeKey, rowsChanged);
+    expect(rowsChangedGroups).not.toBe(activeChanged);
+
+    state.agentsList = {
+      ...state.agentsList!,
+      agents: [{ id: "main", name: "Renamed" }],
+    };
+    const agentsChanged = resolveSessionOptionGroups(state, activeKey, rowsChanged);
+    expect(agentsChanged).not.toBe(rowsChangedGroups);
+    expect(agentsChanged[0]?.label).toBe("Renamed (main)");
+
+    state.sessionsHideCron = false;
+    expect(resolveSessionOptionGroups(state, activeKey, rowsChanged)).not.toBe(agentsChanged);
+  });
+});
+
+describe("navigateToChatSession", () => {
+  it("lets the Chat tab refresh issue each session request once", () => {
+    refreshChatMock.mockReset();
+    refreshChatAvatarMock.mockReset();
+    refreshSlashCommandsMock.mockReset();
+    loadChatHistoryMock.mockReset();
+    loadSessionsMock.mockReset();
+    const settings = createSettings();
+    const loadAssistantIdentity = vi.fn();
+    const state = {
+      tab: "sessions",
+      sessionKey: "main",
+      chatMessage: "draft",
+      chatAttachments: [],
+      chatMessages: [],
+      chatToolMessages: [],
+      chatStreamSegments: [],
+      chatThinkingLevel: null,
+      chatStream: null,
+      chatSideResult: null,
+      lastError: null,
+      compactionStatus: null,
+      fallbackStatus: null,
+      chatAvatarUrl: null,
+      chatQueue: [],
+      chatRunId: null,
+      chatSideResultTerminalRuns: new Set<string>(),
+      chatStreamStartedAt: null,
+      settings,
+      client: {},
+      applySettings(next: typeof settings) {
+        state.settings = next;
+      },
+      loadAssistantIdentity,
+      resetToolStream: vi.fn(),
+      resetChatScroll: vi.fn(),
+      setTab: vi.fn(),
+    } as unknown as AppViewState & { settings: AppViewState["settings"] };
+    refreshChatMock.mockImplementationOnce(() => {
+      loadChatHistoryMock(state);
+      loadSessionsMock(state);
+      refreshChatAvatarMock(state);
+      refreshSlashCommandsMock({ client: state.client, agentId: "main" });
+    });
+    state.setTab = vi.fn((tab) => {
+      state.tab = tab;
+      refreshChatMock(state);
+    });
+
+    navigateToChatSession(state, "agent:main:test-b");
+
+    expect(state.setTab).toHaveBeenCalledOnce();
+    expect(state.setTab).toHaveBeenCalledWith("chat");
+    expect(loadAssistantIdentity).toHaveBeenCalledOnce();
+    expect(loadChatHistoryMock).toHaveBeenCalledOnce();
+    expect(loadSessionsMock).toHaveBeenCalledOnce();
+    expect(refreshChatAvatarMock).toHaveBeenCalledOnce();
+    expect(refreshSlashCommandsMock).toHaveBeenCalledOnce();
   });
 });
 

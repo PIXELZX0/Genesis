@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatCommandDefinition } from "../../auto-reply/commands-registry.types.js";
 
+const { getSkillsSnapshotVersionMock, loadConfigMock, resolveAgentWorkspaceDirMock } = vi.hoisted(
+  () => ({
+    getSkillsSnapshotVersionMock: vi.fn((_workspaceDir?: string) => 0),
+    loadConfigMock: vi.fn(() => ({})),
+    resolveAgentWorkspaceDirMock: vi.fn(
+      (_cfg: unknown, agentId: string) => `/tmp/genesis-${agentId}`,
+    ),
+  }),
+);
+
 const mockSkillCommands = [
   {
     skillName: "code-review",
@@ -79,6 +89,9 @@ vi.mock("../../auto-reply/commands-registry.js", () => ({
 vi.mock("../../auto-reply/skill-commands.js", () => ({
   listSkillCommandsForAgents: vi.fn(() => mockSkillCommands),
 }));
+vi.mock("../../agents/skills/refresh-state.js", () => ({
+  getSkillsSnapshotVersion: getSkillsSnapshotVersionMock,
+}));
 vi.mock("../../plugins/command-registry-state.js", () => ({
   getPluginCommandSpecs: vi.fn((provider?: string) => {
     if (provider === "whatsapp") {
@@ -101,10 +114,11 @@ vi.mock("../../plugins/commands.js", () => ({
   ]),
 }));
 vi.mock("../../config/config.js", () => ({
-  loadConfig: vi.fn(() => ({})),
+  loadConfig: loadConfigMock,
 }));
 vi.mock("../../agents/agent-scope.js", () => ({
   listAgentIds: vi.fn(() => ["main", "dev"]),
+  resolveAgentWorkspaceDir: resolveAgentWorkspaceDirMock,
   resolveDefaultAgentId: vi.fn(() => "main"),
 }));
 vi.mock("../../channels/plugins/index.js", () => ({
@@ -152,6 +166,7 @@ vi.mock("../../channels/plugins/index.js", () => ({
   }),
 }));
 
+import { listSkillCommandsForAgents } from "../../auto-reply/skill-commands.js";
 import { ErrorCodes, errorShape } from "../protocol/index.js";
 import {
   COMMAND_ALIAS_MAX_ITEMS,
@@ -161,7 +176,24 @@ import {
   COMMAND_LIST_MAX_ITEMS,
   COMMAND_NAME_MAX_LENGTH,
 } from "../protocol/schema/commands.js";
-import { commandsHandlers, buildCommandsListResult } from "./commands.js";
+import {
+  __testing as commandsTesting,
+  commandsHandlers,
+  buildCommandsListResult,
+} from "./commands.js";
+
+const listSkillCommandsForAgentsMock = vi.mocked(listSkillCommandsForAgents);
+
+function resetCommandMocks() {
+  vi.clearAllMocks();
+  commandsTesting.resetSkillDiscoveryCache();
+  getSkillsSnapshotVersionMock.mockReturnValue(0);
+  loadConfigMock.mockReturnValue({});
+  resolveAgentWorkspaceDirMock.mockImplementation(
+    (_cfg: unknown, agentId: string) => `/tmp/genesis-${agentId}`,
+  );
+  listSkillCommandsForAgentsMock.mockReturnValue(mockSkillCommands);
+}
 
 function callHandler(params: Record<string, unknown> = {}) {
   let result: { ok: boolean; payload?: unknown; error?: unknown } | undefined;
@@ -181,7 +213,7 @@ function callHandler(params: Record<string, unknown> = {}) {
 
 describe("commands.list handler", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    resetCommandMocks();
   });
 
   it("returns all command sources", () => {
@@ -190,6 +222,48 @@ describe("commands.list handler", () => {
     const { commands } = payload as { commands: Array<{ name: string; source: string }> };
     const sources = new Set(commands.map((c) => c.source));
     expect(sources).toEqual(new Set(["native", "skill", "plugin"]));
+  });
+
+  it("discovers skills once for immediate repeated requests", () => {
+    callHandler({ agentId: "main", scope: "text", includeArgs: true });
+    callHandler({ agentId: "main", scope: "text", includeArgs: true });
+
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledOnce();
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledWith({
+      cfg: loadConfigMock.mock.results[0]?.value,
+      agentIds: ["main"],
+    });
+  });
+
+  it("invalidates cached skill discovery when the workspace snapshot version changes", () => {
+    getSkillsSnapshotVersionMock.mockReturnValueOnce(10).mockReturnValueOnce(11);
+
+    callHandler({ agentId: "main" });
+    callHandler({ agentId: "main" });
+
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("invalidates cached skill discovery when the runtime config snapshot changes", () => {
+    loadConfigMock.mockReturnValueOnce({}).mockReturnValueOnce({});
+
+    callHandler({ agentId: "main" });
+    callHandler({ agentId: "main" });
+
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to a fresh scan after the bounded cache window", () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    try {
+      callHandler({ agentId: "main" });
+      now.mockReturnValue(1_000 + commandsTesting.skillDiscoveryCacheTtlMs + 1);
+      callHandler({ agentId: "main" });
+    } finally {
+      now.mockRestore();
+    }
+
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledTimes(2);
   });
 
   it("maps native commands with category, scope, and args", () => {
@@ -440,12 +514,46 @@ describe("commands.list handler", () => {
 
 describe("buildCommandsListResult", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    resetCommandMocks();
   });
 
   it("is callable independently from handler", () => {
     const result = buildCommandsListResult({ cfg: {} as never, agentId: "main" });
     expect(result.commands.length).toBeGreaterThan(0);
     expect(result.commands.every((c) => typeof c.scope === "string")).toBe(true);
+  });
+
+  it("bounds cached agent workspaces", () => {
+    const cfg = {} as never;
+    for (let index = 0; index < commandsTesting.skillDiscoveryCacheMaxEntries + 5; index += 1) {
+      buildCommandsListResult({ cfg, agentId: `agent-${index}` });
+    }
+
+    expect(commandsTesting.skillDiscoveryCacheSize()).toBe(
+      commandsTesting.skillDiscoveryCacheMaxEntries,
+    );
+  });
+
+  it("keeps a refreshed workspace recent when evicting the oldest entry", () => {
+    const cfg = {} as never;
+    const versions = new Map<string, number>();
+    getSkillsSnapshotVersionMock.mockImplementation(
+      (workspaceDir?: string) => versions.get(workspaceDir ?? "") ?? 0,
+    );
+    for (let index = 0; index < commandsTesting.skillDiscoveryCacheMaxEntries; index += 1) {
+      buildCommandsListResult({ cfg, agentId: `agent-${index}` });
+    }
+
+    versions.set("/tmp/genesis-agent-0", 1);
+    buildCommandsListResult({ cfg, agentId: "agent-0" });
+    buildCommandsListResult({
+      cfg,
+      agentId: `agent-${commandsTesting.skillDiscoveryCacheMaxEntries}`,
+    });
+    buildCommandsListResult({ cfg, agentId: "agent-0" });
+
+    expect(listSkillCommandsForAgentsMock).toHaveBeenCalledTimes(
+      commandsTesting.skillDiscoveryCacheMaxEntries + 2,
+    );
   });
 });

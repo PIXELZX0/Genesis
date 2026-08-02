@@ -4,6 +4,10 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## 2026.7.23
 
+### Changes
+
+- Pi runtime: compatible attempts using the built-in Pi harness now run the Pi SDK in a managed child process by default, keeping provider execution and session mutation out of the gateway process while proxied tools, delivery callbacks, steering, cancellation, and global hooks remain parent-owned. `sessions_yield` runs locally in the child, `before_prompt_build` and `agent_end` bridge to the parent, and provider plugins activate through targeted runtime resolution. Other process-local hook, sandbox, MCP/LSP, and tool contracts fall back before launch; failures before the child ready boundary may fall back in-process, while failures after ready are never replayed in-process.
+
 ### Fixes
 
 - CLI startup: commands like `genesis pairing approve` and the TUI no longer stall for over a minute re-staging bundled plugin runtime dependencies on every invocation. Dependency specs given as dist-tags (e.g. `@earendil-works/pi-ai: "latest"`) never matched the installed semver, so the sentinel check reported them missing forever and each run copied entire plugin `node_modules` trees (100MB+ per provider) from the staging cache; an installed version now satisfies a dist-tag sentinel.

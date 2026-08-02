@@ -10,7 +10,7 @@ This document describes how Genesis integrates with [pi-coding-agent](https://gi
 
 ## Overview
 
-Genesis uses the pi SDK to embed an AI coding agent into its messaging gateway architecture. Instead of spawning pi as a subprocess or using RPC mode, Genesis directly imports and instantiates pi's `AgentSession` via `createAgentSession()`. This embedded approach provides:
+Genesis uses the pi SDK to embed an AI coding agent into its messaging gateway architecture. Genesis directly imports and instantiates pi's `AgentSession` via `createAgentSession()` rather than driving the pi CLI or its RPC mode. Compatible attempts for the built-in Pi harness run that SDK integration in a dedicated child process by default; the gateway remains the parent-side orchestrator. This approach provides:
 
 - Full control over session lifecycle and event handling
 - Custom tool injection (messaging, sandbox, channel-specific actions)
@@ -18,6 +18,19 @@ Genesis uses the pi SDK to embed an AI coding agent into its messaging gateway a
 - Session persistence with branching/compaction support
 - Multi-account auth profile rotation with failover
 - Provider-agnostic model switching
+
+## Process boundary
+
+The built-in Pi harness performs compatibility checks before each child starts. For compatible attempts:
+
+- The child owns `AgentSession`, `SessionManager`, provider streaming, transcript updates, compaction, and the session-local `sessions_yield` control tool.
+- The parent owns proxied Genesis tools, reply callbacks, global agent events and hooks, active-run registration, steering, cancellation, and final delivery.
+- Parent and child communicate over a versioned, bounded JSONL protocol on stdio. Tool calls and incremental tool updates cross this bridge. Active `before_prompt_build` hooks use a request/result exchange so prompt changes are preserved, while `agent_end` uses a notification and remains fire-and-forget.
+- Before constructing the runtime plan, the child activates only the plugins that own the attempt provider or raw model provider. It does not materialize the general runtime registry.
+- The selected runtime credential is sent in the initial stdin frame. It is never added to process arguments.
+- Child crashes, protocol errors, and process deadlines surface as typed process errors. Failures before the child ready boundary may fall back in-process; failures after ready are never replayed in-process. Set `GENESIS_PI_ISOLATION=0` to run the built-in Pi harness in-process without spawning a child.
+
+Genesis falls back before spawning when an attempt depends on process-local behavior that cannot cross the protocol safely. Current fallback cases include non-legacy context engines; unbridged attempt hooks such as legacy `before_agent_start`, `before_tool_call`, `llm_input`, `llm_output`, compaction, `after_tool_call`, `before_message_write`, and `tool_result_persist`; sandbox-backed tools; configured MCP or LSP tools; per-tool argument adapters; and non-serializable attempt or tool-schema data. Plugin-provided agent harnesses keep their own execution model and do not use this built-in Pi boundary.
 
 ## Package Dependencies
 
@@ -46,10 +59,12 @@ src/agents/
 │   ├── run.ts                     # Main entry: runEmbeddedPiAgent()
 │   ├── run/
 │   │   ├── attempt.ts             # Single attempt logic with session setup
+│   │   ├── attempt-tools.ts       # Shared parent/child tool runtime preparation
 │   │   ├── params.ts              # RunEmbeddedPiAgentParams type
 │   │   ├── payloads.ts            # Build response payloads from run results
 │   │   ├── images.ts              # Vision model image injection
 │   │   └── types.ts               # EmbeddedRunAttemptResult
+│   ├── isolation/                 # Child launch, JSONL protocol, tools, and lifecycle
 │   ├── abort.ts                   # Abort error detection
 │   ├── cache-ttl.ts               # Cache TTL tracking for context pruning
 │   ├── compact.ts                 # Manual/auto compaction logic
@@ -527,7 +542,7 @@ This provides the interactive terminal experience similar to pi's native mode.
 
 | Aspect          | Pi CLI                  | Genesis Embedded                                                                             |
 | --------------- | ----------------------- | -------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` command / RPC      | SDK via `createAgentSession()`                                                               |
+| Invocation      | `pi` command / RPC      | SDK via `createAgentSession()` in a managed child for compatible built-in Pi attempts        |
 | Tools           | Default coding tools    | Custom Genesis tool suite                                                                    |
 | System prompt   | AGENTS.md + prompts     | Dynamic per-channel/context                                                                  |
 | Session storage | `~/.pi/agent/sessions/` | `~/.genesis/agents/<agentId>/sessions/` (or `$GENESIS_STATE_DIR/agents/<agentId>/sessions/`) |

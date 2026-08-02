@@ -92,6 +92,17 @@ function shouldRethrowAbort(err: unknown): boolean {
   return isFallbackAbortError(err) && !isTimeoutError(err);
 }
 
+function isReplayUnsafePiIsolationError(err: unknown): boolean {
+  if (!err || typeof err !== "object") {
+    return false;
+  }
+  const record = err as { code?: unknown; kind?: unknown; replaySafe?: unknown };
+  return (
+    record.code === "PI_ISOLATED_PROCESS" &&
+    (record.kind === "aborted" || record.replaySafe !== true)
+  );
+}
+
 function createModelCandidateCollector(allowlist: Set<string> | null | undefined): {
   candidates: ModelCandidate[];
   addExplicitCandidate: (candidate: ModelCandidate) => void;
@@ -910,6 +921,12 @@ export async function runWithModelFallback<T>(params: {
       // that may have a smaller context window and fail worse.
       const errMessage = formatErrorMessage(err);
       if (isLikelyContextOverflowError(errMessage)) {
+        throw err;
+      }
+      // A child failure after the real session-ready boundary may have already
+      // submitted a prompt or executed tools. Trying another model could replay
+      // those effects, so only explicitly pre-ready process failures may fall back.
+      if (isReplayUnsafePiIsolationError(err)) {
         throw err;
       }
       const normalized =

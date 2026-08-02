@@ -16,13 +16,22 @@ import {
   syncThemeWithSettings,
 } from "./app-settings.ts";
 import { loadControlUiBootstrapConfig } from "./controllers/control-ui-bootstrap.ts";
+import {
+  unsubscribeSessionMessages,
+  updateSessionMessageSubscription,
+} from "./controllers/sessions.ts";
 import type { Tab } from "./navigation.ts";
 
 type LifecycleHost = {
   basePath: string;
-  client?: { stop: () => void } | null;
+  client?: {
+    request: (method: string, params?: unknown) => Promise<unknown>;
+    stop: () => void;
+  } | null;
   connectGeneration: number;
   connected?: boolean;
+  sessionKey: string;
+  sessionsError?: string | null;
   tab: Tab;
   assistantName: string;
   assistantAvatar: string | null;
@@ -88,6 +97,9 @@ export function handleDisconnected(host: LifecycleHost) {
   host.realtimeTalkStatus = "idle";
   host.realtimeTalkDetail = null;
   host.realtimeTalkTranscript = null;
+  void unsubscribeSessionMessages(
+    host as unknown as Parameters<typeof unsubscribeSessionMessages>[0],
+  );
   host.client?.stop();
   host.client = null;
   host.connected = false;
@@ -97,6 +109,15 @@ export function handleDisconnected(host: LifecycleHost) {
 }
 
 export function handleUpdated(host: LifecycleHost, changed: Map<PropertyKey, unknown>) {
+  if (changed.has("sessionKey")) {
+    void updateSessionMessageSubscription(
+      host as unknown as Parameters<typeof updateSessionMessageSubscription>[0],
+      typeof changed.get("sessionKey") === "string"
+        ? (changed.get("sessionKey") as string)
+        : undefined,
+      host.sessionKey,
+    );
+  }
   if (host.tab === "chat" && host.chatManualRefreshInFlight) {
     return;
   }

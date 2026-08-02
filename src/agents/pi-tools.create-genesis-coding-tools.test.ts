@@ -185,6 +185,24 @@ describe("createGenesisCodingTools", () => {
     expect(names.has("apply_patch")).toBe(false);
   });
 
+  it("constructs only exact tool names supplied by an isolation allowlist", () => {
+    const tools = createGenesisCodingTools({ toolAllowlist: ["read"] });
+
+    expect(tools.map((tool) => tool.name)).toEqual(["read"]);
+  });
+
+  it("keeps the full construction surface for an absent or empty allowlist", () => {
+    const withoutAllowlist = createGenesisCodingTools({ config: testConfig }).map(
+      (tool) => tool.name,
+    );
+    const withEmptyAllowlist = createGenesisCodingTools({
+      config: testConfig,
+      toolAllowlist: [],
+    }).map((tool) => tool.name);
+
+    expect(withEmptyAllowlist).toEqual(withoutAllowlist);
+  });
+
   it("provides top-level object schemas for all tools", () => {
     const tools = createGenesisCodingTools({ config: testConfig });
     const offenders = tools

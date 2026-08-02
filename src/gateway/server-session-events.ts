@@ -6,16 +6,20 @@ import type {
   SessionMessageSubscriberRegistry,
 } from "./server-chat.js";
 import { resolveSessionKeyForTranscriptFile } from "./session-transcript-key.js";
+import { createTranscriptSequenceTracker } from "./session-transcript-sequence.js";
 import {
   attachGenesisTranscriptMeta,
+  buildGatewaySessionRow,
   loadGatewaySessionRow,
   loadSessionEntry,
-  readSessionMessages,
   type GatewaySessionRow,
 } from "./session-utils.js";
 
-type SessionEventSubscribers = Pick<SessionEventSubscriberRegistry, "getAll">;
-type SessionMessageSubscribers = Pick<SessionMessageSubscriberRegistry, "get">;
+type SessionEventSubscribers = Pick<
+  SessionEventSubscriberRegistry,
+  "getAll" | "getMessageSubscribers"
+>;
+type SessionMessageSubscribers = Pick<SessionMessageSubscriberRegistry, "get" | "hasAny">;
 
 function buildGatewaySessionSnapshot(params: {
   sessionRow: GatewaySessionRow | null | undefined;
@@ -87,63 +91,99 @@ export function createTranscriptUpdateBroadcastHandler(params: {
   sessionEventSubscribers: SessionEventSubscribers;
   sessionMessageSubscribers: SessionMessageSubscribers;
 }) {
+  const transcriptSequence = createTranscriptSequenceTracker();
   return (update: SessionTranscriptUpdate): void => {
+    if (update.message === undefined) {
+      transcriptSequence.invalidate(update.sessionFile);
+      return;
+    }
+    const sessionEventConnIds = params.sessionEventSubscribers.getAll();
+    const globalMessageConnIds = params.sessionEventSubscribers.getMessageSubscribers();
+    if (sessionEventConnIds.size === 0 && !params.sessionMessageSubscribers.hasAny()) {
+      return;
+    }
     const sessionKey = update.sessionKey ?? resolveSessionKeyForTranscriptFile(update.sessionFile);
-    if (!sessionKey || update.message === undefined) {
+    if (!sessionKey) {
       return;
     }
-    const connIds = new Set<string>();
-    for (const connId of params.sessionEventSubscribers.getAll()) {
-      connIds.add(connId);
+    const sessionMessageConnIds = params.sessionMessageSubscribers.get(sessionKey);
+    const listOnlyConnIds = new Set<string>();
+    for (const connId of sessionEventConnIds) {
+      if (!globalMessageConnIds.has(connId) && !sessionMessageConnIds.has(connId)) {
+        listOnlyConnIds.add(connId);
+      }
     }
-    for (const connId of params.sessionMessageSubscribers.get(sessionKey)) {
-      connIds.add(connId);
-    }
-    if (connIds.size === 0) {
+    if (
+      globalMessageConnIds.size === 0 &&
+      sessionMessageConnIds.size === 0 &&
+      listOnlyConnIds.size === 0
+    ) {
       return;
     }
-    const { entry, storePath } = loadSessionEntry(sessionKey);
+    const connIds = new Set<string>(globalMessageConnIds);
+    for (const connId of sessionMessageConnIds) {
+      connIds.add(connId);
+    }
+    const { cfg, entry, store, storePath, canonicalKey } = loadSessionEntry(sessionKey);
     const messageSeq = entry?.sessionId
-      ? readSessionMessages(entry.sessionId, storePath, entry.sessionFile).length
+      ? transcriptSequence.read({
+          sessionId: entry.sessionId,
+          storePath,
+          sessionFile: entry.sessionFile,
+        })
       : undefined;
     const sessionSnapshot = buildGatewaySessionSnapshot({
-      sessionRow: loadGatewaySessionRow(sessionKey),
+      sessionRow: entry
+        ? buildGatewaySessionRow({
+            cfg,
+            storePath,
+            store,
+            key: canonicalKey,
+            entry,
+          })
+        : null,
       includeSession: true,
     });
     const message = attachGenesisTranscriptMeta(update.message, {
       ...(typeof update.messageId === "string" ? { id: update.messageId } : {}),
       ...(typeof messageSeq === "number" ? { seq: messageSeq } : {}),
     });
-    params.broadcastToConnIds(
-      "session.message",
-      {
-        sessionKey,
-        message,
-        ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
-        ...(typeof messageSeq === "number" ? { messageSeq } : {}),
-        ...sessionSnapshot,
-      },
-      connIds,
-      { dropIfSlow: true },
-    );
-
-    const sessionEventConnIds = params.sessionEventSubscribers.getAll();
-    if (sessionEventConnIds.size === 0) {
-      return;
+    if (connIds.size > 0) {
+      params.broadcastToConnIds(
+        "session.message",
+        {
+          sessionKey,
+          message,
+          ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
+          ...(typeof messageSeq === "number" ? { messageSeq } : {}),
+          ...sessionSnapshot,
+        },
+        connIds,
+        { dropIfSlow: true },
+      );
     }
-    params.broadcastToConnIds(
-      "sessions.changed",
-      {
-        sessionKey,
-        phase: "message",
-        ts: Date.now(),
-        ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
-        ...(typeof messageSeq === "number" ? { messageSeq } : {}),
-        ...sessionSnapshot,
-      },
-      sessionEventConnIds,
-      { dropIfSlow: true },
-    );
+
+    const sessionChangedPayload = {
+      sessionKey,
+      phase: "message",
+      ts: Date.now(),
+      ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
+      ...(typeof messageSeq === "number" ? { messageSeq } : {}),
+      ...sessionSnapshot,
+    };
+    // Preserve the paired row event for legacy global message subscribers.
+    if (globalMessageConnIds.size > 0) {
+      params.broadcastToConnIds("sessions.changed", sessionChangedPayload, globalMessageConnIds, {
+        dropIfSlow: true,
+      });
+    }
+    // Scoped Control UI clients still need list metadata for unrelated sessions,
+    // but the active session already receives the row snapshot on session.message.
+    if (listOnlyConnIds.size > 0) {
+      params.broadcastToConnIds("sessions.changed", sessionChangedPayload, listOnlyConnIds, {
+        dropIfSlow: true,
+      });
+    }
   };
 }
 

@@ -701,6 +701,7 @@ export async function runEmbeddedPiAgent(
       // repeated initialization/connection overhead per attempt.
       ensureContextEnginesInitialized();
       const contextEngine = await resolveContextEngine(params.config);
+      let pendingTerminalLifecycleFlush: (() => void | Promise<void>) | undefined;
       try {
         // When the engine owns compaction, compactEmbeddedPiSessionDirect is
         // bypassed. Fire lifecycle hooks here so recovery paths still notify
@@ -752,6 +753,17 @@ export async function runEmbeddedPiAgent(
         // Hoisted so the retry-limit error path can use the most recent API total.
         let lastTurnTotal: number | undefined;
         while (true) {
+          const flushTerminalLifecycleEvent = pendingTerminalLifecycleFlush;
+          pendingTerminalLifecycleFlush = undefined;
+          if (flushTerminalLifecycleEvent) {
+            try {
+              await flushTerminalLifecycleEvent();
+            } catch (flushError) {
+              log.warn(
+                `terminal lifecycle flush failed during run retry: ${formatErrorMessage(flushError)}`,
+              );
+            }
+          }
           if (runLoopIterations >= MAX_RUN_LOOP_ITERATIONS) {
             const message =
               `Exceeded retry limit after ${runLoopIterations} attempts ` +
@@ -936,6 +948,7 @@ export async function runEmbeddedPiAgent(
             bootstrapPromptWarningSignature:
               bootstrapPromptWarningSignaturesSeen[bootstrapPromptWarningSignaturesSeen.length - 1],
           });
+          pendingTerminalLifecycleFlush = attempt.flushTerminalLifecycleEvent;
 
           const {
             aborted,
@@ -2297,6 +2310,9 @@ export async function runEmbeddedPiAgent(
           };
         }
       } finally {
+        const [terminalLifecycleFlush] = await Promise.allSettled([
+          Promise.resolve().then(() => pendingTerminalLifecycleFlush?.()),
+        ]);
         await contextEngine.dispose?.();
         stopRuntimeAuthRefreshTimer();
         if (params.cleanupBundleMcpOnRunEnd === true) {
@@ -2317,6 +2333,11 @@ export async function runEmbeddedPiAgent(
               onError,
             });
           }
+        }
+        if (terminalLifecycleFlush?.status === "rejected") {
+          log.warn(
+            `terminal lifecycle flush failed during run cleanup: ${formatErrorMessage(terminalLifecycleFlush.reason)}`,
+          );
         }
       }
     });

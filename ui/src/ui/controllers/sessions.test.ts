@@ -4,6 +4,8 @@ import {
   deleteSessionsAndRefresh,
   loadSessions,
   subscribeSessions,
+  unsubscribeSessionMessages,
+  updateSessionMessageSubscription,
   type SessionsState,
 } from "./sessions.ts";
 
@@ -21,6 +23,7 @@ function createState(request: RequestFn, overrides: Partial<SessionsState> = {})
   return {
     client: { request } as unknown as SessionsState["client"],
     connected: true,
+    sessionKey: "agent:main:main",
     sessionsLoading: false,
     sessionsResult: null,
     sessionsError: null,
@@ -48,8 +51,37 @@ describe("subscribeSessions", () => {
 
     await subscribeSessions(state);
 
-    expect(request).toHaveBeenCalledWith("sessions.subscribe", {});
+    expect(request).toHaveBeenNthCalledWith(1, "sessions.subscribe", {});
+    expect(request).toHaveBeenNthCalledWith(2, "sessions.messages.subscribe", {
+      key: "agent:main:main",
+    });
     expect(state.sessionsError).toBeNull();
+  });
+
+  it("rotates the active message subscription in wire order", async () => {
+    const request = vi.fn(async () => ({}));
+    const state = createState(request);
+
+    await updateSessionMessageSubscription(state, "agent:main:main", "agent:main:worker");
+
+    expect(request).toHaveBeenNthCalledWith(1, "sessions.messages.unsubscribe", {
+      key: "agent:main:main",
+    });
+    expect(request).toHaveBeenNthCalledWith(2, "sessions.messages.subscribe", {
+      key: "agent:main:worker",
+    });
+    expect(request.mock.invocationCallOrder[0]).toBeLessThan(request.mock.invocationCallOrder[1]);
+  });
+
+  it("unsubscribes the active session before disconnect", async () => {
+    const request = vi.fn(async () => ({}));
+    const state = createState(request);
+
+    await unsubscribeSessionMessages(state);
+
+    expect(request).toHaveBeenCalledWith("sessions.messages.unsubscribe", {
+      key: "agent:main:main",
+    });
   });
 });
 
@@ -400,6 +432,7 @@ describe("applySessionsChangedEvent", () => {
         ],
       },
     });
+    const previousResult = state.sessionsResult;
 
     const applied = applySessionsChangedEvent(state, {
       sessionKey: "agent:main:main",
@@ -410,7 +443,8 @@ describe("applySessionsChangedEvent", () => {
       model: "gpt-5.4",
     });
 
-    expect(applied).toBe(true);
+    expect(applied).toBe(state.sessionsResult);
+    expect(applied).not.toBe(previousResult);
     expect(state.sessionsResult?.ts).toBe(2);
     expect(state.sessionsResult?.sessions[0]).toMatchObject({
       key: "agent:main:main",
@@ -419,6 +453,41 @@ describe("applySessionsChangedEvent", () => {
       contextTokens: 200_000,
       model: "gpt-5.4",
     });
+  });
+
+  it("keeps the existing reactive result when an event row is unchanged", () => {
+    const state = createState(async () => undefined, {
+      sessionsResult: {
+        ts: 1,
+        path: "(multiple)",
+        count: 1,
+        defaults: { modelProvider: null, model: null, contextTokens: null },
+        sessions: [
+          {
+            key: "agent:main:main",
+            kind: "direct",
+            updatedAt: 10,
+            childSessions: ["agent:main:child"],
+            thinkingOptions: ["off", "high"],
+          },
+        ],
+      },
+    });
+    const previousResult = state.sessionsResult;
+    const previousRow = previousResult?.sessions[0];
+
+    const applied = applySessionsChangedEvent(state, {
+      sessionKey: "agent:main:main",
+      ts: 2,
+      kind: "direct",
+      updatedAt: 10,
+      childSessions: ["agent:main:child"],
+      thinkingOptions: ["off", "high"],
+    });
+
+    expect(applied).toBe(previousResult);
+    expect(state.sessionsResult).toBe(previousResult);
+    expect(state.sessionsResult?.sessions[0]).toBe(previousRow);
   });
 
   it("clears old token totals when the gateway marks the measurement stale", () => {

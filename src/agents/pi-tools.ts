@@ -76,6 +76,39 @@ function isOpenAIProvider(provider?: string) {
 }
 
 const MEMORY_FLUSH_ALLOWED_TOOL_NAMES = new Set(["read", "write"]);
+const BUILT_IN_TOOL_NAMES = new Set([
+  "read",
+  "write",
+  "edit",
+  "exec",
+  "process",
+  "apply_patch",
+  "canvas",
+  "nodes",
+  "cron",
+  "message",
+  "tts",
+  "image_generate",
+  "music_generate",
+  "video_generate",
+  "gateway",
+  "agents_list",
+  "update_plan",
+  "sessions_list",
+  "sessions_history",
+  "sessions_send",
+  "sessions_spawn",
+  "ask_advisor",
+  "sessions_yield",
+  "subagents",
+  "session_status",
+  "web_search",
+  "web_fetch",
+  "image",
+  "pdf",
+  "contacts",
+]);
+const CODING_TOOL_NAMES = new Set(["read", "write", "edit", "exec", "process", "apply_patch"]);
 
 type BashToolsModule = typeof import("./bash-tools.js");
 
@@ -415,8 +448,22 @@ export function createGenesisCodingTools(options?: {
   senderIsOwner?: boolean;
   /** Callback invoked when sessions_yield tool is called. */
   onYield?: (message: string) => Promise<void> | void;
+  /** Restrict construction to these exact tool names; empty means the legacy full surface. */
+  toolAllowlist?: readonly string[];
 }): AnyAgentTool[] {
   const execToolName = "exec";
+  const requestedToolNames =
+    options?.toolAllowlist && options.toolAllowlist.length > 0
+      ? new Set(options.toolAllowlist)
+      : undefined;
+  const shouldCreateTool = (name: string) =>
+    requestedToolNames === undefined || requestedToolNames.has(name);
+  const shouldConstructChannelTools =
+    requestedToolNames === undefined ||
+    Array.from(requestedToolNames).some((name) => !BUILT_IN_TOOL_NAMES.has(name));
+  const shouldConstructGenesisTools =
+    requestedToolNames === undefined ||
+    Array.from(requestedToolNames).some((name) => !CODING_TOOL_NAMES.has(name));
   const sandbox = options?.sandbox?.enabled ? options.sandbox : undefined;
   const isMemoryFlushRun = options?.trigger === "memory";
   if (isMemoryFlushRun && !options?.memoryFlushWritePath) {
@@ -526,100 +573,117 @@ export function createGenesisCodingTools(options?: {
   }
   const imageSanitization = resolveImageSanitizationLimits(options?.config);
 
-  const base = (createCodingTools(workspaceRoot) as unknown as AnyAgentTool[]).flatMap((tool) => {
-    if (tool.name === "read") {
-      if (sandboxRoot) {
-        const sandboxed = createSandboxedReadTool({
-          root: sandboxRoot,
-          bridge: sandboxFsBridge!,
-          modelContextWindowTokens: options?.modelContextWindowTokens,
-          imageSanitization,
-        });
-        return [
-          workspaceOnly
-            ? wrapToolWorkspaceRootGuardWithOptions(sandboxed, sandboxRoot, {
-                containerWorkdir: sandbox.containerWorkdir,
-              })
-            : sandboxed,
-        ];
-      }
-      const freshReadTool = createReadTool(workspaceRoot);
-      const wrapped = createGenesisReadTool(freshReadTool, {
+  const createReadCodingTool = (): AnyAgentTool => {
+    if (sandboxRoot) {
+      const sandboxed = createSandboxedReadTool({
+        root: sandboxRoot,
+        bridge: sandboxFsBridge!,
         modelContextWindowTokens: options?.modelContextWindowTokens,
         imageSanitization,
       });
-      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
+      return workspaceOnly
+        ? wrapToolWorkspaceRootGuardWithOptions(sandboxed, sandboxRoot, {
+            containerWorkdir: sandbox.containerWorkdir,
+          })
+        : sandboxed;
     }
-    if (tool.name === "bash" || tool.name === execToolName) {
-      return [];
-    }
-    if (tool.name === "write") {
-      if (sandboxRoot) {
-        return [];
-      }
-      const wrapped = createHostWorkspaceWriteTool(workspaceRoot, { workspaceOnly });
-      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
-    }
-    if (tool.name === "edit") {
-      if (sandboxRoot) {
-        return [];
-      }
-      const wrapped = createHostWorkspaceEditTool(workspaceRoot, { workspaceOnly });
-      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
-    }
-    return [tool];
-  });
-  const { cleanupMs: cleanupMsOverride, ...execDefaults } = options?.exec ?? {};
-  const execTool = createLazyExecTool({
-    ...execDefaults,
-    host: options?.exec?.host ?? execConfig.host,
-    security: options?.exec?.security ?? execConfig.security,
-    ask: options?.exec?.ask ?? execConfig.ask,
-    trigger: options?.trigger,
-    node: options?.exec?.node ?? execConfig.node,
-    pathPrepend: options?.exec?.pathPrepend ?? execConfig.pathPrepend,
-    safeBins: options?.exec?.safeBins ?? execConfig.safeBins,
-    strictInlineEval: options?.exec?.strictInlineEval ?? execConfig.strictInlineEval,
-    safeBinTrustedDirs: options?.exec?.safeBinTrustedDirs ?? execConfig.safeBinTrustedDirs,
-    safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,
-    safeguard: resolveSafeguardDefaults({
-      resolved: options?.exec?.safeguard ?? execConfig.safeguard,
-      cfg: options?.config,
-      agentDir: workspaceRoot,
-    }),
-    agentId,
-    cwd: workspaceRoot,
-    allowBackground,
-    scopeKey,
-    sessionKey: options?.sessionKey,
-    messageProvider: options?.messageProvider,
-    currentChannelId: options?.currentChannelId,
-    currentThreadTs: options?.currentThreadTs,
-    accountId: options?.agentAccountId,
-    backgroundMs: options?.exec?.backgroundMs ?? execConfig.backgroundMs,
-    timeoutSec: options?.exec?.timeoutSec ?? execConfig.timeoutSec,
-    approvalRunningNoticeMs:
-      options?.exec?.approvalRunningNoticeMs ?? execConfig.approvalRunningNoticeMs,
-    notifyOnExit: options?.exec?.notifyOnExit ?? execConfig.notifyOnExit,
-    notifyOnExitEmptySuccess:
-      options?.exec?.notifyOnExitEmptySuccess ?? execConfig.notifyOnExitEmptySuccess,
-    sandbox: sandbox
-      ? {
-          containerName: sandbox.containerName,
-          workspaceDir: sandbox.workspaceDir,
-          containerWorkdir: sandbox.containerWorkdir,
-          env: sandbox.backend?.env ?? sandbox.docker.env,
-          buildExecSpec: sandbox.backend?.buildExecSpec.bind(sandbox.backend),
-          finalizeExec: sandbox.backend?.finalizeExec?.bind(sandbox.backend),
+    const freshReadTool = createReadTool(workspaceRoot);
+    const wrapped = createGenesisReadTool(freshReadTool, {
+      modelContextWindowTokens: options?.modelContextWindowTokens,
+      imageSanitization,
+    });
+    return workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped;
+  };
+  const createWriteCodingTool = (): AnyAgentTool => {
+    const wrapped = createHostWorkspaceWriteTool(workspaceRoot, { workspaceOnly });
+    return workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped;
+  };
+  const createEditCodingTool = (): AnyAgentTool => {
+    const wrapped = createHostWorkspaceEditTool(workspaceRoot, { workspaceOnly });
+    return workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped;
+  };
+  const base = requestedToolNames
+    ? [
+        ...(shouldCreateTool("read") ? [createReadCodingTool()] : []),
+        ...(!sandboxRoot && shouldCreateTool("write") ? [createWriteCodingTool()] : []),
+        ...(!sandboxRoot && shouldCreateTool("edit") ? [createEditCodingTool()] : []),
+      ]
+    : (createCodingTools(workspaceRoot) as unknown as AnyAgentTool[]).flatMap((tool) => {
+        if (tool.name === "read") {
+          return [createReadCodingTool()];
         }
-      : undefined,
-  });
-  const processTool = createLazyProcessTool({
-    cleanupMs: cleanupMsOverride ?? execConfig.cleanupMs,
-    scopeKey,
-  });
+        if (tool.name === "bash" || tool.name === execToolName) {
+          return [];
+        }
+        if (tool.name === "write") {
+          if (sandboxRoot) {
+            return [];
+          }
+          return [createWriteCodingTool()];
+        }
+        if (tool.name === "edit") {
+          if (sandboxRoot) {
+            return [];
+          }
+          return [createEditCodingTool()];
+        }
+        return [tool];
+      });
+  const { cleanupMs: cleanupMsOverride, ...execDefaults } = options?.exec ?? {};
+  const execTool = shouldCreateTool(execToolName)
+    ? createLazyExecTool({
+        ...execDefaults,
+        host: options?.exec?.host ?? execConfig.host,
+        security: options?.exec?.security ?? execConfig.security,
+        ask: options?.exec?.ask ?? execConfig.ask,
+        trigger: options?.trigger,
+        node: options?.exec?.node ?? execConfig.node,
+        pathPrepend: options?.exec?.pathPrepend ?? execConfig.pathPrepend,
+        safeBins: options?.exec?.safeBins ?? execConfig.safeBins,
+        strictInlineEval: options?.exec?.strictInlineEval ?? execConfig.strictInlineEval,
+        safeBinTrustedDirs: options?.exec?.safeBinTrustedDirs ?? execConfig.safeBinTrustedDirs,
+        safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,
+        safeguard: resolveSafeguardDefaults({
+          resolved: options?.exec?.safeguard ?? execConfig.safeguard,
+          cfg: options?.config,
+          agentDir: workspaceRoot,
+        }),
+        agentId,
+        cwd: workspaceRoot,
+        allowBackground,
+        scopeKey,
+        sessionKey: options?.sessionKey,
+        messageProvider: options?.messageProvider,
+        currentChannelId: options?.currentChannelId,
+        currentThreadTs: options?.currentThreadTs,
+        accountId: options?.agentAccountId,
+        backgroundMs: options?.exec?.backgroundMs ?? execConfig.backgroundMs,
+        timeoutSec: options?.exec?.timeoutSec ?? execConfig.timeoutSec,
+        approvalRunningNoticeMs:
+          options?.exec?.approvalRunningNoticeMs ?? execConfig.approvalRunningNoticeMs,
+        notifyOnExit: options?.exec?.notifyOnExit ?? execConfig.notifyOnExit,
+        notifyOnExitEmptySuccess:
+          options?.exec?.notifyOnExitEmptySuccess ?? execConfig.notifyOnExitEmptySuccess,
+        sandbox: sandbox
+          ? {
+              containerName: sandbox.containerName,
+              workspaceDir: sandbox.workspaceDir,
+              containerWorkdir: sandbox.containerWorkdir,
+              env: sandbox.backend?.env ?? sandbox.docker.env,
+              buildExecSpec: sandbox.backend?.buildExecSpec.bind(sandbox.backend),
+              finalizeExec: sandbox.backend?.finalizeExec?.bind(sandbox.backend),
+            }
+          : undefined,
+      })
+    : null;
+  const processTool = shouldCreateTool("process")
+    ? createLazyProcessTool({
+        cleanupMs: cleanupMsOverride ?? execConfig.cleanupMs,
+        scopeKey,
+      })
+    : null;
   const applyPatchTool =
-    !applyPatchEnabled || (sandboxRoot && !allowWorkspaceWrites)
+    !shouldCreateTool("apply_patch") || !applyPatchEnabled || (sandboxRoot && !allowWorkspaceWrites)
       ? null
       : createApplyPatchTool({
           cwd: sandboxRoot ?? workspaceRoot,
@@ -629,92 +693,110 @@ export function createGenesisCodingTools(options?: {
               : undefined,
           workspaceOnly: applyPatchWorkspaceOnly,
         });
+  const channelTools = shouldConstructChannelTools
+    ? listChannelAgentTools({ cfg: options?.config }).filter((tool) => shouldCreateTool(tool.name))
+    : [];
+  const genesisTools = shouldConstructGenesisTools
+    ? createGenesisTools({
+        sandboxBrowserBridgeUrl: sandbox?.browser?.bridgeUrl,
+        allowHostBrowserControl: sandbox ? sandbox.browserAllowHostControl : true,
+        agentSessionKey: options?.sessionKey,
+        agentChannel: resolveGatewayMessageChannel(options?.messageProvider),
+        agentAccountId: options?.agentAccountId,
+        agentTo: options?.messageTo,
+        agentThreadId: options?.messageThreadId,
+        agentGroupId: options?.groupId ?? null,
+        agentGroupChannel: options?.groupChannel ?? null,
+        agentGroupSpace: options?.groupSpace ?? null,
+        agentMemberRoleIds: options?.memberRoleIds,
+        agentDir: options?.agentDir,
+        sandboxRoot,
+        sandboxContainerWorkdir: sandbox?.containerWorkdir,
+        sandboxFsBridge,
+        fsPolicy,
+        workspaceDir: workspaceRoot,
+        spawnWorkspaceDir: options?.spawnWorkspaceDir
+          ? resolveWorkspaceRoot(options.spawnWorkspaceDir)
+          : undefined,
+        sandboxed: !!sandbox,
+        config: options?.config,
+        pluginToolAllowlist: collectExplicitAllowlist([
+          profilePolicy,
+          providerProfilePolicy,
+          globalPolicy,
+          globalProviderPolicy,
+          agentPolicy,
+          agentProviderPolicy,
+          groupPolicy,
+          sandboxToolPolicy,
+          subagentPolicy,
+        ]),
+        currentChannelId: options?.currentChannelId,
+        currentThreadTs: options?.currentThreadTs,
+        currentMessageId: options?.currentMessageId,
+        modelProvider: options?.modelProvider,
+        modelId: options?.modelId,
+        replyToMode: options?.replyToMode,
+        hasRepliedRef: options?.hasRepliedRef,
+        modelHasVision: options?.modelHasVision,
+        requireExplicitMessageTarget: options?.requireExplicitMessageTarget,
+        disableMessageTool: options?.disableMessageTool,
+        requesterAgentIdOverride: agentId,
+        requesterSenderId: options?.senderId,
+        senderIsOwner: options?.senderIsOwner,
+        sessionId: options?.sessionId,
+        onYield: options?.onYield,
+        allowGatewaySubagentBinding: options?.allowGatewaySubagentBinding,
+        toolAllowlist: options?.toolAllowlist,
+      })
+    : [];
   const tools: AnyAgentTool[] = [
     ...base,
     ...(sandboxRoot
       ? allowWorkspaceWrites
         ? [
-            workspaceOnly
-              ? wrapToolWorkspaceRootGuardWithOptions(
-                  createSandboxedEditTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
-                  sandboxRoot,
-                  {
-                    containerWorkdir: sandbox.containerWorkdir,
-                  },
-                )
-              : createSandboxedEditTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
-            workspaceOnly
-              ? wrapToolWorkspaceRootGuardWithOptions(
-                  createSandboxedWriteTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
-                  sandboxRoot,
-                  {
-                    containerWorkdir: sandbox.containerWorkdir,
-                  },
-                )
-              : createSandboxedWriteTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
+            ...(shouldCreateTool("edit")
+              ? [
+                  workspaceOnly
+                    ? wrapToolWorkspaceRootGuardWithOptions(
+                        createSandboxedEditTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
+                        sandboxRoot,
+                        {
+                          containerWorkdir: sandbox.containerWorkdir,
+                        },
+                      )
+                    : createSandboxedEditTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
+                ]
+              : []),
+            ...(shouldCreateTool("write")
+              ? [
+                  workspaceOnly
+                    ? wrapToolWorkspaceRootGuardWithOptions(
+                        createSandboxedWriteTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
+                        sandboxRoot,
+                        {
+                          containerWorkdir: sandbox.containerWorkdir,
+                        },
+                      )
+                    : createSandboxedWriteTool({ root: sandboxRoot, bridge: sandboxFsBridge! }),
+                ]
+              : []),
           ]
         : []
       : []),
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
-    execTool as unknown as AnyAgentTool,
-    processTool as unknown as AnyAgentTool,
+    ...(execTool ? [execTool] : []),
+    ...(processTool ? [processTool] : []),
     // Channel docking: include channel-defined agent tools (login, etc.).
-    ...listChannelAgentTools({ cfg: options?.config }),
-    ...createGenesisTools({
-      sandboxBrowserBridgeUrl: sandbox?.browser?.bridgeUrl,
-      allowHostBrowserControl: sandbox ? sandbox.browserAllowHostControl : true,
-      agentSessionKey: options?.sessionKey,
-      agentChannel: resolveGatewayMessageChannel(options?.messageProvider),
-      agentAccountId: options?.agentAccountId,
-      agentTo: options?.messageTo,
-      agentThreadId: options?.messageThreadId,
-      agentGroupId: options?.groupId ?? null,
-      agentGroupChannel: options?.groupChannel ?? null,
-      agentGroupSpace: options?.groupSpace ?? null,
-      agentMemberRoleIds: options?.memberRoleIds,
-      agentDir: options?.agentDir,
-      sandboxRoot,
-      sandboxContainerWorkdir: sandbox?.containerWorkdir,
-      sandboxFsBridge,
-      fsPolicy,
-      workspaceDir: workspaceRoot,
-      spawnWorkspaceDir: options?.spawnWorkspaceDir
-        ? resolveWorkspaceRoot(options.spawnWorkspaceDir)
-        : undefined,
-      sandboxed: !!sandbox,
-      config: options?.config,
-      pluginToolAllowlist: collectExplicitAllowlist([
-        profilePolicy,
-        providerProfilePolicy,
-        globalPolicy,
-        globalProviderPolicy,
-        agentPolicy,
-        agentProviderPolicy,
-        groupPolicy,
-        sandboxToolPolicy,
-        subagentPolicy,
-      ]),
-      currentChannelId: options?.currentChannelId,
-      currentThreadTs: options?.currentThreadTs,
-      currentMessageId: options?.currentMessageId,
-      modelProvider: options?.modelProvider,
-      modelId: options?.modelId,
-      replyToMode: options?.replyToMode,
-      hasRepliedRef: options?.hasRepliedRef,
-      modelHasVision: options?.modelHasVision,
-      requireExplicitMessageTarget: options?.requireExplicitMessageTarget,
-      disableMessageTool: options?.disableMessageTool,
-      requesterAgentIdOverride: agentId,
-      requesterSenderId: options?.senderId,
-      senderIsOwner: options?.senderIsOwner,
-      sessionId: options?.sessionId,
-      onYield: options?.onYield,
-      allowGatewaySubagentBinding: options?.allowGatewaySubagentBinding,
-    }),
+    ...channelTools,
+    ...genesisTools,
   ];
+  const toolsForRequestedAllowlist = requestedToolNames
+    ? tools.filter((tool) => shouldCreateTool(tool.name))
+    : tools;
   const toolsForMemoryFlush =
     isMemoryFlushRun && memoryFlushWritePath
-      ? tools.flatMap((tool) => {
+      ? toolsForRequestedAllowlist.flatMap((tool) => {
           if (!MEMORY_FLUSH_ALLOWED_TOOL_NAMES.has(tool.name)) {
             return [];
           }
@@ -733,7 +815,7 @@ export function createGenesisCodingTools(options?: {
           }
           return [tool];
         })
-      : tools;
+      : toolsForRequestedAllowlist;
   const toolsForMessageProvider = filterToolsByMessageProvider(
     toolsForMemoryFlush,
     options?.messageProvider,

@@ -201,6 +201,25 @@ describe("buildChatItems", () => {
       },
     });
   });
+
+  it("distinguishes committed stream segments from the active cumulative segment", () => {
+    const streams = buildChatItems(
+      createProps({
+        streamSegments: [
+          { text: "Committed before tool one.", ts: 1_000 },
+          { text: "Committed before tool two.", ts: 2_000 },
+        ],
+        stream: "Still streaming...",
+        streamStartedAt: 3_000,
+      }),
+    ).filter((item) => item.kind === "stream");
+
+    expect(streams).toMatchObject([
+      { text: "Committed before tool one.", active: false },
+      { text: "Committed before tool two.", active: false },
+      { text: "Still streaming...", active: true },
+    ]);
+  });
 });
 
 function isCanvasBlock(block: unknown): boolean {

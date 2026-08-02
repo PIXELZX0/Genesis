@@ -7,11 +7,13 @@ import { refreshChat } from "./app-chat.ts";
 import { DEFAULT_CRON_FORM } from "./app-defaults.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
 import {
+  navigateToChatSession,
   renderChatControls,
   renderChatMobileToggle,
   renderChatSessionSelect,
   renderTab,
   resolveAssistantAttachmentAuthToken,
+  resolveSessionOptionGroups,
   renderSidebarConnectionStatus,
   renderTopbarThemeModeToggle,
   switchChatSession,
@@ -123,7 +125,7 @@ import {
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
 import { loadMemoryGraph, loadMemoryIndex } from "./controllers/memory.ts";
-import { addModel, addProvider, loadModels } from "./controllers/models.ts";
+import { addModel, loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -264,21 +266,13 @@ async function submitModelsDialog(state: AppViewState): Promise<void> {
   }
   state.modelsDialog = { ...dialog, busy: true, error: null };
   try {
-    if (dialog.kind === "model") {
-      const ctx = dialog.form.contextWindow.trim();
-      await addModel(state.client, {
-        provider: dialog.form.provider.trim(),
-        id: dialog.form.id.trim(),
-        name: dialog.form.name.trim() || undefined,
-        contextWindow: ctx ? Number(ctx) : undefined,
-      });
-    } else {
-      await addProvider(state.client, {
-        provider: dialog.form.provider.trim(),
-        apiKey: dialog.form.apiKey,
-        displayName: dialog.form.displayName.trim() || undefined,
-      });
-    }
+    const ctx = dialog.form.contextWindow.trim();
+    await addModel(state.client, {
+      provider: dialog.form.provider.trim(),
+      id: dialog.form.id.trim(),
+      name: dialog.form.name.trim() || undefined,
+      contextWindow: ctx ? Number(ctx) : undefined,
+    });
     state.modelsDialog = null;
     state.chatModelCatalog = [];
     ensureModelsLoaded(state);
@@ -1019,6 +1013,9 @@ export function renderApp(state: AppViewState) {
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
+  const chatSessionOptionGroups = isChat
+    ? resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult)
+    : [];
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
   const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
@@ -1606,7 +1603,7 @@ export function renderApp(state: AppViewState) {
               <kbd class="topbar-search__kbd">⌘K</kbd>
             </button>
             <div class="topbar-status">
-              ${isChat ? renderChatMobileToggle(state) : nothing}
+              ${isChat ? renderChatMobileToggle(state, chatSessionOptionGroups) : nothing}
               ${renderTopbarThemeModeToggle(state)}
             </div>
           </div>
@@ -1782,7 +1779,7 @@ export function renderApp(state: AppViewState) {
           : html`<section class="content-header">
               <div>
                 ${isChat
-                  ? renderChatSessionSelect(state)
+                  ? renderChatSessionSelect(state, chatSessionOptionGroups)
                   : html`<div class="view-title">${titleForTab(state.tab)}</div>
                       <div class="view-sub">${subtitleForTab(state.tab)}</div>`}
               </div>
@@ -2061,8 +2058,7 @@ export function renderApp(state: AppViewState) {
                   }
                 },
                 onNavigateToChat: (sessionKey) => {
-                  switchChatSession(state, sessionKey);
-                  state.setTab("chat" as import("./navigation.ts").Tab);
+                  navigateToChatSession(state, sessionKey);
                 },
                 onToggleCheckpointDetails: (sessionKey) =>
                   toggleSessionCompactionCheckpoints(state, sessionKey),
@@ -2073,8 +2069,7 @@ export function renderApp(state: AppViewState) {
                     checkpointId,
                   );
                   if (nextKey) {
-                    switchChatSession(state, nextKey);
-                    state.setTab("chat" as import("./navigation.ts").Tab);
+                    navigateToChatSession(state, nextKey);
                   }
                 },
                 onRestoreCheckpoint: (sessionKey, checkpointId) =>
@@ -2217,8 +2212,7 @@ export function renderApp(state: AppViewState) {
                   await loadCronRuns(state, state.cronRunsJobId);
                 },
                 onNavigateToChat: (sessionKey) => {
-                  switchChatSession(state, sessionKey);
-                  state.setTab("chat" as import("./navigation.ts").Tab);
+                  navigateToChatSession(state, sessionKey);
                 },
               }),
             )
@@ -2848,6 +2842,11 @@ export function renderApp(state: AppViewState) {
                 panel: state.modelsPanel,
                 error: null,
                 dialog: state.modelsDialog,
+                modelProviderWizardStep: state.modelProviderWizardStep,
+                modelProviderWizardInput: state.modelProviderWizardInput,
+                modelProviderWizardBusy: state.modelProviderWizardBusy,
+                modelProviderWizardError: state.modelProviderWizardError,
+                modelProviderWizardMessage: state.modelProviderWizardMessage,
                 onPanelChange: (panel) => {
                   state.modelsPanel = panel;
                 },
@@ -2855,9 +2854,14 @@ export function renderApp(state: AppViewState) {
                   state.chatModelCatalog = [];
                   ensureModelsLoaded(state);
                 },
-                onOpenAdd: (kind) => {
-                  state.modelsDialog = emptyModelsDialog(kind);
+                onOpenAddModel: () => {
+                  state.modelsDialog = emptyModelsDialog();
                 },
+                onModelProviderWizardStart: () => state.handleModelProviderWizardStart(),
+                onModelProviderWizardSubmit: () => state.handleModelProviderWizardSubmit(),
+                onModelProviderWizardCancel: () => state.handleModelProviderWizardCancel(),
+                onModelProviderWizardInput: (value) => state.handleModelProviderWizardInput(value),
+                onModelProviderWizardClose: () => state.handleModelProviderWizardClose(),
                 onDialogFieldChange: (field, value) => {
                   if (state.modelsDialog) {
                     state.modelsDialog = setModelsDialogField(state.modelsDialog, field, value);

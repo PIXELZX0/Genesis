@@ -251,6 +251,14 @@ working unchanged.
   per connection, so capable and non-capable operators can share the same run.
   This reduces fan-out bytes for long streamed replies (the full-snapshot delta
   is O(n^2) in total bytes across a run; the incremental form is O(n)).
+- `scoped-session-messages`: keep the legacy `sessions.subscribe` global
+  session list/lifecycle subscription but suppress global transcript
+  `session.message` fan-out for this connection. Use
+  `sessions.messages.subscribe` for the active session.
+- `suppress-assistant-agent-events`: omit generic `agent` events whose payload
+  has `stream: "assistant"` when the client already consumes dedicated `chat`
+  deltas. Tool, lifecycle, compaction, fallback, error, and other agent streams
+  continue to flow unchanged.
 
 ## Presence
 
@@ -338,7 +346,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `config.schema` returns the live config schema payload used by Control UI and CLI tooling: schema, `uiHints`, version, and generation metadata, including plugin + channel schema metadata when the runtime can load it. The schema includes field `title` / `description` metadata derived from the same labels and help text used by the UI, including nested object, wildcard, array-item, and `anyOf` / `oneOf` / `allOf` composition branches when matching field documentation exists.
     - `config.schema.lookup` returns a path-scoped lookup payload for one config path: normalized path, a shallow schema node, matched hint + `hintPath`, and immediate child summaries for UI/CLI drill-down. Lookup schema nodes keep the user-facing docs and common validation fields (`title`, `description`, `type`, `enum`, `const`, `format`, `pattern`, numeric/string/array/object bounds, and flags like `additionalProperties`, `deprecated`, `readOnly`, `writeOnly`). Child summaries expose `key`, normalized `path`, `type`, `required`, `hasChildren`, plus the matched `hint` / `hintPath`.
     - `update.run` runs the gateway update flow and schedules a restart only when the update itself succeeded.
-    - `wizard.start`, `wizard.next`, `wizard.status`, and `wizard.cancel` expose setup wizard sessions over WS RPC. `wizard.start` defaults to the full onboarding wizard and also accepts `target: "channels"` plus an optional `channel` id for guided channel add/update flows.
+    - `wizard.start`, `wizard.next`, `wizard.status`, and `wizard.cancel` expose setup wizard sessions over WS RPC. `wizard.start` defaults to the full onboarding wizard and also accepts `target: "channels"` plus an optional `channel` id for guided channel add/update flows, or `target: "models"` with optional `provider`, `authMethod`, and `setDefault` fields for guided model-provider setup. Clients render each server-provided step and answer it through `wizard.next`.
   </Accordion>
 
   <Accordion title="Agent and workspace helpers">
@@ -352,7 +360,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
 
   <Accordion title="Session control">
     - `sessions.list` returns the current session index. It backfills stale usage from transcripts by default; browser clients that only need a fast index refresh can pass `includeTranscriptUsage: false`.
-    - `sessions.subscribe` and `sessions.unsubscribe` toggle session change event subscriptions for the current WS client.
+    - `sessions.subscribe` and `sessions.unsubscribe` toggle session change event subscriptions for the current WS client. Legacy clients receive global `session.message` transcript events. Clients advertising `scoped-session-messages` receive list/lifecycle updates globally and should subscribe to transcripts with `sessions.messages.subscribe`.
     - `sessions.messages.subscribe` and `sessions.messages.unsubscribe` toggle transcript/message event subscriptions for one session.
     - `sessions.preview` returns bounded transcript previews for specific session keys.
     - `sessions.resolve` resolves or canonicalizes a session target.
@@ -414,7 +422,9 @@ enumeration of `src/gateway/server-methods/*.ts`.
   (which always carries the full `message`) for late-joining/reconnect. The
   `final` event is identical for all clients regardless of the capability.
 - `session.message` and `session.tool`: transcript/event-stream updates for a
-  subscribed session.
+  subscribed session. `session.message` is delivered globally to legacy
+  `sessions.subscribe` callers unless they advertise `scoped-session-messages`;
+  scoped callers use `sessions.messages.subscribe` for one session instead.
 - `sessions.changed`: session index or metadata changed.
 - `presence`: system presence snapshot updates.
 - `tick`: periodic keepalive / liveness event.

@@ -14,6 +14,7 @@ import {
   DEFAULT_DANGEROUS_NODE_COMMANDS,
   resolveNodeCommandAllowlist,
 } from "./node-command-policy.js";
+import { GATEWAY_CLIENT_CAPS } from "./protocol/client-info.js";
 import type { RequestFrame } from "./protocol/index.js";
 import { createGatewayBroadcaster } from "./server-broadcast.js";
 import { createChatRunRegistry } from "./server-chat.js";
@@ -329,7 +330,7 @@ describe("gateway broadcaster", () => {
       makeGatewayWsClient("c-incremental", incrementalSocket, {
         role: "operator",
         scopes: ["operator.read"],
-        caps: ["chat-incremental"],
+        caps: [GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL],
       } as GatewayWsClient["connect"]),
       makeGatewayWsClient("c-full", fullSocket, {
         role: "operator",
@@ -379,6 +380,154 @@ describe("gateway broadcaster", () => {
 
     // The chat-class scope guard still applies (pairing-only operator excluded).
     expect(pairingSocket.send).not.toHaveBeenCalled();
+  });
+
+  it("does not serialize chat payloads when filtering leaves no recipients", () => {
+    const pairingSocket = makeRecordingSocket();
+    const clients = new Set<GatewayWsClient>([
+      makeGatewayWsClient("c-pairing", pairingSocket, {
+        role: "operator",
+        scopes: ["operator.pairing"],
+      } as GatewayWsClient["connect"]),
+    ]);
+    const fullToJSON = vi.fn(() => ({ variant: "full" }));
+    const incrementalToJSON = vi.fn(() => ({ variant: "incremental" }));
+    const { broadcastChatDelta } = createGatewayBroadcaster({ clients });
+
+    broadcastChatDelta({
+      full: { toJSON: fullToJSON },
+      incremental: { toJSON: incrementalToJSON },
+    });
+
+    expect(fullToJSON).not.toHaveBeenCalled();
+    expect(incrementalToJSON).not.toHaveBeenCalled();
+    expect(pairingSocket.send).not.toHaveBeenCalled();
+  });
+
+  it("serializes only the selected chat variant once for homogeneous recipients", () => {
+    const incrementalSockets = [makeRecordingSocket(), makeRecordingSocket()];
+    const incrementalClients = new Set<GatewayWsClient>(
+      incrementalSockets.map((socket, index) =>
+        makeGatewayWsClient(`c-incremental-${index}`, socket, {
+          role: "operator",
+          scopes: ["operator.read"],
+          caps: [GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL],
+        } as GatewayWsClient["connect"]),
+      ),
+    );
+    const incrementalFullToJSON = vi.fn(() => ({ variant: "full" }));
+    const incrementalToJSON = vi.fn(() => ({ variant: "incremental" }));
+
+    createGatewayBroadcaster({ clients: incrementalClients }).broadcastChatDelta({
+      full: { toJSON: incrementalFullToJSON },
+      incremental: { toJSON: incrementalToJSON },
+    });
+
+    expect(incrementalFullToJSON).not.toHaveBeenCalled();
+    expect(incrementalToJSON).toHaveBeenCalledTimes(1);
+    expect(incrementalSockets.map((socket) => socket.sent[0]?.payload)).toEqual([
+      { variant: "incremental" },
+      { variant: "incremental" },
+    ]);
+
+    const fullSockets = [makeRecordingSocket(), makeRecordingSocket()];
+    const fullClients = new Set<GatewayWsClient>(
+      fullSockets.map((socket, index) =>
+        makeGatewayWsClient(`c-full-${index}`, socket, {
+          role: "operator",
+          scopes: ["operator.read"],
+        } as GatewayWsClient["connect"]),
+      ),
+    );
+    const fullToJSON = vi.fn(() => ({ variant: "full" }));
+    const fullIncrementalToJSON = vi.fn(() => ({ variant: "incremental" }));
+
+    createGatewayBroadcaster({ clients: fullClients }).broadcastChatDelta({
+      full: { toJSON: fullToJSON },
+      incremental: { toJSON: fullIncrementalToJSON },
+    });
+
+    expect(fullToJSON).toHaveBeenCalledTimes(1);
+    expect(fullIncrementalToJSON).not.toHaveBeenCalled();
+    expect(fullSockets.map((socket) => socket.sent[0]?.payload)).toEqual([
+      { variant: "full" },
+      { variant: "full" },
+    ]);
+  });
+
+  it("preserves legacy wire bytes and targeted sequence semantics", () => {
+    const socket: TestSocket = {
+      bufferedAmount: 0,
+      send: vi.fn(),
+      close: vi.fn(),
+    };
+    const client = makeGatewayWsClient("c-read", socket, {
+      role: "operator",
+      scopes: ["operator.read"],
+    } as GatewayWsClient["connect"]);
+    const { broadcast, broadcastToConnIds } = createGatewayBroadcaster({
+      clients: new Set([client]),
+    });
+
+    broadcast(
+      "chat",
+      { text: "hello", optional: null },
+      { stateVersion: { presence: 2, health: 3 } },
+    );
+    broadcastToConnIds("tick", { ts: 4 }, new Set([client.connId]));
+    broadcast("heartbeat", undefined);
+
+    expect(socket.send).toHaveBeenNthCalledWith(
+      1,
+      '{"type":"event","event":"chat","payload":{"text":"hello","optional":null},"seq":1,"stateVersion":{"presence":2,"health":3}}',
+    );
+    expect(socket.send).toHaveBeenNthCalledWith(
+      2,
+      '{"type":"event","event":"tick","payload":{"ts":4}}',
+    );
+    expect(socket.send).toHaveBeenNthCalledWith(3, '{"type":"event","event":"heartbeat","seq":2}');
+  });
+
+  it("suppresses only assistant agent events for capable clients", () => {
+    const capableSocket = makeRecordingSocket();
+    const legacySocket = makeRecordingSocket();
+    const mobileSocket = makeRecordingSocket();
+    const clients = new Set<GatewayWsClient>([
+      makeGatewayWsClient("c-capable", capableSocket, {
+        role: "operator",
+        scopes: ["operator.read"],
+        caps: [GATEWAY_CLIENT_CAPS.SUPPRESS_ASSISTANT_AGENT_EVENTS],
+      } as GatewayWsClient["connect"]),
+      makeGatewayWsClient("c-legacy", legacySocket, {
+        role: "operator",
+        scopes: ["operator.read"],
+      } as GatewayWsClient["connect"]),
+      makeGatewayWsClient("c-mobile", mobileSocket, {
+        role: "operator",
+        scopes: ["operator.read"],
+        caps: [GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL],
+      } as GatewayWsClient["connect"]),
+    ]);
+    const { broadcast } = createGatewayBroadcaster({ clients });
+
+    for (const stream of ["assistant", "tool", "lifecycle", "compaction"] as const) {
+      broadcast("agent", { runId: "run-1", stream, data: {} });
+    }
+
+    expect(capableSocket.sent.map((frame) => [frame.payload, frame.seq])).toEqual([
+      [{ runId: "run-1", stream: "tool", data: {} }, 1],
+      [{ runId: "run-1", stream: "lifecycle", data: {} }, 2],
+      [{ runId: "run-1", stream: "compaction", data: {} }, 3],
+    ]);
+    for (const socket of [legacySocket, mobileSocket]) {
+      expect(socket.sent.map((frame) => (frame.payload as { stream: string }).stream)).toEqual([
+        "assistant",
+        "tool",
+        "lifecycle",
+        "compaction",
+      ]);
+      expect(socket.sent.map((frame) => frame.seq)).toEqual([1, 2, 3, 4]);
+    }
   });
 
   it("allows plugin.* broadcast events for operator.write and operator.admin", () => {

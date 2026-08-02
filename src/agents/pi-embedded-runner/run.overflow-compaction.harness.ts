@@ -499,6 +499,7 @@ export async function loadRunOverflowCompactionHarness(): Promise<{
   }));
 
   vi.doMock("../../process/command-queue.js", () => ({
+    clearCommandLane: vi.fn(),
     enqueueCommandInLane: vi.fn((_lane: string, task: () => unknown) => task()),
   }));
 
@@ -524,6 +525,7 @@ export async function loadRunOverflowCompactionHarness(): Promise<{
   }));
 
   vi.doMock("./lanes.js", () => ({
+    resolveEmbeddedSessionLane: vi.fn(() => "session-lane"),
     resolveSessionLane: vi.fn(() => "session-lane"),
     resolveGlobalLane: vi.fn(() => "global-lane"),
   }));

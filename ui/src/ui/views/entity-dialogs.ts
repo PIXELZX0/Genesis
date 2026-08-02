@@ -8,33 +8,28 @@ export interface AddModelForm {
   contextWindow: string;
 }
 
-export interface AddProviderForm {
-  provider: string;
-  apiKey: string;
-  displayName: string;
-}
-
 export interface CreateAgentForm {
   name: string;
   workspace: string;
   model: string;
 }
 
-export type ModelsDialog =
-  | { kind: "model"; form: AddModelForm; busy: boolean; error: string | null }
-  | { kind: "provider"; form: AddProviderForm; busy: boolean; error: string | null };
+export type ModelsDialog = {
+  kind: "model";
+  form: AddModelForm;
+  busy: boolean;
+  error: string | null;
+};
 
 export type AgentsCreateDialog = { form: CreateAgentForm; busy: boolean; error: string | null };
 
-export function emptyModelsDialog(kind: ModelsDialog["kind"]): ModelsDialog {
-  return kind === "model"
-    ? {
-        kind,
-        form: { provider: "", id: "", name: "", contextWindow: "" },
-        busy: false,
-        error: null,
-      }
-    : { kind, form: { provider: "", apiKey: "", displayName: "" }, busy: false, error: null };
+export function emptyModelsDialog(): ModelsDialog {
+  return {
+    kind: "model",
+    form: { provider: "", id: "", name: "", contextWindow: "" },
+    busy: false,
+    error: null,
+  };
 }
 
 export function emptyAgentsCreateDialog(): AgentsCreateDialog {
@@ -145,35 +140,6 @@ export function renderModelsDialog(
     return nothing;
   }
   const set = (key: string) => (value: string) => cb.onFieldChange(key, value);
-  if (dialog.kind === "provider") {
-    const f = dialog.form;
-    return dialogChrome({
-      title: t("modelsView.addProviderTitle"),
-      sub: t("modelsView.addProviderSub"),
-      busy: dialog.busy,
-      error: dialog.error,
-      submitLabel: t("modelsView.addProvider"),
-      canSubmit: f.provider.trim() !== "" && f.apiKey.trim() !== "",
-      onCancel: cb.onCancel,
-      onSubmit: cb.onSubmit,
-      body: html`
-        ${field(t("modelsView.fieldProvider"), f.provider, set("provider"), {
-          placeholder: "openai",
-          list: "models-provider-suggestions",
-        })}
-        <datalist id="models-provider-suggestions">
-          ${cb.providers.map((p) => html`<option value=${p}></option>`)}
-        </datalist>
-        ${field(t("modelsView.fieldApiKey"), f.apiKey, set("apiKey"), {
-          type: "password",
-          placeholder: "sk-...",
-        })}
-        ${field(t("modelsView.fieldDisplayName"), f.displayName, set("displayName"), {
-          placeholder: t("modelsView.fieldDisplayNameHint"),
-        })}
-      `,
-    });
-  }
   const f = dialog.form;
   return dialogChrome({
     title: t("modelsView.addModelTitle"),

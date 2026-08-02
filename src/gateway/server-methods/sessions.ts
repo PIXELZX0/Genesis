@@ -38,7 +38,11 @@ import {
   normalizeOptionalString,
   readStringValue,
 } from "../../shared/string-coerce.js";
-import { GATEWAY_CLIENT_IDS } from "../protocol/client-info.js";
+import {
+  GATEWAY_CLIENT_CAPS,
+  GATEWAY_CLIENT_IDS,
+  hasGatewayClientCap,
+} from "../protocol/client-info.js";
 import {
   ErrorCodes,
   errorShape,
@@ -593,10 +597,14 @@ export const sessionsHandlers: GatewayRequestHandlers = {
   },
   "sessions.subscribe": ({ client, context, respond }) => {
     const connId = client?.connId?.trim();
+    const scopedMessages = hasGatewayClientCap(
+      client?.connect?.caps,
+      GATEWAY_CLIENT_CAPS.SCOPED_SESSION_MESSAGES,
+    );
     if (connId) {
-      context.subscribeSessionEvents(connId);
+      context.subscribeSessionEvents(connId, !scopedMessages);
     }
-    respond(true, { subscribed: Boolean(connId) }, undefined);
+    respond(true, { subscribed: Boolean(connId), includeMessages: !scopedMessages }, undefined);
   },
   "sessions.unsubscribe": ({ client, context, respond }) => {
     const connId = client?.connId?.trim();

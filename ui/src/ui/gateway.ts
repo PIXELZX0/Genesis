@@ -1,5 +1,6 @@
 import { buildDeviceAuthPayload } from "../../../src/gateway/device-auth.js";
 import {
+  GATEWAY_CLIENT_CAPS,
   GATEWAY_CLIENT_MODES,
   GATEWAY_CLIENT_NAMES,
   type GatewayClientMode,
@@ -399,7 +400,12 @@ export class GatewayBrowserClient {
       role: plan.role,
       scopes: plan.scopes,
       device: plan.device,
-      caps: ["tool-events", "chat-incremental"],
+      caps: [
+        GATEWAY_CLIENT_CAPS.TOOL_EVENTS,
+        GATEWAY_CLIENT_CAPS.CHAT_INCREMENTAL,
+        GATEWAY_CLIENT_CAPS.SCOPED_SESSION_MESSAGES,
+        GATEWAY_CLIENT_CAPS.SUPPRESS_ASSISTANT_AGENT_EVENTS,
+      ],
       auth: plan.auth,
       userAgent: navigator.userAgent,
       locale: navigator.language,

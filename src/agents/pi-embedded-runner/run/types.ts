@@ -6,10 +6,18 @@ import type { SessionSystemPromptReport } from "../../../config/sessions/types.j
 import type { ContextEngine, ContextEnginePromptCacheInfo } from "../../../context-engine/types.js";
 import type { DiagnosticTraceContext } from "../../../infra/diagnostic-trace-context.js";
 import type { PluginHookBeforeAgentStartResult } from "../../../plugins/hook-before-agent-start.types.js";
+import type {
+  PluginHookAgentContext,
+  PluginHookAgentEndEvent,
+  PluginHookBeforePromptBuildEvent,
+  PluginHookBeforePromptBuildResult,
+  PluginHookName,
+} from "../../../plugins/hook-types.js";
 import type { MessagingToolSend } from "../../pi-embedded-messaging.types.js";
 import type { RuntimeCredentialStore } from "../../pi-model-discovery.js";
 import type { AgentRuntimePlan } from "../../runtime-plan/types.js";
 import type { ToolErrorSummary } from "../../tool-error-summary.js";
+import type { AnyAgentTool } from "../../tools/common.js";
 import type { NormalizedUsage } from "../../usage.js";
 import type { EmbeddedRunReplayMetadata, EmbeddedRunReplayState } from "../replay-state.js";
 import type { EmbeddedRunLivenessState } from "../types.js";
@@ -20,6 +28,15 @@ type EmbeddedRunAttemptBase = Omit<
   RunEmbeddedPiAgentParams,
   "provider" | "model" | "authProfileId" | "authProfileIdSource" | "thinkLevel" | "lane" | "enqueue"
 >;
+
+export type EmbeddedAttemptHookRunner = {
+  hasHooks(hookName: PluginHookName): boolean;
+  runBeforePromptBuild(
+    event: PluginHookBeforePromptBuildEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginHookBeforePromptBuildResult | undefined>;
+  runAgentEnd(event: PluginHookAgentEndEvent, ctx: PluginHookAgentContext): Promise<void>;
+};
 
 export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   initialReplayState?: EmbeddedRunReplayState;
@@ -44,6 +61,15 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;
+  /** Internal child-process seam for parent-proxied tools and explicit child-local controls. */
+  isolatedToolBridge?: {
+    tools: AnyAgentTool[];
+    localToolNames?: readonly "sessions_yield"[];
+    trace?: DiagnosticTraceContext;
+    onReady?: () => void | Promise<void>;
+  };
+  /** Internal child-process seam. Only explicitly bridged hooks are exposed. */
+  isolatedHookRunner?: EmbeddedAttemptHookRunner;
 };
 
 export type EmbeddedRunAttemptResult = {
@@ -116,4 +142,13 @@ export type EmbeddedRunAttemptResult = {
     replayInvalid?: boolean;
     livenessState?: EmbeddedRunLivenessState;
   }) => void;
+  /** Internal isolation seam used to release a buffered terminal lifecycle event. */
+  flushTerminalLifecycleEvent?: () => void | Promise<void>;
+  piIsolation?: {
+    mode: "isolated" | "in-process";
+    protocolVersion?: number;
+    childPid?: number;
+    fallbackCode?: string;
+    fallbackReason?: string;
+  };
 };

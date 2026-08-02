@@ -74,7 +74,7 @@ export type GatewayRequestContext = {
     clientRunId: string,
     sessionKey?: string,
   ) => { sessionKey: string; clientRunId: string } | undefined;
-  subscribeSessionEvents: (connId: string) => void;
+  subscribeSessionEvents: (connId: string, includeMessages?: boolean) => void;
   unsubscribeSessionEvents: (connId: string) => void;
   subscribeSessionMessageEvents: (connId: string, sessionKey: string) => void;
   unsubscribeSessionMessageEvents: (connId: string, sessionKey: string) => void;

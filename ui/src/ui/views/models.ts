@@ -3,10 +3,14 @@ import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import type { ModelCatalogEntry } from "../types.ts";
 import { renderModelsDialog, type ModelsDialog } from "./entity-dialogs.ts";
+import {
+  renderModelProviderWizardDialog,
+  type ModelProviderWizardDialogProps,
+} from "./model-provider-wizard.ts";
 
 export type ModelsPanel = "catalog" | "providers";
 
-export interface ModelsProps {
+export interface ModelsProps extends ModelProviderWizardDialogProps {
   connected: boolean;
   loading: boolean;
   models: ModelCatalogEntry[];
@@ -15,7 +19,8 @@ export interface ModelsProps {
   dialog: ModelsDialog | null;
   onPanelChange: (panel: ModelsPanel) => void;
   onRefresh: () => void;
-  onOpenAdd: (kind: ModelsDialog["kind"]) => void;
+  onOpenAddModel: () => void;
+  onModelProviderWizardStart: () => void;
   onDialogFieldChange: (field: string, value: string) => void;
   onDialogCancel: () => void;
   onDialogSubmit: () => void;
@@ -117,8 +122,8 @@ export function renderModels(props: ModelsProps) {
   const providerNames = [
     ...new Set(props.models.map((m) => entryProvider(m)).filter((p) => p && p !== "—")),
   ].toSorted((a, b) => a.localeCompare(b));
-  const addKind: ModelsDialog["kind"] = props.panel === "providers" ? "provider" : "model";
-  const addLabel = addKind === "provider" ? t("modelsView.addProvider") : t("modelsView.addModel");
+  const addingProvider = props.panel === "providers";
+  const addLabel = addingProvider ? t("modelsView.addProvider") : t("modelsView.addModel");
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
       <div class="row" style="justify-content: space-between; align-items: flex-start;">
@@ -132,8 +137,8 @@ export function renderModels(props: ModelsProps) {
           </button>
           <button
             class="btn primary"
-            ?disabled=${!props.connected}
-            @click=${() => props.onOpenAdd(addKind)}
+            ?disabled=${!props.connected || (addingProvider && props.modelProviderWizardBusy)}
+            @click=${addingProvider ? props.onModelProviderWizardStart : props.onOpenAddModel}
           >
             ${icons.plus} ${addLabel}
           </button>
@@ -168,6 +173,7 @@ export function renderModels(props: ModelsProps) {
         onCancel: props.onDialogCancel,
         onSubmit: props.onDialogSubmit,
       })}
+      ${renderModelProviderWizardDialog(props)}
     </section>
   `;
 }

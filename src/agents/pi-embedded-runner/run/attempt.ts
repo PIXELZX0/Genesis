@@ -19,10 +19,7 @@ import { formatErrorMessage } from "../../../infra/errors.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
-import {
-  extractModelCompat,
-  resolveToolCallArgumentsEncoding,
-} from "../../../plugins/provider-model-compat.js";
+import { resolveToolCallArgumentsEncoding } from "../../../plugins/provider-model-compat.js";
 import {
   resolveProviderSystemPromptContribution,
   resolveProviderTextTransforms,
@@ -41,10 +38,8 @@ import {
   toTrajectoryToolDefinitions,
 } from "../../../trajectory/runtime.js";
 import { buildTtsSystemPromptHint } from "../../../tts/tts.js";
-import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
-import { resolveGenesisAgentDir } from "../../agent-paths.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import {
@@ -74,7 +69,6 @@ import { resolveGenesisDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { buildModelAliasLines } from "../../model-alias-lines.js";
-import { resolveModelAuthMode } from "../../model-auth.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { supportsModelTools } from "../../model-tool-support.js";
 import { releaseWsSession } from "../../openai-ws-stream.js";
@@ -106,7 +100,7 @@ import {
   findClientToolNameConflicts,
   toClientToolDefinitions,
 } from "../../pi-tool-definition-adapter.js";
-import { createGenesisCodingTools, resolveToolLoopDetectionConfig } from "../../pi-tools.js";
+import { resolveToolLoopDetectionConfig } from "../../pi-tools.js";
 import {
   resolveEffectiveToolPolicy,
   resolveGroupToolPolicy,
@@ -115,7 +109,6 @@ import {
 import { wrapStreamFnTextTransforms } from "../../plugin-text-transforms.js";
 import { describeProviderRequestRoutingSummary } from "../../provider-attribution.js";
 import { registerProviderStreamForModel } from "../../provider-stream.js";
-import { resolveSandboxContext } from "../../sandbox.js";
 import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
@@ -229,6 +222,7 @@ import {
 } from "./attempt-bootstrap-routing.js";
 export { shouldStripBootstrapFromEmbeddedContext } from "./attempt-bootstrap-routing.js";
 import { configureEmbeddedAttemptHttpRuntime } from "./attempt-http-runtime.js";
+import { createEmbeddedAttemptTools, prepareEmbeddedAttemptToolContext } from "./attempt-tools.js";
 import {
   assembleAttemptContextEngine,
   buildLoopPromptCacheInfo,
@@ -284,7 +278,6 @@ import {
   wrapStreamFnSanitizeMalformedToolCalls,
   wrapStreamFnTrimToolCallNames,
 } from "./attempt.tool-call-normalization.js";
-import { buildEmbeddedAttemptToolRunContext } from "./attempt.tool-run-context.js";
 import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-aggregate-timeout.js";
 import {
   resolveRunTimeoutDuringCompaction,
@@ -452,16 +445,7 @@ function summarizeSessionContext(messages: AgentMessage[]): {
   };
 }
 
-export function applyEmbeddedAttemptToolsAllow<T extends { name: string }>(
-  tools: T[],
-  toolsAllow?: string[],
-): T[] {
-  if (!toolsAllow || toolsAllow.length === 0) {
-    return tools;
-  }
-  const allowSet = new Set(toolsAllow);
-  return tools.filter((tool) => allowSet.has(tool.name));
-}
+export { applyEmbeddedAttemptToolsAllow } from "./attempt-tools.js";
 
 export function shouldCreateBundleMcpRuntimeForAttempt(params: {
   toolsEnabled: boolean;
@@ -553,7 +537,6 @@ function collectAttemptExplicitToolAllowlistSources(params: {
 export async function runEmbeddedAttempt(
   params: EmbeddedRunAttemptParams,
 ): Promise<EmbeddedRunAttemptResult> {
-  const resolvedWorkspace = resolveUserPath(params.workspaceDir);
   const runAbortController = new AbortController();
   configureEmbeddedAttemptHttpRuntime({ timeoutMs: params.timeoutMs });
 
@@ -561,26 +544,25 @@ export async function runEmbeddedAttempt(
     `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}`,
   );
 
-  await fs.mkdir(resolvedWorkspace, { recursive: true });
-
-  const sandboxSessionKey =
-    params.sandboxSessionKey?.trim() || params.sessionKey?.trim() || params.sessionId;
-  const sandbox = await resolveSandboxContext({
-    config: params.config,
-    sessionKey: sandboxSessionKey,
-    workspaceDir: resolvedWorkspace,
-  });
-  const effectiveWorkspace = sandbox?.enabled
-    ? sandbox.workspaceAccess === "rw"
-      ? resolvedWorkspace
-      : sandbox.workspaceDir
-    : resolvedWorkspace;
-  await fs.mkdir(effectiveWorkspace, { recursive: true });
-  const { sessionAgentId } = resolveSessionAgentIds({
-    sessionKey: params.sessionKey,
-    config: params.config,
-    agentId: params.agentId,
-  });
+  let yieldDetected = false;
+  let yieldMessage: string | null = null;
+  let abortSessionForYield: (() => void) | null = null;
+  let queueYieldInterruptForSession: (() => void) | null = null;
+  let yieldAbortSettled: Promise<void> | null = null;
+  const diagnosticTrace =
+    params.isolatedToolBridge?.trace !== undefined
+      ? freezeDiagnosticTraceContext(params.isolatedToolBridge.trace)
+      : freezeDiagnosticTraceContext(createDiagnosticTraceContext());
+  const runTrace = freezeDiagnosticTraceContext(createChildDiagnosticTraceContext(diagnosticTrace));
+  const toolContext = await prepareEmbeddedAttemptToolContext(params);
+  const {
+    resolvedWorkspace,
+    effectiveWorkspace,
+    sandboxSessionKey,
+    sandbox,
+    sessionAgentId,
+    agentDir,
+  } = toolContext;
 
   let restoreSkillEnv: (() => void) | undefined;
   let aborted = Boolean(params.abortSignal?.aborted);
@@ -616,7 +598,6 @@ export async function runEmbeddedAttempt(
       workspaceDir: effectiveWorkspace,
       agentId: sessionAgentId,
     });
-
     const sessionLock = await acquireSessionWriteLock({
       sessionFile: params.sessionFile,
       maxHoldMs: resolveSessionLockMaxHoldFromTimeout({
@@ -629,11 +610,6 @@ export async function runEmbeddedAttempt(
 
     const sessionLabel = params.sessionKey ?? params.sessionId;
     const contextInjectionMode = resolveContextInjectionMode(params.config);
-    const agentDir = params.agentDir ?? resolveGenesisAgentDir();
-    const diagnosticTrace = freezeDiagnosticTraceContext(createDiagnosticTraceContext());
-    const runTrace = freezeDiagnosticTraceContext(
-      createChildDiagnosticTraceContext(diagnosticTrace),
-    );
     const diagnosticRunBase = {
       runId: params.runId,
       ...(params.sessionKey && { sessionKey: params.sessionKey }),
@@ -665,71 +641,19 @@ export async function runEmbeddedAttempt(
         ...(err ? { errorCategory: diagnosticErrorCategory(err) } : {}),
       });
     };
-    const toolsRaw = params.disableTools
-      ? []
-      : (() => {
-          const allTools = createGenesisCodingTools({
-            agentId: sessionAgentId,
-            ...buildEmbeddedAttemptToolRunContext({ ...params, trace: diagnosticTrace }),
-            exec: {
-              ...params.execOverrides,
-              elevated: params.bashElevated,
-            },
-            sandbox,
-            messageProvider: params.messageChannel ?? params.messageProvider,
-            agentAccountId: params.agentAccountId,
-            messageTo: params.messageTo,
-            messageThreadId: params.messageThreadId,
-            groupId: params.groupId,
-            groupChannel: params.groupChannel,
-            groupSpace: params.groupSpace,
-            memberRoleIds: params.memberRoleIds,
-            spawnedBy: params.spawnedBy,
-            senderId: params.senderId,
-            senderName: params.senderName,
-            senderUsername: params.senderUsername,
-            senderE164: params.senderE164,
-            senderIsOwner: params.senderIsOwner,
-            allowGatewaySubagentBinding: params.allowGatewaySubagentBinding,
-            sessionKey: sandboxSessionKey,
-            sessionId: params.sessionId,
-            runId: params.runId,
-            agentDir,
-            workspaceDir: effectiveWorkspace,
-            // When sandboxing uses a copied workspace (`ro` or `none`), effectiveWorkspace points
-            // at the sandbox copy. Spawned subagents should inherit the real workspace instead.
-            spawnWorkspaceDir: resolveAttemptSpawnWorkspaceDir({
-              sandbox,
-              resolvedWorkspace,
-            }),
-            config: params.config,
-            abortSignal: runAbortController.signal,
-            modelProvider: params.model.provider,
-            modelId: params.modelId,
-            modelCompat: extractModelCompat(params.model),
-            modelApi: params.model.api,
-            modelContextWindowTokens: params.model.contextWindow,
-            modelAuthMode: resolveModelAuthMode(params.model.provider, params.config),
-            currentChannelId: params.currentChannelId,
-            currentThreadTs: params.currentThreadTs,
-            currentMessageId: params.currentMessageId,
-            replyToMode: params.replyToMode,
-            hasRepliedRef: params.hasRepliedRef,
-            modelHasVision: params.model.input?.includes("image") ?? false,
-            requireExplicitMessageTarget:
-              params.requireExplicitMessageTarget ?? isSubagentSessionKey(params.sessionKey),
-            disableMessageTool: params.disableMessageTool,
-            forceMessageTool: params.forceMessageTool,
-            onYield: (message) => {
-              yieldDetected = true;
-              yieldMessage = message;
-              queueYieldInterruptForSession?.();
-              runAbortController.abort("sessions_yield");
-              abortSessionForYield?.();
-            },
-          });
-          return applyEmbeddedAttemptToolsAllow(allTools, params.toolsAllow);
-        })();
+    const toolsRaw = createEmbeddedAttemptTools({
+      attempt: params,
+      context: toolContext,
+      abortSignal: runAbortController.signal,
+      trace: diagnosticTrace,
+      onYield: (message) => {
+        yieldDetected = true;
+        yieldMessage = message;
+        queueYieldInterruptForSession?.();
+        runAbortController.abort("sessions_yield");
+        abortSessionForYield?.();
+      },
+    });
     const toolsEnabled = supportsModelTools(params.model);
     const bootstrapHasFileAccess = toolsEnabled && toolsRaw.some((tool) => tool.name === "read");
     const bootstrapRouting = await resolveAttemptWorkspaceBootstrapRouting({
@@ -822,13 +746,6 @@ export async function runEmbeddedAttempt(
       config: params.config,
       sessionAgentId,
     });
-    // Track sessions_yield tool invocation (callback pattern, like clientToolCallDetected)
-    let yieldDetected = false;
-    let yieldMessage: string | null = null;
-    // Late-binding reference so onYield can abort the session (declared after tool creation)
-    let abortSessionForYield: (() => void) | null = null;
-    let queueYieldInterruptForSession: (() => void) | null = null;
-    let yieldAbortSettled: Promise<void> | null = null;
     const runtimePlanModelContext = {
       workspaceDir: effectiveWorkspace,
       modelApi: params.model.api,
@@ -847,11 +764,13 @@ export async function runEmbeddedAttempt(
         model: params.model,
       });
     const clientTools = toolsEnabled ? params.clientTools : undefined;
-    const bundleMcpEnabled = shouldCreateBundleMcpRuntimeForAttempt({
-      toolsEnabled,
-      disableTools: params.disableTools,
-      toolsAllow: params.toolsAllow,
-    });
+    const bundleMcpEnabled =
+      !params.isolatedToolBridge &&
+      shouldCreateBundleMcpRuntimeForAttempt({
+        toolsEnabled,
+        disableTools: params.disableTools,
+        toolsAllow: params.toolsAllow,
+      });
     const bundleMcpSessionRuntime = bundleMcpEnabled
       ? await getOrCreateSessionMcpRuntime({
           sessionId: params.sessionId,
@@ -869,17 +788,18 @@ export async function runEmbeddedAttempt(
           ],
         })
       : undefined;
-    const bundleLspRuntime = toolsEnabled
-      ? await createBundleLspToolRuntime({
-          workspaceDir: effectiveWorkspace,
-          cfg: params.config,
-          reservedToolNames: [
-            ...tools.map((tool) => tool.name),
-            ...(clientTools?.map((tool) => tool.function.name) ?? []),
-            ...(bundleMcpRuntime?.tools.map((tool) => tool.name) ?? []),
-          ],
-        })
-      : undefined;
+    const bundleLspRuntime =
+      toolsEnabled && !params.isolatedToolBridge
+        ? await createBundleLspToolRuntime({
+            workspaceDir: effectiveWorkspace,
+            cfg: params.config,
+            reservedToolNames: [
+              ...tools.map((tool) => tool.name),
+              ...(clientTools?.map((tool) => tool.function.name) ?? []),
+              ...(bundleMcpRuntime?.tools.map((tool) => tool.name) ?? []),
+            ],
+          })
+        : undefined;
     const filteredBundledTools = applyFinalEffectiveToolPolicy({
       bundledTools: [...(bundleMcpRuntime?.tools ?? []), ...(bundleLspRuntime?.tools ?? [])],
       config: params.config,
@@ -1274,8 +1194,10 @@ export async function runEmbeddedAttempt(
         contextTokenBudget: params.contextTokenBudget,
       });
 
-      // Get hook runner early so it's available when creating tools
-      const hookRunner = getGlobalHookRunner();
+      // Isolated attempts must not observe a child-global plugin runner. Only the
+      // explicitly bridged parent hooks are available through this narrow proxy.
+      const unbridgedHookRunner = params.isolatedHookRunner ? undefined : getGlobalHookRunner();
+      const hookRunner = params.isolatedHookRunner ?? unbridgedHookRunner;
 
       const { customTools } = splitSdkTools({
         tools: effectiveTools,
@@ -1981,7 +1903,7 @@ export async function runEmbeddedAttempt(
           session: activeSession,
           runId: params.runId,
           initialReplayState: params.initialReplayState,
-          hookRunner: getGlobalHookRunner() ?? undefined,
+          hookRunner: unbridgedHookRunner ?? undefined,
           verboseLevel: params.verboseLevel,
           reasoningMode: params.reasoningLevel ?? "off",
           toolResultFormat: params.toolResultFormat,
@@ -2057,6 +1979,7 @@ export async function runEmbeddedAttempt(
         params.replyOperation.attachBackend(queueHandle);
       }
       setActiveEmbeddedRun(params.sessionId, queueHandle, params.sessionKey);
+      await params.isolatedToolBridge?.onReady?.();
 
       let abortWarnTimer: NodeJS.Timeout | undefined;
       const isProbeSession = params.sessionId?.startsWith("probe-") ?? false;
@@ -2407,8 +2330,8 @@ export async function runEmbeddedAttempt(
             );
           }
 
-          if (hookRunner?.hasHooks("llm_input")) {
-            hookRunner
+          if (unbridgedHookRunner?.hasHooks("llm_input")) {
+            unbridgedHookRunner
               .runLlmInput(
                 {
                   runId: params.runId,
@@ -2914,8 +2837,8 @@ export async function runEmbeddedAttempt(
         }
       }
 
-      if (hookRunner?.hasHooks("llm_output")) {
-        hookRunner
+      if (unbridgedHookRunner?.hasHooks("llm_output")) {
+        unbridgedHookRunner
           .runLlmOutput(
             {
               runId: params.runId,

@@ -34,6 +34,22 @@ import {
 } from "./server-chat.js";
 import { loadGatewaySessionRow } from "./server-chat.load-gateway-session-row.runtime.js";
 
+describe("session event subscriber registry", () => {
+  it("keeps legacy message fan-out while allowing list-only subscribers", () => {
+    const subscribers = createSessionEventSubscriberRegistry();
+
+    subscribers.subscribe("legacy");
+    subscribers.subscribe("list-only", false);
+
+    expect([...subscribers.getAll()]).toEqual(["legacy", "list-only"]);
+    expect([...subscribers.getMessageSubscribers()]).toEqual(["legacy"]);
+
+    subscribers.subscribe("legacy", false);
+    expect([...subscribers.getAll()]).toEqual(["legacy", "list-only"]);
+    expect(subscribers.getMessageSubscribers().size).toBe(0);
+  });
+});
+
 describe("agent event handler", () => {
   beforeEach(() => {
     vi.mocked(loadConfig).mockReturnValue({});

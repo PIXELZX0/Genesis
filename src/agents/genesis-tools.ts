@@ -50,6 +50,43 @@ type GenesisToolsDeps = {
   config?: GenesisConfig;
 };
 
+const GENESIS_TOOL_NAMES = new Set([
+  "canvas",
+  "nodes",
+  "cron",
+  "message",
+  "tts",
+  "image_generate",
+  "music_generate",
+  "video_generate",
+  "gateway",
+  "agents_list",
+  "update_plan",
+  "sessions_list",
+  "sessions_history",
+  "sessions_send",
+  "sessions_spawn",
+  "ask_advisor",
+  "sessions_yield",
+  "subagents",
+  "session_status",
+  "web_search",
+  "web_fetch",
+  "image",
+  "pdf",
+  "contacts",
+]);
+
+const CORE_TOOL_NAMES = new Set([
+  "read",
+  "write",
+  "edit",
+  "exec",
+  "process",
+  "apply_patch",
+  ...GENESIS_TOOL_NAMES,
+]);
+
 const defaultGenesisToolsDeps: GenesisToolsDeps = {
   callGateway,
 };
@@ -118,8 +155,16 @@ export function createGenesisTools(
     onYield?: (message: string) => Promise<void> | void;
     /** Allow plugin tools for this tool set to late-bind the gateway subagent. */
     allowGatewaySubagentBinding?: boolean;
+    /** Restrict construction to these exact tool names; empty means the legacy full surface. */
+    toolAllowlist?: readonly string[];
   } & SpawnedToolContext,
 ): AnyAgentTool[] {
+  const requestedToolNames =
+    options?.toolAllowlist && options.toolAllowlist.length > 0
+      ? new Set(options.toolAllowlist)
+      : undefined;
+  const shouldCreateTool = (name: string) =>
+    requestedToolNames === undefined || requestedToolNames.has(name);
   const resolvedConfig = options?.config ?? genesisToolsDeps.config;
   const { sessionAgentId } = resolveSessionAgentIds({
     sessionKey: options?.agentSessionKey,
@@ -153,101 +198,120 @@ export function createGenesisTools(
     options?.sandboxRoot && options?.sandboxFsBridge
       ? { root: options.sandboxRoot, bridge: options.sandboxFsBridge }
       : undefined;
-  const imageTool = options?.agentDir?.trim()
-    ? createImageTool({
+  const imageTool =
+    shouldCreateTool("image") && options?.agentDir?.trim()
+      ? createImageTool({
+          config: options?.config,
+          agentDir: options.agentDir,
+          workspaceDir,
+          sandbox,
+          fsPolicy: options?.fsPolicy,
+          modelHasVision: options?.modelHasVision,
+        })
+      : null;
+  const imageGenerateTool = shouldCreateTool("image_generate")
+    ? createImageGenerateTool({
         config: options?.config,
-        agentDir: options.agentDir,
-        workspaceDir,
-        sandbox,
-        fsPolicy: options?.fsPolicy,
-        modelHasVision: options?.modelHasVision,
-      })
-    : null;
-  const imageGenerateTool = createImageGenerateTool({
-    config: options?.config,
-    agentDir: options?.agentDir,
-    workspaceDir,
-    sandbox,
-    fsPolicy: options?.fsPolicy,
-  });
-  const videoGenerateTool = createVideoGenerateTool({
-    config: options?.config,
-    agentDir: options?.agentDir,
-    agentSessionKey: options?.agentSessionKey,
-    requesterOrigin: deliveryContext ?? undefined,
-    workspaceDir,
-    sandbox,
-    fsPolicy: options?.fsPolicy,
-  });
-  const musicGenerateTool = createMusicGenerateTool({
-    config: options?.config,
-    agentDir: options?.agentDir,
-    agentSessionKey: options?.agentSessionKey,
-    requesterOrigin: deliveryContext ?? undefined,
-    workspaceDir,
-    sandbox,
-    fsPolicy: options?.fsPolicy,
-  });
-  const pdfTool = options?.agentDir?.trim()
-    ? createPdfTool({
-        config: options?.config,
-        agentDir: options.agentDir,
+        agentDir: options?.agentDir,
         workspaceDir,
         sandbox,
         fsPolicy: options?.fsPolicy,
       })
     : null;
-  const contactsTool = options?.agentDir?.trim()
-    ? createContactsTool({
-        agentDir: options.agentDir,
-        config: resolvedConfig,
+  const videoGenerateTool = shouldCreateTool("video_generate")
+    ? createVideoGenerateTool({
+        config: options?.config,
+        agentDir: options?.agentDir,
+        agentSessionKey: options?.agentSessionKey,
+        requesterOrigin: deliveryContext ?? undefined,
+        workspaceDir,
+        sandbox,
+        fsPolicy: options?.fsPolicy,
       })
     : null;
-  const webSearchTool = createWebSearchTool({
-    config: options?.config,
-    sandboxed: options?.sandboxed,
-    runtimeWebSearch: runtimeWebTools?.search,
-  });
-  const webFetchTool = createWebFetchTool({
-    config: options?.config,
-    sandboxed: options?.sandboxed,
-    runtimeWebFetch: runtimeWebTools?.fetch,
-  });
+  const musicGenerateTool = shouldCreateTool("music_generate")
+    ? createMusicGenerateTool({
+        config: options?.config,
+        agentDir: options?.agentDir,
+        agentSessionKey: options?.agentSessionKey,
+        requesterOrigin: deliveryContext ?? undefined,
+        workspaceDir,
+        sandbox,
+        fsPolicy: options?.fsPolicy,
+      })
+    : null;
+  const pdfTool =
+    shouldCreateTool("pdf") && options?.agentDir?.trim()
+      ? createPdfTool({
+          config: options?.config,
+          agentDir: options.agentDir,
+          workspaceDir,
+          sandbox,
+          fsPolicy: options?.fsPolicy,
+        })
+      : null;
+  const contactsTool =
+    shouldCreateTool("contacts") && options?.agentDir?.trim()
+      ? createContactsTool({
+          agentDir: options.agentDir,
+          config: resolvedConfig,
+        })
+      : null;
+  const webSearchTool = shouldCreateTool("web_search")
+    ? createWebSearchTool({
+        config: options?.config,
+        sandboxed: options?.sandboxed,
+        runtimeWebSearch: runtimeWebTools?.search,
+      })
+    : null;
+  const webFetchTool = shouldCreateTool("web_fetch")
+    ? createWebFetchTool({
+        config: options?.config,
+        sandboxed: options?.sandboxed,
+        runtimeWebFetch: runtimeWebTools?.fetch,
+      })
+    : null;
+  const embedded = isEmbeddedMode();
   const messageTool = options?.disableMessageTool
     ? null
-    : createMessageTool({
-        agentAccountId: options?.agentAccountId,
-        agentSessionKey: options?.agentSessionKey,
-        sessionId: options?.sessionId,
-        config: options?.config,
-        currentChannelId: options?.currentChannelId,
-        currentChannelProvider: options?.agentChannel,
-        currentThreadTs: options?.currentThreadTs,
-        currentMessageId: options?.currentMessageId,
-        replyToMode: options?.replyToMode,
-        hasRepliedRef: options?.hasRepliedRef,
-        sandboxRoot: options?.sandboxRoot,
-        requireExplicitTarget: options?.requireExplicitMessageTarget,
-        requesterSenderId: options?.requesterSenderId ?? undefined,
-        senderIsOwner: options?.senderIsOwner,
-      });
-  const nodesToolBase = createNodesTool({
-    agentSessionKey: options?.agentSessionKey,
-    agentChannel: options?.agentChannel,
-    agentAccountId: options?.agentAccountId,
-    currentChannelId: options?.currentChannelId,
-    currentThreadTs: options?.currentThreadTs,
-    config: options?.config,
-    modelHasVision: options?.modelHasVision,
-    allowMediaInvokeCommands: options?.allowMediaInvokeCommands,
-  });
-  const nodesTool = applyNodesToolWorkspaceGuard(nodesToolBase, {
-    fsPolicy: options?.fsPolicy,
-    sandboxContainerWorkdir: options?.sandboxContainerWorkdir,
-    sandboxRoot: options?.sandboxRoot,
-    workspaceDir,
-  });
-  const embedded = isEmbeddedMode();
+    : shouldCreateTool("message")
+      ? createMessageTool({
+          agentAccountId: options?.agentAccountId,
+          agentSessionKey: options?.agentSessionKey,
+          sessionId: options?.sessionId,
+          config: options?.config,
+          currentChannelId: options?.currentChannelId,
+          currentChannelProvider: options?.agentChannel,
+          currentThreadTs: options?.currentThreadTs,
+          currentMessageId: options?.currentMessageId,
+          replyToMode: options?.replyToMode,
+          hasRepliedRef: options?.hasRepliedRef,
+          sandboxRoot: options?.sandboxRoot,
+          requireExplicitTarget: options?.requireExplicitMessageTarget,
+          requesterSenderId: options?.requesterSenderId ?? undefined,
+          senderIsOwner: options?.senderIsOwner,
+        })
+      : null;
+  const nodesTool = shouldCreateTool("nodes")
+    ? applyNodesToolWorkspaceGuard(
+        createNodesTool({
+          agentSessionKey: options?.agentSessionKey,
+          agentChannel: options?.agentChannel,
+          agentAccountId: options?.agentAccountId,
+          currentChannelId: options?.currentChannelId,
+          currentThreadTs: options?.currentThreadTs,
+          config: options?.config,
+          modelHasVision: options?.modelHasVision,
+          allowMediaInvokeCommands: options?.allowMediaInvokeCommands,
+        }),
+        {
+          fsPolicy: options?.fsPolicy,
+          sandboxContainerWorkdir: options?.sandboxContainerWorkdir,
+          sandboxRoot: options?.sandboxRoot,
+          workspaceDir,
+        },
+      )
+    : null;
   const effectiveCallGateway = embedded
     ? createEmbeddedCallGateway()
     : genesisToolsDeps.callGateway;
@@ -255,31 +319,46 @@ export function createGenesisTools(
     ...(embedded
       ? []
       : [
-          createCanvasTool({ config: options?.config, workspaceDir }),
-          nodesTool,
-          createCronTool({
-            agentSessionKey: options?.agentSessionKey,
-          }),
+          ...(shouldCreateTool("canvas")
+            ? [createCanvasTool({ config: options?.config, workspaceDir })]
+            : []),
+          ...(nodesTool ? [nodesTool] : []),
+          ...(shouldCreateTool("cron")
+            ? [
+                createCronTool({
+                  agentSessionKey: options?.agentSessionKey,
+                }),
+              ]
+            : []),
         ]),
     ...(!embedded && messageTool ? [messageTool] : []),
-    createTtsTool({
-      agentChannel: options?.agentChannel,
-      config: resolvedConfig,
-    }),
+    ...(shouldCreateTool("tts")
+      ? [
+          createTtsTool({
+            agentChannel: options?.agentChannel,
+            config: resolvedConfig,
+          }),
+        ]
+      : []),
     ...collectPresentGenesisTools([imageGenerateTool, musicGenerateTool, videoGenerateTool]),
-    ...(embedded
-      ? []
-      : [
+    ...(!embedded && shouldCreateTool("gateway")
+      ? [
           createGatewayTool({
             agentSessionKey: options?.agentSessionKey,
             config: options?.config,
           }),
-        ]),
-    createAgentsListTool({
-      agentSessionKey: options?.agentSessionKey,
-      requesterAgentIdOverride: options?.requesterAgentIdOverride,
-    }),
-    ...(isUpdatePlanToolEnabledForGenesisTools({
+        ]
+      : []),
+    ...(shouldCreateTool("agents_list")
+      ? [
+          createAgentsListTool({
+            agentSessionKey: options?.agentSessionKey,
+            requesterAgentIdOverride: options?.requesterAgentIdOverride,
+          }),
+        ]
+      : []),
+    ...(shouldCreateTool("update_plan") &&
+    isUpdatePlanToolEnabledForGenesisTools({
       config: resolvedConfig,
       agentSessionKey: options?.agentSessionKey,
       agentId: options?.requesterAgentIdOverride,
@@ -288,43 +367,59 @@ export function createGenesisTools(
     })
       ? [createUpdatePlanTool()]
       : []),
-    createSessionsListTool({
-      agentSessionKey: options?.agentSessionKey,
-      sandboxed: options?.sandboxed,
-      config: resolvedConfig,
-      callGateway: effectiveCallGateway,
-    }),
-    createSessionsHistoryTool({
-      agentSessionKey: options?.agentSessionKey,
-      sandboxed: options?.sandboxed,
-      config: resolvedConfig,
-      callGateway: effectiveCallGateway,
-    }),
+    ...(shouldCreateTool("sessions_list")
+      ? [
+          createSessionsListTool({
+            agentSessionKey: options?.agentSessionKey,
+            sandboxed: options?.sandboxed,
+            config: resolvedConfig,
+            callGateway: effectiveCallGateway,
+          }),
+        ]
+      : []),
+    ...(shouldCreateTool("sessions_history")
+      ? [
+          createSessionsHistoryTool({
+            agentSessionKey: options?.agentSessionKey,
+            sandboxed: options?.sandboxed,
+            config: resolvedConfig,
+            callGateway: effectiveCallGateway,
+          }),
+        ]
+      : []),
     ...(embedded
       ? []
       : [
-          createSessionsSendTool({
-            agentSessionKey: options?.agentSessionKey,
-            agentChannel: options?.agentChannel,
-            sandboxed: options?.sandboxed,
-            config: resolvedConfig,
-            callGateway: genesisToolsDeps.callGateway,
-          }),
-          createSessionsSpawnTool({
-            agentSessionKey: options?.agentSessionKey,
-            agentChannel: options?.agentChannel,
-            agentAccountId: options?.agentAccountId,
-            agentTo: options?.agentTo,
-            agentThreadId: options?.agentThreadId,
-            agentGroupId: options?.agentGroupId,
-            agentGroupChannel: options?.agentGroupChannel,
-            agentGroupSpace: options?.agentGroupSpace,
-            agentMemberRoleIds: options?.agentMemberRoleIds,
-            sandboxed: options?.sandboxed,
-            requesterAgentIdOverride: options?.requesterAgentIdOverride,
-            workspaceDir: spawnWorkspaceDir,
-          }),
-          ...(advisorEnabled && advisorModel
+          ...(shouldCreateTool("sessions_send")
+            ? [
+                createSessionsSendTool({
+                  agentSessionKey: options?.agentSessionKey,
+                  agentChannel: options?.agentChannel,
+                  sandboxed: options?.sandboxed,
+                  config: resolvedConfig,
+                  callGateway: genesisToolsDeps.callGateway,
+                }),
+              ]
+            : []),
+          ...(shouldCreateTool("sessions_spawn")
+            ? [
+                createSessionsSpawnTool({
+                  agentSessionKey: options?.agentSessionKey,
+                  agentChannel: options?.agentChannel,
+                  agentAccountId: options?.agentAccountId,
+                  agentTo: options?.agentTo,
+                  agentThreadId: options?.agentThreadId,
+                  agentGroupId: options?.agentGroupId,
+                  agentGroupChannel: options?.agentGroupChannel,
+                  agentGroupSpace: options?.agentGroupSpace,
+                  agentMemberRoleIds: options?.agentMemberRoleIds,
+                  sandboxed: options?.sandboxed,
+                  requesterAgentIdOverride: options?.requesterAgentIdOverride,
+                  workspaceDir: spawnWorkspaceDir,
+                }),
+              ]
+            : []),
+          ...(shouldCreateTool("ask_advisor") && advisorEnabled && advisorModel
             ? [
                 createAdvisorTool({
                   model: advisorModel,
@@ -344,18 +439,30 @@ export function createGenesisTools(
               ]
             : []),
         ]),
-    createSessionsYieldTool({
-      sessionId: options?.sessionId,
-      onYield: options?.onYield,
-    }),
-    createSubagentsTool({
-      agentSessionKey: options?.agentSessionKey,
-    }),
-    createSessionStatusTool({
-      agentSessionKey: options?.agentSessionKey,
-      config: resolvedConfig,
-      sandboxed: options?.sandboxed,
-    }),
+    ...(shouldCreateTool("sessions_yield")
+      ? [
+          createSessionsYieldTool({
+            sessionId: options?.sessionId,
+            onYield: options?.onYield,
+          }),
+        ]
+      : []),
+    ...(shouldCreateTool("subagents")
+      ? [
+          createSubagentsTool({
+            agentSessionKey: options?.agentSessionKey,
+          }),
+        ]
+      : []),
+    ...(shouldCreateTool("session_status")
+      ? [
+          createSessionStatusTool({
+            agentSessionKey: options?.agentSessionKey,
+            config: resolvedConfig,
+            sandboxed: options?.sandboxed,
+          }),
+        ]
+      : []),
     ...collectPresentGenesisTools([webSearchTool, webFetchTool, imageTool, pdfTool, contactsTool]),
   ];
 
@@ -363,11 +470,24 @@ export function createGenesisTools(
     return tools;
   }
 
-  const wrappedPluginTools = resolveGenesisPluginToolsForOptions({
-    options,
-    resolvedConfig,
-    existingToolNames: new Set(tools.map((tool) => tool.name)),
-  });
+  const shouldResolvePluginTools =
+    requestedToolNames === undefined ||
+    Array.from(requestedToolNames).some((name) => !CORE_TOOL_NAMES.has(name));
+  const wrappedPluginTools = shouldResolvePluginTools
+    ? resolveGenesisPluginToolsForOptions({
+        options: options
+          ? {
+              ...options,
+              pluginToolAllowlist: [
+                ...(options.pluginToolAllowlist ?? []),
+                ...(options.toolAllowlist ?? []),
+              ],
+            }
+          : options,
+        resolvedConfig,
+        existingToolNames: new Set(tools.map((tool) => tool.name)),
+      }).filter((tool) => shouldCreateTool(tool.name))
+    : [];
 
   return [...tools, ...wrappedPluginTools];
 }

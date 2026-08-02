@@ -43,6 +43,26 @@ This covers the main Pi unit suites:
 - `src/agents/pi-tool-definition-adapter.test.ts`
 - `src/agents/pi-hooks/*.test.ts`
 
+Run the focused process-boundary tests after changing child launch, protocol, callbacks, tools, or cancellation:
+
+```bash
+pnpm test \
+  src/agents/pi-embedded-runner/isolation/protocol.test.ts \
+  src/agents/pi-embedded-runner/isolation/tool-proxy.test.ts \
+  src/agents/pi-embedded-runner/isolation/hook-proxy.test.ts \
+  src/agents/pi-embedded-runner/isolation/provider-activation.test.ts \
+  src/agents/pi-embedded-runner/isolation/parent.test.ts \
+  src/agents/pi-embedded-runner/isolation/compatibility.test.ts \
+  src/agents/pi-embedded-runner/isolation/launch.test.ts \
+  src/agents/pi-embedded-runner/run/attempt-tools.test.ts
+```
+
+The real child-process smoke test is intentionally separate because source-mode startup compiles the full embedded runner:
+
+```bash
+pnpm test src/agents/pi-embedded-runner/isolation/isolated-run.e2e.test.ts
+```
+
 ## Manual Testing
 
 Recommended flow:

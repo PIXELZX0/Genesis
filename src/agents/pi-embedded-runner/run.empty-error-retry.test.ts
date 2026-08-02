@@ -1,9 +1,10 @@
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeAttemptResult } from "./run.overflow-compaction.fixture.js";
 import {
   loadRunOverflowCompactionHarness,
   mockedClassifyFailoverReason,
   mockedGlobalHookRunner,
+  mockedLog,
   mockedRunEmbeddedAttempt,
   overflowBaseRunParams,
   resetRunOverflowCompactionHarnessMocks,
@@ -73,6 +74,57 @@ describe("runEmbeddedPiAgent silent-error retry", () => {
       runId: "run-empty-error-retry-basic",
     });
 
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
+    expect(result.payloads?.[0]?.isError).toBeFalsy();
+  });
+
+  it("flushes each terminal lifecycle event across a retry", async () => {
+    const firstFlush = vi.fn(async () => undefined);
+    const finalFlush = vi.fn(async () => undefined);
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce({
+      ...emptyErrorAttempt("ollama", "glm-5.1:cloud"),
+      flushTerminalLifecycleEvent: firstFlush,
+    });
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce({
+      ...successAttempt("ollama", "glm-5.1:cloud"),
+      flushTerminalLifecycleEvent: finalFlush,
+    });
+
+    await runEmbeddedPiAgent({
+      ...overflowBaseRunParams,
+      provider: "ollama",
+      model: "glm-5.1:cloud",
+      runId: "run-empty-error-retry-lifecycle-flush",
+    });
+
+    expect(firstFlush).toHaveBeenCalledOnce();
+    expect(finalFlush).toHaveBeenCalledOnce();
+    expect(firstFlush.mock.invocationCallOrder[0]).toBeLessThan(
+      mockedRunEmbeddedAttempt.mock.invocationCallOrder[1],
+    );
+  });
+
+  it("does not abort the retry when the first attempt's inline flush rejects", async () => {
+    // The retry loop flushes the previous attempt's terminal lifecycle event
+    // before starting the next one. A rejection there must be logged, not
+    // thrown — the retry must still proceed to the second (successful) attempt.
+    const rejectingFlush = vi.fn(async () => {
+      throw new Error("terminal lifecycle flush boom");
+    });
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce({
+      ...emptyErrorAttempt("ollama", "glm-5.1:cloud"),
+      flushTerminalLifecycleEvent: rejectingFlush,
+    });
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(successAttempt("ollama", "glm-5.1:cloud"));
+
+    const result = await runEmbeddedPiAgent({
+      ...overflowBaseRunParams,
+      provider: "ollama",
+      model: "glm-5.1:cloud",
+      runId: "run-empty-error-retry-inline-flush-rejects",
+    });
+
+    expect(rejectingFlush).toHaveBeenCalledOnce();
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
     expect(result.payloads?.[0]?.isError).toBeFalsy();
   });
@@ -186,5 +238,32 @@ describe("runEmbeddedPiAgent silent-error retry", () => {
 
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(1);
     expect(result.payloads?.[0]?.isError).toBe(true);
+  });
+
+  it("does not mask the run result when the final terminal lifecycle flush rejects", async () => {
+    // The last attempt's flush is deferred to the outer finally block (it
+    // never runs inline in the retry loop, since there is no next
+    // iteration). A rejection there must be logged, not thrown — the caller
+    // still needs the successful result.
+    const rejectingFlush = vi.fn(async () => {
+      throw new Error("terminal lifecycle flush boom");
+    });
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce({
+      ...successAttempt("ollama", "glm-5.1:cloud"),
+      flushTerminalLifecycleEvent: rejectingFlush,
+    });
+
+    const result = await runEmbeddedPiAgent({
+      ...overflowBaseRunParams,
+      provider: "ollama",
+      model: "glm-5.1:cloud",
+      runId: "run-empty-error-retry-final-flush-rejects",
+    });
+
+    expect(rejectingFlush).toHaveBeenCalledOnce();
+    expect(result.payloads?.[0]?.isError).toBeFalsy();
+    expect(mockedLog.warn).toHaveBeenCalledWith(
+      expect.stringContaining("terminal lifecycle flush failed"),
+    );
   });
 });

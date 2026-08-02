@@ -16,6 +16,7 @@ import {
 export type SessionsState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
+  sessionKey: string;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
@@ -105,6 +106,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function hasOwn(record: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+function sessionValuesEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return (
+      Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((value, index) => sessionValuesEqual(value, right[index]))
+    );
+  }
+  if (!isRecord(left) || !isRecord(right)) {
+    return false;
+  }
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every((key) => hasOwn(right, key) && sessionValuesEqual(left[key], right[key]))
+  );
 }
 
 function normalizeSessionKind(value: unknown): GatewaySessionRow["kind"] | undefined {
@@ -220,9 +244,12 @@ async function runCompactionMutation<T>(
   }
 }
 
-export function applySessionsChangedEvent(state: SessionsState, payload: unknown): boolean {
+export function applySessionsChangedEvent(
+  state: SessionsState,
+  payload: unknown,
+): SessionsListResult | null {
   if (!isRecord(payload) || !state.sessionsResult) {
-    return false;
+    return null;
   }
   const eventSession = isRecord(payload.session) ? payload.session : null;
   const source = eventSession ?? payload;
@@ -232,7 +259,7 @@ export function applySessionsChangedEvent(state: SessionsState, payload: unknown
     (typeof payload.key === "string" && payload.key.trim()) ||
     "";
   if (!key) {
-    return false;
+    return null;
   }
 
   const previousRows = state.sessionsResult.sessions;
@@ -261,6 +288,10 @@ export function applySessionsChangedEvent(state: SessionsState, payload: unknown
     delete nextRow.totalTokens;
   }
 
+  if (existing && sessionValuesEqual(existing, nextRow)) {
+    return state.sessionsResult;
+  }
+
   const sessions =
     existingIndex >= 0
       ? previousRows.map((row, index) => (index === existingIndex ? nextRow : row))
@@ -276,17 +307,74 @@ export function applySessionsChangedEvent(state: SessionsState, payload: unknown
   if (previousCheckpointSignature !== checkpointSummarySignature(nextRow)) {
     invalidateCheckpointCacheForKey(state, key);
   }
-  return true;
+  return state.sessionsResult;
 }
 
 export async function subscribeSessions(state: SessionsState) {
   if (!state.client || !state.connected) {
     return;
   }
+  const client = state.client;
   try {
-    await state.client.request("sessions.subscribe", {});
+    await client.request("sessions.subscribe", {});
+    if (state.client !== client || !state.connected) {
+      return;
+    }
+    const sessionKey = state.sessionKey.trim();
+    if (sessionKey) {
+      await client.request("sessions.messages.subscribe", { key: sessionKey });
+    }
   } catch (err) {
-    state.sessionsError = String(err);
+    if (state.client === client && state.connected) {
+      state.sessionsError = String(err);
+    }
+  }
+}
+
+export async function updateSessionMessageSubscription(
+  state: Pick<SessionsState, "client" | "connected" | "sessionsError">,
+  previousSessionKey: string | null | undefined,
+  nextSessionKey: string | null | undefined,
+) {
+  const client = state.client;
+  if (!client || !state.connected) {
+    return;
+  }
+  const previous = previousSessionKey?.trim() ?? "";
+  const next = nextSessionKey?.trim() ?? "";
+  if (previous === next) {
+    return;
+  }
+  const requests: Promise<unknown>[] = [];
+  if (previous) {
+    requests.push(client.request("sessions.messages.unsubscribe", { key: previous }));
+  }
+  if (next) {
+    requests.push(client.request("sessions.messages.subscribe", { key: next }));
+  }
+  try {
+    await Promise.all(requests);
+  } catch (err) {
+    if (state.client === client && state.connected) {
+      state.sessionsError = String(err);
+    }
+  }
+}
+
+export async function unsubscribeSessionMessages(
+  state: Pick<SessionsState, "client" | "connected" | "sessionsError" | "sessionKey">,
+) {
+  const client = state.client;
+  const sessionKey = state.sessionKey.trim();
+  if (!client || !state.connected || !sessionKey) {
+    return;
+  }
+  try {
+    await client.request("sessions.messages.unsubscribe", { key: sessionKey });
+  } catch (err) {
+    if (state.client === client && state.connected) {
+      state.sessionsError = String(err);
+    }
   }
 }
 

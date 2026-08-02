@@ -23,8 +23,12 @@ type ChatSessionSwitchHandler = (state: AppViewState, nextSessionKey: string) =>
 export function renderChatSessionSelect(
   state: AppViewState,
   onSwitchSession: ChatSessionSwitchHandler = () => undefined,
+  sessionGroups: SessionOptionGroup[] = resolveSessionOptionGroups(
+    state,
+    state.sessionKey,
+    state.sessionsResult,
+  ),
 ) {
-  const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
   const modelSelect = renderChatModelSelect(state);
   const thinkingSelect = renderChatThinkingSelect(state);
   const selectedSessionLabel =

@@ -375,6 +375,25 @@ describe("runWithModelFallback", () => {
     expect(result.attempts[0].reason).toBe("unknown");
   });
 
+  it("does not replay a candidate after a post-ready PI child failure", async () => {
+    const processError = Object.assign(new Error("PI child disappeared after ready"), {
+      code: "PI_ISOLATED_PROCESS",
+      kind: "exit",
+      replaySafe: false,
+    });
+    const run = vi.fn().mockRejectedValueOnce(processError).mockResolvedValueOnce("unsafe replay");
+
+    await expect(
+      runWithModelFallback({
+        cfg: makeCfg(),
+        provider: "openai",
+        model: "gpt-4.1-mini",
+        run,
+      }),
+    ).rejects.toBe(processError);
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps raw provider schema errors in fallback summaries", async () => {
     const cfg = makeCfg({
       agents: {

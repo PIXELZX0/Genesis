@@ -564,12 +564,12 @@ export function resolveDeletedAgentIdFromSessionKey(
 export function loadSessionEntry(sessionKey: string) {
   const cfg = loadConfig();
   const key = normalizeOptionalString(sessionKey) ?? "";
-  const target = resolveGatewaySessionStoreTarget({
+  const target = resolveGatewaySessionStoreSnapshot({
     cfg,
     key,
   });
   const storePath = target.storePath;
-  const store = loadSessionStore(storePath);
+  const store = target.store;
   const freshestMatch = resolveFreshestSessionStoreMatchFromStoreKeys(store, target.storeKeys);
   const legacyKey = freshestMatch?.key !== target.canonicalKey ? freshestMatch?.key : undefined;
   return {
@@ -1023,16 +1023,29 @@ function resolveGatewaySessionStoreLookup(params: {
   };
 }
 
-function resolveExplicitDeletedLegacyMainStoreTarget(params: {
+type GatewaySessionStoreTargetParams = {
   cfg: GenesisConfig;
   key: string;
   scanLegacyKeys?: boolean;
-}): {
+  store?: Record<string, SessionEntry>;
+};
+
+type GatewaySessionStoreTarget = {
   agentId: string;
   storePath: string;
   canonicalKey: string;
   storeKeys: string[];
-} | null {
+};
+
+type GatewaySessionStoreSnapshot = GatewaySessionStoreTarget & {
+  store: Record<string, SessionEntry>;
+};
+
+function resolveExplicitDeletedLegacyMainStoreTarget(params: {
+  cfg: GenesisConfig;
+  key: string;
+  scanLegacyKeys?: boolean;
+}): GatewaySessionStoreSnapshot | null {
   const parsed = parseAgentSessionKey(params.key);
   const legacyAgentId = normalizeAgentId(parsed?.agentId);
   if (
@@ -1095,22 +1108,15 @@ function resolveExplicitDeletedLegacyMainStoreTarget(params: {
   return {
     agentId: legacyAgentId,
     storePath: best.storePath,
+    store: best.store,
     canonicalKey,
     storeKeys: Array.from(storeKeys),
   };
 }
 
-export function resolveGatewaySessionStoreTarget(params: {
-  cfg: GenesisConfig;
-  key: string;
-  scanLegacyKeys?: boolean;
-  store?: Record<string, SessionEntry>;
-}): {
-  agentId: string;
-  storePath: string;
-  canonicalKey: string;
-  storeKeys: string[];
-} {
+function resolveGatewaySessionStoreSnapshot(
+  params: GatewaySessionStoreTargetParams,
+): GatewaySessionStoreSnapshot {
   const key = normalizeOptionalString(params.key) ?? "";
   const explicitDeletedMainTarget = resolveExplicitDeletedLegacyMainStoreTarget({
     cfg: params.cfg,
@@ -1136,7 +1142,7 @@ export function resolveGatewaySessionStoreTarget(params: {
 
   if (canonicalKey === "global" || canonicalKey === "unknown") {
     const storeKeys = key && key !== canonicalKey ? [canonicalKey, key] : [key];
-    return { agentId, storePath, canonicalKey, storeKeys };
+    return { agentId, storePath, store, canonicalKey, storeKeys };
   }
 
   const storeKeys = new Set<string>();
@@ -1162,8 +1168,21 @@ export function resolveGatewaySessionStoreTarget(params: {
   return {
     agentId,
     storePath,
+    store,
     canonicalKey,
     storeKeys: Array.from(storeKeys),
+  };
+}
+
+export function resolveGatewaySessionStoreTarget(
+  params: GatewaySessionStoreTargetParams,
+): GatewaySessionStoreTarget {
+  const snapshot = resolveGatewaySessionStoreSnapshot(params);
+  return {
+    agentId: snapshot.agentId,
+    storePath: snapshot.storePath,
+    canonicalKey: snapshot.canonicalKey,
+    storeKeys: snapshot.storeKeys,
   };
 }
 

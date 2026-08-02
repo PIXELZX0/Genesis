@@ -43,30 +43,3 @@ export async function addModel(
     ...(params.baseUrl ? { baseUrl: params.baseUrl } : {}),
   });
 }
-
-export interface AddProviderParams {
-  provider: string;
-  apiKey: string;
-  displayName?: string;
-}
-
-function randomProfileSuffix(): string {
-  return Math.random().toString(36).slice(2, 8);
-}
-
-/**
- * Add an API-key auth profile for a provider (gateway `models.authProfileAdd`).
- * Storing the credential is what makes the provider usable from the catalog.
- */
-export async function addProvider(
-  client: GatewayBrowserClient,
-  params: AddProviderParams,
-): Promise<void> {
-  await client.request("models.authProfileAdd", {
-    profileId: `${params.provider}-${randomProfileSuffix()}`,
-    provider: params.provider,
-    mode: "api_key",
-    value: params.apiKey,
-    ...(params.displayName ? { displayName: params.displayName } : {}),
-  });
-}
