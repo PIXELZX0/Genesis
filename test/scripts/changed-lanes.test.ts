@@ -461,22 +461,22 @@ describe("scripts/changed-lanes", () => {
     expect(plan.runFullTests).toBe(false);
   });
 
-  it("sets a ten-minute Vitest watchdog for changed checks", () => {
+  it("sets a ten-minute Vitest watchdog with one retry for changed checks", () => {
     expect(CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS).toBe("600000");
     expect(createChangedCheckVitestEnv({ PATH: "/usr/bin" })).toMatchObject({
       PATH: "/usr/bin",
       GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS: CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS,
-      GENESIS_VITEST_NO_OUTPUT_RETRY: "0",
+      GENESIS_VITEST_NO_OUTPUT_RETRY: "1",
     });
 
     expect(
       createChangedCheckVitestEnv({
         GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS: "45000",
-        GENESIS_VITEST_NO_OUTPUT_RETRY: "1",
+        GENESIS_VITEST_NO_OUTPUT_RETRY: "0",
       }),
     ).toMatchObject({
       GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS: "45000",
-      GENESIS_VITEST_NO_OUTPUT_RETRY: "1",
+      GENESIS_VITEST_NO_OUTPUT_RETRY: "0",
     });
   });
 });

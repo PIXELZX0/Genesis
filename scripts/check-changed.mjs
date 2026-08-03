@@ -14,6 +14,9 @@ import { printTimingSummary } from "./lib/check-timing-summary.mjs";
 import { runManagedCommand } from "./lib/managed-child-process.mjs";
 import { resolveChangedTestTargetPlan } from "./test-projects.test-support.mjs";
 
+// Vitest's non-TTY reporter prints nothing until a shard finishes, so "no
+// output" time equals shard wall time. Keep this above the slowest shard
+// (full-agentic averages ~251s) or healthy shards get killed as stalls.
 export const CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS = "600000";
 const VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_TIMEOUT_MS";
 const VITEST_NO_OUTPUT_RETRY_ENV_KEY = "GENESIS_VITEST_NO_OUTPUT_RETRY";
@@ -66,7 +69,10 @@ export function createChangedCheckVitestEnv(baseEnv = process.env) {
     [VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY]:
       baseEnv[VITEST_NO_OUTPUT_TIMEOUT_ENV_KEY]?.trim() ||
       CHANGED_CHECK_VITEST_NO_OUTPUT_TIMEOUT_MS,
-    [VITEST_NO_OUTPUT_RETRY_ENV_KEY]: baseEnv[VITEST_NO_OUTPUT_RETRY_ENV_KEY]?.trim() || "0",
+    // Vitest startup deadlocks intermittently (one shard per ~70 sequential
+    // starts), producing zero output until the watchdog kills it. Retry once
+    // instead of failing the whole gate on a transient.
+    [VITEST_NO_OUTPUT_RETRY_ENV_KEY]: baseEnv[VITEST_NO_OUTPUT_RETRY_ENV_KEY]?.trim() || "1",
   };
 }
 
