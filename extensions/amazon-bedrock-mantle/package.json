@@ -7,7 +7,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.90.0",
     "@aws/bedrock-token-generator": "^1.1.0",
-    "@earendil-works/pi-ai": "0.82.0"
+    "@earendil-works/pi-ai": "0.83.0"
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"

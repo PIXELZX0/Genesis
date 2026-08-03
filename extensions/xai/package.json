@@ -5,7 +5,7 @@
   "description": "Genesis xAI plugin",
   "type": "module",
   "dependencies": {
-    "@earendil-works/pi-ai": "0.82.0",
+    "@earendil-works/pi-ai": "0.83.0",
     "typebox": "1.1.31",
     "ws": "^8.20.0"
   },
