@@ -69,36 +69,11 @@ describe("matrix plugin", () => {
     expect(entry.setChannelRuntime).toEqual(expect.any(Function));
   });
 
-  it("registers CLI metadata during discovery registration", () => {
-    const registerChannel = vi.fn();
-    const registerCli = vi.fn();
-    const registerGatewayMethod = vi.fn();
-    const api = createTestPluginApi({
-      id: "matrix",
-      name: "Matrix",
-      source: "test",
-      config: {},
-      runtime: {} as never,
-      registrationMode: "discovery",
-      registerChannel,
-      registerCli,
-      registerGatewayMethod,
-    });
-
-    entry.register(api);
-
-    expect(registerChannel).toHaveBeenCalledTimes(1);
-    expect(registerCli).toHaveBeenCalledWith(expect.any(Function), {
-      descriptors: [
-        {
-          name: "matrix",
-          description: "Manage Matrix accounts, verification, devices, and profile state",
-          hasSubcommands: true,
-        },
-      ],
-    });
-    expect(registerGatewayMethod).not.toHaveBeenCalled();
-  });
+  // Discovery-mode registration is covered generically (with a cheap temp
+  // fixture) by src/plugin-sdk/channel-entry-contract.test.ts. Asserting it
+  // here made entry.register() jiti-compile the real channel plugin graph from
+  // source: 18s of silent work that pushed this shard into the no-output
+  // stall killer.
 
   it("registers subagent lifecycle hooks during full runtime registration", () => {
     const on = vi.fn();
