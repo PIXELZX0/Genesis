@@ -1685,6 +1685,7 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="sidebar-shell__footer">
               <div class="sidebar-utility-group">
+                ${renderTab(state, "logs", { collapsed: navCollapsed })}
                 <a
                   class="nav-item ${state.tab === "config" ? "nav-item--active" : ""}"
                   href=${pathForTab("config", state.basePath)}
