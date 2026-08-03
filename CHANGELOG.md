@@ -2,11 +2,15 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.7.23
+## 2026.8.3
 
 ### Changes
 
 - Pi runtime: compatible attempts using the built-in Pi harness now run the Pi SDK in a managed child process by default, keeping provider execution and session mutation out of the gateway process while proxied tools, delivery callbacks, steering, cancellation, and global hooks remain parent-owned. `sessions_yield` runs locally in the child, `before_prompt_build` and `agent_end` bridge to the parent, and provider plugins activate through targeted runtime resolution. Other process-local hook, sandbox, MCP/LSP, and tool contracts fall back before launch; failures before the child ready boundary may fall back in-process, while failures after ready are never replayed in-process.
+- Control UI: the guided model provider auth setup is now reachable from Models -> Providers as well as Agents -> Overview.
+- Control UI: the browser now subscribes to `session.message` only for the active chat session instead of every session, so chat stays responsive under heavy transcript and tool traffic. Global `sessions.changed` list and lifecycle updates are unchanged.
+
+## 2026.7.23
 
 ### Fixes
 
