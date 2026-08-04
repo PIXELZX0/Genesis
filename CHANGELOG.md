@@ -2,6 +2,13 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.8.4
+
+### Changes
+
+- Control UI: adding a model from Models -> Models now opens the interactive custom-model wizard instead of a static form dialog, so custom endpoints go through the same guided setup (including the private/LAN network access prompt) as provider setup. Adds a `custom-model` wizard target to the gateway wizard protocol.
+- Control UI: Logs is now linked from the sidebar footer. The tab was already routed and rendered but had no link, so it was only reachable by typing the URL.
+
 ## 2026.8.3
 
 ### Changes
