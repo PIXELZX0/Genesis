@@ -57,6 +57,15 @@ async function runModelsWizard(params: {
   });
 }
 
+async function runCustomModelTargetWizard(params: { prompter: WizardPrompter }) {
+  await params.prompter.intro("Custom model setup");
+  const { runCustomModelWizard } = await import("./wizard-models.js");
+  await runCustomModelWizard({
+    prompter: params.prompter,
+    skipIntro: true,
+  });
+}
+
 function readWizardStatus(session: WizardSession) {
   return {
     status: session.getStatus(),
@@ -100,6 +109,9 @@ export const wizardHandlers: GatewayRequestHandlers = {
           setDefault: params.setDefault,
           prompter,
         });
+      }
+      if (target === "custom-model") {
+        return runCustomModelTargetWizard({ prompter });
       }
       const opts = {
         mode: params.mode,

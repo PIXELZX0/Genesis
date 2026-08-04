@@ -114,27 +114,37 @@ class WizardSessionPrompter implements WizardPrompter {
     sensitive?: boolean;
     validate?: (value: string) => string | undefined;
   }): Promise<string> {
-    const res = await this.prompt({
-      type: "text",
-      message: params.message,
-      initialValue: params.initialValue,
-      placeholder: params.placeholder,
-      sensitive: params.sensitive,
-      executor: "client",
-    });
-    const value =
-      res === null || res === undefined
-        ? ""
-        : typeof res === "string"
-          ? res
-          : typeof res === "number" || typeof res === "boolean" || typeof res === "bigint"
-            ? String(res)
-            : "";
-    const error = params.validate?.(value);
-    if (error) {
-      throw new Error(error);
+    let message = params.message;
+    let title: string | undefined;
+    let initialValue = params.initialValue;
+
+    while (true) {
+      const res = await this.prompt({
+        type: "text",
+        title,
+        message,
+        initialValue,
+        placeholder: params.placeholder,
+        sensitive: params.sensitive,
+        executor: "client",
+      });
+      const value =
+        res === null || res === undefined
+          ? ""
+          : typeof res === "string"
+            ? res
+            : typeof res === "number" || typeof res === "boolean" || typeof res === "bigint"
+              ? String(res)
+              : "";
+      const error = params.validate?.(value);
+      if (!error) {
+        return value;
+      }
+
+      title = "Invalid input";
+      message = `${params.message}\n${error}`;
+      initialValue = params.sensitive ? "" : value;
     }
-    return value;
   }
 
   async confirm(params: { message: string; initialValue?: boolean }): Promise<boolean> {

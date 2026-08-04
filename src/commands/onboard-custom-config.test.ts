@@ -311,6 +311,189 @@ describe("applyCustomApiConfig", () => {
     ).toBeUndefined();
   });
 
+  it("keeps the existing primary and allowlist entries when default selection is disabled", () => {
+    const result = applyCustomApiConfig({
+      config: {
+        agents: {
+          defaults: {
+            model: {
+              primary: "anthropic/claude-opus-4-8",
+              fallbacks: ["openai/gpt-5.5"],
+            },
+            models: {
+              "anthropic/claude-opus-4-8": { alias: "opus" },
+              "custom/foo-large": { alias: "local", params: { temperature: 0.2 } },
+            },
+          },
+        },
+        models: {
+          providers: {
+            custom: {
+              baseUrl: "https://llm.example.com/v1",
+              api: "openai-completions",
+              models: [
+                {
+                  id: "foo-large",
+                  name: "My Custom Model",
+                  reasoning: true,
+                  input: ["text", "image"],
+                  cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0 },
+                  contextWindow: 131072,
+                  maxTokens: 16384,
+                },
+              ],
+            },
+          },
+        },
+      } as GenesisConfig,
+      baseUrl: "https://llm.example.com/v1",
+      modelId: "foo-large",
+      compatibility: "openai",
+      providerId: "custom",
+      setDefault: false,
+    });
+
+    expect(result.config.agents?.defaults?.model).toEqual({
+      primary: "anthropic/claude-opus-4-8",
+      fallbacks: ["openai/gpt-5.5"],
+    });
+    expect(result.config.agents?.defaults?.models).toEqual({
+      "anthropic/claude-opus-4-8": { alias: "opus" },
+      "custom/foo-large": { alias: "local", params: { temperature: 0.2 } },
+    });
+    expect(result.config.models?.providers?.custom?.models?.[0]).toMatchObject({
+      id: "foo-large",
+      name: "My Custom Model",
+      reasoning: true,
+      input: ["text", "image"],
+      cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 131072,
+      maxTokens: 16384,
+    });
+  });
+
+  it("does not create an allowlist when default selection is disabled without one", () => {
+    const result = applyCustomApiConfig({
+      config: {},
+      baseUrl: "https://llm.example.com/v1",
+      modelId: "foo-large",
+      compatibility: "openai",
+      providerId: "custom",
+      setDefault: false,
+    });
+
+    expect(result.config.agents?.defaults?.model).toBeUndefined();
+    expect(result.config.agents?.defaults?.models).toBeUndefined();
+    expect(result.config.models?.providers?.custom?.models?.[0]?.id).toBe("foo-large");
+  });
+
+  it("preserves an empty allow-any model map when default selection is disabled", () => {
+    const result = applyCustomApiConfig({
+      config: { agents: { defaults: { models: {} } } } as GenesisConfig,
+      baseUrl: "https://llm.example.com/v1",
+      modelId: "foo-large",
+      compatibility: "openai",
+      providerId: "custom",
+      setDefault: false,
+    });
+
+    expect(result.config.agents?.defaults?.models).toEqual({});
+  });
+
+  it.each([
+    { name: "absent", config: {} as GenesisConfig },
+    { name: "empty", config: { agents: { defaults: { models: {} } } } as GenesisConfig },
+  ])("rejects an alias for a web add with a $name allowlist", ({ config }) => {
+    expect(() =>
+      applyCustomApiConfig({
+        config,
+        baseUrl: "https://llm.example.com/v1",
+        modelId: "foo-large",
+        compatibility: "openai",
+        providerId: "custom",
+        alias: "local",
+        setDefault: false,
+      }),
+    ).toThrow(
+      "Model aliases require an existing non-empty model allowlist. Leave the alias blank to keep all models available.",
+    );
+  });
+
+  it("does not create an allowlist for an Azure reasoning model without one", () => {
+    const result = applyCustomApiConfig({
+      config: {},
+      baseUrl: "https://user123-resource.openai.azure.com",
+      modelId: "o4-mini",
+      compatibility: "openai",
+      apiKey: "key",
+      setDefault: false,
+    });
+
+    expect(result.config.agents?.defaults?.models).toBeUndefined();
+    expect(result.config.models?.providers?.[result.providerId!]?.models?.[0]?.reasoning).toBe(
+      true,
+    );
+  });
+
+  it("keeps setting the custom model as the default unless disabled", () => {
+    const result = applyCustomApiConfig({
+      config: {
+        agents: { defaults: { model: { primary: "anthropic/claude-opus-4-8" } } },
+      } as GenesisConfig,
+      baseUrl: "https://llm.example.com/v1",
+      modelId: "foo-large",
+      compatibility: "openai",
+      providerId: "custom",
+    });
+
+    expect(result.config.agents?.defaults?.model).toEqual({ primary: "custom/foo-large" });
+    expect(result.config.agents?.defaults?.models?.["custom/foo-large"]).toEqual({});
+  });
+
+  it("persists private network opt-in while preserving request overrides", () => {
+    const result = applyCustomApiConfig({
+      config: {
+        models: {
+          providers: {
+            custom: {
+              baseUrl: "https://llm.example.com/v1",
+              api: "openai-completions",
+              request: {
+                headers: { "x-tenant": "tenant-a" },
+                tls: { serverName: "llm.example.com" },
+              },
+              models: [],
+            },
+          },
+        },
+      } as GenesisConfig,
+      baseUrl: "https://llm.example.com/v1",
+      modelId: "foo-large",
+      compatibility: "openai",
+      providerId: "custom",
+      allowPrivateNetwork: true,
+    });
+
+    expect(result.config.models?.providers?.custom?.request).toEqual({
+      allowPrivateNetwork: true,
+      headers: { "x-tenant": "tenant-a" },
+      tls: { serverName: "llm.example.com" },
+    });
+  });
+
+  it("does not widen the request policy without private network opt-in", () => {
+    const result = applyCustomApiConfig({
+      config: {},
+      baseUrl: "http://127.0.0.1:11434/v1",
+      modelId: "llama3",
+      compatibility: "openai",
+      providerId: "custom",
+      allowPrivateNetwork: false,
+    });
+
+    expect(result.config.models?.providers?.custom?.request).toBeUndefined();
+  });
+
   it("re-onboard preserves user-customized fields for non-azure models", () => {
     const result = applyCustomApiConfig({
       config: {

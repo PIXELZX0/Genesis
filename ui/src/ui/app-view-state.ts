@@ -1,6 +1,6 @@
 import type { ChannelWizardStep } from "./app-channels.ts";
 import type { EventLogEntry } from "./app-events.ts";
-import type { ModelProviderWizardStep } from "./app-model-providers.ts";
+import type { ModelProviderWizardStep, ModelProviderWizardTarget } from "./app-model-providers.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
 import type { RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
@@ -104,7 +104,6 @@ export type AppViewState = {
   chatModelCatalog: ModelCatalogEntry[];
   modelsPanel: import("./views/models.ts").ModelsPanel;
   modelsLoading: boolean;
-  modelsDialog: import("./views/entity-dialogs.ts").ModelsDialog | null;
   agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null;
   memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
   memoryLoading: boolean;
@@ -512,7 +511,7 @@ export type AppViewState = {
     handleChannelWizardCancel: () => Promise<void>;
     handleChannelWizardInput: (value: unknown) => void;
     handleChannelWizardClose: () => void;
-    handleModelProviderWizardStart: () => Promise<void>;
+    handleModelProviderWizardStart: (target?: ModelProviderWizardTarget) => Promise<void>;
     handleModelProviderWizardSubmit: () => Promise<void>;
     handleModelProviderWizardCancel: () => Promise<void>;
     handleModelProviderWizardInput: (value: unknown) => void;

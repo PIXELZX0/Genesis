@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ensureApiKeyFromEnvOrPrompt } from "../plugins/provider-auth-input.js";
 import { promptCustomApiConfig } from "./onboard-custom.js";
 
-const OLLAMA_DEFAULT_BASE_URL_FOR_TEST = "http://127.0.0.1:11434";
+const fetchWithSsrFGuardMock = vi.hoisted(() => vi.fn());
+
+vi.mock("../infra/net/fetch-guard.js", () => ({
+  fetchWithSsrFGuard: fetchWithSsrFGuardMock,
+}));
+
+const OLLAMA_OPENAI_COMPATIBLE_BASE_URL_FOR_TEST = "http://127.0.0.1:11434/v1";
 
 vi.mock("../plugins/provider-auth-input.js", () => ({
   ensureApiKeyFromEnvOrPrompt: vi.fn(
@@ -64,11 +70,15 @@ function stubFetchSequence(
 async function runPromptCustomApi(
   prompter: ReturnType<typeof createTestPrompter>,
   config: object = {},
+  verification?: Parameters<typeof promptCustomApiConfig>[0]["verification"],
+  setDefault?: boolean,
 ) {
   return promptCustomApiConfig({
     prompter: prompter as unknown as Parameters<typeof promptCustomApiConfig>[0]["prompter"],
     runtime: { log: vi.fn() } as unknown as Parameters<typeof promptCustomApiConfig>[0]["runtime"],
     config,
+    verification,
+    setDefault,
   });
 }
 
@@ -85,6 +95,7 @@ function expectOpenAiCompatResult(params: {
 
 describe("promptCustomApiConfig", () => {
   afterEach(() => {
+    fetchWithSsrFGuardMock.mockReset();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
     vi.useRealTimers();
@@ -99,10 +110,12 @@ describe("promptCustomApiConfig", () => {
     const result = await runPromptCustomApi(prompter);
 
     expectOpenAiCompatResult({ prompter, textCalls: 5, selectCalls: 2, result });
+    expect(fetchWithSsrFGuardMock).not.toHaveBeenCalled();
+    expect(result.config.agents?.defaults?.model).toEqual({ primary: "custom/llama3" });
     expect(result.config.agents?.defaults?.models?.["custom/llama3"]?.alias).toBe("local");
   });
 
-  it("defaults custom setup to the native Ollama base URL", async () => {
+  it("defaults custom setup to the OpenAI-compatible Ollama base URL", async () => {
     const prompter = createTestPrompter({
       text: ["http://localhost:11434", "", "llama3", "custom", ""],
       select: ["plaintext", "openai"],
@@ -114,7 +127,7 @@ describe("promptCustomApiConfig", () => {
     expect(prompter.text).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "API Base URL",
-        initialValue: OLLAMA_DEFAULT_BASE_URL_FOR_TEST,
+        initialValue: OLLAMA_OPENAI_COMPATIBLE_BASE_URL_FOR_TEST,
       }),
     );
   });
@@ -187,5 +200,147 @@ describe("promptCustomApiConfig", () => {
     await promise;
 
     expect(prompter.text).toHaveBeenCalledTimes(6);
+  });
+
+  it("uses strict guarded verification and releases the guard result for web setup", async () => {
+    const prompter = createTestPrompter({
+      text: ["https://example.com/v1", "", "test-model", "custom", ""],
+      select: ["plaintext", "openai"],
+    });
+    const cleanupEvents: string[] = [];
+    const bodyCancel = vi.fn(async () => {
+      cleanupEvents.push("cancel");
+    });
+    const release = vi.fn(async () => {
+      cleanupEvents.push("release");
+    });
+    fetchWithSsrFGuardMock.mockResolvedValue({
+      response: { ok: true, status: 200, body: { cancel: bodyCancel } },
+      release,
+    });
+
+    await runPromptCustomApi(prompter, {}, { mode: "web", allowPrivateNetwork: false });
+
+    expect(fetchWithSsrFGuardMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://example.com/v1/chat/completions",
+        mode: "strict",
+        capture: false,
+        maxRedirects: 3,
+        allowCrossOriginUnsafeRedirectReplay: false,
+        timeoutMs: 30_000,
+        policy: { allowPrivateNetwork: false },
+      }),
+    );
+    expect(bodyCancel).toHaveBeenCalledOnce();
+    expect(release).toHaveBeenCalledOnce();
+    expect(cleanupEvents).toEqual(["cancel", "release"]);
+  });
+
+  it("continues verification handling when guarded body cleanup fails", async () => {
+    const prompter = createTestPrompter({
+      text: ["https://example.com/v1", "", "bad-model", "good-model", "custom", ""],
+      select: ["plaintext", "openai", "model"],
+    });
+    const bodyCancel = vi.fn(async () => {
+      throw new Error("cancel failed");
+    });
+    const release = vi.fn(async () => {});
+    fetchWithSsrFGuardMock
+      .mockResolvedValueOnce({
+        response: { ok: false, status: 400, body: { cancel: bodyCancel } },
+        release,
+      })
+      .mockResolvedValueOnce({
+        response: { ok: true, status: 200 },
+        release,
+      });
+
+    await runPromptCustomApi(prompter, {}, { mode: "web", allowPrivateNetwork: false });
+
+    expect(prompter.text).toHaveBeenCalledTimes(6);
+    expect(bodyCancel).toHaveBeenCalledOnce();
+    expect(release).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the existing primary while registering a web custom model", async () => {
+    const prompter = createTestPrompter({
+      text: ["https://example.com/v1", "", "test-model", "custom", ""],
+      select: ["plaintext", "openai"],
+    });
+    fetchWithSsrFGuardMock.mockResolvedValue({
+      response: { ok: true, status: 200 },
+      release: vi.fn(async () => {}),
+    });
+
+    const result = await runPromptCustomApi(
+      prompter,
+      {
+        agents: {
+          defaults: {
+            model: { primary: "anthropic/claude-opus-4-8" },
+            models: { "anthropic/claude-opus-4-8": { alias: "opus" } },
+          },
+        },
+      },
+      { mode: "web", allowPrivateNetwork: false },
+      false,
+    );
+
+    expect(result.config.agents?.defaults?.model).toEqual({
+      primary: "anthropic/claude-opus-4-8",
+    });
+    expect(result.config.agents?.defaults?.models).toEqual({
+      "anthropic/claude-opus-4-8": { alias: "opus" },
+      "custom/test-model": {},
+    });
+    expect(result.config.models?.providers?.custom?.models?.[0]?.id).toBe("test-model");
+  });
+
+  it("validates web aliases when no model allowlist exists", async () => {
+    const prompter = createTestPrompter({
+      text: ["https://example.com/v1", "", "test-model", "custom", ""],
+      select: ["plaintext", "openai"],
+    });
+    fetchWithSsrFGuardMock.mockResolvedValue({
+      response: { ok: true, status: 200 },
+      release: vi.fn(async () => {}),
+    });
+
+    await runPromptCustomApi(prompter, {}, { mode: "web", allowPrivateNetwork: false }, false);
+
+    const aliasPrompt = prompter.text.mock.calls.find(
+      ([params]) => params?.message === "Model alias (optional)",
+    )?.[0] as { validate?: (value: string) => string | undefined } | undefined;
+    if (!aliasPrompt?.validate) {
+      throw new Error("expected alias prompt validator");
+    }
+
+    expect(aliasPrompt.validate("local")).toBe(
+      "Model aliases require an existing non-empty model allowlist. Leave the alias blank to keep all models available.",
+    );
+    expect(aliasPrompt.validate("")).toBeUndefined();
+  });
+
+  it("passes private network opt-in to guarded verification and provider config", async () => {
+    const prompter = createTestPrompter({
+      text: ["http://127.0.0.1:11434/v1", "", "llama3", "custom", ""],
+      select: ["plaintext", "openai"],
+    });
+    fetchWithSsrFGuardMock.mockResolvedValue({
+      response: { ok: true, status: 200 },
+      release: vi.fn(async () => {}),
+    });
+
+    const result = await runPromptCustomApi(
+      prompter,
+      {},
+      { mode: "web", allowPrivateNetwork: true },
+    );
+
+    expect(fetchWithSsrFGuardMock).toHaveBeenCalledWith(
+      expect.objectContaining({ policy: { allowPrivateNetwork: true } }),
+    );
+    expect(result.config.models?.providers?.custom?.request?.allowPrivateNetwork).toBe(true);
   });
 });

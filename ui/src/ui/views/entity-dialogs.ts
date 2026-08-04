@@ -1,47 +1,16 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 
-export interface AddModelForm {
-  provider: string;
-  id: string;
-  name: string;
-  contextWindow: string;
-}
-
 export interface CreateAgentForm {
   name: string;
   workspace: string;
   model: string;
 }
 
-export type ModelsDialog = {
-  kind: "model";
-  form: AddModelForm;
-  busy: boolean;
-  error: string | null;
-};
-
 export type AgentsCreateDialog = { form: CreateAgentForm; busy: boolean; error: string | null };
-
-export function emptyModelsDialog(): ModelsDialog {
-  return {
-    kind: "model",
-    form: { provider: "", id: "", name: "", contextWindow: "" },
-    busy: false,
-    error: null,
-  };
-}
 
 export function emptyAgentsCreateDialog(): AgentsCreateDialog {
   return { form: { name: "", workspace: "", model: "" }, busy: false, error: null };
-}
-
-export function setModelsDialogField(
-  dialog: ModelsDialog,
-  field: string,
-  value: string,
-): ModelsDialog {
-  return { ...dialog, form: { ...dialog.form, [field]: value } } as ModelsDialog;
 }
 
 export function setAgentsCreateDialogField(
@@ -123,53 +92,6 @@ function dialogChrome(c: DialogChrome): TemplateResult {
       </div>
     </div>
   `;
-}
-
-export interface ModelsDialogCallbacks {
-  providers: string[];
-  onFieldChange: (field: string, value: string) => void;
-  onCancel: () => void;
-  onSubmit: () => void;
-}
-
-export function renderModelsDialog(
-  dialog: ModelsDialog | null,
-  cb: ModelsDialogCallbacks,
-): TemplateResult | typeof nothing {
-  if (!dialog) {
-    return nothing;
-  }
-  const set = (key: string) => (value: string) => cb.onFieldChange(key, value);
-  const f = dialog.form;
-  return dialogChrome({
-    title: t("modelsView.addModelTitle"),
-    sub: t("modelsView.addModelSub"),
-    busy: dialog.busy,
-    error: dialog.error,
-    submitLabel: t("modelsView.addModel"),
-    canSubmit: f.provider.trim() !== "" && f.id.trim() !== "",
-    onCancel: cb.onCancel,
-    onSubmit: cb.onSubmit,
-    body: html`
-      ${field(t("modelsView.fieldProvider"), f.provider, set("provider"), {
-        placeholder: "anthropic",
-        list: "models-provider-suggestions",
-      })}
-      <datalist id="models-provider-suggestions">
-        ${cb.providers.map((p) => html`<option value=${p}></option>`)}
-      </datalist>
-      ${field(t("modelsView.fieldModelId"), f.id, set("id"), {
-        placeholder: "claude-opus-4-8",
-      })}
-      ${field(t("modelsView.fieldDisplayName"), f.name, set("name"), {
-        placeholder: t("modelsView.fieldDisplayNameHint"),
-      })}
-      ${field(t("modelsView.fieldContextWindow"), f.contextWindow, set("contextWindow"), {
-        type: "number",
-        placeholder: "200000",
-      })}
-    `,
-  });
 }
 
 export interface AgentsCreateDialogCallbacks {

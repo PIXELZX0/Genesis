@@ -57,6 +57,77 @@ describe("WizardSession", () => {
     await session.answer(first.step.id, null);
   });
 
+  test("re-prompts invalid text answers with an actionable server step", async () => {
+    const session = new WizardSession(async (prompter) => {
+      await prompter.text({
+        message: "API Base URL",
+        initialValue: "https://example.com/v1",
+        validate: (value) =>
+          value.startsWith("http://") || value.startsWith("https://")
+            ? undefined
+            : "Enter an http:// or https:// URL",
+      });
+    });
+
+    const first = await session.next();
+    expect(first.step?.type).toBe("text");
+    if (!first.step) {
+      throw new Error("expected first text step");
+    }
+
+    await session.answer(first.step.id, "not-a-url");
+    const retry = await session.next();
+
+    expect(retry.done).toBe(false);
+    expect(retry.step).toMatchObject({
+      type: "text",
+      title: "Invalid input",
+      message: "API Base URL\nEnter an http:// or https:// URL",
+      initialValue: "not-a-url",
+    });
+
+    if (!retry.step) {
+      throw new Error("expected retry text step");
+    }
+    await session.answer(retry.step.id, "https://example.com/v1");
+
+    const done = await session.next();
+    expect(done).toMatchObject({ done: true, status: "done" });
+  });
+
+  test("does not echo invalid sensitive text in the retry step", async () => {
+    const invalidToken = "invalid-token";
+    const session = new WizardSession(async (prompter) => {
+      await prompter.text({
+        message: "API token",
+        sensitive: true,
+        validate: (value) => (value === "valid-token" ? undefined : "Token is invalid"),
+      });
+    });
+
+    const first = await session.next();
+    if (!first.step) {
+      throw new Error("expected first text step");
+    }
+
+    await session.answer(first.step.id, invalidToken);
+    const retry = await session.next();
+
+    expect(retry.step).toMatchObject({
+      type: "text",
+      sensitive: true,
+      initialValue: "",
+    });
+    expect(JSON.stringify(retry.step)).not.toContain(invalidToken);
+
+    if (!retry.step) {
+      throw new Error("expected retry text step");
+    }
+    await session.answer(retry.step.id, "valid-token");
+
+    expect(await session.next()).toMatchObject({ done: true, status: "done" });
+  });
+
   test("cancel marks session and unblocks", async () => {
     const session = new WizardSession(async (prompter) => {
       await prompter.text({ message: "Name" });

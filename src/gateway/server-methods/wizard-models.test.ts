@@ -7,6 +7,8 @@ import type { WizardPrompter, WizardSelectParams } from "../../wizard/prompts.js
 const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
   replaceConfigFile: vi.fn(async () => {}),
+  promptCustomApiConfig: vi.fn(),
+  resetModelCatalogCache: vi.fn(),
   resolveManifestProviderAuthChoices: vi.fn<() => ProviderAuthChoiceMetadata[]>(() => []),
   resolvePluginProviders: vi.fn<() => ProviderPlugin[]>(() => []),
   runProviderPluginAuthMethod: vi.fn(),
@@ -17,6 +19,14 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../config/config.js", () => ({
   readConfigFileSnapshot: mocks.readConfigFileSnapshot,
   replaceConfigFile: mocks.replaceConfigFile,
+}));
+
+vi.mock("../../commands/onboard-custom.js", () => ({
+  promptCustomApiConfig: mocks.promptCustomApiConfig,
+}));
+
+vi.mock("../../agents/model-catalog.js", () => ({
+  resetModelCatalogCache: mocks.resetModelCatalogCache,
 }));
 
 vi.mock("../../plugins/provider-auth-choices.js", () => ({
@@ -39,7 +49,7 @@ vi.mock("./models-auth-status.js", () => ({
   invalidateModelAuthStatusCache: mocks.invalidateModelAuthStatusCache,
 }));
 
-import { runModelProviderWizard } from "./wizard-models.js";
+import { runCustomModelWizard, runModelProviderWizard } from "./wizard-models.js";
 
 function createChoice(params: {
   pluginId?: string;
@@ -83,7 +93,10 @@ function createProvider(params: {
   };
 }
 
-function createPrompter(select: WizardPrompter["select"]): WizardPrompter {
+function createPrompter(
+  select: WizardPrompter["select"],
+  confirm: WizardPrompter["confirm"] = vi.fn(async () => true),
+): WizardPrompter {
   return {
     intro: vi.fn(async () => {}),
     outro: vi.fn(async () => {}),
@@ -91,7 +104,7 @@ function createPrompter(select: WizardPrompter["select"]): WizardPrompter {
     select,
     multiselect: vi.fn(async () => []),
     text: vi.fn(async () => ""),
-    confirm: vi.fn(async () => true),
+    confirm,
     progress: vi.fn(() => ({
       update: vi.fn(),
       stop: vi.fn(),
@@ -231,6 +244,80 @@ describe("runModelProviderWizard", () => {
       expect.objectContaining({
         providerRefs: ["openai"],
         activate: true,
+      }),
+    );
+  });
+
+  it("persists custom model setup with the snapshot hash and resets model caches", async () => {
+    const nextConfig = {
+      models: {
+        providers: {
+          "custom-example": {
+            baseUrl: "https://example.com/v1",
+            models: [
+              {
+                id: "example-model",
+                name: "Example model",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128_000,
+                maxTokens: 4096,
+              },
+            ],
+          },
+        },
+      },
+    } as GenesisConfig;
+    mocks.promptCustomApiConfig.mockResolvedValue({
+      config: nextConfig,
+      providerId: "custom-example",
+      modelId: "example-model",
+    });
+    const confirm = vi.fn(async () => false);
+    const prompter = createPrompter(vi.fn(), confirm);
+
+    await runCustomModelWizard({ prompter });
+
+    expect(prompter.intro).toHaveBeenCalledWith("Custom model setup");
+    expect(confirm).toHaveBeenCalledWith({
+      message: "Allow private/LAN network access for this endpoint?",
+      initialValue: false,
+    });
+    expect(mocks.promptCustomApiConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: {},
+        prompter,
+        runtime: expect.anything(),
+        verification: { mode: "web", allowPrivateNetwork: false },
+        setDefault: false,
+      }),
+    );
+    expect(mocks.replaceConfigFile).toHaveBeenCalledWith({
+      baseHash: "config-hash",
+      nextConfig,
+    });
+    expect(mocks.resetModelCatalogCache).toHaveBeenCalledOnce();
+    expect(mocks.invalidateModelAuthStatusCache).toHaveBeenCalledOnce();
+    expect(prompter.outro).toHaveBeenCalledWith("Custom model setup complete.");
+  });
+
+  it("passes an explicit private network opt-in to custom setup", async () => {
+    mocks.promptCustomApiConfig.mockResolvedValue({
+      config: {},
+      providerId: "custom-example",
+      modelId: "example-model",
+    });
+    const prompter = createPrompter(
+      vi.fn(),
+      vi.fn(async () => true),
+    );
+
+    await runCustomModelWizard({ prompter });
+
+    expect(mocks.promptCustomApiConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        verification: { mode: "web", allowPrivateNetwork: true },
       }),
     );
   });

@@ -120,7 +120,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
 - Channels: built-in plus bundled/external plugin channels status, guided add/update wizard, QR login, and per-channel config (`channels.status`, `wizard.start`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session model/thinking/fast/verbose/trace/reasoning overrides (`sessions.list`, `sessions.patch`)
-- Model providers: guided provider auth setup from Models -> Providers or Agents -> Overview (`wizard.start` with `target: "models"`)
+- Model providers: guided provider auth setup from Models -> Providers or Agents -> Overview (`wizard.start` with `target: "models"`), plus interactive custom endpoint/model setup from Models -> Catalog (`target: "custom-model"`) with explicit private/LAN network opt-in
 - Auth profiles: per-provider multi-credential panel with name, priority, masked key, expiry, and source (env / SecretRef / plaintext); Add / Rename / Remove / Set Priority actions via the new `models.authProfile*` RPCs; the Quick Settings API Keys card shows one row per profile when a provider has multiple credentials.
 - Dreams: dreaming status, enable/disable toggle, and Dream Diary reader (`doctor.memory.status`, `doctor.memory.dreamDiary`, `config.patch`)
 - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`)

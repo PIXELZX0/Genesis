@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
   normalizeAnyChannelId: vi.fn((value: string | null | undefined) => value ?? null),
   runInteractiveChannelsAddWizard: vi.fn(),
+  runCustomModelWizard: vi.fn(),
   runModelProviderWizard: vi.fn(),
 }));
 
@@ -21,6 +22,7 @@ vi.mock("../../flows/channel-add-wizard.js", () => ({
 }));
 
 vi.mock("./wizard-models.js", () => ({
+  runCustomModelWizard: mocks.runCustomModelWizard,
   runModelProviderWizard: mocks.runModelProviderWizard,
 }));
 
@@ -182,5 +184,54 @@ describe("wizardHandlers model provider setup target", () => {
       }),
     );
     expect(select.step).toMatchObject({ type: "select", message: "Select a model provider" });
+  });
+});
+
+describe("wizardHandlers custom model target", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.runCustomModelWizard.mockImplementation(async ({ prompter, skipIntro }) => {
+      if (!skipIntro) {
+        await prompter.intro("Custom model setup");
+      }
+      await prompter.confirm({
+        message: "Allow private/LAN network access for this endpoint?",
+        initialValue: false,
+      });
+      await prompter.text({ message: "API Base URL" });
+      await prompter.outro("Custom model setup complete.");
+    });
+  });
+
+  it("runs the custom model wizard through the shared wizard session", async () => {
+    const context = createContext();
+    const start = await callWizard("wizard.start", { target: "custom-model" }, context);
+
+    expect(start.sessionId).toEqual(expect.any(String));
+    expect(start.step).toMatchObject({ type: "note", title: "Custom model setup" });
+    expect(mocks.runCustomModelWizard).not.toHaveBeenCalled();
+
+    const confirm = await callWizard(
+      "wizard.next",
+      { sessionId: start.sessionId, answer: { stepId: start.step?.id, value: true } },
+      context,
+    );
+
+    expect(confirm.step).toMatchObject({
+      type: "confirm",
+      message: "Allow private/LAN network access for this endpoint?",
+      initialValue: false,
+    });
+
+    const baseUrl = await callWizard(
+      "wizard.next",
+      { sessionId: start.sessionId, answer: { stepId: confirm.step?.id, value: false } },
+      context,
+    );
+
+    expect(mocks.runCustomModelWizard).toHaveBeenCalledWith(
+      expect.objectContaining({ skipIntro: true }),
+    );
+    expect(baseUrl.step).toMatchObject({ type: "text", message: "API Base URL" });
   });
 });

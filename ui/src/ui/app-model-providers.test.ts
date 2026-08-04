@@ -82,4 +82,23 @@ describe("model provider wizard", () => {
     expect(host.modelProviderWizardSessionId).toBeNull();
     expect(host.modelProviderWizardStep).toBeNull();
   });
+
+  it("starts the custom model target when requested", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method === "wizard.start") {
+        return {
+          sessionId: "wizard-custom",
+          done: false,
+          step: { id: "base-url", type: "text", sensitive: false },
+        };
+      }
+      throw new Error(`Unexpected request: ${method}`);
+    });
+    const host = createHost(request);
+
+    await handleModelProviderWizardStart(host, "custom-model");
+
+    expect(request).toHaveBeenCalledWith("wizard.start", { target: "custom-model" });
+    expect(host.modelProviderWizardSessionId).toBe("wizard-custom");
+  });
 });

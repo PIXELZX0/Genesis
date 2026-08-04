@@ -9,7 +9,6 @@ function createProps(overrides: Partial<ModelsProps> = {}): ModelsProps {
     models: [],
     panel: "providers",
     error: null,
-    dialog: null,
     modelProviderWizardStep: null,
     modelProviderWizardInput: null,
     modelProviderWizardBusy: false,
@@ -17,15 +16,11 @@ function createProps(overrides: Partial<ModelsProps> = {}): ModelsProps {
     modelProviderWizardMessage: null,
     onPanelChange: () => undefined,
     onRefresh: () => undefined,
-    onOpenAddModel: () => undefined,
     onModelProviderWizardStart: () => undefined,
     onModelProviderWizardSubmit: () => undefined,
     onModelProviderWizardCancel: () => undefined,
     onModelProviderWizardInput: () => undefined,
     onModelProviderWizardClose: () => undefined,
-    onDialogFieldChange: () => undefined,
-    onDialogCancel: () => undefined,
-    onDialogSubmit: () => undefined,
     ...overrides,
   };
 }
@@ -40,28 +35,21 @@ describe("renderModels", () => {
   it("starts the shared provider wizard from the Providers panel", () => {
     const container = document.createElement("div");
     const onModelProviderWizardStart = vi.fn();
-    const onOpenAddModel = vi.fn();
-    render(renderModels(createProps({ onModelProviderWizardStart, onOpenAddModel })), container);
+    render(renderModels(createProps({ onModelProviderWizardStart })), container);
 
     findButton(container, "Add provider")?.click();
 
-    expect(onModelProviderWizardStart).toHaveBeenCalledOnce();
-    expect(onOpenAddModel).not.toHaveBeenCalled();
+    expect(onModelProviderWizardStart).toHaveBeenCalledWith("models");
   });
 
-  it("keeps Add model wired to the custom model dialog", () => {
+  it("starts the custom model wizard from the Catalog panel", () => {
     const container = document.createElement("div");
     const onModelProviderWizardStart = vi.fn();
-    const onOpenAddModel = vi.fn();
-    render(
-      renderModels(createProps({ panel: "catalog", onModelProviderWizardStart, onOpenAddModel })),
-      container,
-    );
+    render(renderModels(createProps({ panel: "catalog", onModelProviderWizardStart })), container);
 
     findButton(container, "Add model")?.click();
 
-    expect(onOpenAddModel).toHaveBeenCalledOnce();
-    expect(onModelProviderWizardStart).not.toHaveBeenCalled();
+    expect(onModelProviderWizardStart).toHaveBeenCalledWith("custom-model");
   });
 
   it("renders server-provided wizard steps and wires advance and cancel actions", () => {

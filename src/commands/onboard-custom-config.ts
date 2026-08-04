@@ -11,6 +11,7 @@ import {
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
 import { normalizeOptionalSecretInput } from "../utils/normalize-secret-input.js";
+import { ensureModelAllowlistEntry } from "./model-allowlist.js";
 import { normalizeAlias } from "./models/alias-name.js";
 
 const DEFAULT_CONTEXT_WINDOW = CONTEXT_WINDOW_HARD_MIN_TOKENS;
@@ -112,6 +113,8 @@ export type ApplyCustomApiConfigParams = {
   apiKey?: SecretInput;
   providerId?: string;
   alias?: string;
+  allowPrivateNetwork?: boolean;
+  setDefault?: boolean;
 };
 
 export type ParseNonInteractiveCustomApiFlagsParams = {
@@ -206,6 +209,7 @@ export function resolveCustomModelAliasError(params: {
   raw: string;
   cfg: GenesisConfig;
   modelRef: string;
+  setDefault?: boolean;
 }): string | undefined {
   const trimmed = params.raw.trim();
   if (!trimmed) {
@@ -216,6 +220,12 @@ export function resolveCustomModelAliasError(params: {
     normalized = normalizeAlias(trimmed);
   } catch (err) {
     return err instanceof Error ? err.message : "Alias is invalid.";
+  }
+  if (
+    params.setDefault === false &&
+    Object.keys(params.cfg.agents?.defaults?.models ?? {}).length === 0
+  ) {
+    return "Model aliases require an existing non-empty model allowlist. Leave the alias blank to keep all models available.";
   }
   const aliasIndex = buildModelAliasIndex({
     cfg: params.cfg,
@@ -478,6 +488,7 @@ export function applyCustomApiConfig(params: ApplyCustomApiConfigParams): Custom
     raw: alias,
     cfg: params.config,
     modelRef,
+    setDefault: params.setDefault,
   });
   if (aliasError) {
     throw new CustomApiError("invalid_alias", aliasError);
@@ -523,10 +534,18 @@ export function applyCustomApiConfig(params: ApplyCustomApiConfigParams): Custom
           : model,
       )
     : [...existingModels, nextModel];
-  const { apiKey: existingApiKey, ...existingProviderRest } = existingProvider ?? {};
+  const {
+    apiKey: existingApiKey,
+    request: existingRequest,
+    ...existingProviderRest
+  } = existingProvider ?? {};
   const normalizedApiKey =
     normalizeOptionalProviderApiKey(params.apiKey) ??
     normalizeOptionalProviderApiKey(existingApiKey);
+  const request =
+    params.allowPrivateNetwork === true
+      ? { ...existingRequest, allowPrivateNetwork: true }
+      : existingRequest;
 
   const providerApi = isAzureOpenAi
     ? ("azure-openai-responses" as const)
@@ -547,14 +566,23 @@ export function applyCustomApiConfig(params: ApplyCustomApiConfigParams): Custom
           ...(normalizedApiKey ? { apiKey: normalizedApiKey } : {}),
           ...(isAzure ? { authHeader: false } : {}),
           ...(azureHeaders ? { headers: azureHeaders } : {}),
+          ...(request ? { request } : {}),
           models: mergedModels.length > 0 ? mergedModels : [nextModel],
         },
       },
     },
   };
 
-  config = applyPrimaryModel(config, modelRef);
-  if (isAzure && isLikelyReasoningModel) {
+  const hasExistingModelAllowlist = Object.keys(config.agents?.defaults?.models ?? {}).length > 0;
+  if (params.setDefault === false) {
+    if (hasExistingModelAllowlist) {
+      config = ensureModelAllowlistEntry({ cfg: config, modelRef });
+    }
+  } else {
+    config = applyPrimaryModel(config, modelRef);
+  }
+  const shouldConfigurePerModelSettings = params.setDefault !== false || hasExistingModelAllowlist;
+  if (isAzure && isLikelyReasoningModel && shouldConfigurePerModelSettings) {
     const existingPerModelThinking = config.agents?.defaults?.models?.[modelRef]?.params?.thinking;
     if (!existingPerModelThinking) {
       config = {

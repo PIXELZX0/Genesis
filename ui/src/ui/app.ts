@@ -43,6 +43,7 @@ import {
   handleModelProviderWizardInput as handleModelProviderWizardInputInternal,
   handleModelProviderWizardStart as handleModelProviderWizardStartInternal,
   handleModelProviderWizardSubmit as handleModelProviderWizardSubmitInternal,
+  type ModelProviderWizardTarget,
   type ModelProviderWizardStep,
 } from "./app-model-providers.ts";
 import { renderApp } from "./app-render.ts";
@@ -214,7 +215,6 @@ export class GenesisApp extends LitElement {
   @state() chatModelCatalog: ModelCatalogEntry[] = [];
   @state() modelsPanel: import("./views/models.ts").ModelsPanel = "catalog";
   @state() modelsLoading = false;
-  @state() modelsDialog: import("./views/entity-dialogs.ts").ModelsDialog | null = null;
   @state() agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null = null;
   @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
   @state() memoryLoading = false;
@@ -1015,8 +1015,8 @@ export class GenesisApp extends LitElement {
     handleChannelWizardCloseInternal(this);
   }
 
-  async handleModelProviderWizardStart() {
-    await handleModelProviderWizardStartInternal(this);
+  async handleModelProviderWizardStart(target: ModelProviderWizardTarget = "models") {
+    await handleModelProviderWizardStartInternal(this, target);
   }
 
   async handleModelProviderWizardSubmit() {

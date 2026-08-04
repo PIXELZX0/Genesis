@@ -3,6 +3,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
+import { resetModelCatalogCache } from "../../agents/model-catalog.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { readConfigFileSnapshot, replaceConfigFile } from "../../config/config.js";
@@ -505,4 +506,40 @@ export async function runModelProviderWizard(params: {
   });
   invalidateModelAuthStatusCache();
   await params.prompter.outro("Model provider setup complete.");
+}
+
+export async function runCustomModelWizard(params: {
+  prompter: WizardPrompter;
+  skipIntro?: boolean;
+}): Promise<void> {
+  if (!params.skipIntro) {
+    await params.prompter.intro("Custom model setup");
+  }
+
+  const snapshot = await readConfigFileSnapshot();
+  if (snapshot.exists && !snapshot.valid) {
+    throw new Error(formatInvalidConfigMessage(snapshot));
+  }
+
+  const config = structuredClone(snapshot.sourceConfig ?? snapshot.config ?? {}) as GenesisConfig;
+  const allowPrivateNetwork = await params.prompter.confirm({
+    message: "Allow private/LAN network access for this endpoint?",
+    initialValue: false,
+  });
+  const { promptCustomApiConfig } = await import("../../commands/onboard-custom.js");
+  const result = await promptCustomApiConfig({
+    prompter: params.prompter,
+    runtime: defaultRuntime,
+    config,
+    verification: { mode: "web", allowPrivateNetwork },
+    setDefault: false,
+  });
+
+  await replaceConfigFile({
+    nextConfig: result.config,
+    ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),
+  });
+  resetModelCatalogCache();
+  invalidateModelAuthStatusCache();
+  await params.prompter.outro("Custom model setup complete.");
 }

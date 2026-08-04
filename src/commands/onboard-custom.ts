@@ -1,6 +1,7 @@
 import { modelKey } from "../agents/model-selection.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import type { SecretInput } from "../config/types.secrets.js";
+import { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
 import { ensureApiKeyFromEnvOrPrompt } from "../plugins/provider-auth-input.js";
 import { OLLAMA_DEFAULT_BASE_URL } from "../plugins/provider-model-defaults.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -38,6 +39,7 @@ export {
 import type { SecretInputMode } from "./onboard-types.js";
 
 const VERIFY_TIMEOUT_MS = 30_000;
+const CUSTOM_OLLAMA_BASE_URL = `${OLLAMA_DEFAULT_BASE_URL}/v1`;
 type CustomApiCompatibilityChoice = CustomApiCompatibility | "unknown";
 
 const COMPATIBILITY_OPTIONS: Array<{
@@ -85,11 +87,54 @@ type VerificationResult = {
   error?: unknown;
 };
 
+type CustomApiVerificationOptions = {
+  mode: "web";
+  allowPrivateNetwork?: boolean;
+};
+
 async function requestVerification(params: {
   endpoint: string;
   headers: Record<string, string>;
   body: Record<string, unknown>;
+  verification?: CustomApiVerificationOptions;
 }): Promise<VerificationResult> {
+  if (params.verification?.mode === "web") {
+    let guarded: Awaited<ReturnType<typeof fetchWithSsrFGuard>> | undefined;
+    try {
+      guarded = await fetchWithSsrFGuard({
+        url: params.endpoint,
+        init: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...params.headers,
+          },
+          body: JSON.stringify(params.body),
+        },
+        mode: "strict",
+        capture: false,
+        maxRedirects: 3,
+        allowCrossOriginUnsafeRedirectReplay: false,
+        timeoutMs: VERIFY_TIMEOUT_MS,
+        policy: {
+          allowPrivateNetwork: params.verification.allowPrivateNetwork === true,
+        },
+        auditContext: "custom-model-verification",
+      });
+      return { ok: guarded.response.ok, status: guarded.response.status };
+    } catch (error) {
+      return { ok: false, error };
+    } finally {
+      try {
+        await guarded?.response.body?.cancel();
+      } catch {
+        // Response cleanup must not replace the verification result.
+      } finally {
+        await guarded?.release();
+      }
+    }
+  }
+
   try {
     const res = await fetchWithTimeout(
       params.endpoint,
@@ -113,16 +158,24 @@ async function requestOpenAiVerification(params: {
   baseUrl: string;
   apiKey: string;
   modelId: string;
+  verification?: CustomApiVerificationOptions;
 }): Promise<VerificationResult> {
-  return await requestVerification(buildOpenAiVerificationProbeRequest(params));
+  return await requestVerification({
+    ...buildOpenAiVerificationProbeRequest(params),
+    verification: params.verification,
+  });
 }
 
 async function requestAnthropicVerification(params: {
   baseUrl: string;
   apiKey: string;
   modelId: string;
+  verification?: CustomApiVerificationOptions;
 }): Promise<VerificationResult> {
-  return await requestVerification(buildAnthropicVerificationProbeRequest(params));
+  return await requestVerification({
+    ...buildAnthropicVerificationProbeRequest(params),
+    verification: params.verification,
+  });
 }
 
 async function promptBaseUrlAndKey(params: {
@@ -133,7 +186,7 @@ async function promptBaseUrlAndKey(params: {
 }): Promise<{ baseUrl: string; apiKey?: SecretInput; resolvedApiKey: string }> {
   const baseUrlInput = await params.prompter.text({
     message: "API Base URL",
-    initialValue: params.initialBaseUrl ?? OLLAMA_DEFAULT_BASE_URL,
+    initialValue: params.initialBaseUrl ?? CUSTOM_OLLAMA_BASE_URL,
     placeholder: "https://api.example.com/v1",
     validate: (val) => {
       return URL.canParse(val) ? undefined : "Please enter a valid URL (e.g. http://...)";
@@ -215,8 +268,10 @@ export async function promptCustomApiConfig(params: {
   runtime: RuntimeEnv;
   config: GenesisConfig;
   secretInputMode?: SecretInputMode;
+  verification?: CustomApiVerificationOptions;
+  setDefault?: boolean;
 }): Promise<CustomApiResult> {
-  const { prompter, runtime, config } = params;
+  const { prompter, runtime, config, verification, setDefault } = params;
 
   const baseInput = await promptBaseUrlAndKey({
     prompter,
@@ -249,6 +304,7 @@ export async function promptCustomApiConfig(params: {
         baseUrl,
         apiKey: resolvedApiKey,
         modelId,
+        verification,
       });
       if (openaiProbe.ok) {
         probeSpinner.stop("Detected OpenAI-compatible endpoint.");
@@ -259,6 +315,7 @@ export async function promptCustomApiConfig(params: {
           baseUrl,
           apiKey: resolvedApiKey,
           modelId,
+          verification,
         });
         if (anthropicProbe.ok) {
           probeSpinner.stop("Detected Anthropic-compatible endpoint.");
@@ -290,8 +347,18 @@ export async function promptCustomApiConfig(params: {
     const verifySpinner = prompter.progress("Verifying...");
     const result =
       compatibility === "anthropic"
-        ? await requestAnthropicVerification({ baseUrl, apiKey: resolvedApiKey, modelId })
-        : await requestOpenAiVerification({ baseUrl, apiKey: resolvedApiKey, modelId });
+        ? await requestAnthropicVerification({
+            baseUrl,
+            apiKey: resolvedApiKey,
+            modelId,
+            verification,
+          })
+        : await requestOpenAiVerification({
+            baseUrl,
+            apiKey: resolvedApiKey,
+            modelId,
+            verification,
+          });
     if (result.ok) {
       verifySpinner.stop("Verification successful.");
       break;
@@ -338,7 +405,12 @@ export async function promptCustomApiConfig(params: {
         providerId: providerIdInput,
       });
       const modelRef = modelKey(resolvedProvider.providerId, modelId);
-      return resolveCustomModelAliasError({ raw: value, cfg: config, modelRef });
+      return resolveCustomModelAliasError({
+        raw: value,
+        cfg: config,
+        modelRef,
+        setDefault,
+      });
     },
   });
   const resolvedCompatibility = compatibility ?? "openai";
@@ -350,6 +422,10 @@ export async function promptCustomApiConfig(params: {
     apiKey,
     providerId: providerIdInput,
     alias: aliasInput,
+    ...(verification?.mode === "web"
+      ? { allowPrivateNetwork: verification.allowPrivateNetwork === true }
+      : {}),
+    setDefault,
   });
 
   if (result.providerIdRenamedFrom && result.providerId) {

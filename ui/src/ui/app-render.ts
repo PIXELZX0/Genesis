@@ -125,7 +125,7 @@ import {
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
 import { loadMemoryGraph, loadMemoryIndex } from "./controllers/memory.ts";
-import { addModel, loadModels } from "./controllers/models.ts";
+import { loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
   loadNodes,
@@ -176,12 +176,7 @@ import {
   TAB_GROUPS,
   titleForTab,
 } from "./navigation.ts";
-import {
-  emptyAgentsCreateDialog,
-  emptyModelsDialog,
-  setAgentsCreateDialogField,
-  setModelsDialogField,
-} from "./views/entity-dialogs.ts";
+import { emptyAgentsCreateDialog, setAgentsCreateDialogField } from "./views/entity-dialogs.ts";
 
 // Tabs whose view renders its own Pencil-style header (title + subtitle +
 // actions), so the shell must not render a duplicate content-header title.
@@ -257,29 +252,6 @@ function ensureModelsLoaded(state: AppViewState): void {
     .finally(() => {
       state.modelsLoading = false;
     });
-}
-
-async function submitModelsDialog(state: AppViewState): Promise<void> {
-  const dialog = state.modelsDialog;
-  if (!dialog || !state.client) {
-    return;
-  }
-  state.modelsDialog = { ...dialog, busy: true, error: null };
-  try {
-    const ctx = dialog.form.contextWindow.trim();
-    await addModel(state.client, {
-      provider: dialog.form.provider.trim(),
-      id: dialog.form.id.trim(),
-      name: dialog.form.name.trim() || undefined,
-      contextWindow: ctx ? Number(ctx) : undefined,
-    });
-    state.modelsDialog = null;
-    state.chatModelCatalog = [];
-    ensureModelsLoaded(state);
-  } catch (err) {
-    const current = state.modelsDialog ?? dialog;
-    state.modelsDialog = { ...current, busy: false, error: String(err) };
-  }
 }
 
 async function submitAgentsCreateDialog(state: AppViewState): Promise<void> {
@@ -2842,7 +2814,6 @@ export function renderApp(state: AppViewState) {
                 models: state.chatModelCatalog,
                 panel: state.modelsPanel,
                 error: null,
-                dialog: state.modelsDialog,
                 modelProviderWizardStep: state.modelProviderWizardStep,
                 modelProviderWizardInput: state.modelProviderWizardInput,
                 modelProviderWizardBusy: state.modelProviderWizardBusy,
@@ -2855,25 +2826,12 @@ export function renderApp(state: AppViewState) {
                   state.chatModelCatalog = [];
                   ensureModelsLoaded(state);
                 },
-                onOpenAddModel: () => {
-                  state.modelsDialog = emptyModelsDialog();
-                },
-                onModelProviderWizardStart: () => state.handleModelProviderWizardStart(),
+                onModelProviderWizardStart: (target) =>
+                  state.handleModelProviderWizardStart(target),
                 onModelProviderWizardSubmit: () => state.handleModelProviderWizardSubmit(),
                 onModelProviderWizardCancel: () => state.handleModelProviderWizardCancel(),
                 onModelProviderWizardInput: (value) => state.handleModelProviderWizardInput(value),
                 onModelProviderWizardClose: () => state.handleModelProviderWizardClose(),
-                onDialogFieldChange: (field, value) => {
-                  if (state.modelsDialog) {
-                    state.modelsDialog = setModelsDialogField(state.modelsDialog, field, value);
-                  }
-                },
-                onDialogCancel: () => {
-                  state.modelsDialog = null;
-                },
-                onDialogSubmit: () => {
-                  void submitModelsDialog(state);
-                },
               }),
             ))
           : nothing}

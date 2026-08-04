@@ -16,30 +16,3 @@ export async function loadModels(client: GatewayBrowserClient): Promise<ModelCat
     return [];
   }
 }
-
-export interface AddModelParams {
-  provider: string;
-  id: string;
-  name?: string;
-  contextWindow?: number;
-  reasoning?: boolean;
-  baseUrl?: string;
-}
-
-/**
- * Register a custom model definition under a provider (gateway `models.add`).
- * The new model is persisted to config and surfaces in the catalog on refresh.
- */
-export async function addModel(
-  client: GatewayBrowserClient,
-  params: AddModelParams,
-): Promise<void> {
-  await client.request("models.add", {
-    provider: params.provider,
-    id: params.id,
-    ...(params.name ? { name: params.name } : {}),
-    ...(typeof params.contextWindow === "number" ? { contextWindow: params.contextWindow } : {}),
-    ...(params.reasoning ? { reasoning: true } : {}),
-    ...(params.baseUrl ? { baseUrl: params.baseUrl } : {}),
-  });
-}

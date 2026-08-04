@@ -11,7 +11,12 @@ const WizardRunStatusSchema = Type.Union([
 export const WizardStartParamsSchema = Type.Object(
   {
     target: Type.Optional(
-      Type.Union([Type.Literal("setup"), Type.Literal("channels"), Type.Literal("models")]),
+      Type.Union([
+        Type.Literal("setup"),
+        Type.Literal("channels"),
+        Type.Literal("models"),
+        Type.Literal("custom-model"),
+      ]),
     ),
     mode: Type.Optional(Type.Union([Type.Literal("local"), Type.Literal("remote")])),
     workspace: Type.Optional(Type.String()),

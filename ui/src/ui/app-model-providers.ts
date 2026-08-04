@@ -8,6 +8,7 @@ import { loadModels } from "./controllers/models.ts";
 import type { ModelCatalogEntry } from "./types.ts";
 
 export type ModelProviderWizardStep = ChannelWizardStep;
+export type ModelProviderWizardTarget = "models" | "custom-model";
 
 type ModelProviderWizardResult = {
   sessionId?: string;
@@ -88,7 +89,10 @@ async function applyModelProviderWizardResult(
   await refreshModelProviderSurfaces(host);
 }
 
-export async function handleModelProviderWizardStart(host: ModelProviderWizardHost) {
+export async function handleModelProviderWizardStart(
+  host: ModelProviderWizardHost,
+  target: ModelProviderWizardTarget = "models",
+) {
   if (!host.client || !host.connected || host.modelProviderWizardBusy) {
     return;
   }
@@ -97,7 +101,7 @@ export async function handleModelProviderWizardStart(host: ModelProviderWizardHo
   host.modelProviderWizardMessage = null;
   try {
     const result = await host.client.request<ModelProviderWizardResult>("wizard.start", {
-      target: "models",
+      target,
     });
     await applyModelProviderWizardResult(host, result, result.sessionId ?? null);
   } catch (err) {
