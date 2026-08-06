@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.8.6
+
+### Fixes
+
+- Auto-reply: a hard reset no longer mirrors its status and hook notices into the new session, so a fresh transcript starts at the startup prompt instead of showing reset chatter as the first assistant turn.
+
 ## 2026.8.4
 
 ### Changes
