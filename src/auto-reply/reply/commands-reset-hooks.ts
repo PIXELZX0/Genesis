@@ -139,6 +139,9 @@ export async function emitResetCommandHooks(params: {
         requesterSenderE164: params.ctx.SenderE164,
         threadId: params.ctx.MessageThreadId,
         cfg: params.cfg,
+        // Hard-reset status and hook messages must not become the first
+        // assistant turn in the fresh transcript before the startup prompt.
+        mirror: params.announceNewSession ? false : undefined,
       });
     }
   }

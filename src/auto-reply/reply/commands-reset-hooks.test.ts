@@ -186,6 +186,38 @@ describe("handleCommands reset hooks", () => {
         channel: "whatsapp",
         to: "sender",
         sessionKey: "agent:main:main",
+        mirror: false,
+      }),
+    );
+  });
+
+  it("does not mirror hard reset notices into Matrix startup transcripts", async () => {
+    const params = buildResetParams(
+      "/new",
+      {
+        commands: { text: true },
+        channels: { matrix: { dm: { policy: "open" } } },
+      } as GenesisConfig,
+      {
+        Provider: "matrix",
+        Surface: "matrix",
+        OriginatingChannel: "matrix",
+        OriginatingTo: "room:!room:example.org",
+        MessageThreadId: "$thread-root",
+        AccountId: "ops",
+      },
+    );
+    params.sessionKey = "agent:ops:matrix:direct:@user:example.org";
+
+    await maybeHandleResetCommand(params);
+
+    expect(routeReplyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "matrix",
+        to: "room:!room:example.org",
+        sessionKey: "agent:ops:matrix:direct:@user:example.org",
+        threadId: "$thread-root",
+        mirror: false,
       }),
     );
   });
