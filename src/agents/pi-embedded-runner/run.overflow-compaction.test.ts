@@ -17,6 +17,7 @@ import {
   mockedGlobalHookRunner,
   mockedGetApiKeyForModel,
   mockedPickFallbackThinkingLevel,
+  mockedResolveAuthProfileOrder,
   mockedResolveContextWindowInfo,
   mockedResolveFailoverStatus,
   mockedRunContextEngineMaintenance,
@@ -79,6 +80,41 @@ describe("runEmbeddedPiAgent overflow compaction trigger routing", () => {
       expect.objectContaining({
         authProfileId: "test-profile",
         authProfileIdSource: "auto",
+      }),
+    );
+  });
+
+  it("uses an external-auth-only candidate without selecting a cooldowned profile", async () => {
+    mockedGetApiKeyForModel.mockResolvedValueOnce({
+      apiKey: "external-api-key",
+      source: "env: OPENCODE_API_KEY",
+      mode: "api-key",
+    });
+    mockedResolveAuthProfileOrder.mockReturnValue(["opencode-go:cooldowned"]);
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+
+    await runEmbeddedPiAgent({
+      ...overflowBaseRunParams,
+      provider: "opencode-go",
+      model: "m1",
+      preferExternalAuth: true,
+      runId: "run-external-auth-only",
+    });
+
+    expect(mockedGetApiKeyForModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        profileId: undefined,
+        credentialPrecedence: "env-first",
+      }),
+    );
+    const authParams = mockedGetApiKeyForModel.mock.calls[0]?.[0] as
+      | { store?: { profiles?: unknown } }
+      | undefined;
+    expect(authParams?.store?.profiles).toEqual({});
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "opencode-go",
+        authProfileId: undefined,
       }),
     );
   });

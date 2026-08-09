@@ -148,6 +148,11 @@ export type RunEmbeddedPiAgentParams = {
    */
   allowTransientCooldownProbe?: boolean;
   /**
+   * Resolve env/config auth without selecting an automatically managed profile.
+   * User-locked profiles still take precedence over this hint.
+   */
+  preferExternalAuth?: boolean;
+  /**
    * Dispose bundled MCP runtimes when the overall run ends instead of preserving
    * the session-scoped cache. Intended for one-shot local CLI runs that must
    * exit promptly after emitting the final JSON result.

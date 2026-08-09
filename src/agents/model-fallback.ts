@@ -65,6 +65,7 @@ export function isFallbackSummaryError(err: unknown): err is FallbackSummaryErro
 
 export type ModelFallbackRunOptions = {
   allowTransientCooldownProbe?: boolean;
+  preferExternalAuth?: boolean;
 };
 
 type ModelFallbackRunFn<T> = (
@@ -774,60 +775,35 @@ export async function runWithModelFallback<T>(params: {
 
       if (profileIds.length > 0 && !isAnyProfileAvailable) {
         // All profiles for this provider are in cooldown.
-        const now = Date.now();
-        const probeThrottleKey = resolveProbeThrottleKey(candidate.provider, params.agentDir);
-        const decision = resolveCooldownDecision({
-          candidate,
-          isPrimary,
-          requestedModel,
-          hasFallbackCandidates,
-          now,
-          probeThrottleKey,
-          authRuntime,
-          authStore,
-          profileIds,
+        const hasExternalAuth = authRuntime.hasUsableExternalAuthForProvider({
+          cfg: params.cfg,
+          provider: candidate.provider,
         });
-
-        if (decision.type === "skip") {
-          attempts.push({
-            provider: candidate.provider,
-            model: candidate.model,
-            error: decision.error,
-            reason: decision.reason,
-          });
-          logModelFallbackDecision({
-            decision: "skip_candidate",
-            runId: params.runId,
-            requestedProvider: params.provider,
-            requestedModel: params.model,
+        if (hasExternalAuth) {
+          // Bypass the cooldowned profile set and let the runner resolve the
+          // provider's env/config credential instead.
+          runOptions = { preferExternalAuth: true };
+          attemptedDuringCooldown = true;
+        } else {
+          const now = Date.now();
+          const probeThrottleKey = resolveProbeThrottleKey(candidate.provider, params.agentDir);
+          const decision = resolveCooldownDecision({
             candidate,
-            attempt: i + 1,
-            total: candidates.length,
-            reason: decision.reason,
-            error: decision.error,
-            nextCandidate: candidates[i + 1],
             isPrimary,
-            requestedModelMatched: requestedModel,
-            fallbackConfigured: hasFallbackCandidates,
-            profileCount: profileIds.length,
+            requestedModel,
+            hasFallbackCandidates,
+            now,
+            probeThrottleKey,
+            authRuntime,
+            authStore,
+            profileIds,
           });
-          continue;
-        }
 
-        if (decision.markProbe) {
-          markProbeAttempt(now, probeThrottleKey);
-        }
-        if (shouldAllowCooldownProbeForReason(decision.reason)) {
-          // Probe at most once per provider per fallback run when all profiles
-          // are cooldowned. Re-probing every same-provider candidate can stall
-          // cross-provider fallback on providers with long internal retries.
-          const isTransientCooldownReason = shouldUseTransientCooldownProbeSlot(decision.reason);
-          if (isTransientCooldownReason && cooldownProbeUsedProviders.has(candidate.provider)) {
-            const error = `Provider ${candidate.provider} is in cooldown (probe already attempted this run)`;
+          if (decision.type === "skip") {
             attempts.push({
               provider: candidate.provider,
               model: candidate.model,
-              error,
+              error: decision.error,
               reason: decision.reason,
             });
             logModelFallbackDecision({
@@ -839,7 +815,7 @@ export async function runWithModelFallback<T>(params: {
               attempt: i + 1,
               total: candidates.length,
               reason: decision.reason,
-              error,
+              error: decision.error,
               nextCandidate: candidates[i + 1],
               isPrimary,
               requestedModelMatched: requestedModel,
@@ -848,28 +824,64 @@ export async function runWithModelFallback<T>(params: {
             });
             continue;
           }
-          runOptions = { allowTransientCooldownProbe: true };
-          if (isTransientCooldownReason) {
-            transientProbeProviderForAttempt = candidate.provider;
+
+          if (decision.markProbe) {
+            markProbeAttempt(now, probeThrottleKey);
           }
+          if (shouldAllowCooldownProbeForReason(decision.reason)) {
+            // Probe at most once per provider per fallback run when all profiles
+            // are cooldowned. Re-probing every same-provider candidate can stall
+            // cross-provider fallback on providers with long internal retries.
+            const isTransientCooldownReason = shouldUseTransientCooldownProbeSlot(decision.reason);
+            if (isTransientCooldownReason && cooldownProbeUsedProviders.has(candidate.provider)) {
+              const error = `Provider ${candidate.provider} is in cooldown (probe already attempted this run)`;
+              attempts.push({
+                provider: candidate.provider,
+                model: candidate.model,
+                error,
+                reason: decision.reason,
+              });
+              logModelFallbackDecision({
+                decision: "skip_candidate",
+                runId: params.runId,
+                requestedProvider: params.provider,
+                requestedModel: params.model,
+                candidate,
+                attempt: i + 1,
+                total: candidates.length,
+                reason: decision.reason,
+                error,
+                nextCandidate: candidates[i + 1],
+                isPrimary,
+                requestedModelMatched: requestedModel,
+                fallbackConfigured: hasFallbackCandidates,
+                profileCount: profileIds.length,
+              });
+              continue;
+            }
+            runOptions = { allowTransientCooldownProbe: true };
+            if (isTransientCooldownReason) {
+              transientProbeProviderForAttempt = candidate.provider;
+            }
+          }
+          attemptedDuringCooldown = true;
+          logModelFallbackDecision({
+            decision: "probe_cooldown_candidate",
+            runId: params.runId,
+            requestedProvider: params.provider,
+            requestedModel: params.model,
+            candidate,
+            attempt: i + 1,
+            total: candidates.length,
+            reason: decision.reason,
+            nextCandidate: candidates[i + 1],
+            isPrimary,
+            requestedModelMatched: requestedModel,
+            fallbackConfigured: hasFallbackCandidates,
+            allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+            profileCount: profileIds.length,
+          });
         }
-        attemptedDuringCooldown = true;
-        logModelFallbackDecision({
-          decision: "probe_cooldown_candidate",
-          runId: params.runId,
-          requestedProvider: params.provider,
-          requestedModel: params.model,
-          candidate,
-          attempt: i + 1,
-          total: candidates.length,
-          reason: decision.reason,
-          nextCandidate: candidates[i + 1],
-          isPrimary,
-          requestedModelMatched: requestedModel,
-          fallbackConfigured: hasFallbackCandidates,
-          allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
-          profileCount: profileIds.length,
-        });
       }
     }
 

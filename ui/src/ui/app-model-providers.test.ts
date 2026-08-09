@@ -101,4 +101,32 @@ describe("model provider wizard", () => {
     expect(request).toHaveBeenCalledWith("wizard.start", { target: "custom-model" });
     expect(host.modelProviderWizardSessionId).toBe("wizard-custom");
   });
+
+  it("refreshes the model catalog after a successful provider setup", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method === "wizard.start") {
+        return { done: true, status: "done" };
+      }
+      if (method === "config.get") {
+        return { config: {}, raw: "{}", valid: true, issues: [] };
+      }
+      if (method === "models.list") {
+        return {
+          models: [{ id: "new-model", name: "New model", provider: "test" }],
+        };
+      }
+      if (method === "models.authStatus") {
+        return { ts: 1, providers: [] };
+      }
+      throw new Error(`Unexpected request: ${method}`);
+    });
+    const host = createHost(request);
+
+    await handleModelProviderWizardStart(host);
+
+    expect(request).toHaveBeenCalledWith("models.list", {});
+    expect(host.chatModelCatalog).toEqual([
+      { id: "new-model", name: "New model", provider: "test" },
+    ]);
+  });
 });

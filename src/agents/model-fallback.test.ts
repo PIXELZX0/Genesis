@@ -4,11 +4,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../config/config.js";
 import { resetLogger, setLoggerOverride } from "../logging/logger.js";
 import { createWarnLogCapture } from "../logging/test-helpers/warn-log-capture.js";
+import { withEnvAsync } from "../test-utils/env.js";
 import { AUTH_STORE_VERSION } from "./auth-profiles/constants.js";
 import type { AuthProfileStore } from "./auth-profiles/types.js";
 import { FailoverError } from "./failover-error.js";
 import { LiveSessionModelSwitchError } from "./live-model-switch-error.js";
-import { runWithImageModelFallback, runWithModelFallback } from "./model-fallback.js";
+import {
+  runWithImageModelFallback,
+  runWithModelFallback,
+  type ModelFallbackRunOptions,
+} from "./model-fallback.js";
 import { classifyEmbeddedPiRunResultForModelFallback } from "./pi-embedded-runner/result-fallback-classifier.js";
 import type { EmbeddedPiRunResult } from "./pi-embedded-runner/types.js";
 import { makeModelFallbackCfg } from "./test-helpers/model-fallback-config-fixture.js";
@@ -97,6 +102,7 @@ const authRuntimeMock = vi.hoisted(() => {
     runtime: {
       ensureAuthProfileStore: vi.fn((agentDir?: string) => getStore(agentDir)),
       loadAuthProfileStoreForRuntime: vi.fn((agentDir?: string) => getStore(agentDir)),
+      hasUsableExternalAuthForProvider: vi.fn(() => false),
       resolveAuthProfileOrder: (params: { store: AuthProfileStore; provider: string }) =>
         getProfileIds(params.store, params.provider),
       isProfileInCooldown,
@@ -143,6 +149,7 @@ afterEach(() => {
   authRuntimeMock.runtime.ensureAuthProfileStore.mockClear();
   authRuntimeMock.runtime.loadAuthProfileStoreForRuntime.mockClear();
   authSourceCheckMock.hasAnyAuthProfileStoreSource.mockReset().mockReturnValue(true);
+  authRuntimeMock.runtime.hasUsableExternalAuthForProvider.mockReset().mockReturnValue(false);
 });
 
 function makeFallbacksOnlyCfg(): GenesisConfig {
@@ -188,7 +195,7 @@ async function runWithStoredAuth(params: {
   cfg: GenesisConfig;
   store: AuthProfileStore;
   provider: string;
-  run: (provider: string, model: string) => Promise<string>;
+  run: (provider: string, model: string, options?: ModelFallbackRunOptions) => Promise<string>;
 }) {
   const tempDir = await makeAuthTempDir();
   setAuthRuntimeStore(tempDir, params.store);
@@ -340,6 +347,72 @@ describe("runWithModelFallback", () => {
     );
     expect(authRuntimeMock.runtime.ensureAuthProfileStore).not.toHaveBeenCalled();
     expect(run).toHaveBeenCalledWith("openai", "gpt-4.1-mini");
+  });
+
+  it("uses external auth for cooldowned same-provider fallback candidates", async () => {
+    const provider = "opencode-go";
+    const cfg = makeCfg({
+      agents: {
+        defaults: {
+          model: {
+            primary: `${provider}/m1`,
+            fallbacks: [`${provider}/m2`],
+          },
+        },
+      },
+    });
+    const profileId = `${provider}:default`;
+    const store: AuthProfileStore = {
+      version: AUTH_STORE_VERSION,
+      profiles: {
+        [profileId]: {
+          type: "api_key",
+          provider,
+          key: "stale-profile-key",
+        },
+      },
+      usageStats: {
+        [profileId]: {
+          disabledUntil: Date.now() + 60_000,
+          disabledReason: "auth",
+        },
+      },
+    };
+    const run = vi
+      .fn<(provider: string, model: string, options?: ModelFallbackRunOptions) => Promise<string>>()
+      .mockRejectedValueOnce(
+        new FailoverError("model temporarily unavailable", {
+          reason: "overloaded",
+          provider,
+          model: "m1",
+        }),
+      )
+      .mockResolvedValueOnce("ok");
+
+    await withEnvAsync(
+      {
+        OPENCODE_API_KEY: "test-opencode-key",
+        OPENCODE_ZEN_API_KEY: undefined,
+      },
+      async () => {
+        authRuntimeMock.runtime.hasUsableExternalAuthForProvider.mockReturnValue(true);
+        const result = await runWithStoredAuth({
+          cfg,
+          store,
+          provider,
+          run,
+        });
+
+        expect(result.result).toBe("ok");
+      },
+    );
+
+    expect(run).toHaveBeenNthCalledWith(1, provider, "m1", { preferExternalAuth: true });
+    expect(run).toHaveBeenNthCalledWith(2, provider, "m2", { preferExternalAuth: true });
+    expect(authRuntimeMock.runtime.hasUsableExternalAuthForProvider).toHaveBeenCalledWith({
+      cfg,
+      provider,
+    });
   });
 
   it("keeps openai gpt-5.3 codex on the openai provider before running", async () => {

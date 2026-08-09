@@ -51,7 +51,7 @@ function resolveInitialWizardInput(step: ModelProviderWizardStep): unknown {
 async function refreshModelProviderSurfaces(host: ModelProviderWizardHost) {
   await loadConfig(host);
   if (host.client && host.connected) {
-    host.chatModelCatalog = await loadModels(host.client);
+    host.chatModelCatalog = await loadModels(host.client, { refresh: true });
   }
   await loadModelAuthStatusState(host, { refresh: true });
 }

@@ -117,6 +117,7 @@ vi.mock("../agents/command/attempt-execution.runtime.js", () => {
         streamParams: opts.streamParams,
         agentDir: params.agentDir,
         allowTransientCooldownProbe: params.allowTransientCooldownProbe,
+        preferExternalAuth: params.preferExternalAuth,
         cleanupBundleMcpOnRunEnd: opts.cleanupBundleMcpOnRunEnd,
         onAgentEvent: params.onAgentEvent,
       } as never);

@@ -35,7 +35,7 @@ import {
 } from "./controllers/dreaming.ts";
 import { loadExecApprovals, type ExecApprovalsState } from "./controllers/exec-approvals.ts";
 import { loadFilesDir, type FilesState } from "./controllers/files.ts";
-import { loadLogs, type LogsState } from "./controllers/logs.ts";
+import { loadLogs, LOG_TAIL_REQUEST_TIMEOUT_MS, type LogsState } from "./controllers/logs.ts";
 import { loadMcpOAuthStatuses, loadMcpServers, type McpState } from "./controllers/mcp.ts";
 import {
   loadModelAuthStatusState,
@@ -139,6 +139,13 @@ type SettingsAppHost = SettingsHost &
     sessionsSearchQuery: string;
     hello: { auth?: { role?: string; scopes?: string[] } } | null;
   };
+
+type OverviewLogsHost = Pick<
+  SettingsAppHost,
+  "client" | "connected" | "overviewLogCursor" | "overviewLogLines"
+>;
+
+const overviewLogLoads = new WeakMap<object, Promise<void>>();
 
 export function applySettings(host: SettingsHost, next: UiSettings) {
   const normalized = {
@@ -625,7 +632,6 @@ export async function loadOverview(host: SettingsHost, opts?: { refresh?: boolea
     loadSessions(app),
     loadCronStatus(app),
     loadCronJobsPage(app),
-    loadDebug(app),
     loadSkills(app),
     loadUsage(app),
     loadOverviewLogs(app),
@@ -659,30 +665,62 @@ export function hasMissingSkillDependencies(
   return Object.values(missing).some((value) => Array.isArray(value) && value.length > 0);
 }
 
-async function loadOverviewLogs(host: SettingsAppHost) {
-  if (!host.client || !host.connected) {
-    return;
+export function loadOverviewLogs(host: OverviewLogsHost): Promise<void> {
+  const key = host as object;
+  const pending = overviewLogLoads.get(key);
+  if (pending) {
+    return pending;
   }
-  try {
-    const res = await host.client.request("logs.tail", {
-      cursor: host.overviewLogCursor || undefined,
-      limit: 100,
-      maxBytes: 50_000,
-    });
-    const payload = res as {
-      cursor?: number;
-      lines?: unknown;
-    };
-    const lines = Array.isArray(payload.lines)
-      ? payload.lines.filter((line): line is string => typeof line === "string")
-      : [];
-    host.overviewLogLines = [...host.overviewLogLines, ...lines].slice(-500);
-    if (typeof payload.cursor === "number") {
-      host.overviewLogCursor = payload.cursor;
+
+  const client = host.client;
+  if (!client || !host.connected) {
+    return Promise.resolve();
+  }
+
+  let request: Promise<void>;
+  request = (async () => {
+    try {
+      const res = await client.request(
+        "logs.tail",
+        {
+          cursor: host.overviewLogCursor || undefined,
+          limit: 100,
+          maxBytes: 50_000,
+        },
+        { timeoutMs: LOG_TAIL_REQUEST_TIMEOUT_MS },
+      );
+      if (host.client !== client || !host.connected) {
+        return;
+      }
+      const payload = res as {
+        cursor?: number;
+        lines?: unknown;
+      };
+      const lines = Array.isArray(payload.lines)
+        ? payload.lines.filter((line): line is string => typeof line === "string")
+        : [];
+      host.overviewLogLines = [...host.overviewLogLines, ...lines].slice(-500);
+      if (typeof payload.cursor === "number") {
+        host.overviewLogCursor = payload.cursor;
+      }
+    } catch {
+      /* non-critical */
     }
-  } catch {
-    /* non-critical */
-  }
+  })();
+  overviewLogLoads.set(key, request);
+  void request.then(
+    () => {
+      if (overviewLogLoads.get(key) === request) {
+        overviewLogLoads.delete(key);
+      }
+    },
+    () => {
+      if (overviewLogLoads.get(key) === request) {
+        overviewLogLoads.delete(key);
+      }
+    },
+  );
+  return request;
 }
 
 function buildAttentionItems(host: SettingsAppHost) {

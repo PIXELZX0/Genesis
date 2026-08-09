@@ -11,7 +11,12 @@ import type { Snapshot } from "../protocol/index.js";
 let presenceVersion = 1;
 let healthVersion = 1;
 let healthCache: HealthSummary | null = null;
-let healthRefresh: Promise<HealthSummary> | null = null;
+let healthRefresh: {
+  promise: Promise<HealthSummary>;
+  probe: boolean;
+  generation: number;
+} | null = null;
+let healthRefreshGeneration = 0;
 let broadcastHealthUpdate: ((snap: HealthSummary) => void) | null = null;
 
 export function buildGatewaySnapshot(opts?: { includeSensitive?: boolean }): Snapshot {
@@ -70,9 +75,14 @@ export function setBroadcastHealthUpdate(fn: ((snap: HealthSummary) => void) | n
 }
 
 export async function refreshGatewayHealthSnapshot(opts?: { probe?: boolean }) {
-  if (!healthRefresh) {
-    healthRefresh = (async () => {
-      const snap = await getHealthSnapshot({ probe: opts?.probe });
+  const probe = opts?.probe ?? true;
+  if (!healthRefresh || (probe && !healthRefresh.probe)) {
+    const generation = ++healthRefreshGeneration;
+    const promise = (async () => {
+      const snap = await getHealthSnapshot({ probe });
+      if (generation !== healthRefreshGeneration) {
+        return snap;
+      }
       healthCache = snap;
       healthVersion += 1;
       if (broadcastHealthUpdate) {
@@ -80,8 +90,11 @@ export async function refreshGatewayHealthSnapshot(opts?: { probe?: boolean }) {
       }
       return snap;
     })().finally(() => {
-      healthRefresh = null;
+      if (healthRefresh?.generation === generation) {
+        healthRefresh = null;
+      }
     });
+    healthRefresh = { promise, probe, generation };
   }
-  return healthRefresh;
+  return healthRefresh.promise;
 }

@@ -87,23 +87,25 @@ function createMutableAuthControllerHarness(): MutableAuthControllerHarness {
 function createMutableEmbeddedRunAuthController(params: {
   harness: MutableAuthControllerHarness;
   setRuntimeApiKey: RuntimeApiKeySetter;
-  profileCandidates?: string[];
+  profileCandidates?: Array<string | undefined>;
+  authStore?: AuthProfileStore;
+  lockedProfileId?: string;
+  preferExternalAuth?: boolean;
   warn?: (message: string) => void;
 }) {
   return createEmbeddedRunAuthController({
     config: undefined,
     agentDir: "/tmp/agent",
     workspaceDir: "/tmp/workspace",
-    authStore: {
-      version: 1,
-      profiles: {},
-    } as AuthProfileStore,
+    authStore: params.authStore ?? ({ version: 1, profiles: {} } as AuthProfileStore),
     authStorage: { setRuntimeApiKey: params.setRuntimeApiKey },
     profileCandidates: params.profileCandidates ?? ["default"],
+    lockedProfileId: params.lockedProfileId,
     initialThinkLevel: "medium",
     attemptedThinking: new Set(),
     fallbackConfigured: false,
     allowTransientCooldownProbe: false,
+    preferExternalAuth: params.preferExternalAuth ?? false,
     getProvider: () => "custom-openai",
     getModelId: () => "test-model",
     getRuntimeModel: () => params.harness.runtimeModel,
@@ -192,6 +194,94 @@ describe("createEmbeddedRunAuthController", () => {
     });
   });
 
+  it("resolves external auth without reselecting a cooldowned profile", async () => {
+    const harness = createMutableAuthControllerHarness();
+    const setRuntimeApiKey = vi.fn<(provider: string, apiKey: string) => void>();
+    const getApiKeyForModel = mocks.getApiKeyForModel.mockImplementationOnce(
+      async (params: {
+        profileId?: string;
+        credentialPrecedence?: string;
+        store: AuthProfileStore;
+      }) => {
+        expect(params.profileId).toBeUndefined();
+        expect(params.credentialPrecedence).toBe("env-first");
+        expect(params.store.profiles).toEqual({});
+        return {
+          apiKey: "external-api-key",
+          mode: "api-key" as const,
+          source: "env: OPENCODE_API_KEY",
+        };
+      },
+    );
+    const profileId = "custom-openai:default";
+    const controller = createMutableEmbeddedRunAuthController({
+      harness,
+      setRuntimeApiKey,
+      preferExternalAuth: true,
+      profileCandidates: [undefined],
+      authStore: {
+        version: 1,
+        profiles: {
+          [profileId]: {
+            type: "api_key",
+            provider: "custom-openai",
+            key: "cooldowned-profile-key",
+          },
+        },
+        usageStats: {
+          [profileId]: { disabledUntil: Date.now() + 60_000, disabledReason: "auth" },
+        },
+      },
+    });
+
+    await controller.initializeAuthProfile();
+
+    expect(getApiKeyForModel).toHaveBeenCalledTimes(1);
+    expect(setRuntimeApiKey).toHaveBeenCalledWith("custom-openai", "external-api-key");
+    expect(harness.lastProfileId).toBeUndefined();
+  });
+
+  it("honors a user-locked profile when external auth is preferred", async () => {
+    const harness = createMutableAuthControllerHarness();
+    const setRuntimeApiKey = vi.fn<(provider: string, apiKey: string) => void>();
+    const lockedProfileId = "custom-openai:locked";
+    const getApiKeyForModel = mocks.getApiKeyForModel.mockResolvedValueOnce({
+      apiKey: "locked-api-key",
+      mode: "api-key",
+      profileId: lockedProfileId,
+      source: `profile:${lockedProfileId}`,
+    });
+    const controller = createMutableEmbeddedRunAuthController({
+      harness,
+      setRuntimeApiKey,
+      preferExternalAuth: true,
+      lockedProfileId,
+      profileCandidates: [lockedProfileId],
+      authStore: {
+        version: 1,
+        profiles: {
+          [lockedProfileId]: {
+            type: "api_key",
+            provider: "custom-openai",
+            key: "locked-api-key",
+          },
+        },
+      },
+    });
+
+    await controller.initializeAuthProfile();
+
+    expect(getApiKeyForModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        profileId: lockedProfileId,
+        lockedProfile: true,
+        credentialPrecedence: undefined,
+      }),
+    );
+    expect(setRuntimeApiKey).toHaveBeenCalledWith("custom-openai", "locked-api-key");
+    expect(harness.lastProfileId).toBe(lockedProfileId);
+  });
+
   it("rejects privileged runtime transport overrides on the first auth exchange", async () => {
     let runtimeModel = createTestModel();
 
@@ -227,6 +317,7 @@ describe("createEmbeddedRunAuthController", () => {
       attemptedThinking: new Set(),
       fallbackConfigured: false,
       allowTransientCooldownProbe: false,
+      preferExternalAuth: false,
       getProvider: () => "custom-openai",
       getModelId: () => "test-model",
       getRuntimeModel: () => runtimeModel,

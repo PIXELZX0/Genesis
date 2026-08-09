@@ -915,6 +915,7 @@ async function agentCommandInternal(
               sessionStore,
               storePath,
               allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+              preferExternalAuth: runOptions?.preferExternalAuth,
               sessionHasHistory:
                 !isNewSession || (await attemptExecutionRuntime.sessionFileHasContent(sessionFile)),
               onAgentEvent: (evt) => {

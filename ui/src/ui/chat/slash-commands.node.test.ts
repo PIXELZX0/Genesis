@@ -369,15 +369,68 @@ describe("parseSlashCommand", () => {
     });
   });
 
+  it("coalesces same-client, same-agent refreshes while the request is pending", async () => {
+    let resolveRequest!: (value: unknown) => void;
+    const pending = new Promise<unknown>((resolve) => {
+      resolveRequest = resolve;
+    });
+    const request = vi.fn().mockReturnValue(pending);
+    const client = { request } as never;
+
+    const firstRefresh = refreshSlashCommands({ client, agentId: "main" });
+    const secondRefresh = refreshSlashCommands({ client, agentId: "main" });
+
+    expect(request).toHaveBeenCalledOnce();
+
+    resolveRequest({
+      commands: [
+        {
+          name: "pair",
+          textAliases: ["/pair"],
+          description: "Generate setup codes.",
+          source: "plugin",
+          scope: "both",
+          acceptsArgs: true,
+        },
+      ],
+    });
+    await Promise.all([firstRefresh, secondRefresh]);
+
+    expect(SLASH_COMMANDS.find((entry) => entry.name === "pair")).toBeDefined();
+  });
+
   it("ignores stale refresh responses and keeps the latest command set", async () => {
-    let resolveFirst: ((value: unknown) => void) | undefined;
-    const first = new Promise((resolve) => {
-      resolveFirst = resolve;
+    let resolveMain: ((value: unknown) => void) | undefined;
+    const main = new Promise((resolve) => {
+      resolveMain = resolve;
+    });
+    let resolveOther: ((value: unknown) => void) | undefined;
+    const other = new Promise((resolve) => {
+      resolveOther = resolve;
     });
     const request = vi
       .fn()
-      .mockImplementationOnce(async () => await first)
-      .mockImplementationOnce(async () => ({
+      .mockImplementationOnce(async () => await main)
+      .mockImplementationOnce(async () => await other);
+    const client = { request } as never;
+
+    const mainPending = refreshSlashCommands({
+      client,
+      agentId: "main",
+    });
+    const otherPending = refreshSlashCommands({
+      client,
+      agentId: "other",
+    });
+    const mainDuplicate = refreshSlashCommands({
+      client,
+      agentId: "main",
+    });
+    expect(mainDuplicate).toBe(mainPending);
+    expect(request).toHaveBeenCalledTimes(2);
+
+    if (resolveOther) {
+      resolveOther({
         commands: [
           {
             name: "pair",
@@ -388,18 +441,12 @@ describe("parseSlashCommand", () => {
             acceptsArgs: true,
           },
         ],
-      }));
+      });
+    }
+    await otherPending;
 
-    const pending = refreshSlashCommands({
-      client: { request } as never,
-      agentId: "main",
-    });
-    await refreshSlashCommands({
-      client: { request } as never,
-      agentId: "main",
-    });
-    if (resolveFirst) {
-      resolveFirst({
+    if (resolveMain) {
+      resolveMain({
         commands: [
           {
             name: "dreaming",
@@ -412,9 +459,9 @@ describe("parseSlashCommand", () => {
         ],
       });
     }
-    await pending;
+    await Promise.all([mainPending, mainDuplicate]);
 
-    expect(SLASH_COMMANDS.find((entry) => entry.name === "pair")).toBeDefined();
-    expect(SLASH_COMMANDS.find((entry) => entry.name === "dreaming")).toBeUndefined();
+    expect(SLASH_COMMANDS.find((entry) => entry.name === "dreaming")).toBeDefined();
+    expect(SLASH_COMMANDS.find((entry) => entry.name === "pair")).toBeUndefined();
   });
 });

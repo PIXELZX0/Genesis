@@ -55,6 +55,7 @@ vi.mock("./controllers/cron.ts", () => ({
 }));
 vi.mock("./controllers/logs.ts", () => ({
   loadLogs: mocks.loadLogsMock,
+  LOG_TAIL_REQUEST_TIMEOUT_MS: 5_000,
 }));
 vi.mock("./controllers/plugins.ts", () => ({
   loadPlugins: mocks.loadPluginsMock,
@@ -63,7 +64,15 @@ vi.mock("./controllers/wallet.ts", () => ({
   loadWalletSummary: mocks.loadWalletSummaryMock,
 }));
 
-import { refreshActiveTab } from "./app-settings.ts";
+import { loadOverviewLogs, refreshActiveTab } from "./app-settings.ts";
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
 
 function createHost() {
   return {
@@ -162,6 +171,34 @@ describe("refreshActiveTab", () => {
     expect(host.logsAtBottom).toBe(true);
     expect(mocks.loadLogsMock).toHaveBeenCalledWith(host, { reset: true });
     expect(mocks.scheduleLogsScrollMock).toHaveBeenCalledWith(host, true);
+  });
+
+  it("coalesces overview log refreshes and ignores stale client responses", async () => {
+    const pending = createDeferred<{ cursor: number; lines: string[] }>();
+    const request = vi.fn().mockReturnValue(pending.promise);
+    const host = {
+      ...createHost(),
+      client: { request } as never,
+      overviewLogCursor: 0,
+      overviewLogLines: [],
+    } as unknown as Parameters<typeof loadOverviewLogs>[0];
+
+    const firstRefresh = loadOverviewLogs(host);
+    const secondRefresh = loadOverviewLogs(host);
+
+    expect(request).toHaveBeenCalledOnce();
+    expect(request).toHaveBeenCalledWith(
+      "logs.tail",
+      { cursor: undefined, limit: 100, maxBytes: 50_000 },
+      { timeoutMs: 5_000 },
+    );
+
+    host.client = { request: vi.fn() } as never;
+    pending.resolve({ cursor: 1, lines: ["stale"] });
+    await Promise.all([firstRefresh, secondRefresh]);
+
+    expect(host.overviewLogLines).toEqual([]);
+    expect(host.overviewLogCursor).toBe(0);
   });
 
   it("refreshes wallet tab with balances", async () => {

@@ -13,6 +13,7 @@ import {
 import { resetLogger, setLoggerOverride } from "../../logging.js";
 import { ExecApprovalManager } from "../exec-approval-manager.js";
 import { validateExecApprovalRequestParams } from "../protocol/index.js";
+import { HEALTH_REFRESH_INTERVAL_MS } from "../server-constants.js";
 import { waitForAgentJob } from "./agent-job.js";
 import { injectTimestamp, timestampOptsFromConfig } from "./agent-timestamp.js";
 import { normalizeRpcAttachmentsToChatAttachments } from "./attachment-normalize.js";
@@ -1736,6 +1737,57 @@ describe("gateway healthHandlers.status scope handling", () => {
       expect(respond).toHaveBeenCalledWith(true, { ok: true }, undefined);
     },
   );
+
+  it("serves a fresh cache without refreshing it in the background", async () => {
+    const cached = { ok: true, ts: Date.now() };
+    const respond = vi.fn();
+    const refreshHealthSnapshot = vi.fn().mockResolvedValue({ ok: true, ts: Date.now() });
+    const logHealth = { error: vi.fn() };
+
+    await healthHandlers.health({
+      req: {} as never,
+      params: {} as never,
+      respond: respond as never,
+      context: {
+        getHealthCache: () => cached,
+        refreshHealthSnapshot,
+        logHealth,
+      } as never,
+      client: null,
+      isWebchatConnect: () => false,
+    });
+
+    expect(respond).toHaveBeenCalledWith(true, cached, undefined, { cached: true });
+    expect(refreshHealthSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("serves an expired cache while refreshing it in the background", async () => {
+    const cached = { ok: true, ts: Date.now() - HEALTH_REFRESH_INTERVAL_MS - 1 };
+    const respond = vi.fn();
+    const refreshHealthSnapshot = vi.fn().mockResolvedValue({ ok: true, ts: Date.now() });
+    const logHealth = { error: vi.fn() };
+
+    await healthHandlers.health({
+      req: {} as never,
+      params: {} as never,
+      respond: respond as never,
+      context: {
+        getHealthCache: () => cached,
+        refreshHealthSnapshot,
+        logHealth,
+      } as never,
+      client: null,
+      isWebchatConnect: () => false,
+    });
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      cached,
+      undefined,
+      expect.objectContaining({ cached: true, stale: true }),
+    );
+    expect(refreshHealthSnapshot).toHaveBeenCalledWith({ probe: false });
+  });
 });
 
 describe("logs.tail", () => {

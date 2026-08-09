@@ -74,7 +74,7 @@ export function startGatewayMaintenanceTimers(params: {
 
   // Prime cache so first client gets a snapshot without waiting.
   void params
-    .refreshGatewayHealthSnapshot({ probe: true })
+    .refreshGatewayHealthSnapshot({ probe: false })
     .catch((err) => params.logHealth.error(`initial refresh failed: ${formatError(err)}`));
 
   // dedupe cache cleanup

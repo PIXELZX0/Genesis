@@ -208,6 +208,7 @@ export function createCronPromptExecutor(params: {
           disableMessageTool: params.toolPolicy.disableMessageTool,
           forceMessageTool: params.toolPolicy.forceMessageTool,
           allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+          preferExternalAuth: runOptions?.preferExternalAuth,
           abortSignal: params.abortSignal,
           bootstrapPromptWarningSignaturesSeen,
           bootstrapPromptWarningSignature,

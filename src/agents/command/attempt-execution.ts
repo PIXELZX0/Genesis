@@ -256,6 +256,7 @@ export function runAgentAttempt(params: {
   sessionStore?: Record<string, SessionEntry>;
   storePath?: string;
   allowTransientCooldownProbe?: boolean;
+  preferExternalAuth?: boolean;
   sessionHasHistory?: boolean;
 }) {
   const effectivePrompt = resolveFallbackRetryPrompt({
@@ -459,6 +460,7 @@ export function runAgentAttempt(params: {
     streamParams: params.opts.streamParams,
     agentDir: params.agentDir,
     allowTransientCooldownProbe: params.allowTransientCooldownProbe,
+    preferExternalAuth: params.preferExternalAuth,
     cleanupBundleMcpOnRunEnd: params.opts.cleanupBundleMcpOnRunEnd,
     onAgentEvent: params.onAgentEvent,
     bootstrapPromptWarningSignaturesSeen,

@@ -457,32 +457,35 @@ export async function runEmbeddedPiAgent(
           throw new Error(`Auth profile "${lockedProfileId}" is not configured for ${provider}.`);
         }
       }
-      const profileOrder = shouldPreferExplicitConfigApiKeyAuth(params.config, provider)
-        ? []
-        : resolveAuthProfileOrder({
-            cfg: params.config,
-            store: authStore,
-            provider,
-            preferredProfile: preferredProfileId,
-          });
-      const providerPreferredProfileId = lockedProfileId
-        ? undefined
-        : resolveProviderAuthProfileId({
-            provider,
-            config: params.config,
-            workspaceDir: resolvedWorkspace,
-            context: {
-              config: params.config,
-              agentDir,
-              workspaceDir: resolvedWorkspace,
+      const preferExternalAuth = params.preferExternalAuth === true && !lockedProfileId;
+      const profileOrder =
+        preferExternalAuth || shouldPreferExplicitConfigApiKeyAuth(params.config, provider)
+          ? []
+          : resolveAuthProfileOrder({
+              cfg: params.config,
+              store: authStore,
               provider,
-              modelId,
-              preferredProfileId,
-              lockedProfileId,
-              profileOrder,
-              authStore,
-            },
-          });
+              preferredProfile: preferredProfileId,
+            });
+      const providerPreferredProfileId =
+        lockedProfileId || preferExternalAuth
+          ? undefined
+          : resolveProviderAuthProfileId({
+              provider,
+              config: params.config,
+              workspaceDir: resolvedWorkspace,
+              context: {
+                config: params.config,
+                agentDir,
+                workspaceDir: resolvedWorkspace,
+                provider,
+                modelId,
+                preferredProfileId,
+                lockedProfileId,
+                profileOrder,
+                authStore,
+              },
+            });
       const providerOrderedProfiles =
         providerPreferredProfileId && profileOrder.includes(providerPreferredProfileId)
           ? [
@@ -492,9 +495,11 @@ export async function runEmbeddedPiAgent(
           : profileOrder;
       const profileCandidates = lockedProfileId
         ? [lockedProfileId]
-        : providerOrderedProfiles.length > 0
-          ? providerOrderedProfiles
-          : [undefined];
+        : preferExternalAuth
+          ? [undefined]
+          : providerOrderedProfiles.length > 0
+            ? providerOrderedProfiles
+            : [undefined];
       let profileIndex = 0;
       const traceAttempts: TraceAttempt[] = [];
 
@@ -522,6 +527,7 @@ export async function runEmbeddedPiAgent(
         attemptedThinking,
         fallbackConfigured,
         allowTransientCooldownProbe: params.allowTransientCooldownProbe === true,
+        preferExternalAuth,
         getProvider: () => provider,
         getModelId: () => modelId,
         getRuntimeModel: () => runtimeModel,

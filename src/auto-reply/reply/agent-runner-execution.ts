@@ -1082,6 +1082,7 @@ export async function runAgentTurnWithFallback(params: {
               provider,
               runId,
               allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+              preferExternalAuth: runOptions?.preferExternalAuth,
               model,
             },
           );

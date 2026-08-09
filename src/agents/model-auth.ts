@@ -183,6 +183,45 @@ export function hasUsableCustomProviderApiKey(
   return Boolean(resolveUsableCustomProviderApiKey({ cfg, provider, env }));
 }
 
+/**
+ * Check only credentials outside the auth-profile store.
+ *
+ * Fallback selection uses this to distinguish a usable env/config credential
+ * from a cooldowned stored profile. OpenAI Codex is OAuth-only, so its generic
+ * OpenAI API-key environment variable must not satisfy this check.
+ */
+export function hasUsableExternalAuthForProvider(params: {
+  provider: string;
+  cfg?: GenesisConfig;
+  env?: NodeJS.ProcessEnv;
+}): boolean {
+  const normalized = normalizeProviderId(params.provider);
+  if (normalized === "openai-codex") {
+    return false;
+  }
+
+  const authOverride = resolveProviderAuthOverride(params.cfg, params.provider);
+  if (authOverride === "aws-sdk") {
+    return true;
+  }
+  if (resolveEnvApiKey(params.provider, params.env)) {
+    return true;
+  }
+  if (
+    resolveUsableCustomProviderApiKey({
+      cfg: params.cfg,
+      provider: params.provider,
+      env: params.env,
+    })
+  ) {
+    return true;
+  }
+  if (resolveSyntheticLocalProviderAuth({ cfg: params.cfg, provider: params.provider })) {
+    return true;
+  }
+  return authOverride === undefined && normalized === "amazon-bedrock";
+}
+
 export function shouldPreferExplicitConfigApiKeyAuth(
   cfg: GenesisConfig | undefined,
   provider: string,

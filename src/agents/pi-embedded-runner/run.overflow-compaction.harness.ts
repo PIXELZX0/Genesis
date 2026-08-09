@@ -194,11 +194,22 @@ export const mockedFormatContextWindowBlockMessage = vi.fn(
     `Model context window too small (${params.guard.tokens} tokens; source=${params.guard.source}). Minimum is 1000.`,
 );
 export const mockedGetApiKeyForModel = vi.fn(
-  async ({ profileId }: { profileId?: string } = {}) => ({
+  async ({
+    profileId,
+  }: {
+    profileId?: string;
+    credentialPrecedence?: string;
+    store?: { profiles: unknown };
+  } = {}): Promise<{
+    apiKey: string;
+    profileId?: string;
+    source: string;
+    mode: "api-key";
+  }> => ({
     apiKey: "test-key",
     profileId: profileId ?? "test-profile",
     source: "test",
-    mode: "api-key" as const,
+    mode: "api-key",
   }),
 );
 export const mockedResolveAuthProfileOrder = vi.fn(() => [] as string[]);
@@ -346,7 +357,18 @@ export function resetRunOverflowCompactionHarnessMocks(): void {
   );
   mockedGetApiKeyForModel.mockReset();
   mockedGetApiKeyForModel.mockImplementation(
-    async ({ profileId }: { profileId?: string } = {}) => ({
+    async ({
+      profileId,
+    }: {
+      profileId?: string;
+      credentialPrecedence?: string;
+      store?: { profiles: unknown };
+    } = {}): Promise<{
+      apiKey: string;
+      profileId?: string;
+      source: string;
+      mode: "api-key";
+    }> => ({
       apiKey: "test-key",
       profileId: profileId ?? "test-profile",
       source: "test",

@@ -21,7 +21,28 @@ export type LogsState = {
 };
 
 const LOG_BUFFER_LIMIT = 2000;
+export const LOG_TAIL_REQUEST_TIMEOUT_MS = 5_000;
 const LEVELS = new Set<LogLevel>(["trace", "debug", "info", "warn", "error", "fatal"]);
+
+type LogsLoadControl = {
+  inFlight: Promise<void> | null;
+  pendingReset: {
+    promise: Promise<void>;
+    resolve: () => void;
+  } | null;
+};
+
+const logsLoadControls = new WeakMap<object, LogsLoadControl>();
+
+function getLogsLoadControl(state: LogsState): LogsLoadControl {
+  const key = state as object;
+  let control = logsLoadControls.get(key);
+  if (!control) {
+    control = { inFlight: null, pendingReset: null };
+    logsLoadControls.set(key, control);
+  }
+  return control;
+}
 
 function parseMaybeJsonString(value: unknown) {
   if (typeof value !== "string") {
@@ -98,50 +119,101 @@ export function parseLogLine(line: string): LogEntry {
   }
 }
 
-export async function loadLogs(state: LogsState, opts?: { reset?: boolean; quiet?: boolean }) {
+export function loadLogs(
+  state: LogsState,
+  opts?: { reset?: boolean; quiet?: boolean },
+): Promise<void> {
   const quiet = opts?.quiet === true;
-  if (!state.client || !state.connected || (state.logsLoading && !quiet)) {
-    return;
+  const control = getLogsLoadControl(state);
+  if (control.inFlight) {
+    if (!opts?.reset) {
+      return control.inFlight;
+    }
+    if (!control.pendingReset) {
+      let resolve!: () => void;
+      const promise = new Promise<void>((resolvePromise) => {
+        resolve = resolvePromise;
+      });
+      control.pendingReset = { promise, resolve };
+    }
+    return control.pendingReset.promise;
+  }
+
+  const client = state.client;
+  if (!client || !state.connected) {
+    return Promise.resolve();
   }
   if (!quiet) {
     state.logsLoading = true;
   }
   state.logsError = null;
-  try {
-    const res = await state.client.request("logs.tail", {
-      cursor: opts?.reset ? undefined : (state.logsCursor ?? undefined),
-      limit: state.logsLimit,
-      maxBytes: state.logsMaxBytes,
-    });
-    const payload = res as {
-      file?: string;
-      cursor?: number;
-      lines?: unknown;
-      truncated?: boolean;
-      reset?: boolean;
-    };
-    const lines = Array.isArray(payload.lines)
-      ? payload.lines.filter((line) => typeof line === "string")
-      : [];
-    const entries = lines.map(parseLogLine);
-    const shouldReset = opts?.reset || payload.reset || state.logsCursor == null;
-    state.logsEntries = shouldReset
-      ? entries
-      : [...state.logsEntries, ...entries].slice(-LOG_BUFFER_LIMIT);
-    state.logsCursor = typeof payload.cursor === "number" ? payload.cursor : state.logsCursor;
-    state.logsFile = typeof payload.file === "string" ? payload.file : state.logsFile;
-    state.logsTruncated = Boolean(payload.truncated);
-    state.logsLastFetchAt = Date.now();
-  } catch (err) {
-    if (isMissingOperatorReadScopeError(err)) {
-      state.logsEntries = [];
-      state.logsError = formatMissingOperatorReadScopeMessage("logs");
-    } else {
-      state.logsError = String(err);
+  let request: Promise<void>;
+  request = (async () => {
+    try {
+      const res = await client.request(
+        "logs.tail",
+        {
+          cursor: opts?.reset ? undefined : (state.logsCursor ?? undefined),
+          limit: state.logsLimit,
+          maxBytes: state.logsMaxBytes,
+        },
+        { timeoutMs: LOG_TAIL_REQUEST_TIMEOUT_MS },
+      );
+      if (state.client !== client || !state.connected) {
+        return;
+      }
+      const payload = res as {
+        file?: string;
+        cursor?: number;
+        lines?: unknown;
+        truncated?: boolean;
+        reset?: boolean;
+      };
+      const lines = Array.isArray(payload.lines)
+        ? payload.lines.filter((line) => typeof line === "string")
+        : [];
+      const entries = lines.map(parseLogLine);
+      const shouldReset = opts?.reset || payload.reset || state.logsCursor == null;
+      state.logsEntries = shouldReset
+        ? entries
+        : [...state.logsEntries, ...entries].slice(-LOG_BUFFER_LIMIT);
+      state.logsCursor = typeof payload.cursor === "number" ? payload.cursor : state.logsCursor;
+      state.logsFile = typeof payload.file === "string" ? payload.file : state.logsFile;
+      state.logsTruncated = Boolean(payload.truncated);
+      state.logsLastFetchAt = Date.now();
+    } catch (err) {
+      if (state.client !== client || !state.connected) {
+        return;
+      }
+      if (isMissingOperatorReadScopeError(err)) {
+        state.logsEntries = [];
+        state.logsError = formatMissingOperatorReadScopeMessage("logs");
+      } else {
+        state.logsError = String(err);
+      }
+    } finally {
+      if (!quiet) {
+        state.logsLoading = false;
+      }
     }
-  } finally {
-    if (!quiet) {
-      state.logsLoading = false;
+  })();
+  control.inFlight = request;
+  const finish = () => {
+    if (control.inFlight !== request) {
+      return;
     }
-  }
+    const pendingReset = control.pendingReset;
+    control.inFlight = null;
+    control.pendingReset = null;
+    if (!pendingReset) {
+      return;
+    }
+    if (!state.client || !state.connected) {
+      pendingReset.resolve();
+      return;
+    }
+    void loadLogs(state, { reset: true }).then(pendingReset.resolve, pendingReset.resolve);
+  };
+  void request.then(finish, finish);
+  return request;
 }

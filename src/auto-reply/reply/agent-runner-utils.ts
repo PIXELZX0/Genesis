@@ -204,6 +204,7 @@ export function buildEmbeddedRunBaseParams(params: {
   runId: string;
   authProfile: ReturnType<typeof resolveProviderScopedAuthProfile>;
   allowTransientCooldownProbe?: boolean;
+  preferExternalAuth?: boolean;
 }) {
   const config = params.run.config;
   return {
@@ -228,6 +229,7 @@ export function buildEmbeddedRunBaseParams(params: {
     timeoutMs: params.run.timeoutMs,
     runId: params.runId,
     allowTransientCooldownProbe: params.allowTransientCooldownProbe,
+    preferExternalAuth: params.preferExternalAuth,
   };
 }
 
@@ -305,6 +307,7 @@ export function buildEmbeddedRunExecutionParams(params: {
   model: string;
   runId: string;
   allowTransientCooldownProbe?: boolean;
+  preferExternalAuth?: boolean;
 }) {
   const { authProfile, embeddedContext, senderContext } = buildEmbeddedRunContexts(params);
   const runBaseParams = buildEmbeddedRunBaseParams({
@@ -314,6 +317,7 @@ export function buildEmbeddedRunExecutionParams(params: {
     runId: params.runId,
     authProfile,
     allowTransientCooldownProbe: params.allowTransientCooldownProbe,
+    preferExternalAuth: params.preferExternalAuth,
   });
   return {
     embeddedContext,

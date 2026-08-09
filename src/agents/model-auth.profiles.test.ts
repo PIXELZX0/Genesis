@@ -12,6 +12,7 @@ import {
 import {
   getApiKeyForModel,
   hasAvailableAuthForProvider,
+  hasUsableExternalAuthForProvider,
   resolveApiKeyForProvider,
   resolveEnvApiKey,
 } from "./model-auth.js";
@@ -487,6 +488,52 @@ describe("getApiKeyForModel", () => {
         ).resolves.toBe(false);
       },
     );
+  });
+
+  it("detects OPENCODE_API_KEY as external auth for opencode-go", async () => {
+    await withEnvAsync(
+      {
+        OPENCODE_API_KEY: "test-opencode-key",
+        OPENCODE_ZEN_API_KEY: undefined,
+      },
+      async () => {
+        expect(
+          hasUsableExternalAuthForProvider({
+            provider: "opencode-go",
+          }),
+        ).toBe(true);
+      },
+    );
+  });
+
+  it("does not treat OPENAI_API_KEY as external auth for OAuth-only openai-codex", async () => {
+    await withEnvAsync({ OPENAI_API_KEY: "test-openai-key" }, async () => {
+      expect(
+        hasUsableExternalAuthForProvider({
+          provider: "openai-codex",
+        }),
+      ).toBe(false);
+    });
+  });
+
+  it("detects a usable explicit provider API key as external auth", () => {
+    expect(
+      hasUsableExternalAuthForProvider({
+        provider: "custom",
+        cfg: {
+          models: {
+            providers: {
+              custom: {
+                baseUrl: "https://provider.example/v1",
+                api: "openai-completions",
+                apiKey: "test-explicit-provider-key",
+                models: [],
+              },
+            },
+          },
+        },
+      }),
+    ).toBe(true);
   });
 
   it("resolves Synthetic API key from env", async () => {

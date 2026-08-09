@@ -17,6 +17,7 @@ import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { asNullableRecord } from "../shared/record-coerce.js";
 import { styleHealthChannelLine } from "../terminal/health-style.js";
 import { isRich } from "../terminal/theme.js";
+import { runTasksWithConcurrency } from "../utils/run-with-concurrency.js";
 import { formatHealthChannelLines } from "./health-format.js";
 import type {
   AgentHealthSummary,
@@ -34,6 +35,7 @@ export type {
 } from "./health.types.js";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
+const HEALTH_PROBE_CONCURRENCY = 5;
 
 type ConfigModule = typeof import("../config/config.js");
 
@@ -214,7 +216,7 @@ export async function getHealthSnapshot(params?: {
   const channelOrder = plugins.map((plugin) => plugin.id);
   const channelLabels: Record<string, string> = {};
 
-  for (const plugin of plugins) {
+  const channelPlans = plugins.map((plugin) => {
     channelLabels[plugin.id] = plugin.meta.label ?? plugin.id;
     const accountIds = plugin.config.listAccountIds(cfg);
     const defaultAccountId = resolveChannelDefaultAccountId({
@@ -246,23 +248,31 @@ export async function getHealthSnapshot(params?: {
       preferredAccountId,
       accountIdsToProbe,
     });
-    const accountSummaries: Record<string, ChannelAccountHealthSummary> = {};
+    return {
+      plugin,
+      preferredAccountId,
+      defaultAccountId,
+      accountIdsToProbe,
+      accountSummaries: {} as Record<string, ChannelAccountHealthSummary>,
+    };
+  });
 
-    for (const accountId of accountIdsToProbe) {
+  const accountTasks = channelPlans.flatMap((plan) =>
+    plan.accountIdsToProbe.map((accountId) => async () => {
       const { account, enabled, configured, diagnostics } = await resolveHealthAccountContext({
-        plugin,
+        plugin: plan.plugin,
         cfg,
         accountId,
       });
       if (diagnostics.length > 0) {
-        debugHealth("account.diagnostics", { channel: plugin.id, accountId, diagnostics });
+        debugHealth("account.diagnostics", { channel: plan.plugin.id, accountId, diagnostics });
       }
 
       let probe: unknown;
       let lastProbeAt: number | null = null;
-      if (enabled && configured && doProbe && plugin.status?.probeAccount) {
+      if (enabled && configured && doProbe && plan.plugin.status?.probeAccount) {
         try {
-          probe = await plugin.status.probeAccount({
+          probe = await plan.plugin.status.probeAccount({
             account,
             timeoutMs: cappedTimeout,
             cfg,
@@ -281,7 +291,7 @@ export async function getHealthSnapshot(params?: {
           ? (probeRecord.bot as { username?: string | null })
           : null;
       if (bot?.username) {
-        debugHealth("probe.bot", { channel: plugin.id, accountId, username: bot.username });
+        debugHealth("probe.bot", { channel: plan.plugin.id, accountId, username: bot.username });
       }
 
       const snapshot: ChannelAccountSnapshot = {
@@ -296,8 +306,8 @@ export async function getHealthSnapshot(params?: {
         snapshot.lastProbeAt = lastProbeAt;
       }
 
-      const summary = plugin.status?.buildChannelSummary
-        ? await plugin.status.buildChannelSummary({
+      const summary = plan.plugin.status?.buildChannelSummary
+        ? await plan.plugin.status.buildChannelSummary({
             account,
             cfg,
             defaultAccountId: accountId,
@@ -320,9 +330,33 @@ export async function getHealthSnapshot(params?: {
         record.lastProbeAt = lastProbeAt;
       }
       record.accountId = accountId;
-      accountSummaries[accountId] = record;
+      return { accountId, summary: record, channelId: plan.plugin.id };
+    }),
+  );
+  const {
+    results: accountResults,
+    firstError,
+    hasError,
+  } = await runTasksWithConcurrency({
+    tasks: accountTasks,
+    limit: HEALTH_PROBE_CONCURRENCY,
+  });
+  if (hasError) {
+    throw firstError;
+  }
+  for (const result of accountResults) {
+    if (!result) {
+      continue;
     }
+    const plan = channelPlans.find((entry) => entry.plugin.id === result.channelId);
+    if (plan) {
+      plan.accountSummaries[result.accountId] = result.summary;
+    }
+  }
 
+  for (const plan of channelPlans) {
+    const { plugin, accountIdsToProbe, preferredAccountId, defaultAccountId, accountSummaries } =
+      plan;
     const defaultSummary =
       accountSummaries[preferredAccountId] ??
       accountSummaries[defaultAccountId] ??

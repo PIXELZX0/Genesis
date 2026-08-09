@@ -5,3 +5,4 @@ export {
   isProfileInCooldown,
   resolveProfilesUnavailableReason,
 } from "./auth-profiles/usage.js";
+export { hasUsableExternalAuthForProvider } from "./model-auth.js";

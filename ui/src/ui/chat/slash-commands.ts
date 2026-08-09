@@ -428,40 +428,77 @@ function buildFallbackSlashCommands(): SlashCommandDef[] {
 export const SLASH_COMMANDS: SlashCommandDef[] = buildFallbackSlashCommands();
 
 let _refreshSeq = 0;
+type SlashCommandRefresh = {
+  seq: number;
+  promise: Promise<void>;
+};
 
-export async function refreshSlashCommands(params: {
+let slashCommandRefreshes = new WeakMap<GatewayBrowserClient, Map<string, SlashCommandRefresh>>();
+
+function getSlashCommandRefreshes(client: GatewayBrowserClient): Map<string, SlashCommandRefresh> {
+  let refreshes = slashCommandRefreshes.get(client);
+  if (!refreshes) {
+    refreshes = new Map<string, SlashCommandRefresh>();
+    slashCommandRefreshes.set(client, refreshes);
+  }
+  return refreshes;
+}
+
+export function refreshSlashCommands(params: {
   client: GatewayBrowserClient | null;
   agentId?: string | null;
 }): Promise<void> {
-  const seq = ++_refreshSeq;
   const agentId = params.agentId?.trim();
   if (!params.client) {
-    if (seq !== _refreshSeq) {
-      return;
-    }
+    _refreshSeq += 1;
     replaceSlashCommands(buildFallbackSlashCommands());
-    return;
+    return Promise.resolve();
   }
-  try {
-    const result = await params.client.request<CommandsListResult>("commands.list", {
-      ...(agentId ? { agentId } : {}),
-      includeArgs: true,
-      scope: "text",
-    });
-    if (seq !== _refreshSeq) {
-      return;
-    }
-    replaceSlashCommands(buildSlashCommandsFromEntries(getRemoteCommandEntries(result)));
-  } catch {
-    if (seq !== _refreshSeq) {
-      return;
-    }
-    replaceSlashCommands(buildFallbackSlashCommands());
+
+  const refreshes = getSlashCommandRefreshes(params.client);
+  const refreshKey = agentId ?? "";
+  const pending = refreshes.get(refreshKey);
+  if (pending) {
+    pending.seq = ++_refreshSeq;
+    return pending.promise;
   }
+
+  const seq = ++_refreshSeq;
+  const client = params.client;
+  const refreshEntry: SlashCommandRefresh = { seq, promise: Promise.resolve() };
+  refreshes.set(refreshKey, refreshEntry);
+  const request = (async () => {
+    try {
+      const result = await client.request<CommandsListResult>("commands.list", {
+        ...(agentId ? { agentId } : {}),
+        includeArgs: true,
+        scope: "text",
+      });
+      if (refreshEntry.seq !== _refreshSeq) {
+        return;
+      }
+      replaceSlashCommands(buildSlashCommandsFromEntries(getRemoteCommandEntries(result)));
+    } catch {
+      if (refreshEntry.seq !== _refreshSeq) {
+        return;
+      }
+      replaceSlashCommands(buildFallbackSlashCommands());
+    } finally {
+      if (refreshes.get(refreshKey) === refreshEntry) {
+        refreshes.delete(refreshKey);
+        if (refreshes.size === 0) {
+          slashCommandRefreshes.delete(client);
+        }
+      }
+    }
+  })();
+  refreshEntry.promise = request;
+  return request;
 }
 
 export function resetSlashCommandsForTest(): void {
-  _refreshSeq = 0;
+  _refreshSeq += 1;
+  slashCommandRefreshes = new WeakMap();
   replaceSlashCommands(buildFallbackSlashCommands());
 }
 

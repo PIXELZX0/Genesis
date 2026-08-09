@@ -13,11 +13,14 @@ export const healthHandlers: GatewayRequestHandlers = {
     const wantsProbe = params?.probe === true;
     const now = Date.now();
     const cached = getHealthCache();
-    if (!wantsProbe && cached && now - cached.ts < HEALTH_REFRESH_INTERVAL_MS) {
-      respond(true, cached, undefined, { cached: true });
-      void refreshHealthSnapshot({ probe: false }).catch((err) =>
-        logHealth.error(`background health refresh failed: ${formatError(err)}`),
-      );
+    if (!wantsProbe && cached) {
+      const stale = now - cached.ts >= HEALTH_REFRESH_INTERVAL_MS;
+      respond(true, cached, undefined, { cached: true, ...(stale ? { stale: true } : {}) });
+      if (stale) {
+        void refreshHealthSnapshot({ probe: false }).catch((err) =>
+          logHealth.error(`background health refresh failed: ${formatError(err)}`),
+        );
+      }
       return;
     }
     try {

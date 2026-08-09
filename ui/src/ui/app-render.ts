@@ -18,7 +18,7 @@ import {
   renderTopbarThemeModeToggle,
   switchChatSession,
 } from "./app-render.helpers.ts";
-import { warnQueryToken } from "./app-settings.ts";
+import { loadOverviewLogs, warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { sortCopy } from "./array.ts";
 import { renderMobileTabBar } from "./components/mobile-tab-bar.ts";
@@ -1843,7 +1843,9 @@ export function renderApp(state: AppViewState) {
               onConnect: () => state.connect(),
               onRefresh: () => state.loadOverview({ refresh: true }),
               onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
-              onRefreshLogs: () => state.loadOverview({ refresh: true }),
+              onRefreshLogs: () => {
+                void loadOverviewLogs(state);
+              },
             })
           : nothing}
         ${state.tab === "canvas"

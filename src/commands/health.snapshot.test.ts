@@ -12,6 +12,9 @@ let setActivePluginRegistry: typeof import("../plugins/runtime.js").setActivePlu
 let createChannelTestPluginBase: typeof import("../test-utils/channel-plugins.js").createChannelTestPluginBase;
 let createTestRegistry: typeof import("../test-utils/channel-plugins.js").createTestRegistry;
 let getHealthSnapshot: typeof import("./health.js").getHealthSnapshot;
+let probeTelegramAccountForTestOverride:
+  | ((account: TelegramHealthAccount, timeoutMs: number) => Promise<Record<string, unknown>>)
+  | undefined;
 
 type TelegramHealthAccount = {
   accountId: string;
@@ -289,7 +292,8 @@ function createTelegramHealthPlugin(): Pick<
     status: {
       buildChannelSummary: ({ snapshot }) => buildTelegramHealthSummary(snapshot),
       probeAccount: async ({ account, timeoutMs }) =>
-        await probeTelegramAccountForTest(account as TelegramHealthAccount, timeoutMs),
+        await (probeTelegramAccountForTestOverride?.(account as TelegramHealthAccount, timeoutMs) ??
+          probeTelegramAccountForTest(account as TelegramHealthAccount, timeoutMs)),
     },
   };
 }
@@ -305,6 +309,7 @@ describe("getHealthSnapshot", () => {
   });
 
   beforeEach(() => {
+    probeTelegramAccountForTestOverride = undefined;
     setActivePluginRegistry(
       createTestRegistry([
         { pluginId: "telegram", plugin: createTelegramHealthPlugin(), source: "test" },
@@ -315,6 +320,7 @@ describe("getHealthSnapshot", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
+    probeTelegramAccountForTestOverride = undefined;
   });
 
   it("skips telegram probe when not configured", async () => {
@@ -366,6 +372,77 @@ describe("getHealthSnapshot", () => {
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
+  });
+
+  it("bounds concurrent account probes and restores account order", async () => {
+    const accountIds = [
+      "account-1",
+      "account-2",
+      "account-3",
+      "account-4",
+      "account-5",
+      "account-6",
+    ];
+    testConfig = {
+      channels: {
+        telegram: {
+          accounts: Object.fromEntries(
+            accountIds.map((accountId) => [accountId, { botToken: accountId }]),
+          ),
+        },
+      },
+    };
+    testStore = {};
+
+    let running = 0;
+    let peak = 0;
+    const started: string[] = [];
+    const pending = new Map<string, () => void>();
+    probeTelegramAccountForTestOverride = async (account) => {
+      running += 1;
+      peak = Math.max(peak, running);
+      started.push(account.accountId);
+      await new Promise<void>((resolve) => pending.set(account.accountId, resolve));
+      running -= 1;
+      if (account.accountId === "account-3") {
+        throw new Error("probe failed");
+      }
+      return { ok: true, bot: { username: account.accountId } };
+    };
+
+    const snapshotPromise = getHealthSnapshot({ timeoutMs: 25 });
+    await vi.waitFor(() => expect(started).toHaveLength(5));
+    expect(started).toEqual(accountIds.slice(0, 5));
+    expect(running).toBe(5);
+    expect(peak).toBe(5);
+
+    pending.get("account-5")?.();
+    pending.delete("account-5");
+    await vi.waitFor(() => expect(started).toHaveLength(6));
+    pending.get("account-6")?.();
+    pending.delete("account-6");
+    for (const accountId of accountIds.slice(0, 4).toReversed()) {
+      pending.get(accountId)?.();
+      pending.delete(accountId);
+    }
+
+    const snap = await snapshotPromise;
+    const telegram = snap.channels.telegram as {
+      accountId?: string;
+      probe?: unknown;
+      accounts?: Record<string, { probe?: unknown }>;
+    };
+    expect(peak).toBe(5);
+    expect(telegram.accountId).toBe("account-1");
+    expect(Object.keys(telegram.accounts ?? {})).toEqual(accountIds);
+    expect(telegram.accounts?.["account-1"]?.probe).toEqual({
+      ok: true,
+      bot: { username: "account-1" },
+    });
+    expect(telegram.accounts?.["account-3"]?.probe).toEqual({
+      ok: false,
+      error: "probe failed",
+    });
   });
 
   it("returns structured telegram probe errors", async () => {

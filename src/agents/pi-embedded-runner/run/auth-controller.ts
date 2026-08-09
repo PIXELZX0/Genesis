@@ -52,6 +52,7 @@ export function createEmbeddedRunAuthController(params: {
   attemptedThinking: Set<ThinkLevel>;
   fallbackConfigured: boolean;
   allowTransientCooldownProbe: boolean;
+  preferExternalAuth: boolean;
   getProvider(): string;
   getModelId(): string;
   getRuntimeModel(): Model<Api>;
@@ -347,13 +348,15 @@ export function createEmbeddedRunAuthController(params: {
   };
 
   const resolveApiKeyForCandidate = async (candidate?: string) => {
+    const useExternalAuthOnly = params.preferExternalAuth && !params.lockedProfileId;
     return getApiKeyForModel({
       model: params.getRuntimeModel(),
       cfg: params.config,
       profileId: candidate,
-      store: params.authStore,
+      store: useExternalAuthOnly ? { ...params.authStore, profiles: {} } : params.authStore,
       agentDir: params.agentDir,
       lockedProfile: candidate != null && candidate === params.lockedProfileId,
+      credentialPrecedence: useExternalAuthOnly ? "env-first" : undefined,
     });
   };
 

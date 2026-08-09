@@ -326,6 +326,7 @@ export function createFollowupRunner(params: {
                 images: queuedImages,
                 imageOrder: queuedImageOrder,
                 allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+                preferExternalAuth: runOptions?.preferExternalAuth,
                 blockReplyBreak: run.blockReplyBreak,
                 bootstrapPromptWarningSignaturesSeen,
                 bootstrapPromptWarningSignature:

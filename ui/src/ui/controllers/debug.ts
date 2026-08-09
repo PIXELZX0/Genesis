@@ -1,5 +1,6 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { HealthSnapshot, StatusSummary } from "../types.ts";
+import { loadModels } from "./models.ts";
 
 export type DebugState = {
   client: GatewayBrowserClient | null;
@@ -23,19 +24,23 @@ export async function loadDebug(state: DebugState) {
     return;
   }
   state.debugLoading = true;
+  const client = state.client;
   try {
-    const [status, health, models, heartbeat] = await Promise.all([
-      state.client.request("status", {}),
-      state.client.request("health", {}),
-      state.client.request("models.list", {}),
-      state.client.request("last-heartbeat", {}),
+    const [status, health, models] = await Promise.all([
+      client.request("status", {}),
+      client.request("health", {}),
+      loadModels(client),
     ]);
+    if (state.client !== client || !state.connected) {
+      return;
+    }
     state.debugStatus = status as StatusSummary;
     state.debugHealth = health as HealthSnapshot;
-    const modelPayload = models as { models?: unknown[] } | undefined;
-    state.debugModels = Array.isArray(modelPayload?.models) ? modelPayload?.models : [];
-    state.debugHeartbeat = heartbeat;
+    state.debugModels = models;
   } catch (err) {
+    if (state.client !== client || !state.connected) {
+      return;
+    }
     state.debugCallError = String(err);
   } finally {
     state.debugLoading = false;

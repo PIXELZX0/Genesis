@@ -4,7 +4,7 @@ export async function runWithModelFallback(params: {
   run: (
     provider: string,
     model: string,
-    options?: { allowTransientCooldownProbe?: boolean },
+    options?: { allowTransientCooldownProbe?: boolean; preferExternalAuth?: boolean },
   ) => Promise<unknown>;
 }) {
   return {
