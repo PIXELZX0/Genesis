@@ -2,7 +2,7 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.8.10
+## 2026.8.13
 
 ### Changes
 
