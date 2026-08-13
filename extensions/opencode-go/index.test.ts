@@ -52,6 +52,7 @@ describe("opencode-go provider plugin", () => {
       "minimax-m3",
       "qwen3.7-max",
       "qwen3.7-plus",
+      "qwen3.8-max",
       "deepseek-v4-flash",
       "deepseek-v4-pro",
       "glm-5.1",
@@ -64,6 +65,7 @@ describe("opencode-go provider plugin", () => {
       "mimo-v2.5-pro",
       "minimax-m2.7",
       "qwen3.6-plus",
+      "gpt-5.6-luna",
       "grok-4.5",
     ]);
 

@@ -127,16 +127,29 @@ type GoogleSseChunk = {
 
 let toolCallCounter = 0;
 
+function getGeminiMajorVersion(modelId: string): number | undefined {
+  const match = normalizeLowercaseStringOrEmpty(modelId).match(/^gemini(?:-live)?-(\d+)/);
+  if (!match) {
+    return undefined;
+  }
+  return Number.parseInt(match[1] ?? "", 10);
+}
+
 function requiresToolCallId(modelId: string): boolean {
-  return modelId.startsWith("claude-") || modelId.startsWith("gpt-oss-");
+  const geminiMajorVersion = getGeminiMajorVersion(modelId);
+  return (
+    modelId.startsWith("claude-") ||
+    modelId.startsWith("gpt-oss-") ||
+    (geminiMajorVersion !== undefined && geminiMajorVersion >= 3)
+  );
 }
 
 function supportsMultimodalFunctionResponse(modelId: string): boolean {
-  const match = normalizeLowercaseStringOrEmpty(modelId).match(/^gemini(?:-live)?-(\d+)/);
-  if (!match) {
+  const geminiMajorVersion = getGeminiMajorVersion(modelId);
+  if (geminiMajorVersion === undefined) {
     return true;
   }
-  return Number.parseInt(match[1] ?? "", 10) >= 3;
+  return geminiMajorVersion >= 3;
 }
 
 function retainThoughtSignature(existing: string | undefined, incoming: string | undefined) {

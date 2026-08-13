@@ -1,6 +1,6 @@
 {
   "name": "@pixelzx/genesis",
-  "version": "2026.8.6",
+  "version": "2026.8.10",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
   "homepage": "https://github.com/PIXELZX0/Genesis#readme",
@@ -1604,10 +1604,10 @@
   "dependencies": {
     "@agentclientprotocol/sdk": "0.19.1",
     "@clack/prompts": "^1.2.0",
-    "@earendil-works/pi-agent-core": "0.83.0",
-    "@earendil-works/pi-ai": "0.83.0",
-    "@earendil-works/pi-coding-agent": "0.83.0",
-    "@earendil-works/pi-tui": "0.83.0",
+    "@earendil-works/pi-agent-core": "0.84.1",
+    "@earendil-works/pi-ai": "0.84.1",
+    "@earendil-works/pi-coding-agent": "0.84.1",
+    "@earendil-works/pi-tui": "0.84.1",
     "@lydell/node-pty": "1.2.0-beta.12",
     "@modelcontextprotocol/sdk": "1.29.0",
     "@scure/bip32": "^2.0.1",

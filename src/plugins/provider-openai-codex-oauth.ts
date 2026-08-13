@@ -190,7 +190,8 @@ export async function loginOpenAICodexOAuth(params: {
       throw new Error("OpenAI Codex OAuth flow is not available in this build");
     }
     const creds = await oauth.login({
-      signal: undefined,
+      // The wizard flow has no cancellation channel; pi requires a signal.
+      signal: new AbortController().signal,
       prompt: async (prompt) => {
         if (prompt.type === "select") {
           // Preserve the previous flow, which only supported the browser path.

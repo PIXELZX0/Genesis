@@ -317,8 +317,8 @@ describe("google-shared convertMessages", () => {
     expect(toolCall.functionCall).toBeTruthy();
   });
 
-  it("strips tool call and response ids for google-gemini-cli", () => {
-    const model = makeGeminiCliModel("gemini-3-flash");
+  it("strips tool call and response ids for google-gemini-cli below gemini 3", () => {
+    const model = makeGeminiCliModel("gemini-2.5-flash");
     const context = {
       messages: [
         {
@@ -359,5 +359,46 @@ describe("google-shared convertMessages", () => {
 
     expect(asRecord(toolCall.functionCall).id).toBeUndefined();
     expect(asRecord(toolResponse.functionResponse).id).toBeUndefined();
+  });
+
+  it("keeps tool call and response ids for google-gemini-cli on gemini 3 and above", () => {
+    const model = makeGeminiCliModel("gemini-3-flash");
+    const context = {
+      messages: [
+        {
+          role: "user",
+          content: "Use a tool",
+        },
+        makeGeminiCliAssistantMessage(model.id, [
+          {
+            type: "toolCall",
+            id: "call_1",
+            name: "myTool",
+            arguments: { arg: "value" },
+            thoughtSignature: "dGVzdA==",
+          },
+        ]),
+        {
+          role: "toolResult",
+          toolCallId: "call_1",
+          toolName: "myTool",
+          content: [{ type: "text", text: "Tool result" }],
+          isError: false,
+          timestamp: 0,
+        },
+      ],
+    } as unknown as Context;
+
+    const contents = convertMessages(model as never, context);
+    const parts = contents.flatMap((content) => content.parts ?? []);
+    const toolCallPart = parts.find(
+      (part) => typeof part === "object" && part !== null && "functionCall" in part,
+    );
+    const toolResponsePart = parts.find(
+      (part) => typeof part === "object" && part !== null && "functionResponse" in part,
+    );
+
+    expect(asRecord(asRecord(toolCallPart).functionCall).id).toBe("call_1");
+    expect(asRecord(asRecord(toolResponsePart).functionResponse).id).toBe("call_1");
   });
 });

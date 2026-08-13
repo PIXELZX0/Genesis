@@ -15,12 +15,16 @@ export async function refreshOpenAICodexToken(refreshToken: string): Promise<Ope
   if (!oauth) {
     throw new Error("OpenAI Codex OAuth flow is not available in this build");
   }
-  const refreshed = await oauth.refresh({
-    type: "oauth",
-    access: "",
-    refresh: refreshToken,
-    expires: 0,
-  });
+  const refreshed = await oauth.refresh(
+    {
+      type: "oauth",
+      access: "",
+      refresh: refreshToken,
+      expires: 0,
+    },
+    // This path has no cancellation channel; pi requires a signal.
+    new AbortController().signal,
+  );
   return {
     access: refreshed.access,
     refresh: refreshed.refresh,

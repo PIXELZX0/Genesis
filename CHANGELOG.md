@@ -2,6 +2,20 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.8.10
+
+### Changes
+
+- Health: channel account probes now run concurrently (up to 5 at a time) instead of strictly one after another, so `genesis health` and the gateway health snapshot finish much faster on setups with several channels or accounts.
+- Gateway: the health snapshot primed at startup no longer runs live channel probes, and a cached `health` response is returned immediately with a background refresh only when the cache is actually stale. Concurrent refreshes are deduplicated, and a probing refresh can supersede an in-flight non-probing one.
+- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.83.0 to 0.84.1. The OpenCode Go catalog picks up `qwen3.8-max` and `gpt-5.6-luna` from Pi's built-in registry, and `compat.thinkingFormat` accepts the new `baseten` value.
+- Google: the Gemini CLI transport now sends tool call and tool response ids for Gemini 3 and newer models, matching what those models require. Gemini 2.x and older still get ids stripped.
+- Control UI: Overview, Logs, Debug, and chat slash commands now deduplicate in-flight gateway requests and bound `logs.tail` with a 5s timeout, so repeated tab switches or refresh clicks no longer pile up requests. Refreshing the Overview log panel reloads just the logs instead of the whole overview, Debug reuses the shared model catalog loader and drops its extra `last-heartbeat` call, and stale responses from a superseded connection are discarded.
+
+### Fixes
+
+- Model fallback: when every stored auth profile for a provider is in cooldown but a usable environment or config credential exists, Genesis now runs the attempt with that credential instead of skipping the candidate or burning a cooldown probe. OpenAI Codex is excluded because it is OAuth-only and must not be satisfied by a generic OpenAI API key.
+
 ## 2026.8.6
 
 ### Fixes

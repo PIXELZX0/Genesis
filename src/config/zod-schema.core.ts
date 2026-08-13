@@ -204,6 +204,7 @@ export const ModelCompatSchema = z
         z.literal("openrouter"),
         z.literal("deepseek"),
         z.literal("together"),
+        z.literal("baseten"),
         z.literal("zai"),
         z.literal("qwen"),
         z.literal("chat-template"),
