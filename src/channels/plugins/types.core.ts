@@ -188,6 +188,8 @@ export type ChannelMeta = {
 export type ChannelAccountSnapshot = {
   accountId: string;
   name?: string;
+  /** Agent that receives inbound messages for this account (channel/account-level routing). */
+  agentId?: string;
   enabled?: boolean;
   configured?: boolean;
   statusState?: string;

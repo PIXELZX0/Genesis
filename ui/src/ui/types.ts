@@ -43,6 +43,7 @@ export const CRON_CHANNEL_LAST = "last";
 export type ChannelAccountSnapshot = {
   accountId: string;
   name?: string | null;
+  agentId?: string | null;
   enabled?: boolean | null;
   configured?: boolean | null;
   linked?: boolean | null;

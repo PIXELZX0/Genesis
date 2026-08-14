@@ -160,6 +160,30 @@ describe("channel display selectors", () => {
   });
 });
 
+describe("channel agent column", () => {
+  it("shows the default account agent and counts extra agents", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat"],
+      channelLabels: { guildchat: "Guild Chat" },
+      channels: { guildchat: { running: true } },
+      channelAccounts: {
+        guildchat: [
+          { accountId: "default", configured: true, agentId: "support" },
+          { accountId: "guild-main", configured: true, agentId: "genesis" },
+        ],
+      },
+      channelDefaultAccountId: { guildchat: "guild-main" },
+    };
+
+    render(renderChannels(createProps(snapshot)), container);
+
+    expect(container.textContent).toContain("AGENT");
+    expect(container.textContent).toContain("genesis +1");
+  });
+});
+
 describe("channel setup wizard rendering", () => {
   it("renders channels when browser array copy methods are unavailable", () => {
     const container = document.createElement("div");

@@ -13,7 +13,7 @@ import {
 } from "./channels.shared.ts";
 import type { ChannelKey, ChannelsProps } from "./channels.types.ts";
 
-const CHANNELS_GRID = "grid-template-columns: 1.6fr 1fr 0.8fr 1fr 0.9fr;";
+const CHANNELS_GRID = "grid-template-columns: 1.5fr 0.9fr 1fr 0.7fr 0.9fr 0.9fr;";
 
 type ChannelStatus = { label: string; dot: string; online: boolean };
 
@@ -64,10 +64,25 @@ function resolveChannelOrder(snapshot: ChannelsStatusSnapshot | null): ChannelKe
   return ["whatsapp", "telegram", "discord", "googlechat", "slack", "signal", "imessage", "nostr"];
 }
 
+function resolveChannelAgentLabel(key: ChannelKey, props: ChannelsProps): string {
+  const accounts = props.snapshot?.channelAccounts?.[key] ?? [];
+  const agentIds = [
+    ...new Set(
+      accounts.map((account) => account.agentId?.trim()).filter((id): id is string => !!id),
+    ),
+  ];
+  const primary = resolveDefaultChannelAccount(key, props)?.agentId?.trim() || agentIds[0];
+  if (!primary) {
+    return t("common.na");
+  }
+  return agentIds.length > 1 ? `${primary} +${agentIds.length - 1}` : primary;
+}
+
 function renderRow(key: ChannelKey, props: ChannelsProps) {
   const label = resolveChannelLabel(props.snapshot, key);
   const status = resolveChannelStatus(key, props);
   const accounts = getChannelAccountCount(key, props.snapshot?.channelAccounts ?? null);
+  const agentLabel = resolveChannelAgentLabel(key, props);
   const defaultAccount = resolveDefaultChannelAccount(key, props);
   const lastInbound = defaultAccount?.lastInboundAt
     ? formatRelativeTimestamp(defaultAccount.lastInboundAt)
@@ -88,6 +103,12 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
         >
       </span>
       <span class="muted">${providerLabel(key)}</span>
+      <span
+        class="muted"
+        style="font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+        title=${agentLabel}
+        >${agentLabel}</span
+      >
       <span class="muted" style="font-family: var(--mono);">${accounts}</span>
       <span class="muted" style="font-family: var(--mono);">${lastInbound}</span>
       <span class="muted" style="display: flex; align-items: center; gap: 8px;">
@@ -186,6 +207,7 @@ export function renderChannels(props: ChannelsProps) {
               <div class="table-head" style=${CHANNELS_GRID}>
                 <span>CHANNEL</span>
                 <span>PROVIDER</span>
+                <span>AGENT</span>
                 <span>ACCOUNTS</span>
                 <span>LAST ACTIVITY</span>
                 <span>STATUS</span>

@@ -138,6 +138,7 @@ export const ChannelAccountSnapshotSchema = Type.Object(
   {
     accountId: NonEmptyString,
     name: Type.Optional(Type.String()),
+    agentId: Type.Optional(Type.String()),
     enabled: Type.Optional(Type.Boolean()),
     configured: Type.Optional(Type.Boolean()),
     linked: Type.Optional(Type.Boolean()),

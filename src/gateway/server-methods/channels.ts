@@ -13,6 +13,7 @@ import { loadConfig, readConfigFileSnapshot, replaceConfigFile } from "../../con
 import { applyPluginAutoEnable } from "../../config/plugin-auto-enable.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { getChannelActivity } from "../../infra/channel-activity.js";
+import { resolveAgentRoute } from "../../routing/resolve-route.js";
 import { DEFAULT_ACCOUNT_ID } from "../../routing/session-key.js";
 import { defaultRuntime } from "../../runtime.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -305,6 +306,7 @@ export const channelsHandlers: GatewayRequestHandlers = {
       if (snapshot.lastOutboundAt == null) {
         snapshot.lastOutboundAt = activity.outboundAt;
       }
+      snapshot.agentId = resolveAgentRoute({ cfg, channel: channelId, accountId }).agentId;
       return { accountId: accountId, account, snapshot };
     };
 
