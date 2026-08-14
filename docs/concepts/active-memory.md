@@ -7,8 +7,12 @@ read_when:
   - You want to tune active memory behavior without enabling it everywhere
 ---
 
-Active memory is an optional plugin-owned blocking memory sub-agent that runs
-before the main reply for eligible conversational sessions.
+Active memory is a plugin-owned blocking memory sub-agent that runs before the
+main reply for eligible conversational sessions.
+
+It is **on by default** for every agent. Set
+`plugins.entries.active-memory.config.enabled: false` (or `/active-memory off`)
+to turn it off, or list specific agent ids in `config.agents` to narrow it.
 
 It exists because most memory systems are capable but reactive. They rely on
 the main agent to decide when to search memory, or on the user to say things
@@ -64,7 +68,7 @@ To inspect it live in a conversation:
 What the key fields do:
 
 - `plugins.entries.active-memory.enabled: true` turns the plugin on
-- `config.agents: ["main"]` opts only the `main` agent into active memory
+- `config.agents: ["main"]` narrows active memory to the `main` agent; leave it unset to keep every agent eligible
 - `config.allowedChatTypes: ["direct"]` scopes it to direct-message sessions (opt in groups/channels explicitly)
 - `config.model` (optional) pins a dedicated recall model; unset inherits the current session model
 - `config.modelFallback` is used only when no explicit or inherited model resolves
@@ -205,9 +209,10 @@ Expected visible reply shape:
 
 Active memory uses two gates:
 
-1. **Config opt-in**
-   The plugin must be enabled, and the current agent id must appear in
-   `plugins.entries.active-memory.config.agents`.
+1. **Config**
+   The plugin must not be disabled. When
+   `plugins.entries.active-memory.config.agents` is set, the current agent id
+   must appear in it; when the list is empty or unset, every agent is eligible.
 2. **Strict runtime eligibility**
    Even when enabled and targeted, active memory only runs for eligible
    interactive persistent chat sessions.
@@ -217,7 +222,7 @@ The actual rule is:
 ```text
 plugin enabled
 +
-agent id targeted
+agent id targeted (or no target list configured)
 +
 allowed chat type
 +
@@ -532,7 +537,7 @@ The most important fields are:
 | Key                         | Type                                                                                                 | Meaning                                                                                                |
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `enabled`                   | `boolean`                                                                                            | Enables the plugin itself                                                                              |
-| `config.agents`             | `string[]`                                                                                           | Agent ids that may use active memory                                                                   |
+| `config.agents`             | `string[]`                                                                                           | Agent ids that may use active memory; empty or unset means all agents                                  |
 | `config.model`              | `string`                                                                                             | Optional blocking memory sub-agent model ref; when unset, active memory uses the current session model |
 | `config.queryMode`          | `"message" \| "recent" \| "full"`                                                                    | Controls how much conversation the blocking memory sub-agent sees                                      |
 | `config.promptStyle`        | `"balanced" \| "strict" \| "contextual" \| "recall-heavy" \| "precision-heavy" \| "preference-only"` | Controls how eager or strict the blocking memory sub-agent is when deciding whether to return memory   |
@@ -595,7 +600,7 @@ Then move to:
 If active memory is not showing up where you expect:
 
 1. Confirm the plugin is enabled under `plugins.entries.active-memory.enabled`.
-2. Confirm the current agent id is listed in `config.agents`.
+2. Confirm `config.agents` is unset, or lists the current agent id.
 3. Confirm you are testing through an interactive persistent chat session.
 4. Turn on `config.logging: true` and watch the gateway logs.
 5. Verify memory search itself works with `genesis memory status --deep`.

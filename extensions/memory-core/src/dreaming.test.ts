@@ -195,7 +195,7 @@ describe("short-term dreaming config", () => {
       cfg,
     });
     expect(resolved).toEqual({
-      enabled: false,
+      enabled: true,
       cron: constants.DEFAULT_DREAMING_CRON_EXPR,
       timezone: "America/Los_Angeles",
       limit: constants.DEFAULT_DREAMING_LIMIT,
@@ -1524,7 +1524,7 @@ describe("gateway startup reconciliation", () => {
     }
   });
 
-  it("does not fall back to startup plugin config when live memory-core config is removed", async () => {
+  it("does not fall back to startup plugin config when live memory-core config disables dreaming", async () => {
     clearInternalHooks();
     const logger = createLogger();
     const harness = createCronHarness();
@@ -1534,6 +1534,15 @@ describe("gateway startup reconciliation", () => {
         ({
           agents: {
             list: [{ id: "main", default: true }],
+          },
+          plugins: {
+            entries: {
+              "memory-core": {
+                config: {
+                  dreaming: { enabled: false },
+                },
+              },
+            },
           },
         }) as GenesisConfig,
     );

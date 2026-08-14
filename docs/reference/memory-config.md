@@ -504,7 +504,7 @@ For conceptual behavior and slash commands, see [Dreaming](/concepts/dreaming).
 
 | Key         | Type      | Default     | Description                                       |
 | ----------- | --------- | ----------- | ------------------------------------------------- |
-| `enabled`   | `boolean` | `false`     | Enable or disable dreaming entirely               |
+| `enabled`   | `boolean` | `true`      | Enable or disable dreaming entirely               |
 | `frequency` | `string`  | `0 3 * * *` | Optional cron cadence for the full dreaming sweep |
 
 ### Example

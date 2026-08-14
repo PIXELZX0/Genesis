@@ -129,7 +129,7 @@ Dreaming is the background memory consolidation system with three cooperative
 phases: **light** (sort/stage short-term material), **deep** (promote durable
 facts into `MEMORY.md`), and **REM** (reflect and surface themes).
 
-- Enable with `plugins.entries.memory-core.config.dreaming.enabled: true`.
+- Enabled by default; disable with `plugins.entries.memory-core.config.dreaming.enabled: false`.
 - Toggle from chat with `/dreaming on|off` (or inspect with `/dreaming status`).
 - Dreaming runs on one managed sweep schedule (`dreaming.frequency`) and executes phases in order: light, REM, deep.
 - Only the deep phase writes durable memory to `MEMORY.md`.

@@ -6,6 +6,9 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Memory: dreaming is now enabled by default. The managed sweep (`0 3 * * *`) runs light, REM, and deep phases without any config, and only the deep phase writes to `MEMORY.md`. Set `plugins.entries.memory-core.config.dreaming.enabled: false` or run `/dreaming off` to turn it back off.
+- Memory: Active Memory now runs for every agent by default instead of only for agent ids listed in `plugins.entries.active-memory.config.agents`. Setting that list still narrows it, and `/active-memory off` (or `config.enabled: false`) still turns it off. The chat type and interactive-session gates are unchanged, so it stays limited to direct-message style persistent sessions.
+- Control UI: Dreaming now has a sidebar link under the Memory group. The page was already routed at `/dreaming` but was only reachable by typing the URL.
 - Health: channel account probes now run concurrently (up to 5 at a time) instead of strictly one after another, so `genesis health` and the gateway health snapshot finish much faster on setups with several channels or accounts.
 - Gateway: the health snapshot primed at startup no longer runs live channel probes, and a cached `health` response is returned immediately with a background refresh only when the cache is actually stale. Concurrent refreshes are deduplicated, and a probing refresh can supersede an in-flight non-probing one.
 - Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.83.0 to 0.84.1. The OpenCode Go catalog picks up `qwen3.8-max` and `gpt-5.6-luna` from Pi's built-in registry, and `compat.thinkingFormat` accepts the new `baseten` value.

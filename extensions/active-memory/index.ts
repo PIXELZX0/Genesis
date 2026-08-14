@@ -849,6 +849,10 @@ function isEnabledForAgent(
   if (!agentId) {
     return false;
   }
+  // No explicit target list means every agent is eligible.
+  if (config.agents.length === 0) {
+    return true;
+  }
   return config.agents.includes(agentId);
 }
 

@@ -11,7 +11,9 @@ Dreaming is the background memory consolidation system in `memory-core`.
 It helps Genesis move strong short-term signals into durable memory while
 keeping the process explainable and reviewable.
 
-Dreaming is **opt-in** and disabled by default.
+Dreaming is **enabled by default**. Set
+`plugins.entries.memory-core.config.dreaming.enabled: false` (or `/dreaming off`)
+to turn it off.
 
 ## What dreaming writes
 

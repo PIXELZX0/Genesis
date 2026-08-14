@@ -6169,7 +6169,11 @@ module.exports = {
           fs.writeFileSync(
             path.join(memoryLanceDir, "genesis.plugin.json"),
             JSON.stringify(
-              { id: "memory-lancedb", kind: "memory", configSchema: EMPTY_PLUGIN_SCHEMA },
+              {
+                id: "memory-lancedb",
+                kind: "memory",
+                configSchema: { type: "object", additionalProperties: true },
+              },
               null,
               2,
             ),
@@ -6185,7 +6189,7 @@ module.exports = {
                 slots: { memory: "memory-lancedb" },
                 entries: {
                   "memory-core": { enabled: true },
-                  "memory-lancedb": { enabled: true },
+                  "memory-lancedb": { enabled: true, config: { dreaming: { enabled: false } } },
                 },
               },
             },

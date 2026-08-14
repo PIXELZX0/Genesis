@@ -140,7 +140,7 @@ long-term memory (`MEMORY.md`).
 
 It is designed to keep long-term memory high signal:
 
-- **Opt-in**: disabled by default.
+- **On by default**: disable with `dreaming.enabled: false` or `/dreaming off`.
 - **Scheduled**: when enabled, `memory-core` auto-manages one recurring cron job
   for a full dreaming sweep.
 - **Thresholded**: promotions must pass score, recall frequency, and query

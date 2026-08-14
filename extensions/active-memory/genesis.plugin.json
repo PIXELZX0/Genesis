@@ -74,7 +74,7 @@
     },
     "agents": {
       "label": "Target Agents",
-      "help": "Explicit agent ids that may use active memory."
+      "help": "Explicit agent ids that may use active memory. Leave empty to allow every agent."
     },
     "model": {
       "label": "Memory Model",
