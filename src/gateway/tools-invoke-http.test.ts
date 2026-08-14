@@ -112,6 +112,18 @@ vi.mock("../agents/genesis-tools.js", () => {
       },
     },
     {
+      name: "agents_manage",
+      ownerOnly: true,
+      parameters: {
+        type: "object",
+        properties: { action: { type: "string" } },
+        required: ["action"],
+      },
+      execute: async () => {
+        throw toolInputError("invalid args");
+      },
+    },
+    {
       name: "exec",
       parameters: { type: "object", properties: {} },
       execute: async () => ({ ok: true, result: "exec" }),
@@ -660,6 +672,20 @@ describe("POST /tools/invoke", () => {
     expect(res.status).toBe(404);
   });
 
+  it("denies agents_manage via HTTP even when agent policy allows", async () => {
+    setMainAllowedTools({ allow: ["agents_manage"] });
+
+    const res = await invokeTool({
+      port: sharedPort,
+      headers: gatewayAdminHeaders(),
+      tool: "agents_manage",
+      action: "list",
+      sessionKey: "main",
+    });
+
+    expect(res.status).toBe(404);
+  });
+
   it("allows gateway tool via HTTP when explicitly enabled in gateway.tools.allow", async () => {
     setMainAllowedTools({ allow: ["gateway"], gatewayAllow: ["gateway"] });
 
@@ -676,6 +702,29 @@ describe("POST /tools/invoke", () => {
     expect(body.error?.type).toBe("tool_error");
   });
 
+  it("allows agents_manage via HTTP only for owner/admin callers when explicitly enabled", async () => {
+    setMainAllowedTools({ allow: ["agents_manage"], gatewayAllow: ["agents_manage"] });
+
+    const deniedRes = await invokeToolAuthed({
+      tool: "agents_manage",
+      action: "list",
+      sessionKey: "main",
+    });
+    expect(deniedRes.status).toBe(404);
+
+    const allowedRes = await invokeTool({
+      port: sharedPort,
+      headers: gatewayAdminHeaders(),
+      tool: "agents_manage",
+      action: "list",
+      sessionKey: "main",
+    });
+    expect(allowedRes.status).toBe(400);
+    const body = await allowedRes.json();
+    expect(body.ok).toBe(false);
+    expect(body.error?.type).toBe("tool_error");
+  });
+
   it("treats gateway.tools.deny as higher priority than gateway.tools.allow", async () => {
     setMainAllowedTools({
       allow: ["gateway"],
@@ -685,6 +734,24 @@ describe("POST /tools/invoke", () => {
 
     const res = await invokeToolAuthed({
       tool: "gateway",
+      sessionKey: "main",
+    });
+
+    expect(res.status).toBe(404);
+  });
+
+  it("treats gateway.tools.deny as higher priority than gateway.tools.allow for agents_manage", async () => {
+    setMainAllowedTools({
+      allow: ["agents_manage"],
+      gatewayAllow: ["agents_manage"],
+      gatewayDeny: ["agents_manage"],
+    });
+
+    const res = await invokeTool({
+      port: sharedPort,
+      headers: gatewayAdminHeaders(),
+      tool: "agents_manage",
+      action: "list",
       sessionKey: "main",
     });
 

@@ -93,6 +93,7 @@ const BUILT_IN_TOOL_NAMES = new Set([
   "video_generate",
   "gateway",
   "agents_list",
+  "agents_manage",
   "update_plan",
   "sessions_list",
   "sessions_history",

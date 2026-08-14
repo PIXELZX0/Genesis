@@ -160,6 +160,38 @@ Discovery:
 
 - Use `agents_list` to see which agent ids are currently allowed for `sessions_spawn`.
 
+### Persistent agent management
+
+`agents_manage` is a separate owner-only control-plane tool for persistent agent
+CRUD. It is Gateway-backed and is denied to ordinary sub-agents by default. An
+explicit `tools.subagents.tools.allow` or `tools.subagents.tools.alsoAllow`
+entry can make it eligible for a sub-agent run only within the existing
+owner/security policy: `agents_manage` remains owner-only, and an explicit
+configured `deny` still wins.
+
+`action` is required for every call. The table lists action-specific fields;
+shared Gateway call options are described below.
+
+| Action   | Required fields          | Optional agent-specific fields                  | Gateway method  |
+| -------- | ------------------------ | ----------------------------------------------- | --------------- |
+| `list`   | No agent-specific fields | None                                            | `agents.list`   |
+| `create` | `name`, `workspace`      | `model`, `emoji`, `avatar`                      | `agents.create` |
+| `update` | `agentId`                | `name`, `workspace`, `model`, `emoji`, `avatar` | `agents.update` |
+| `delete` | `agentId`                | `deleteFiles`                                   | `agents.delete` |
+
+`list` reads configured agents through `agents.list`. The other actions mutate
+persistent configuration through their corresponding Gateway RPCs.
+
+The shared gateway-call options `gatewayUrl`, `gatewayToken`, and `timeoutMs`
+are accepted for every action. They configure the Gateway call but do not
+change the owner-only requirement. `agents.list` uses operator read access;
+the mutating calls use operator admin access.
+
+At the Gateway, `deleteFiles` defaults to `true`. Deletion removes the agent
+bindings. When file deletion is enabled, the workspace, agent-state, and
+session-transcript paths are moved to Trash on a best-effort basis. The `main`
+agent cannot be deleted.
+
 Auto-archive:
 
 - Sub-agent sessions are automatically archived after `agents.defaults.subagents.archiveAfterMinutes` (default: 60).

@@ -337,6 +337,29 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
       title: "Agents",
       detailKeys: [],
     },
+    agents_manage: {
+      emoji: "🧭",
+      title: "Agents",
+      detailKeys: [],
+      actions: {
+        list: {
+          label: "list",
+          detailKeys: [],
+        },
+        create: {
+          label: "create",
+          detailKeys: ["name", "workspace", "model", "emoji", "avatar"],
+        },
+        update: {
+          label: "update",
+          detailKeys: ["agentId", "name", "workspace", "model", "emoji", "avatar"],
+        },
+        delete: {
+          label: "delete",
+          detailKeys: ["agentId", "deleteFiles"],
+        },
+      },
+    },
     memory_search: {
       emoji: "🧠",
       title: "Memory Search",

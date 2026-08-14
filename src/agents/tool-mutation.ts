@@ -16,6 +16,7 @@ const MUTATING_TOOL_NAMES = new Set([
   "sessions_send",
   "cron",
   "gateway",
+  "agents_manage",
   "canvas",
   "nodes",
   "session_status",
@@ -138,6 +139,9 @@ export function isMutatingToolCall(toolName: string, args: unknown): boolean {
       if (normalized === "cron" || normalized === "gateway" || normalized === "canvas") {
         return action == null || !READ_ONLY_ACTIONS.has(action);
       }
+      if (normalized === "agents_manage") {
+        return action == null || !READ_ONLY_ACTIONS.has(action);
+      }
       if (normalized === "nodes") {
         return action == null || action !== "list";
       }
@@ -188,6 +192,8 @@ export function buildToolActionFingerprint(
   hasStableTarget =
     appendFingerprintAlias(parts, record, "sessionkey", ["sessionKey", "session_key"]) ||
     hasStableTarget;
+  hasStableTarget =
+    appendFingerprintAlias(parts, record, "agentid", ["agentId", "agent_id"]) || hasStableTarget;
   hasStableTarget =
     appendFingerprintAlias(parts, record, "jobid", ["jobId", "job_id"]) || hasStableTarget;
   hasStableTarget = appendFingerprintAlias(parts, record, "id", ["id"]) || hasStableTarget;

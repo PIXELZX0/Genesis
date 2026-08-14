@@ -458,6 +458,8 @@ export function buildAgentSystemPrompt(params: {
     agents_list: acpSpawnRuntimeEnabled
       ? 'List Genesis agent ids allowed for sessions_spawn when runtime="subagent" (not ACP harness ids)'
       : "List Genesis agent ids allowed for sessions_spawn",
+    agents_manage:
+      "List, create, update, or delete persistent Genesis agents via Gateway RPCs (owner-only control-plane; actions: list|create|update|delete)",
     sessions_list: "List other sessions (incl. sub-agents) with filters/last",
     sessions_history: "Fetch history for another session/sub-agent",
     sessions_send: "Send a message to another session/sub-agent",
@@ -490,6 +492,7 @@ export function buildAgentSystemPrompt(params: {
     "message",
     "gateway",
     "agents_list",
+    "agents_manage",
     "sessions_list",
     "sessions_history",
     "sessions_send",

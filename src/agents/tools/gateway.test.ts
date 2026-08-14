@@ -154,6 +154,22 @@ describe("gateway tool defaults", () => {
     );
   });
 
+  it("uses read scope for agent listing and admin scope for agent mutations", async () => {
+    callGatewayMock.mockResolvedValue({ ok: true });
+
+    await callGatewayTool("agents.list", {}, {});
+    await callGatewayTool("agents.create", {}, { name: "Research", workspace: "/tmp/research" });
+
+    expect(callGatewayMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ method: "agents.list", scopes: ["operator.read"] }),
+    );
+    expect(callGatewayMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ method: "agents.create", scopes: ["operator.admin"] }),
+    );
+  });
+
   it("uses admin scope only for admin methods", async () => {
     callGatewayMock.mockResolvedValueOnce({ ok: true });
     await callGatewayTool("cron.add", {}, { id: "job-1" });

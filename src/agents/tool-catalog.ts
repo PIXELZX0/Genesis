@@ -254,6 +254,14 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
     includeInGenesisGroup: true,
   },
   {
+    id: "agents_manage",
+    label: "agents_manage",
+    description: "Manage persistent agents (owner-only)",
+    sectionId: "agents",
+    profiles: [],
+    includeInGenesisGroup: true,
+  },
+  {
     id: "update_plan",
     label: "update_plan",
     description: UPDATE_PLAN_TOOL_DISPLAY_SUMMARY,

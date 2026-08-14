@@ -69,10 +69,11 @@ describe("resolveSubagentToolPolicy depth awareness", () => {
   it("applies subagent tools.allow to re-enable default-denied tools", () => {
     const cfg = {
       agents: { defaults: { subagents: { maxSpawnDepth: 2 } } },
-      tools: { subagents: { tools: { allow: ["sessions_send"] } } },
+      tools: { subagents: { tools: { allow: ["sessions_send", "agents_manage"] } } },
     } as unknown as GenesisConfig;
     const policy = resolveSubagentToolPolicy(cfg, 1);
     expect(isToolAllowedByPolicyName("sessions_send", policy)).toBe(true);
+    expect(isToolAllowedByPolicyName("agents_manage", policy)).toBe(true);
   });
 
   it("merges subagent tools.alsoAllow into tools.allow when both are set", () => {
@@ -149,10 +150,12 @@ describe("resolveSubagentToolPolicy depth awareness", () => {
     expect(isToolAllowedByPolicyName("sessions_history", policy)).toBe(true);
   });
 
-  it("depth-1 orchestrator still denies gateway and cron but allows memory tools", () => {
+  it("depth-1 orchestrator still denies gateway, cron, and agents_manage but allows memory tools", () => {
     const policy = resolveSubagentToolPolicy(baseCfg, 1);
     expect(isToolAllowedByPolicyName("gateway", policy)).toBe(false);
     expect(isToolAllowedByPolicyName("cron", policy)).toBe(false);
+    expect(policy.deny).toContain("agents_manage");
+    expect(isToolAllowedByPolicyName("agents_manage", policy)).toBe(false);
     expect(isToolAllowedByPolicyName("memory_search", policy)).toBe(true);
     expect(isToolAllowedByPolicyName("memory_get", policy)).toBe(true);
   });

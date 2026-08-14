@@ -107,7 +107,14 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   {
     id: "agents",
     label: "Agents",
-    tools: [{ id: "agents_list", label: "agents_list", description: "List agents" }],
+    tools: [
+      { id: "agents_list", label: "agents_list", description: "List agents" },
+      {
+        id: "agents_manage",
+        label: "agents_manage",
+        description: "Manage persistent agents (owner-only)",
+      },
+    ],
   },
   {
     id: "media",

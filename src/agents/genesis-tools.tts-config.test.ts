@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../config/types.genesis.js";
+import { setEmbeddedMode } from "../infra/embedded-mode.js";
 import type { AnyAgentTool } from "./tools/common.js";
 
 const mocks = vi.hoisted(() => {
@@ -35,6 +36,10 @@ vi.mock("./genesis-tools.nodes-workspace-guard.js", () => ({
 
 vi.mock("./tools/agents-list-tool.js", () => ({
   createAgentsListTool: () => mocks.stubTool("agents_list"),
+}));
+
+vi.mock("./tools/agents-manage-tool.js", () => ({
+  createAgentsManageTool: () => mocks.stubTool("agents_manage"),
 }));
 
 vi.mock("./tools/canvas-tool.js", () => ({
@@ -122,6 +127,23 @@ describe("createGenesisTools TTS config wiring", () => {
   beforeEach(() => {
     mocks.createCanvasTool.mockClear();
     mocks.textToSpeech.mockClear();
+  });
+
+  afterEach(() => {
+    setEmbeddedMode(false);
+  });
+
+  it("does not expose the Gateway-backed agent manager in embedded mode", async () => {
+    setEmbeddedMode(true);
+    const { createGenesisTools } = await import("./genesis-tools.js");
+
+    const tools = createGenesisTools({
+      disableMessageTool: true,
+      disablePluginTools: true,
+      toolAllowlist: ["agents_manage"],
+    });
+
+    expect(tools.map((tool) => tool.name)).not.toContain("agents_manage");
   });
 
   it("passes the resolved shared config into the tts tool", async () => {

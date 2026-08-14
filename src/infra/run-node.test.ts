@@ -317,6 +317,71 @@ describe("run-node script", () => {
     },
   );
 
+  it.each([
+    {
+      name: "a dirty source tree",
+      buildPaths: [ROOT_SRC, ROOT_TSCONFIG, ROOT_PACKAGE, DIST_ENTRY, BUILD_STAMP],
+      gitStatus: ` M ${ROOT_SRC}\n`,
+      removeBuildStamp: false,
+    },
+    {
+      name: "a missing build stamp",
+      buildPaths: [DIST_ENTRY],
+      gitStatus: "",
+      removeBuildStamp: true,
+    },
+  ])(
+    "runs bare root version without building for $name",
+    async ({ buildPaths, gitStatus, removeBuildStamp }) => {
+      await withTempDir({ prefix: "genesis-run-node-" }, async (tmp) => {
+        await setupTrackedProject(tmp, {
+          files: {
+            [ROOT_SRC]: "export const value = 1;\n",
+          },
+          oldPaths: [ROOT_SRC, ROOT_TSCONFIG, ROOT_PACKAGE],
+          buildPaths,
+        });
+        if (removeBuildStamp) {
+          await fs.rm(resolvePath(tmp, BUILD_STAMP));
+        }
+
+        const spawnCalls: string[][] = [];
+        const spawnSyncCalls: string[][] = [];
+        const spawn = (cmd: string, args: string[]) => {
+          spawnCalls.push([cmd, ...args]);
+          return createExitedProcess(0);
+        };
+        const spawnSync = (cmd: string, args: string[]) => {
+          spawnSyncCalls.push([cmd, ...args]);
+          return {
+            status: 0,
+            stdout: cmd === "git" && args[0] === "status" ? gitStatus : "",
+          };
+        };
+        const runRuntimePostBuild = vi.fn();
+
+        const exitCode = await runNodeMain({
+          cwd: tmp,
+          args: ["--version"],
+          env: {
+            ...process.env,
+            GENESIS_RUNNER_LOG: "0",
+          },
+          spawn,
+          spawnSync,
+          runRuntimePostBuild,
+          execPath: process.execPath,
+          platform: process.platform,
+        });
+
+        expect(exitCode).toBe(0);
+        expect(spawnCalls).toEqual([[process.execPath, "genesis.mjs", "--version"]]);
+        expect(spawnSyncCalls).toEqual([]);
+        expect(runRuntimePostBuild).not.toHaveBeenCalled();
+      });
+    },
+  );
+
   it("copies bundled plugin metadata after rebuilding from a clean dist", async () => {
     await withTempDir({ prefix: "genesis-run-node-" }, async (tmp) => {
       await writeRuntimePostBuildScaffold(tmp);

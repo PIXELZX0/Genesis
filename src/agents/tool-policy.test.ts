@@ -32,6 +32,11 @@ function createOwnerPolicyTools() {
       ownerOnly: true,
       execute: async () => ({ content: [], details: {} }) as any,
     },
+    {
+      name: "agents_manage",
+      ownerOnly: true,
+      execute: async () => ({ content: [], details: {} }) as any,
+    },
   ] as unknown as AnyAgentTool[];
 }
 
@@ -63,6 +68,7 @@ describe("tool-policy", () => {
     expect(group).toContain("subagents");
     expect(group).toContain("session_status");
     expect(group).toContain("tts");
+    expect(group).toContain("agents_manage");
   });
 
   it("normalizes tool names and aliases", () => {
@@ -75,6 +81,7 @@ describe("tool-policy", () => {
     expect(isOwnerOnlyToolName("cron")).toBe(true);
     expect(isOwnerOnlyToolName("gateway")).toBe(true);
     expect(isOwnerOnlyToolName("nodes")).toBe(true);
+    expect(isOwnerOnlyToolName("agents_manage")).toBe(true);
     expect(isOwnerOnlyToolName("read")).toBe(false);
   });
 
@@ -82,6 +89,7 @@ describe("tool-policy", () => {
     expect(resolveOwnerOnlyToolApprovalClass("cron")).toBe("control_plane");
     expect(resolveOwnerOnlyToolApprovalClass("gateway")).toBe("control_plane");
     expect(resolveOwnerOnlyToolApprovalClass("nodes")).toBe("exec_capable");
+    expect(resolveOwnerOnlyToolApprovalClass("agents_manage")).toBe("control_plane");
     expect(resolveOwnerOnlyToolApprovalClass("read")).toBeUndefined();
   });
 
@@ -95,6 +103,7 @@ describe("tool-policy", () => {
       cron: "control_plane",
       gateway: "control_plane",
       nodes: "exec_capable",
+      agents_manage: "control_plane",
     });
   });
 
@@ -107,7 +116,7 @@ describe("tool-policy", () => {
   it("keeps owner-only tools for the owner sender", async () => {
     const tools = createOwnerPolicyTools();
     const filtered = applyOwnerOnlyToolPolicy(tools, true);
-    expect(filtered.map((t) => t.name)).toEqual(["read", "cron", "gateway"]);
+    expect(filtered.map((t) => t.name)).toEqual(["read", "cron", "gateway", "agents_manage"]);
   });
 
   it("honors ownerOnly metadata for custom tool names", async () => {

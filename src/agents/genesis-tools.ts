@@ -20,6 +20,7 @@ import type { SpawnedToolContext } from "./spawned-context.js";
 import type { ToolFsPolicy } from "./tool-fs-policy.js";
 import { createAdvisorTool } from "./tools/advisor-tool.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
+import { createAgentsManageTool } from "./tools/agents-manage-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { createContactsTool } from "./tools/contacts-tool.js";
@@ -61,6 +62,7 @@ const GENESIS_TOOL_NAMES = new Set([
   "video_generate",
   "gateway",
   "agents_list",
+  "agents_manage",
   "update_plan",
   "sessions_list",
   "sessions_history",
@@ -357,6 +359,7 @@ export function createGenesisTools(
           }),
         ]
       : []),
+    ...(!embedded && shouldCreateTool("agents_manage") ? [createAgentsManageTool()] : []),
     ...(shouldCreateTool("update_plan") &&
     isUpdatePlanToolEnabledForGenesisTools({
       config: resolvedConfig,

@@ -896,6 +896,16 @@ scripts/sandbox-setup.sh           # main sandbox image
 scripts/sandbox-browser-setup.sh   # optional browser image
 ```
 
+### Persistent agent management
+
+The owner-only `agents_manage` tool manages persistent entries in `agents.list`
+through the Gateway RPCs `agents.list`, `agents.create`, `agents.update`, and
+`agents.delete`. It is separate from `sessions_spawn`, which creates
+sub-agent runs without changing the persistent agent registry. Gateway CRUD
+writes use the normal config validation and write path. See [Persistent agent
+management](/tools/subagents#persistent-agent-management) for the action
+contract and authorization details.
+
 ### `agents.list` (per-agent overrides)
 
 ```json5

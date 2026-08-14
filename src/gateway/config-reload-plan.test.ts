@@ -43,11 +43,24 @@ describe("buildGatewayReloadPlan", () => {
     expect(plan.restartChannels.has("matrix")).toBe(true);
   });
 
-  it("still matches array-index prefixes without a wildcard (regression guard)", () => {
-    const plan = buildGatewayReloadPlan(["agents.list[0].model"]);
-    expect(plan.hotReasons).toContain("agents.list[0].model");
-    expect(plan.restartGateway).toBe(false);
-  });
+  it.each([
+    ["create", "agents.list[1].id"],
+    ["create", "agents.list[1].workspace"],
+    ["create", "agents.list[1].model"],
+    ["update", "agents.list[0].workspace"],
+    ["update", "agents.list[0].model"],
+    ["delete", "agents.list[1].id"],
+    ["delete", "agents.list[1].workspace"],
+    ["delete", "agents.list[1].model"],
+  ] as const)(
+    "classifies persisted agent %s path %s as hot without a full gateway restart",
+    (_operation, path) => {
+      const plan = buildGatewayReloadPlan([path]);
+      expect(plan.restartGateway).toBe(false);
+      expect(plan.restartReasons).toEqual([]);
+      expect(plan.hotReasons).toEqual([path]);
+    },
+  );
 
   it("falls back to a full gateway restart for an unrecognized path", () => {
     const plan = buildGatewayReloadPlan(["totallyUnknownSection.value"]);

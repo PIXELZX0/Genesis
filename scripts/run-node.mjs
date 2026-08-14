@@ -39,6 +39,7 @@ const ignoredRunNodeRepoPaths = new Set([
 const runtimePostBuildScriptPaths = new Set(
   runtimePostBuildWatchedPaths.filter((entry) => entry.startsWith("scripts/")),
 );
+const rootVersionFlags = new Set(["--version", "-V", "-v"]);
 const runtimePostBuildStaticAssetPaths = new Set([
   "extensions/acpx/src/runtime-internals/mcp-proxy.mjs",
   "extensions/diffs/assets/viewer-runtime.js",
@@ -824,6 +825,13 @@ const writeBuildStamp = (deps) => {
 
 const shouldSkipCleanWatchRuntimeSync = (deps) => deps.env.GENESIS_WATCH_MODE === "1";
 
+const isBareRootVersionInvocation = (args, env) =>
+  args.length === 1 &&
+  rootVersionFlags.has(args[0]) &&
+  env.GENESIS_FORCE_BUILD !== "1" &&
+  env.GENESIS_BUILD_PRIVATE_QA !== "1" &&
+  env.GENESIS_FORCE_RUNTIME_POSTBUILD !== "1";
+
 export async function runNodeMain(params = {}) {
   const deps = {
     spawn: params.spawn ?? spawn,
@@ -857,6 +865,11 @@ export async function runNodeMain(params = {}) {
 
   try {
     let exitCode = 1;
+    if (isBareRootVersionInvocation(deps.args, deps.env)) {
+      exitCode = await runGenesis(deps);
+      return await closeRunNodeOutputTee(deps, exitCode);
+    }
+
     const buildRequirement = resolveBuildRequirement(deps);
     if (!buildRequirement.shouldBuild) {
       if (!shouldSkipCleanWatchRuntimeSync(deps)) {

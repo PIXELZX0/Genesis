@@ -6,6 +6,7 @@ import {
 } from "../../config/config.js";
 import {
   buildEmbeddedRunBaseParams,
+  resolveQueuedReplyRuntimeConfig,
   resolveProviderScopedAuthProfile,
 } from "./agent-runner-utils.js";
 import type { FollowupRun } from "./queue.js";
@@ -80,5 +81,47 @@ describe("buildEmbeddedRunBaseParams runtime config", () => {
     });
 
     expect(resolved.config).toBe(resolvedRunConfig);
+  });
+
+  it("keeps an in-flight agent config while the next run reads the swapped agents.list snapshot", () => {
+    const inFlightConfig: GenesisConfig = {
+      agents: {
+        list: [{ id: "main", workspace: "/tmp/main", model: "openai/old" }],
+      },
+    };
+    const oldSourceConfig: GenesisConfig = structuredClone(inFlightConfig);
+    const nextRuntimeConfig: GenesisConfig = {
+      agents: {
+        list: [
+          { id: "main", workspace: "/tmp/main", model: "openai/new" },
+          { id: "persistent", workspace: "/tmp/persistent", model: "openai/new" },
+        ],
+      },
+    };
+    const nextSourceConfig: GenesisConfig = structuredClone(nextRuntimeConfig);
+
+    setRuntimeConfigSnapshot(inFlightConfig, oldSourceConfig);
+    setRuntimeConfigSnapshot(nextRuntimeConfig, nextSourceConfig);
+
+    expect(resolveQueuedReplyRuntimeConfig(inFlightConfig)).toBe(inFlightConfig);
+    expect(inFlightConfig.agents?.list).toEqual([
+      { id: "main", workspace: "/tmp/main", model: "openai/old" },
+    ]);
+
+    const nextRunConfig = resolveQueuedReplyRuntimeConfig(nextSourceConfig);
+    expect(nextRunConfig).toBe(nextRuntimeConfig);
+    expect(nextRunConfig.agents?.list).toEqual(nextRuntimeConfig.agents?.list);
+
+    const runParams = buildEmbeddedRunBaseParams({
+      run: makeRun(inFlightConfig),
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      runId: "run-in-flight",
+      authProfile: resolveProviderScopedAuthProfile({
+        provider: "openai",
+        primaryProvider: "openai",
+      }),
+    });
+    expect(runParams.config).toBe(inFlightConfig);
   });
 });

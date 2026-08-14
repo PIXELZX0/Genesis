@@ -18,6 +18,45 @@ describe("tool mutation helpers", () => {
     ).toBe(true);
   });
 
+  it("treats only persistent-agent mutations as mutating", () => {
+    expect(isMutatingToolCall("agents_manage", { action: "list" })).toBe(false);
+    expect(isMutatingToolCall("agents_manage", { action: "create" })).toBe(true);
+    expect(isMutatingToolCall("agents_manage", { action: "update" })).toBe(true);
+    expect(isMutatingToolCall("agents_manage", { action: "delete" })).toBe(true);
+  });
+
+  it("fingerprints agents_manage mutation targets across agentId aliases", () => {
+    const updateAlpha = buildToolActionFingerprint("agents_manage", {
+      action: "update",
+      agentId: "alpha",
+    });
+    const updateBeta = buildToolActionFingerprint("agents_manage", {
+      action: "update",
+      agentId: "beta",
+    });
+    const deleteAlpha = buildToolActionFingerprint("agents_manage", {
+      action: "delete",
+      agentId: "alpha",
+    });
+    const deleteSnakeAlpha = buildToolActionFingerprint("agents_manage", {
+      action: "delete",
+      agent_id: "alpha",
+    });
+    const deleteSnakeBeta = buildToolActionFingerprint("agents_manage", {
+      action: "delete",
+      agent_id: "beta",
+    });
+
+    expect(updateAlpha).toBe("tool=agents_manage|action=update|agentid=alpha");
+    expect(updateBeta).toBe("tool=agents_manage|action=update|agentid=beta");
+    expect(deleteAlpha).toBe("tool=agents_manage|action=delete|agentid=alpha");
+    expect(deleteSnakeAlpha).toBe(deleteAlpha);
+    expect(deleteSnakeBeta).toBe("tool=agents_manage|action=delete|agentid=beta");
+    expect(updateAlpha).not.toBe(updateBeta);
+    expect(deleteAlpha).not.toBe(deleteSnakeBeta);
+    expect(buildToolActionFingerprint("agents_manage", { action: "list" })).toBeUndefined();
+  });
+
   it("builds stable fingerprints for mutating calls and omits read-only calls", () => {
     const writeFingerprint = buildToolActionFingerprint(
       "write",
@@ -91,6 +130,7 @@ describe("tool mutation helpers", () => {
   it("keeps legacy name-only mutating heuristics for payload fallback", () => {
     expect(isLikelyMutatingToolName("sessions_spawn")).toBe(true);
     expect(isLikelyMutatingToolName("sessions_send")).toBe(true);
+    expect(isLikelyMutatingToolName("agents_manage")).toBe(true);
     expect(isLikelyMutatingToolName("browser_actions")).toBe(true);
     expect(isLikelyMutatingToolName("message_slack")).toBe(true);
     expect(isLikelyMutatingToolName("browser")).toBe(false);

@@ -20,6 +20,15 @@ Running Genesis via Node with `tsx` fails at startup with:
 
 This began after switching dev scripts from Bun to `tsx` (commit `2871657e`, 2026-01-06). The same runtime path worked with Bun.
 
+## Current version check behavior
+
+The source-runner wrapper has a bare built-CLI version fast path separate from
+this historical crash. It does not fix the historical Node plus `tsx`
+source-execution `__name` crash. When invoked through that wrapper, a bare
+version check may avoid the source-loader and build-sync path. The direct
+installed `genesis.mjs` bin has its own version path; other Node plus `tsx`
+execution paths still use the historical workarounds below.
+
 ## Environment
 
 - Node: v25.x (observed on v25.3.0)

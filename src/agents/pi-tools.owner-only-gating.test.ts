@@ -27,6 +27,7 @@ describe("owner-only tool gating", () => {
     expect(toolNames).not.toContain("cron");
     expect(toolNames).not.toContain("gateway");
     expect(toolNames).not.toContain("nodes");
+    expect(toolNames).not.toContain("agents_manage");
   });
 
   it("keeps owner-only tools for authorized senders", () => {
@@ -36,6 +37,7 @@ describe("owner-only tool gating", () => {
     expect(toolNames).toContain("cron");
     expect(toolNames).toContain("gateway");
     expect(toolNames).toContain("nodes");
+    expect(toolNames).toContain("agents_manage");
   });
 
   it("keeps canvas available to unauthorized senders by current trust model", () => {
@@ -51,6 +53,7 @@ describe("owner-only tool gating", () => {
     expect(toolNames).not.toContain("cron");
     expect(toolNames).not.toContain("gateway");
     expect(toolNames).not.toContain("nodes");
+    expect(toolNames).not.toContain("agents_manage");
     expect(toolNames).toContain("canvas");
   });
 

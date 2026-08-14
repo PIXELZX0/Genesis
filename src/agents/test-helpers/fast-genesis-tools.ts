@@ -24,6 +24,7 @@ const coreTools = [
   stubActionTool("message", ["send", "reply"]),
   stubActionTool("gateway", ["status"]),
   stubActionTool("agents_list", ["list", "show"]),
+  stubActionTool("agents_manage", ["list", "create", "update", "delete"]),
   stubActionTool("sessions_list", ["list", "show"]),
   stubActionTool("sessions_history", ["read", "tail"]),
   stubActionTool("sessions_send", ["send", "reply"]),

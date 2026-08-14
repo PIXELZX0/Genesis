@@ -68,6 +68,7 @@ These tools ship with Genesis and are available without installing any plugins:
 | `video_generate`                           | Generate videos                                                       | [Video Generation](/tools/video-generation)                  |
 | `tts`                                      | One-shot text-to-speech conversion                                    | [TTS](/tools/tts)                                            |
 | `sessions_*` / `subagents` / `agents_list` | Session management, status, and sub-agent orchestration               | [Sub-agents](/tools/subagents)                               |
+| `agents_manage`                            | Owner-only CRUD for persistent Genesis agents                         | [Sub-agents](/tools/subagents)                               |
 | `session_status`                           | Lightweight `/status`-style readback and session model override       | [Session Tools](/concepts/session-tool)                      |
 
 For image work, use `image` for analysis and `image_generate` for generation or editing. If you target `openai/*`, `google/*`, `fal/*`, or another non-default image provider, configure that provider's auth/API key first.
@@ -97,6 +98,15 @@ For partial changes, prefer `config.schema.lookup` then `config.patch`. Use
 `config.apply` only when you intentionally replace the entire config.
 The tool also refuses to change `tools.exec.ask` or `tools.exec.security`;
 legacy `tools.bash.*` aliases normalize to the same protected exec paths.
+
+`agents_manage` is the owner-only control-plane tool for persistent agent CRUD.
+Use `action: "list"` to inspect configured agents, `"create"` with `name` and
+`workspace`, `"update"` with `agentId`, or `"delete"` with `agentId`. It is not
+exposed in embedded mode, and ordinary sub-agents do not receive it by default.
+The shared `gatewayUrl`, `gatewayToken`, and `timeoutMs` options configure the
+Gateway call but do not change the owner-only requirement. See [Persistent agent
+management](/tools/subagents#persistent-agent-management) for the full action
+contract and Gateway scope requirements.
 
 ### Plugin-provided tools
 
@@ -163,7 +173,7 @@ Use `group:*` shorthands in allow/deny lists:
 | `group:automation` | cron, gateway                                                                                             |
 | `group:messaging`  | message                                                                                                   |
 | `group:nodes`      | nodes                                                                                                     |
-| `group:agents`     | agents_list                                                                                               |
+| `group:agents`     | agents_list, agents_manage                                                                                |
 | `group:media`      | image, image_generate, music_generate, video_generate, tts                                                |
 | `group:genesis`    | All built-in Genesis tools (excludes plugin tools)                                                        |
 

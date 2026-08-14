@@ -29,6 +29,8 @@ export const DEFAULT_GATEWAY_HTTP_TOOL_DENY = [
   "cron",
   // Gateway control plane — prevents gateway reconfiguration via HTTP
   "gateway",
+  // Persistent agent control plane — prevents agent CRUD via HTTP
+  "agents_manage",
   // Node command relay can reach system.run on paired hosts
   "nodes",
 ] as const;

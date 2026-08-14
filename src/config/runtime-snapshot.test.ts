@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { listAgentIds, resolveAgentConfig } from "../agents/agent-scope.js";
 import {
   finalizeRuntimeSnapshotWrite,
   getRuntimeConfigSourceSnapshot,
@@ -10,6 +11,7 @@ import {
   selectApplicableRuntimeConfig,
   setRuntimeConfigSnapshot,
   setRuntimeConfigSnapshotRefreshHandler,
+  type RuntimeConfigWriteNotification,
 } from "./runtime-snapshot.js";
 import type { GenesisConfig } from "./types.js";
 
@@ -195,6 +197,71 @@ describe("runtime snapshot state", () => {
     expect(getRuntimeConfigSnapshot()).toEqual({ gateway: { port: 19002 } });
     expect(getRuntimeConfigSourceSnapshot()).toBeNull();
     expect(notifyCommittedWrite).toHaveBeenCalledTimes(1);
+  });
+
+  it("publishes the refreshed agents.list snapshot to consumers after a committed write", async () => {
+    const oldRuntimeConfig: GenesisConfig = {
+      agents: {
+        list: [{ id: "main", workspace: "/tmp/main", model: "openai/old" }],
+      },
+    };
+    const oldSourceConfig: GenesisConfig = structuredClone(oldRuntimeConfig);
+    const nextRuntimeConfig: GenesisConfig = {
+      agents: {
+        list: [
+          { id: "main", workspace: "/tmp/main", model: "openai/new" },
+          { id: "persistent", workspace: "/tmp/persistent", model: "openai/new" },
+        ],
+      },
+    };
+    const nextSourceConfig: GenesisConfig = structuredClone(nextRuntimeConfig);
+    const committedWrites: RuntimeConfigWriteNotification[] = [];
+    const unsubscribe = registerRuntimeConfigWriteListener((event) => {
+      committedWrites.push(event);
+    });
+
+    setRuntimeConfigSnapshot(oldRuntimeConfig, oldSourceConfig);
+    expect(getRuntimeConfigSnapshot()).toBe(oldRuntimeConfig);
+    expect(getRuntimeConfigSourceSnapshot()).toBe(oldSourceConfig);
+
+    try {
+      await finalizeRuntimeSnapshotWrite({
+        nextSourceConfig,
+        hadRuntimeSnapshot: true,
+        hadBothSnapshots: true,
+        loadFreshConfig: vi.fn(() => nextRuntimeConfig),
+        notifyCommittedWrite: () => {
+          const runtimeConfig = getRuntimeConfigSnapshot();
+          if (!runtimeConfig) {
+            throw new Error("runtime snapshot missing after committed write");
+          }
+          notifyRuntimeConfigWriteListeners({
+            configPath: "/tmp/genesis.json",
+            sourceConfig: nextSourceConfig,
+            runtimeConfig,
+            persistedHash: "next-agents-list",
+            writtenAtMs: 1,
+          });
+        },
+        formatRefreshError: (error) => String(error),
+        createRefreshError: (detail, cause) => new Error(detail, { cause }),
+      });
+    } finally {
+      unsubscribe();
+    }
+
+    expect(committedWrites).toHaveLength(1);
+    expect(committedWrites[0]?.runtimeConfig.agents?.list).toEqual(nextRuntimeConfig.agents?.list);
+    expect(getRuntimeConfigSnapshot()).toBe(nextRuntimeConfig);
+
+    const runtimeSnapshot = getRuntimeConfigSnapshot();
+    expect(runtimeSnapshot).not.toBeNull();
+    expect(listAgentIds(runtimeSnapshot!)).toEqual(["main", "persistent"]);
+    expect(resolveAgentConfig(runtimeSnapshot!, "main")?.model).toBe("openai/new");
+    expect(resolveAgentConfig(runtimeSnapshot!, "persistent")).toMatchObject({
+      workspace: "/tmp/persistent",
+      model: "openai/new",
+    });
   });
 
   it("keeps the last-known-good runtime snapshot active while specialized refresh is pending", async () => {

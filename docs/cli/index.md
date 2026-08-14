@@ -41,6 +41,22 @@ apply across the CLI.
 | `--update`              | Shorthand for [`genesis update`](/cli/update) (source installs only) |
 | `-V`, `--version`, `-v` | Print version and exit                                               |
 
+### Bare root version fast paths
+
+The installed `genesis` bin points directly to `genesis.mjs`. Its bare root
+version path for exactly one of `genesis --version`, `genesis -V`, or
+`genesis -v`, with no subcommand or extra arguments, does not consult the
+source-runner force flags below.
+
+The repository source-runner wrapper used by `pnpm genesis` and
+`node scripts/run-node.mjs ...` handles the same exact bare version forms by
+running the existing built CLI without stale-source TypeScript build or runtime
+post-build synchronization. This wrapper shortcut is disabled if any of
+`GENESIS_FORCE_BUILD=1`, `GENESIS_BUILD_PRIVATE_QA=1`, or
+`GENESIS_FORCE_RUNTIME_POSTBUILD=1` is set, so the requested normal work can
+run. It avoids making a version check wait on a dirty-tree build or build lock.
+Other source-runner commands retain the normal build freshness checks.
+
 ## Output modes
 
 - ANSI colors and progress indicators render only in TTY sessions.

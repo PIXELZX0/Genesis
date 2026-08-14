@@ -526,6 +526,9 @@ Plugin-local validation failures are the exception: if all issues are under
 `plugins.entries.<id>...`, reload keeps the current config and reports the plugin
 issue instead of restoring `.last-good`.
 
+Gateway CRUD writes for persistent agents use this same validation and write
+path before the updated configuration is activated.
+
 If you see `Config auto-restored from last-known-good` or
 `config reload restored last-known-good config` in logs, inspect the matching
 `.clobbered.*` file next to `genesis.json`, fix the rejected payload, then run
@@ -563,6 +566,13 @@ Most fields hot-apply without downtime. In `hybrid` mode, restart-required chang
 | UI & misc           | `ui`, `logging`, `identity`, `bindings`                           | No              |
 | Gateway server      | `gateway.*` (port, bind, auth, tailscale, TLS, HTTP)              | **Yes**         |
 | Infrastructure      | `discovery`, `canvasHost`, `plugins`                              | **Yes**         |
+
+The reload planner treats `agents` changes as hot. In `hybrid` mode, which is
+the default, and in `hot` mode, changes to `agents`, including `agents.list`
+writes from `agents_manage`, apply without a Gateway restart. `restart` mode
+still follows its explicit policy and restarts for reload-relevant changes. A
+turn already in progress keeps the runtime snapshot captured for that turn;
+subsequent turns use the refreshed agent registry.
 
 <Note>
 `gateway.reload` and `gateway.remote` are exceptions — changing them does **not** trigger a restart.

@@ -1,4 +1,9 @@
-export const GENESIS_OWNER_ONLY_CORE_TOOL_NAMES = ["cron", "gateway", "nodes"] as const;
+export const GENESIS_OWNER_ONLY_CORE_TOOL_NAMES = [
+  "cron",
+  "gateway",
+  "nodes",
+  "agents_manage",
+] as const;
 
 const GENESIS_OWNER_ONLY_CORE_TOOL_NAME_SET: ReadonlySet<string> = new Set(
   GENESIS_OWNER_ONLY_CORE_TOOL_NAMES,

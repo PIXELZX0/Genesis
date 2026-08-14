@@ -52,6 +52,38 @@ describe("tool display details", () => {
     expect(detail).toContain("tools true");
   });
 
+  it("formats agents_manage action labels and details", () => {
+    const list = resolveToolDisplay({ name: "agents_manage", args: { action: "list" } });
+    const create = resolveToolDisplay({
+      name: "agents_manage",
+      args: {
+        action: "create",
+        name: "Research Agent",
+        workspace: "/tmp/research",
+        model: "sonnet-4.6",
+      },
+    });
+    const update = resolveToolDisplay({
+      name: "agents_manage",
+      args: { action: "update", agentId: "research-agent", workspace: "/tmp/research-v2" },
+    });
+    const remove = resolveToolDisplay({
+      name: "agents_manage",
+      args: { action: "delete", agentId: "research-agent", deleteFiles: true },
+    });
+
+    expect(list).toMatchObject({ emoji: "🧭", title: "Agents", verb: "list" });
+    expect(formatToolDetail(list)).toBeUndefined();
+    expect(create).toMatchObject({ verb: "create" });
+    expect(formatToolDetail(create)).toBe(
+      "name Research Agent, workspace /tmp/research, model sonnet-4.6",
+    );
+    expect(update).toMatchObject({ verb: "update" });
+    expect(formatToolDetail(update)).toBe("agent research-agent, workspace /tmp/research-v2");
+    expect(remove).toMatchObject({ verb: "delete" });
+    expect(formatToolDetail(remove)).toBe("agent research-agent, delete files true");
+  });
+
   it("formats read/write/edit with intent-first file detail", () => {
     const readDetail = formatToolDetail(
       resolveToolDisplay({

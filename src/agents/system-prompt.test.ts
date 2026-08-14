@@ -299,6 +299,19 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("sessions_send");
   });
 
+  it("documents persistent agent management when the tool is available", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/genesis",
+      toolNames: ["agents_list", "agents_manage"],
+    });
+
+    expect(prompt).toContain(
+      "- agents_manage: List, create, update, or delete persistent Genesis agents via Gateway RPCs",
+    );
+    expect(prompt).toContain("owner-only control-plane");
+    expect(prompt.indexOf("agents_list")).toBeLessThan(prompt.indexOf("agents_manage"));
+  });
+
   it("documents ACP sessions_spawn agent targeting requirements", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/genesis",
