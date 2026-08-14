@@ -7,6 +7,7 @@ function createProps(overrides: Partial<ModelsProps> = {}): ModelsProps {
     connected: true,
     loading: false,
     models: [],
+    modelAuthStatus: null,
     panel: "providers",
     error: null,
     modelProviderWizardStep: null,
@@ -50,6 +51,43 @@ describe("renderModels", () => {
     findButton(container, "Add model")?.click();
 
     expect(onModelProviderWizardStart).toHaveBeenCalledWith("custom-model");
+  });
+
+  it("renders per-provider auth status and usage, including providers with no models", () => {
+    const container = document.createElement("div");
+    render(
+      renderModels(
+        createProps({
+          models: [{ id: "claude-opus-5", provider: "anthropic" } as ModelsProps["models"][number]],
+          modelAuthStatus: {
+            ts: 1,
+            providers: [
+              {
+                provider: "anthropic",
+                displayName: "Anthropic",
+                status: "ok",
+                profiles: [],
+                usage: { windows: [{ label: "5h", usedPercent: 40 }] },
+              },
+              {
+                provider: "openai",
+                displayName: "OpenAI",
+                status: "missing",
+                profiles: [],
+              },
+            ],
+          },
+        }),
+      ),
+      container,
+    );
+
+    const text = container.textContent ?? "";
+    expect(text).toContain("Connected");
+    expect(text).toContain("60% left");
+    // Configured-but-not-logged-in provider shows up even with zero models.
+    expect(text).toContain("OpenAI");
+    expect(text).toContain("Auth required");
   });
 
   it("renders server-provided wizard steps and wires advance and cancel actions", () => {

@@ -1,8 +1,13 @@
 import { html, nothing } from "lit";
+import { normalizeProviderId } from "../../../../src/agents/provider-id.js";
 import { t } from "../../i18n/index.ts";
 import type { ModelProviderWizardTarget } from "../app-model-providers.ts";
 import { icons } from "../icons.ts";
-import type { ModelCatalogEntry } from "../types.ts";
+import type {
+  ModelAuthStatusProvider,
+  ModelAuthStatusResult,
+  ModelCatalogEntry,
+} from "../types.ts";
 import {
   renderModelProviderWizardDialog,
   type ModelProviderWizardDialogProps,
@@ -14,6 +19,7 @@ export interface ModelsProps extends ModelProviderWizardDialogProps {
   connected: boolean;
   loading: boolean;
   models: ModelCatalogEntry[];
+  modelAuthStatus: ModelAuthStatusResult | null;
   panel: ModelsPanel;
   error: string | null;
   onPanelChange: (panel: ModelsPanel) => void;
@@ -22,7 +28,23 @@ export interface ModelsProps extends ModelProviderWizardDialogProps {
 }
 
 const MODELS_GRID = "grid-template-columns: 2fr 1fr 0.8fr 0.8fr;";
-const PROVIDERS_GRID = "grid-template-columns: 2fr 0.8fr 1fr;";
+const PROVIDERS_GRID = "grid-template-columns: 1.6fr 0.6fr 1fr 1.4fr;";
+
+const STATUS_DOT: Record<string, string> = {
+  ok: "status-dot--ok",
+  static: "status-dot--ok",
+  expiring: "status-dot--warn",
+  expired: "status-dot--error",
+  missing: "status-dot--error",
+};
+
+const STATUS_LABEL_KEY: Record<string, string> = {
+  ok: "modelsView.statusConnected",
+  static: "modelsView.statusApiKey",
+  expiring: "modelsView.statusExpiring",
+  expired: "modelsView.statusExpired",
+  missing: "modelsView.statusAuthRequired",
+};
 
 function entryProvider(m: ModelCatalogEntry): string {
   return (m as { provider?: string }).provider ?? "—";
@@ -78,13 +100,67 @@ function renderCatalog(props: ModelsProps) {
   `;
 }
 
+// Catalog ids and auth-status ids can differ by alias (kimi-code -> kimi,
+// bedrock -> amazon-bedrock, ...), so both sides go through the same
+// normalizer or a provider would show up as two half-filled rows.
+function providerKey(provider: string): string {
+  return normalizeProviderId(provider);
+}
+
+function renderProviderStatus(auth: ModelAuthStatusProvider | undefined) {
+  if (!auth) {
+    return html`<span class="row" style="gap: 8px; align-items: center;">
+      <span class="status-dot status-dot--idle"></span>
+      <span class="muted">${t("modelsView.statusUnknown")}</span>
+    </span>`;
+  }
+  const dot = STATUS_DOT[auth.status] ?? "status-dot--idle";
+  const labelKey = STATUS_LABEL_KEY[auth.status] ?? "modelsView.statusUnknown";
+  const expiry =
+    auth.expiry && auth.status !== "static" && auth.expiry.label && auth.expiry.label !== "unknown"
+      ? t("modelsView.expiresIn", { when: auth.expiry.label })
+      : null;
+  return html`<span class="row" style="gap: 8px; align-items: center;">
+    <span class="status-dot ${dot}"></span>
+    <span class="muted">${t(labelKey)}${expiry ? html` · ${expiry}` : nothing}</span>
+  </span>`;
+}
+
+function renderProviderUsage(auth: ModelAuthStatusProvider | undefined) {
+  const windows = auth?.usage?.windows ?? [];
+  if (windows.length === 0) {
+    return html`<span class="muted">—</span>`;
+  }
+  return html`<span class="row" style="gap: 10px; align-items: center; flex-wrap: wrap;">
+    ${windows.map((w) => {
+      // Providers can report usedPercent > 100 once a window is exhausted.
+      const pctLeft = Math.max(0, Math.min(100, Math.round(100 - w.usedPercent)));
+      const label = (w.label ?? "").trim();
+      return html`<span class="muted" style="font-family: var(--mono);">
+        ${label ? html`${label} ` : nothing}${t("modelsView.usageLeft", { pct: String(pctLeft) })}
+      </span>`;
+    })}
+  </span>`;
+}
+
 function renderProviders(props: ModelsProps) {
   const counts = new Map<string, number>();
+  const names = new Map<string, string>();
   for (const m of props.models) {
     const p = entryProvider(m);
-    counts.set(p, (counts.get(p) ?? 0) + 1);
+    const key = providerKey(p);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    names.set(key, names.get(key) ?? p);
   }
-  const providers = [...counts.entries()].toSorted((a, b) => a[0].localeCompare(b[0]));
+  const auth = new Map<string, ModelAuthStatusProvider>();
+  for (const p of props.modelAuthStatus?.providers ?? []) {
+    const key = providerKey(p.provider);
+    auth.set(key, p);
+    // Providers that are configured but have no catalog entries still belong in
+    // the table — that is exactly the "Auth Required" case.
+    names.set(key, p.displayName || names.get(key) || p.provider);
+  }
+  const providers = [...names.entries()].toSorted((a, b) => a[1].localeCompare(b[1]));
   if (providers.length === 0) {
     return html`<div class="muted" style="padding: 16px;">
       ${props.loading ? t("common.loading") : t("modelsView.empty")}
@@ -96,16 +172,14 @@ function renderProviders(props: ModelsProps) {
         <span>${t("modelsView.colProvider")}</span>
         <span>${t("modelsView.colModels")}</span>
         <span>${t("modelsView.colStatus")}</span>
+        <span>${t("modelsView.colUsage")}</span>
       </div>
       ${providers.map(
-        ([provider, count]) => html`
+        ([key, name]) => html`
           <div class="table-row" style=${PROVIDERS_GRID}>
-            <span style="font-weight: 500;">${provider}</span>
-            <span style="font-family: var(--mono);" class="muted">${count}</span>
-            <span class="row" style="gap: 8px; align-items: center;">
-              <span class="status-dot status-dot--ok"></span>
-              <span class="muted">${t("modelsView.connected")}</span>
-            </span>
+            <span style="font-weight: 500;">${name}</span>
+            <span style="font-family: var(--mono);" class="muted">${counts.get(key) ?? 0}</span>
+            ${renderProviderStatus(auth.get(key))} ${renderProviderUsage(auth.get(key))}
           </div>
         `,
       )}

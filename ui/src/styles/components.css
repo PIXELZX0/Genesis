@@ -493,6 +493,10 @@
   background: var(--muted);
 }
 
+.status-dot--warn {
+  background: var(--warn);
+}
+
 .status-dot--error {
   background: var(--danger);
 }

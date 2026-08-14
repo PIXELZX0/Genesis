@@ -125,6 +125,7 @@ import {
   cancelMcpOAuth,
 } from "./controllers/mcp.ts";
 import { loadMemoryGraph, loadMemoryIndex } from "./controllers/memory.ts";
+import { loadModelAuthStatusState } from "./controllers/model-auth-status.ts";
 import { loadModels } from "./controllers/models.ts";
 import {
   invokeSelectedNodeCommand,
@@ -240,6 +241,11 @@ function loadSessionsForSessionView(state: AppViewState): Promise<void> {
 function ensureModelsLoaded(state: AppViewState): void {
   if (!state.client || !state.connected || state.modelsLoading) {
     return;
+  }
+  // Provider status/usage comes from the auth-status snapshot, which otherwise
+  // only loads on the overview tab.
+  if (state.modelAuthStatusResult === null) {
+    void loadModelAuthStatusState(state);
   }
   if (state.chatModelCatalog.length > 0) {
     return;
@@ -2814,6 +2820,7 @@ export function renderApp(state: AppViewState) {
                 connected: state.connected,
                 loading: state.modelsLoading,
                 models: state.chatModelCatalog,
+                modelAuthStatus: state.modelAuthStatusResult,
                 panel: state.modelsPanel,
                 error: null,
                 modelProviderWizardStep: state.modelProviderWizardStep,
@@ -2826,6 +2833,7 @@ export function renderApp(state: AppViewState) {
                 },
                 onRefresh: () => {
                   state.chatModelCatalog = [];
+                  void loadModelAuthStatusState(state, { refresh: true });
                   ensureModelsLoaded(state);
                 },
                 onModelProviderWizardStart: (target) =>
