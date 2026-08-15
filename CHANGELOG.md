@@ -2,22 +2,26 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.8.13
+## 2026.8.15
 
 ### Changes
 
+- Agents: a new owner-only `agents_manage` tool lets an agent list, create, update, and delete persistent Genesis agents through the Gateway instead of hand-editing agent config.
+- Control UI: the Channels list now shows which agent each channel is routed to.
 - Memory: dreaming is now enabled by default. The managed sweep (`0 3 * * *`) runs light, REM, and deep phases without any config, and only the deep phase writes to `MEMORY.md`. Set `plugins.entries.memory-core.config.dreaming.enabled: false` or run `/dreaming off` to turn it back off.
 - Memory: Active Memory now runs for every agent by default instead of only for agent ids listed in `plugins.entries.active-memory.config.agents`. Setting that list still narrows it, and `/active-memory off` (or `config.enabled: false`) still turns it off. The chat type and interactive-session gates are unchanged, so it stays limited to direct-message style persistent sessions.
 - Control UI: Dreaming now has a sidebar link under the Memory group. The page was already routed at `/dreaming` but was only reachable by typing the URL.
 - Health: channel account probes now run concurrently (up to 5 at a time) instead of strictly one after another, so `genesis health` and the gateway health snapshot finish much faster on setups with several channels or accounts.
 - Gateway: the health snapshot primed at startup no longer runs live channel probes, and a cached `health` response is returned immediately with a background refresh only when the cache is actually stale. Concurrent refreshes are deduplicated, and a probing refresh can supersede an in-flight non-probing one.
-- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.83.0 to 0.84.1. The OpenCode Go catalog picks up `qwen3.8-max` and `gpt-5.6-luna` from Pi's built-in registry, and `compat.thinkingFormat` accepts the new `baseten` value.
+- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.83.0 to 0.84.2. The OpenCode Go catalog picks up `qwen3.8-max` and `gpt-5.6-luna` from Pi's built-in registry, and `compat.thinkingFormat` accepts the new `baseten` value.
 - Google: the Gemini CLI transport now sends tool call and tool response ids for Gemini 3 and newer models, matching what those models require. Gemini 2.x and older still get ids stripped.
 - Control UI: Models -> Providers now shows each provider's real auth status (Connected, API key, Expiring, Expired, Auth required) plus remaining plan usage per window, instead of hardcoding "Connected" for every row. Providers that are configured but not logged in appear even when they contribute no models.
 - Control UI: Overview, Logs, Debug, and chat slash commands now deduplicate in-flight gateway requests and bound `logs.tail` with a 5s timeout, so repeated tab switches or refresh clicks no longer pile up requests. Refreshing the Overview log panel reloads just the logs instead of the whole overview, Debug reuses the shared model catalog loader and drops its extra `last-heartbeat` call, and stale responses from a superseded connection are discarded.
 
 ### Fixes
 
+- Plugins: the default `memory` slot no longer bypasses a restrictive `plugins.allow` list. The slot falls back to `memory-core` when unset, so with dreaming now on by default this could start the default memory plugin on a gateway whose allowlist never named it. An explicitly configured `plugins.slots.memory` still bypasses the allowlist, as does the context engine slot.
+- Control UI: chat and memory views no longer flicker or show stale content when requests overlap. Superseded chat history loads are discarded instead of overwriting newer state, terminal chat events are matched against the active run before they clear the composer, session message reloads deferred during a run are replayed once it ends, and transcript images are recognized from more media shapes so they render instead of disappearing.
 - Model fallback: when every stored auth profile for a provider is in cooldown but a usable environment or config credential exists, Genesis now runs the attempt with that credential instead of skipping the candidate or burning a cooldown probe. OpenAI Codex is excluded because it is OAuth-only and must not be satisfied by a generic OpenAI API key.
 
 ## 2026.8.6
