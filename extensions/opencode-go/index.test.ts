@@ -57,6 +57,7 @@ describe("opencode-go provider plugin", () => {
       "deepseek-v4-pro",
       "glm-5.1",
       "glm-5.2",
+      "glm-5.3",
       "hy3",
       "kimi-k2.6",
       "kimi-k2.7-code",
