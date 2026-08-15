@@ -24,6 +24,7 @@ Docs: https://genesis.pixelzx.com/docs
 - Plugins: the default `memory` slot no longer bypasses a restrictive `plugins.allow` list. The slot falls back to `memory-core` when unset, so with dreaming now on by default this could start the default memory plugin on a gateway whose allowlist never named it. An explicitly configured `plugins.slots.memory` still bypasses the allowlist, as does the context engine slot.
 - Control UI: chat and memory views no longer flicker or show stale content when requests overlap. Superseded chat history loads are discarded instead of overwriting newer state, terminal chat events are matched against the active run before they clear the composer, session message reloads deferred during a run are replayed once it ends, and transcript images are recognized from more media shapes so they render instead of disappearing.
 - Model fallback: when every stored auth profile for a provider is in cooldown but a usable environment or config credential exists, Genesis now runs the attempt with that credential instead of skipping the candidate or burning a cooldown probe. OpenAI Codex is excluded because it is OAuth-only and must not be satisfied by a generic OpenAI API key.
+- Memory: opening the Control UI Memory tab on a cold index no longer freezes the gateway. The graph view now serves whatever is indexed and builds the index in the background, so the memory graph, `MEMORY.md`, and contacts reads stop timing out together.
 
 ## 2026.8.6
 
