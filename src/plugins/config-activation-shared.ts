@@ -53,6 +53,9 @@ type PluginActivationConfigLike = {
     memory?: string | null;
     contextEngine?: string | null;
   };
+  slotsDefaulted?: {
+    memory?: boolean;
+  };
   entries: Record<string, { enabled?: boolean } | undefined>;
 };
 
@@ -200,7 +203,14 @@ export function resolvePluginActivationDecisionShared<TRootConfig>(params: {
       cause: "workspace-disabled-by-default",
     };
   }
-  if (params.config.slots.memory === params.id) {
+  // An explicitly configured slot still bypasses the allowlist, but the memory
+  // slot falls back to a default id when unset. Letting that default bypass
+  // would start the default memory plugin against an allowlist never naming it.
+  const defaultedMemorySlotBlocked =
+    params.config.slotsDefaulted?.memory === true &&
+    params.config.allow.length > 0 &&
+    !explicitlyAllowed;
+  if (!defaultedMemorySlotBlocked && params.config.slots.memory === params.id) {
     return {
       enabled: true,
       activated: true,

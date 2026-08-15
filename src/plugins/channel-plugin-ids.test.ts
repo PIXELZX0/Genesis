@@ -376,26 +376,26 @@ describe("resolveGatewayStartupPluginIds", () => {
         enabledPluginIds: ["voice-call"],
         modelId: "demo-cli/demo-model",
       }),
-      ["demo-channel", "browser", "voice-call"],
+      ["demo-channel", "browser", "voice-call", "memory-core"],
     ],
     [
       "keeps bundled startup sidecars with enabledByDefault at idle startup",
       {} as GenesisConfig,
-      ["demo-channel", "browser"],
+      ["demo-channel", "browser", "memory-core"],
     ],
     [
       "keeps provider plugins out of idle startup when only provider config references them",
       createStartupConfig({
         providerIds: ["demo-provider"],
       }),
-      ["demo-channel", "browser"],
+      ["demo-channel", "browser", "memory-core"],
     ],
     [
       "includes explicitly enabled non-channel sidecars in startup scope",
       createStartupConfig({
         enabledPluginIds: ["demo-global-sidecar", "voice-call"],
       }),
-      ["demo-channel", "browser", "voice-call", "demo-global-sidecar"],
+      ["demo-channel", "browser", "voice-call", "memory-core", "demo-global-sidecar"],
     ],
     [
       "keeps default-enabled startup sidecars when a restrictive allowlist permits them",
@@ -410,7 +410,7 @@ describe("resolveGatewayStartupPluginIds", () => {
       createStartupConfig({
         channelIds: ["demo-channel", "demo-other-channel"],
       }),
-      ["demo-channel", "demo-other-channel", "browser"],
+      ["demo-channel", "demo-other-channel", "browser", "memory-core"],
     ],
   ] as const)("%s", (_name, config, expected) => {
     expectStartupPluginIdsCase({ config, expected });
@@ -458,7 +458,7 @@ describe("resolveGatewayStartupPluginIds", () => {
       env: {
         DEMO_CHANNEL_ANYTHING: "1",
       } as NodeJS.ProcessEnv,
-      expected: ["demo-channel", "browser"],
+      expected: ["demo-channel", "browser", "memory-core"],
     });
     expect(
       resolveConfiguredDeferredChannelPluginIds({
@@ -521,7 +521,7 @@ describe("resolveGatewayStartupPluginIds", () => {
         },
       } as GenesisConfig,
       env: {},
-      expected: ["browser"],
+      expected: ["browser", "memory-core"],
     });
   });
 
@@ -574,7 +574,7 @@ describe("resolveGatewayStartupPluginIds", () => {
       config: createStartupConfig({
         enabledPluginIds: ["memory-lancedb"],
       }),
-      expected: ["demo-channel", "browser"],
+      expected: ["demo-channel", "browser", "memory-core"],
     });
   });
 
@@ -584,7 +584,7 @@ describe("resolveGatewayStartupPluginIds", () => {
         embeddedHarnessRuntime: "codex",
         enabledPluginIds: ["codex"],
       }),
-      expected: ["demo-channel", "browser", "codex"],
+      expected: ["demo-channel", "browser", "codex", "memory-core"],
     });
   });
 
@@ -594,7 +594,7 @@ describe("resolveGatewayStartupPluginIds", () => {
         agentEmbeddedHarnessRuntimes: ["codex"],
         enabledPluginIds: ["codex"],
       }),
-      expected: ["demo-channel", "browser", "codex"],
+      expected: ["demo-channel", "browser", "codex", "memory-core"],
     });
   });
 
@@ -604,7 +604,7 @@ describe("resolveGatewayStartupPluginIds", () => {
         enabledPluginIds: ["codex"],
       }),
       env: { GENESIS_AGENT_RUNTIME: "codex" },
-      expected: ["demo-channel", "browser", "codex"],
+      expected: ["demo-channel", "browser", "codex", "memory-core"],
     });
   });
 
@@ -627,7 +627,7 @@ describe("resolveGatewayStartupPluginIds", () => {
           },
         },
       } as GenesisConfig,
-      expected: ["demo-channel", "browser"],
+      expected: ["demo-channel", "browser", "memory-core"],
     });
   });
 });

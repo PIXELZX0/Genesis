@@ -15,6 +15,10 @@ export type NormalizedPluginsConfig = {
     memory?: string | null;
     contextEngine?: string | null;
   };
+  /** Which slots fell back to a built-in default instead of being configured. */
+  slotsDefaulted: {
+    memory: boolean;
+  };
   entries: Record<
     string,
     {
@@ -154,6 +158,9 @@ export function normalizePluginsConfigWithResolver(
     slots: {
       memory: memorySlot === undefined ? defaultSlotIdForKey("memory") : memorySlot,
       contextEngine: normalizeSlotValue(config?.slots?.contextEngine),
+    },
+    slotsDefaulted: {
+      memory: memorySlot === undefined,
     },
     entries: normalizePluginEntries(config?.entries, normalizePluginId),
   };
