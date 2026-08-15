@@ -31,7 +31,11 @@ import {
 } from "./embeddings.js";
 import { buildMemoryGraph } from "./graph.js";
 import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js";
-import { awaitPendingManagerWork, startAsyncSearchSync } from "./manager-async-state.js";
+import {
+  awaitPendingManagerWork,
+  startAsyncSearchSync,
+  startBackgroundGraphSync,
+} from "./manager-async-state.js";
 import { MEMORY_BATCH_FAILURE_LIMIT } from "./manager-batch-state.js";
 import {
   closeManagedCacheEntries,
@@ -835,13 +839,13 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   }
 
   async graph(): Promise<MemoryGraphResult> {
-    if (!this.hasIndexedContent()) {
-      try {
-        await this.sync({ reason: "graph", force: true });
-      } catch (err) {
-        log.warn(`memory sync failed (graph): ${String(err)}`);
-      }
-    }
+    // Serve whatever is indexed now; a cold build runs in the background so it
+    // cannot stall concurrent requests on the host process.
+    startBackgroundGraphSync({
+      hasIndexedContent: this.hasIndexedContent(),
+      sync: async (params) => await this.sync(params),
+      onError: (err) => log.warn(`memory sync failed (graph): ${String(err)}`),
+    });
     await this.ensureProviderInitialized();
     return await buildMemoryGraph({
       db: this.db,

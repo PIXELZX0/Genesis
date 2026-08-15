@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { awaitPendingManagerWork, startAsyncSearchSync } from "./manager-async-state.js";
+import {
+  awaitPendingManagerWork,
+  startAsyncSearchSync,
+  startBackgroundGraphSync,
+} from "./manager-async-state.js";
 
 describe("memory search async sync", () => {
   it("does not await sync when searching", async () => {
@@ -42,6 +46,60 @@ describe("memory search async sync", () => {
 
     releaseSync();
     await closePromise;
+  });
+
+  it("defers the cold graph sync instead of blocking the caller", async () => {
+    vi.useFakeTimers();
+    try {
+      const syncMock = vi.fn(async () => {});
+      startBackgroundGraphSync({
+        hasIndexedContent: false,
+        sync: syncMock,
+        onError: vi.fn(),
+      });
+
+      expect(syncMock).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(syncMock).toHaveBeenCalledWith({ reason: "graph", force: true });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("skips the graph sync when the index already has content", async () => {
+    vi.useFakeTimers();
+    try {
+      const syncMock = vi.fn(async () => {});
+      startBackgroundGraphSync({
+        hasIndexedContent: true,
+        sync: syncMock,
+        onError: vi.fn(),
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(syncMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reports graph sync failures without rejecting", async () => {
+    vi.useFakeTimers();
+    try {
+      const onError = vi.fn();
+      startBackgroundGraphSync({
+        hasIndexedContent: false,
+        sync: async () => {
+          throw new Error("boom");
+        },
+        onError,
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "boom" }));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("skips background search sync when search-triggered sync is disabled", () => {

@@ -13,6 +13,28 @@ export function startAsyncSearchSync(params: {
   });
 }
 
+/** Kick a cold-index build off the current tick.
+ *
+ * A cold sync is long and largely blocking (node:sqlite is synchronous), so
+ * awaiting it inside a request stalls every other request the host process is
+ * serving (gateway RPCs included). Deferring to a timer lets pending responses
+ * and queued requests drain first. */
+export function startBackgroundGraphSync(params: {
+  hasIndexedContent: boolean;
+  sync: (params: { reason: string; force: boolean }) => Promise<void>;
+  onError: (err: unknown) => void;
+}): void {
+  if (params.hasIndexedContent) {
+    return;
+  }
+  const timer = setTimeout(() => {
+    void params.sync({ reason: "graph", force: true }).catch((err) => {
+      params.onError(err);
+    });
+  }, 0);
+  timer.unref?.();
+}
+
 export async function awaitPendingManagerWork(params: {
   pendingSync?: Promise<void> | null;
   pendingProviderInit?: Promise<void> | null;
