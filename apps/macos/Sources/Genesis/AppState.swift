@@ -187,15 +187,6 @@ final class AppState {
     var earBoostActive: Bool = false
     var blinkTick: Int = 0
     var sendCelebrationTick: Int = 0
-    var heartbeatsEnabled: Bool {
-        didSet {
-            self.ifNotPreview {
-                UserDefaults.standard.set(self.heartbeatsEnabled, forKey: heartbeatsEnabledKey)
-                Task { _ = await GatewayConnection.shared.setHeartbeatsEnabled(self.heartbeatsEnabled) }
-            }
-        }
-    }
-
     var connectionMode: ConnectionMode {
         didSet {
             self.ifNotPreview { UserDefaults.standard.set(self.connectionMode.rawValue, forKey: connectionModeKey) }
@@ -310,12 +301,6 @@ final class AppState {
             .object(forKey: voiceWakeTriggersTalkModeKey) as? Bool ?? false
         self.talkEnabled = UserDefaults.standard.bool(forKey: talkEnabledKey)
         self.seamColorHex = nil
-        if let storedHeartbeats = UserDefaults.standard.object(forKey: heartbeatsEnabledKey) as? Bool {
-            self.heartbeatsEnabled = storedHeartbeats
-        } else {
-            self.heartbeatsEnabled = true
-            UserDefaults.standard.set(true, forKey: heartbeatsEnabledKey)
-        }
         if let storedOverride = UserDefaults.standard.string(forKey: iconOverrideKey),
            let selection = IconOverrideSelection(rawValue: storedOverride)
         {
@@ -779,7 +764,6 @@ extension AppState {
         state.voicePushToTalkEnabled = false
         state.talkEnabled = false
         state.iconOverride = .system
-        state.heartbeatsEnabled = true
         state.connectionMode = .local
         state.remoteTransport = .ssh
         state.canvasEnabled = true

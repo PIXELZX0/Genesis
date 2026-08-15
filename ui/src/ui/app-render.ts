@@ -19,7 +19,7 @@ import {
   switchChatSession,
 } from "./app-render.helpers.ts";
 import { loadOverviewLogs, warnQueryToken } from "./app-settings.ts";
-import type { AppViewState } from "./app-view-state.ts";
+import { resolveSelectedAgentId, type AppViewState } from "./app-view-state.ts";
 import { sortCopy } from "./array.ts";
 import { renderMobileTabBar } from "./components/mobile-tab-bar.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
@@ -36,7 +36,7 @@ import {
   saveAgentsConfig,
 } from "./controllers/agents.ts";
 import { loadChannels } from "./controllers/channels.ts";
-import { loadChatHistory } from "./controllers/chat.ts";
+import { cancelPendingStream, loadChatHistory } from "./controllers/chat.ts";
 import {
   applyConfigRestartNow,
   cancelConfigRestartChanges,
@@ -279,73 +279,148 @@ async function submitAgentsCreateDialog(state: AppViewState): Promise<void> {
   }
 }
 
-function ensureMemoryGraphLoaded(state: AppViewState): void {
-  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
-  if (!state.client || !state.connected || state.memoryGraphLoading || !agentId) {
+export function ensureMemoryGraphLoaded(state: AppViewState): void {
+  const agentId = resolveSelectedAgentId(state);
+  if (!state.client || !state.connected || !agentId) {
     return;
   }
-  if (state.memoryGraph.nodes.length > 0) {
+  if (state.memoryGraphLoadedAgentId === agentId) {
+    return;
+  }
+  if (state.memoryGraphLoading && state.memoryGraphLoadingAgentId === agentId) {
     return;
   }
   const client = state.client;
+  const requestId = (state.memoryGraphLoadRequestId ?? 0) + 1;
+  state.memoryGraphLoadRequestId = requestId;
   state.memoryGraphLoading = true;
+  state.memoryGraphLoadingAgentId = agentId;
+  state.memoryGraphLoadedAgentId = null;
   state.memoryGraphError = null;
+  state.memoryGraph = { nodes: [], edges: [], generatedAtMs: 0 };
+  const isCurrentRequest = () =>
+    state.memoryGraphLoadRequestId === requestId &&
+    state.client === client &&
+    resolveSelectedAgentId(state) === agentId;
   void loadMemoryGraph(client, agentId)
     .then((graph) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.memoryGraph = graph;
+      state.memoryGraphLoadedAgentId = agentId;
     })
     .catch((err: unknown) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.memoryGraphError = String(err);
+      state.memoryGraphLoadedAgentId = agentId;
     })
     .finally(() => {
+      if (state.memoryGraphLoadRequestId !== requestId) {
+        return;
+      }
       state.memoryGraphLoading = false;
+      state.memoryGraphLoadingAgentId = null;
     });
 }
 
-function ensureMemoryLoaded(state: AppViewState): void {
+export function ensureMemoryLoaded(state: AppViewState): void {
   if (state.memoryViewMode === "graph") {
     ensureMemoryGraphLoaded(state);
-  }
-  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
-  if (!state.client || !state.connected || state.memoryLoading || !agentId) {
     return;
   }
-  if (state.memoryEntries.length > 0) {
+  const agentId = resolveSelectedAgentId(state);
+  if (!state.client || !state.connected || !agentId) {
     return;
   }
+  if (state.memoryLoadedAgentId === agentId) {
+    return;
+  }
+  if (state.memoryLoading && state.memoryLoadingAgentId === agentId) {
+    return;
+  }
+  const client = state.client;
+  const requestId = (state.memoryLoadRequestId ?? 0) + 1;
+  state.memoryLoadRequestId = requestId;
   state.memoryLoading = true;
+  state.memoryLoadingAgentId = agentId;
+  state.memoryLoadedAgentId = null;
   state.memoryError = null;
-  void loadMemoryIndex(state.client, agentId)
+  state.memoryEntries = [];
+  const isCurrentRequest = () =>
+    state.memoryLoadRequestId === requestId &&
+    state.client === client &&
+    resolveSelectedAgentId(state) === agentId;
+  void loadMemoryIndex(client, agentId)
     .then((entries) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.memoryEntries = entries;
+      state.memoryLoadedAgentId = agentId;
     })
     .catch((err: unknown) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.memoryError = String(err);
+      state.memoryLoadedAgentId = agentId;
     })
     .finally(() => {
+      if (state.memoryLoadRequestId !== requestId) {
+        return;
+      }
       state.memoryLoading = false;
+      state.memoryLoadingAgentId = null;
     });
 }
 
-function ensureContactsLoaded(state: AppViewState): void {
-  const agentId = state.agentsSelectedId ?? state.assistantAgentId;
-  if (!state.client || !state.connected || state.contactsLoading || !agentId) {
+export function ensureContactsLoaded(state: AppViewState): void {
+  const agentId = resolveSelectedAgentId(state);
+  if (!state.client || !state.connected || !agentId) {
     return;
   }
-  if (state.contactsEntries.length > 0) {
+  if (state.contactsLoadedAgentId === agentId) {
     return;
   }
+  if (state.contactsLoading && state.contactsLoadingAgentId === agentId) {
+    return;
+  }
+  const client = state.client;
+  const requestId = (state.contactsLoadRequestId ?? 0) + 1;
+  state.contactsLoadRequestId = requestId;
   state.contactsLoading = true;
+  state.contactsLoadingAgentId = agentId;
+  state.contactsLoadedAgentId = null;
   state.contactsError = null;
-  void loadContacts(state.client, agentId)
+  state.contactsEntries = [];
+  const isCurrentRequest = () =>
+    state.contactsLoadRequestId === requestId &&
+    state.client === client &&
+    resolveSelectedAgentId(state) === agentId;
+  void loadContacts(client, agentId)
     .then((entries) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.contactsEntries = entries;
+      state.contactsLoadedAgentId = agentId;
     })
     .catch((err: unknown) => {
+      if (!isCurrentRequest()) {
+        return;
+      }
       state.contactsError = String(err);
+      state.contactsLoadedAgentId = agentId;
     })
     .finally(() => {
+      if (state.contactsLoadRequestId !== requestId) {
+        return;
+      }
       state.contactsLoading = false;
+      state.contactsLoadingAgentId = null;
     });
 }
 
@@ -1075,12 +1150,7 @@ export function renderApp(state: AppViewState) {
     })();
   };
   const basePath = normalizeBasePath(state.basePath ?? "");
-  const resolveSelectedAgentId = () =>
-    state.agentsSelectedId ??
-    state.agentsList?.defaultId ??
-    state.agentsList?.agents?.[0]?.id ??
-    null;
-  const resolvedAgentId = resolveSelectedAgentId();
+  const resolvedAgentId = resolveSelectedAgentId(state);
   const activeSessionAgentId = resolveAgentIdFromSessionKey(state.sessionKey);
   const toolsPanelUsesActiveSession = Boolean(
     resolvedAgentId && activeSessionAgentId && resolvedAgentId === activeSessionAgentId,
@@ -1826,6 +1896,7 @@ export function renderApp(state: AppViewState) {
               onSettingsChange: (next) => state.applySettings(next),
               onPasswordChange: (next) => (state.password = next),
               onSessionKeyChange: (next) => {
+                cancelPendingStream();
                 state.sessionKey = next;
                 state.chatMessage = "";
                 state.chatMessages = [];
@@ -2272,7 +2343,7 @@ export function renderApp(state: AppViewState) {
                   if (agentIds.length > 0) {
                     void loadAgentIdentities(state, agentIds);
                   }
-                  loadAgentPanelDataForSelectedAgent(resolveSelectedAgentId());
+                  loadAgentPanelDataForSelectedAgent(resolveSelectedAgentId(state));
                   refreshAgentsPanelSupplementalData(state.agentsPanel);
                 },
                 onSelectAgent: (agentId) => {
@@ -2851,14 +2922,18 @@ export function renderApp(state: AppViewState) {
               m.renderMemory({
                 connected: state.connected,
                 loading: state.memoryLoading,
-                agentId: state.agentsSelectedId ?? state.assistantAgentId,
+                agentId: resolvedAgentId,
                 entries: state.memoryEntries,
                 error: state.memoryError,
                 onRefresh: () => {
                   if (state.memoryViewMode === "graph") {
                     state.memoryGraph = { nodes: [], edges: [], generatedAtMs: 0 };
+                    state.memoryGraphLoadedAgentId = null;
+                    state.memoryGraphError = null;
                   } else {
                     state.memoryEntries = [];
+                    state.memoryLoadedAgentId = null;
+                    state.memoryError = null;
                   }
                   ensureMemoryLoaded(state);
                 },
@@ -2886,11 +2961,13 @@ export function renderApp(state: AppViewState) {
               c.renderContacts({
                 connected: state.connected,
                 loading: state.contactsLoading,
-                agentId: state.agentsSelectedId ?? state.assistantAgentId,
+                agentId: resolvedAgentId,
                 entries: state.contactsEntries,
                 error: state.contactsError,
                 onRefresh: () => {
                   state.contactsEntries = [];
+                  state.contactsLoadedAgentId = null;
+                  state.contactsError = null;
                   ensureContactsLoaded(state);
                 },
               }),
@@ -3063,7 +3140,6 @@ export function renderApp(state: AppViewState) {
               focusMode: chatFocus,
               onRefresh: () => {
                 state.chatSideResult = null;
-                state.resetToolStream();
                 return refreshChat(state, { scheduleScroll: false });
               },
               onToggleFocusMode: () => {
@@ -3096,6 +3172,7 @@ export function renderApp(state: AppViewState) {
                 if (!state.client || !state.connected) {
                   return;
                 }
+                cancelPendingStream();
                 try {
                   await state.client.request("sessions.reset", { key: state.sessionKey });
                   state.chatMessages = [];
@@ -3149,7 +3226,6 @@ export function renderApp(state: AppViewState) {
                 status: state.debugStatus,
                 health: state.debugHealth,
                 models: state.debugModels,
-                heartbeat: state.debugHeartbeat,
                 eventLog: state.eventLog,
                 methods: sortCopy(state.hello?.features?.methods ?? []),
                 callMethod: state.debugCallMethod,

@@ -204,12 +204,6 @@ struct GeneralSettings: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                if let hb = HeartbeatStore.shared.lastEvent {
-                    let ageText = age(from: Date(timeIntervalSince1970: hb.ts / 1000))
-                    Text("Last heartbeat: \(hb.status) · \(ageText)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
                 if let authLabel = ControlChannel.shared.authSourceLabel {
                     Text(authLabel)
                         .font(.caption)

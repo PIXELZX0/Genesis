@@ -64,7 +64,7 @@ function renderToggle(props: MemoryProps) {
 function renderBody(props: MemoryProps) {
   if (props.viewMode === "graph") {
     if (props.graphError) {
-      return html`<div class="callout danger">${props.graphError}</div>`;
+      return nothing;
     }
     if (props.graphLoading && props.graph.nodes.length === 0) {
       return html`<div class="muted" style="padding: 16px;">${t("common.loading")}</div>`;
@@ -75,6 +75,8 @@ function renderBody(props: MemoryProps) {
 }
 
 export function renderMemory(props: MemoryProps) {
+  const loading = props.viewMode === "graph" ? props.graphLoading : props.loading;
+  const error = props.viewMode === "graph" ? props.graphError : props.error;
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
       <div class="row" style="justify-content: space-between; align-items: flex-start;">
@@ -88,14 +90,14 @@ export function renderMemory(props: MemoryProps) {
         </div>
         <div class="row" style="gap: 8px; align-items: center;">
           ${renderToggle(props)}
-          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${icons.refresh} ${props.loading ? t("common.loading") : t("common.refresh")}
+          <button class="btn" ?disabled=${loading} @click=${props.onRefresh}>
+            ${icons.refresh} ${loading ? t("common.loading") : t("common.refresh")}
           </button>
         </div>
       </div>
 
-      ${props.error
-        ? html`<div class="callout danger" style="margin-top: 16px;">${props.error}</div>`
+      ${error
+        ? html`<div class="callout danger" style="margin-top: 16px;">${error}</div>`
         : nothing}
 
       <div style="margin-top: 20px;">

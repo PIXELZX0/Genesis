@@ -45,6 +45,7 @@ describe("PI isolation child launch", () => {
   it("keeps startup env minimal and forwards only non-secret runtime paths", () => {
     const env = {
       HOME: "/tmp/home",
+      USERPROFILE: "C:\\Users\\test",
       PATH: "/usr/bin",
       NODE_OPTIONS: "--require=/tmp/inject.cjs",
       OPENAI_API_KEY: "sk-secret",
@@ -59,6 +60,7 @@ describe("PI isolation child launch", () => {
 
     expect(createPiIsolationSpawnEnvironment({ env, tsconfigPath: "/tmp/tsconfig.json" })).toEqual({
       HOME: "/tmp/home",
+      USERPROFILE: "C:\\Users\\test",
       PATH: "/usr/bin",
       GENESIS_PI_ISOLATION_CHILD: "1",
       TSX_TSCONFIG_PATH: "/tmp/tsconfig.json",

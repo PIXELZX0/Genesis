@@ -7,6 +7,8 @@ import { parseSlashCommand, refreshSlashCommands } from "./chat/slash-commands.t
 import { resolveControlUiAuthHeader } from "./control-ui-auth.ts";
 import {
   abortChatRun,
+  cancelPendingStream,
+  invalidateChatHistoryRequests,
   loadChatHistory,
   sendChatMessage,
   sendDetachedChatMessage,
@@ -171,6 +173,7 @@ async function sendChatMessageNow(
     refreshSessions?: boolean;
   },
 ) {
+  cancelPendingStream();
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
   // Reset scroll state before sending to ensure auto-scroll works for the response
   resetChatScroll(host as unknown as Parameters<typeof resetChatScroll>[0]);
@@ -454,6 +457,9 @@ async function dispatchSlashCommand(
   }
 
   if (result.trackRunId) {
+    cancelPendingStream();
+    resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
+    invalidateChatHistoryRequests(host as unknown as ChatState, "run");
     host.chatRunId = result.trackRunId;
     host.chatStream = "";
     host.chatSending = false;
@@ -482,6 +488,7 @@ async function clearChatHistory(host: ChatHost) {
   if (!host.client || !host.connected) {
     return;
   }
+  cancelPendingStream();
   try {
     await host.client.request("sessions.reset", { key: host.sessionKey });
     host.chatMessages = [];
@@ -508,6 +515,10 @@ function injectCommandResult(host: ChatHost, content: string) {
 }
 
 export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: boolean }) {
+  if (host.chatRunId) {
+    return;
+  }
+  cancelPendingStream();
   await Promise.all([
     loadChatHistory(host as unknown as ChatState),
     loadSessions(host as unknown as SessionsState, {

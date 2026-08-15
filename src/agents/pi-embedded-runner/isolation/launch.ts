@@ -37,6 +37,7 @@ const PI_ISOLATION_SPAWN_ENV_KEYS = [
   "TMPDIR",
   "TZ",
   "USER",
+  "USERPROFILE",
   "VITEST",
   "WINDIR",
   "all_proxy",

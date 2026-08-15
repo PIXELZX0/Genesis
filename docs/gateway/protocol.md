@@ -293,8 +293,6 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `gateway.identity.get` returns the gateway device identity used by relay and pairing flows.
     - `system-presence` returns the current presence snapshot for connected operator/node devices.
     - `system-event` appends a system event and can update/broadcast presence context.
-    - `last-heartbeat` returns the latest persisted heartbeat event.
-    - `set-heartbeats` toggles heartbeat processing on the gateway.
   </Accordion>
 
   <Accordion title="Models and usage">

@@ -17,7 +17,6 @@ function createState(client: DebugState["client"]): DebugState {
     debugStatus: { old: true } as never,
     debugHealth: { old: true } as never,
     debugModels: [{ id: "old" }],
-    debugHeartbeat: "old-heartbeat",
     debugCallMethod: "",
     debugCallParams: "{}",
     debugCallResult: null,
@@ -57,7 +56,5 @@ describe("loadDebug", () => {
     expect(state.debugStatus).toEqual({ old: true });
     expect(state.debugHealth).toEqual({ old: true });
     expect(state.debugModels).toEqual([{ id: "old" }]);
-    expect(state.debugHeartbeat).toBe("old-heartbeat");
-    expect(request).not.toHaveBeenCalledWith("last-heartbeat", {});
   });
 });

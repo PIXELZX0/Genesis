@@ -218,9 +218,15 @@ export class GenesisApp extends LitElement {
   @state() agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null = null;
   @state() memoryEntries: import("./controllers/memory.ts").MemoryEntry[] = [];
   @state() memoryLoading = false;
+  @state() memoryLoadingAgentId: string | null = null;
+  @state() memoryLoadedAgentId: string | null = null;
+  @state() memoryLoadRequestId = 0;
   @state() memoryError: string | null = null;
   @state() contactsEntries: import("./controllers/contacts.ts").ContactEntry[] = [];
   @state() contactsLoading = false;
+  @state() contactsLoadingAgentId: string | null = null;
+  @state() contactsLoadedAgentId: string | null = null;
+  @state() contactsLoadRequestId = 0;
   @state() contactsError: string | null = null;
   @state() memoryGraph: import("./controllers/memory.ts").MemoryGraph = {
     nodes: [],
@@ -228,6 +234,9 @@ export class GenesisApp extends LitElement {
     generatedAtMs: 0,
   };
   @state() memoryGraphLoading = false;
+  @state() memoryGraphLoadingAgentId: string | null = null;
+  @state() memoryGraphLoadedAgentId: string | null = null;
+  @state() memoryGraphLoadRequestId = 0;
   @state() memoryGraphError: string | null = null;
   @state() memoryViewMode: "table" | "graph" = "table";
   @state() chatQueue: ChatQueueItem[] = [];
@@ -622,7 +631,6 @@ export class GenesisApp extends LitElement {
   @state() debugStatus: StatusSummary | null = null;
   @state() debugHealth: HealthSummary | null = null;
   @state() debugModels: ModelCatalogEntry[] = [];
-  @state() debugHeartbeat: unknown = null;
   @state() debugCallMethod = "";
   @state() debugCallParams = "{}";
   @state() debugCallResult: string | null = null;

@@ -34,7 +34,6 @@ struct MenuContentSmokeTests {
         state.canvasPanelVisible = true
         state.swabbleEnabled = true
         state.voicePushToTalkEnabled = true
-        state.heartbeatsEnabled = true
         let view = MenuContent(state: state, updater: nil)
         _ = view.body
     }

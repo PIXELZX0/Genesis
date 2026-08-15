@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { GatewayRequestError } from "../gateway.ts";
 import {
+  applyChatHistoryMessageEvent,
   abortChatRun,
+  cancelPendingStream,
   flushPendingStream,
   handleChatEvent,
+  invalidateChatHistoryRequests,
   loadChatHistory,
   sendChatMessage,
+  sendSteerChatMessage,
   type ChatEventPayload,
   type ChatState,
 } from "./chat.ts";
@@ -208,6 +212,22 @@ describe("handleChatEvent", () => {
     });
     flushPendingStream();
     expect(state.chatStream).toBe("Hello world");
+  });
+
+  it("cancels a pending stream frame without applying its text", () => {
+    const state = createState({ chatRunId: "run-1", chatStream: "old text" });
+
+    handleChatEvent(state, {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "delta",
+      appendText: "stale text",
+    });
+    cancelPendingStream();
+
+    expect(state.chatStream).toBe("old text");
+    flushPendingStream();
+    expect(state.chatStream).toBe("old text");
   });
 
   it("replaces the stream on a reset incremental delta", () => {
@@ -659,6 +679,189 @@ describe("handleChatEvent", () => {
   });
 });
 
+describe("applyChatHistoryMessageEvent", () => {
+  it("replaces a provisional user transcript row with its canonical message", () => {
+    const provisional = {
+      role: "user",
+      content: "hello",
+      __genesis: { seq: 1 },
+    };
+    const canonical = {
+      role: "user",
+      content: "hello",
+      __genesis: { id: "msg-1", seq: 2 },
+    };
+    const state = createState({ chatMessages: [provisional] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+    expect(state.chatMessages).toEqual([canonical]);
+  });
+
+  it("reconciles identical optimistic rows oldest-first for canonical events", () => {
+    const optimisticFirst = { role: "user", content: "hello" };
+    const optimisticSecond = { role: "user", content: "hello" };
+    const canonicalFirst = {
+      role: "user",
+      content: "hello",
+      __genesis: { id: "msg-1", seq: 1 },
+    };
+    const canonicalSecond = {
+      role: "user",
+      content: "hello",
+      __genesis: { id: "msg-2", seq: 2 },
+    };
+    const state = createState({ chatMessages: [optimisticFirst, optimisticSecond] });
+    const options = { preferOldestOptimisticMatch: true };
+
+    expect(applyChatHistoryMessageEvent(state, canonicalFirst, options)).toBe(true);
+    expect(state.chatMessages).toEqual([canonicalFirst, optimisticSecond]);
+    expect(applyChatHistoryMessageEvent(state, canonicalSecond, options)).toBe(true);
+    expect(state.chatMessages).toEqual([canonicalFirst, canonicalSecond]);
+  });
+
+  it("replaces an attachment-only optimistic row with its canonical media row", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+      timestamp: 1,
+    };
+    const canonical = {
+      role: "user",
+      content: "",
+      MediaPath: "/tmp/upload.png",
+      MediaPaths: ["/tmp/upload.png"],
+      MediaType: "image/png",
+      MediaTypes: ["image/png"],
+      __genesis: { id: "msg-media-1", seq: 2 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+    expect(state.chatMessages).toEqual([canonical]);
+  });
+
+  it("replaces an optimistic image with a MIME-less canonical png row", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+    };
+    const canonical = {
+      role: "user",
+      content: "",
+      MediaPath: "/tmp/upload.png",
+      __genesis: { id: "msg-media-mime-less", seq: 2 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+    expect(state.chatMessages).toEqual([canonical]);
+  });
+
+  it("replaces an optimistic image with an octet-stream canonical png row", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+    };
+    const canonical = {
+      role: "user",
+      content: "",
+      MediaPath: "/tmp/upload.png",
+      MediaType: "application/octet-stream",
+      __genesis: { id: "msg-media-octet-stream", seq: 2 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+    expect(state.chatMessages).toEqual([canonical]);
+  });
+
+  it("replaces a text-plus-image optimistic row with its canonical media row", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        { type: "text", text: "describe this" },
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+    };
+    const canonical = {
+      role: "user",
+      content: "describe this",
+      MediaPath: "/tmp/upload.png",
+      MediaType: "image/png",
+      __genesis: { id: "msg-text-media-1", seq: 4 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+    expect(state.chatMessages).toEqual([canonical]);
+  });
+
+  it("does not match text-plus-image rows with different explicit media metadata", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        { type: "text", text: "describe this" },
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+    };
+    const canonical = {
+      role: "user",
+      content: "describe this",
+      MediaPath: "/tmp/upload.jpg",
+      MediaType: "image/jpeg",
+      __genesis: { id: "msg-text-media-2", seq: 5 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical, { appendIfMissing: false })).toBe(false);
+    expect(state.chatMessages).toEqual([optimistic]);
+  });
+
+  it("does not match a canonical media row with different attachment metadata", () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/jpeg", data: "optimistic-image" },
+        },
+      ],
+    };
+    const canonical = {
+      role: "user",
+      content: "",
+      MediaPath: "/tmp/upload.png",
+      MediaType: "image/png",
+      __genesis: { id: "msg-media-2", seq: 3 },
+    };
+    const state = createState({ chatMessages: [optimistic] });
+
+    expect(applyChatHistoryMessageEvent(state, canonical, { appendIfMissing: false })).toBe(false);
+    expect(state.chatMessages).toEqual([optimistic]);
+  });
+});
+
 describe("loadChatHistory", () => {
   it("filters NO_REPLY assistant messages from history", async () => {
     const messages = [
@@ -924,6 +1127,23 @@ describe("loadChatHistory", () => {
     ]);
   });
 
+  it.each([
+    { role: "user", content: "", MediaPath: "/tmp/one.png" },
+    { role: "user", content: "", MediaPaths: ["/tmp/two.png"] },
+    { role: "user", content: "", MediaUrl: "https://example.com/three.png" },
+    { role: "user", content: "", MediaUrls: ["https://example.com/four.png"] },
+  ])("keeps attachment-only history rows with path metadata", async (row) => {
+    const request = vi.fn().mockResolvedValue({ messages: [row] });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([row]);
+  });
+
   it("keeps local optimistic tail messages when history reload returns a stale snapshot", async () => {
     const persistedUser = {
       role: "user",
@@ -954,6 +1174,543 @@ describe("loadChatHistory", () => {
 
     expect(state.chatMessages).toEqual([persistedUser, optimisticUser, optimisticAssistant]);
     expect(state.chatStream).toBeNull();
+  });
+
+  it("preserves a message added while a stale history request is pending", async () => {
+    const persistedUser = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [persistedUser],
+    });
+
+    const load = loadChatHistory(state);
+    expect(request).toHaveBeenCalledTimes(1);
+
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "latest ask" }],
+      timestamp: 10,
+    };
+    expect(applyChatHistoryMessageEvent(state, optimisticUser)).toBe(true);
+
+    pendingHistory.resolve({ messages: [persistedUser] });
+    await load;
+
+    expect(state.chatMessages).toEqual([persistedUser, optimisticUser]);
+  });
+
+  it("preserves a fresh-session optimistic message when empty history is pending", async () => {
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+    });
+
+    const load = loadChatHistory(state);
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "first message" }],
+      timestamp: 10,
+    };
+    expect(applyChatHistoryMessageEvent(state, optimisticUser)).toBe(true);
+
+    pendingHistory.resolve({ messages: [] });
+    await load;
+
+    expect(state.chatMessages).toEqual([optimisticUser]);
+  });
+
+  it("preserves pending provisional and assistant rows present when empty history starts", async () => {
+    const canonicalBaseline = {
+      role: "user",
+      content: [{ type: "text", text: "old" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const provisionalUser = {
+      role: "user",
+      content: "latest ask",
+      __genesis: { seq: 2 },
+    };
+    const finalAssistant = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      timestamp: 11,
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [canonicalBaseline, provisionalUser, finalAssistant],
+    });
+
+    const load = loadChatHistory(state);
+    pendingHistory.resolve({ messages: [] });
+
+    await expect(load).resolves.toBe("applied");
+    expect(state.chatMessages).toEqual([provisionalUser, finalAssistant]);
+  });
+
+  it("invalidates a pending history response when a chat run starts and finishes", async () => {
+    const staleHistory = {
+      role: "user",
+      content: [{ type: "text", text: "old" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn((method: string) =>
+      method === "chat.history" ? pendingHistory.promise : Promise.resolve({}),
+    );
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [staleHistory],
+    });
+
+    const load = loadChatHistory(state);
+    const runId = await sendChatMessage(state, "latest ask");
+    expect(runId).toBeTypeOf("string");
+
+    expect(
+      handleChatEvent(state, {
+        runId: runId as string,
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "latest answer" }],
+        },
+      }),
+    ).toBe("final");
+
+    pendingHistory.resolve({ messages: [staleHistory] });
+
+    await expect(load).resolves.toBe("run-stale");
+    expect(state.chatMessages).toHaveLength(3);
+    expect(state.chatMessages[1]).toMatchObject({
+      role: "user",
+      content: [{ type: "text", text: "latest ask" }],
+    });
+    expect(state.chatMessages[2]).toMatchObject({
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+    });
+  });
+
+  it("invalidates a pending history response when the gateway disconnects", async () => {
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+    });
+
+    const load = loadChatHistory(state);
+    invalidateChatHistoryRequests(state);
+    pendingHistory.resolve({ messages: [{ role: "assistant", content: "stale" }] });
+
+    await expect(load).resolves.toBe("stale");
+    expect(state.chatMessages).toEqual([]);
+    expect(state.chatLoading).toBe(false);
+  });
+
+  it("returns ordinary stale when another history request supersedes a pending one", async () => {
+    const firstHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const secondHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi
+      .fn()
+      .mockReturnValueOnce(firstHistory.promise)
+      .mockReturnValueOnce(secondHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+    });
+
+    const firstLoad = loadChatHistory(state);
+    const secondLoad = loadChatHistory(state);
+    secondHistory.resolve({ messages: [] });
+
+    await expect(secondLoad).resolves.toBe("applied");
+    firstHistory.resolve({ messages: [] });
+    await expect(firstLoad).resolves.toBe("stale");
+  });
+
+  it("invalidates a pending history response when a steer send starts", async () => {
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn((method: string) =>
+      method === "chat.history" ? pendingHistory.promise : Promise.resolve({}),
+    );
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatRunId: "active-run",
+    });
+
+    const load = loadChatHistory(state);
+    await expect(sendSteerChatMessage(state, "steer this")).resolves.toBeTypeOf("string");
+    pendingHistory.resolve({ messages: [] });
+
+    await expect(load).resolves.toBe("run-stale");
+  });
+
+  it("preserves only a new canonical message when pending history has no shared anchor", async () => {
+    const requestStartMessage = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const responseMessage = {
+      role: "assistant",
+      content: [{ type: "text", text: "server snapshot" }],
+      __genesis: { id: "msg-response", seq: 10 },
+    };
+    const newCanonicalMessage = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [requestStartMessage],
+    });
+
+    const load = loadChatHistory(state);
+    expect(applyChatHistoryMessageEvent(state, newCanonicalMessage)).toBe(true);
+
+    pendingHistory.resolve({ messages: [responseMessage] });
+    await load;
+
+    expect(state.chatMessages).toEqual([responseMessage, newCanonicalMessage]);
+  });
+
+  it("does not duplicate a new canonical message already returned in history", async () => {
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+    });
+    const newCanonicalMessage = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 1 },
+    };
+    const returnedCanonicalMessage = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 1 },
+    };
+
+    const load = loadChatHistory(state);
+    expect(applyChatHistoryMessageEvent(state, newCanonicalMessage)).toBe(true);
+
+    pendingHistory.resolve({ messages: [returnedCanonicalMessage] });
+    await load;
+
+    expect(state.chatMessages).toEqual([returnedCanonicalMessage]);
+  });
+
+  it("preserves a canonical message added while a stale history request is pending", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const canonicalTail = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical],
+    });
+
+    const load = loadChatHistory(state);
+    expect(applyChatHistoryMessageEvent(state, canonicalTail)).toBe(true);
+
+    pendingHistory.resolve({ messages: [historyCanonical] });
+    await load;
+
+    expect(state.chatMessages).toEqual([historyCanonical, canonicalTail]);
+  });
+
+  it("does not duplicate a canonical message when stale history already contains its identity", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "first" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const canonicalTail = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const historyCanonicalTail = {
+      role: "assistant",
+      content: [{ type: "text", text: "latest answer" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const pendingHistory = createDeferred<{ messages: Array<unknown>; thinkingLevel?: string }>();
+    const request = vi.fn().mockReturnValue(pendingHistory.promise);
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical],
+    });
+
+    const load = loadChatHistory(state);
+    expect(applyChatHistoryMessageEvent(state, canonicalTail)).toBe(true);
+
+    pendingHistory.resolve({ messages: [historyCanonical, historyCanonicalTail] });
+    await load;
+
+    expect(state.chatMessages).toEqual([historyCanonical, historyCanonicalTail]);
+    expect(
+      state.chatMessages.filter(
+        (message) => (message as { __genesis?: { id?: unknown } }).__genesis?.id === "msg-new",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("preserves an identical optimistic tail after an exact canonical history anchor", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const optimistic = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      timestamp: 10,
+    };
+    const request = vi.fn().mockResolvedValue({ messages: [historyCanonical] });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical, optimistic],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([historyCanonical, optimistic]);
+  });
+
+  it("does not duplicate an optimistic tail after history catches up", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const caughtUpCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const optimistic = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      timestamp: 10,
+    };
+    const request = vi.fn().mockResolvedValue({
+      messages: [historyCanonical, caughtUpCanonical],
+    });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical, optimistic],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([historyCanonical, caughtUpCanonical]);
+  });
+
+  it("consumes duplicate optimistic signatures one-for-one", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const caughtUpCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const optimisticFirst = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      timestamp: 10,
+    };
+    const optimisticSecond = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      timestamp: 11,
+    };
+    const request = vi.fn().mockResolvedValue({
+      messages: [historyCanonical, caughtUpCanonical],
+    });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical, optimisticFirst, optimisticSecond],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([historyCanonical, caughtUpCanonical, optimisticSecond]);
+  });
+
+  it("consumes a provisional seq-only transcript row when history has its canonical replacement", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "old" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: [{ type: "text", text: "old" }],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const provisional = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { seq: 2 },
+    };
+    const canonicalReplacement = {
+      role: "user",
+      content: [{ type: "text", text: "same" }],
+      __genesis: { id: "msg-new", seq: 3 },
+    };
+    const request = vi.fn().mockResolvedValue({
+      messages: [historyCanonical, canonicalReplacement],
+    });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical, provisional],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([historyCanonical, canonicalReplacement]);
+  });
+
+  it("preserves a newest canonical text-plus-attachment row past a stale pending anchor", async () => {
+    const optimistic = {
+      role: "user",
+      content: [
+        { type: "text", text: "describe this" },
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "optimistic-image" },
+        },
+      ],
+      timestamp: 10,
+    };
+    const canonical = {
+      role: "user",
+      content: "describe this",
+      MediaPath: "/tmp/upload.png",
+      MediaType: "image/png",
+      __genesis: { id: "msg-new", seq: 2 },
+    };
+    const stalePending = {
+      role: "user",
+      content: "describe this",
+      MediaPath: "/tmp/stale-upload.png",
+      MediaType: "image/png",
+      __genesis: { seq: 1 },
+    };
+    const request = vi.fn().mockResolvedValue({ messages: [stalePending] });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [optimistic],
+    });
+
+    const load = loadChatHistory(state);
+    expect(applyChatHistoryMessageEvent(state, canonical)).toBe(true);
+
+    await load;
+
+    expect(state.chatMessages).toEqual([stalePending, canonical]);
+  });
+
+  it("preserves an unmatched attachment-only optimistic tail after its canonical anchor", async () => {
+    const previousCanonical = {
+      role: "user",
+      content: "",
+      MediaPaths: ["/tmp/old.png"],
+      MediaTypes: ["image/png"],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const historyCanonical = {
+      role: "user",
+      content: "",
+      MediaPaths: ["/tmp/old.png"],
+      MediaTypes: ["image/png"],
+      __genesis: { id: "msg-old", seq: 1 },
+    };
+    const optimistic = {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "new-image" },
+        },
+      ],
+      timestamp: 10,
+    };
+    const request = vi.fn().mockResolvedValue({ messages: [historyCanonical] });
+    const state = createState({
+      connected: true,
+      client: { request } as unknown as ChatState["client"],
+      chatMessages: [previousCanonical, optimistic],
+    });
+
+    await loadChatHistory(state);
+
+    expect(state.chatMessages).toEqual([historyCanonical, optimistic]);
   });
 
   it("does not duplicate optimistic tail messages after history catches up", async () => {
@@ -1001,7 +1758,7 @@ describe("loadChatHistory", () => {
       chatThinkingLevel: "high",
     });
 
-    await loadChatHistory(state);
+    await expect(loadChatHistory(state)).resolves.toBe("failed");
 
     expect(state.chatMessages).toEqual([]);
     expect(state.chatThinkingLevel).toBeNull();

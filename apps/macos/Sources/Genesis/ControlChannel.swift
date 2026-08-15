@@ -4,16 +4,6 @@ import GenesisKit
 import GenesisProtocol
 import SwiftUI
 
-struct ControlHeartbeatEvent: Codable {
-    let ts: Double
-    let status: String
-    let to: String?
-    let preview: String?
-    let durationMs: Double?
-    let hasMedia: Bool?
-    let reason: String?
-}
-
 struct ControlAgentEvent: Codable, Identifiable {
     var id: String {
         "\(self.runId)-\(self.seq)"
@@ -153,11 +143,6 @@ final class ControlChannel {
             self.state = .degraded(message)
             throw ControlChannelError.badResponse(message)
         }
-    }
-
-    func lastHeartbeat() async throws -> ControlHeartbeatEvent? {
-        let data = try await self.request(method: "last-heartbeat")
-        return try JSONDecoder().decode(ControlHeartbeatEvent?.self, from: data)
     }
 
     func request(
@@ -356,13 +341,6 @@ final class ControlChannel {
                 AgentEventStore.shared.append(agent)
                 self.routeWorkActivity(from: agent)
             }
-        case let .event(evt) where evt.event == "heartbeat":
-            if let payload = evt.payload,
-               let heartbeat = try? GatewayPayloadDecoding.decode(payload, as: ControlHeartbeatEvent.self),
-               let data = try? JSONEncoder().encode(heartbeat)
-            {
-                NotificationCenter.default.post(name: .controlHeartbeat, object: data)
-            }
         case let .event(evt) where evt.event == "shutdown":
             self.state = .degraded("gateway shutdown")
         case .snapshot:
@@ -421,6 +399,5 @@ final class ControlChannel {
 }
 
 extension Notification.Name {
-    static let controlHeartbeat = Notification.Name("genesis.control.heartbeat")
     static let controlAgentEvent = Notification.Name("genesis.control.agent")
 }

@@ -4,9 +4,13 @@ import { GATEWAY_EVENT_UPDATE_AVAILABLE } from "../../../src/gateway/events.js";
 import { ConnectErrorDetailCodes } from "../../../src/gateway/protocol/connect-error-details.js";
 import { PROTOCOL_VERSION as GATEWAY_PROTOCOL_VERSION } from "../../../src/gateway/protocol/version.js";
 import { connectGateway, resolveControlUiClientVersion } from "./app-gateway.ts";
+import type { ChatHistoryLoadResult } from "./controllers/chat.ts";
 import type { GatewayHelloOk } from "./gateway.ts";
 
-const loadChatHistoryMock = vi.hoisted(() => vi.fn(async () => undefined));
+const loadChatHistoryMock = vi.hoisted(() =>
+  vi.fn(async (): Promise<ChatHistoryLoadResult> => "applied"),
+);
+const invalidateChatHistoryRequestsMock = vi.hoisted(() => vi.fn());
 const loadControlUiBootstrapConfigMock = vi.hoisted(() => vi.fn(async () => undefined));
 
 type GatewayClientMock = {
@@ -101,6 +105,7 @@ vi.mock("./controllers/chat.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./controllers/chat.ts")>();
   return {
     ...actual,
+    invalidateChatHistoryRequests: invalidateChatHistoryRequestsMock,
     loadChatHistory: loadChatHistoryMock,
   };
 });
@@ -113,10 +118,31 @@ type TestGatewayHost = Parameters<typeof connectGateway>[0] & {
   chatSideResult: unknown;
   chatSideResultTerminalRuns: Set<string>;
   chatMessages: unknown[];
+  chatQueue: Array<{ id: string; text: string; createdAt: number }>;
+  chatSending: boolean;
   chatStream: string | null;
+  updateComplete: Promise<unknown>;
   chatToolMessages: Record<string, unknown>[];
   toolStreamById: Map<string, unknown>;
   toolStreamOrder: string[];
+};
+
+type AgentBackedTestHost = ReturnType<typeof createHost> & {
+  memoryLoading: boolean;
+  memoryLoadingAgentId: string | null;
+  memoryLoadedAgentId: string | null;
+  memoryLoadRequestId: number;
+  memoryError: string | null;
+  contactsLoading: boolean;
+  contactsLoadingAgentId: string | null;
+  contactsLoadedAgentId: string | null;
+  contactsLoadRequestId: number;
+  contactsError: string | null;
+  memoryGraphLoading: boolean;
+  memoryGraphLoadingAgentId: string | null;
+  memoryGraphLoadedAgentId: string | null;
+  memoryGraphLoadRequestId: number;
+  memoryGraphError: string | null;
 };
 
 function createHost(): TestGatewayHost {
@@ -163,6 +189,7 @@ function createHost(): TestGatewayHost {
     chatStreamSegments: [],
     chatStream: null,
     chatStreamStartedAt: null,
+    updateComplete: Promise.resolve(),
     chatRunId: null,
     chatSideResult: null,
     chatSending: false,
@@ -183,6 +210,14 @@ function connectHostGateway() {
   const client = gatewayClientInstances[0];
   expect(client).toBeDefined();
   return { host, client };
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
 }
 
 function emitToolResultEvent(client: GatewayClientMock) {
@@ -208,6 +243,7 @@ describe("connectGateway", () => {
   beforeEach(() => {
     gatewayClientInstances.length = 0;
     loadChatHistoryMock.mockClear();
+    invalidateChatHistoryRequestsMock.mockClear();
     loadControlUiBootstrapConfigMock.mockClear();
     vi.stubGlobal("window", {
       setTimeout: globalThis.setTimeout,
@@ -232,6 +268,84 @@ describe("connectGateway", () => {
     expect(gatewayClientInstances).toHaveLength(3);
     expect(secondClient.stop).toHaveBeenCalledTimes(1);
     expect(host.lastError).toBeNull();
+  });
+
+  it("resets agent-backed load markers when starting a new connection", () => {
+    const host = createHost() as AgentBackedTestHost;
+    host.memoryLoading = true;
+    host.memoryLoadingAgentId = "assistant";
+    host.memoryLoadedAgentId = "assistant";
+    host.memoryLoadRequestId = 4;
+    host.memoryError = "memory failed";
+    host.contactsLoading = true;
+    host.contactsLoadingAgentId = "assistant";
+    host.contactsLoadedAgentId = "assistant";
+    host.contactsLoadRequestId = 7;
+    host.contactsError = "contacts failed";
+    host.memoryGraphLoading = true;
+    host.memoryGraphLoadingAgentId = "assistant";
+    host.memoryGraphLoadedAgentId = "assistant";
+    host.memoryGraphLoadRequestId = 10;
+    host.memoryGraphError = "graph failed";
+
+    connectGateway(host);
+
+    expect(host.memoryLoading).toBe(false);
+    expect(host.memoryLoadingAgentId).toBeNull();
+    expect(host.memoryLoadedAgentId).toBeNull();
+    expect(host.memoryLoadRequestId).toBe(5);
+    expect(host.memoryError).toBeNull();
+    expect(host.contactsLoading).toBe(false);
+    expect(host.contactsLoadingAgentId).toBeNull();
+    expect(host.contactsLoadedAgentId).toBeNull();
+    expect(host.contactsLoadRequestId).toBe(8);
+    expect(host.contactsError).toBeNull();
+    expect(host.memoryGraphLoading).toBe(false);
+    expect(host.memoryGraphLoadingAgentId).toBeNull();
+    expect(host.memoryGraphLoadedAgentId).toBeNull();
+    expect(host.memoryGraphLoadRequestId).toBe(11);
+    expect(host.memoryGraphError).toBeNull();
+  });
+
+  it("resets agent-backed load markers when the active client closes", () => {
+    const host = createHost() as AgentBackedTestHost;
+    connectGateway(host);
+    const client = gatewayClientInstances[0];
+    expect(client).toBeDefined();
+
+    host.memoryLoading = true;
+    host.memoryLoadingAgentId = "assistant";
+    host.memoryLoadedAgentId = "assistant";
+    host.memoryLoadRequestId = 4;
+    host.memoryError = "memory failed";
+    host.contactsLoading = true;
+    host.contactsLoadingAgentId = "assistant";
+    host.contactsLoadedAgentId = "assistant";
+    host.contactsLoadRequestId = 7;
+    host.contactsError = "contacts failed";
+    host.memoryGraphLoading = true;
+    host.memoryGraphLoadingAgentId = "assistant";
+    host.memoryGraphLoadedAgentId = "assistant";
+    host.memoryGraphLoadRequestId = 10;
+    host.memoryGraphError = "graph failed";
+
+    client.emitClose({ code: 1006 });
+
+    expect(host.memoryLoading).toBe(false);
+    expect(host.memoryLoadingAgentId).toBeNull();
+    expect(host.memoryLoadedAgentId).toBeNull();
+    expect(host.memoryLoadRequestId).toBe(5);
+    expect(host.memoryError).toBeNull();
+    expect(host.contactsLoading).toBe(false);
+    expect(host.contactsLoadingAgentId).toBeNull();
+    expect(host.contactsLoadedAgentId).toBeNull();
+    expect(host.contactsLoadRequestId).toBe(8);
+    expect(host.contactsError).toBeNull();
+    expect(host.memoryGraphLoading).toBe(false);
+    expect(host.memoryGraphLoadingAgentId).toBeNull();
+    expect(host.memoryGraphLoadedAgentId).toBeNull();
+    expect(host.memoryGraphLoadRequestId).toBe(11);
+    expect(host.memoryGraphError).toBeNull();
   });
 
   it("ignores stale client onEvent callbacks after reconnect", () => {
@@ -303,6 +417,70 @@ describe("connectGateway", () => {
     secondClient.emitClose({ code: 1005 });
     expect(host.lastError).toBe("disconnected (1005): no reason");
     expect(host.lastErrorCode).toBeNull();
+  });
+
+  it("clears deferred session reload markers when replacing the gateway client", () => {
+    const host = createHost();
+    connectGateway(host);
+    const deferredHost = host as TestGatewayHost & {
+      pendingSessionMessageReloadSessionKey?: string | null;
+      pendingSessionMessageReloadRunId?: string | null;
+      pendingSessionMessageReloadNeedsReplay?: boolean;
+    };
+    deferredHost.pendingSessionMessageReloadSessionKey = "main";
+    deferredHost.pendingSessionMessageReloadRunId = "run-before-reconnect";
+    deferredHost.pendingSessionMessageReloadNeedsReplay = true;
+
+    connectGateway(host);
+
+    expect(deferredHost.pendingSessionMessageReloadSessionKey).toBeNull();
+    expect(deferredHost.pendingSessionMessageReloadRunId).toBeNull();
+    expect(deferredHost.pendingSessionMessageReloadNeedsReplay).toBe(false);
+  });
+
+  it("clears deferred session reload markers only when the active client closes", () => {
+    const host = createHost();
+    connectGateway(host);
+    const firstClient = gatewayClientInstances[0];
+    expect(firstClient).toBeDefined();
+    connectGateway(host);
+    const secondClient = gatewayClientInstances[1];
+    expect(secondClient).toBeDefined();
+
+    const deferredHost = host as TestGatewayHost & {
+      pendingSessionMessageReloadSessionKey?: string | null;
+      pendingSessionMessageReloadRunId?: string | null;
+    };
+    deferredHost.pendingSessionMessageReloadSessionKey = "main";
+    deferredHost.pendingSessionMessageReloadRunId = "run-before-close";
+
+    firstClient.emitClose({ code: 1005 });
+    expect(deferredHost.pendingSessionMessageReloadSessionKey).toBe("main");
+    expect(deferredHost.pendingSessionMessageReloadRunId).toBe("run-before-close");
+
+    secondClient.emitClose({ code: 1005 });
+    expect(deferredHost.pendingSessionMessageReloadSessionKey).toBeNull();
+    expect(deferredHost.pendingSessionMessageReloadRunId).toBeNull();
+  });
+
+  it("invalidates chat history requests only for connection starts and active closes", () => {
+    const host = createHost();
+
+    connectGateway(host);
+    const firstClient = gatewayClientInstances[0];
+    expect(firstClient).toBeDefined();
+    expect(invalidateChatHistoryRequestsMock).toHaveBeenCalledTimes(1);
+
+    connectGateway(host);
+    const secondClient = gatewayClientInstances[1];
+    expect(secondClient).toBeDefined();
+    expect(invalidateChatHistoryRequestsMock).toHaveBeenCalledTimes(2);
+
+    firstClient.emitClose({ code: 1005 });
+    expect(invalidateChatHistoryRequestsMock).toHaveBeenCalledTimes(2);
+
+    secondClient.emitClose({ code: 1005 });
+    expect(invalidateChatHistoryRequestsMock).toHaveBeenCalledTimes(3);
   });
 
   it("preserves pending approval requests across reconnect", () => {
@@ -894,6 +1072,484 @@ describe("connectGateway", () => {
     });
   });
 
+  it("defers provisional active user transcript events until the canonical row arrives", () => {
+    const { host, client } = connectHostGateway();
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "hello" }],
+    };
+    host.chatRunId = "main-run-5";
+    host.chatMessages = [optimisticUser];
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    expect(host.chatMessages).toEqual([optimisticUser]);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-5",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+
+    const canonicalUser = {
+      role: "user",
+      content: "hello",
+      __genesis: { id: "msg-user-5", seq: 2 },
+    };
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        messageId: "msg-user-5",
+        message: canonicalUser,
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    expect(
+      host.chatMessages.filter((message) => (message as { role?: unknown }).role === "user"),
+    ).toHaveLength(1);
+    expect(host.chatMessages[0]).toEqual(canonicalUser);
+  });
+
+  it("hands a single idle provisional reload to a run that starts before history settles", async () => {
+    const { host, client } = connectHostGateway();
+    const pendingHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockImplementationOnce(() => pendingHistory.promise);
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    host.chatRunId = "main-run-single-provisional";
+    pendingHistory.resolve("run-stale");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      (host as { pendingSessionMessageReloadSessionKey?: string | null })
+        .pendingSessionMessageReloadSessionKey,
+    ).toBe("main");
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBe("main-run-single-provisional");
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-single-provisional",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("replays an idle provisional reload when a run starts and finishes before settlement", async () => {
+    const firstHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockReturnValueOnce(firstHistory.promise).mockResolvedValueOnce("applied");
+    const { host, client } = connectHostGateway();
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    host.chatRunId = "main-run-finished-before-settlement";
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-finished-before-settlement",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    expect(host.chatRunId).toBeNull();
+    firstHistory.resolve("run-stale");
+
+    await vi.waitFor(() => {
+      expect(loadChatHistoryMock).toHaveBeenCalledTimes(2);
+      expect(
+        (host as { pendingSessionMessageReloadSessionKey?: string | null })
+          .pendingSessionMessageReloadSessionKey,
+      ).toBeNull();
+    });
+  });
+
+  it("does not consume a deferred reload marker from another run's terminal event", () => {
+    const { host, client } = connectHostGateway();
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "hello" }],
+    };
+    host.chatRunId = "main-run-7";
+    host.chatMessages = [optimisticUser];
+    loadChatHistoryMock.mockClear();
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    expect(
+      (host as { pendingSessionMessageReloadSessionKey?: string | null })
+        .pendingSessionMessageReloadSessionKey,
+    ).toBe("main");
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBe("main-run-7");
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "other-run",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Other run" }],
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBe("main-run-7");
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-7",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    expect(
+      (host as { pendingSessionMessageReloadSessionKey?: string | null })
+        .pendingSessionMessageReloadSessionKey,
+    ).toBeNull();
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBeNull();
+  });
+
+  it("clears both deferred reload markers when the canonical user row arrives", () => {
+    const { host, client } = connectHostGateway();
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "hello" }],
+    };
+    host.chatRunId = "main-run-8";
+    host.chatMessages = [optimisticUser];
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        messageId: "msg-user-8",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { id: "msg-user-8", seq: 2 },
+        },
+      },
+    });
+
+    expect(
+      (host as { pendingSessionMessageReloadSessionKey?: string | null })
+        .pendingSessionMessageReloadSessionKey,
+    ).toBeNull();
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBeNull();
+  });
+
+  it("reloads once instead of appending a provisional user event after final", () => {
+    const { host, client } = connectHostGateway();
+    const optimisticUser = {
+      role: "user",
+      content: [{ type: "text", text: "hello" }],
+    };
+    host.chatMessages = [optimisticUser];
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "main-run-6",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "hello",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    expect(
+      host.chatMessages.filter((message) => (message as { role?: unknown }).role === "user"),
+    ).toHaveLength(1);
+
+    const canonicalUser = {
+      role: "user",
+      content: "hello",
+      __genesis: { id: "msg-user-6", seq: 2 },
+    };
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        messageId: "msg-user-6",
+        message: canonicalUser,
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    expect(
+      host.chatMessages.filter((message) => (message as { role?: unknown }).role === "user"),
+    ).toHaveLength(1);
+    expect(host.chatMessages[0]).toEqual(canonicalUser);
+  });
+
+  it("allows a second idle provisional event after its first history reload settles", async () => {
+    const pendingHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockReturnValueOnce(pendingHistory.promise);
+    const { host, client } = connectHostGateway();
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "first",
+          __genesis: { seq: 1 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+    expect(
+      (host as { pendingSessionMessageReloadSessionKey?: string | null })
+        .pendingSessionMessageReloadSessionKey,
+    ).toBe("main");
+    expect(
+      (host as { pendingSessionMessageReloadRunId?: string | null })
+        .pendingSessionMessageReloadRunId,
+    ).toBeNull();
+
+    pendingHistory.resolve("applied");
+    await pendingHistory.promise;
+    await vi.waitFor(() => {
+      expect(
+        (host as { pendingSessionMessageReloadSessionKey?: string | null })
+          .pendingSessionMessageReloadSessionKey,
+      ).toBeNull();
+    });
+
+    client.emitEvent({
+      event: "session.message",
+      payload: {
+        sessionKey: "main",
+        message: {
+          role: "user",
+          content: "second",
+          __genesis: { seq: 2 },
+        },
+      },
+    });
+
+    expect(loadChatHistoryMock).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["stale", "failed"] as const)(
+    "replays a second idle provisional event when the first history reload settles as %s",
+    async (firstResult) => {
+      const firstHistory = createDeferred<ChatHistoryLoadResult>();
+      const secondHistory = createDeferred<ChatHistoryLoadResult>();
+      loadChatHistoryMock
+        .mockReturnValueOnce(firstHistory.promise)
+        .mockReturnValueOnce(secondHistory.promise);
+      const { host, client } = connectHostGateway();
+      const deferredHost = host as TestGatewayHost & {
+        pendingSessionMessageReloadSessionKey?: string | null;
+        pendingSessionMessageReloadRunId?: string | null;
+        pendingSessionMessageReloadNeedsReplay?: boolean;
+      };
+
+      for (const seq of [1, 2]) {
+        client.emitEvent({
+          event: "session.message",
+          payload: {
+            sessionKey: "main",
+            message: {
+              role: "user",
+              content: `message-${seq}`,
+              __genesis: { seq },
+            },
+          },
+        });
+      }
+
+      expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+      expect(deferredHost.pendingSessionMessageReloadSessionKey).toBe("main");
+      expect(deferredHost.pendingSessionMessageReloadNeedsReplay).toBe(true);
+
+      firstHistory.resolve(firstResult);
+      await firstHistory.promise;
+      await vi.waitFor(() => {
+        expect(loadChatHistoryMock).toHaveBeenCalledTimes(2);
+      });
+      expect(deferredHost.pendingSessionMessageReloadSessionKey).toBe("main");
+      expect(deferredHost.pendingSessionMessageReloadNeedsReplay).toBe(false);
+
+      secondHistory.resolve("applied");
+      await secondHistory.promise;
+      await vi.waitFor(() => {
+        expect(deferredHost.pendingSessionMessageReloadSessionKey).toBeNull();
+      });
+      expect(deferredHost.pendingSessionMessageReloadNeedsReplay).toBe(false);
+    },
+  );
+
+  it("hands off an idle provisional replay marker when a run starts before settlement", async () => {
+    const firstHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockReturnValueOnce(firstHistory.promise);
+    const { host, client } = connectHostGateway();
+    const deferredHost = host as TestGatewayHost & {
+      pendingSessionMessageReloadSessionKey?: string | null;
+      pendingSessionMessageReloadRunId?: string | null;
+      pendingSessionMessageReloadNeedsReplay?: boolean;
+    };
+
+    for (const seq of [1, 2]) {
+      client.emitEvent({
+        event: "session.message",
+        payload: {
+          sessionKey: "main",
+          message: {
+            role: "user",
+            content: `message-${seq}`,
+            __genesis: { seq },
+          },
+        },
+      });
+    }
+    host.chatRunId = "active-run";
+    host.chatStream = "still streaming";
+    host.toolStreamOrder = ["tool-1"];
+
+    firstHistory.resolve("applied");
+    await vi.waitFor(() => {
+      expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+      expect(deferredHost.pendingSessionMessageReloadRunId).toBe("active-run");
+      expect(deferredHost.pendingSessionMessageReloadNeedsReplay).toBe(false);
+    });
+
+    expect(host.chatStream).toBe("still streaming");
+    expect(host.toolStreamOrder).toEqual(["tool-1"]);
+  });
+
   it("clears tracked BTW terminal runs after reconnect hello", () => {
     const host = createHost();
 
@@ -998,8 +1654,44 @@ describe("connectGateway", () => {
     expect(host.execApprovalQueue).toHaveLength(0);
   });
 
+  it.each([
+    ["malformed", { sessionKey: "main", state: "final" }],
+    ["foreign", { runId: "other-run", sessionKey: "main", state: "final" }],
+  ] as const)("does not run terminal cleanup for %s events", (_kind, payload) => {
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "active-run";
+    emitToolResultEvent(client);
+    host.chatStream = "still streaming";
+
+    client.emitEvent({ event: "chat", payload });
+
+    expect(host.chatRunId).toBe("active-run");
+    expect(host.chatStream).toBe("still streaming");
+    expect(host.toolStreamOrder).toEqual(["tool-1"]);
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+  });
+
+  it("does not run terminal cleanup when no chat run is active", () => {
+    const { host, client } = connectHostGateway();
+    emitToolResultEvent(client);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "engine-run-1",
+        sessionKey: "main",
+        state: "final",
+      },
+    });
+
+    expect(host.chatRunId).toBeNull();
+    expect(host.toolStreamOrder).toEqual(["tool-1"]);
+    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+  });
+
   it("reloads chat history once after the final chat event when tool output was used", () => {
-    const { client } = connectHostGateway();
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "engine-run-1";
     emitToolResultEvent(client);
 
     client.emitEvent({
@@ -1016,6 +1708,102 @@ describe("connectGateway", () => {
     });
 
     expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans tool state and flushes queued messages when tool history reload fails", async () => {
+    loadChatHistoryMock.mockResolvedValueOnce("failed");
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "engine-run-1";
+    host.connected = true;
+    (host as unknown as { updateComplete: Promise<unknown> }).updateComplete = new Promise(
+      () => {},
+    );
+    host.chatQueue = [{ id: "queued", text: "next", createdAt: 1 }];
+    emitToolResultEvent(client);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "engine-run-1",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(host.toolStreamOrder).toEqual([]);
+      expect(host.chatSending).toBe(false);
+    });
+    expect(host.connected).toBe(true);
+    expect(host.chatQueue).toEqual([]);
+  });
+
+  it("cleans tool state and flushes queued messages when generic history staleness supersedes tool history", async () => {
+    const pendingHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockReturnValueOnce(pendingHistory.promise);
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "engine-run-1";
+    host.connected = true;
+    (host as unknown as { updateComplete: Promise<unknown> }).updateComplete = new Promise(
+      () => {},
+    );
+    host.chatQueue = [{ id: "queued", text: "next", createdAt: 1 }];
+    emitToolResultEvent(client);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "engine-run-1",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    pendingHistory.resolve("stale");
+    await pendingHistory.promise;
+
+    await vi.waitFor(() => {
+      expect(host.toolStreamOrder).toEqual([]);
+      expect(host.chatSending).toBe(false);
+    });
+    expect(host.connected).toBe(true);
+    expect(host.chatQueue).toEqual([]);
+  });
+
+  it("does not reset tool state when a replacement run makes tool history stale", async () => {
+    const pendingHistory = createDeferred<ChatHistoryLoadResult>();
+    loadChatHistoryMock.mockReturnValueOnce(pendingHistory.promise);
+    const { host, client } = connectHostGateway();
+    host.chatRunId = "engine-run-1";
+    emitToolResultEvent(client);
+
+    client.emitEvent({
+      event: "chat",
+      payload: {
+        runId: "engine-run-1",
+        sessionKey: "main",
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Done" }],
+        },
+      },
+    });
+
+    host.chatRunId = "replacement-run";
+    pendingHistory.resolve("stale");
+    await pendingHistory.promise;
+    await Promise.resolve();
+
+    expect(host.toolStreamOrder).toEqual(["tool-1"]);
   });
 });
 

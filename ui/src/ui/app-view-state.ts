@@ -57,6 +57,19 @@ import type { ChatAttachment, ChatQueueItem } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
+export function resolveSelectedAgentId(state: {
+  agentsSelectedId: string | null;
+  agentsList: { defaultId?: string | null; agents?: Array<{ id: string }> } | null;
+  assistantAgentId: string | null;
+}): string | null {
+  return (
+    state.agentsSelectedId ??
+    state.agentsList?.defaultId ??
+    state.agentsList?.agents?.[0]?.id ??
+    state.assistantAgentId
+  );
+}
+
 export type AppViewState = {
   settings: UiSettings;
   password: string;
@@ -107,12 +120,21 @@ export type AppViewState = {
   agentsCreateDialog: import("./views/entity-dialogs.ts").AgentsCreateDialog | null;
   memoryEntries: import("./controllers/memory.ts").MemoryEntry[];
   memoryLoading: boolean;
+  memoryLoadingAgentId: string | null;
+  memoryLoadedAgentId: string | null;
+  memoryLoadRequestId: number;
   memoryError: string | null;
   contactsEntries: import("./controllers/contacts.ts").ContactEntry[];
   contactsLoading: boolean;
+  contactsLoadingAgentId: string | null;
+  contactsLoadedAgentId: string | null;
+  contactsLoadRequestId: number;
   contactsError: string | null;
   memoryGraph: import("./controllers/memory.ts").MemoryGraph;
   memoryGraphLoading: boolean;
+  memoryGraphLoadingAgentId: string | null;
+  memoryGraphLoadedAgentId: string | null;
+  memoryGraphLoadRequestId: number;
   memoryGraphError: string | null;
   memoryViewMode: "table" | "graph";
   chatQueue: ChatQueueItem[];
@@ -445,7 +467,6 @@ export type AppViewState = {
     debugStatus: StatusSummary | null;
     debugHealth: HealthSummary | null;
     debugModels: ModelCatalogEntry[];
-    debugHeartbeat: unknown;
     debugCallMethod: string;
     debugCallParams: string;
     debugCallResult: string | null;

@@ -14,7 +14,7 @@ import {
 } from "./chat/session-controls.ts";
 import { refreshSlashCommands } from "./chat/slash-commands.ts";
 import { resolveControlUiAuthToken } from "./control-ui-auth.ts";
-import { ChatState, loadChatHistory } from "./controllers/chat.ts";
+import { cancelPendingStream, ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { icons } from "./icons.ts";
 import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
@@ -80,7 +80,6 @@ type SessionSwitchHost = AppViewState & {
 type ChatRefreshHost = AppViewState & {
   chatManualRefreshInFlight: boolean;
   chatNewMessagesBelow: boolean;
-  resetToolStream(): void;
   scrollToBottom(opts?: { smooth?: boolean }): void;
   updateComplete?: Promise<unknown>;
 };
@@ -108,6 +107,7 @@ function resolveSidebarChatSessionKey(state: AppViewState): string {
 
 function resetChatStateForSessionSwitch(state: AppViewState, sessionKey: string) {
   const host = state as unknown as SessionSwitchHost;
+  cancelPendingStream();
   state.sessionKey = sessionKey;
   state.chatMessage = "";
   state.chatAttachments = [];
@@ -266,13 +266,12 @@ export function renderChatControls(state: AppViewState) {
     <div class="chat-controls">
       <button
         class="btn btn--sm btn--icon"
-        ?disabled=${state.chatLoading || !state.connected}
+        ?disabled=${state.chatLoading || Boolean(state.chatRunId) || !state.connected}
         @click=${async () => {
           const app = state as unknown as ChatRefreshHost;
           app.chatManualRefreshInFlight = true;
           app.chatNewMessagesBelow = false;
           await app.updateComplete;
-          app.resetToolStream();
           try {
             await refreshChat(state as unknown as Parameters<typeof refreshChat>[0], {
               scheduleScroll: false,

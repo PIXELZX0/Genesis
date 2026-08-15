@@ -8,7 +8,6 @@ export type DebugProps = {
   status: Record<string, unknown> | null;
   health: Record<string, unknown> | null;
   models: unknown[];
-  heartbeat: unknown;
   eventLog: EventLogEntry[];
   methods: string[];
   callMethod: string;

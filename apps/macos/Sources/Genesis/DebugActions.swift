@@ -144,20 +144,6 @@ enum DebugActions {
         await HealthStore.shared.refresh(onDemand: true)
     }
 
-    static func sendTestHeartbeat() async -> Result<ControlHeartbeatEvent?, Error> {
-        do {
-            _ = await GatewayConnection.shared.setHeartbeatsEnabled(true)
-            await ControlChannel.shared.configure()
-            let data = try await ControlChannel.shared.request(method: "last-heartbeat")
-            if let evt = try? JSONDecoder().decode(ControlHeartbeatEvent.self, from: data) {
-                return .success(evt)
-            }
-            return .success(nil)
-        } catch {
-            return .failure(error)
-        }
-    }
-
     static var verboseLoggingEnabledMain: Bool {
         UserDefaults.standard.bool(forKey: self.verboseDefaultsKey)
     }

@@ -26,9 +26,12 @@ import {
 } from "./controllers/assistant-identity.ts";
 import {
   applyChatHistoryMessageEvent,
+  cancelPendingStream,
+  invalidateChatHistoryRequests,
   loadChatHistory,
   handleChatEvent,
   type ChatEventPayload,
+  type ChatHistoryLoadResult,
   type ChatState,
 } from "./controllers/chat.ts";
 import { loadControlUiBootstrapConfig } from "./controllers/control-ui-bootstrap.ts";
@@ -104,10 +107,27 @@ type GatewayHost = {
   execApprovalQueue: ExecApprovalRequest[];
   execApprovalError: string | null;
   updateAvailable: UpdateAvailable | null;
+  memoryLoading?: boolean;
+  memoryLoadingAgentId?: string | null;
+  memoryLoadedAgentId?: string | null;
+  memoryLoadRequestId?: number;
+  memoryError?: string | null;
+  contactsLoading?: boolean;
+  contactsLoadingAgentId?: string | null;
+  contactsLoadedAgentId?: string | null;
+  contactsLoadRequestId?: number;
+  contactsError?: string | null;
+  memoryGraphLoading?: boolean;
+  memoryGraphLoadingAgentId?: string | null;
+  memoryGraphLoadedAgentId?: string | null;
+  memoryGraphLoadRequestId?: number;
+  memoryGraphError?: string | null;
 };
 
 type GatewayHostWithDeferredSessionMessageReload = GatewayHost & {
   pendingSessionMessageReloadSessionKey?: string | null;
+  pendingSessionMessageReloadRunId?: string | null;
+  pendingSessionMessageReloadNeedsReplay?: boolean;
 };
 
 type SessionDefaultsSnapshot = {
@@ -138,6 +158,32 @@ type SessionMessageEventPayload = {
   messageSeq?: unknown;
 };
 
+function clearDeferredSessionMessageReload(
+  host: GatewayHostWithDeferredSessionMessageReload,
+): void {
+  host.pendingSessionMessageReloadSessionKey = null;
+  host.pendingSessionMessageReloadRunId = null;
+  host.pendingSessionMessageReloadNeedsReplay = false;
+}
+
+function resetAgentBackedLoadState(host: GatewayHost): void {
+  host.memoryLoading = false;
+  host.memoryLoadingAgentId = null;
+  host.memoryLoadedAgentId = null;
+  host.memoryLoadRequestId = (host.memoryLoadRequestId ?? 0) + 1;
+  host.memoryError = null;
+  host.contactsLoading = false;
+  host.contactsLoadingAgentId = null;
+  host.contactsLoadedAgentId = null;
+  host.contactsLoadRequestId = (host.contactsLoadRequestId ?? 0) + 1;
+  host.contactsError = null;
+  host.memoryGraphLoading = false;
+  host.memoryGraphLoadingAgentId = null;
+  host.memoryGraphLoadedAgentId = null;
+  host.memoryGraphLoadRequestId = (host.memoryGraphLoadRequestId ?? 0) + 1;
+  host.memoryGraphError = null;
+}
+
 const appliedSessionMessageRows = new WeakMap<object, string>();
 
 function enqueueApprovalRequest(host: GatewayHost, entry: ExecApprovalRequest | null) {
@@ -165,6 +211,17 @@ function isTerminalChatState(
   return state === "final" || state === "aborted" || state === "error";
 }
 
+function isOwnedTerminalChatEvent(
+  payload: ChatEventPayload | undefined,
+  activeChatRunId: string | null,
+): boolean {
+  const payloadRunId = typeof payload?.runId === "string" ? payload.runId.trim() : "";
+  const activeRunId = activeChatRunId?.trim() ?? "";
+  return (
+    isTerminalChatState(payload?.state) && Boolean(activeRunId && payloadRunId === activeRunId)
+  );
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object");
 }
@@ -179,6 +236,22 @@ function isUserSessionMessage(message: unknown): boolean {
   }
   const role = message.role;
   return typeof role === "string" && role.trim().toLowerCase() === "user";
+}
+
+function hasCanonicalSessionMessageId(payload: SessionMessageEventPayload | undefined): boolean {
+  if (!payload) {
+    return false;
+  }
+  const messageId = typeof payload.messageId === "string" ? payload.messageId.trim() : "";
+  if (messageId) {
+    return true;
+  }
+  const message = payload.message;
+  if (!isRecord(message) || !isRecord(message.__genesis)) {
+    return false;
+  }
+  const canonicalId = message.__genesis.id;
+  return typeof canonicalId === "string" && canonicalId.trim().length > 0;
 }
 
 function sessionTranscriptEventIdentity(payload: unknown): string | null {
@@ -370,13 +443,18 @@ function applySessionDefaults(host: GatewayHost, defaults?: SessionDefaultsSnaps
 
 export function connectGateway(host: GatewayHost, options?: ConnectGatewayOptions) {
   const shutdownHost = host as GatewayHostWithShutdownMessage;
+  const deferredReloadHost = host as GatewayHostWithDeferredSessionMessageReload;
   const reconnectReason = options?.reason ?? "initial";
   shutdownHost.pendingShutdownMessage = null;
   shutdownHost.resumeChatQueueAfterReconnect = false;
+  cancelPendingStream();
+  clearDeferredSessionMessageReload(deferredReloadHost);
   host.lastError = null;
   host.lastErrorCode = null;
   host.hello = null;
   host.connected = false;
+  invalidateChatHistoryRequests(host as unknown as ChatState);
+  resetAgentBackedLoadState(host);
   if (reconnectReason === "seq-gap") {
     host.execApprovalQueue = pruneExecApprovalQueue(host.execApprovalQueue);
     clearPendingQueueItemsForRun(
@@ -406,6 +484,7 @@ export function connectGateway(host: GatewayHost, options?: ConnectGatewayOption
       if (host.client !== client) {
         return;
       }
+      cancelPendingStream();
       shutdownHost.pendingShutdownMessage = null;
       host.connected = true;
       host.lastError = null;
@@ -457,6 +536,10 @@ export function connectGateway(host: GatewayHost, options?: ConnectGatewayOption
       if (host.client !== client) {
         return;
       }
+      cancelPendingStream();
+      clearDeferredSessionMessageReload(deferredReloadHost);
+      invalidateChatHistoryRequests(host as unknown as ChatState);
+      resetAgentBackedLoadState(host);
       host.connected = false;
       // Code 1012 = Service Restart (expected during config saves, don't show as error)
       host.lastErrorCode =
@@ -515,7 +598,12 @@ function handleTerminalChatEvent(
   host: GatewayHost,
   payload: ChatEventPayload | undefined,
   state: ReturnType<typeof handleChatEvent>,
+  activeChatRunId: string | null,
 ): boolean {
+  if (!isOwnedTerminalChatEvent(payload, activeChatRunId)) {
+    return false;
+  }
+  const runId = typeof payload?.runId === "string" ? payload.runId.trim() : "";
   if (state !== "final" && state !== "error" && state !== "aborted") {
     return false;
   }
@@ -526,9 +614,8 @@ function handleTerminalChatEvent(
     void flushChatQueueForEvent(host as unknown as Parameters<typeof flushChatQueueForEvent>[0]);
   clearPendingQueueItemsForRun(
     host as unknown as Parameters<typeof clearPendingQueueItemsForRun>[0],
-    payload?.runId,
+    runId,
   );
-  const runId = payload?.runId;
   if (runId && host.refreshSessionsAfterChat.has(runId)) {
     host.refreshSessionsAfterChat.delete(runId);
     if (state === "final") {
@@ -541,8 +628,8 @@ function handleTerminalChatEvent(
   // replace the now-cleared streaming state.
   if (hadToolEvents && state === "final") {
     const completedRunId = runId ?? null;
-    void loadChatHistory(host as unknown as ChatState).finally(() => {
-      if (completedRunId && host.chatRunId && host.chatRunId !== completedRunId) {
+    void loadChatHistory(host as unknown as ChatState).then((historyResult) => {
+      if (historyResult === "run-stale" || (host.chatRunId && host.chatRunId !== completedRunId)) {
         return;
       }
       resetToolStream(toolHost);
@@ -571,23 +658,39 @@ function handleChatGatewayEvent(host: GatewayHost, payload: ChatEventPayload | u
     sideResultHost.chatSideResultTerminalRuns?.delete(payload.runId);
     return;
   }
+  const activeChatRunId = typeof host.chatRunId === "string" ? host.chatRunId.trim() || null : null;
   const state = handleChatEvent(host as unknown as ChatState, payload);
-  const historyReloaded = handleTerminalChatEvent(host, payload, state);
+  const ownsActiveTerminal = isOwnedTerminalChatEvent(payload, activeChatRunId);
+  const historyReloaded = ownsActiveTerminal
+    ? handleTerminalChatEvent(host, payload, state, activeChatRunId)
+    : false;
   const deferredReloadHost = host as GatewayHostWithDeferredSessionMessageReload;
   const deferredSessionKey = deferredReloadHost.pendingSessionMessageReloadSessionKey?.trim();
-  const payloadSessionKey = payload?.sessionKey?.trim();
-  const shouldReplayDeferredSessionMessageReload = Boolean(
+  const deferredRunId = deferredReloadHost.pendingSessionMessageReloadRunId?.trim();
+  const payloadSessionKey =
+    typeof payload?.sessionKey === "string" ? payload.sessionKey.trim() : "";
+  const payloadRunId = typeof payload?.runId === "string" ? payload.runId.trim() : "";
+  const matchingDeferredTerminal = Boolean(
+    ownsActiveTerminal &&
     deferredSessionKey &&
+    deferredRunId &&
     payloadSessionKey &&
+    payloadRunId &&
     deferredSessionKey === payloadSessionKey &&
-    isTerminalChatState(state) &&
-    payloadSessionKey === host.sessionKey &&
-    !host.chatRunId,
+    deferredRunId === payloadRunId &&
+    isTerminalChatState(payload?.state) &&
+    payloadSessionKey === host.sessionKey,
   );
-  if (deferredSessionKey && payloadSessionKey && deferredSessionKey === payloadSessionKey) {
-    deferredReloadHost.pendingSessionMessageReloadSessionKey = null;
+  const shouldReplayDeferredSessionMessageReload = matchingDeferredTerminal && !host.chatRunId;
+  if (matchingDeferredTerminal) {
+    clearDeferredSessionMessageReload(deferredReloadHost);
   }
-  if (state === "final" && !historyReloaded && shouldReloadHistoryForFinalEvent(payload)) {
+  if (
+    ownsActiveTerminal &&
+    state === "final" &&
+    !historyReloaded &&
+    shouldReloadHistoryForFinalEvent(payload)
+  ) {
     void loadChatHistory(host as unknown as ChatState);
     return;
   }
@@ -617,19 +720,70 @@ function handleSessionMessageGatewayEvent(
   if (host.chatRunId) {
     if (
       isUserSessionMessage(payload?.message) &&
+      hasCanonicalSessionMessageId(payload) &&
       applyChatHistoryMessageEvent(host as unknown as ChatState, payload?.message, {
         appendIfMissing: false,
+        preferOldestOptimisticMatch: true,
       })
     ) {
+      clearDeferredSessionMessageReload(deferredReloadHost);
       return;
     }
     deferredReloadHost.pendingSessionMessageReloadSessionKey = sessionKey;
+    deferredReloadHost.pendingSessionMessageReloadRunId = host.chatRunId;
+    deferredReloadHost.pendingSessionMessageReloadNeedsReplay = false;
     return;
   }
-  deferredReloadHost.pendingSessionMessageReloadSessionKey = null;
+  if (isUserSessionMessage(payload?.message) && !hasCanonicalSessionMessageId(payload)) {
+    if (
+      deferredReloadHost.pendingSessionMessageReloadSessionKey === sessionKey &&
+      !deferredReloadHost.pendingSessionMessageReloadRunId
+    ) {
+      deferredReloadHost.pendingSessionMessageReloadNeedsReplay = true;
+      return;
+    }
+    deferredReloadHost.pendingSessionMessageReloadSessionKey = sessionKey;
+    deferredReloadHost.pendingSessionMessageReloadRunId = null;
+    deferredReloadHost.pendingSessionMessageReloadNeedsReplay = false;
+    const pendingSessionKey = sessionKey;
+    const settleIdleReload = (historyResult: ChatHistoryLoadResult) => {
+      if (
+        deferredReloadHost.pendingSessionMessageReloadSessionKey === pendingSessionKey &&
+        !deferredReloadHost.pendingSessionMessageReloadRunId
+      ) {
+        const activeRunId = host.chatRunId?.trim();
+        if (activeRunId) {
+          if (host.sessionKey === pendingSessionKey) {
+            deferredReloadHost.pendingSessionMessageReloadRunId = activeRunId;
+            deferredReloadHost.pendingSessionMessageReloadNeedsReplay = false;
+          } else {
+            clearDeferredSessionMessageReload(deferredReloadHost);
+          }
+          return;
+        }
+        if (
+          historyResult === "run-stale" ||
+          deferredReloadHost.pendingSessionMessageReloadNeedsReplay
+        ) {
+          deferredReloadHost.pendingSessionMessageReloadNeedsReplay = false;
+          void loadChatHistory(host as unknown as ChatState).then(settleIdleReload, () =>
+            settleIdleReload("failed"),
+          );
+          return;
+        }
+        clearDeferredSessionMessageReload(deferredReloadHost);
+      }
+    };
+    void loadChatHistory(host as unknown as ChatState).then(settleIdleReload, () =>
+      settleIdleReload("failed"),
+    );
+    return;
+  }
+  clearDeferredSessionMessageReload(deferredReloadHost);
   if (
     applyChatHistoryMessageEvent(host as unknown as ChatState, payload?.message, {
       appendIfMissing: true,
+      preferOldestOptimisticMatch: true,
     })
   ) {
     return;

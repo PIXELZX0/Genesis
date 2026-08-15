@@ -2,6 +2,7 @@
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatHost } from "./app-chat.ts";
+import { loadChatHistory } from "./controllers/chat.ts";
 import type { GatewaySessionRow, SessionsListResult } from "./types.ts";
 
 const { setLastActiveSessionKeyMock } = vi.hoisted(() => ({
@@ -15,6 +16,7 @@ vi.mock("./app-last-active-session.ts", () => ({
 let handleSendChat: typeof import("./app-chat.ts").handleSendChat;
 let steerQueuedChatMessage: typeof import("./app-chat.ts").steerQueuedChatMessage;
 let handleAbortChat: typeof import("./app-chat.ts").handleAbortChat;
+let refreshChat: typeof import("./app-chat.ts").refreshChat;
 let refreshChatAvatar: typeof import("./app-chat.ts").refreshChatAvatar;
 let clearPendingQueueItemsForRun: typeof import("./app-chat.ts").clearPendingQueueItemsForRun;
 
@@ -23,6 +25,7 @@ async function loadChatHelpers(): Promise<void> {
     handleSendChat,
     steerQueuedChatMessage,
     handleAbortChat,
+    refreshChat,
     refreshChatAvatar,
     clearPendingQueueItemsForRun,
   } = await import("./app-chat.ts"));
@@ -38,7 +41,15 @@ function requestUrl(input: string | URL | Request): string {
   return input.url;
 }
 
-function makeHost(overrides?: Partial<ChatHost>): ChatHost {
+type TestChatHost = ChatHost & {
+  chatStreamSegments: Array<{ text: string; ts: number }>;
+  toolStreamById: Map<string, unknown>;
+  toolStreamOrder: string[];
+  chatToolMessages: Record<string, unknown>[];
+  toolStreamSyncTimer: number | null;
+};
+
+function makeHost(overrides?: Partial<TestChatHost>): TestChatHost {
   return {
     client: null,
     chatMessages: [],
@@ -61,6 +72,11 @@ function makeHost(overrides?: Partial<ChatHost>): ChatHost {
     chatModelCatalog: [],
     refreshSessionsAfterChat: new Set<string>(),
     updateComplete: Promise.resolve(),
+    chatStreamSegments: [],
+    toolStreamById: new Map<string, unknown>(),
+    toolStreamOrder: [],
+    chatToolMessages: [],
+    toolStreamSyncTimer: null,
     ...overrides,
   };
 }
@@ -378,6 +394,51 @@ describe("handleSendChat", () => {
       value: "openai/gpt-5-mini",
     });
     expect(onSlashAction).toHaveBeenCalledWith("refresh-tools-effective");
+  });
+
+  it("invalidates pending history before adopting a redirected run", async () => {
+    const pendingHistory = createDeferred<{ messages: Array<unknown> }>();
+    const request = vi.fn(async (method: string) => {
+      if (method === "chat.history") {
+        return pendingHistory.promise;
+      }
+      if (method === "sessions.steer") {
+        return { runId: "redirect-run" };
+      }
+      throw new Error(`Unexpected request: ${method}`);
+    });
+    const host = makeHost({
+      client: { request } as unknown as ChatHost["client"],
+      sessionKey: "main",
+      chatMessage: "/redirect continue",
+      chatStreamSegments: [{ text: "stale tool stream", ts: 1 }],
+      toolStreamById: new Map([["tool-1", { message: { role: "tool" } }]]),
+      toolStreamOrder: ["tool-1"],
+      chatToolMessages: [{ role: "tool", content: "stale tool" }],
+    });
+
+    const historyLoad = loadChatHistory(host as unknown as Parameters<typeof loadChatHistory>[0]);
+    await handleSendChat(host);
+
+    expect(host.chatRunId).toBe("redirect-run");
+    expect(host.toolStreamById).toEqual(new Map());
+    expect(host.toolStreamOrder).toEqual([]);
+    expect(host.chatToolMessages).toEqual([]);
+    expect(host.chatStreamSegments).toEqual([]);
+    pendingHistory.resolve({ messages: [] });
+    await expect(historyLoad).resolves.toBe("run-stale");
+  });
+
+  it("does not start a refresh while a chat run is active", async () => {
+    const request = vi.fn();
+    const host = makeHost({
+      client: { request } as unknown as ChatHost["client"],
+      chatRunId: "active-run",
+    });
+
+    await refreshChat(host);
+
+    expect(request).not.toHaveBeenCalled();
   });
 
   it("sends /btw immediately while a main run is active without queueing it", async () => {

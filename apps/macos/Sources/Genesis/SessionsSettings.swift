@@ -53,7 +53,7 @@ struct SessionsSettings: View {
     private var content: some View {
         Group {
             if self.rows.isEmpty, self.errorMessage == nil {
-                Text("No sessions yet. They appear after the first inbound message or heartbeat.")
+                Text("No sessions yet. They appear after the first inbound message.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.top, 6)

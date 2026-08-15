@@ -253,7 +253,6 @@ struct LowCoverageHelperTests {
         menu.minimumWidth = 280
         menu.addItem(NSMenuItem(title: "Active", action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Send Heartbeats", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Quit", action: nil, keyEquivalent: "q"))
 
         let idx = injector._testFindInsertIndex(in: menu)

@@ -11,7 +11,6 @@ function createProps(overrides: Partial<DebugProps> = {}): DebugProps {
     status: { ok: true },
     health: { ok: true },
     models: [],
-    heartbeat: "obsolete-heartbeat",
     eventLog: [{ ts: Date.now(), event: "health" }],
     methods: [],
     callMethod: "",
@@ -27,14 +26,12 @@ function createProps(overrides: Partial<DebugProps> = {}): DebugProps {
 }
 
 describe("renderDebug", () => {
-  it("does not render the obsolete heartbeat snapshot", () => {
+  it("renders snapshots and event log", () => {
     const container = document.createElement("div");
 
     render(renderDebug(createProps()), container);
 
     expect(container.textContent).toContain("Status and health snapshots.");
     expect(container.textContent).toContain("Event Log");
-    expect(container.textContent).not.toContain("Last heartbeat");
-    expect(container.textContent).not.toContain("obsolete-heartbeat");
   });
 });

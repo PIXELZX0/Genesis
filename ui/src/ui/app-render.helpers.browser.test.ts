@@ -8,6 +8,7 @@ function createState(overrides: Partial<AppViewState> = {}) {
   return {
     connected: true,
     chatLoading: false,
+    chatRunId: null,
     onboarding: false,
     sessionKey: "main",
     sessionsHideCron: true,
@@ -63,5 +64,17 @@ describe("chat header controls (browser)", () => {
       expect(button.getAttribute("title")).toBe(button.getAttribute("data-tooltip"));
       expect(button.getAttribute("aria-label")).toBe(button.getAttribute("data-tooltip"));
     }
+    expect(buttons[0]?.disabled).toBe(false);
+  });
+
+  it("disables manual refresh while a chat run is active", async () => {
+    const container = document.createElement("div");
+    render(renderChatControls(createState({ chatRunId: "run-1" })), container);
+    await Promise.resolve();
+
+    const refreshButton = container.querySelector<HTMLButtonElement>(
+      ".chat-controls .btn--icon[data-tooltip]",
+    );
+    expect(refreshButton?.disabled).toBe(true);
   });
 });

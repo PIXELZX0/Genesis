@@ -1,5 +1,7 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
 
+export const CONTACTS_REQUEST_TIMEOUT_MS = 15_000;
+
 export interface ContactMessengerId {
   channel: string;
   id: string;
@@ -23,12 +25,10 @@ export async function loadContacts(
   client: GatewayBrowserClient,
   agentId: string,
 ): Promise<ContactEntry[]> {
-  try {
-    const res = await client.request<{ contacts?: ContactEntry[] } | null>("contacts.list", {
-      agentId,
-    });
-    return res?.contacts ?? [];
-  } catch {
-    return [];
-  }
+  const res = await client.request<{ contacts?: ContactEntry[] } | null>(
+    "contacts.list",
+    { agentId },
+    { timeoutMs: CONTACTS_REQUEST_TIMEOUT_MS },
+  );
+  return res?.contacts ?? [];
 }

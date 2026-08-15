@@ -31,6 +31,7 @@ export interface MemoryGraph {
 }
 
 const INDEX_LINE = /^\s*[-*]\s*\[([^\]]+)\]\(([^)]+)\)\s*(?:[—–-]\s*(.*))?$/;
+export const MEMORY_REQUEST_TIMEOUT_MS = 15_000;
 
 /** Parse a `MEMORY.md` index body into entries. Lines look like:
  *  `- [Title](file.md) — short hook` */
@@ -52,16 +53,16 @@ export async function loadMemoryIndex(
   client: GatewayBrowserClient,
   agentId: string,
 ): Promise<MemoryEntry[]> {
-  try {
-    const res = await client.request<{ file?: { content?: string } } | null>("agents.files.get", {
+  const res = await client.request<{ file?: { content?: string } } | null>(
+    "agents.files.get",
+    {
       agentId,
       name: "MEMORY.md",
-    });
-    const content = res?.file?.content ?? "";
-    return parseMemoryIndex(content);
-  } catch {
-    return [];
-  }
+    },
+    { timeoutMs: MEMORY_REQUEST_TIMEOUT_MS },
+  );
+  const content = res?.file?.content ?? "";
+  return parseMemoryIndex(content);
 }
 
 /** Load the force-graph of an agent's memory via the `agents.memory.graph` RPC. */
@@ -69,14 +70,14 @@ export async function loadMemoryGraph(
   client: GatewayBrowserClient,
   agentId: string,
 ): Promise<MemoryGraph> {
-  try {
-    const res = await client.request<MemoryGraph | null>("agents.memory.graph", { agentId });
-    return {
-      nodes: res?.nodes ?? [],
-      edges: res?.edges ?? [],
-      generatedAtMs: res?.generatedAtMs ?? 0,
-    };
-  } catch {
-    return { nodes: [], edges: [], generatedAtMs: 0 };
-  }
+  const res = await client.request<MemoryGraph | null>(
+    "agents.memory.graph",
+    { agentId },
+    { timeoutMs: MEMORY_REQUEST_TIMEOUT_MS },
+  );
+  return {
+    nodes: res?.nodes ?? [],
+    edges: res?.edges ?? [],
+    generatedAtMs: res?.generatedAtMs ?? 0,
+  };
 }

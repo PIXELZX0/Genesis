@@ -6,12 +6,14 @@ const {
   refreshSlashCommandsMock,
   loadChatHistoryMock,
   loadSessionsMock,
+  cancelPendingStreamMock,
 } = vi.hoisted(() => ({
   refreshChatMock: vi.fn(),
   refreshChatAvatarMock: vi.fn(),
   refreshSlashCommandsMock: vi.fn(),
   loadChatHistoryMock: vi.fn(),
   loadSessionsMock: vi.fn(),
+  cancelPendingStreamMock: vi.fn(),
 }));
 
 vi.mock("./app-chat.ts", () => ({
@@ -24,6 +26,7 @@ vi.mock("./chat/slash-commands.ts", () => ({
 }));
 
 vi.mock("./controllers/chat.ts", () => ({
+  cancelPendingStream: cancelPendingStreamMock,
   loadChatHistory: loadChatHistoryMock,
 }));
 
