@@ -23,5 +23,6 @@ export type UsageProviderId =
   | "google-gemini-cli"
   | "minimax"
   | "openai-codex"
+  | "opencode-go"
   | "xiaomi"
   | "zai";

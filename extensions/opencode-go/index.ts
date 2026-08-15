@@ -4,6 +4,7 @@ import { PASSTHROUGH_GEMINI_REPLAY_HOOKS } from "genesis/plugin-sdk/provider-mod
 import { applyOpencodeGoConfig, OPENCODE_GO_DEFAULT_MODEL_REF } from "./api.js";
 import { opencodeGoMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { normalizeOpencodeGoBaseUrl } from "./provider-catalog.js";
+import { fetchOpencodeGoUsage } from "./usage.js";
 
 const PROVIDER_ID = "opencode-go";
 export default definePluginEntry({
@@ -62,6 +63,15 @@ export default definePluginEntry({
       },
       ...PASSTHROUGH_GEMINI_REPLAY_HOOKS,
       isModernModelRef: () => true,
+      resolveUsageAuth: (ctx) => {
+        const apiKey = ctx.resolveApiKeyFromConfigAndStore({
+          providerIds: [PROVIDER_ID, "opencode"],
+          envDirect: [ctx.env.OPENCODE_API_KEY, ctx.env.OPENCODE_ZEN_API_KEY],
+        });
+        return apiKey ? { token: apiKey } : null;
+      },
+      fetchUsageSnapshot: async (ctx) =>
+        await fetchOpencodeGoUsage(ctx.token, ctx.timeoutMs, ctx.fetchFn),
     });
     api.registerMediaUnderstandingProvider(opencodeGoMediaUnderstandingProvider);
   },

@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- OpenCode Go: plan usage now shows up in `/status`, `genesis status --usage`, and the other usage surfaces. It reads the new upstream `/zen/go/v1/usage` endpoint with your existing OpenCode API key and reports the rolling, weekly, and monthly windows.
 - Agents: a new owner-only `agents_manage` tool lets an agent list, create, update, and delete persistent Genesis agents through the Gateway instead of hand-editing agent config.
 - Control UI: the Channels list now shows which agent each channel is routed to.
 - Memory: dreaming is now enabled by default. The managed sweep (`0 3 * * *`) runs light, REM, and deep phases without any config, and only the deep phase writes to `MEMORY.md`. Set `plugins.entries.memory-core.config.dreaming.enabled: false` or run `/dreaming off` to turn it back off.

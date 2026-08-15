@@ -13,6 +13,7 @@ export const PROVIDER_LABELS: Record<UsageProviderId, string> = {
   "google-gemini-cli": "Gemini",
   minimax: "MiniMax",
   "openai-codex": "Codex",
+  "opencode-go": "OpenCode Go",
   xiaomi: "Xiaomi",
   zai: "z.ai",
 };
@@ -23,6 +24,7 @@ export const usageProviders: UsageProviderId[] = [
   "google-gemini-cli",
   "minimax",
   "openai-codex",
+  "opencode-go",
   "xiaomi",
   "zai",
 ];

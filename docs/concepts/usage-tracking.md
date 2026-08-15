@@ -48,6 +48,10 @@ title: "Usage tracking"
     chat-model entry, derives the window label from timestamps when explicit
     `window_hours` / `window_minutes` fields are absent, and includes the model
     name in the plan label.
+- **OpenCode Go**: API key via env/config/auth store (`OPENCODE_API_KEY`,
+  `OPENCODE_ZEN_API_KEY`), shared with the OpenCode Zen catalog. Reports the
+  Go plan's rolling, weekly, and monthly windows. Accounts without a Go
+  subscription get `HTTP 403: OpenCode Go subscription required.`
 - **Xiaomi MiMo**: API key via env/config/auth store (`XIAOMI_API_KEY`).
 - **z.ai**: API key via env/config/auth store.
 
