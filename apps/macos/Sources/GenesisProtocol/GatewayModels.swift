@@ -3577,6 +3577,206 @@ public struct AgentsListResult: Codable, Sendable {
     }
 }
 
+public struct ContactMessengerId: Codable, Sendable {
+    public let channel: String
+    public let id: String
+    public let username: String?
+
+    public init(
+        channel: String,
+        id: String,
+        username: String?)
+    {
+        self.channel = channel
+        self.id = id
+        self.username = username
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case channel
+        case id
+        case username
+    }
+}
+
+public struct ContactEntry: Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let age: Double?
+    public let education: String?
+    public let traits: [String]?
+    public let notes: String?
+    public let messengerids: [ContactMessengerId]
+    public let createdat: Double
+    public let updatedat: Double
+
+    public init(
+        id: String,
+        name: String,
+        age: Double?,
+        education: String?,
+        traits: [String]?,
+        notes: String?,
+        messengerids: [ContactMessengerId],
+        createdat: Double,
+        updatedat: Double)
+    {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.education = education
+        self.traits = traits
+        self.notes = notes
+        self.messengerids = messengerids
+        self.createdat = createdat
+        self.updatedat = updatedat
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case age
+        case education
+        case traits
+        case notes
+        case messengerids = "messengerIds"
+        case createdat = "createdAt"
+        case updatedat = "updatedAt"
+    }
+}
+
+public struct ContactsListParams: Codable, Sendable {
+    public let agentid: String
+
+    public init(
+        agentid: String)
+    {
+        self.agentid = agentid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+    }
+}
+
+public struct ContactsListResult: Codable, Sendable {
+    public let agentid: String
+    public let contacts: [ContactEntry]
+
+    public init(
+        agentid: String,
+        contacts: [ContactEntry])
+    {
+        self.agentid = agentid
+        self.contacts = contacts
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+        case contacts
+    }
+}
+
+public struct ContactsSaveParams: Codable, Sendable {
+    public let agentid: String
+    public let id: String?
+    public let name: String?
+    public let age: Double?
+    public let education: String?
+    public let traits: [String]?
+    public let notes: String?
+    public let messengers: [ContactMessengerId]?
+
+    public init(
+        agentid: String,
+        id: String?,
+        name: String?,
+        age: Double?,
+        education: String?,
+        traits: [String]?,
+        notes: String?,
+        messengers: [ContactMessengerId]?)
+    {
+        self.agentid = agentid
+        self.id = id
+        self.name = name
+        self.age = age
+        self.education = education
+        self.traits = traits
+        self.notes = notes
+        self.messengers = messengers
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+        case id
+        case name
+        case age
+        case education
+        case traits
+        case notes
+        case messengers
+    }
+}
+
+public struct ContactsSaveResult: Codable, Sendable {
+    public let agentid: String
+    public let contact: ContactEntry
+
+    public init(
+        agentid: String,
+        contact: ContactEntry)
+    {
+        self.agentid = agentid
+        self.contact = contact
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+        case contact
+    }
+}
+
+public struct ContactsDeleteParams: Codable, Sendable {
+    public let agentid: String
+    public let id: String
+
+    public init(
+        agentid: String,
+        id: String)
+    {
+        self.agentid = agentid
+        self.id = id
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+        case id
+    }
+}
+
+public struct ContactsDeleteResult: Codable, Sendable {
+    public let agentid: String
+    public let deleted: Bool
+    public let id: String
+
+    public init(
+        agentid: String,
+        deleted: Bool,
+        id: String)
+    {
+        self.agentid = agentid
+        self.deleted = deleted
+        self.id = id
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agentid = "agentId"
+        case deleted
+        case id
+    }
+}
+
 public struct ModelChoice: Codable, Sendable {
     public let id: String
     public let name: String

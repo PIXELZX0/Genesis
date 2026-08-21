@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../../config/config.js";
+import * as identityLinksRuntime from "../../routing/identity-links.runtime.js";
 import { ensureOutboundSessionEntry, resolveOutboundSessionRoute } from "./outbound-session.js";
 import { setMinimalOutboundSessionPluginRegistryForTests } from "./outbound-session.test-helpers.js";
 
@@ -332,6 +333,71 @@ describe("resolveOutboundSessionRoute", () => {
     },
   ] satisfies NamedRouteCase[])("$name", async ({ name: _name, ...params }) => {
     await expectResolvedRoute(params);
+  });
+
+  it.each([
+    {
+      name: "group route",
+      cfg: {
+        session: { dmScope: "per-peer", contacts: { unifySessions: true } },
+      } as GenesisConfig,
+      channel: "mobilechat" as const,
+      target: "120363040000000000@g.us",
+      expectedSessionKey: "agent:main:mobilechat:group:120363040000000000@g.us",
+    },
+    {
+      name: "channel route",
+      cfg: {
+        session: { dmScope: "per-peer", contacts: { unifySessions: true } },
+      } as GenesisConfig,
+      channel: "matrix" as const,
+      target: "room:!ops:matrix.example",
+      expectedSessionKey: "agent:main:matrix:channel:!ops:matrix.example",
+    },
+    {
+      name: "shared main-scope direct route without contact unification",
+      cfg: { session: { contacts: { unifySessions: false } } } as GenesisConfig,
+      channel: "mobilechat" as const,
+      target: "123",
+      expectedSessionKey: "agent:main:main",
+    },
+  ])(
+    "does not load contact identity links for $name",
+    async ({ cfg, channel, target, expectedSessionKey }) => {
+      const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+      try {
+        const route = await resolveOutboundSessionRoute({
+          cfg,
+          channel,
+          agentId: "main",
+          target,
+        });
+        expect(route?.sessionKey).toBe(expectedSessionKey);
+        expect(identityLinksSpy).not.toHaveBeenCalled();
+      } finally {
+        identityLinksSpy.mockRestore();
+      }
+    },
+  );
+
+  it("keeps direct outbound contact identity unification enabled", async () => {
+    const identityLinksSpy = vi
+      .spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks")
+      .mockReturnValue({ alice: ["mobilechat:123"] });
+    try {
+      const route = await resolveOutboundSessionRoute({
+        cfg: {
+          session: { contacts: { unifySessions: true } },
+        } as GenesisConfig,
+        channel: "mobilechat",
+        agentId: "main",
+        target: "123",
+      });
+      expect(route?.sessionKey).toBe("agent:main:direct:alice");
+      expect(identityLinksSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      identityLinksSpy.mockRestore();
+    }
   });
 
   it.each([

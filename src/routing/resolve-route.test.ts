@@ -1,6 +1,10 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, test, vi } from "vitest";
 import type { GenesisConfig } from "../config/config.js";
 import * as routingBindings from "./bindings.js";
+import * as identityLinksRuntime from "./identity-links.runtime.js";
 import {
   deriveLastRoutePolicy,
   resolveAgentRoute,
@@ -113,6 +117,141 @@ describe("resolveAgentRoute", () => {
       lastRoutePolicy: "main",
       matchedBy: "default",
     });
+  });
+
+  test("does not request contact-derived links for non-direct peers", () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-route-group-links-"));
+    const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+    try {
+      resolveRoute({
+        cfg: { session: { contacts: { enabled: true, unifySessions: true } } },
+        channel: "telegram",
+        accountId: "default",
+        peer: { kind: "group", id: "group-1" },
+        stateDir,
+      });
+      expect(identityLinksSpy).not.toHaveBeenCalled();
+    } finally {
+      identityLinksSpy.mockRestore();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  test("keeps configured identity links for non-direct peers without contact scans", () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-route-configured-links-"));
+    const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+    try {
+      resolveRoute({
+        cfg: {
+          session: {
+            contacts: { enabled: true, unifySessions: true },
+            identityLinks: { configured: ["telegram:group-1"] },
+          },
+        },
+        channel: "telegram",
+        accountId: "default",
+        peer: { kind: "group", id: "group-1" },
+        stateDir,
+      });
+      expect(identityLinksSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ includeContactLinks: false }),
+      );
+    } finally {
+      identityLinksSpy.mockRestore();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  test.each([
+    {
+      name: "keeps the cache for default main-scope contacts",
+      session: {},
+      expectedIdentityLinkCalls: 0,
+    },
+    {
+      name: "disables the cache when contacts unify sessions",
+      session: { contacts: { enabled: true, unifySessions: true } },
+      expectedIdentityLinkCalls: 2,
+    },
+    {
+      name: "keeps the cache for non-main dm scopes when contacts do not unify",
+      session: { contacts: { enabled: true }, dmScope: "per-peer" as const },
+      expectedIdentityLinkCalls: 0,
+    },
+    {
+      name: "preserves the configured identityLinks cache behavior",
+      session: {
+        contacts: { enabled: true },
+        identityLinks: { alice: ["telegram:123"] },
+      },
+      expectedIdentityLinkCalls: 2,
+    },
+  ] as const)("$name", ({ session, expectedIdentityLinkCalls }) => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-route-cache-"));
+    const cfg: GenesisConfig = { session: session as GenesisConfig["session"] };
+    const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+    try {
+      const input = {
+        cfg,
+        channel: "telegram",
+        accountId: "default",
+        peer: { kind: "direct" as const, id: "123" },
+        stateDir,
+      };
+      resolveAgentRoute(input);
+      resolveAgentRoute(input);
+      expect(identityLinksSpy).toHaveBeenCalledTimes(expectedIdentityLinkCalls);
+    } finally {
+      identityLinksSpy.mockRestore();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  test.each([
+    {
+      name: "does not use contact links for non-main dm scopes when unify is false",
+      session: { dmScope: "per-peer" as const, contacts: { unifySessions: false } },
+      expected: "agent:main:direct:123",
+      expectedIdentityLinkCalls: 0,
+    },
+    {
+      name: "uses contact links when unify is true",
+      session: { contacts: { unifySessions: true } },
+      expected: "agent:main:direct:alice",
+      expectedIdentityLinkCalls: 1,
+    },
+  ] as const)("$name", ({ session, expected, expectedIdentityLinkCalls }) => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "genesis-route-contact-links-"));
+    fs.writeFileSync(
+      path.join(stateDir, "contacts.json"),
+      JSON.stringify({
+        version: 1,
+        contacts: {
+          alice: {
+            id: "alice",
+            name: "Alice",
+            messengerIds: [{ channel: "telegram", id: "123" }],
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        },
+      }),
+    );
+    const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+    try {
+      const route = resolveRoute({
+        cfg: { session: session as GenesisConfig["session"] },
+        channel: "telegram",
+        accountId: "default",
+        peer: { kind: "direct", id: "123" },
+        stateDir,
+      });
+      expect(route.sessionKey).toBe(expected);
+      expect(identityLinksSpy).toHaveBeenCalledTimes(expectedIdentityLinkCalls);
+    } finally {
+      identityLinksSpy.mockRestore();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
   });
 
   test.each([

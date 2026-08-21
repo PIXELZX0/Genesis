@@ -34,8 +34,10 @@ import {
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
 import type { IdentityConfig } from "../../config/types.base.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import { isContactsEnabled, resolveContactLegacyAgentDirs } from "../../contacts/config.js";
 import {
   deleteContact,
+  findContactById,
   loadContactStore,
   updateContactStoreWithLock,
   upsertContact,
@@ -275,6 +277,14 @@ function isConfiguredAgent(cfg: GenesisConfig, agentId: string): boolean {
 
 function respondAgentNotFound(respond: RespondFn, agentId: string): void {
   respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" not found`));
+}
+
+function rejectDisabledContacts(cfg: GenesisConfig, respond: RespondFn): boolean {
+  if (isContactsEnabled(cfg)) {
+    return false;
+  }
+  respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "contacts feature is disabled"));
+  return true;
 }
 
 async function moveToTrashBestEffort(pathname: string): Promise<void> {
@@ -845,12 +855,17 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    if (rejectDisabledContacts(cfg, respond)) {
+      return;
+    }
     const agentId = resolveAgentIdOrError(params.agentId, cfg);
     if (!agentId) {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
       return;
     }
-    const store = loadContactStore(resolveAgentDir(cfg, agentId));
+    const store = loadContactStore(undefined, {
+      legacyAgentDirs: resolveContactLegacyAgentDirs(cfg),
+    });
     respond(true, { agentId, contacts: Object.values(store.contacts) }, undefined);
   },
   "contacts.save": async ({ params, respond }) => {
@@ -859,15 +874,17 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    if (rejectDisabledContacts(cfg, respond)) {
+      return;
+    }
     const agentId = resolveAgentIdOrError(params.agentId, cfg);
     if (!agentId) {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
       return;
     }
-    const agentDir = resolveAgentDir(cfg, agentId);
     let savedId: string | undefined;
     const store = await updateContactStoreWithLock({
-      agentDir,
+      legacyAgentDirs: resolveContactLegacyAgentDirs(cfg),
       updater: (s) => {
         savedId = upsertContact(s, {
           id: params.id,
@@ -885,7 +902,12 @@ export const agentsHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "failed to save contact"));
       return;
     }
-    respond(true, { agentId, contact: store.contacts[savedId] }, undefined);
+    const contact = findContactById(store, savedId);
+    if (!contact) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "failed to save contact"));
+      return;
+    }
+    respond(true, { agentId, contact }, undefined);
   },
   "contacts.delete": async ({ params, respond }) => {
     if (!validateContactsDeleteParams(params)) {
@@ -893,19 +915,26 @@ export const agentsHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    if (rejectDisabledContacts(cfg, respond)) {
+      return;
+    }
     const agentId = resolveAgentIdOrError(params.agentId, cfg);
     if (!agentId) {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
       return;
     }
     let removed = false;
-    await updateContactStoreWithLock({
-      agentDir: resolveAgentDir(cfg, agentId),
+    const store = await updateContactStoreWithLock({
+      legacyAgentDirs: resolveContactLegacyAgentDirs(cfg),
       updater: (s) => {
         removed = deleteContact(s, params.id);
         return removed;
       },
     });
+    if (store === null) {
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "failed to delete contact"));
+      return;
+    }
     respond(true, { agentId, deleted: removed, id: params.id }, undefined);
   },
 };

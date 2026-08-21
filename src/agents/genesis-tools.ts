@@ -252,13 +252,12 @@ export function createGenesisTools(
           fsPolicy: options?.fsPolicy,
         })
       : null;
-  const contactsTool =
-    shouldCreateTool("contacts") && options?.agentDir?.trim()
-      ? createContactsTool({
-          agentDir: options.agentDir,
-          config: resolvedConfig,
-        })
-      : null;
+  const contactsTool = shouldCreateTool("contacts")
+    ? createContactsTool({
+        agentDir: options?.agentDir,
+        config: resolvedConfig,
+      })
+    : null;
   const webSearchTool = shouldCreateTool("web_search")
     ? createWebSearchTool({
         config: options?.config,

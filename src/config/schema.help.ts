@@ -1443,11 +1443,11 @@ export const FIELD_HELP: Record<string, string> = {
   "session.identityLinks":
     "Maps canonical identities to provider-prefixed peer IDs so equivalent users resolve to one DM thread (example: telegram:123456). Use this when the same human appears across multiple channels or accounts.",
   "session.contacts":
-    "Remembered-people store. When enabled, the agent can save contacts (name, age, traits, per-messenger IDs) via the contacts tool, and a contact's messenger IDs feed identity resolution so the same person shares one DM session across messengers.",
+    "Global remembered-people store shared by all agents in the active Genesis state directory ($GENESIS_STATE_DIR/contacts.json). It is active unless session.contacts.enabled is explicitly false; saved messenger IDs feed identity resolution so the same person can share one DM session across messengers.",
   "session.contacts.enabled":
-    "Enables the per-agent contacts store (~/.genesis/agents/<id>/agent/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing.",
+    "Enables the global contacts store ($GENESIS_STATE_DIR/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing. Omit this option or set it to true to enable contacts; set it to false to disable them. All agents sharing this state directory share the contacts data.",
   "session.contacts.unifySessions":
-    "Merges a matched contact's messengers into a single DM session regardless of dmScope. Group/channel sessions are unaffected. Requires session.contacts.enabled.",
+    "Merges a matched contact's messengers into a single DM session regardless of dmScope when set to true. When omitted or false, contact-derived links are not used for session keys; configured session.identityLinks keep their existing behavior. Group/channel sessions are unaffected. Requires contacts to be enabled.",
   "session.resetTriggers":
     "Lists message triggers that force a session reset when matched in inbound content. Use sparingly for explicit reset phrases so context is not dropped unexpectedly during normal conversation.",
   "session.idleMinutes":

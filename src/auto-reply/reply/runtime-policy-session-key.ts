@@ -117,6 +117,17 @@ export function resolveRuntimePolicySessionKey(params: {
     return sessionKey;
   }
 
+  const unifyContacts = isContactSessionUnifyEnabled(params.cfg);
+  const configuredIdentityLinks = params.cfg?.session?.identityLinks;
+  const identityLinks =
+    unifyContacts || configuredIdentityLinks !== undefined
+      ? resolveEffectiveIdentityLinks({
+          cfg: params.cfg,
+          agentId,
+          includeContactLinks: unifyContacts,
+        })
+      : undefined;
+
   return buildAgentPeerSessionKey({
     agentId,
     channel,
@@ -124,7 +135,7 @@ export function resolveRuntimePolicySessionKey(params: {
     peerKind: "direct",
     peerId,
     dmScope: "per-account-channel-peer",
-    identityLinks: resolveEffectiveIdentityLinks({ cfg: params.cfg, agentId }),
-    unifyContacts: isContactSessionUnifyEnabled(params.cfg),
+    identityLinks,
+    unifyContacts,
   });
 }

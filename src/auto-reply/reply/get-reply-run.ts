@@ -340,7 +340,7 @@ export async function runPreparedReply(
   const groupSystemPrompt = normalizeOptionalString(sessionCtx.GroupSystemPrompt) ?? "";
   // Resolve/auto-capture the contact for this direct sender and stash a curated
   // profile onto sessionCtx so the inbound prompts can tell the model who it is
-  // talking to. No-op unless session.contacts.enabled.
+  // talking to. No-op only when contacts are explicitly disabled.
   await applyContactContext({ cfg, agentDir, sessionCtx });
   const inboundMetaPrompt = buildInboundMetaSystemPrompt(
     isNewSession ? sessionCtx : { ...sessionCtx, ThreadStarterBody: undefined },

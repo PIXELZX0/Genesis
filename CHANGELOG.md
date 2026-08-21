@@ -18,6 +18,7 @@ Docs: https://genesis.pixelzx.com/docs
 - Google: the Gemini CLI transport now sends tool call and tool response ids for Gemini 3 and newer models, matching what those models require. Gemini 2.x and older still get ids stripped.
 - Control UI: Models -> Providers now shows each provider's real auth status (Connected, API key, Expiring, Expired, Auth required) plus remaining plan usage per window, instead of hardcoding "Connected" for every row. Providers that are configured but not logged in appear even when they contribute no models.
 - Control UI: Overview, Logs, Debug, and chat slash commands now deduplicate in-flight gateway requests and bound `logs.tail` with a 5s timeout, so repeated tab switches or refresh clicks no longer pile up requests. Refreshing the Overview log panel reloads just the logs instead of the whole overview, Debug reuses the shared model catalog loader and drops its extra `last-heartbeat` call, and stale responses from a superseded connection are discarded.
+- Contacts: the remembered-people store is now global to the active state root at `$GENESIS_STATE_DIR/contacts.json`, so contacts, auto-captured identities, contact routing, and Gateway contacts methods are shared across agents using that root. Contacts are enabled unless `session.contacts.enabled` is explicitly `false`; use separate profiles or state directories when this sharing is not wanted.
 
 ### Fixes
 

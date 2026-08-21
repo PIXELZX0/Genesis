@@ -1,5 +1,6 @@
 import { normalizeChatType } from "../../channels/chat-type.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import { isContactsEnabled, resolveContactLegacyAgentDirs } from "../../contacts/config.js";
 import {
   findContactByMessengerId,
   loadContactStore,
@@ -7,6 +8,7 @@ import {
   upsertContact,
 } from "../../contacts/store.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
+import { INTERNAL_MESSAGE_CHANNEL } from "../../utils/message-channel-constants.js";
 import type { MsgContext } from "../templating.js";
 
 function resolveContactChannel(ctx: MsgContext): string | undefined {
@@ -23,31 +25,38 @@ function resolveContactChannel(ctx: MsgContext): string | undefined {
  */
 export async function applyContactContext(params: {
   cfg: GenesisConfig | undefined;
-  agentDir: string | undefined;
+  agentDir?: string;
+  stateDir?: string;
   sessionCtx: MsgContext;
 }): Promise<void> {
-  const { cfg, agentDir, sessionCtx } = params;
-  if (cfg?.session?.contacts?.enabled !== true || !agentDir) {
+  const { cfg, agentDir, stateDir, sessionCtx } = params;
+  if (!isContactsEnabled(cfg)) {
     return;
   }
+  const legacyAgentDirs = resolveContactLegacyAgentDirs(cfg, { stateDir, agentDir });
   const chatType = normalizeChatType(sessionCtx.ChatType);
   if (chatType && chatType !== "direct") {
     return;
   }
   const channel = resolveContactChannel(sessionCtx);
   const senderId = normalizeOptionalString(sessionCtx.SenderId);
-  if (!channel || !senderId) {
+  if (!channel || channel.toLowerCase() === INTERNAL_MESSAGE_CHANNEL || !senderId) {
     return;
   }
 
-  let contact = findContactByMessengerId(loadContactStore(agentDir), channel, senderId);
+  let contact = findContactByMessengerId(
+    loadContactStore(stateDir, { legacyAgentDirs }),
+    channel,
+    senderId,
+  );
 
   if (!contact) {
     // Auto-capture an unknown direct sender as a stub for later enrichment.
     const senderName = normalizeOptionalString(sessionCtx.SenderName);
     const username = normalizeOptionalString(sessionCtx.SenderUsername);
     const store = await updateContactStoreWithLock({
-      agentDir,
+      stateDir,
+      legacyAgentDirs,
       updater: (s) => {
         // Re-check inside the lock to avoid duplicate stubs under concurrency.
         if (findContactByMessengerId(s, channel, senderId)) {

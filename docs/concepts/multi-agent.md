@@ -5,7 +5,7 @@ read_when: "You want multiple isolated agents (workspaces + auth) in one gateway
 status: active
 ---
 
-Run multiple _isolated_ agents — each with its own workspace, state directory (`agentDir`), and session history — plus multiple channel accounts (e.g. two WhatsApps) in one running Gateway. Inbound messages are routed to the right agent through bindings.
+Run multiple _isolated_ agents — each with its own workspace, state directory (`agentDir`), and session history — plus multiple channel accounts (e.g. two WhatsApps) in one running Gateway. Inbound messages are routed to the right agent through bindings. Contacts are the deliberate exception: the enabled contacts store is shared at the active state root.
 
 An **agent** here is the full per-persona scope: workspace files, auth profiles, model registry, and session store. `agentDir` is the on-disk state directory that holds this per-agent config at `~/.genesis/agents/<agentId>/`. A **binding** maps a channel account (e.g. a Slack workspace or a WhatsApp number) to one of those agents.
 
@@ -57,6 +57,34 @@ reach other host locations unless sandboxing is enabled. See
 - Workspace: `~/.genesis/workspace` (or `~/.genesis/workspace-<agentId>`)
 - Agent dir: `~/.genesis/agents/<agentId>/agent` (or `agents.list[].agentDir`)
 - Sessions: `~/.genesis/agents/<agentId>/sessions`
+- Contacts: `~/.genesis/contacts.json` (shared by every agent using this state root)
+
+### Shared Contacts
+
+When `session.contacts.enabled` is omitted or `true`, Genesis stores contacts in
+`$GENESIS_STATE_DIR/contacts.json`, not inside an agent directory. Auto-captured
+DM identities, the owner-only `contacts` tool, contact-aware routing, and the
+Gateway contacts methods all use this same file. The Gateway contacts surface
+(`contacts.list`, `contacts.save`, and `contacts.delete`) is admin-scoped.
+`session.contacts.unifySessions`
+still must be `true` before contact-linked messengers are collapsed into one DM
+session; configured `session.identityLinks` remain independent of that switch.
+
+The `ownerOnly` restriction protects the tool surface, but it does not create a
+per-agent data boundary: agents and Gateway clients that share the same state
+root share the contacts and messenger identities. Use separate profiles or an
+explicit `GENESIS_STATE_DIR` when contacts must remain isolated.
+
+During the transition from older releases, default-layout legacy contact files
+under `agents/*/agent/` are read as a fallback and unambiguous records are
+carried into the shared store on the next write. Config-aware production paths
+also include the legacy `contacts.json` under each configured
+`agents.list[].agentDir`. Low-level store calls that only provide a state
+directory can discover the default layout, but cannot infer custom agent dirs.
+If contact IDs conflict case-insensitively, or different contacts claim the
+same normalized messenger identity, every contact involved in that conflict is
+excluded from the fallback. The original legacy files are preserved for manual
+resolution.
 
 ### Single-agent mode (default)
 
@@ -66,6 +94,7 @@ If you do nothing, Genesis runs a single agent:
 - Sessions are keyed as `agent:main:<mainKey>`.
 - Workspace defaults to `~/.genesis/workspace` (or `~/.genesis/workspace-<profile>` when `GENESIS_PROFILE` is set).
 - State defaults to `~/.genesis/agents/main/agent`.
+- Contacts, when enabled, default to `~/.genesis/contacts.json`.
 
 ## Agent helper
 
@@ -134,11 +163,14 @@ genesis channels status --probe
 
 ## Multiple agents = multiple people, multiple personalities
 
-With **multiple agents**, each `agentId` becomes a **fully isolated persona**:
+With **multiple agents**, each `agentId` becomes a **fully isolated persona** for
+workspace, authentication, and sessions. The shared contacts store is the
+deliberate exception when contacts are enabled:
 
 - **Different phone numbers/accounts** (per channel `accountId`).
 - **Different personalities** (per-agent workspace files like `AGENTS.md` and `SOUL.md`).
 - **Separate auth + sessions** (no cross-talk unless explicitly enabled).
+- **Shared remembered people** (`$GENESIS_STATE_DIR/contacts.json`) across agents using the same state root.
 
 This lets **multiple people** share one Gateway server while keeping their AI “brains” and data isolated.
 

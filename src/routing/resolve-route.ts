@@ -38,6 +38,10 @@ export type ResolveAgentRouteInput = {
   cfg: GenesisConfig;
   channel: string;
   accountId?: string | null;
+  /** Optional contact-store root override, primarily for isolated runtimes/tests. */
+  stateDir?: string;
+  /** Current runtime agent dir used for legacy contact fallback. */
+  agentDir?: string;
   peer?: RoutePeer | null;
   /** Parent peer for threads — used for binding inheritance when peer doesn't match directly. */
   parentPeer?: RoutePeer | null;
@@ -628,8 +632,8 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   const memberRoleIdSet = new Set(memberRoleIds);
   const dmScope = input.cfg.session?.dmScope ?? "main";
   const identityLinks = input.cfg.session?.identityLinks;
-  const contactsEnabled = input.cfg.session?.contacts?.enabled === true;
   const unifyContacts = isContactSessionUnifyEnabled(input.cfg);
+  const contactLinksRequested = unifyContacts && peer?.kind === "direct";
   const shouldLogDebug = shouldLogVerbose();
   const parentPeer = input.parentPeer
     ? {
@@ -637,9 +641,10 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
         id: normalizeId(input.parentPeer.id),
       }
     : null;
+  const contactsAffectSessionKey = contactLinksRequested;
 
   const routeCache =
-    !shouldLogDebug && !identityLinks && !contactsEnabled
+    !shouldLogDebug && !identityLinks && !contactsAffectSessionKey
       ? resolveRouteCacheForConfig(input.cfg)
       : null;
   const routeCacheKey = routeCache
@@ -666,9 +671,16 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
 
   const choose = (agentId: string, matchedBy: ResolvedAgentRoute["matchedBy"]) => {
     const resolvedAgentId = pickFirstExistingAgentId(input.cfg, agentId);
-    const effectiveIdentityLinks = contactsEnabled
-      ? resolveEffectiveIdentityLinks({ cfg: input.cfg, agentId: resolvedAgentId })
-      : identityLinks;
+    const effectiveIdentityLinks =
+      identityLinks !== undefined || contactLinksRequested
+        ? resolveEffectiveIdentityLinks({
+            cfg: input.cfg,
+            agentId: resolvedAgentId,
+            agentDir: input.agentDir,
+            stateDir: input.stateDir,
+            includeContactLinks: contactLinksRequested,
+          })
+        : undefined;
     const sessionKey = normalizeLowercaseStringOrEmpty(
       buildAgentSessionKey({
         agentId: resolvedAgentId,

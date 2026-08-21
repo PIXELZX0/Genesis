@@ -1,4 +1,4 @@
-import { loadContactStore } from "./store.js";
+import { loadContactStore, type ContactStoreLoadOptions } from "./store.js";
 import type { ContactStore } from "./types.js";
 
 /**
@@ -10,23 +10,43 @@ import type { ContactStore } from "./types.js";
 export function buildContactIdentityLinks(
   store: ContactStore,
 ): Record<string, string[]> | undefined {
-  const links: Record<string, string[]> = {};
+  const links: Record<string, string[]> = Object.create(null) as Record<string, string[]>;
   for (const contact of Object.values(store.contacts)) {
-    const ids = contact.messengerIds
-      .map((m) => `${m.channel.trim()}:${m.id.trim()}`)
-      .filter((entry) => entry.length > 1 && !entry.startsWith(":") && !entry.endsWith(":"));
+    if (!contact || typeof contact.id !== "string" || !Array.isArray(contact.messengerIds)) {
+      continue;
+    }
+    const contactId = contact.id.trim();
+    if (!contactId) {
+      continue;
+    }
+    const ids = contact.messengerIds.flatMap((messenger) => {
+      if (!messenger || typeof messenger.channel !== "string" || typeof messenger.id !== "string") {
+        return [];
+      }
+      const channel = messenger.channel.trim();
+      const id = messenger.id.trim();
+      return channel && id ? [`${channel}:${id}`] : [];
+    });
     if (ids.length > 0) {
-      links[contact.id] = ids;
+      Object.defineProperty(links, contactId, {
+        configurable: true,
+        enumerable: true,
+        value: ids,
+        writable: true,
+      });
     }
   }
   return Object.keys(links).length > 0 ? links : undefined;
 }
 
 /**
- * Load (cached) the contact store for an agent dir and derive its identity
- * links. Returns `undefined` when there are no usable contact identities so
- * the router can keep its no-links fast path.
+ * Load (cached) the global contact store and derive its identity links.
+ * Returns `undefined` when there are no usable contact identities so the
+ * router can keep its no-links fast path.
  */
-export function getContactIdentityLinks(agentDir?: string): Record<string, string[]> | undefined {
-  return buildContactIdentityLinks(loadContactStore(agentDir));
+export function getContactIdentityLinks(
+  stateDir?: string,
+  options?: ContactStoreLoadOptions,
+): Record<string, string[]> | undefined {
+  return buildContactIdentityLinks(loadContactStore(stateDir, options));
 }

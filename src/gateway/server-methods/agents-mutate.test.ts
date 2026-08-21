@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { SafeOpenError } from "../../infra/fs-safe.js";
+import { ErrorCodes } from "../protocol/index.js";
 /* ------------------------------------------------------------------ */
 /* Mocks                                                              */
 /* ------------------------------------------------------------------ */
@@ -46,6 +47,10 @@ const mocks = vi.hoisted(() => ({
   fsReadlink: vi.fn(async () => ""),
   fsOpen: vi.fn(async () => ({}) as unknown),
   writeFileWithinRoot: vi.fn(async () => {}),
+  loadContactStore: vi.fn(() => ({ version: 1, contacts: {} })),
+  updateContactStoreWithLock: vi.fn(async (_params: unknown): Promise<unknown> => null),
+  upsertContact: vi.fn(),
+  deleteContact: vi.fn(),
 }));
 
 vi.mock("../../config/config.js", async () => {
@@ -69,6 +74,18 @@ vi.mock("../../commands/agents.config.js", () => ({
   listAgentEntries: mocks.listAgentEntries,
   pruneAgentConfig: mocks.pruneAgentConfig,
 }));
+
+vi.mock("../../contacts/store.js", async () => {
+  const actual =
+    await vi.importActual<typeof import("../../contacts/store.js")>("../../contacts/store.js");
+  return {
+    ...actual,
+    loadContactStore: mocks.loadContactStore,
+    updateContactStoreWithLock: mocks.updateContactStoreWithLock,
+    upsertContact: mocks.upsertContact,
+    deleteContact: mocks.deleteContact,
+  };
+});
 
 vi.mock("../../agents/agent-scope.js", () => ({
   listAgentIds: () => ["main"],
@@ -980,6 +997,131 @@ describe("agents.update", () => {
         relativePath: "IDENTITY.md",
         nonBlockingRead: true,
       }),
+    );
+  });
+});
+
+describe("contacts gateway methods", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.loadConfigReturn = {
+      agents: { list: [{ id: "main" }] },
+      session: { contacts: { enabled: false } },
+    };
+  });
+
+  it.each([
+    { method: "contacts.list" as const, params: { agentId: "main" } },
+    { method: "contacts.save" as const, params: { agentId: "main", name: "Alice" } },
+    { method: "contacts.delete" as const, params: { agentId: "main", id: "alice" } },
+  ])("rejects $method when contacts are explicitly disabled", async ({ method, params }) => {
+    const { respond, promise } = makeCall(method, params);
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: ErrorCodes.UNAVAILABLE,
+        message: "contacts feature is disabled",
+      }),
+    );
+    expect(mocks.loadContactStore).not.toHaveBeenCalled();
+    expect(mocks.updateContactStoreWithLock).not.toHaveBeenCalled();
+  });
+
+  it("keeps contacts.list enabled when the setting is omitted", async () => {
+    mocks.loadConfigReturn = { agents: { list: [{ id: "main" }] } };
+    mocks.loadContactStore.mockReturnValue({
+      version: 1,
+      contacts: {
+        alice: {
+          id: "alice",
+          name: "Alice",
+          messengerIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    });
+
+    const { respond, promise } = makeCall("contacts.list", { agentId: "main" });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ agentId: "main" }),
+      undefined,
+    );
+    expect(mocks.loadContactStore).toHaveBeenCalled();
+  });
+
+  it("returns the actual contact created by contacts.save", async () => {
+    mocks.loadConfigReturn = { agents: { list: [{ id: "main" }] } };
+    const contact = {
+      id: "alice",
+      name: "Alice",
+      messengerIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const stored = { version: 1, contacts: { alice: contact } };
+    mocks.upsertContact.mockReturnValue(contact);
+    mocks.updateContactStoreWithLock.mockImplementation(async (rawParams: unknown) => {
+      const params = rawParams as { updater: (store: typeof stored) => boolean };
+      params.updater(stored);
+      return stored;
+    });
+
+    const { respond, promise } = makeCall("contacts.save", {
+      agentId: "main",
+      name: "Alice",
+    });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(true, { agentId: "main", contact }, undefined);
+  });
+
+  it("returns unavailable when contacts.delete cannot update the store", async () => {
+    mocks.loadConfigReturn = { agents: { list: [{ id: "main" }] } };
+    mocks.updateContactStoreWithLock.mockResolvedValue(null);
+
+    const { respond, promise } = makeCall("contacts.delete", {
+      agentId: "main",
+      id: "alice",
+    });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: ErrorCodes.UNAVAILABLE,
+        message: "failed to delete contact",
+      }),
+    );
+  });
+
+  it("returns deleted:false when contacts.delete succeeds without finding a contact", async () => {
+    mocks.loadConfigReturn = { agents: { list: [{ id: "main" }] } };
+    const stored = { version: 1, contacts: {} };
+    mocks.deleteContact.mockReturnValue(false);
+    mocks.updateContactStoreWithLock.mockImplementation(async (rawParams: unknown) => {
+      const params = rawParams as { updater: (store: typeof stored) => boolean };
+      params.updater(stored);
+      return stored;
+    });
+
+    const { respond, promise } = makeCall("contacts.delete", {
+      agentId: "main",
+      id: "missing",
+    });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      { agentId: "main", deleted: false, id: "missing" },
+      undefined,
     );
   });
 });

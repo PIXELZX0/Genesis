@@ -161,11 +161,11 @@ export type SessionConfig = {
   dmScope?: DmScope;
   /** Map platform-prefixed identities (e.g. "telegram:123") to canonical DM peers. */
   identityLinks?: Record<string, string[]>;
-  /** Remembered-people store; drives cross-messenger DM session unification. */
+  /** Global remembered-people store; omitted or true enables it, false disables it. */
   contacts?: {
-    /** Enable the contacts store, the contacts tool, and contact-aware routing. */
+    /** Enable the shared state-root contacts store, tool, auto-capture, and routing. */
     enabled?: boolean;
-    /** Merge a contact's messengers into one DM session regardless of dmScope. */
+    /** Merge contact-derived messenger links into one DM session regardless of dmScope. */
     unifySessions?: boolean;
   };
   resetTriggers?: string[];

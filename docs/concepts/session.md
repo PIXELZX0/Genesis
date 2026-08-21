@@ -50,6 +50,12 @@ Other options:
 <Tip>
 If the same person contacts you from multiple channels, use
 `session.identityLinks` to link their identities so they share one session.
+The contacts feature can derive these links from the shared
+`$GENESIS_STATE_DIR/contacts.json` store. It is enabled unless
+`session.contacts.enabled` is explicitly `false`; set `session.contacts.unifySessions`
+to `true` to apply contact-derived links to DM session keys. When it is omitted
+or `false`, contact-derived links are not used for session keys; configured
+`session.identityLinks` keep their existing behavior.
 </Tip>
 
 Verify your setup with `genesis security audit`.
@@ -78,6 +84,14 @@ session data.
 
 - **Store:** `~/.genesis/agents/<agentId>/sessions/sessions.json`
 - **Transcripts:** `~/.genesis/agents/<agentId>/sessions/<sessionId>.jsonl`
+- **Contacts:** `~/.genesis/contacts.json` (shared by all agents in the active state root)
+
+Contacts are not part of per-agent session isolation. The owner-only contacts
+tool and Gateway contacts methods read and write this shared state-root file,
+so use a separate profile or state directory when agents must not share
+remembered people or messenger identities. Set `session.contacts.enabled` to
+`false` to disable the contacts tool, auto-capture, routing integration, and
+Gateway contacts methods without reading or writing the shared store.
 
 ## Session maintenance
 

@@ -20799,19 +20799,19 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "boolean",
                 title: "Enable Contacts",
                 description:
-                  "Enables the per-agent contacts store (~/.genesis/agents/<id>/agent/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing.",
+                  "Enables the global contacts store ($GENESIS_STATE_DIR/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing. Omit this option or set it to true to enable contacts; set it to false to disable them. All agents sharing this state directory share the contacts data.",
               },
               unifySessions: {
                 type: "boolean",
                 title: "Unify Contact DM Sessions",
                 description:
-                  "Merges a matched contact's messengers into a single DM session regardless of dmScope. Group/channel sessions are unaffected. Requires session.contacts.enabled.",
+                  "Merges a matched contact's messengers into a single DM session regardless of dmScope when set to true. When omitted or false, contact-derived links are not used for session keys; configured session.identityLinks keep their existing behavior. Group/channel sessions are unaffected. Requires contacts to be enabled.",
               },
             },
             additionalProperties: false,
             title: "Contacts",
             description:
-              "Remembered-people store. When enabled, the agent can save contacts (name, age, traits, per-messenger IDs) via the contacts tool, and a contact's messenger IDs feed identity resolution so the same person shares one DM session across messengers.",
+              "Global remembered-people store shared by all agents in the active Genesis state directory ($GENESIS_STATE_DIR/contacts.json). It is active unless session.contacts.enabled is explicitly false; saved messenger IDs feed identity resolution so the same person can share one DM session across messengers.",
           },
           resetTriggers: {
             type: "array",
@@ -28475,17 +28475,17 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "session.contacts": {
       label: "Contacts",
-      help: "Remembered-people store. When enabled, the agent can save contacts (name, age, traits, per-messenger IDs) via the contacts tool, and a contact's messenger IDs feed identity resolution so the same person shares one DM session across messengers.",
+      help: "Global remembered-people store shared by all agents in the active Genesis state directory ($GENESIS_STATE_DIR/contacts.json). It is active unless session.contacts.enabled is explicitly false; saved messenger IDs feed identity resolution so the same person can share one DM session across messengers.",
       tags: ["storage"],
     },
     "session.contacts.enabled": {
       label: "Enable Contacts",
-      help: "Enables the per-agent contacts store (~/.genesis/agents/<id>/agent/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing.",
+      help: "Enables the global contacts store ($GENESIS_STATE_DIR/contacts.json), the owner-only contacts tool, auto-capture of unknown DM senders, and contact-aware DM routing. Omit this option or set it to true to enable contacts; set it to false to disable them. All agents sharing this state directory share the contacts data.",
       tags: ["storage"],
     },
     "session.contacts.unifySessions": {
       label: "Unify Contact DM Sessions",
-      help: "Merges a matched contact's messengers into a single DM session regardless of dmScope. Group/channel sessions are unaffected. Requires session.contacts.enabled.",
+      help: "Merges a matched contact's messengers into a single DM session regardless of dmScope when set to true. When omitted or false, contact-derived links are not used for session keys; configured session.identityLinks keep their existing behavior. Group/channel sessions are unaffected. Requires contacts to be enabled.",
       tags: ["storage"],
     },
     "session.resetTriggers": {

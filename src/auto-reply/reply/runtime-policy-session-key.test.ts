@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox/runtime-status.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import * as identityLinksRuntime from "../../routing/identity-links.runtime.js";
 import type { MsgContext } from "../templating.js";
 import { resolveRuntimePolicySessionKey } from "./runtime-policy-session-key.js";
 
@@ -115,5 +116,30 @@ describe("resolveRuntimePolicySessionKey", () => {
         },
       }),
     ).toBe("agent:main:telegram:default:direct:alice");
+  });
+
+  it("does not load contact links when contact session unification is disabled", () => {
+    const identityLinksSpy = vi.spyOn(identityLinksRuntime, "resolveEffectiveIdentityLinks");
+    try {
+      const sessionKey = resolveRuntimePolicySessionKey({
+        cfg: {
+          ...cfg,
+          session: { contacts: { enabled: true, unifySessions: false } },
+        },
+        sessionKey: "agent:main:main",
+        ctx: {
+          SessionKey: "agent:main:main",
+          OriginatingChannel: "telegram" as MsgContext["OriginatingChannel"],
+          AccountId: "default",
+          ChatType: "direct",
+          SenderId: "42",
+        },
+      });
+
+      expect(sessionKey).toBe("agent:main:telegram:default:direct:42");
+      expect(identityLinksSpy).not.toHaveBeenCalled();
+    } finally {
+      identityLinksSpy.mockRestore();
+    }
   });
 });

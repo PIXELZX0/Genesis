@@ -1,8 +1,10 @@
 import { Type } from "typebox";
 import type { GenesisConfig } from "../../config/types.genesis.js";
+import { isContactsEnabled, resolveContactLegacyAgentDirs } from "../../contacts/config.js";
 import {
   addMessengerId,
   deleteContact,
+  findContactById,
   findContactByMessengerId,
   loadContactStore,
   updateContactStoreWithLock,
@@ -81,16 +83,18 @@ function parseMessengers(raw: unknown): ContactMessengerId[] {
 }
 
 export function createContactsTool(options?: {
+  stateDir?: string;
   agentDir?: string;
   config?: GenesisConfig;
 }): AnyAgentTool | null {
-  const agentDir = options?.agentDir?.trim();
-  if (!agentDir) {
+  const stateDir = options?.stateDir?.trim();
+  if (!isContactsEnabled(options?.config)) {
     return null;
   }
-  if (options?.config?.session?.contacts?.enabled !== true) {
-    return null;
-  }
+  const legacyAgentDirs = resolveContactLegacyAgentDirs(options?.config, {
+    stateDir,
+    agentDir: options?.agentDir,
+  });
   return {
     label: "Contacts",
     name: "contacts",
@@ -103,7 +107,7 @@ export function createContactsTool(options?: {
       const action = readStringParam(params, "action", { required: true });
 
       if (action === "list") {
-        const store = loadContactStore(agentDir);
+        const store = loadContactStore(stateDir, { legacyAgentDirs });
         return jsonResult({
           contacts: Object.values(store.contacts).map((c) => ({
             id: c.id,
@@ -114,12 +118,12 @@ export function createContactsTool(options?: {
       }
 
       if (action === "get") {
-        const store = loadContactStore(agentDir);
+        const store = loadContactStore(stateDir, { legacyAgentDirs });
         const id = readStringParam(params, "id");
         const channel = readStringParam(params, "channel");
         const messengerId = readStringParam(params, "messenger_id");
         const contact = id
-          ? store.contacts[id]
+          ? findContactById(store, id)
           : channel && messengerId
             ? findContactByMessengerId(store, channel, messengerId)
             : undefined;
@@ -130,10 +134,12 @@ export function createContactsTool(options?: {
       }
 
       if (action === "save") {
+        let savedContactId: string | undefined;
         const store = await updateContactStoreWithLock({
-          agentDir,
+          stateDir,
+          legacyAgentDirs,
           updater: (s) => {
-            upsertContact(s, {
+            savedContactId = upsertContact(s, {
               id: readStringParam(params, "id"),
               name: readStringParam(params, "name"),
               age: readNumberParam(params, "age", { integer: true }),
@@ -141,20 +147,16 @@ export function createContactsTool(options?: {
               traits: readStringArrayParam(params, "traits"),
               notes: readStringParam(params, "notes"),
               messengerIds: parseMessengers(params.messengers),
-            });
+            }).id;
             return true;
           },
         });
-        if (!store) {
+        const contact =
+          store && savedContactId ? findContactById(store, savedContactId) : undefined;
+        if (!contact) {
           throw new ToolInputError("failed to save contact");
         }
-        // Return the freshly upserted contact (re-resolve from the saved store).
-        const id = readStringParam(params, "id");
-        const messengers = parseMessengers(params.messengers);
-        const saved = id
-          ? store.contacts[id]
-          : messengers.map((m) => findContactByMessengerId(store, m.channel, m.id)).find(Boolean);
-        return jsonResult({ saved: true, contact: saved });
+        return jsonResult({ saved: true, contact });
       }
 
       if (action === "link") {
@@ -164,7 +166,8 @@ export function createContactsTool(options?: {
         const username = readStringParam(params, "username");
         let added = false;
         const store = await updateContactStoreWithLock({
-          agentDir,
+          stateDir,
+          legacyAgentDirs,
           updater: (s) => {
             added = addMessengerId(s, id, {
               channel,
@@ -174,22 +177,27 @@ export function createContactsTool(options?: {
             return added;
           },
         });
-        if (!store || !store.contacts[id]) {
+        const contact = store ? findContactById(store, id) : undefined;
+        if (!contact) {
           throw new ToolInputError("contact not found");
         }
-        return jsonResult({ linked: added, contact: store.contacts[id] });
+        return jsonResult({ linked: added, contact });
       }
 
       if (action === "delete") {
         const id = readStringParam(params, "id", { required: true });
         let removed = false;
-        await updateContactStoreWithLock({
-          agentDir,
+        const store = await updateContactStoreWithLock({
+          stateDir,
+          legacyAgentDirs,
           updater: (s) => {
             removed = deleteContact(s, id);
             return removed;
           },
         });
+        if (store === null) {
+          throw new ToolInputError("failed to delete contact");
+        }
         return jsonResult({ deleted: removed, id });
       }
 

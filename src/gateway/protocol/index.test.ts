@@ -1,4 +1,5 @@
 import type { ErrorObject } from "ajv";
+import AjvPkg from "ajv";
 import { describe, expect, it } from "vitest";
 import { TALK_TEST_PROVIDER_ID } from "../../test-utils/talk-test-provider.js";
 import {
@@ -13,6 +14,8 @@ import {
   validateCanvasDocumentListParams,
   validateCanvasDocumentListResult,
   validateCanvasDocumentUpdateParams,
+  validateContactsSaveParams,
+  ProtocolSchemas,
   validateTalkConfigResult,
   validateTalkRealtimeSessionParams,
   validateWakeParams,
@@ -79,6 +82,89 @@ describe("formatValidationErrors", () => {
     expect(formatValidationErrors([err, err])).toBe(
       "at /auth: must have required property 'token'",
     );
+  });
+});
+
+describe("validateContactsSaveParams", () => {
+  it("allows an id-less or name-less save with valid optional fields", () => {
+    expect(validateContactsSaveParams({ agentId: "main" })).toBe(true);
+    expect(
+      validateContactsSaveParams({
+        agentId: "main",
+        id: "alice",
+        name: "Alice",
+        messengers: [{ channel: "telegram", id: "123" }],
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects empty or whitespace-only optional contact ids and names", () => {
+    expect(validateContactsSaveParams({ agentId: "main", id: "" })).toBe(false);
+    expect(validateContactsSaveParams({ agentId: "main", name: "" })).toBe(false);
+    expect(validateContactsSaveParams({ agentId: "main", id: "   " })).toBe(false);
+    expect(validateContactsSaveParams({ agentId: "main", name: "\t" })).toBe(false);
+  });
+
+  it("rejects whitespace-only messenger channel and id values", () => {
+    expect(
+      validateContactsSaveParams({
+        agentId: "main",
+        messengers: [{ channel: "   ", id: "123" }],
+      }),
+    ).toBe(false);
+    expect(
+      validateContactsSaveParams({
+        agentId: "main",
+        messengers: [{ channel: "telegram", id: "\n" }],
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("contacts protocol schemas", () => {
+  it("registers contact params/results and accepts Gateway handler payloads", () => {
+    expect(ProtocolSchemas).toEqual(
+      expect.objectContaining({
+        ContactMessengerId: expect.any(Object),
+        ContactEntry: expect.any(Object),
+        ContactsListParams: expect.any(Object),
+        ContactsListResult: expect.any(Object),
+        ContactsSaveParams: expect.any(Object),
+        ContactsSaveResult: expect.any(Object),
+        ContactsDeleteParams: expect.any(Object),
+        ContactsDeleteResult: expect.any(Object),
+      }),
+    );
+
+    const Ajv = AjvPkg as unknown as new (opts?: object) => import("ajv").default;
+    const ajv = new Ajv({ allErrors: true, strict: false });
+    const contact = {
+      id: "alice",
+      name: "Alice",
+      messengerIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+    };
+
+    expect(
+      ajv.compile(ProtocolSchemas.ContactsListResult)({
+        agentId: "main",
+        contacts: [contact],
+      }),
+    ).toBe(true);
+    expect(
+      ajv.compile(ProtocolSchemas.ContactsSaveResult)({
+        agentId: "main",
+        contact,
+      }),
+    ).toBe(true);
+    expect(
+      ajv.compile(ProtocolSchemas.ContactsDeleteResult)({
+        agentId: "main",
+        deleted: false,
+        id: "missing",
+      }),
+    ).toBe(true);
   });
 });
 
