@@ -576,6 +576,61 @@ describe("session-memory hook", () => {
     await expect(fs.access(path.join(defaultWorkspace, "memory"))).rejects.toThrow();
   });
 
+  it("does not block /new on LLM slug generation, then renames in the background", async () => {
+    const { generateSlugViaLLM } = await import("../../llm-slug-generator.js");
+    const mocked = vi.mocked(generateSlugViaLLM);
+    let releaseSlug: (() => void) | undefined;
+    mocked.mockImplementationOnce(async () => {
+      await new Promise<void>((resolve) => {
+        releaseSlug = resolve;
+      });
+      return "vendor-pitch";
+    });
+
+    // Re-enable the LLM slug path that is short-circuited under vitest.
+    vi.stubEnv("VITEST", "");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("GENESIS_TEST_FAST", "");
+
+    try {
+      const tempDir = await createCaseWorkspace("workspace");
+      const sessionsDir = path.join(tempDir, "sessions");
+      await fs.mkdir(sessionsDir, { recursive: true });
+      const sessionFile = await writeWorkspaceFile({
+        dir: sessionsDir,
+        name: "test-session.jsonl",
+        content: createMockSessionContent([
+          { role: "user", content: "Evaluate the vendor" },
+          { role: "assistant", content: "Here is the comparison" },
+        ]),
+      });
+
+      const event = createHookEvent("command", "new", "agent:main:main", {
+        cfg: { agents: { defaults: { workspace: tempDir } } } satisfies GenesisConfig,
+        previousSessionEntry: { sessionId: "test-123", sessionFile },
+      });
+
+      // Handler must resolve while the slug call is still pending.
+      await handler(event);
+
+      const memoryDir = path.join(tempDir, "memory");
+      const beforeRename = await fs.readdir(memoryDir);
+      expect(beforeRename.length).toBe(1);
+      expect(beforeRename[0]).toMatch(/^\d{4}-\d{2}-\d{2}-\d{4}\.md$/);
+
+      releaseSlug?.();
+      await vi.waitFor(async () => {
+        expect(await fs.readdir(memoryDir)).toEqual([
+          `${beforeRename[0].slice(0, 10)}-vendor-pitch.md`,
+        ]);
+      });
+    } finally {
+      releaseSlug?.();
+      vi.unstubAllEnvs();
+      mocked.mockResolvedValue("simple-math");
+    }
+  });
+
   it("handles session files with fewer messages than requested", async () => {
     const sessionContent = createMockSessionContent([
       { role: "user", content: "Only message 1" },

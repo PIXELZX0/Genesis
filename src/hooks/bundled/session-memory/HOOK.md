@@ -24,8 +24,10 @@ When you run `/new` or `/reset` to start a fresh session:
 
 1. **Finds the previous session** - Uses the pre-reset session entry to locate the correct transcript
 2. **Extracts conversation** - Reads the last N user/assistant messages from the session (default: 15, configurable)
-3. **Generates descriptive slug** - Uses LLM to create a meaningful filename slug based on conversation content
-4. **Saves to memory** - Creates a new file at `<workspace>/memory/YYYY-MM-DD-slug.md`
+3. **Saves to memory** - Creates a new file at `<workspace>/memory/YYYY-MM-DD-HHMM.md` right away
+4. **Generates descriptive slug** - Asks the LLM for a meaningful slug in the background, then renames the file to `<workspace>/memory/YYYY-MM-DD-slug.md`
+
+Slug generation never blocks `/new` or `/reset`. The new session's startup context matches memory files by date prefix, so it picks the file up under either name.
 
 ## Output Format
 
@@ -46,21 +48,22 @@ The LLM generates descriptive slugs based on your conversation:
 - `2026-01-16-vendor-pitch.md` - Discussion about vendor evaluation
 - `2026-01-16-api-design.md` - API architecture planning
 - `2026-01-16-bug-fix.md` - Debugging session
-- `2026-01-16-1430.md` - Fallback timestamp if slug generation fails
+- `2026-01-16-1430.md` - Timestamp name, kept if slug generation fails or is disabled
 
 ## Requirements
 
 - **Config**: `workspace.dir` must be set (automatically configured during setup)
 
-The hook uses your configured LLM provider to generate slugs, so it works with any provider (Anthropic, OpenAI, etc.).
+The hook uses your configured LLM provider to generate slugs, so it works with any provider (Anthropic, OpenAI, etc.). Set `llmSlug` to `false` to skip the slug call entirely and keep the timestamp names.
 
 ## Configuration
 
 The hook supports optional configuration:
 
-| Option     | Type   | Default | Description                                                     |
-| ---------- | ------ | ------- | --------------------------------------------------------------- |
-| `messages` | number | 15      | Number of user/assistant messages to include in the memory file |
+| Option     | Type    | Default | Description                                                       |
+| ---------- | ------- | ------- | ----------------------------------------------------------------- |
+| `messages` | number  | 15      | Number of user/assistant messages to include in the memory file   |
+| `llmSlug`  | boolean | true    | Rename the memory file to an LLM-generated slug in the background |
 
 Example configuration:
 

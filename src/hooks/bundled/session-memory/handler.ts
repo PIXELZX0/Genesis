@@ -48,6 +48,41 @@ function resolveDisplaySessionKey(params: {
 }
 
 /**
+ * Generate the descriptive slug and rename the already-written memory file.
+ * Runs detached: /new must not wait on a model round-trip for a filename.
+ */
+async function renameWithLlmSlug(params: {
+  memoryDir: string;
+  filename: string;
+  sessionContent: string;
+  cfg: GenesisConfig;
+  dateStr: string;
+}): Promise<void> {
+  try {
+    log.debug("Calling generateSlugViaLLM...");
+    const slug = await generateSlugViaLLM({
+      sessionContent: params.sessionContent,
+      cfg: params.cfg,
+    });
+    log.debug("Generated slug", { slug });
+    if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return;
+    }
+    const nextFilename = `${params.dateStr}-${slug}.md`;
+    if (nextFilename === params.filename) {
+      return;
+    }
+    await fs.rename(
+      path.join(params.memoryDir, params.filename),
+      path.join(params.memoryDir, nextFilename),
+    );
+    log.debug("Memory file renamed", { from: params.filename, to: nextFilename });
+  } catch (err) {
+    log.debug(`Slug rename skipped: ${String(err)}`);
+  }
+}
+
+/**
  * Save session context to memory when /new or /reset command is triggered
  */
 const saveSessionToMemory: HookHandler = async (event) => {
@@ -131,7 +166,6 @@ const saveSessionToMemory: HookHandler = async (event) => {
         ? hookConfig.messages
         : 15;
 
-    let slug: string | null = null;
     let sessionContent: string | null = null;
 
     if (sessionFile) {
@@ -141,29 +175,21 @@ const saveSessionToMemory: HookHandler = async (event) => {
         length: sessionContent?.length ?? 0,
         messageCount,
       });
-
-      // Avoid calling the model provider in unit tests; keep hooks fast and deterministic.
-      const isTestEnv =
-        process.env.GENESIS_TEST_FAST === "1" ||
-        process.env.VITEST === "true" ||
-        process.env.VITEST === "1" ||
-        process.env.NODE_ENV === "test";
-      const allowLlmSlug = !isTestEnv && hookConfig?.llmSlug !== false;
-
-      if (sessionContent && cfg && allowLlmSlug) {
-        log.debug("Calling generateSlugViaLLM...");
-        // Use LLM to generate a descriptive slug
-        slug = await generateSlugViaLLM({ sessionContent, cfg });
-        log.debug("Generated slug", { slug });
-      }
     }
 
-    // If no slug, use timestamp
-    if (!slug) {
-      const timeSlug = now.toISOString().split("T")[1].split(".")[0].replace(/:/g, "");
-      slug = timeSlug.slice(0, 4); // HHMM
-      log.debug("Using fallback timestamp slug", { slug });
-    }
+    // Avoid calling the model provider in unit tests; keep hooks fast and deterministic.
+    const isTestEnv =
+      process.env.GENESIS_TEST_FAST === "1" ||
+      process.env.VITEST === "true" ||
+      process.env.VITEST === "1" ||
+      process.env.NODE_ENV === "test";
+    const allowLlmSlug =
+      !isTestEnv && hookConfig?.llmSlug !== false && Boolean(sessionContent) && Boolean(cfg);
+
+    // Always name the file from the timestamp first. The LLM slug is cosmetic, so
+    // it must never block /new behind a full model round-trip.
+    const timeSlug = now.toISOString().split("T")[1].split(".")[0].replace(/:/g, "");
+    const slug = timeSlug.slice(0, 4); // HHMM
 
     // Create filename with date and slug
     const filename = `${dateStr}-${slug}.md`;
@@ -209,6 +235,12 @@ const saveSessionToMemory: HookHandler = async (event) => {
     // Log completion (but don't send user-visible confirmation - it's internal housekeeping)
     const relPath = memoryFilePath.replace(os.homedir(), "~");
     log.info(`Session context saved to ${relPath}`);
+
+    // Rename to the descriptive slug in the background. The new session's startup
+    // context matches `${dateStr}-*.md`, so it picks the file up either way.
+    if (allowLlmSlug && sessionContent && cfg) {
+      void renameWithLlmSlug({ memoryDir, filename, sessionContent, cfg, dateStr });
+    }
   } catch (err) {
     if (err instanceof Error) {
       log.error("Failed to save session memory", {
