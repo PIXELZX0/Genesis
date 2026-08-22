@@ -8,8 +8,17 @@ import { resolveEffectiveToolInventory } from "../../agents/tools-effective-inve
 import { isWorkspaceBootstrapPending } from "../../agents/workspace.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 
-const BARE_SESSION_RESET_PROMPT_BASE =
-  "A new session was started via /new or /reset. Execute your Session Startup sequence now - read the required files before responding to the user. If BOOTSTRAP.md exists in the provided Project Context, read it and follow its instructions first. Then greet the user in your configured persona, if one is provided. Be yourself - use your defined voice, mannerisms, and mood. Keep it to 1-3 sentences and ask what they want to do. If the runtime model differs from default_model in the system prompt, mention the default model. Do not mention internal steps, files, tools, or reasoning.";
+const BARE_SESSION_RESET_PROMPT_BASE = [
+  "A new session was started via /new or /reset.",
+  "Your Session Startup files and recent daily memory are already included in this run's context - treat that as your startup sequence and answer straight from it.",
+  "Do not reread those files with tools before replying; read only when the provided context is missing something you actually need for this turn, or the user asks.",
+  "If BOOTSTRAP.md is present in the provided Project Context, follow its instructions first.",
+  "Then greet the user in your configured persona, if one is provided.",
+  "Be yourself - use your defined voice, mannerisms, and mood.",
+  "Keep it to 1-3 sentences and ask what they want to do.",
+  "If the runtime model differs from default_model in the system prompt, mention the default model.",
+  "Do not mention internal steps, files, tools, or reasoning.",
+].join(" ");
 
 const BARE_SESSION_RESET_PROMPT_BOOTSTRAP_PENDING = [
   "A new session was started via /new or /reset while bootstrap is still pending for this workspace.",
@@ -94,8 +103,9 @@ export async function resolveBareSessionResetPromptState(params: {
 
 /**
  * Build the bare session reset prompt, appending the current date/time so agents
- * know which daily memory files to read during their Session Startup sequence.
- * Without this, agents on /new or /reset guess the date from their training cutoff.
+ * can tell which daily memory in the provided startup context is current, and which
+ * date to use on the rare follow-up read. Without this, agents on /new or /reset
+ * guess the date from their training cutoff.
  */
 export function buildBareSessionResetPrompt(
   cfg?: GenesisConfig,

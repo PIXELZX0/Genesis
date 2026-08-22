@@ -9,15 +9,16 @@ import {
 } from "./session-reset-prompt.js";
 
 describe("buildBareSessionResetPrompt", () => {
-  it("includes the explicit Session Startup instruction for bare /new and /reset", () => {
+  it("points bare /new and /reset at the provided startup context instead of tool reads", () => {
     const prompt = buildBareSessionResetPrompt();
-    expect(prompt).toContain("Execute your Session Startup sequence now");
-    expect(prompt).toContain("read the required files before responding to the user");
-    expect(prompt).toContain("If BOOTSTRAP.md exists in the provided Project Context");
-    expect(prompt).toContain("read it and follow its instructions first");
-    expect(prompt).not.toContain(
-      "If runtime-provided startup context is included for this first turn",
-    );
+    expect(prompt).toContain("already included in this run's context");
+    expect(prompt).toContain("treat that as your startup sequence");
+    expect(prompt).toContain("Do not reread those files with tools before replying");
+    expect(prompt).toContain("If BOOTSTRAP.md is present in the provided Project Context");
+    expect(prompt).toContain("follow its instructions first");
+    // The old wording sent every /new through a round of redundant file reads.
+    expect(prompt).not.toContain("Execute your Session Startup sequence now");
+    expect(prompt).not.toContain("read the required files before responding to the user");
   });
 
   it("uses bootstrap-specific wording when bootstrap is still pending", () => {
@@ -81,7 +82,7 @@ describe("buildBareSessionResetPrompt", () => {
     const complete = await resolveBareSessionResetPromptState({ workspaceDir });
     expect(complete.bootstrapMode).toBe("none");
     expect(complete.shouldPrependStartupContext).toBe(true);
-    expect(complete.prompt).toContain("Execute your Session Startup sequence now");
+    expect(complete.prompt).toContain("Do not reread those files with tools before replying");
   });
 
   it("does not resolve bootstrap file access when bootstrap is complete", async () => {
@@ -112,7 +113,7 @@ describe("buildBareSessionResetPrompt", () => {
 
     expect(pending.bootstrapMode).toBe("none");
     expect(pending.shouldPrependStartupContext).toBe(true);
-    expect(pending.prompt).toContain("Execute your Session Startup sequence now");
+    expect(pending.prompt).toContain("Do not reread those files with tools before replying");
     expect(pending.prompt).not.toContain("while bootstrap is still pending for this workspace");
   });
 
@@ -127,7 +128,7 @@ describe("buildBareSessionResetPrompt", () => {
 
     expect(pending.bootstrapMode).toBe("none");
     expect(pending.shouldPrependStartupContext).toBe(true);
-    expect(pending.prompt).toContain("Execute your Session Startup sequence now");
+    expect(pending.prompt).toContain("Do not reread those files with tools before replying");
     expect(pending.prompt).not.toContain("while bootstrap is still pending for this workspace");
   });
 });
