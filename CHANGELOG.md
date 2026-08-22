@@ -2,11 +2,23 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.8.15
+## 2026.8.22
 
 ### Changes
 
 - OpenCode Go: plan usage now shows up in `/status`, `genesis status --usage`, and the other usage surfaces. It reads the new upstream `/zen/go/v1/usage` endpoint with your existing OpenCode API key and reports the rolling, weekly, and monthly windows.
+- Contacts: the remembered-people store is now global to the active state root at `$GENESIS_STATE_DIR/contacts.json`, so contacts, auto-captured identities, contact routing, and Gateway contacts methods are shared across agents using that root. Contacts are enabled unless `session.contacts.enabled` is explicitly `false`; use separate profiles or state directories when this sharing is not wanted.
+
+### Fixes
+
+- Memory: opening the Control UI Memory tab on a cold index no longer freezes the gateway. The graph view now serves whatever is indexed and builds the index in the background, so the memory graph, `MEMORY.md`, and contacts reads stop timing out together.
+- Sessions: `/new` and `/reset` no longer stall behind a model call. The bundled session-memory hook used to run a full agent turn on your primary model just to pick a memory filename, and it blocked the reset acknowledgement and the new session's first reply the whole time. The memory file is now written immediately under a timestamp name and renamed to the descriptive slug in the background.
+- Sessions: the first turn after `/new` or `/reset` no longer burns tool calls rereading startup files. The reset prompt told the agent to "read the required files before responding" even though `AGENTS.md`, `SOUL.md`, `USER.md`, `MEMORY.md`, and recent daily memory are already embedded in that run's context. It now points at the provided context and reads only when something it needs is actually missing.
+
+## 2026.8.15
+
+### Changes
+
 - Agents: a new owner-only `agents_manage` tool lets an agent list, create, update, and delete persistent Genesis agents through the Gateway instead of hand-editing agent config.
 - Control UI: the Channels list now shows which agent each channel is routed to.
 - Memory: dreaming is now enabled by default. The managed sweep (`0 3 * * *`) runs light, REM, and deep phases without any config, and only the deep phase writes to `MEMORY.md`. Set `plugins.entries.memory-core.config.dreaming.enabled: false` or run `/dreaming off` to turn it back off.
@@ -18,14 +30,12 @@ Docs: https://genesis.pixelzx.com/docs
 - Google: the Gemini CLI transport now sends tool call and tool response ids for Gemini 3 and newer models, matching what those models require. Gemini 2.x and older still get ids stripped.
 - Control UI: Models -> Providers now shows each provider's real auth status (Connected, API key, Expiring, Expired, Auth required) plus remaining plan usage per window, instead of hardcoding "Connected" for every row. Providers that are configured but not logged in appear even when they contribute no models.
 - Control UI: Overview, Logs, Debug, and chat slash commands now deduplicate in-flight gateway requests and bound `logs.tail` with a 5s timeout, so repeated tab switches or refresh clicks no longer pile up requests. Refreshing the Overview log panel reloads just the logs instead of the whole overview, Debug reuses the shared model catalog loader and drops its extra `last-heartbeat` call, and stale responses from a superseded connection are discarded.
-- Contacts: the remembered-people store is now global to the active state root at `$GENESIS_STATE_DIR/contacts.json`, so contacts, auto-captured identities, contact routing, and Gateway contacts methods are shared across agents using that root. Contacts are enabled unless `session.contacts.enabled` is explicitly `false`; use separate profiles or state directories when this sharing is not wanted.
 
 ### Fixes
 
 - Plugins: the default `memory` slot no longer bypasses a restrictive `plugins.allow` list. The slot falls back to `memory-core` when unset, so with dreaming now on by default this could start the default memory plugin on a gateway whose allowlist never named it. An explicitly configured `plugins.slots.memory` still bypasses the allowlist, as does the context engine slot.
 - Control UI: chat and memory views no longer flicker or show stale content when requests overlap. Superseded chat history loads are discarded instead of overwriting newer state, terminal chat events are matched against the active run before they clear the composer, session message reloads deferred during a run are replayed once it ends, and transcript images are recognized from more media shapes so they render instead of disappearing.
 - Model fallback: when every stored auth profile for a provider is in cooldown but a usable environment or config credential exists, Genesis now runs the attempt with that credential instead of skipping the candidate or burning a cooldown probe. OpenAI Codex is excluded because it is OAuth-only and must not be satisfied by a generic OpenAI API key.
-- Memory: opening the Control UI Memory tab on a cold index no longer freezes the gateway. The graph view now serves whatever is indexed and builds the index in the background, so the memory graph, `MEMORY.md`, and contacts reads stop timing out together.
 
 ## 2026.8.6
 
