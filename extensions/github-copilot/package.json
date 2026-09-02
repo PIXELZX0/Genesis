@@ -8,7 +8,7 @@
     "@clack/prompts": "^1.2.0"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "0.84.2",
+    "@earendil-works/pi-ai": "0.84.4",
     "@genesis/plugin-sdk": "workspace:*"
   },
   "genesis": {
