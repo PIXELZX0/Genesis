@@ -22,6 +22,7 @@ import {
   resolveShellEnvFallbackTimeoutMs,
 } from "../infra/shell-env.js";
 import { logInfo } from "../logger.js";
+import { redactLiteralSecrets } from "../logging/redact.js";
 import { parseAgentSessionKey, resolveAgentIdFromSessionKey } from "../routing/session-key.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -50,6 +51,7 @@ import {
   runExecProcess,
   execSchema,
 } from "./bash-tools.exec-runtime.js";
+import { resolveExecSecretEnv } from "./bash-tools.exec-secret-env.js";
 import type {
   ExecElevatedDefaults,
   ExecToolDefaults,
@@ -80,21 +82,24 @@ function buildExecForegroundResult(params: {
   warningText?: string;
 }): AgentToolResult<ExecToolDetails> {
   const warningText = params.warningText?.trim() ? `${params.warningText}\n\n` : "";
+  // A command given a secret via secretEnv can echo it back (deliberately or by
+  // accident). Mask registered values before the output reaches the model or UI.
+  const aggregated = redactLiteralSecrets(params.outcome.aggregated);
   if (params.outcome.status === "failed") {
-    return failedTextResult(`${warningText}${params.outcome.reason}`, {
+    return failedTextResult(`${warningText}${redactLiteralSecrets(params.outcome.reason)}`, {
       status: "failed",
       exitCode: params.outcome.exitCode ?? null,
       durationMs: params.outcome.durationMs,
-      aggregated: params.outcome.aggregated,
+      aggregated,
       timedOut: params.outcome.timedOut,
       cwd: params.cwd,
     });
   }
-  return textResult(`${warningText}${params.outcome.aggregated || "(no output)"}`, {
+  return textResult(`${warningText}${aggregated || "(no output)"}`, {
     status: "completed",
     exitCode: params.outcome.exitCode,
     durationMs: params.outcome.durationMs,
-    aggregated: params.outcome.aggregated,
+    aggregated,
     cwd: params.cwd,
   });
 }
@@ -1382,6 +1387,7 @@ export function createExecTool(
         command: string;
         workdir?: string;
         env?: Record<string, string>;
+        secretEnv?: Record<string, string>;
         yieldMs?: number;
         background?: boolean;
         timeout?: number;
@@ -1395,6 +1401,15 @@ export function createExecTool(
 
       if (!params.command) {
         throw new Error("Provide a command to start.");
+      }
+
+      // Resolved up front so a bad name fails before anything is spawned or
+      // approved. Only the placeholders join `params.env`: the real values are
+      // merged into the spawn env below, so approval cards and tool params
+      // show names, never secrets.
+      const secretEnv = resolveExecSecretEnv(params.secretEnv);
+      if (secretEnv) {
+        params.env = { ...params.env, ...secretEnv.placeholders };
       }
 
       const maxOutput = DEFAULT_MAX_OUTPUT;
@@ -1661,6 +1676,16 @@ export function createExecTool(
         );
       } else {
         applyPathPrepend(env, defaultPathPrepend);
+      }
+
+      if (secretEnv) {
+        if (host === "node") {
+          // Injecting here would ship the plaintext value over the node
+          // transport. Keep stored secrets on the gateway/sandbox until that
+          // path is designed.
+          throw new Error("secretEnv is not supported for host=node.");
+        }
+        Object.assign(env, secretEnv.values);
       }
 
       if (host === "node") {

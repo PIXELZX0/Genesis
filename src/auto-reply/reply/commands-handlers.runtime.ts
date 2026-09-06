@@ -18,6 +18,7 @@ import { handleMcpCommand } from "./commands-mcp.js";
 import { handleModelsCommand } from "./commands-models.js";
 import { handlePluginCommand } from "./commands-plugin.js";
 import { handlePluginsCommand } from "./commands-plugins.js";
+import { handleSecretCommand } from "./commands-secret.js";
 import {
   handleAbortTrigger,
   handleActivationCommand,
@@ -36,6 +37,9 @@ import { handleWhoamiCommand } from "./commands-whoami.js";
 
 export function loadCommandHandlers(): CommandHandler[] {
   return [
+    // First: an armed capture must swallow the next message before any other
+    // handler (or the agent) can see the raw secret value.
+    handleSecretCommand,
     handlePluginCommand,
     handleBtwCommand,
     handleBashCommand,

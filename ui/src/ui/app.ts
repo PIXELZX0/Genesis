@@ -286,6 +286,8 @@ export class GenesisApp extends LitElement {
   @state() execApprovalQueue: ExecApprovalRequest[] = [];
   @state() execApprovalBusy = false;
   @state() execApprovalError: string | null = null;
+  /** Draft value for the pending secret request. Never persisted or logged. */
+  @state() secretRequestValue = "";
   @state() pendingGatewayUrl: string | null = null;
   pendingGatewayToken: string | null = null;
 
@@ -1083,6 +1085,37 @@ export class GenesisApp extends LitElement {
       this.execApprovalQueue = this.execApprovalQueue.filter((entry) => entry.id !== active.id);
     } catch (err) {
       this.execApprovalError = `Approval failed: ${String(err)}`;
+    } finally {
+      this.execApprovalBusy = false;
+    }
+  }
+
+  handleSecretRequestValueChange(value: string) {
+    this.secretRequestValue = value;
+  }
+
+  async handleSecretRequestResolve(action: "provide" | "cancel") {
+    const active = this.execApprovalQueue[0];
+    if (!active || active.kind !== "secret" || !this.client || this.execApprovalBusy) {
+      return;
+    }
+    const value = this.secretRequestValue;
+    if (action === "provide" && !value) {
+      this.execApprovalError = "Enter a value first.";
+      return;
+    }
+    this.execApprovalBusy = true;
+    this.execApprovalError = null;
+    try {
+      await this.client.request("secret.resolve", {
+        id: active.id,
+        action,
+        ...(action === "provide" ? { value } : {}),
+      });
+      this.execApprovalQueue = this.execApprovalQueue.filter((entry) => entry.id !== active.id);
+      this.secretRequestValue = "";
+    } catch (err) {
+      this.execApprovalError = `Secret submit failed: ${String(err)}`;
     } finally {
       this.execApprovalBusy = false;
     }

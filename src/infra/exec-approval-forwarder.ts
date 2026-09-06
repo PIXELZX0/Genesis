@@ -37,6 +37,12 @@ import {
   type PluginApprovalRequest,
   type PluginApprovalResolved,
 } from "./plugin-approvals.js";
+import {
+  buildSecretRequestMessage,
+  buildSecretRequestResolvedMessage,
+  type SecretRequest,
+  type SecretRequestResolved,
+} from "./secret-requests.js";
 
 const log = createSubsystemLogger("gateway/exec-approvals");
 export type { ExecApprovalRequest, ExecApprovalResolved };
@@ -48,7 +54,7 @@ type ResolveSessionTargetFn = (params: {
   request: ExecApprovalRequest;
 }) => MaybePromise<ExecApprovalForwardTarget | null>;
 
-type ApprovalKind = "exec" | "plugin";
+type ApprovalKind = "exec" | "plugin" | "secret";
 type ForwardTarget = ExecApprovalForwardTarget & { source: "session" | "target" };
 
 type ApprovalRouteRequest = {
@@ -122,6 +128,8 @@ export type ExecApprovalForwarder = {
   handleResolved: (resolved: ExecApprovalResolved) => Promise<void>;
   handlePluginApprovalRequested?: (request: PluginApprovalRequest) => Promise<boolean>;
   handlePluginApprovalResolved?: (resolved: PluginApprovalResolved) => Promise<void>;
+  handleSecretRequested?: (request: SecretRequest) => Promise<boolean>;
+  handleSecretResolved?: (resolved: SecretRequestResolved) => Promise<void>;
   stop: () => void;
 };
 
@@ -192,11 +200,16 @@ function buildSyntheticApprovalRequest(routeRequest: ApprovalRouteRequest): Exec
 }
 
 function shouldSkipForwardingFallback(params: {
-  approvalKind: "exec" | "plugin";
+  approvalKind: ApprovalKind;
   target: ExecApprovalForwardTarget;
   cfg: GenesisConfig;
   routeRequest: ApprovalRouteRequest;
 }): boolean {
+  if (params.approvalKind === "secret") {
+    // Secret prompts have no channel-adapter renderer: they always fall back to
+    // the plain-text capture flow, so there is nothing for an adapter to suppress.
+    return false;
+  }
   const channel = normalizeMessageChannel(params.target.channel) ?? params.target.channel;
   if (!channel) {
     return false;
@@ -592,7 +605,9 @@ function createApprovalHandlers<
           payload,
           hint: {
             kind: "approval-pending",
-            approvalKind: params.strategy.kind,
+            // Channel adapters only distinguish exec from everything else;
+            // secret prompts deliver like plugin approvals.
+            approvalKind: params.strategy.kind === "exec" ? "exec" : "plugin",
           },
         });
       },
@@ -744,6 +759,23 @@ const pluginApprovalStrategy = createApprovalStrategy<
     }),
 });
 
+const secretRequestStrategy = createApprovalStrategy<SecretRequest, SecretRequestResolved>({
+  kind: "secret",
+  // Secret prompts route exactly like plugin approvals ("the agent needs the
+  // operator"), so they reuse that forwarding config instead of adding a
+  // parallel config surface operators would have to configure twice.
+  config: (cfg) => cfg.approvals?.plugin,
+  buildExpiredText: (request) => `🔑 Secret ${request.request.name} request expired.`,
+  // Plain text only: the operator answers by typing a value, so the
+  // allow/deny button set approvals use would be misleading here.
+  buildPendingPayload: ({ request, nowMs }) => ({
+    text: buildSecretRequestMessage(request, nowMs),
+  }),
+  buildResolvedPayload: ({ resolved }) => ({
+    text: buildSecretRequestResolvedMessage(resolved),
+  }),
+});
+
 export function createExecApprovalForwarder(
   deps: ExecApprovalForwarderDeps = {},
 ): ExecApprovalForwarder {
@@ -771,15 +803,25 @@ export function createExecApprovalForwarder(
     nowMs,
     resolveSessionTarget,
   });
+  const secretHandlers = createApprovalHandlers({
+    strategy: secretRequestStrategy,
+    getConfig,
+    deliver,
+    nowMs,
+    resolveSessionTarget,
+  });
 
   return {
     handleRequested: execHandlers.handleRequested,
     handleResolved: execHandlers.handleResolved,
     handlePluginApprovalRequested: pluginHandlers.handleRequested,
     handlePluginApprovalResolved: pluginHandlers.handleResolved,
+    handleSecretRequested: secretHandlers.handleRequested,
+    handleSecretResolved: secretHandlers.handleResolved,
     stop: () => {
       execHandlers.stop();
       pluginHandlers.stop();
+      secretHandlers.stop();
     },
   };
 }

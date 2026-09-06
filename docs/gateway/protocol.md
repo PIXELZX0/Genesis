@@ -399,6 +399,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
     - `exec.approvals.get` and `exec.approvals.set` manage gateway exec approval policy snapshots.
     - `exec.approvals.node.get` and `exec.approvals.node.set` manage node-local exec approval policy via node relay commands.
     - `plugin.approval.request`, `plugin.approval.list`, `plugin.approval.waitDecision`, and `plugin.approval.resolve` cover plugin-defined approval flows.
+    - `secret.request`, `secret.waitRequest`, and `secret.resolve` cover secret capture: an agent asks for a credential, an operator supplies the value on `secret.resolve`, and the waiter receives a `SecretRef` handle. The value itself never appears in results or events. See [Secrets](/gateway/secrets).
   </Accordion>
 
   <Accordion title="Automation, skills, and tools">
@@ -438,6 +439,8 @@ enumeration of `src/gateway/server-methods/*.ts`.
   lifecycle.
 - `plugin.approval.requested` / `plugin.approval.resolved`: plugin approval
   lifecycle.
+- `secret.requested` / `secret.resolved`: secret capture lifecycle. Neither
+  payload carries the secret value.
 
 ### Node helper methods
 

@@ -31,5 +31,6 @@ export type {
   ContactsDeleteResult,
 } from "./schema/agents-models-skills.js";
 export * from "./schema/plugin-approvals.js";
+export * from "./schema/secret-requests.js";
 export * from "./schema/wallet.js";
 export * from "./schema/wizard.js";

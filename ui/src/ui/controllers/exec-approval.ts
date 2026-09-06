@@ -13,12 +13,14 @@ export type ExecApprovalRequestPayload = {
 
 export type ExecApprovalRequest = {
   id: string;
-  kind: "exec" | "plugin";
+  kind: "exec" | "plugin" | "secret";
   request: ExecApprovalRequestPayload;
   pluginTitle?: string;
   pluginDescription?: string | null;
   pluginSeverity?: string | null;
   pluginId?: string | null;
+  /** Stored-secret name for `kind: "secret"` entries. */
+  secretName?: string;
   createdAtMs: number;
   expiresAtMs: number;
 };
@@ -121,6 +123,36 @@ export function parsePluginApprovalRequested(payload: unknown): ExecApprovalRequ
     pluginDescription: description,
     pluginSeverity: severity,
     pluginId,
+    createdAtMs,
+    expiresAtMs,
+  };
+}
+
+export function parseSecretRequested(payload: unknown): ExecApprovalRequest | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+  const id = normalizeOptionalString(payload.id) ?? "";
+  const createdAtMs = typeof payload.createdAtMs === "number" ? payload.createdAtMs : 0;
+  const expiresAtMs = typeof payload.expiresAtMs === "number" ? payload.expiresAtMs : 0;
+  if (!id || !createdAtMs || !expiresAtMs) {
+    return null;
+  }
+  const request = isRecord(payload.request) ? payload.request : {};
+  const name = normalizeOptionalString(request.name) ?? "";
+  if (!name) {
+    return null;
+  }
+  return {
+    id,
+    kind: "secret",
+    request: {
+      command: name,
+      agentId: typeof request.agentId === "string" ? request.agentId : null,
+      sessionKey: typeof request.sessionKey === "string" ? request.sessionKey : null,
+    },
+    pluginDescription: typeof request.description === "string" ? request.description : null,
+    secretName: name,
     createdAtMs,
     expiresAtMs,
   };

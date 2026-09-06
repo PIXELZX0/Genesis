@@ -125,6 +125,61 @@ Validation:
 - `id` must match `^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$`
 - `id` must not contain `.` or `..` as slash-delimited path segments (for example `a/../b` is rejected)
 
+## Asking the user for a secret (`request_secret`)
+
+An agent that needs a credential it does not have should never ask for it in chat.
+It calls the `request_secret` tool instead:
+
+```json5
+{ name: "STRIPE_API_KEY", description: "Read the billing dashboard" }
+```
+
+What happens:
+
+1. The gateway raises a pending secret request and forwards a prompt to the
+   originating chat surface (and to any approvals-scoped client, such as the
+   Control UI) using the same routing config as plugin approvals,
+   `approvals.plugin`.
+2. The user answers with `/secret STRIPE_API_KEY`, then sends the value as their
+   next message. That message is intercepted before the agent turn, so the value
+   never enters the transcript. `/secret STRIPE_API_KEY cancel` declines.
+3. The gateway stores the value in `<state dir>/credentials/secrets.json`
+   (`0600`, same handling as `auth-profiles.json`) and resolves the waiting tool
+   call with a handle, never the value:
+
+```json5
+{ source: "file", provider: "stored", id: "/secrets/STRIPE_API_KEY/value" }
+```
+
+`stored` is a built-in provider alias backed by the `file` source. It needs no
+entry under `secrets.providers`; declaring one with the same name overrides it.
+
+### Using a stored secret
+
+Pass the stored name to `exec` via `secretEnv`. The gateway resolves it into the
+spawn environment; the agent, the approval card, and the tool parameters only
+ever see the name:
+
+```json5
+{
+  command: 'curl -H "Authorization: Bearer $STRIPE_KEY" ...',
+  secretEnv: { STRIPE_KEY: "STRIPE_API_KEY" },
+}
+```
+
+`secretEnv` is not supported for `host: "node"`, which would ship the plaintext
+value over the node transport.
+
+### Limits worth knowing
+
+- Stored values are registered for exact-match redaction, so an accidental echo
+  (`printenv`, a chatty script) is masked before tool output reaches the model or
+  the UI. A determined agent can still transform a value it was handed
+  (encoding it, for example); `secretEnv` is a convenience, not a sandbox.
+- After capture the gateway asks the channel to delete the message carrying the
+  value. Deletion is best effort: some platforms do not support it, and a
+  platform may retain the message server-side regardless.
+
 ## Provider config
 
 Define providers under `secrets.providers`:

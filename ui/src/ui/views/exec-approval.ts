@@ -60,6 +60,56 @@ ${active.pluginDescription}</pre
   `;
 }
 
+function renderSecretBody(active: ExecApprovalRequest, state: AppViewState) {
+  return html`
+    ${active.pluginDescription
+      ? html`<pre class="exec-approval-command mono" style="white-space:pre-wrap">
+${active.pluginDescription}</pre
+        >`
+      : nothing}
+    <div class="exec-approval-meta">
+      ${renderMetaRow("Name", active.secretName)} ${renderMetaRow("Agent", active.request.agentId)}
+      ${renderMetaRow("Session", active.request.sessionKey)}
+    </div>
+    <input
+      class="input"
+      type="password"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Paste the value"
+      .value=${state.secretRequestValue}
+      ?disabled=${state.execApprovalBusy}
+      @input=${(event: Event) =>
+        state.handleSecretRequestValueChange((event.target as HTMLInputElement).value)}
+    />
+    <div class="exec-approval-sub">
+      Stored on the gateway. The value is not added to the conversation and the agent cannot read
+      it.
+    </div>
+  `;
+}
+
+function renderSecretActions(state: AppViewState) {
+  return html`
+    <div class="exec-approval-actions">
+      <button
+        class="btn primary"
+        ?disabled=${state.execApprovalBusy}
+        @click=${() => state.handleSecretRequestResolve("provide")}
+      >
+        Store secret
+      </button>
+      <button
+        class="btn danger"
+        ?disabled=${state.execApprovalBusy}
+        @click=${() => state.handleSecretRequestResolve("cancel")}
+      >
+        Decline
+      </button>
+    </div>
+  `;
+}
+
 export function renderExecApprovalPrompt(state: AppViewState) {
   const active = state.execApprovalQueue[0];
   if (!active) {
@@ -70,9 +120,12 @@ export function renderExecApprovalPrompt(state: AppViewState) {
   const remaining = remainingMs > 0 ? `expires in ${formatRemaining(remainingMs)}` : "expired";
   const queueCount = state.execApprovalQueue.length;
   const isPlugin = active.kind === "plugin";
-  const title = isPlugin
-    ? (active.pluginTitle ?? "Plugin approval needed")
-    : "Exec approval needed";
+  const isSecret = active.kind === "secret";
+  const title = isSecret
+    ? `Secret requested: ${active.secretName ?? ""}`
+    : isPlugin
+      ? (active.pluginTitle ?? "Plugin approval needed")
+      : "Exec approval needed";
   return html`
     <div class="exec-approval-overlay" role="dialog" aria-live="polite">
       <div class="exec-approval-card">
@@ -85,33 +138,39 @@ export function renderExecApprovalPrompt(state: AppViewState) {
             ? html`<div class="exec-approval-queue">${queueCount} pending</div>`
             : nothing}
         </div>
-        ${isPlugin ? renderPluginBody(active) : renderExecBody(request)}
+        ${isSecret
+          ? renderSecretBody(active, state)
+          : isPlugin
+            ? renderPluginBody(active)
+            : renderExecBody(request)}
         ${state.execApprovalError
           ? html`<div class="exec-approval-error">${state.execApprovalError}</div>`
           : nothing}
-        <div class="exec-approval-actions">
-          <button
-            class="btn primary"
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("allow-once")}
-          >
-            Allow once
-          </button>
-          <button
-            class="btn"
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("allow-always")}
-          >
-            Always allow
-          </button>
-          <button
-            class="btn danger"
-            ?disabled=${state.execApprovalBusy}
-            @click=${() => state.handleExecApprovalDecision("deny")}
-          >
-            Deny
-          </button>
-        </div>
+        ${isSecret
+          ? renderSecretActions(state)
+          : html`<div class="exec-approval-actions">
+              <button
+                class="btn primary"
+                ?disabled=${state.execApprovalBusy}
+                @click=${() => state.handleExecApprovalDecision("allow-once")}
+              >
+                Allow once
+              </button>
+              <button
+                class="btn"
+                ?disabled=${state.execApprovalBusy}
+                @click=${() => state.handleExecApprovalDecision("allow-always")}
+              >
+                Always allow
+              </button>
+              <button
+                class="btn danger"
+                ?disabled=${state.execApprovalBusy}
+                @click=${() => state.handleExecApprovalDecision("deny")}
+              >
+                Deny
+              </button>
+            </div>`}
       </div>
     </div>
   `;

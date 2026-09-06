@@ -33,6 +33,8 @@ const EVENT_SCOPE_GUARDS: Record<string, string[]> = {
   heartbeat: [],
   "plugin.approval.requested": [APPROVALS_SCOPE],
   "plugin.approval.resolved": [APPROVALS_SCOPE],
+  "secret.requested": [APPROVALS_SCOPE],
+  "secret.resolved": [APPROVALS_SCOPE],
   presence: [],
   shutdown: [],
   tick: [],

@@ -2,6 +2,7 @@ import type { GenesisConfig } from "../config/types.genesis.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { type PluginApprovalRequestPayload } from "../infra/plugin-approvals.js";
+import { type SecretRequestPayload } from "../infra/secret-requests.js";
 import {
   resolveCommandSecretsFromActiveRuntimeSnapshot,
   type CommandSecretAssignment,
@@ -10,6 +11,7 @@ import {
   activateSecretsRuntimeSnapshot,
   getActiveSecretsRuntimeSnapshot,
 } from "../secrets/runtime.js";
+import { primeStoredSecretRedaction } from "../secrets/stored/store.js";
 import {
   buildGatewayReloadPlan,
   diffConfigPaths,
@@ -20,6 +22,7 @@ import { createExecApprovalIosPushDelivery } from "./exec-approval-ios-push.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { createPluginApprovalHandlers } from "./server-methods/plugin-approval.js";
+import { createSecretRequestHandlers } from "./server-methods/secret-requests.js";
 import { createSecretsHandlers } from "./server-methods/secrets.js";
 import {
   disconnectStaleSharedGatewayAuthClients,
@@ -60,6 +63,13 @@ export function createGatewayAuxHandlers(params: {
   const buildReloadPlan = params.buildReloadPlan ?? buildGatewayReloadPlan;
   const pluginApprovalManager = new ExecApprovalManager<PluginApprovalRequestPayload>();
   const pluginApprovalHandlers = createPluginApprovalHandlers(pluginApprovalManager, {
+    forwarder: execApprovalForwarder,
+  });
+  // Values stored by earlier runs must be redaction-registered before any tool
+  // output flows, not only when a secret is injected in this process.
+  primeStoredSecretRedaction();
+  const secretRequestManager = new ExecApprovalManager<SecretRequestPayload>();
+  const secretRequestHandlers = createSecretRequestHandlers(secretRequestManager, {
     forwarder: execApprovalForwarder,
   });
   // Serialize the entire `secrets.reload` path (activation + channel restart)
@@ -208,6 +218,7 @@ export function createGatewayAuxHandlers(params: {
     extraHandlers: {
       ...execApprovalHandlers,
       ...pluginApprovalHandlers,
+      ...secretRequestHandlers,
       ...secretsHandlers,
     },
   };

@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Secrets: agents can now ask for a credential without it landing in the conversation. The new `request_secret` tool raises a prompt; you answer with `/secret <NAME>` and send the value as the next message, which the gateway intercepts and stores at `<state dir>/credentials/secrets.json` (`0600`). The agent gets back a `SecretRef` handle only, and passes the stored name to `exec` via the new `secretEnv` parameter to use it. Stored values are registered for exact-match redaction so an accidental echo is masked in tool output. See [Secrets](https://genesis.pixelzx.com/docs/gateway/secrets).
 - OpenCode Go: plan usage now shows up in `/status`, `genesis status --usage`, and the other usage surfaces. It reads the new upstream `/zen/go/v1/usage` endpoint with your existing OpenCode API key and reports the rolling, weekly, and monthly windows.
 - Contacts: the remembered-people store is now global to the active state root at `$GENESIS_STATE_DIR/contacts.json`, so contacts, auto-captured identities, contact routing, and Gateway contacts methods are shared across agents using that root. Contacts are enabled unless `session.contacts.enabled` is explicitly `false`; use separate profiles or state directories when this sharing is not wanted.
 

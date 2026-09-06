@@ -114,6 +114,9 @@ const BASE_METHODS = [
   "voicewake.set",
   "secrets.reload",
   "secrets.resolve",
+  "secret.request",
+  "secret.waitRequest",
+  "secret.resolve",
   "sessions.list",
   "sessions.subscribe",
   "sessions.unsubscribe",
@@ -206,5 +209,7 @@ export const GATEWAY_EVENTS = [
   "exec.approval.resolved",
   "plugin.approval.requested",
   "plugin.approval.resolved",
+  "secret.requested",
+  "secret.resolved",
   GATEWAY_EVENT_UPDATE_AVAILABLE,
 ];

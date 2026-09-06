@@ -42,6 +42,7 @@ import {
   parseExecApprovalRequested,
   parseExecApprovalResolved,
   parsePluginApprovalRequested,
+  parseSecretRequested,
   pruneExecApprovalQueue,
   removeExecApproval,
 } from "./controllers/exec-approval.ts";
@@ -898,6 +899,16 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
   }
 
   if (evt.event === "plugin.approval.resolved") {
+    removeResolvedApprovalRequest(host, evt.payload);
+    return;
+  }
+
+  if (evt.event === "secret.requested") {
+    enqueueApprovalRequest(host, parseSecretRequested(evt.payload));
+    return;
+  }
+
+  if (evt.event === "secret.resolved") {
     removeResolvedApprovalRequest(host, evt.payload);
     return;
   }

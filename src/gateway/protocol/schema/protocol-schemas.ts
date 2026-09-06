@@ -230,6 +230,11 @@ import {
 } from "./plugins.js";
 import { PushTestParamsSchema, PushTestResultSchema } from "./push.js";
 import {
+  SecretRequestParamsSchema,
+  SecretResolveParamsSchema,
+  SecretWaitRequestParamsSchema,
+} from "./secret-requests.js";
+import {
   SecretsReloadParamsSchema,
   SecretsResolveAssignmentSchema,
   SecretsResolveParamsSchema,
@@ -472,6 +477,9 @@ export const ProtocolSchemas = {
   ExecApprovalResolveParams: ExecApprovalResolveParamsSchema,
   PluginApprovalRequestParams: PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParams: PluginApprovalResolveParamsSchema,
+  SecretRequestParams: SecretRequestParamsSchema,
+  SecretWaitRequestParams: SecretWaitRequestParamsSchema,
+  SecretResolveParams: SecretResolveParamsSchema,
   PluginInstallRecord: PluginInstallRecordSchema,
   PluginStatusEntry: PluginStatusEntrySchema,
   PluginsStatusParams: PluginsStatusParamsSchema,

@@ -197,6 +197,12 @@ import {
   PluginApprovalRequestParamsSchema,
   type PluginApprovalResolveParams,
   PluginApprovalResolveParamsSchema,
+  type SecretRequestParams,
+  SecretRequestParamsSchema,
+  type SecretResolveParams,
+  SecretResolveParamsSchema,
+  type SecretWaitRequestParams,
+  SecretWaitRequestParamsSchema,
   type PluginsDetailParams,
   PluginsDetailParamsSchema,
   type PluginsDetailResult,
@@ -724,6 +730,14 @@ export const validatePluginApprovalRequestParams = ajv.compile<PluginApprovalReq
 export const validatePluginApprovalResolveParams = ajv.compile<PluginApprovalResolveParams>(
   PluginApprovalResolveParamsSchema,
 );
+export const validateSecretRequestParams =
+  ajv.compile<SecretRequestParams>(SecretRequestParamsSchema);
+export const validateSecretWaitRequestParams = ajv.compile<SecretWaitRequestParams>(
+  SecretWaitRequestParamsSchema,
+);
+export const validateSecretResolveParams =
+  ajv.compile<SecretResolveParams>(SecretResolveParamsSchema);
+
 export const validatePluginsStatusParams =
   ajv.compile<PluginsStatusParams>(PluginsStatusParamsSchema);
 export const validatePluginsSearchParams =

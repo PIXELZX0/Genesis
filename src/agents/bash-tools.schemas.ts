@@ -4,6 +4,12 @@ export const execSchema = Type.Object({
   command: Type.String({ description: "Shell command to execute" }),
   workdir: Type.Optional(Type.String({ description: "Working directory (defaults to cwd)" })),
   env: Type.Optional(Type.Record(Type.String(), Type.String())),
+  secretEnv: Type.Optional(
+    Type.Record(Type.String(), Type.String(), {
+      description:
+        "Inject stored secrets as environment variables: {ENV_VAR: STORED_SECRET_NAME}. Values are resolved by the gateway at spawn time and are never shown to you. Use request_secret to create a stored secret. Not supported for host=node.",
+    }),
+  ),
   yieldMs: Type.Optional(
     Type.Number({
       description: "Milliseconds to wait before backgrounding (default 10000)",

@@ -40,6 +40,46 @@ const DEFAULT_REDACT_PATTERNS: string[] = [
   String.raw`\b(\d{6,}:[A-Za-z0-9_-]{20,})\b`,
 ];
 
+// Exact values registered at runtime (stored secrets). Kept separate from the
+// heuristic patterns so they apply even when config overrides `redactPatterns`.
+const literalRedactionValues = new Set<string>();
+
+/** Register an exact secret value so it is masked wherever it appears. */
+export function registerLiteralRedactionValue(value: string): void {
+  if (value.length >= 6) {
+    literalRedactionValues.add(value);
+  }
+}
+
+/** Test-only: drop every registered literal value. */
+export function clearLiteralRedactionValuesForTest(): void {
+  literalRedactionValues.clear();
+}
+
+/**
+ * Mask only the exact values registered via `registerLiteralRedactionValue`.
+ * Cheap no-op when nothing is registered, so it is safe on hot output paths
+ * where the full heuristic pattern set would be too costly.
+ */
+export function redactLiteralSecrets(text: string): string {
+  if (!text || literalRedactionValues.size === 0) {
+    return text;
+  }
+  let next = text;
+  for (const value of literalRedactionValues) {
+    if (next.includes(value)) {
+      next = next.replaceAll(value, maskToken(value));
+    }
+  }
+  return next;
+}
+
+function literalRedactionPatterns(): RegExp[] {
+  return [...literalRedactionValues].map(
+    (value) => new RegExp(value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`), "g"),
+  );
+}
+
 type RedactOptions = {
   mode?: RedactSensitiveMode;
   patterns?: RedactPattern[];
@@ -74,7 +114,10 @@ function parsePattern(raw: RedactPattern): RegExp | null {
 
 function resolvePatterns(value?: RedactPattern[]): RegExp[] {
   const source = value?.length ? value : DEFAULT_REDACT_PATTERNS;
-  return source.map(parsePattern).filter((re): re is RegExp => Boolean(re));
+  return [
+    ...literalRedactionPatterns(),
+    ...source.map(parsePattern).filter((re): re is RegExp => Boolean(re)),
+  ];
 }
 
 function maskToken(token: string): string {

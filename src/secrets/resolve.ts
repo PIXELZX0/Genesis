@@ -24,6 +24,7 @@ import {
 } from "./ref-contract.js";
 import type { SecretRefResolveCache } from "./resolve-types.js";
 import { isNonEmptyString, isRecord, normalizePositiveInt } from "./shared.js";
+import { builtinStoredSecretProviderConfig, isStoredSecretRef } from "./stored/ref.js";
 
 const DEFAULT_PROVIDER_CONCURRENCY = 4;
 const DEFAULT_MAX_REFS_PER_PROVIDER = 512;
@@ -182,6 +183,11 @@ function resolveConfiguredProvider(ref: SecretRef, config: GenesisConfig): Secre
   if (!providerConfig) {
     if (ref.source === "env" && ref.provider === resolveDefaultSecretProviderAlias(config, "env")) {
       return { source: "env" };
+    }
+    // Built-in: request_secret values live in a gateway-owned 0600 JSON file,
+    // so operators never have to declare a provider for them.
+    if (isStoredSecretRef(ref)) {
+      return builtinStoredSecretProviderConfig();
     }
     throw providerResolutionError({
       source: ref.source,

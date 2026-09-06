@@ -33,6 +33,7 @@ import { createMessageTool } from "./tools/message-tool.js";
 import { createMusicGenerateTool } from "./tools/music-generate-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
 import { createPdfTool } from "./tools/pdf-tool.js";
+import { createRequestSecretTool } from "./tools/request-secret-tool.js";
 import { createSessionStatusTool } from "./tools/session-status-tool.js";
 import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
@@ -77,6 +78,7 @@ const GENESIS_TOOL_NAMES = new Set([
   "image",
   "pdf",
   "contacts",
+  "request_secret",
 ]);
 
 const CORE_TOOL_NAMES = new Set([
@@ -359,6 +361,18 @@ export function createGenesisTools(
         ]
       : []),
     ...(!embedded && shouldCreateTool("agents_manage") ? [createAgentsManageTool()] : []),
+    ...(!embedded && shouldCreateTool("request_secret")
+      ? [
+          createRequestSecretTool({
+            agentId: options?.requesterAgentIdOverride,
+            sessionKey: options?.agentSessionKey,
+            turnSourceChannel: options?.agentChannel,
+            turnSourceTo: options?.agentTo,
+            turnSourceAccountId: options?.agentAccountId,
+            turnSourceThreadId: options?.agentThreadId,
+          }),
+        ]
+      : []),
     ...(shouldCreateTool("update_plan") &&
     isUpdatePlanToolEnabledForGenesisTools({
       config: resolvedConfig,

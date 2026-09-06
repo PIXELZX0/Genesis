@@ -471,6 +471,8 @@ export function buildAgentSystemPrompt(params: {
       "Show a /status-equivalent status card (usage + time + Reasoning/Verbose/Elevated); use for model-use questions (📊 session_status); optional per-session model override",
     image: "Analyze an image with the configured image model",
     image_generate: "Generate images with the configured image-generation model",
+    request_secret:
+      "Ask the user for a credential without it entering this conversation: the gateway captures and stores the value and hands you a reference. Always use this instead of asking for an API key, token, or password in chat, and pass the stored name to exec via secretEnv rather than pasting a value into a command",
   };
 
   const toolOrder = [
@@ -500,6 +502,7 @@ export function buildAgentSystemPrompt(params: {
     "session_status",
     "image",
     "image_generate",
+    "request_secret",
   ];
 
   const rawToolNames = (params.toolNames ?? []).map((tool) => tool.trim());

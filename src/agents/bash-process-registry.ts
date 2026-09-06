@@ -1,4 +1,5 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { redactLiteralSecrets } from "../logging/redact.js";
 import type { TerminationReason } from "../process/supervisor/types.js";
 import type { DeliveryContext } from "../utils/delivery-context.js";
 import { createSessionSlug as createSessionSlugId } from "./session-slug.js";
@@ -134,7 +135,10 @@ export function appendOutput(session: ProcessSession, stream: "stdout" | "stderr
   const aggregated = trimWithCap(session.aggregated + chunk, session.maxOutputChars);
   session.truncated =
     session.truncated || aggregated.length < session.aggregated.length + chunk.length;
-  session.aggregated = aggregated;
+  // Mask stored secret values here so every reader (exec result, process
+  // poll/log, tail, notifications) sees the redacted buffer. No-op unless a
+  // secret has actually been injected in this process.
+  session.aggregated = redactLiteralSecrets(aggregated);
   session.tail = tail(session.aggregated, 2000);
 }
 

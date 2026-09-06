@@ -203,6 +203,10 @@ export type ExecApprovalRequestParams = SchemaType<"ExecApprovalRequestParams">;
 export type ExecApprovalResolveParams = SchemaType<"ExecApprovalResolveParams">;
 export type PluginApprovalRequestParams = SchemaType<"PluginApprovalRequestParams">;
 export type PluginApprovalResolveParams = SchemaType<"PluginApprovalResolveParams">;
+export type SecretRequestParams = SchemaType<"SecretRequestParams">;
+export type SecretWaitRequestParams = SchemaType<"SecretWaitRequestParams">;
+export type SecretResolveParams = SchemaType<"SecretResolveParams">;
+
 export type DevicePairListParams = SchemaType<"DevicePairListParams">;
 export type DevicePairApproveParams = SchemaType<"DevicePairApproveParams">;
 export type DevicePairRejectParams = SchemaType<"DevicePairRejectParams">;

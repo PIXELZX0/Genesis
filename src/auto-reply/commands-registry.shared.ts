@@ -217,6 +217,15 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       tier: "power",
     }),
     defineChatCommand({
+      key: "secret",
+      nativeName: "secret",
+      description: "Provide a requested secret value without putting it in chat history.",
+      textAlias: "/secret",
+      acceptsArgs: true,
+      category: "management",
+      tier: "power",
+    }),
+    defineChatCommand({
       key: "context",
       nativeName: "context",
       description: "Explain how context is built and used.",
