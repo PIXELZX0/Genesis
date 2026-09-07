@@ -2,24 +2,33 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.8.22
+## 2026.9.7
 
 ### Changes
 
 - Secrets: agents can now ask for a credential without it landing in the conversation. The new `request_secret` tool raises a prompt; you answer with `/secret <NAME>` and send the value as the next message, which the gateway intercepts and stores at `<state dir>/credentials/secrets.json` (`0600`). The agent gets back a `SecretRef` handle only, and passes the stored name to `exec` via the new `secretEnv` parameter to use it. Stored values are registered for exact-match redaction so an accidental echo is masked in tool output. See [Secrets](https://genesis.pixelzx.com/docs/gateway/secrets).
+- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.84.2 to 0.85.1. The OpenCode Go catalog picks up `qwen3.8-flash`, `deepseek-v4-flash-vision-exp`, `glm-5.3-flash`, `hy4-preview`, `longcat-2.0`, `omen-alpha`, and the Muse Spark contributor models from Pi's built-in registry, and `grok-4.5` is replaced by `grok-4.6`.
+
+### Fixes
+
+- Matrix: inbound attachments no longer fail with `[matrix <kind> attachment unavailable]` on slow or large files. The 60s per-request Matrix timeout was applied to the whole media transfer, so a download that was still making progress got aborted mid-body; the request deadline is now released once the response headers arrive, and the existing 30s stall detector plus the configured size limit bound the read. Encrypted-room attachments were hit hardest because the crypto path was not passing the stall timeout or size limit through at all.
+- Gateway: unrelated HTTP traffic no longer pays the dashboard cold-load cost. Every request — plugin webhooks, `/api/*`, probes — used to import the whole Control UI runtime before falling through, so the first webhook after a restart waited on dashboard module loading. The Control UI stages now load that module only for requests it can actually serve.
+- Gateway: large WebSocket frames are now compressed with `permessage-deflate` (no context takeover, 4 KB threshold), so transcript and roster payloads reach the Control UI and clients faster on a cold chat load. Small streaming frames stay uncompressed, and the post-auth payload limit is raised on the deflate extension as well as the receiver so authenticated large frames are not rejected.
+- Gateway: serving the dashboard no longer blocks the event loop. Control UI assets, `index.html`, and avatars were read with synchronous file reads, so every other connection — chat included — stalled for the duration of a multi-megabyte bundle read. Those reads are now asynchronous.
+- Gateway: sending a message no longer reads and parses the whole transcript. `sessions.send` and `sessions.create` computed the next message sequence number by materializing every record in the session file; they now count records incrementally from a verified checkpoint, so the cost no longer grows with transcript length.
+
+## 2026.8.22
+
+### Changes
+
 - OpenCode Go: plan usage now shows up in `/status`, `genesis status --usage`, and the other usage surfaces. It reads the new upstream `/zen/go/v1/usage` endpoint with your existing OpenCode API key and reports the rolling, weekly, and monthly windows.
 - Contacts: the remembered-people store is now global to the active state root at `$GENESIS_STATE_DIR/contacts.json`, so contacts, auto-captured identities, contact routing, and Gateway contacts methods are shared across agents using that root. Contacts are enabled unless `session.contacts.enabled` is explicitly `false`; use separate profiles or state directories when this sharing is not wanted.
 
 ### Fixes
 
-- Matrix: inbound attachments no longer fail with `[matrix <kind> attachment unavailable]` on slow or large files. The 60s per-request Matrix timeout was applied to the whole media transfer, so a download that was still making progress got aborted mid-body; the request deadline is now released once the response headers arrive, and the existing 30s stall detector plus the configured size limit bound the read. Encrypted-room attachments were hit hardest because the crypto path was not passing the stall timeout or size limit through at all.
 - Memory: opening the Control UI Memory tab on a cold index no longer freezes the gateway. The graph view now serves whatever is indexed and builds the index in the background, so the memory graph, `MEMORY.md`, and contacts reads stop timing out together.
 - Sessions: `/new` and `/reset` no longer stall behind a model call. The bundled session-memory hook used to run a full agent turn on your primary model just to pick a memory filename, and it blocked the reset acknowledgement and the new session's first reply the whole time. The memory file is now written immediately under a timestamp name and renamed to the descriptive slug in the background.
 - Sessions: the first turn after `/new` or `/reset` no longer burns tool calls rereading startup files. The reset prompt told the agent to "read the required files before responding" even though `AGENTS.md`, `SOUL.md`, `USER.md`, `MEMORY.md`, and recent daily memory are already embedded in that run's context. It now points at the provided context and reads only when something it needs is actually missing.
-- Gateway: unrelated HTTP traffic no longer pays the dashboard cold-load cost. Every request — plugin webhooks, `/api/*`, probes — used to import the whole Control UI runtime before falling through, so the first webhook after a restart waited on dashboard module loading. The Control UI stages now load that module only for requests it can actually serve.
-- Gateway: large WebSocket frames are now compressed with `permessage-deflate` (no context takeover, 4 KB threshold), so transcript and roster payloads reach the Control UI and clients faster on a cold chat load. Small streaming frames stay uncompressed, and the post-auth payload limit is raised on the deflate extension as well as the receiver so authenticated large frames are not rejected.
-- Gateway: serving the dashboard no longer blocks the event loop. Control UI assets, `index.html`, and avatars were read with synchronous file reads, so every other connection — chat included — stalled for the duration of a multi-megabyte bundle read. Those reads are now asynchronous.
-- Gateway: sending a message no longer reads and parses the whole transcript. `sessions.send` and `sessions.create` computed the next message sequence number by materializing every record in the session file; they now count records incrementally from a verified checkpoint, so the cost no longer grows with transcript length.
 
 ## 2026.8.15
 
