@@ -30,7 +30,7 @@ import {
   createChatRunState,
   createToolEventRecipientRegistry,
 } from "./server-chat.js";
-import { MAX_PREAUTH_PAYLOAD_BYTES } from "./server-constants.js";
+import { MAX_PREAUTH_PAYLOAD_BYTES, WS_COMPRESSION_THRESHOLD_BYTES } from "./server-constants.js";
 import {
   attachGatewayUpgradeHandler,
   createGatewayHttpServer,
@@ -182,6 +182,16 @@ export async function createGatewayRuntimeState(params: {
     const wss = new WebSocketServer({
       noServer: true,
       maxPayload: MAX_PREAUTH_PAYLOAD_BYTES,
+      // Peers that offer permessage-deflate (browsers, ws clients) get large frames
+      // compressed. No context takeover keeps zlib memory per connection at one reset
+      // stream instead of a retained sliding window, and the threshold keeps small
+      // frames raw. The extension inherits maxPayload for inflated frames, so the
+      // post-auth handoff raises the extension limit too (setSocketMaxPayload).
+      perMessageDeflate: {
+        serverNoContextTakeover: true,
+        clientNoContextTakeover: true,
+        threshold: WS_COMPRESSION_THRESHOLD_BYTES,
+      },
     });
     const preauthConnectionBudget = createPreauthConnectionBudget();
 

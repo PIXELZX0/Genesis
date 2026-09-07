@@ -3,6 +3,10 @@
 export const MAX_PAYLOAD_BYTES = 25 * 1024 * 1024;
 export const MAX_BUFFERED_BYTES = 50 * 1024 * 1024; // per-connection send buffer limit (2x max payload)
 export const MAX_PREAUTH_PAYLOAD_BYTES = 64 * 1024;
+// permessage-deflate applies from this frame size up. Streaming deltas and acks stay
+// raw (zlib round trips cost more than they save); transcript and roster payloads
+// compress several times over, which keeps chat cold load off the critical path.
+export const WS_COMPRESSION_THRESHOLD_BYTES = 4 * 1024;
 
 const DEFAULT_MAX_CHAT_HISTORY_MESSAGES_BYTES = 6 * 1024 * 1024; // keep history responses comfortably under client WS limits
 let maxChatHistoryMessagesBytes = DEFAULT_MAX_CHAT_HISTORY_MESSAGES_BYTES;
