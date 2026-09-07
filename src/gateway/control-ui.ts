@@ -57,7 +57,12 @@ import {
   respondNotFound as respondControlUiNotFound,
   respondPlainText,
 } from "./control-ui-http-utils.js";
-import { classifyControlUiRequest } from "./control-ui-routing.js";
+import {
+  CONTROL_UI_ASSISTANT_MEDIA_PREFIX,
+  CONTROL_UI_ASSISTANT_MEDIA_TOKEN_PREFIX,
+  CONTROL_UI_CANVAS_UPLOAD_PREFIX,
+  classifyControlUiRequest,
+} from "./control-ui-routing.js";
 import {
   buildControlUiAvatarUrl,
   CONTROL_UI_AVATAR_PREFIX,
@@ -75,9 +80,6 @@ import { resolveRateLimitClientKey } from "./net.js";
 import type { ReadinessChecker } from "./server/readiness.js";
 
 const ROOT_PREFIX = "/";
-const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__genesis__/assistant-media";
-const CONTROL_UI_ASSISTANT_MEDIA_TOKEN_PREFIX = "/__genesis__/assistant-media-token";
-const CONTROL_UI_CANVAS_UPLOAD_PREFIX = "/__genesis__/canvas-upload";
 const CONTROL_UI_ASSETS_MISSING_MESSAGE =
   "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.";
 const CONTROL_UI_OPERATOR_READ_SCOPE = "operator.read";

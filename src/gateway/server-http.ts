@@ -30,6 +30,7 @@ import {
   type ResolvedGatewayAuth,
 } from "./auth.js";
 import { normalizeCanvasScopedUrl } from "./canvas-capability.js";
+import { isControlUiOwnedRequest } from "./control-ui-routing.js";
 import type { ControlUiRootState } from "./control-ui.js";
 import { applyHookMappings } from "./hooks-mapping.js";
 import {
@@ -939,7 +940,8 @@ export function createGatewayHttpServer(opts: {
       if (scopedCanvas.rewrittenUrl) {
         req.url = scopedCanvas.rewrittenUrl;
       }
-      const requestPath = new URL(req.url ?? "/", "http://localhost").pathname;
+      const requestUrl = new URL(req.url ?? "/", "http://localhost");
+      const requestPath = requestUrl.pathname;
       const pluginPathContext = handlePluginRequest
         ? resolvePluginRoutePathContext(requestPath)
         : null;
@@ -1104,7 +1106,17 @@ export function createGatewayHttpServer(opts: {
           ),
       });
 
-      if (controlUiEnabled) {
+      // Only reach for the Control UI runtime when the request could belong to
+      // it; otherwise unrelated HTTP traffic pays the dashboard cold-load cost.
+      if (
+        controlUiEnabled &&
+        isControlUiOwnedRequest({
+          basePath: controlUiBasePath,
+          pathname: requestPath,
+          search: requestUrl.search,
+          method: req.method,
+        })
+      ) {
         requestStages.push({
           name: "control-ui-assistant-media-token",
           run: async () =>
