@@ -68,6 +68,7 @@ import {
   listSessionCompactionCheckpoints,
 } from "../session-compaction-checkpoints.js";
 import { reactivateCompletedSubagentSession } from "../session-subagent-reactivation.js";
+import { sharedTranscriptSequenceTracker } from "../session-transcript-sequence.js";
 import {
   archiveFileOnDisk,
   listSessionsFromStore,
@@ -507,7 +508,12 @@ async function handleSessionSend(params: {
     interruptedActiveRun = interruptResult.interrupted;
   }
 
-  const messageSeq = readSessionMessages(entry.sessionId, storePath, entry.sessionFile).length + 1;
+  const messageSeq =
+    sharedTranscriptSequenceTracker().read({
+      sessionId: entry.sessionId,
+      storePath,
+      sessionFile: entry.sessionFile,
+    }) + 1;
   let sendAcked = false;
   let sendPayload: unknown;
   let sendCached = false;
@@ -923,8 +929,11 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     let runError: unknown;
     let runMeta: Record<string, unknown> | undefined;
     const messageSeq = initialMessage
-      ? readSessionMessages(createdEntry.sessionId, target.storePath, createdEntry.sessionFile)
-          .length + 1
+      ? sharedTranscriptSequenceTracker().read({
+          sessionId: createdEntry.sessionId,
+          storePath: target.storePath,
+          sessionFile: createdEntry.sessionFile,
+        }) + 1
       : undefined;
 
     if (initialMessage) {

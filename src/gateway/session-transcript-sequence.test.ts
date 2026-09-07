@@ -2,7 +2,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { createTranscriptSequenceTracker } from "./session-transcript-sequence.js";
+import {
+  createTranscriptSequenceTracker,
+  sharedTranscriptSequenceTracker,
+} from "./session-transcript-sequence.js";
+import { readSessionMessages } from "./session-utils.js";
 
 const cleanupDirs: string[] = [];
 
@@ -145,5 +149,32 @@ describe("transcript sequence checkpoints", () => {
     const changedTime = new Date(originalStat.mtimeMs + 2_000);
     fs.utimesSync(sessionFile, changedTime, changedTime);
     expect(tracker.read(target)).toBe(1);
+  });
+});
+
+describe("sharedTranscriptSequenceTracker", () => {
+  test("counts the same records readSessionMessages returns", () => {
+    const sessionFile = createTranscriptPath();
+    fs.writeFileSync(
+      sessionFile,
+      `${[
+        header(),
+        message("a"),
+        custom("skipped"),
+        compaction("c"),
+        message("b"),
+        "not json",
+      ].join("\n")}\n`,
+      "utf8",
+    );
+    const target = { sessionId: "session", sessionFile };
+
+    expect(sharedTranscriptSequenceTracker().read(target)).toBe(
+      readSessionMessages("session", undefined, sessionFile).length,
+    );
+  });
+
+  test("reuses one tracker so checkpoints stay warm across callers", () => {
+    expect(sharedTranscriptSequenceTracker()).toBe(sharedTranscriptSequenceTracker());
   });
 });

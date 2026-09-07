@@ -218,3 +218,16 @@ export function createTranscriptSequenceTracker(options?: {
     },
   };
 }
+
+let sharedTracker: TranscriptSequenceTracker | undefined;
+
+/**
+ * Process-wide tracker for callers that only need the next transcript sequence
+ * number. Counting records incrementally from a verified checkpoint avoids
+ * reading and parsing an entire multi-MB transcript on the Gateway thread just
+ * to learn how many records it holds.
+ */
+export function sharedTranscriptSequenceTracker(): TranscriptSequenceTracker {
+  sharedTracker ??= createTranscriptSequenceTracker();
+  return sharedTracker;
+}
