@@ -39,8 +39,9 @@ type GoogleTransportModel = Model<"google-generative-ai"> & {
   provider: string;
 };
 
-type GoogleTransportOptions = SimpleStreamOptions & {
+type GoogleTransportOptions = Omit<SimpleStreamOptions, "toolChoice"> & {
   cachedContent?: string;
+  // Upstream narrowed ToolChoice to "auto" | "none"; Genesis still sends the wider set.
   toolChoice?:
     | "auto"
     | "none"
