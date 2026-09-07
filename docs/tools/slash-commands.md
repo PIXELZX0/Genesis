@@ -115,6 +115,7 @@ Built-in commands available today:
 - `/skill <name> [input]` runs a skill by name.
 - `/allowlist [list|add|remove] ...` manages allowlist entries. Text-only.
 - `/approve <id> <decision>` resolves exec approval prompts.
+- `/secret <NAME>` answers a pending `request_secret` prompt; send the value as the next message and the gateway stores it without adding it to the transcript. See [/gateway/secrets](/gateway/secrets).
 - `/btw <question>` asks a side question without changing future session context. See [/tools/btw](/tools/btw).
 - `/subagents list|kill|log|info|send|steer|spawn` manages sub-agent runs for the current session.
 - `/acp spawn|cancel|steer|close|sessions|status|set-mode|set|cwd|permissions|timeout|model|reset-options|doctor|install|help` manages ACP sessions and runtime options.

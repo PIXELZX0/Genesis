@@ -600,6 +600,11 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
       title: "Contacts",
       detailKeys: ["action", "id", "name", "channel", "messenger_id"],
     },
+    request_secret: {
+      emoji: "🔑",
+      title: "Request Secret",
+      detailKeys: ["name"],
+    },
   },
 };
 

@@ -950,6 +950,13 @@
         "channel",
         "messenger_id"
       ]
+    },
+    "request_secret": {
+      "emoji": "🔑",
+      "title": "Request Secret",
+      "detailKeys": [
+        "name"
+      ]
     }
   }
 }
