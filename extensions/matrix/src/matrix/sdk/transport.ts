@@ -147,7 +147,12 @@ async function fetchWithMatrixGuardedRedirects(params: {
   timeoutMs?: number;
   ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
-}): Promise<{ response: Response; release: () => Promise<void>; finalUrl: string }> {
+}): Promise<{
+  response: Response;
+  release: () => Promise<void>;
+  clearDeadline: () => void;
+  finalUrl: string;
+}> {
   let currentUrl = new URL(params.url);
   let method = (params.init?.method ?? "GET").toUpperCase();
   let body = params.init?.body;
@@ -186,6 +191,7 @@ async function fetchWithMatrixGuardedRedirects(params: {
             cleanup();
             await closeDispatcher(dispatcher);
           },
+          clearDeadline: cleanup,
           finalUrl: currentUrl.toString(),
         };
       }
@@ -328,7 +334,7 @@ export async function performMatrixRequest(params: {
     }
   }
 
-  const { response, release, finalUrl } = await fetchWithMatrixGuardedRedirects({
+  const { response, release, clearDeadline, finalUrl } = await fetchWithMatrixGuardedRedirects({
     url: baseUrl.toString(),
     init: {
       method: params.method,
@@ -342,6 +348,12 @@ export async function performMatrixRequest(params: {
 
   try {
     if (params.raw) {
+      // Response headers are in; a large media body can legitimately stream for
+      // longer than the per-request deadline. Drop the wall-clock abort and let
+      // readIdleTimeoutMs (stall detection) plus maxBytes bound the read.
+      if (params.readIdleTimeoutMs) {
+        clearDeadline();
+      }
       const contentLength = response.headers.get("content-length");
       if (params.maxBytes && contentLength) {
         const length = Number(contentLength);

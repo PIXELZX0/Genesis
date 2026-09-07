@@ -125,6 +125,60 @@ describe("performMatrixRequest", () => {
     }
   }, 5_000);
 
+  it("keeps streaming a slow raw body past the request deadline when idle timeout guards it", async () => {
+    vi.useFakeTimers();
+    try {
+      let push: ((chunk: Uint8Array) => void) | undefined;
+      let finish: (() => void) | undefined;
+      let abortBody: ((err: unknown) => void) | undefined;
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          push = (chunk) => controller.enqueue(chunk);
+          finish = () => controller.close();
+          abortBody = (err) => controller.error(err);
+        },
+      });
+      // Mimic undici: an abort after the headers land also errors the body stream.
+      stubRuntimeFetch(
+        vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              abortBody?.(new DOMException("This operation was aborted", "AbortError"));
+            },
+            { once: true },
+          );
+          return new Response(stream, { status: 200 });
+        }),
+      );
+
+      const requestPromise = performMatrixRequest({
+        homeserver: "http://127.0.0.1:8008",
+        accessToken: "token",
+        method: "GET",
+        endpoint: "/_matrix/client/v1/media/download/example/id",
+        timeoutMs: 50,
+        raw: true,
+        maxBytes: 1024,
+        readIdleTimeoutMs: 1000,
+        ssrfPolicy: { allowPrivateNetwork: true },
+      });
+
+      // Well past timeoutMs, but every chunk lands inside readIdleTimeoutMs.
+      for (let i = 0; i < 4; i += 1) {
+        await vi.advanceTimersByTimeAsync(60);
+        push?.(new Uint8Array([i]));
+      }
+      finish?.();
+      await vi.advanceTimersByTimeAsync(1);
+
+      const result = await requestPromise;
+      expect(result.buffer).toEqual(Buffer.from([0, 1, 2, 3]));
+    } finally {
+      vi.useRealTimers();
+    }
+  }, 5_000);
+
   it("normalizes Matrix request timeout aborts without leaking query params", async () => {
     vi.useFakeTimers();
     try {
