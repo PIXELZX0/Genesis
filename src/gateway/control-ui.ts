@@ -1105,7 +1105,7 @@ export async function handleControlUiAvatarRequest(
       return true;
     }
 
-    serveResolvedFile(res, safeAvatar.path, fs.readFileSync(safeAvatar.fd));
+    serveResolvedFile(res, safeAvatar.path, await readOpenedFile(safeAvatar.fd));
     return true;
   } finally {
     fs.closeSync(safeAvatar.fd);
@@ -1118,6 +1118,23 @@ function setStaticFileHeaders(res: ServerResponse, filePath: string) {
   // Static UI should never be cached aggressively while iterating; allow the
   // browser to revalidate.
   res.setHeader("Cache-Control", "no-cache");
+}
+
+/**
+ * Reads an already-opened file without blocking the Gateway event loop. Static UI
+ * assets are large enough that a synchronous read stalls every other connection —
+ * including chat — while a dashboard bundle is served.
+ */
+function readOpenedFile(fd: number): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    fs.readFile(fd, (error, data) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(data);
+    });
+  });
 }
 
 function serveResolvedFile(res: ServerResponse, filePath: string, body: Buffer) {
@@ -1364,10 +1381,10 @@ export async function handleControlUiHttpRequest(
         return true;
       }
       if (path.basename(safeFile.path) === "index.html") {
-        serveResolvedIndexHtml(res, fs.readFileSync(safeFile.fd, "utf8"));
+        serveResolvedIndexHtml(res, (await readOpenedFile(safeFile.fd)).toString("utf8"));
         return true;
       }
-      serveResolvedFile(res, safeFile.path, fs.readFileSync(safeFile.fd));
+      serveResolvedFile(res, safeFile.path, await readOpenedFile(safeFile.fd));
       return true;
     } finally {
       fs.closeSync(safeFile.fd);
@@ -1392,7 +1409,7 @@ export async function handleControlUiHttpRequest(
       if (respondHeadForFile(req, res, safeIndex.path)) {
         return true;
       }
-      serveResolvedIndexHtml(res, fs.readFileSync(safeIndex.fd, "utf8"));
+      serveResolvedIndexHtml(res, (await readOpenedFile(safeIndex.fd)).toString("utf8"));
       return true;
     } finally {
       fs.closeSync(safeIndex.fd);
