@@ -344,6 +344,26 @@ describe("MatrixClient request hardening", () => {
     expect(secondUrl).toContain("/_matrix/media/v3/download/example.org/media");
   });
 
+  it("does not retry the legacy media endpoint on a plain 404", async () => {
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () =>
+        new Response(JSON.stringify({ errcode: "M_NOT_FOUND", error: "Not found" }), {
+          status: 404,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    stubRuntimeFetch(fetchMock as unknown as typeof fetch);
+
+    const client = new MatrixClient("http://127.0.0.1:8008", "token", {
+      ssrfPolicy: { allowPrivateNetwork: true },
+    });
+    await expect(client.downloadContent("mxc://example.org/media")).rejects.toThrow();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const firstUrl = requestUrl((fetchMock.mock.calls as Array<[RequestInfo | URL]>)[0]?.[0]);
+    expect(firstUrl).toContain("/_matrix/client/v1/media/download/example.org/media");
+  });
+
   it("decrypts encrypted room events returned by getEvent", async () => {
     const client = new MatrixClient("https://matrix.example.org", "token");
     matrixJsClient.fetchRoomEvent = vi.fn(async () => ({

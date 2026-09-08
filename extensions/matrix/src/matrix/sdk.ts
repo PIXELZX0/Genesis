@@ -206,8 +206,12 @@ async function loadMatrixCryptoRuntime(): Promise<MatrixCryptoRuntime> {
 const normalizeOptionalString = normalizeNullableString;
 
 function isUnsupportedAuthenticatedMediaEndpointError(err: unknown): boolean {
+  // Only a "this route does not exist" signal may fall back to the legacy
+  // media endpoint. A plain 404 means the media itself is missing (or the
+  // homeserver enforces authenticated media), and retrying /_matrix/media/v3
+  // there just hides the real error behind a deprecated endpoint.
   const statusCode = (err as { statusCode?: number })?.statusCode;
-  if (statusCode === 404 || statusCode === 405 || statusCode === 501) {
+  if (statusCode === 405 || statusCode === 501) {
     return true;
   }
   const message = formatMatrixErrorReason(err);
@@ -941,11 +945,13 @@ export class MatrixClient {
     }
     const encodedServer = encodeURIComponent(parsed.server);
     const encodedMediaId = encodeURIComponent(parsed.mediaId);
-    const request = async (endpoint: string): Promise<Buffer> =>
+    // allow_remote only exists on the legacy media endpoint; the authenticated
+    // client endpoint always federates and takes timeout_ms instead.
+    const request = async (endpoint: string, qs?: QueryParams): Promise<Buffer> =>
       await this.httpClient.requestRaw({
         method: "GET",
         endpoint,
-        qs: { allow_remote: opts.allowRemote ?? true },
+        qs,
         timeoutMs: this.localTimeoutMs,
         maxBytes: opts.maxBytes,
         readIdleTimeoutMs: opts.readIdleTimeoutMs,
@@ -961,7 +967,7 @@ export class MatrixClient {
     }
 
     const legacyEndpoint = `/_matrix/media/v3/download/${encodedServer}/${encodedMediaId}`;
-    return await request(legacyEndpoint);
+    return await request(legacyEndpoint, { allow_remote: opts.allowRemote ?? true });
   }
 
   async uploadContent(file: Buffer, contentType?: string, filename?: string): Promise<string> {
