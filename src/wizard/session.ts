@@ -179,13 +179,19 @@ export class WizardSession {
   private answerDeferred = new Map<string, Deferred<unknown>>();
   private status: WizardSessionStatus = "running";
   private error: string | undefined;
+  private lastActivityAt = Date.now();
 
   constructor(private runner: (prompter: WizardPrompter) => Promise<void>) {
     const prompter = new WizardSessionPrompter(this);
     void this.run(prompter);
   }
 
+  idleMs(): number {
+    return Date.now() - this.lastActivityAt;
+  }
+
   async next(): Promise<WizardNextResult> {
+    this.lastActivityAt = Date.now();
     if (this.currentStep) {
       return { done: false, step: this.currentStep, status: this.status };
     }
@@ -207,6 +213,7 @@ export class WizardSession {
   }
 
   async answer(stepId: string, value: unknown): Promise<void> {
+    this.lastActivityAt = Date.now();
     const deferred = this.answerDeferred.get(stepId);
     if (!deferred) {
       throw new Error("wizard: no pending step");
