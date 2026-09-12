@@ -446,6 +446,36 @@
   opacity: 1;
 }
 
+.config-settings-sidebar__subnav {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 4px 33px;
+  border-left: 1px solid var(--border);
+  padding-left: 10px;
+}
+
+.config-settings-sidebar__subitem {
+  padding: 5px 8px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.config-settings-sidebar__subitem:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.config-settings-sidebar__subitem--active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* Diff Panel */
 .config-diff {
   margin: 12px 20px 0;
@@ -905,6 +935,32 @@
   gap: 6px;
 }
 
+.cfg-field--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-accent);
+}
+
+:root[data-theme-mode="light"] .cfg-field--row {
+  background: white;
+}
+
+.cfg-field--row .cfg-field__content {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cfg-field--row .cfg-number {
+  flex-shrink: 0;
+}
+
 .cfg-field--error {
   padding: 14px;
   border-radius: var(--radius-md);
@@ -941,9 +997,7 @@
 }
 
 .cfg-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: none;
 }
 
 .cfg-tag {

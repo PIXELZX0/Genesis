@@ -784,9 +784,11 @@ function renderNumberInput(params: {
   const numValue = typeof displayValue === "number" ? displayValue : 0;
 
   return html`
-    <div class="cfg-field">
-      ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
-      ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing} ${renderTags(tags)}
+    <div class="cfg-field cfg-field--row">
+      <div class="cfg-field__content">
+        ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
+        ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing} ${renderTags(tags)}
+      </div>
       <div class="cfg-number">
         <button
           type="button"

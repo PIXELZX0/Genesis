@@ -8,6 +8,7 @@ import type { ThemeMode, ThemeName } from "../theme.ts";
 import type { ConfigUiHints } from "../types.ts";
 import {
   countSensitiveConfigValues,
+  hintForPath,
   humanize,
   isSensitiveConfigPath,
   pathKey,
@@ -752,8 +753,23 @@ export function renderConfig(props: ConfigProps) {
     props.activeSection && !isVirtualSection
       ? resolveSectionMeta(props.activeSection, activeSectionSchema)
       : null;
-  // Config subsections are always rendered as a single page per section.
-  const effectiveSubsection = null;
+  // Sections whose schema has 2+ nested-object groups get a sub-nav so users
+  // jump directly to a group instead of scrolling the whole section.
+  const subsectionEntries: Array<[string, JsonSchema]> =
+    activeSectionSchema &&
+    !isVirtualSection &&
+    schemaType(activeSectionSchema) === "object" &&
+    activeSectionSchema.properties
+      ? Object.entries(activeSectionSchema.properties).filter(
+          ([, node]) => schemaType(node) === "object" && Boolean(node.properties),
+        )
+      : [];
+  const effectiveSubsection =
+    subsectionEntries.length > 1 &&
+    props.activeSubsection &&
+    subsectionEntries.some(([key]) => key === props.activeSubsection)
+      ? props.activeSubsection
+      : null;
 
   const allCategories = [...visibleCategories, ...(otherCategory ? [otherCategory] : [])];
 
@@ -854,6 +870,30 @@ export function renderConfig(props: ConfigProps) {
                       </span>
                       ${s.label}
                     </button>
+                    ${props.activeSection === s.key && subsectionEntries.length > 1
+                      ? html`
+                          <div class="config-settings-sidebar__subnav">
+                            ${subsectionEntries.map(([key, node]) => {
+                              const hint = hintForPath([s.key, key], props.uiHints);
+                              const subLabel = hint?.label ?? node.title ?? humanize(key);
+                              return html`
+                                <button
+                                  class="config-settings-sidebar__subitem ${effectiveSubsection ===
+                                  key
+                                    ? "config-settings-sidebar__subitem--active"
+                                    : ""}"
+                                  @click=${(e: Event) => {
+                                    props.onSubsectionChange(key);
+                                    resetContentScroll(e.currentTarget);
+                                  }}
+                                >
+                                  ${subLabel}
+                                </button>
+                              `;
+                            })}
+                          </div>
+                        `
+                      : nothing}
                   `,
                 )}
               </div>
