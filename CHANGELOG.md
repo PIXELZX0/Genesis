@@ -2,6 +2,18 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.9.12
+
+### Changes
+
+- Models: the "Add Model" button on the Models catalog tab no longer jumps straight into manual Custom Model Setup when a provider is already connected. A new add-models wizard lets you pick a connected provider and multiselect from models it offers that aren't already configured (OpenAI's live model list is the first provider wired up), with Custom Model Setup still reachable as a fallback.
+- Control UI: config form fields no longer show advanced/performance tag badges, number stepper +/- controls are right-aligned like toggle rows, and sections with 2+ nested object groups get sidebar sub-navigation instead of requiring a scroll.
+
+### Fixes
+
+- Config: adding an MCP server (or any other new top-level section) to a split config no longer writes it into `genesis.json` instead of its own `config/<section>.json` file. A first-time `mcp.servers` entry, or one re-added after the whole section was removed, now routes into its own section file with an `$include` marker in the root, matching the existing split layout.
+- Matrix: media downloads no longer retry the deprecated `/_matrix/media/v3/download` endpoint after an ordinary 404. Genesis asks for authenticated media at `/_matrix/client/v1/media/download` first; a plain 404 (media genuinely missing, or a homeserver enforcing authenticated media) no longer triggers the legacy fallback, which now fires only on a real route-missing signal (`M_UNRECOGNIZED`, 405, or 501), so pre-Synapse-1.100 homeservers still work.
+
 ## 2026.9.7
 
 ### Changes
