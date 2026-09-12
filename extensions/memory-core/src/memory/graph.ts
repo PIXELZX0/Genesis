@@ -18,6 +18,8 @@ const DEFAULT_SIMILARITY_TOP_K = 4;
 const DEFAULT_TAG_TOP_K = 4;
 const TAG_SNIPPET_MAX_CHARS = 2000;
 const WIKILINK_RE = /\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g;
+const SECTION_HEADING_RE = /^##\s+(.+?)\s*$/;
+const SECTION_BULLET_RE = /^\s*[-*]\s+(.*)$/;
 
 /**
  * Loose provider shape: the graph builder only needs to know whether an
@@ -193,6 +195,47 @@ async function isReadableFile(absPath: string): Promise<boolean> {
   }
 }
 
+type MemorySection = { name: string; body: string; description?: string };
+
+/**
+ * Split a `MEMORY.md` body into `## Heading` journal sections (what the
+ * promotion/dreaming pipeline actually writes). Returns [] when the body has
+ * no level-2 headings, so curated index-style MEMORY.md files fall back to a
+ * single whole-file node unchanged.
+ */
+function splitMemoryMdSections(body: string): MemorySection[] {
+  const sections: MemorySection[] = [];
+  let current: { name: string; lines: string[] } | null = null;
+  for (const rawLine of body.replace(/\r\n/g, "\n").split("\n")) {
+    const heading = SECTION_HEADING_RE.exec(rawLine);
+    if (heading) {
+      if (current) {
+        sections.push(finalizeMemorySection(current));
+      }
+      current = { name: heading[1].trim(), lines: [] };
+      continue;
+    }
+    current?.lines.push(rawLine);
+  }
+  if (current) {
+    sections.push(finalizeMemorySection(current));
+  }
+  return sections;
+}
+
+function finalizeMemorySection(current: { name: string; lines: string[] }): MemorySection {
+  let description: string | undefined;
+  for (const line of current.lines) {
+    const bullet = SECTION_BULLET_RE.exec(line);
+    const text = (bullet ? bullet[1] : line).trim();
+    if (text && !text.startsWith("<!--")) {
+      description = text;
+      break;
+    }
+  }
+  return { name: current.name, body: current.lines.join("\n"), description };
+}
+
 function readFileStatsFromDb(db: DatabaseSync): Map<string, FileStatRow> {
   const out = new Map<string, FileStatRow>();
   try {
@@ -240,6 +283,31 @@ async function buildNodes(deps: BuildMemoryGraphDeps): Promise<GraphNodeInternal
       } catch {
         size = Buffer.byteLength(content, "utf8");
         mtimeMs = Date.now();
+      }
+    }
+
+    if (relPath === ROOT_MEMORY_FILENAME) {
+      const sections = splitMemoryMdSections(body);
+      if (sections.length > 0) {
+        // Journal-style MEMORY.md (what the promotion/dreaming pipeline
+        // writes): one node per `##` entry instead of one blob node.
+        // ponytail: similarity edges are keyed by file path in the chunks
+        // table, so split sections don't get similarity edges here; upgrade
+        // if per-section embeddings become addressable.
+        sections.forEach((section, index) => {
+          const sectionNode: GraphNodeInternal = {
+            name: section.name,
+            path: `${ROOT_MEMORY_FILENAME}#${index + 1}`,
+            size,
+            mtimeMs,
+            body: section.body,
+          };
+          if (section.description) {
+            sectionNode.description = section.description;
+          }
+          nodes.push(sectionNode);
+        });
+        continue;
       }
     }
 

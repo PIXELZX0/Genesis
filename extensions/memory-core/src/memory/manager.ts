@@ -846,11 +846,18 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       sync: async (params) => await this.sync(params),
       onError: (err) => log.warn(`memory sync failed (graph): ${String(err)}`),
     });
-    await this.ensureProviderInitialized();
+    // Provider init (embedding model load / remote auth) can be slow on a cold
+    // start and outlast the client's request timeout. Don't block the graph on
+    // it; similarity edges just get skipped until a later call sees it ready.
+    if (!this.providerInitialized) {
+      void this.ensureProviderInitialized().catch((err) => {
+        log.warn(`memory provider init failed (graph): ${String(err)}`);
+      });
+    }
     return await buildMemoryGraph({
       db: this.db,
       workspaceDir: this.workspaceDir,
-      provider: this.provider,
+      provider: this.providerInitialized ? this.provider : null,
       warn: (message) => log.warn(message),
     });
   }

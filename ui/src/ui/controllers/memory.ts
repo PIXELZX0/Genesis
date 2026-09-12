@@ -31,10 +31,44 @@ export interface MemoryGraph {
 }
 
 const INDEX_LINE = /^\s*[-*]\s*\[([^\]]+)\]\(([^)]+)\)\s*(?:[—–-]\s*(.*))?$/;
+const HEADING_LINE = /^##\s+(.+?)\s*$/;
+const BULLET_LINE = /^\s*[-*]\s+(.*)$/;
 export const MEMORY_REQUEST_TIMEOUT_MS = 15_000;
 
-/** Parse a `MEMORY.md` index body into entries. Lines look like:
- *  `- [Title](file.md) — short hook` */
+/** Parse `## Heading` journal sections (what memory-core's promotion/dreaming
+ * pipeline actually writes to `MEMORY.md`) into entries: heading as name,
+ * first non-empty/non-comment bullet as detail. */
+function parseHeadingSections(content: string): MemoryEntry[] {
+  const entries: MemoryEntry[] = [];
+  let current: MemoryEntry | null = null;
+  for (const raw of content.split("\n")) {
+    const heading = HEADING_LINE.exec(raw);
+    if (heading) {
+      if (current) {
+        entries.push(current);
+      }
+      current = { name: heading[1].trim(), description: "" };
+      continue;
+    }
+    if (!current || current.description) {
+      continue;
+    }
+    const bullet = BULLET_LINE.exec(raw);
+    const text = (bullet ? bullet[1] : raw).trim();
+    if (text && !text.startsWith("<!--")) {
+      current.description = text;
+    }
+  }
+  if (current) {
+    entries.push(current);
+  }
+  return entries;
+}
+
+/** Parse a `MEMORY.md` body into entries. Supports two shapes:
+ *  - a curated index: `- [Title](file.md) — short hook`
+ *  - a journal (what the shipped memory plugin writes): `## Heading` sections
+ *    followed by free-form bullets. */
 export function parseMemoryIndex(content: string): MemoryEntry[] {
   const entries: MemoryEntry[] = [];
   for (const raw of content.split("\n")) {
@@ -45,7 +79,10 @@ export function parseMemoryIndex(content: string): MemoryEntry[] {
     const [, title, file, hook] = m;
     entries.push({ name: title.trim(), file: file.trim(), description: (hook ?? "").trim() });
   }
-  return entries;
+  if (entries.length > 0) {
+    return entries;
+  }
+  return parseHeadingSections(content);
 }
 
 /** Load the memory index for an agent by reading its `MEMORY.md` workspace file. */

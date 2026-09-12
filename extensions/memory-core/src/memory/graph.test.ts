@@ -323,3 +323,51 @@ describe("buildMemoryGraph tag edges", () => {
     ).toBe(false);
   });
 });
+
+describe("buildMemoryGraph journal-style MEMORY.md", () => {
+  it("splits `## Heading` sections into one node per entry", async () => {
+    const workspaceDir = await makeWorkspace();
+    const db = makeDb();
+    await writeMemoryFile(
+      workspaceDir,
+      "MEMORY.md",
+      [
+        "## First entry (2026-01-01)",
+        "- did the first thing",
+        "- more detail",
+        "",
+        "## Second entry (2026-01-02)",
+        "<!-- some-marker -->",
+        "- did the second thing, links to [[First entry (2026-01-01)]]",
+      ].join("\n"),
+    );
+
+    const result = await buildMemoryGraph({ db, workspaceDir, provider: null });
+    const byPath = new Map(result.nodes.map((n) => [n.path, n]));
+
+    expect([...byPath.keys()].toSorted()).toEqual(["MEMORY.md#1", "MEMORY.md#2"]);
+    expect(byPath.get("MEMORY.md#1")?.name).toBe("First entry (2026-01-01)");
+    expect(byPath.get("MEMORY.md#1")?.description).toBe("did the first thing");
+    // HTML-comment lines are skipped when picking the description bullet.
+    expect(byPath.get("MEMORY.md#2")?.description).toBe(
+      "did the second thing, links to [[First entry (2026-01-01)]]",
+    );
+
+    const wikilinks = result.edges.filter((e) => e.type === "wikilink");
+    expect(wikilinks).toContainEqual({
+      source: "MEMORY.md#2",
+      target: "MEMORY.md#1",
+      type: "wikilink",
+      weight: 1,
+    });
+  });
+
+  it("keeps the single whole-file node when MEMORY.md has no `##` headings", async () => {
+    const workspaceDir = await makeWorkspace();
+    const db = makeDb();
+    await writeMemoryFile(workspaceDir, "MEMORY.md", "- [Title](file.md) — hook");
+
+    const result = await buildMemoryGraph({ db, workspaceDir, provider: null });
+    expect(result.nodes.map((n) => n.path)).toEqual(["MEMORY.md"]);
+  });
+});
