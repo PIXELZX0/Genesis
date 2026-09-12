@@ -1486,6 +1486,30 @@
   border-top: 1px solid var(--border);
 }
 
+.cfg-object--flat {
+  border: none;
+  background: none;
+  overflow: visible;
+}
+
+.cfg-object--flat .cfg-object__header--flat {
+  cursor: default;
+  padding: 0 0 4px;
+}
+
+.cfg-object--flat .cfg-object__header--flat:hover {
+  background: none;
+}
+
+.cfg-object--flat .cfg-object__help {
+  padding: 0 0 8px;
+}
+
+.cfg-object--flat .cfg-object__content {
+  padding: 0;
+  border-top: none;
+}
+
 /* Array */
 .cfg-array {
   border: 1px solid var(--border);

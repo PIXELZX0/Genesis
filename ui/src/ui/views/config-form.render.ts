@@ -442,17 +442,22 @@ export function renderConfigForm(props: ConfigFormProps) {
     node: JsonSchema;
     nodeValue: unknown;
     path: Array<string | number>;
+    showHeader?: boolean;
   }) => html`
     <section class="config-section-card" id=${params.id}>
-      <div class="config-section-card__header">
-        <span class="config-section-card__icon">${getSectionIcon(params.sectionKey)}</span>
-        <div class="config-section-card__titles">
-          <h3 class="config-section-card__title">${params.label}</h3>
-          ${params.description
-            ? html`<p class="config-section-card__desc">${params.description}</p>`
-            : nothing}
-        </div>
-      </div>
+      ${(params.showHeader ?? true)
+        ? html`
+            <div class="config-section-card__header">
+              <span class="config-section-card__icon">${getSectionIcon(params.sectionKey)}</span>
+              <div class="config-section-card__titles">
+                <h3 class="config-section-card__title">${params.label}</h3>
+                ${params.description
+                  ? html`<p class="config-section-card__desc">${params.description}</p>`
+                  : nothing}
+              </div>
+            </div>
+          `
+        : nothing}
       <div class="config-section-card__content">
         ${renderNode({
           schema: params.node,
@@ -510,6 +515,9 @@ export function renderConfigForm(props: ConfigFormProps) {
               node,
               nodeValue: value[key],
               path: [key],
+              // Hero block above already shows this section's icon/title/desc
+              // when a single section is active — don't repeat it here.
+              showHeader: !activeSection,
             });
           })}
     </div>

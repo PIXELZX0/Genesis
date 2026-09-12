@@ -1059,9 +1059,26 @@ function renderObject(params: {
     return html` <div class="cfg-fields cfg-fields--inline">${fields}</div> `;
   }
 
-  // Nested objects get collapsible treatment
+  // First-level subsections render flat (always expanded, no box/chevron) —
+  // the section card above already provides the collapsible/boxed framing.
+  if (path.length <= 2) {
+    return html`
+      <div class="cfg-object cfg-object--flat">
+        <div class="cfg-object__header cfg-object__header--flat">
+          <span class="cfg-object__title-wrap">
+            <span class="cfg-object__title">${label}</span>
+            ${renderTags(tags)}
+          </span>
+        </div>
+        ${help ? html`<div class="cfg-object__help">${help}</div>` : nothing}
+        <div class="cfg-object__content">${fields}</div>
+      </div>
+    `;
+  }
+
+  // Deeper nested objects keep the collapsible treatment.
   return html`
-    <details class="cfg-object" ?open=${path.length <= 2}>
+    <details class="cfg-object">
       <summary class="cfg-object__header">
         <span class="cfg-object__title-wrap">
           <span class="cfg-object__title">${label}</span>
