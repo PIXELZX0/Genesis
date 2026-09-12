@@ -46,7 +46,13 @@ export async function getRecentSessionContent(
             }
             const text = extractTextMessageContent(msg.content);
             if (text && !text.startsWith("/")) {
-              allMessages.push(`${role}: ${text}`);
+              const line = `${role}: ${text}`;
+              // ponytail: transport can double-deliver a turn into the transcript;
+              // drop the immediate repeat instead of poisoning daily memory. Real
+              // fix is dedup at the delivery layer if it recurs.
+              if (line !== allMessages[allMessages.length - 1]) {
+                allMessages.push(line);
+              }
             }
           }
         }
