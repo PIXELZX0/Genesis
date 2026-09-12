@@ -2,23 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { readConfigFileSnapshot, writeIncludeSectionFileAtomic } from "../config/io.js";
+import { SPLIT_CONFIG_DIRNAME, SPLIT_ROOT_ONLY_KEYS } from "../config/split-layout.js";
 import type { ConfigFileSnapshot } from "../config/types.js";
 import { isRecord } from "../utils.js";
 import type { DoctorOptions } from "./doctor.types.js";
 
-export const SPLIT_CONFIG_DIRNAME = "config";
-
-/**
- * Keys that stay in genesis.json after a split: restart-classified gateway
- * infra (see src/gateway/config-reload-plan.ts) plus root-file metadata.
- */
-export const SPLIT_ROOT_ONLY_KEYS = new Set([
-  "$schema",
-  "meta",
-  "gateway",
-  "discovery",
-  "canvasHost",
-]);
+export { SPLIT_CONFIG_DIRNAME, SPLIT_ROOT_ONLY_KEYS };
 
 export function collectSplittableTopLevelKeys(parsed: unknown): string[] {
   if (!isRecord(parsed)) {

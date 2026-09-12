@@ -91,6 +91,7 @@ import {
   type RuntimeConfigWriteNotification,
 } from "./runtime-snapshot.js";
 import { resolveShellEnvExpectedKeys } from "./shell-env-expected-keys.js";
+import { SPLIT_CONFIG_DIRNAME, SPLIT_ROOT_ONLY_KEYS } from "./split-layout.js";
 import type { GenesisConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
 import {
   validateConfigObjectRawWithPlugins,
@@ -115,8 +116,8 @@ export { resolveShellEnvExpectedKeys } from "./shell-env-expected-keys.js";
 
 const CONFIG_HEALTH_STATE_FILENAME = "config-health.json";
 // Initial-write section files live under `<stateDir>/config/`, matching the
-// doctor split-config layout (SPLIT_CONFIG_DIRNAME in doctor-config-split.ts).
-const INITIAL_SPLIT_SECTION_DIRNAME = "config";
+// doctor split-config layout.
+const INITIAL_SPLIT_SECTION_DIRNAME = SPLIT_CONFIG_DIRNAME;
 const loggedInvalidConfigs = new Set<string>();
 
 type ConfigHealthFingerprint = {
@@ -1711,6 +1712,59 @@ export function createConfigIO(
     return { rootConfig: root as GenesisConfig, sections };
   }
 
+  /**
+   * Whether this config already uses the split layout: either the authored root
+   * routes a section to an include file, or a `config/` section directory
+   * exists (a section may have been deleted and left the root marker-free).
+   */
+  function usesSplitConfigLayout(
+    authoredRoot: Record<string, unknown>,
+    configDir: string,
+  ): boolean {
+    const hasMarker = Object.values(authoredRoot).some(
+      (value) => isRecord(value) && typeof value[INCLUDE_KEY] === "string",
+    );
+    return hasMarker || deps.fs.existsSync(path.join(configDir, INITIAL_SPLIT_SECTION_DIRNAME));
+  }
+
+  /**
+   * Once a config is split, a top-level section that is *new* to the root file
+   * (first time it is written, or re-added after the whole section was
+   * deleted) must land in `config/<key>.json` too — otherwise it is inlined
+   * into genesis.json and shadows/duplicates a section file that may still be
+   * on disk.
+   */
+  function splitNewSectionsForSplitLayout(
+    cfg: GenesisConfig,
+    configDir: string,
+    authoredRoot: unknown,
+  ): { rootConfig: GenesisConfig; sections: Array<{ filePath: string; value: unknown }> } {
+    if (!isRecord(authoredRoot) || !usesSplitConfigLayout(authoredRoot, configDir)) {
+      return { rootConfig: cfg, sections: [] };
+    }
+    const sections: Array<{ filePath: string; value: unknown }> = [];
+    const root: Record<string, unknown> = { ...cfg };
+    for (const [key, value] of Object.entries(cfg)) {
+      if (
+        key === INCLUDE_KEY ||
+        SPLIT_ROOT_ONLY_KEYS.has(key) ||
+        isBlockedObjectKey(key) ||
+        Object.hasOwn(authoredRoot, key)
+      ) {
+        continue;
+      }
+      if (!isRecord(value) || Object.keys(value).length === 0) {
+        continue;
+      }
+      root[key] = { [INCLUDE_KEY]: `${INITIAL_SPLIT_SECTION_DIRNAME}/${key}.json` };
+      sections.push({
+        filePath: path.join(configDir, INITIAL_SPLIT_SECTION_DIRNAME, `${key}.json`),
+        value,
+      });
+    }
+    return { rootConfig: root as GenesisConfig, sections };
+  }
+
   async function writeConfigFile(
     cfg: GenesisConfig,
     options: ConfigWriteOptions = {},
@@ -1843,6 +1897,10 @@ export function createConfigIO(
     let initialSplitSections: Array<{ filePath: string; value: unknown }> = [];
     if (!snapshot.exists) {
       const split = splitConfigSectionsForInitialWrite(outputConfig, dir);
+      outputConfig = split.rootConfig;
+      initialSplitSections = split.sections;
+    } else {
+      const split = splitNewSectionsForSplitLayout(outputConfig, dir, snapshot.parsed);
       outputConfig = split.rootConfig;
       initialSplitSections = split.sections;
     }
