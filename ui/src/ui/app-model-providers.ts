@@ -8,7 +8,7 @@ import { loadModels } from "./controllers/models.ts";
 import type { ModelCatalogEntry } from "./types.ts";
 
 export type ModelProviderWizardStep = ChannelWizardStep;
-export type ModelProviderWizardTarget = "models" | "custom-model";
+export type ModelProviderWizardTarget = "models" | "custom-model" | "add-models";
 
 type ModelProviderWizardResult = {
   sessionId?: string;

@@ -8,6 +8,7 @@ type BuildProviderMissingAuthMessageWithPlugin =
   ProviderRuntimeModule["buildProviderMissingAuthMessageWithPlugin"];
 type FormatProviderAuthProfileApiKeyWithPlugin =
   ProviderRuntimeModule["formatProviderAuthProfileApiKeyWithPlugin"];
+type ListAvailableModelsForProvider = ProviderRuntimeModule["listAvailableModelsForProvider"];
 type PrepareProviderRuntimeAuth = ProviderRuntimeModule["prepareProviderRuntimeAuth"];
 type RefreshProviderOAuthCredentialWithPlugin =
   ProviderRuntimeModule["refreshProviderOAuthCredentialWithPlugin"];
@@ -47,6 +48,13 @@ export async function formatProviderAuthProfileApiKeyWithPlugin(
 ): Promise<Awaited<ReturnType<FormatProviderAuthProfileApiKeyWithPlugin>>> {
   const runtime = await loadProviderRuntime();
   return runtime.formatProviderAuthProfileApiKeyWithPlugin(...args);
+}
+
+export async function listAvailableModelsForProvider(
+  ...args: Parameters<ListAvailableModelsForProvider>
+): Promise<Awaited<ReturnType<ListAvailableModelsForProvider>>> {
+  const runtime = await loadProviderRuntime();
+  return runtime.listAvailableModelsForProvider(...args);
 }
 
 export async function prepareProviderRuntimeAuth(

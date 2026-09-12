@@ -3,7 +3,9 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { resetModelCatalogCache } from "../../agents/model-catalog.js";
+import { buildAuthHealthSummary } from "../../agents/auth-health.js";
+import { ensureAuthProfileStore } from "../../agents/auth-profiles.js";
+import { loadModelCatalog, resetModelCatalogCache } from "../../agents/model-catalog.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { readConfigFileSnapshot, replaceConfigFile } from "../../config/config.js";
@@ -20,6 +22,7 @@ import {
   resolveManifestProviderAuthChoices,
   type ProviderAuthChoiceMetadata,
 } from "../../plugins/provider-auth-choices.js";
+import { listAvailableModelsForProvider } from "../../plugins/provider-runtime.runtime.js";
 import { resolveProviderPluginChoice } from "../../plugins/provider-wizard.js";
 import { resolvePluginProviders } from "../../plugins/providers.runtime.js";
 import type { ProviderAuthMethod, ProviderPlugin } from "../../plugins/types.js";
@@ -27,6 +30,7 @@ import { defaultRuntime } from "../../runtime.js";
 import { readStringValue } from "../../shared/string-coerce.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
 import { invalidateModelAuthStatusCache } from "./models-auth-status.js";
+import { addModelToConfig } from "./models.js";
 
 function listProvidersWithAuthMethods(providers: ProviderPlugin[]): ProviderPlugin[] {
   return providers.filter((provider) => provider.auth.length > 0);
@@ -542,4 +546,167 @@ export async function runCustomModelWizard(params: {
   resetModelCatalogCache();
   invalidateModelAuthStatusCache();
   await params.prompter.outro("Custom model setup complete.");
+}
+
+const CUSTOM_MODEL_CHOICE = "__custom__";
+
+/**
+ * Browse an already-connected provider's live model list and add the ones that
+ * aren't configured yet. Falls back to the generic custom-model wizard when no
+ * connected provider can list its models, or when the user picks that option.
+ */
+export async function runAddModelsWizard(params: {
+  provider?: unknown;
+  prompter: WizardPrompter;
+  skipIntro?: boolean;
+}): Promise<void> {
+  if (!params.skipIntro) {
+    await params.prompter.intro("Add models");
+  }
+
+  const snapshot = await readConfigFileSnapshot();
+  if (snapshot.exists && !snapshot.valid) {
+    throw new Error(formatInvalidConfigMessage(snapshot));
+  }
+
+  const config = structuredClone(snapshot.sourceConfig ?? snapshot.config ?? {}) as GenesisConfig;
+  const agentId = resolveDefaultAgentId(config);
+  const agentDir = resolveAgentDir(config, agentId);
+  const workspaceDir =
+    resolveAgentWorkspaceDir(config, agentId) ?? resolveDefaultAgentWorkspaceDir();
+
+  const capable = resolvePluginProviders({
+    config,
+    workspaceDir,
+    mode: "setup",
+    bundledProviderAllowlistCompat: true,
+    bundledProviderVitestCompat: true,
+    activate: true,
+    includeUntrustedWorkspacePlugins: false,
+  }).filter((provider) => typeof provider.listAvailableModels === "function");
+  const health = buildAuthHealthSummary({
+    store: ensureAuthProfileStore(agentDir),
+    cfg: config,
+    providers: capable.map((provider) => provider.id),
+  });
+  // "missing" is the no-credentials state; anything else means the provider has
+  // a credential we can try the live model list with.
+  const connectedIds = new Set(
+    health.providers.filter((entry) => entry.status !== "missing").map((entry) => entry.provider),
+  );
+  const connected = capable.filter((provider) =>
+    connectedIds.has(normalizeProviderId(provider.id)),
+  );
+
+  const requested = readStringValue(params.provider);
+  const requestedMatch = requested
+    ? connected.find(
+        (provider) => normalizeProviderId(provider.id) === normalizeProviderId(requested),
+      )
+    : undefined;
+
+  let chosenId: string;
+  if (requestedMatch) {
+    chosenId = requestedMatch.id;
+  } else if (connected.length === 0) {
+    await params.prompter.note(
+      "No connected provider supports browsing its live model list yet.",
+      "Custom setup",
+    );
+    chosenId = CUSTOM_MODEL_CHOICE;
+  } else {
+    chosenId = await params.prompter.select({
+      message: "Select a provider",
+      options: [
+        ...sortProviderOptions(connected).map((provider) => ({
+          value: provider.id,
+          label: provider.label,
+        })),
+        { value: CUSTOM_MODEL_CHOICE, label: "Custom / manual setup" },
+      ],
+    });
+  }
+
+  if (chosenId === CUSTOM_MODEL_CHOICE) {
+    await runCustomModelWizard({ prompter: params.prompter, skipIntro: true });
+    return;
+  }
+
+  const liveModels = await listAvailableModelsForProvider({
+    provider: chosenId,
+    config,
+    workspaceDir,
+    env: process.env,
+    context: { config, agentDir, workspaceDir, env: process.env },
+  });
+  if (liveModels.length === 0) {
+    await params.prompter.note(
+      "Could not fetch a live model list for this provider. Try Custom Model setup instead.",
+      "No models found",
+    );
+    await params.prompter.outro("Add models complete.");
+    return;
+  }
+
+  const catalog = await loadModelCatalog({ config });
+  const seen = new Set<string>([
+    ...(config.models?.providers?.[chosenId]?.models ?? []).map((model) => model.id),
+    ...catalog.filter((entry) => entry.provider === chosenId).map((entry) => entry.id),
+  ]);
+  const missing = liveModels.filter((model) => {
+    if (seen.has(model.id)) {
+      return false;
+    }
+    seen.add(model.id);
+    return true;
+  });
+  if (missing.length === 0) {
+    await params.prompter.note(
+      "All available models for this provider are already added.",
+      "Nothing to add",
+    );
+    await params.prompter.outro("Add models complete.");
+    return;
+  }
+
+  const selectedIds = await params.prompter.multiselect({
+    message: "Select models to add",
+    options: missing.map((model) => ({ value: model.id, label: model.name })),
+    searchable: true,
+  });
+  if (selectedIds.length === 0) {
+    await params.prompter.note("No models selected.");
+    await params.prompter.outro("Add models complete.");
+    return;
+  }
+
+  let nextConfig = config;
+  let added = 0;
+  for (const id of selectedIds) {
+    const entry = missing.find((model) => model.id === id);
+    if (!entry) {
+      continue;
+    }
+    try {
+      nextConfig = addModelToConfig(nextConfig, {
+        provider: chosenId,
+        id: entry.id,
+        name: entry.name,
+        contextWindow: entry.contextWindow,
+        reasoning: entry.reasoning,
+      });
+      added += 1;
+    } catch (err) {
+      await params.prompter.note(err instanceof Error ? err.message : String(err), "Model skipped");
+    }
+  }
+
+  await replaceConfigFile({
+    nextConfig,
+    ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),
+  });
+  resetModelCatalogCache();
+  invalidateModelAuthStatusCache();
+  await params.prompter.note(`Added ${added} model(s).`, "Models added");
+  await params.prompter.outro("Add models complete.");
 }

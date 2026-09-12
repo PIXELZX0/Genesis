@@ -205,7 +205,7 @@ export function renderModels(props: ModelsProps) {
             class="btn primary"
             ?disabled=${!props.connected || props.modelProviderWizardBusy}
             @click=${() =>
-              props.onModelProviderWizardStart(addingProvider ? "models" : "custom-model")}
+              props.onModelProviderWizardStart(addingProvider ? "models" : "add-models")}
           >
             ${icons.plus} ${addLabel}
           </button>

@@ -39,6 +39,7 @@ const resolveExternalAuthProfileProviderPluginIdsMock =
 const providerRuntimeWarnMock = vi.fn();
 
 let augmentModelCatalogWithProviderPlugins: typeof import("./provider-runtime.js").augmentModelCatalogWithProviderPlugins;
+let listAvailableModelsForProvider: typeof import("./provider-runtime.js").listAvailableModelsForProvider;
 let buildProviderAuthDoctorHintWithPlugin: typeof import("./provider-runtime.js").buildProviderAuthDoctorHintWithPlugin;
 let buildProviderMissingAuthMessageWithPlugin: typeof import("./provider-runtime.js").buildProviderMissingAuthMessageWithPlugin;
 let buildProviderUnknownModelHintWithPlugin: typeof import("./provider-runtime.js").buildProviderUnknownModelHintWithPlugin;
@@ -269,6 +270,7 @@ describe("provider-runtime", () => {
     }));
     ({
       augmentModelCatalogWithProviderPlugins,
+      listAvailableModelsForProvider,
       buildProviderAuthDoctorHintWithPlugin,
       buildProviderMissingAuthMessageWithPlugin,
       buildProviderUnknownModelHintWithPlugin,
@@ -1669,6 +1671,28 @@ describe("provider-runtime", () => {
       api: "openai-responses",
       baseUrl: "https://api.openai.com/v1",
     });
+  });
+
+  it("lists live models only for the requested provider's plugin hook", async () => {
+    const liveModels = [{ provider: "openai", id: "gpt-live", name: "gpt-live" }];
+    resolveCatalogHookProviderPluginIdsMock.mockReturnValue(["openai", "demo"]);
+    resolvePluginProvidersMock.mockReturnValue([
+      createOpenAiCatalogProviderPlugin({ listAvailableModels: () => liveModels }),
+      { id: DEMO_PROVIDER_ID, label: "Demo", auth: [] },
+    ]);
+    const context = { env: process.env };
+
+    await expect(
+      listAvailableModelsForProvider({ provider: "openai", env: process.env, context }),
+    ).resolves.toEqual(liveModels);
+    // Provider plugin exists but declares no hook.
+    await expect(
+      listAvailableModelsForProvider({ provider: DEMO_PROVIDER_ID, env: process.env, context }),
+    ).resolves.toEqual([]);
+    // No plugin owns this provider id.
+    await expect(
+      listAvailableModelsForProvider({ provider: "nope", env: process.env, context }),
+    ).resolves.toEqual([]);
   });
 
   it("resolves bundled catalog hooks through provider plugins", async () => {

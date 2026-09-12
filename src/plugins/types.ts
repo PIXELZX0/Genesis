@@ -1026,6 +1026,20 @@ export type ProviderAugmentModelCatalogContext = {
 };
 
 /**
+ * Live provider-model-list hook input.
+ *
+ * Unlike ProviderAugmentModelCatalogContext, this runs on demand only when a
+ * user opens the "Add Models" wizard for an already-connected provider, never
+ * during normal catalog loads — so it's safe to perform real network I/O here.
+ */
+export type ProviderListAvailableModelsContext = {
+  config?: GenesisConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  env: NodeJS.ProcessEnv;
+};
+
+/**
  * @deprecated Use ProviderCatalogOrder.
  */
 export type ProviderDiscoveryOrder = ProviderCatalogOrder;
@@ -1498,6 +1512,23 @@ export type ProviderPlugin = {
    */
   augmentModelCatalog?: (
     ctx: ProviderAugmentModelCatalogContext,
+  ) =>
+    | Array<ModelCatalogEntry>
+    | ReadonlyArray<ModelCatalogEntry>
+    | Promise<Array<ModelCatalogEntry> | ReadonlyArray<ModelCatalogEntry> | null | undefined>
+    | null
+    | undefined;
+  /**
+   * Provider-owned live model discovery for the "Add Models" wizard.
+   *
+   * Called on demand when the user browses an already-connected provider's
+   * available-but-not-yet-added models. Return the provider's real current
+   * model list (e.g. via its own list-models API); Genesis diffs this against
+   * already-configured/known models and offers the rest. Unlike
+   * `augmentModelCatalog`, this may perform network I/O.
+   */
+  listAvailableModels?: (
+    ctx: ProviderListAvailableModelsContext,
   ) =>
     | Array<ModelCatalogEntry>
     | ReadonlyArray<ModelCatalogEntry>

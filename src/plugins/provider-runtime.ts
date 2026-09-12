@@ -4,6 +4,7 @@ import {
   applyPluginTextReplacements,
   mergePluginTextTransforms,
 } from "../agents/plugin-text-transforms.js";
+import { normalizeProviderId } from "../agents/provider-id.js";
 import type { ProviderSystemPromptContribution } from "../agents/system-prompt-contribution.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import type { ModelProviderConfig } from "../config/types.js";
@@ -37,6 +38,7 @@ import { resolveRuntimeTextTransforms } from "./text-transforms.runtime.js";
 import type {
   ProviderAuthDoctorHintContext,
   ProviderAugmentModelCatalogContext,
+  ProviderListAvailableModelsContext,
   ProviderExternalAuthProfile,
   ProviderBuildMissingAuthMessageContext,
   ProviderBuildUnknownModelHintContext,
@@ -900,4 +902,20 @@ export async function augmentModelCatalogWithProviderPlugins(params: {
     supplemental.push(...next);
   }
   return supplemental;
+}
+
+export async function listAvailableModelsForProvider(params: {
+  provider: string;
+  config?: GenesisConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  installBundledRuntimeDeps?: boolean;
+  context: ProviderListAvailableModelsContext;
+}): Promise<ProviderAugmentModelCatalogContext["entries"]> {
+  const normalized = normalizeProviderId(params.provider);
+  const plugin = resolveProviderPluginsForCatalogHooks(params).find(
+    (candidate) => normalizeProviderId(candidate.id) === normalized,
+  );
+  const result = await plugin?.listAvailableModels?.(params.context);
+  return result ? [...result] : [];
 }

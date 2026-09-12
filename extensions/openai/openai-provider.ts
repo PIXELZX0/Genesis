@@ -1,8 +1,10 @@
+import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
 import {
   type ProviderResolveDynamicModelContext,
   type ProviderRuntimeModel,
 } from "genesis/plugin-sdk/plugin-entry";
 import { createProviderApiKeyAuthMethod } from "genesis/plugin-sdk/provider-auth-api-key";
+import { resolveApiKeyForProvider } from "genesis/plugin-sdk/provider-auth-runtime";
 import {
   DEFAULT_CONTEXT_TOKENS,
   normalizeModelCompat,
@@ -19,6 +21,7 @@ import {
   cloneFirstTemplateModel,
   findCatalogTemplate,
   matchesExactOrPrefix,
+  resolveConfiguredOpenAIBaseUrl,
 } from "./shared.js";
 
 const PROVIDER_ID = "openai";
@@ -79,6 +82,63 @@ const OPENAI_MODERN_MODEL_IDS = [
 ] as const;
 const OPENAI_DIRECT_SPARK_MODEL_ID = "gpt-5.3-codex-spark";
 const SUPPRESSED_SPARK_PROVIDERS = new Set(["openai", "azure-openai-responses"]);
+/** Coarse skip list for model families the chat loop can't drive. */
+const OPENAI_NON_CHAT_MODEL_MARKERS = [
+  "embedding",
+  "whisper",
+  "tts",
+  "dall-e",
+  "moderation",
+  "davinci",
+  "babbage",
+  "ada",
+  "curie",
+] as const;
+const OPENAI_LIST_MODELS_TIMEOUT_MS = 8000;
+
+type OpenAIModelsListWire = { data?: Array<{ id?: unknown }> };
+
+/**
+ * Live `GET /models` lookup for the "Add models" wizard. Never throws: a
+ * failed discovery just leaves the wizard with nothing to offer.
+ *
+ * No SSRF guard — the only reachable target is `models.providers.openai.baseUrl`,
+ * which the operator sets themselves, and the response body is never surfaced.
+ */
+async function listOpenAIModels(ctx: {
+  config?: GenesisConfig;
+  agentDir?: string;
+}): Promise<Array<{ id: string; name: string; provider: string }>> {
+  const { apiKey } = await resolveApiKeyForProvider({
+    provider: PROVIDER_ID,
+    cfg: ctx.config,
+    agentDir: ctx.agentDir,
+  });
+  if (!apiKey) {
+    return [];
+  }
+  try {
+    const response = await fetch(`${resolveConfiguredOpenAIBaseUrl(ctx.config)}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(OPENAI_LIST_MODELS_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      return [];
+    }
+    const payload = (await response.json()) as OpenAIModelsListWire;
+    return (payload.data ?? [])
+      .map((item) => (typeof item?.id === "string" ? item.id.trim() : ""))
+      .filter(
+        (id) =>
+          id.length > 0 &&
+          !OPENAI_NON_CHAT_MODEL_MARKERS.some((marker) => id.toLowerCase().includes(marker)),
+      )
+      .map((id) => ({ id, name: id, provider: PROVIDER_ID }));
+  } catch {
+    return [];
+  }
+}
+
 function shouldUseOpenAIResponsesTransport(params: {
   provider: string;
   api?: string | null;
@@ -331,5 +391,6 @@ export function buildOpenAIProvider(): ProviderPlugin {
         }),
       ].filter((entry): entry is NonNullable<typeof entry> => entry !== undefined);
     },
+    listAvailableModels: (ctx) => listOpenAIModels(ctx),
   };
 }

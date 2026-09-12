@@ -43,14 +43,14 @@ describe("renderModels", () => {
     expect(onModelProviderWizardStart).toHaveBeenCalledWith("models");
   });
 
-  it("starts the custom model wizard from the Catalog panel", () => {
+  it("starts the add-models wizard from the Catalog panel", () => {
     const container = document.createElement("div");
     const onModelProviderWizardStart = vi.fn();
     render(renderModels(createProps({ panel: "catalog", onModelProviderWizardStart })), container);
 
     findButton(container, "Add model")?.click();
 
-    expect(onModelProviderWizardStart).toHaveBeenCalledWith("custom-model");
+    expect(onModelProviderWizardStart).toHaveBeenCalledWith("add-models");
   });
 
   it("renders per-provider auth status and usage, including providers with no models", () => {

@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import type { ProviderAuthChoiceMetadata } from "../../plugins/provider-auth-choices.js";
 import type { ProviderAuthMethod, ProviderPlugin } from "../../plugins/types.js";
-import type { WizardPrompter, WizardSelectParams } from "../../wizard/prompts.js";
+import type {
+  WizardMultiSelectParams,
+  WizardPrompter,
+  WizardSelectParams,
+} from "../../wizard/prompts.js";
 
 const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
@@ -14,11 +18,30 @@ const mocks = vi.hoisted(() => ({
   runProviderPluginAuthMethod: vi.fn(),
   runProviderModelSelectedHook: vi.fn(async () => {}),
   invalidateModelAuthStatusCache: vi.fn(),
+  loadModelCatalog: vi.fn(async () => [] as Array<Record<string, unknown>>),
+  buildAuthHealthSummary: vi.fn(),
+  ensureAuthProfileStore: vi.fn(() => ({ profiles: {} })),
+  listAvailableModelsForProvider: vi.fn(async () => [] as Array<Record<string, unknown>>),
 }));
 
 vi.mock("../../config/config.js", () => ({
   readConfigFileSnapshot: mocks.readConfigFileSnapshot,
   replaceConfigFile: mocks.replaceConfigFile,
+  loadConfig: vi.fn(() => ({})),
+  readConfigFileSnapshotForWrite: vi.fn(),
+  writeConfigFileWithResult: vi.fn(),
+}));
+
+vi.mock("../../agents/auth-health.js", () => ({
+  buildAuthHealthSummary: mocks.buildAuthHealthSummary,
+}));
+
+vi.mock("../../agents/auth-profiles.js", () => ({
+  ensureAuthProfileStore: mocks.ensureAuthProfileStore,
+}));
+
+vi.mock("../../plugins/provider-runtime.runtime.js", () => ({
+  listAvailableModelsForProvider: mocks.listAvailableModelsForProvider,
 }));
 
 vi.mock("../../commands/onboard-custom.js", () => ({
@@ -27,6 +50,7 @@ vi.mock("../../commands/onboard-custom.js", () => ({
 
 vi.mock("../../agents/model-catalog.js", () => ({
   resetModelCatalogCache: mocks.resetModelCatalogCache,
+  loadModelCatalog: mocks.loadModelCatalog,
 }));
 
 vi.mock("../../plugins/provider-auth-choices.js", () => ({
@@ -49,7 +73,11 @@ vi.mock("./models-auth-status.js", () => ({
   invalidateModelAuthStatusCache: mocks.invalidateModelAuthStatusCache,
 }));
 
-import { runCustomModelWizard, runModelProviderWizard } from "./wizard-models.js";
+import {
+  runAddModelsWizard,
+  runCustomModelWizard,
+  runModelProviderWizard,
+} from "./wizard-models.js";
 
 function createChoice(params: {
   pluginId?: string;
@@ -320,5 +348,81 @@ describe("runModelProviderWizard", () => {
         verification: { mode: "web", allowPrivateNetwork: true },
       }),
     );
+  });
+});
+
+describe("runAddModelsWizard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.readConfigFileSnapshot.mockResolvedValue({
+      exists: true,
+      valid: true,
+      config: {},
+      sourceConfig: {},
+      hash: "config-hash",
+    });
+    mocks.ensureAuthProfileStore.mockReturnValue({ profiles: {} });
+    mocks.loadModelCatalog.mockResolvedValue([]);
+  });
+
+  it("adds the live models a connected provider offers that config lacks", async () => {
+    mocks.resolvePluginProviders.mockReturnValue([
+      { id: "openai", label: "OpenAI", auth: [], listAvailableModels: () => [] },
+    ] as unknown as ProviderPlugin[]);
+    mocks.buildAuthHealthSummary.mockReturnValue({
+      now: 0,
+      warnAfterMs: 0,
+      profiles: [],
+      providers: [{ provider: "openai", status: "static", profiles: [] }],
+    });
+    mocks.loadModelCatalog.mockResolvedValue([{ provider: "openai", id: "gpt-5", name: "GPT-5" }]);
+    mocks.listAvailableModelsForProvider.mockResolvedValue([
+      { provider: "openai", id: "gpt-5", name: "GPT-5" },
+      { provider: "openai", id: "gpt-5-mini", name: "GPT-5 mini" },
+    ]);
+    const prompter = createPrompter(vi.fn());
+    let offered: WizardMultiSelectParams["options"] | undefined;
+    prompter.multiselect = (async (params: WizardMultiSelectParams) => {
+      offered = params.options;
+      return ["gpt-5-mini"];
+    }) as WizardPrompter["multiselect"];
+
+    await runAddModelsWizard({ prompter, skipIntro: true, provider: "openai" });
+
+    // The requested provider skips the picker, and already-known gpt-5 is filtered out.
+    expect(prompter.select).not.toHaveBeenCalled();
+    expect(offered).toEqual([{ value: "gpt-5-mini", label: "GPT-5 mini" }]);
+    expect(mocks.replaceConfigFile).toHaveBeenCalledWith({
+      baseHash: "config-hash",
+      nextConfig: expect.objectContaining({
+        models: {
+          providers: {
+            openai: expect.objectContaining({
+              models: [expect.objectContaining({ id: "gpt-5-mini", name: "GPT-5 mini" })],
+            }),
+          },
+        },
+      }),
+    });
+    expect(mocks.resetModelCatalogCache).toHaveBeenCalledOnce();
+    expect(mocks.invalidateModelAuthStatusCache).toHaveBeenCalledOnce();
+  });
+
+  it("falls back to custom model setup when no connected provider can list models", async () => {
+    mocks.resolvePluginProviders.mockReturnValue([]);
+    mocks.buildAuthHealthSummary.mockReturnValue({
+      now: 0,
+      warnAfterMs: 0,
+      profiles: [],
+      providers: [],
+    });
+    mocks.promptCustomApiConfig.mockResolvedValue({ config: {} });
+    const prompter = createPrompter(vi.fn());
+
+    await runAddModelsWizard({ prompter, skipIntro: true });
+
+    expect(prompter.select).not.toHaveBeenCalled();
+    expect(mocks.promptCustomApiConfig).toHaveBeenCalledOnce();
+    expect(mocks.listAvailableModelsForProvider).not.toHaveBeenCalled();
   });
 });

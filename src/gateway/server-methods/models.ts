@@ -64,6 +64,53 @@ function buildModelDefinition(params: {
   };
 }
 
+export type AddModelInput = {
+  provider: string;
+  id: string;
+  name?: string;
+  api?: ModelApi;
+  baseUrl?: string;
+  contextWindow?: number;
+  maxTokens?: number;
+  reasoning?: boolean;
+};
+
+/**
+ * Merge one model definition into `models.providers.<provider>.models`.
+ * Shared by the `models.add` RPC and the "Add models" wizard so both agree on
+ * defaults and duplicate handling. Throws when the id already exists.
+ */
+export function addModelToConfig(cfg: GenesisConfig, input: AddModelInput): GenesisConfig {
+  const { provider, id } = input;
+  const existingProviders = cfg.models?.providers ?? {};
+  const existingProvider = existingProviders[provider];
+  const existingModels = existingProvider?.models ?? [];
+  if (existingModels.some((m) => m.id === id)) {
+    throw new Error(`model "${id}" already exists for provider "${provider}".`);
+  }
+  const definition = buildModelDefinition({
+    id,
+    name: input.name || id,
+    api: input.api,
+    baseUrl: input.baseUrl,
+    contextWindow: input.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
+    maxTokens: input.maxTokens ?? DEFAULT_MAX_TOKENS,
+    reasoning: input.reasoning === true,
+  });
+  const nextProvider: ModelProviderConfig = {
+    ...existingProvider,
+    baseUrl: existingProvider?.baseUrl ?? input.baseUrl ?? "",
+    models: [...existingModels, definition],
+  };
+  return {
+    ...cfg,
+    models: {
+      ...cfg.models,
+      providers: { ...existingProviders, [provider]: nextProvider },
+    },
+  };
+}
+
 export const modelsHandlers: GatewayRequestHandlers = {
   "models.list": async ({ params, respond, context }) => {
     if (!validateModelsListParams(params)) {
@@ -119,43 +166,23 @@ export const modelsHandlers: GatewayRequestHandlers = {
     }
 
     const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
-    const cfg = snapshot.config;
-    const existingProviders = cfg.models?.providers ?? {};
-    const existingProvider = existingProviders[provider];
-    const existingModels = existingProvider?.models ?? [];
-    if (existingModels.some((m) => m.id === id)) {
-      respond(
-        false,
-        undefined,
-        errorShape(
-          ErrorCodes.INVALID_REQUEST,
-          `model "${id}" already exists for provider "${provider}".`,
-        ),
-      );
+    let nextConfig: GenesisConfig;
+    try {
+      nextConfig = addModelToConfig(snapshot.config, {
+        provider,
+        id,
+        name,
+        api,
+        baseUrl,
+        contextWindow,
+        maxTokens,
+        reasoning,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, message));
       return;
     }
-
-    const definition = buildModelDefinition({
-      id,
-      name,
-      api,
-      baseUrl,
-      contextWindow,
-      maxTokens,
-      reasoning,
-    });
-    const nextProvider: ModelProviderConfig = {
-      ...existingProvider,
-      baseUrl: existingProvider?.baseUrl ?? baseUrl ?? "",
-      models: [...existingModels, definition],
-    };
-    const nextConfig: GenesisConfig = {
-      ...cfg,
-      models: {
-        ...cfg.models,
-        providers: { ...existingProviders, [provider]: nextProvider },
-      },
-    };
 
     await writeConfigFileWithResult(nextConfig, {
       ...writeOptions,

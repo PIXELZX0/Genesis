@@ -16,6 +16,7 @@ export const WizardStartParamsSchema = Type.Object(
         Type.Literal("channels"),
         Type.Literal("models"),
         Type.Literal("custom-model"),
+        Type.Literal("add-models"),
       ]),
     ),
     mode: Type.Optional(Type.Union([Type.Literal("local"), Type.Literal("remote")])),

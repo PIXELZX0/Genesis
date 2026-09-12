@@ -27,7 +27,7 @@ vi.mock("../../agents/model-catalog.js", () => ({
   resetModelCatalogCache: mocks.resetCatalog,
 }));
 
-const { modelsHandlers } = await import("./models.js");
+const { addModelToConfig, modelsHandlers } = await import("./models.js");
 
 function call(params: Record<string, unknown>) {
   const respond = vi.fn();
@@ -148,5 +148,44 @@ describe("models.add", () => {
     await promise;
     expect(respond).toHaveBeenCalledWith(false, undefined, expect.anything());
     expect(mocks.written).toBeNull();
+  });
+});
+
+describe("addModelToConfig", () => {
+  it("appends a model without dropping existing providers or models", () => {
+    const cfg = {
+      models: {
+        providers: {
+          openai: {
+            baseUrl: "https://api.openai.com/v1",
+            models: [{ id: "gpt-5", name: "GPT-5" }],
+          },
+        },
+      },
+    } as unknown as GenesisConfig;
+
+    const next = addModelToConfig(cfg, { provider: "openai", id: "gpt-5-mini" });
+
+    expect(next.models?.providers?.openai?.baseUrl).toBe("https://api.openai.com/v1");
+    expect(next.models?.providers?.openai?.models?.map((m) => m.id)).toEqual([
+      "gpt-5",
+      "gpt-5-mini",
+    ]);
+    expect(next.models?.providers?.openai?.models?.[1]).toMatchObject({
+      name: "gpt-5-mini",
+      metadataSource: "models-add",
+    });
+    // Input config is untouched.
+    expect(cfg.models?.providers?.openai?.models).toHaveLength(1);
+  });
+
+  it("throws when the model id already exists for the provider", () => {
+    const cfg = {
+      models: { providers: { openai: { models: [{ id: "gpt-5", name: "GPT-5" }] } } },
+    } as unknown as GenesisConfig;
+
+    expect(() => addModelToConfig(cfg, { provider: "openai", id: "gpt-5" })).toThrow(
+      'model "gpt-5" already exists for provider "openai".',
+    );
   });
 });
