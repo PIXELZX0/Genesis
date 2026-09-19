@@ -68,6 +68,7 @@ type OpenAIResponsesOptions = BaseStreamOptions & {
   reasoningEffort?: OpenAIReasoningEffort;
   reasoningSummary?: "auto" | "detailed" | "concise" | null;
   serviceTier?: ResponseCreateParamsStreaming["service_tier"];
+  toolChoice?: ResponseCreateParamsStreaming["tool_choice"];
 };
 
 type OpenAICompletionsOptions = BaseStreamOptions & {
@@ -877,6 +878,9 @@ export function buildOpenAIResponsesParams(
         transport: "stream",
       }),
     });
+    if (options?.toolChoice) {
+      params.tool_choice = options.toolChoice;
+    }
   }
   if (model.reasoning) {
     if (options?.reasoningEffort || options?.reasoning || options?.reasoningSummary) {
@@ -1585,6 +1589,7 @@ type OpenAIResponsesRequestParams = {
   temperature?: number;
   service_tier?: ResponseCreateParamsStreaming["service_tier"];
   tools?: FunctionTool[];
+  tool_choice?: ResponseCreateParamsStreaming["tool_choice"];
   reasoning?:
     | { effort: OpenAIApiReasoningEffort }
     | {

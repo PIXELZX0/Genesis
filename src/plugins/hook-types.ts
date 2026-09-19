@@ -60,6 +60,7 @@ export type PluginHookName =
   | "before_agent_start"
   | "before_agent_reply"
   | "llm_input"
+  | "before_model_call"
   | "llm_output"
   | "agent_end"
   | "before_compaction"
@@ -91,6 +92,7 @@ export const PLUGIN_HOOK_NAMES = [
   "before_agent_start",
   "before_agent_reply",
   "llm_input",
+  "before_model_call",
   "llm_output",
   "agent_end",
   "before_compaction",
@@ -141,6 +143,7 @@ export const isPromptInjectionHookName = (hookName: PluginHookName): boolean =>
 
 export const CONVERSATION_HOOK_NAMES = [
   "llm_input",
+  "before_model_call",
   "llm_output",
   "agent_end",
 ] as const satisfies readonly PluginHookName[];
@@ -186,6 +189,38 @@ export type PluginHookLlmInputEvent = {
   historyMessages: unknown[];
   imagesCount: number;
 };
+
+/** Tool as advertised to the model for the upcoming call (JSON Schema parameters). */
+export type PluginHookModelCallTool = {
+  name: string;
+  description: string;
+  parameters: unknown;
+};
+
+/** Fired before every model call inside the agent loop (one prompt can make many calls). */
+export type PluginHookBeforeModelCallEvent = {
+  runId: string;
+  sessionId: string;
+  provider: string;
+  model: string;
+  api: string;
+  systemPrompt?: string;
+  messages: unknown[];
+  tools: PluginHookModelCallTool[];
+};
+
+/**
+ * How the upcoming model call should proceed.
+ * - `pass`: call the model unchanged.
+ * - `no_tools`: call the model with tool use disabled (text reply only).
+ * - `force_tool`: call the model but require it to call `toolName`.
+ * - `tool_call`: skip the model and execute `toolName` with `arguments` directly.
+ */
+export type PluginHookBeforeModelCallResult =
+  | { action: "pass" }
+  | { action: "no_tools" }
+  | { action: "force_tool"; toolName: string }
+  | { action: "tool_call"; toolName: string; arguments: Record<string, unknown> };
 
 export type PluginHookLlmOutputEvent = {
   runId: string;
@@ -679,6 +714,10 @@ export type PluginHookHandlerMap = {
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentReplyResult | void> | PluginHookBeforeAgentReplyResult | void;
   llm_input: (event: PluginHookLlmInputEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
+  before_model_call: (
+    event: PluginHookBeforeModelCallEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<PluginHookBeforeModelCallResult | void> | PluginHookBeforeModelCallResult | void;
   llm_output: (
     event: PluginHookLlmOutputEvent,
     ctx: PluginHookAgentContext,

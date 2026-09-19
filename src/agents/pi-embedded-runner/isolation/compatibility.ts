@@ -35,6 +35,7 @@ const CHILD_INCOMPATIBLE_HOOKS = [
   "before_agent_start",
   "before_tool_call",
   "llm_input",
+  "before_model_call",
   "llm_output",
   "before_compaction",
   "after_compaction",

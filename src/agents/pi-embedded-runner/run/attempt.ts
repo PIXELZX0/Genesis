@@ -233,6 +233,7 @@ import {
   resolveAttemptBootstrapContext,
   runAttemptContextEngineBootstrap,
 } from "./attempt.context-engine-helpers.js";
+import { wrapStreamFnWithBeforeModelCallHook } from "./attempt.model-call-hook.js";
 import {
   diagnosticErrorCategory,
   wrapStreamFnWithDiagnosticModelCallEvents,
@@ -1650,6 +1651,27 @@ export async function runEmbeddedAttempt(
         }
         return innerStreamFn(model, context, options);
       };
+
+      activeSession.agent.streamFunction = wrapStreamFnWithBeforeModelCallHook(
+        activeSession.agent.streamFunction,
+        {
+          hookRunner: unbridgedHookRunner,
+          runId: params.runId,
+          sessionId: params.sessionId,
+          hookCtx: {
+            runId: params.runId,
+            agentId: sessionAgentId,
+            sessionKey: params.sessionKey,
+            sessionId: params.sessionId,
+            workspaceDir: params.workspaceDir,
+            modelProviderId: params.model.provider,
+            modelId: params.model.id,
+            messageProvider: params.messageProvider ?? undefined,
+            trigger: params.trigger,
+            channelId: params.messageChannel ?? params.messageProvider ?? undefined,
+          },
+        },
+      );
 
       // Some models emit tool names with surrounding whitespace (e.g. " read ").
       // pi-agent-core dispatches tool calls with exact string matching, so normalize

@@ -33,6 +33,8 @@ import type {
   PluginHookInboundClaimEvent,
   PluginHookInboundClaimResult,
   PluginHookLlmInputEvent,
+  PluginHookBeforeModelCallEvent,
+  PluginHookBeforeModelCallResult,
   PluginHookLlmOutputEvent,
   PluginHookBeforeResetEvent,
   PluginHookBeforeToolCallEvent,
@@ -610,6 +612,27 @@ export function createHookRunner(
   }
 
   /**
+   * Run before_model_call hook.
+   * Lets plugins reshape (or replace) the next model call in the agent loop.
+   * Runs sequentially; the first non-`pass` result wins.
+   */
+  async function runBeforeModelCall(
+    event: PluginHookBeforeModelCallEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginHookBeforeModelCallResult | undefined> {
+    return runModifyingHook<"before_model_call", PluginHookBeforeModelCallResult>(
+      "before_model_call",
+      event,
+      ctx,
+      {
+        mergeResults: (acc, next) => (acc && acc.action !== "pass" ? acc : next),
+        shouldStop: (result) => result.action !== "pass",
+        terminalLabel: "routed",
+      },
+    );
+  }
+
+  /**
    * Run llm_output hook.
    * Allows plugins to observe the exact output payload returned by the LLM.
    * Runs in parallel (fire-and-forget).
@@ -1125,6 +1148,7 @@ export function createHookRunner(
     runBeforeAgentStart,
     runBeforeAgentReply,
     runLlmInput,
+    runBeforeModelCall,
     runLlmOutput,
     runAgentEnd,
     runBeforeCompaction,

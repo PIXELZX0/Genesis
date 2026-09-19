@@ -64,6 +64,7 @@ observation-only.
 - `before_prompt_build` — add dynamic context or system-prompt text before the model call
 - `before_agent_start` — compatibility-only combined phase; prefer the two hooks above
 - **`before_agent_reply`** — short-circuit the model turn with a synthetic reply or silence
+- **`before_model_call`** — route each model call in the agent loop: force a tool, disable tools, or run a tool without the model
 - `agent_end` — observe final messages, success state, and run duration
 
 **Conversation observation**
@@ -156,6 +157,21 @@ Use the phase-specific hooks for new plugins:
   Return `prependContext`, `systemPrompt`, `prependSystemContext`, or
   `appendSystemContext`.
 
+- `before_model_call`: runs before every model call inside the agent loop
+  (one prompt can make many calls). Receives `messages` and the advertised
+  `tools` (name, description, JSON Schema parameters). Return one of:
+  - `{ action: "pass" }` to call the model unchanged
+  - `{ action: "no_tools" }` to call the model with tool use disabled
+  - `{ action: "force_tool", toolName }` to require the model to call that tool
+  - `{ action: "tool_call", toolName, arguments }` to skip the model and run
+    the tool directly. The call still goes through argument validation,
+    `before_tool_call`, tool policy, and approvals.
+
+  The first non-`pass` result wins. Unknown tool names, hook errors, and
+  transports without `tool_choice` support fall back to the normal call
+  (`force_tool` narrows the advertised tools instead). Forcing a tool on
+  Anthropic turns off extended thinking for that call.
+
 `before_agent_start` remains for compatibility. Prefer the explicit hooks above
 so your plugin does not depend on a legacy combined phase.
 
@@ -166,7 +182,7 @@ Genesis-owned harnesses, `event.newMessages` for only the messages appended by
 the completed run. Plugins that run post-turn learning or analytics should use
 `newMessages ?? messages` so old transcript content is not double-counted.
 
-Non-bundled plugins that need `llm_input`, `llm_output`, or `agent_end` must set:
+Non-bundled plugins that need `llm_input`, `before_model_call`, `llm_output`, or `agent_end` must set:
 
 ```json
 {

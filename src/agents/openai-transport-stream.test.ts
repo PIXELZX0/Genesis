@@ -684,6 +684,31 @@ describe("openai transport stream", () => {
     expect(params.input?.[0]).toMatchObject({ role: "system" });
   });
 
+  it("forwards a forced tool choice on responses requests", () => {
+    const params = buildOpenAIResponsesParams(
+      {
+        id: "gpt-5.4",
+        name: "GPT-5.4",
+        api: "openai-responses",
+        provider: "openai",
+        baseUrl: "https://api.openai.com/v1",
+        reasoning: false,
+        input: ["text"],
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        contextWindow: 200000,
+        maxTokens: 8192,
+      } satisfies Model<"openai-responses">,
+      {
+        systemPrompt: "system",
+        messages: [],
+        tools: [{ name: "read", description: "Read", parameters: { type: "object" } }],
+      } as never,
+      { toolChoice: { type: "function", name: "read" } },
+    ) as { tool_choice?: unknown };
+
+    expect(params.tool_choice).toEqual({ type: "function", name: "read" });
+  });
+
   it("keeps developer role for native OpenAI reasoning responses models", () => {
     const params = buildOpenAIResponsesParams(
       {
