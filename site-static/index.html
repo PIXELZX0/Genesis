@@ -1,157 +1,1032 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Genesis — Self-hosted AI gateway</title>
     <meta
       name="description"
-      content="Self-hosted gateway that connects messaging channels to AI coding agents. Run one Gateway process on your own machine and message your AI assistant from anywhere."
+      content="Self-hosted gateway that connects your chat apps to AI coding agents. Run one Gateway process on your own machine and message your AI assistant from anywhere."
     />
     <link rel="canonical" href="https://genesis.pixelzx.com/" />
     <link rel="icon" href="/docs/assets/pixel-lobster.svg" type="image/svg+xml" />
+    <meta property="og:title" content="Genesis — Self-hosted AI gateway" />
+    <meta
+      property="og:description"
+      content="One Gateway on your machine. Every chat app you already use. An AI agent that is always on."
+    />
+    <meta property="og:url" content="https://genesis.pixelzx.com/" />
+    <script>
+      (() => {
+        let saved = null;
+        try {
+          saved = localStorage.getItem("genesis-theme");
+        } catch {}
+        const theme = saved === "light" || saved === "dark" ? saved : "dark";
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&f[]=sentient@400i&display=swap"
+    />
     <style>
       :root {
-        color-scheme: light dark;
-        --bg: #0c0c10;
-        --fg: #f4f4f5;
-        --muted: #a1a1aa;
-        --accent: #f97316;
-        --card: #18181b;
-        --border: #27272a;
+        --bg: #101012;
+        --bg-soft: #151518;
+        --surface: #19191c;
+        --surface-2: #202024;
+        --text: #ededed;
+        --muted: #9a9aa2;
+        --faint: #6b6b73;
+        --border: #9a9aa22e;
+        --border-strong: #ededed40;
+        --accent: #f5654a;
+        --accent-hover: #e05540;
+        --accent-soft: #f5654a24;
+        --sea: #4fc8ae;
+        --sea-soft: #4fc8ae24;
+        --shadow: 0 24px 48px -12px #0000006b;
+        --glow: #f5654a33;
+        --font: "Switzer", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --serif: "Sentient", Georgia, serif;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+        --max: 75rem;
+        --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        color-scheme: dark;
       }
-      @media (prefers-color-scheme: light) {
-        :root {
-          --bg: #ffffff;
-          --fg: #18181b;
-          --muted: #52525b;
-          --accent: #ea580c;
-          --card: #fafafa;
-          --border: #e4e4e7;
-        }
+      :root[data-theme="light"] {
+        --bg: #f6f5f3;
+        --bg-soft: #eceae6;
+        --surface: #ffffff;
+        --surface-2: #f6f5f3;
+        --text: #17171a;
+        --muted: #55555d;
+        --faint: #8a8a92;
+        --border: #17171a1f;
+        --border-strong: #17171a47;
+        --accent: #d84a31;
+        --accent-hover: #c24028;
+        --accent-soft: #d84a311f;
+        --sea: #14806e;
+        --sea-soft: #14806e21;
+        --shadow: 0 24px 48px -16px #17171a2e;
+        --glow: #d84a3124;
+        color-scheme: light;
       }
       * {
         box-sizing: border-box;
       }
-      html,
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         margin: 0;
-        padding: 0;
         background: var(--bg);
-        color: var(--fg);
-        font-family:
-          "DM Sans",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 16px;
         line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+      }
+      code,
+      pre {
+        font-family: var(--mono);
       }
       .wrap {
-        max-width: 720px;
+        max-width: var(--max);
         margin: 0 auto;
-        padding: 4rem 1.5rem;
+        padding: 0 24px;
       }
-      h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        line-height: 1.1;
-        margin: 0 0 1rem;
+      .kicker {
+        margin: 0 0 14px;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
       }
-      .lobster {
-        width: 96px;
-        height: 96px;
-        margin-bottom: 1.5rem;
+      .serif {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 400;
+        color: var(--accent);
       }
-      .tagline {
-        font-size: 1.125rem;
-        color: var(--muted);
-        margin: 0 0 2rem;
+
+      /* Topbar */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: saturate(160%) blur(14px);
+        -webkit-backdrop-filter: saturate(160%) blur(14px);
+        background: color-mix(in srgb, var(--bg) 78%, transparent);
+        border-bottom: 1px solid var(--border);
       }
-      .links {
+      .topbar .wrap {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 3rem;
+        align-items: center;
+        gap: 24px;
+        height: 64px;
       }
-      .links a {
+      .brand {
         display: inline-flex;
         align-items: center;
-        padding: 0.625rem 1rem;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+        letter-spacing: -0.01em;
+      }
+      .brand img {
+        width: 28px;
+        height: 28px;
+      }
+      .nav {
+        display: flex;
+        gap: 4px;
+        margin-left: auto;
+      }
+      .nav a {
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition:
+          color 0.16s,
+          background 0.16s;
+      }
+      .nav a:hover {
+        color: var(--text);
+        background: var(--surface-2);
+      }
+      .icon-btn {
+        display: inline-grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
         border: 1px solid var(--border);
         border-radius: 8px;
-        color: var(--fg);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          color 0.16s,
+          border-color 0.16s;
+      }
+      .icon-btn:hover {
+        color: var(--text);
+        border-color: var(--border-strong);
+      }
+      .icon-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      :root[data-theme="dark"] .sun,
+      :root[data-theme="light"] .moon {
+        display: none;
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 96px 0 72px;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: -40% -10% auto;
+        height: 720px;
+        background:
+          radial-gradient(40% 50% at 70% 40%, var(--glow), transparent 70%),
+          radial-gradient(30% 40% at 20% 20%, var(--sea-soft), transparent 70%);
+        pointer-events: none;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(60% 60% at 50% 30%, #000 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(60% 60% at 50% 30%, #000 20%, transparent 75%);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .hero .wrap {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 56px;
+        align-items: center;
+      }
+      .hero h1 {
+        margin: 0 0 22px;
+        font-size: clamp(2.6rem, 6vw, 4.6rem);
+        font-weight: 700;
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+      }
+      .lede {
+        margin: 0 0 32px;
+        max-width: 36rem;
+        font-size: clamp(1.05rem, 1.6vw, 1.22rem);
+        line-height: 1.65;
+        color: var(--muted);
+      }
+      .lede strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 46px;
+        padding: 0 20px;
+        border: 1px solid var(--border-strong);
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.96rem;
         text-decoration: none;
-        font-weight: 500;
-        transition: border-color 0.15s;
+        transition:
+          transform 0.2s var(--ease),
+          background 0.16s,
+          border-color 0.16s;
       }
-      .links a:hover {
-        border-color: var(--accent);
+      .btn:hover {
+        transform: translateY(-1px);
+        background: var(--surface-2);
       }
-      .links a.primary {
+      .btn.primary {
         background: var(--accent);
         border-color: var(--accent);
         color: #fff;
       }
-      .install {
-        background: var(--card);
+      .btn.primary:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .trust {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin-top: 28px;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--faint);
+      }
+      .trust span::before {
+        content: "✓ ";
+        color: var(--sea);
+      }
+
+      /* Terminal card */
+      .term {
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 1.5rem;
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
       }
-      .install h2 {
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+      .term-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+      }
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--border-strong);
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-left: 12px;
+      }
+      .tab {
+        padding: 4px 10px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
         color: var(--muted);
-        margin: 0 0 0.75rem;
+        font: 500 0.8rem var(--mono);
+        cursor: pointer;
       }
-      .install pre {
+      .tab[aria-selected="true"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .term-body {
+        position: relative;
+        padding: 20px 20px 22px;
+        font-family: var(--mono);
+        font-size: 0.88rem;
+        line-height: 1.9;
+      }
+      .term-body pre {
         margin: 0;
-        font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-        font-size: 0.875rem;
-        overflow-x: auto;
-        color: var(--fg);
+        white-space: pre-wrap;
+        word-break: break-word;
       }
-      footer {
-        color: var(--muted);
-        font-size: 0.875rem;
-        margin-top: 3rem;
-        padding-top: 1.5rem;
+      .term-body [hidden] {
+        display: none;
+      }
+      .p {
+        color: var(--accent);
+        user-select: none;
+      }
+      .c {
+        color: var(--faint);
+      }
+      .ok {
+        color: var(--sea);
+      }
+      .copy {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+      }
+
+      /* Sections */
+      section.block {
+        padding: 88px 0;
         border-top: 1px solid var(--border);
       }
-      footer a {
+      .head {
+        max-width: 44rem;
+        margin-bottom: 40px;
+      }
+      .head h2 {
+        margin: 0 0 12px;
+        font-size: clamp(1.9rem, 3.6vw, 2.75rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+      }
+      .head p:not(.kicker) {
+        margin: 0;
         color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      /* Channels */
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition:
+          border-color 0.16s,
+          transform 0.2s var(--ease);
+      }
+      .chip::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--c, var(--muted));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--muted)) 22%, transparent);
+      }
+      .chip:hover {
+        border-color: var(--c, var(--border-strong));
+        transform: translateY(-1px);
+      }
+      .chip.more {
+        color: var(--accent);
+      }
+      .chip.more::before {
+        display: none;
+      }
+
+      /* Features */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .card {
+        display: block;
+        padding: 26px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        text-decoration: none;
+        transition:
+          border-color 0.16s,
+          transform 0.2s var(--ease),
+          box-shadow 0.2s;
+      }
+      a.card:hover {
+        border-color: var(--border-strong);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+      .card .ic {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .card:nth-child(3n + 2) .ic {
+        background: var(--sea-soft);
+        color: var(--sea);
+      }
+      .card .ic svg {
+        width: 20px;
+        height: 20px;
+      }
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      /* Flow */
+      .flow {
+        display: grid;
+        grid-template-columns: 1fr auto 1.1fr auto 1fr;
+        align-items: center;
+        gap: 18px;
+      }
+      .node {
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+      .node.core {
+        border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+        background: linear-gradient(180deg, var(--accent-soft), var(--surface) 70%);
+        box-shadow: 0 0 0 6px var(--accent-soft);
+      }
+      .node h4 {
+        margin: 0 0 10px;
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .node.core h4 {
+        color: var(--accent);
+      }
+      .node ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.95rem;
+      }
+      .node li {
+        padding: 3px 0;
+      }
+      .node li::before {
+        content: "›  ";
+        color: var(--faint);
+      }
+      .arrow {
+        color: var(--faint);
+        font-family: var(--mono);
+        font-size: 1.3rem;
+      }
+
+      /* Steps */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        counter-reset: step;
+      }
+      .step {
+        padding: 26px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        counter-increment: step;
+      }
+      .step::before {
+        content: "0" counter(step);
+        display: block;
+        margin-bottom: 14px;
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .step h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+      }
+      .step p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .step code {
+        display: block;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        font-size: 0.82rem;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      /* CTA */
+      .cta {
+        position: relative;
+        overflow: hidden;
+        padding: 56px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background:
+          radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 60%), var(--surface);
+        text-align: center;
+      }
+      .cta h2 {
+        margin: 0 0 12px;
+        font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .cta p {
+        margin: 0 auto 28px;
+        max-width: 34rem;
+        color: var(--muted);
+      }
+      .cta .actions {
+        justify-content: center;
+      }
+
+      footer {
+        padding: 40px 0 56px;
+        border-top: 1px solid var(--border);
+        color: var(--faint);
+        font-size: 0.88rem;
+      }
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      footer nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      footer a {
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: var(--text);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--sea);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+
+      @media (max-width: 960px) {
+        .hero .wrap,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+        .arrow {
+          justify-self: center;
+          transform: rotate(90deg);
+        }
+        .grid,
+        .steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 640px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        .nav a:not(.keep) {
+          display: none;
+        }
+        .hero {
+          padding: 56px 0 48px;
+        }
+        section.block {
+          padding: 64px 0;
+        }
+        .grid,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .cta {
+          padding: 36px 20px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <img class="lobster" src="/docs/assets/pixel-lobster.svg" alt="Genesis lobster" />
-      <h1>Genesis</h1>
-      <p class="tagline">
-        Self-hosted gateway that connects Discord, Slack, Telegram, WhatsApp, iMessage, Matrix and
-        more to your AI coding agents.
-      </p>
-      <div class="links">
-        <a class="primary" href="/docs/start/getting-started">Get started</a>
-        <a href="/docs/">Docs</a>
-        <a href="https://github.com/PIXELZX0/Genesis">GitHub</a>
-        <a href="https://deepwiki.com/PIXELZX0/Genesis">DeepWiki</a>
+    <header class="topbar">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <img src="/docs/assets/pixel-lobster.svg" alt="" />
+          <span>Genesis</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="#channels">Channels</a>
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+          <a class="keep" href="/docs/">Docs</a>
+          <a class="keep" href="https://github.com/PIXELZX0/Genesis">GitHub</a>
+        </nav>
+        <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            />
+          </svg>
+        </button>
       </div>
-      <div class="install">
-        <h2>Install (macOS / Linux)</h2>
-        <pre>curl -fsSL https://genesis.pixelzx.com/install.sh | sh</pre>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <div>
+            <p class="kicker">Open source · Self-hosted · Runs on your machine</p>
+            <h1>Your AI agent, <span class="serif">everywhere</span> you chat.</h1>
+            <p class="lede">
+              Genesis is <strong>one Gateway process</strong> on hardware you own. Connect Discord,
+              Slack, Telegram, WhatsApp, iMessage, Signal and more — the same agent answers from
+              your phone, your terminal, or a browser dashboard.
+            </p>
+            <div class="actions">
+              <a class="btn primary" href="/docs/start/getting-started/">
+                Get started
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+              <a class="btn" href="/docs/">Read the docs</a>
+            </div>
+            <div class="trust">
+              <span>Your data stays local</span>
+              <span>Bring your own models</span>
+              <span>Plugin SDK</span>
+            </div>
+          </div>
+
+          <div class="term" id="install">
+            <div class="term-head">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <div class="tabs" role="tablist" aria-label="Install method">
+                <button class="tab" role="tab" aria-selected="true" data-tab="npm">npm</button>
+                <button class="tab" role="tab" aria-selected="false" data-tab="pnpm">pnpm</button>
+                <button class="tab" role="tab" aria-selected="false" data-tab="source">
+                  source
+                </button>
+              </div>
+            </div>
+            <div class="term-body">
+              <button class="icon-btn copy" type="button" aria-label="Copy install commands">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                </svg>
+              </button>
+              <pre data-panel="npm"><span class="c"># Node 24 recommended (22.14+ works)</span>
+<span class="p">$ </span>npm install -g @pixelzx/genesis@latest
+<span class="p">$ </span>genesis onboard --install-daemon
+<span class="p">$ </span>genesis dashboard
+<span class="ok">✓ Gateway running at http://127.0.0.1:18789/</span></pre>
+              <pre
+                data-panel="pnpm"
+                hidden
+              ><span class="c"># Node 24 recommended (22.14+ works)</span>
+<span class="p">$ </span>pnpm add -g @pixelzx/genesis@latest
+<span class="p">$ </span>genesis onboard --install-daemon
+<span class="p">$ </span>genesis dashboard
+<span class="ok">✓ Gateway running at http://127.0.0.1:18789/</span></pre>
+              <pre
+                data-panel="source"
+                hidden
+              ><span class="p">$ </span>git clone https://github.com/PIXELZX0/Genesis
+<span class="p">$ </span>cd Genesis && pnpm install
+<span class="p">$ </span>pnpm build
+<span class="p">$ </span>pnpm genesis onboard --install-daemon
+<span class="ok">✓ Gateway running at http://127.0.0.1:18789/</span></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="channels">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">Channels</p>
+            <h2>Use the chat apps you already have.</h2>
+            <p>
+              Every channel is first-class, with its own pairing flow. One session, one memory, one
+              tool surface — shared across all of them.
+            </p>
+          </div>
+          <div class="chips">
+            <a class="chip" style="--c: #25d366" href="/docs/channels/whatsapp/">WhatsApp</a>
+            <a class="chip" style="--c: #26a5e4" href="/docs/channels/telegram/">Telegram</a>
+            <a class="chip" style="--c: #5865f2" href="/docs/channels/discord/">Discord</a>
+            <a class="chip" style="--c: #e01e5a" href="/docs/channels/slack/">Slack</a>
+            <a class="chip" style="--c: #007aff" href="/docs/channels/imessage/">iMessage</a>
+            <a class="chip" style="--c: #3a76f0" href="/docs/channels/signal/">Signal</a>
+            <a class="chip" style="--c: #0dbd8b" href="/docs/channels/matrix/">Matrix</a>
+            <a class="chip" style="--c: #7b83eb" href="/docs/channels/msteams/">Microsoft Teams</a>
+            <a class="chip" style="--c: #4285f4" href="/docs/channels/googlechat/">Google Chat</a>
+            <a class="chip" style="--c: #0068ff" href="/docs/channels/zalo/">Zalo</a>
+            <a class="chip" style="--c: #06c755" href="/docs/channels/line/">LINE</a>
+            <a class="chip" style="--c: #9146ff" href="/docs/channels/twitch/">Twitch</a>
+            <a class="chip more" href="/docs/channels/">All channels →</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="features">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">What it does</p>
+            <h2>Built for agents that <span class="serif">actually</span> do things.</h2>
+            <p>
+              Workspace isolation, routing, memory, approvals and automation — out of the box, on
+              your terms.
+            </p>
+          </div>
+          <div class="grid">
+            <a class="card" href="/docs/gateway/security/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="11" width="16" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                </svg>
+              </div>
+              <h3>You stay in control</h3>
+              <p>
+                Messages, sessions and credentials live on your machine. Nothing leaves unless you
+                point it somewhere.
+              </p>
+            </a>
+            <a class="card" href="/docs/concepts/multi-agent/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="6" cy="19" r="3" />
+                  <circle cx="18" cy="5" r="3" />
+                  <path d="M6 16V8a3 3 0 0 1 3-3h6M18 8v8a3 3 0 0 1-3 3H9" />
+                </svg>
+              </div>
+              <h3>Multi-agent routing</h3>
+              <p>
+                Isolated agents per channel, workspace or sender — each with its own memory and tool
+                policy.
+              </p>
+            </a>
+            <a class="card" href="/docs/gateway/sandboxing/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              </div>
+              <h3>Sandbox &amp; approvals</h3>
+              <p>
+                Lock down sessions with Docker, SSH or OpenShell. Approve sensitive tool calls
+                before they run.
+              </p>
+            </a>
+            <a class="card" href="/docs/automation/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              </div>
+              <h3>Cron, hooks &amp; skills</h3>
+              <p>
+                Schedule recurring jobs, react to events, and teach new skills with plain markdown.
+              </p>
+            </a>
+            <a class="card" href="/docs/nodes/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="7" y="2" width="10" height="20" rx="2" />
+                  <path d="M11 18h2" />
+                </svg>
+              </div>
+              <h3>Canvas &amp; voice</h3>
+              <p>
+                Pair iOS and Android nodes for live canvas, camera, voice wake and push-to-talk.
+              </p>
+            </a>
+            <a class="card" href="/docs/plugins/building-plugins/">
+              <div class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4" />
+                </svg>
+              </div>
+              <h3>Extensible by plugins</h3>
+              <p>
+                Add channels, model providers, tools and skills. The SDK and manifest format are
+                documented.
+              </p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">How it fits</p>
+            <h2>One control plane between your chats and your agent.</h2>
+          </div>
+          <div class="flow">
+            <div class="node">
+              <h4>Your chats</h4>
+              <ul>
+                <li>WhatsApp · Telegram</li>
+                <li>Discord · Slack</li>
+                <li>iMessage · Signal</li>
+                <li>Web dashboard</li>
+              </ul>
+            </div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="node core">
+              <h4>Genesis Gateway</h4>
+              <ul>
+                <li>Sessions &amp; memory</li>
+                <li>Routing &amp; pairing</li>
+                <li>Tools, approvals, sandbox</li>
+                <li>Plugins &amp; automation</li>
+              </ul>
+            </div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="node">
+              <h4>Your models</h4>
+              <ul>
+                <li>Anthropic · OpenAI</li>
+                <li>Google · OpenRouter</li>
+                <li>Local via Ollama</li>
+                <li>…and more providers</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">Quick start</p>
+            <h2>Five minutes to a working assistant.</h2>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <h3>Install</h3>
+              <p>Grab the CLI from npm. Node 24 recommended.</p>
+              <code>npm install -g @pixelzx/genesis@latest</code>
+            </div>
+            <div class="step">
+              <h3>Onboard</h3>
+              <p>The wizard installs the Gateway service and pairs your first channel.</p>
+              <code>genesis onboard --install-daemon</code>
+            </div>
+            <div class="step">
+              <h3>Chat</h3>
+              <p>Open the dashboard, or message your agent from any paired app.</p>
+              <code>genesis dashboard</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="wrap">
+          <div class="cta">
+            <h2>Own your assistant.</h2>
+            <p>Your memories, your skills, your models, your machines. Start in minutes.</p>
+            <div class="actions">
+              <a class="btn primary" href="/docs/start/getting-started/">Get started</a>
+              <a class="btn" href="https://github.com/PIXELZX0/Genesis">Star on GitHub</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>© Genesis · Open source</span>
+        <nav aria-label="Footer">
+          <a href="/docs/">Docs</a>
+          <a href="https://github.com/PIXELZX0/Genesis">GitHub</a>
+          <a href="https://github.com/PIXELZX0/Genesis/releases">Releases</a>
+          <a href="https://deepwiki.com/PIXELZX0/Genesis">DeepWiki</a>
+          <a href="/privacy">Privacy</a>
+          <a href="mailto:security@pixelzx.com">Security</a>
+        </nav>
       </div>
-      <div class="install">
-        <h2>Install (Windows PowerShell)</h2>
-        <pre>iwr https://genesis.pixelzx.com/install.ps1 -useb | iex</pre>
-      </div>
-      <footer>
-        <a href="/privacy">Privacy</a> · <a href="mailto:security@pixelzx.com">Security</a> ·
-        <a href="mailto:support@pixelzx.com">Support</a>
-      </footer>
-    </div>
+    </footer>
+
+    <script>
+      (() => {
+        const root = document.documentElement;
+        document.getElementById("theme").addEventListener("click", () => {
+          const next = root.dataset.theme === "dark" ? "light" : "dark";
+          root.dataset.theme = next;
+          try {
+            localStorage.setItem("genesis-theme", next);
+          } catch {}
+        });
+
+        const tabs = document.querySelectorAll(".tab");
+        const panels = document.querySelectorAll("[data-panel]");
+        tabs.forEach((tab) =>
+          tab.addEventListener("click", () => {
+            tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+            panels.forEach((p) => (p.hidden = p.dataset.panel !== tab.dataset.tab));
+          }),
+        );
+
+        document.querySelector(".copy").addEventListener("click", async (event) => {
+          const button = event.currentTarget;
+          const panel = document.querySelector("[data-panel]:not([hidden])");
+          const commands = panel.textContent
+            .split("\n")
+            .filter((line) => line.startsWith("$ "))
+            .map((line) => line.slice(2))
+            .join("\n");
+          try {
+            await navigator.clipboard.writeText(commands);
+            button.style.color = "var(--sea)";
+          } catch {}
+        });
+      })();
+    </script>
   </body>
 </html>
