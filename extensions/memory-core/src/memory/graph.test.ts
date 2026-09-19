@@ -345,7 +345,10 @@ describe("buildMemoryGraph journal-style MEMORY.md", () => {
     const result = await buildMemoryGraph({ db, workspaceDir, provider: null });
     const byPath = new Map(result.nodes.map((n) => [n.path, n]));
 
-    expect([...byPath.keys()].toSorted()).toEqual(["MEMORY.md#1", "MEMORY.md#2"]);
+    expect([...byPath.keys()].toSorted((a, b) => a.localeCompare(b))).toEqual([
+      "MEMORY.md#1",
+      "MEMORY.md#2",
+    ]);
     expect(byPath.get("MEMORY.md#1")?.name).toBe("First entry (2026-01-01)");
     expect(byPath.get("MEMORY.md#1")?.description).toBe("did the first thing");
     // HTML-comment lines are skipped when picking the description bullet.
