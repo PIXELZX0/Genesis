@@ -216,6 +216,7 @@ export type AppViewState = {
   wikiMemoryPalace: import("./controllers/dreaming.js").WikiMemoryPalace | null;
   configFormMode: "form" | "raw";
   configSettingsMode: "quick" | "advanced";
+  quickSettingsScope: "session" | "default";
   configSearchQuery: string;
   configActiveSection: string | null;
   configActiveSubsection: string | null;

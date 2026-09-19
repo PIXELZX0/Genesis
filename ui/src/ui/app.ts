@@ -327,6 +327,7 @@ export class GenesisApp extends LitElement {
   @state() wikiMemoryPalace: WikiMemoryPalace | null = null;
   @state() configFormDirty = false;
   @state() configSettingsMode: "quick" | "advanced" = "quick";
+  @state() quickSettingsScope: "session" | "default" = "session";
   @state() configFormMode: "form" | "raw" = "form";
   @state() configSearchQuery = "";
   @state() configActiveSection: string | null = null;

@@ -6,10 +6,12 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
+import { SUPPORTED_LOCALES, t, type Locale } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import type { BorderRadiusStop } from "../storage.ts";
 import type { ThemeTransitionContext } from "../theme-transition.ts";
-import type { ThemeMode, ThemeName } from "../theme.ts";
+import type { ThemeMode } from "../theme.ts";
+import { listThinkingLevelLabels } from "../thinking.ts";
 import {
   hasLocalUserIdentity,
   normalizeLocalUserIdentity,
@@ -61,8 +63,15 @@ export type QuickSettingsSecurity = {
   deviceAuth: boolean;
 };
 
+export type QuickSettingsScope = "session" | "default";
+
 export type QuickSettingsProps = {
-  // Model & Thinking
+  // Model & Thinking. `scope` picks whether thinking/fast edits patch the
+  // active session or the config defaults for new sessions.
+  scope: QuickSettingsScope;
+  onScopeChange?: (scope: QuickSettingsScope) => void;
+  /** False when there is no agents.list entry to hold fastModeDefault. */
+  fastModeDefaultAvailable: boolean;
   currentModel: string;
   thinkingLevel: string;
   fastMode: boolean;
@@ -89,16 +98,24 @@ export type QuickSettingsProps = {
   onSecurityConfigure?: () => void;
 
   // Appearance
-  theme: ThemeName;
   themeMode: ThemeMode;
   borderRadius: number;
-  setTheme: (theme: ThemeName, context?: ThemeTransitionContext) => void;
   setThemeMode: (mode: ThemeMode, context?: ThemeTransitionContext) => void;
   setBorderRadius: (value: number) => void;
   userName?: string | null;
   userAvatar?: string | null;
   onUserNameChange?: (next: string) => void;
   onUserAvatarChange?: (next: string | null) => void;
+
+  // Language & chat display (browser-local)
+  locale: Locale;
+  onLocaleChange?: (locale: Locale) => void;
+  chatShowThinking: boolean;
+  chatShowToolCalls: boolean;
+  onChatDisplayChange?: (patch: {
+    chatShowThinking?: boolean;
+    chatShowToolCalls?: boolean;
+  }) => void;
 
   // Presets
   configObject?: Record<string, unknown>;
@@ -122,7 +139,6 @@ const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; label: string }> = [
   { value: 100, label: "Full" },
 ];
 
-const THINKING_LEVELS = ["off", "low", "medium", "high"];
 // Keep raw uploads comfortably below the 2 MB persisted data URL limit after
 // base64 expansion and a small MIME/header prefix are added.
 const MAX_LOCAL_USER_AVATAR_FILE_BYTES = 1_500_000;
@@ -197,11 +213,40 @@ function renderCardHeader(icon: TemplateResult, title: string, action?: Template
   `;
 }
 
+function resolveThinkingLevels(current: string): readonly string[] {
+  const levels = listThinkingLevelLabels();
+  // Keep configured values outside the base list (xhigh, adaptive, max) selectable.
+  return current && !levels.includes(current) ? [...levels, current] : levels;
+}
+
 function renderModelCard(props: QuickSettingsProps) {
   return html`
     <div class="qs-card">
       ${renderCardHeader(icons.brain, "Model & Thinking")}
       <div class="qs-card__body">
+        <div class="qs-row">
+          <span class="qs-row__label">Applies to</span>
+          <div class="qs-segmented" role="group" aria-label="Settings scope">
+            ${(
+              [
+                ["session", "This session"],
+                ["default", "New sessions"],
+              ] as const
+            ).map(
+              ([scope, label]) => html`
+                <button
+                  class="qs-segmented__btn ${scope === props.scope
+                    ? "qs-segmented__btn--active"
+                    : ""}"
+                  aria-pressed=${scope === props.scope}
+                  @click=${() => props.onScopeChange?.(scope)}
+                >
+                  ${label}
+                </button>
+              `,
+            )}
+          </div>
+        </div>
         <div class="qs-row">
           <span class="qs-row__label">Model</span>
           <button class="qs-row__value qs-row__value--action" @click=${props.onModelChange}>
@@ -212,7 +257,7 @@ function renderModelCard(props: QuickSettingsProps) {
         <div class="qs-row">
           <span class="qs-row__label">Thinking</span>
           <div class="qs-segmented">
-            ${THINKING_LEVELS.map(
+            ${resolveThinkingLevels(props.thinkingLevel).map(
               (level) => html`
                 <button
                   class="qs-segmented__btn ${level === props.thinkingLevel
@@ -229,10 +274,19 @@ function renderModelCard(props: QuickSettingsProps) {
         <div class="qs-row">
           <span class="qs-row__label">Fast mode</span>
           <label class="qs-toggle">
-            <input type="checkbox" .checked=${props.fastMode} @change=${props.onFastModeToggle} />
+            <input
+              type="checkbox"
+              .checked=${props.fastMode}
+              ?disabled=${props.scope === "default" && !props.fastModeDefaultAvailable}
+              @change=${props.onFastModeToggle}
+            />
             <span class="qs-toggle__track"></span>
             <span class="qs-toggle__hint muted"
-              >${props.fastMode ? "On — cheaper, less capable" : "Off"}</span
+              >${props.scope === "default" && !props.fastModeDefaultAvailable
+                ? "Set per agent in AI & Agents"
+                : props.fastMode
+                  ? "On — cheaper, less capable"
+                  : "Off"}</span
             >
           </label>
         </div>
@@ -550,12 +604,67 @@ function renderPersonalCard(props: QuickSettingsProps) {
   `;
 }
 
+function renderToggleRow(label: string, checked: boolean, onChange: (next: boolean) => void) {
+  return html`
+    <div class="qs-row">
+      <span class="qs-row__label">${label}</span>
+      <label class="qs-toggle">
+        <input
+          type="checkbox"
+          .checked=${checked}
+          @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)}
+        />
+        <span class="qs-toggle__track"></span>
+      </label>
+    </div>
+  `;
+}
+
+function renderLanguageChatCard(props: QuickSettingsProps) {
+  return html`
+    <div class="qs-card">
+      ${renderCardHeader(icons.messageSquare, "Language & Chat")}
+      <div class="qs-card__body">
+        <div class="qs-row">
+          <label class="qs-field">
+            <span class="qs-row__label">Language</span>
+            <select
+              class="qs-field__input"
+              .value=${props.locale}
+              @change=${(e: Event) =>
+                props.onLocaleChange?.((e.target as HTMLSelectElement).value as Locale)}
+            >
+              ${SUPPORTED_LOCALES.map(
+                (locale) => html`
+                  <option value=${locale} ?selected=${locale === props.locale}>
+                    ${t(`languages.${locale.replace("-", "")}`)}
+                  </option>
+                `,
+              )}
+            </select>
+          </label>
+        </div>
+        ${renderToggleRow("Show thinking", props.chatShowThinking, (next) =>
+          props.onChatDisplayChange?.({ chatShowThinking: next }),
+        )}
+        ${renderToggleRow("Show tool calls", props.chatShowToolCalls, (next) =>
+          props.onChatDisplayChange?.({ chatShowToolCalls: next }),
+        )}
+        <div class="muted qs-card__note">This browser only</div>
+      </div>
+    </div>
+  `;
+}
+
 function renderPresetsCard(props: QuickSettingsProps) {
-  const activePreset = props.configObject ? detectActivePreset(props.configObject) : "personal";
+  const activePreset = props.configObject ? detectActivePreset(props.configObject) : null;
+  const badge = activePreset
+    ? undefined
+    : html`<span class="qs-badge">${props.configObject ? "Custom" : "Unknown"}</span>`;
 
   return html`
     <div class="qs-card qs-card--span-all">
-      ${renderCardHeader(icons.zap, "Profile")}
+      ${renderCardHeader(icons.zap, "Profile", badge)}
       <div class="qs-card__body qs-presets-grid">
         ${CONFIG_PRESETS.map(
           (preset) => html`
@@ -607,7 +716,8 @@ export function renderQuickSettings(props: QuickSettingsProps) {
         ${renderStack(renderModelCard(props), renderSecurityCard(props))}
         ${renderStack(renderChannelsCard(props), renderAutomationsCard(props))}
         ${renderStack(renderApiKeysCard(props), renderAppearanceCard(props))}
-        ${renderStack(renderPersonalCard(props))} ${renderPresetsCard(props)}
+        ${renderStack(renderPersonalCard(props), renderLanguageChatCard(props))}
+        ${renderPresetsCard(props)}
       </div>
 
       ${renderConnectionFooter(props)}

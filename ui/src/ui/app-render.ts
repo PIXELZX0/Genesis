@@ -1,7 +1,6 @@
 import { html, nothing } from "lit";
 import { until } from "lit/directives/until.js";
-import { applyMergePatch } from "../../../src/config/merge-patch.ts";
-import { t } from "../i18n/index.ts";
+import { i18n, t } from "../i18n/index.ts";
 import { getSafeLocalStorage } from "../local-storage.ts";
 import { refreshChat } from "./app-chat.ts";
 import { DEFAULT_CRON_FORM } from "./app-defaults.ts";
@@ -52,7 +51,6 @@ import {
   updateConfigFormValue,
   removeConfigFormValue,
 } from "./controllers/config.ts";
-import { cloneConfigObject, serializeConfigForm } from "./controllers/config/form-utils.ts";
 import { loadContacts } from "./controllers/contacts.ts";
 import {
   loadCronJobsPage,
@@ -171,11 +169,14 @@ import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import {
+  isSettingsTab,
   normalizeBasePath,
   pathForTab,
+  SETTINGS_TABS,
   subtitleForTab,
   TAB_GROUPS,
   titleForTab,
+  type Tab,
 } from "./navigation.ts";
 import { emptyAgentsCreateDialog, setAgentsCreateDialogField } from "./views/entity-dialogs.ts";
 
@@ -685,7 +686,14 @@ function dismissUpdateBanner(updateAvailable: unknown) {
   }
 }
 
-const COMMUNICATION_SECTION_KEYS = ["channels", "messages", "broadcast", "talk", "audio"] as const;
+const COMMUNICATION_SECTION_KEYS = [
+  "channels",
+  "messages",
+  "broadcast",
+  "talk",
+  "audio",
+  "surfaces",
+] as const;
 const APPEARANCE_SECTION_KEYS = ["__appearance__", "ui", "wizard"] as const;
 const AUTOMATION_SECTION_KEYS = [
   "commands",
@@ -713,6 +721,7 @@ const AI_AGENTS_SECTION_KEYS = [
   "tools",
   "memory",
   "session",
+  "wallet",
 ] as const;
 type ConfigSectionSelection = {
   activeSection: string | null;
@@ -851,6 +860,29 @@ function extractQuickSettingsChannels(state: AppViewState): QuickSettingsChannel
 }
 
 function extractQuickSettingsApiKeys(state: AppViewState): QuickSettingsApiKey[] {
+  // Prefer the gateway auth-status snapshot: it covers auth profiles (OAuth,
+  // tokens, SecretRefs), not just env vars stored in config.
+  const authProviders = state.modelAuthStatusResult?.providers ?? [];
+  const fromAuth: QuickSettingsApiKey[] = authProviders.map((provider) => ({
+    provider: provider.provider,
+    label: provider.displayName,
+    isSet: provider.status !== "missing",
+    profiles: provider.profiles.map((profile) => ({
+      profileId: profile.profileId,
+      displayName: profile.displayName,
+      priority: profile.priority,
+      expiryLabel: profile.expiry?.label,
+      isSet: profile.status !== "missing",
+    })),
+  }));
+  const covered = new Set(fromAuth.map((entry) => entry.provider));
+  return [
+    ...fromAuth,
+    ...extractQuickSettingsEnvApiKeys(state).filter((entry) => !covered.has(entry.provider)),
+  ];
+}
+
+function extractQuickSettingsEnvApiKeys(state: AppViewState): QuickSettingsApiKey[] {
   const config = state.configForm ?? state.configSnapshot?.config;
   const env = config && typeof config === "object" ? config.env : null;
   const envObj = env && typeof env === "object" ? (env as Record<string, unknown>) : {};
@@ -913,20 +945,14 @@ function extractQuickSettingsSecurity(state: AppViewState): {
       gatewayAuth = "none";
     }
   }
-  const agents = cfg.agents;
-  let execPolicy = "allowlist";
-  if (agents && typeof agents === "object") {
-    const defaults = (agents as Record<string, unknown>).defaults;
-    if (defaults && typeof defaults === "object") {
-      const exec = (defaults as Record<string, unknown>).exec;
-      if (exec && typeof exec === "object") {
-        const security = (exec as Record<string, unknown>).security;
-        if (typeof security === "string") {
-          execPolicy = security;
-        }
-      }
-    }
-  }
+  // Global exec policy lives at tools.exec.security. When unset, the runtime
+  // falls back to exec-approvals defaults, then full (gateway) / deny (sandbox).
+  const tools = cfg.tools;
+  const exec =
+    tools && typeof tools === "object" ? (tools as Record<string, unknown>).exec : undefined;
+  const security =
+    exec && typeof exec === "object" ? (exec as Record<string, unknown>).security : undefined;
+  const execPolicy = typeof security === "string" && security ? security : "default";
   let deviceAuth = true;
   if (gateway) {
     const controlUi =
@@ -940,16 +966,85 @@ function extractQuickSettingsSecurity(state: AppViewState): {
   return { gatewayAuth, execPolicy, deviceAuth };
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function resolveQuickSettingsConfigDefaults(config: Record<string, unknown>): {
+  model?: string;
+  thinkingDefault?: string;
+  fastModeDefault: boolean;
+  defaultAgentId?: string;
+} {
+  const agents = asRecord(config.agents);
+  const defaults = asRecord(agents?.defaults);
+  const modelValue = defaults?.model;
+  const model =
+    typeof modelValue === "string"
+      ? modelValue
+      : (asRecord(modelValue)?.primary as string | undefined);
+  const thinkingDefault =
+    typeof defaults?.thinkingDefault === "string" ? defaults.thinkingDefault : undefined;
+  // fastModeDefault is per-agent; the default agent is the one flagged default, else the first.
+  const list = Array.isArray(agents?.list) ? agents.list.map(asRecord) : [];
+  const defaultAgent = list.find((entry) => entry?.default === true) ?? list[0];
+  return {
+    model: typeof model === "string" && model ? model : undefined,
+    thinkingDefault,
+    fastModeDefault: defaultAgent?.fastModeDefault === true,
+    defaultAgentId: typeof defaultAgent?.id === "string" ? defaultAgent.id : undefined,
+  };
+}
+
+function renderSettingsNav(state: AppViewState) {
+  const labelFor = (tab: Tab) => (tab === "config" ? t("settingsNav.config") : titleForTab(tab));
+  return html`
+    <nav class="settings-subnav" aria-label=${t("settingsNav.label")}>
+      ${SETTINGS_TABS.map(
+        (tab) => html`
+          <a
+            class="settings-subnav__item ${state.tab === tab
+              ? "settings-subnav__item--active"
+              : ""}"
+            href=${pathForTab(tab, state.basePath)}
+            aria-current=${state.tab === tab ? "page" : "false"}
+            @click=${(event: MouseEvent) => {
+              if (
+                event.defaultPrevented ||
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              ) {
+                return;
+              }
+              event.preventDefault();
+              state.setTab(tab);
+            }}
+          >
+            ${labelFor(tab)}
+          </a>
+        `,
+      )}
+    </nav>
+  `;
+}
+
 function resolveQuickSettingsSessionRow(state: AppViewState) {
   return state.sessionsResult?.sessions?.find((row) => row.key === state.sessionKey);
 }
 
-async function applyQuickSettingsPreset(state: AppViewState, presetId: ConfigPresetId) {
+// Sends only the merge patch (the gateway merges it, object arrays by id), so
+// unsaved edits in the advanced form are never written as a side effect.
+async function patchQuickSettingsConfig(
+  state: AppViewState,
+  patch: Record<string, unknown>,
+  failureLabel: string,
+) {
   if (!state.client || !state.connected) {
-    return;
-  }
-  const preset = getPresetById(presetId);
-  if (!preset) {
     return;
   }
   state.configApplying = true;
@@ -962,14 +1057,19 @@ async function applyQuickSettingsPreset(state: AppViewState, presetId: ConfigPre
     if (!baseHash) {
       throw new Error("Config base hash unavailable. Reload config and retry.");
     }
-    const baseConfig = cloneConfigObject(state.configForm ?? state.configSnapshot?.config ?? {});
-    const merged = applyMergePatch(baseConfig, preset.patch) as Record<string, unknown>;
-    await state.client.request("config.patch", { raw: serializeConfigForm(merged), baseHash });
+    await state.client.request("config.patch", { raw: JSON.stringify(patch), baseHash });
     await loadConfig(state);
   } catch (err) {
-    state.lastError = `Failed to apply preset: ${String(err)}`;
+    state.lastError = `${failureLabel}: ${String(err)}`;
   } finally {
     state.configApplying = false;
+  }
+}
+
+async function applyQuickSettingsPreset(state: AppViewState, presetId: ConfigPresetId) {
+  const preset = getPresetById(presetId);
+  if (preset) {
+    await patchQuickSettingsConfig(state, preset.patch, "Failed to apply preset");
   }
 }
 
@@ -1044,8 +1144,8 @@ export function renderApp(state: AppViewState) {
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
   const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
-  const showThinking = !state.onboarding;
-  const showToolCalls = !state.onboarding;
+  const showThinking = !state.onboarding && state.settings.chatShowThinking;
+  const showToolCalls = !state.onboarding && state.settings.chatShowToolCalls;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
   const chatAvatarUrl = state.chatAvatarUrl ?? assistantAvatarUrl ?? null;
   const configValue =
@@ -1297,56 +1397,69 @@ export function renderApp(state: AppViewState) {
         // Quick Settings mode — opinionated card layout
         if (state.configSettingsMode === "quick") {
           const configObj = state.configForm ?? state.configSnapshot?.config ?? {};
-          const agentsDefaults = ((configObj.agents as Record<string, unknown> | undefined)
-            ?.defaults ?? {}) as Record<string, unknown>;
-          const activeSession = resolveQuickSettingsSessionRow(state);
+          const configDefaults = resolveQuickSettingsConfigDefaults(configObj);
+          const scope = state.quickSettingsScope;
+          const activeSession = scope === "session" ? resolveQuickSettingsSessionRow(state) : null;
           const currentModel =
             typeof activeSession?.model === "string"
               ? activeSession.model
-              : typeof agentsDefaults.model === "string"
-                ? agentsDefaults.model
-                : "default";
+              : (configDefaults.model ?? "default");
           const thinkingLevel =
             typeof activeSession?.thinkingLevel === "string"
               ? activeSession.thinkingLevel
-              : typeof agentsDefaults.thinkingLevel === "string"
-                ? agentsDefaults.thinkingLevel
-                : "off";
+              : (configDefaults.thinkingDefault ?? "off");
           const fastMode =
             typeof activeSession?.fastMode === "boolean"
               ? activeSession.fastMode
-              : agentsDefaults.fastMode === true;
+              : configDefaults.fastModeDefault;
+          const defaultAgentId = configDefaults.defaultAgentId;
           return renderQuickSettings({
+            scope,
+            onScopeChange: (next) => {
+              state.quickSettingsScope = next;
+              requestHostUpdate?.();
+            },
+            fastModeDefaultAvailable: Boolean(defaultAgentId),
             currentModel,
             thinkingLevel,
             fastMode,
             onModelChange: () => {
-              state.configSettingsMode = "advanced";
-              state.tab = "aiAgents" as import("./navigation.ts").Tab;
               state.aiAgentsActiveSection = "models";
-              requestHostUpdate?.();
+              state.setTab("aiAgents");
             },
             onThinkingChange: (level) => {
-              void patchSession(state, state.sessionKey, { thinkingLevel: level }).then(() =>
-                requestHostUpdate?.(),
-              );
+              const done =
+                scope === "session"
+                  ? patchSession(state, state.sessionKey, { thinkingLevel: level })
+                  : patchQuickSettingsConfig(
+                      state,
+                      { agents: { defaults: { thinkingDefault: level } } },
+                      "Failed to update default thinking",
+                    );
+              void done.then(() => requestHostUpdate?.());
             },
             onFastModeToggle: () => {
-              void patchSession(state, state.sessionKey, { fastMode: !fastMode }).then(() =>
-                requestHostUpdate?.(),
-              );
+              if (scope === "default" && !defaultAgentId) {
+                return;
+              }
+              const done =
+                scope === "session"
+                  ? patchSession(state, state.sessionKey, { fastMode: !fastMode })
+                  : patchQuickSettingsConfig(
+                      state,
+                      { agents: { list: [{ id: defaultAgentId, fastModeDefault: !fastMode }] } },
+                      "Failed to update default fast mode",
+                    );
+              void done.then(() => requestHostUpdate?.());
             },
             channels: extractQuickSettingsChannels(state),
             onChannelConfigure: () => {
-              state.tab = "communications" as import("./navigation.ts").Tab;
               state.communicationsActiveSection = "channels";
-              requestHostUpdate?.();
+              state.setTab("communications");
             },
             apiKeys: extractQuickSettingsApiKeys(state),
             onApiKeyChange: () => {
-              state.configSettingsMode = "advanced";
-              state.configActiveSection = "env";
-              requestHostUpdate?.();
+              state.setTab("models");
             },
             automation: {
               cronJobCount: state.cronJobs?.length ?? 0,
@@ -1354,17 +1467,14 @@ export function renderApp(state: AppViewState) {
               mcpServerCount: extractMcpServerCount(state),
             },
             onManageCron: () => {
-              state.tab = "cron" as import("./navigation.ts").Tab;
-              requestHostUpdate?.();
+              state.setTab("cron");
             },
             onBrowseSkills: () => {
-              state.tab = "skills" as import("./navigation.ts").Tab;
-              requestHostUpdate?.();
+              state.setTab("skills");
             },
             onConfigureMcp: () => {
-              state.tab = "infrastructure" as import("./navigation.ts").Tab;
               state.infrastructureActiveSection = "mcp";
-              requestHostUpdate?.();
+              state.setTab("infrastructure");
             },
             security: extractQuickSettingsSecurity(state),
             onSecurityConfigure: () => {
@@ -1372,16 +1482,22 @@ export function renderApp(state: AppViewState) {
               state.configActiveSection = "auth";
               requestHostUpdate?.();
             },
-            theme: state.theme,
             themeMode: state.themeMode,
             borderRadius: state.settings.borderRadius,
-            setTheme: (theme, context) => state.setTheme(theme, context),
             setThemeMode: (mode, context) => state.setThemeMode(mode, context),
             setBorderRadius: (value) => state.setBorderRadius(value),
             userName: state.userName ?? null,
             userAvatar: state.userAvatar ?? null,
             onUserNameChange: (name) => state.applyLocalUserIdentity?.({ name }),
             onUserAvatarChange: (avatar) => state.applyLocalUserIdentity?.({ avatar }),
+            locale: i18n.getLocale(),
+            onLocaleChange: (locale) => {
+              state.applySettings({ ...state.settings, locale });
+              void i18n.setLocale(locale);
+            },
+            chatShowThinking: state.settings.chatShowThinking,
+            chatShowToolCalls: state.settings.chatShowToolCalls,
+            onChatDisplayChange: (patch) => state.applySettings({ ...state.settings, ...patch }),
             configObject: configObj,
             onApplyPreset: (presetId) => {
               void applyQuickSettingsPreset(state, presetId).then(() => requestHostUpdate?.());
@@ -1706,7 +1822,7 @@ export function renderApp(state: AppViewState) {
               <div class="sidebar-utility-group">
                 ${renderTab(state, "logs", { collapsed: navCollapsed })}
                 <a
-                  class="nav-item ${state.tab === "config" ? "nav-item--active" : ""}"
+                  class="nav-item ${isSettingsTab(state.tab) ? "nav-item--active" : ""}"
                   href=${pathForTab("config", state.basePath)}
                   @click=${(event: MouseEvent) => {
                     if (
@@ -3189,6 +3305,7 @@ export function renderApp(state: AppViewState) {
               basePath: state.basePath ?? "",
             })
           : nothing}
+        ${isSettingsTab(state.tab) ? renderSettingsNav(state) : nothing}
         ${renderConfigTabForActiveTab()}
         ${state.tab === "debug"
           ? lazyRender(lazyDebug, (m) =>

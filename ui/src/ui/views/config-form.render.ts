@@ -323,6 +323,8 @@ export const SECTION_META: Record<string, { label: string; description: string }
     description: "Agent Communication Protocol runtime and streaming settings",
   },
   mcp: { label: "MCP", description: "Model Context Protocol server definitions" },
+  wallet: { label: "Wallet", description: "Wallet networks, tokens, and signing" },
+  surfaces: { label: "Surfaces", description: "Per-surface silent reply policies" },
 };
 
 function getSectionIcon(key: string) {

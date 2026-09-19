@@ -189,6 +189,10 @@ export const en: TranslationMap = {
     logs: "Logs",
     dreams: "Dreaming",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Workspaces, tools, identities.",
     overview: "Status, entry points, health.",

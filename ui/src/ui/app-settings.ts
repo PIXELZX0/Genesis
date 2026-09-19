@@ -350,6 +350,10 @@ export async function refreshActiveTab(host: SettingsHost) {
   const app = host as unknown as SettingsAppHost;
   switch (host.tab) {
     case "config":
+      // Quick Settings' API key card reads provider auth status.
+      await Promise.all([loadConfigSchema(app), loadModelAuthStatusState(app)]);
+      await loadConfig(app);
+      return;
     case "communications":
     case "appearance":
     case "automation":

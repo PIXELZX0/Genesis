@@ -388,6 +388,7 @@ const SECTION_CATEGORIES: SectionCategory[] = [
       { key: "tools", label: "Tools" },
       { key: "memory", label: "Memory" },
       { key: "session", label: "Session" },
+      { key: "wallet", label: "Wallet" },
     ],
   },
   {
@@ -399,6 +400,7 @@ const SECTION_CATEGORIES: SectionCategory[] = [
       { key: "broadcast", label: "Broadcast" },
       { key: "talk", label: "Talk" },
       { key: "audio", label: "Audio" },
+      { key: "surfaces", label: "Surfaces" },
     ],
   },
   {

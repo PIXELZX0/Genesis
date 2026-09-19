@@ -80,27 +80,36 @@ export function getPresetById(id: ConfigPresetId): ConfigPreset | undefined {
   return CONFIG_PRESETS.find((p) => p.id === id);
 }
 
+// Runtime fallbacks when agents.defaults leaves these unset
+// (src/agents/pi-embedded-helpers/bootstrap.ts, src/agents/bootstrap-files.ts).
+const RUNTIME_PRESET_DEFAULTS = {
+  bootstrapMaxChars: 12_000,
+  bootstrapTotalMaxChars: 60_000,
+  contextInjection: "always",
+} as const;
+
 /**
- * Detect which preset (if any) matches the current config values.
+ * Detect which preset (if any) matches the effective config values.
+ * Returns null for built-in defaults or hand-tuned values.
  */
 export function detectActivePreset(config: Record<string, unknown>): ConfigPresetId | null {
   const agents = config.agents as Record<string, unknown> | undefined;
-  const defaults = agents?.defaults as Record<string, unknown> | undefined;
-  if (!defaults) {
-    return "personal"; // treat unset as default
-  }
-  const maxChars = defaults.bootstrapMaxChars;
-  const totalMax = defaults.bootstrapTotalMaxChars;
+  const defaults = (agents?.defaults ?? {}) as Record<string, unknown>;
+  const effective = {
+    bootstrapMaxChars: defaults.bootstrapMaxChars ?? RUNTIME_PRESET_DEFAULTS.bootstrapMaxChars,
+    bootstrapTotalMaxChars:
+      defaults.bootstrapTotalMaxChars ?? RUNTIME_PRESET_DEFAULTS.bootstrapTotalMaxChars,
+    contextInjection: defaults.contextInjection ?? RUNTIME_PRESET_DEFAULTS.contextInjection,
+  };
   for (const preset of CONFIG_PRESETS) {
     const presetDefaults = (preset.patch.agents as Record<string, unknown>)?.defaults as
       | Record<string, unknown>
       | undefined;
-    if (!presetDefaults) {
-      continue;
-    }
     if (
-      maxChars === presetDefaults.bootstrapMaxChars &&
-      totalMax === presetDefaults.bootstrapTotalMaxChars
+      presetDefaults &&
+      effective.bootstrapMaxChars === presetDefaults.bootstrapMaxChars &&
+      effective.bootstrapTotalMaxChars === presetDefaults.bootstrapTotalMaxChars &&
+      effective.contextInjection === presetDefaults.contextInjection
     ) {
       return preset.id;
     }

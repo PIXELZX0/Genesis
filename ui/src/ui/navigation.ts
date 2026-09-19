@@ -25,6 +25,21 @@ export const TAB_GROUPS = [
   { label: "memory", tabs: ["memory", "dreams", "contact"] },
 ] as const;
 
+// Settings sub-pages, shown as a secondary nav on every settings page. The
+// sidebar exposes only the single Settings footer item.
+export const SETTINGS_TABS = [
+  "config",
+  "aiAgents",
+  "communications",
+  "automation",
+  "infrastructure",
+  "appearance",
+] as const satisfies readonly Tab[];
+
+export function isSettingsTab(tab: Tab): boolean {
+  return (SETTINGS_TABS as readonly Tab[]).includes(tab);
+}
+
 export type Tab =
   | "agents"
   | "overview"

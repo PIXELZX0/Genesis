@@ -208,6 +208,11 @@
   color: var(--muted);
 }
 
+.qs-card__note {
+  padding: 4px 16px 12px;
+  font-size: 0.75rem;
+}
+
 .qs-personal-preview {
   display: flex;
   align-items: center;
