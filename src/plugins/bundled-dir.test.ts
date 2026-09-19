@@ -336,4 +336,26 @@ describe("resolveBundledPluginsDir", () => {
   ] as const)("$name", ({ createScenario }) => {
     expectInstalledBundledDirScenarioCase(createScenario);
   });
+
+  it("re-resolves when the cached bundled plugin directory disappears", () => {
+    const repoRoot = createGenesisRoot({
+      prefix: "genesis-bundled-dir-cache-",
+      hasExtensions: true,
+      hasSrc: true,
+      hasDistExtensions: true,
+      hasGitCheckout: true,
+    });
+    seedBundledPluginTree(repoRoot, path.join("dist", "extensions"));
+    expectResolvedBundledDirFromRoot({
+      repoRoot,
+      expectedRelativeDir: path.join("dist", "extensions"),
+    });
+
+    fs.rmSync(path.join(repoRoot, "dist"), { recursive: true, force: true });
+
+    expectResolvedBundledDirFromRoot({
+      repoRoot,
+      expectedRelativeDir: "extensions",
+    });
+  });
 });

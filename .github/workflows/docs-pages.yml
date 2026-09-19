@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "scripts/build-github-pages-docs.mjs"
+      - "scripts/github-pages-docs/**"
       - "scripts/protocol-gen.ts"
       - "src/gateway/protocol/**"
   workflow_dispatch:

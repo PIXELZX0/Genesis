@@ -33,6 +33,34 @@ export const PLUGIN_MANIFEST_FILENAME = "genesis.plugin.json";
 export const PLUGIN_MANIFEST_FILENAMES = [PLUGIN_MANIFEST_FILENAME] as const;
 export const MAX_PLUGIN_MANIFEST_BYTES = 256 * 1024;
 
+// Discovery re-reads every manifest on each scoped provider load; JSON5 parsing
+// dominates that sync work. Reuse the parse while the file identity is unchanged.
+const parsedManifestCache = new Map<
+  string,
+  { ino: number; size: number; mtimeMs: number; raw: unknown }
+>();
+
+function parseManifestFd(manifestPath: string, fd: number): unknown {
+  const stat = fs.fstatSync(fd);
+  const cached = parsedManifestCache.get(manifestPath);
+  if (
+    cached &&
+    cached.ino === stat.ino &&
+    cached.size === stat.size &&
+    cached.mtimeMs === stat.mtimeMs
+  ) {
+    return structuredClone(cached.raw);
+  }
+  const raw: unknown = JSON5.parse(fs.readFileSync(fd, "utf-8"));
+  parsedManifestCache.set(manifestPath, {
+    ino: stat.ino,
+    size: stat.size,
+    mtimeMs: stat.mtimeMs,
+    raw: structuredClone(raw),
+  });
+  return raw;
+}
+
 export type PluginManifestChannelConfig = {
   schema: JsonSchemaObject;
   uiHints?: Record<string, PluginConfigUiHint>;
@@ -880,7 +908,7 @@ export function loadPluginManifest(
   }
   let raw: unknown;
   try {
-    raw = JSON5.parse(fs.readFileSync(opened.fd, "utf-8"));
+    raw = parseManifestFd(manifestPath, opened.fd);
   } catch (err) {
     return {
       ok: false,

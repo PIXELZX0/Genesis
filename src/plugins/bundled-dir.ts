@@ -7,6 +7,7 @@ import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { resolveUserPath } from "../utils.js";
 
 const DISABLED_BUNDLED_PLUGINS_DIR = path.join(os.tmpdir(), "genesis-empty-bundled-plugins");
+const packageRootBundledDirCache = new Map<string, string>();
 
 function bundledPluginsDisabled(env: NodeJS.ProcessEnv): boolean {
   const raw = normalizeOptionalLowercaseString(env.GENESIS_DISABLE_BUNDLED_PLUGINS);
@@ -137,6 +138,14 @@ export function resolveBundledPluginsDir(env: NodeJS.ProcessEnv = process.env): 
   }
 
   const preferSourceCheckout = Boolean(env.VITEST) || runningSourceTypeScriptProcess();
+  // Hot path: plugin/provider cache keys resolve this per hook call. The
+  // package-root walk below costs dozens of sync fs ops, so reuse the answer
+  // while the directory still exists.
+  const cacheKey = `${preferSourceCheckout}\0${process.argv[1] ?? ""}\0${process.cwd()}`;
+  const cachedDir = packageRootBundledDirCache.get(cacheKey);
+  if (cachedDir && fs.existsSync(cachedDir)) {
+    return cachedDir;
+  }
 
   try {
     const packageRoots = [
@@ -149,6 +158,7 @@ export function resolveBundledPluginsDir(env: NodeJS.ProcessEnv = process.env): 
     for (const packageRoot of packageRoots) {
       const bundledDir = resolveBundledDirFromPackageRoot(packageRoot, preferSourceCheckout);
       if (bundledDir) {
+        packageRootBundledDirCache.set(cacheKey, bundledDir);
         return bundledDir;
       }
     }

@@ -820,6 +820,19 @@ describe("resolvePluginProviders", () => {
     );
   });
 
+  it("skips runtime registry loading for provider refs without an owning plugin", () => {
+    setOwningProviderManifestPlugins();
+
+    const providers = resolvePluginProviders({
+      config: {},
+      providerRefs: ["unowned-vendor"],
+    });
+
+    expect(providers).toEqual([]);
+    expect(resolveRuntimePluginRegistryMock).not.toHaveBeenCalled();
+    expect(loadGenesisPluginsMock).not.toHaveBeenCalled();
+  });
+
   it("uses activation.onProviders to keep explicit provider owners on the runtime path", () => {
     setManifestPlugins([
       createManifestProviderPlugin({

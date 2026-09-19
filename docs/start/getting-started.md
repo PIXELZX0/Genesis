@@ -31,11 +31,7 @@ Need to install Node? See [Node setup](/install/node).
         ```bash
         curl -fsSL https://genesis.pixelzx.com/install.sh | bash
         ```
-        <img
-  src="/assets/install-script.svg"
-  alt="Install Script Process"
-  className="rounded-lg"
-/>
+        <img src="/assets/install-script.svg" alt="Install Script Process" className="rounded-lg" />
       </Tab>
       <Tab title="Windows (PowerShell)">
         ```powershell

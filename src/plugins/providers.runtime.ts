@@ -176,6 +176,11 @@ function resolveRuntimeProviderPluginLoadState(
   params: Parameters<typeof resolvePluginProviders>[0],
   base: ReturnType<typeof resolvePluginProviderLoadBase>,
 ) {
+  // Scoped request with no owning plugin (e.g. unknown provider ref): nothing
+  // can load, so skip activation + registry work. Callers hit this per model.
+  if (base.requestedPluginIds?.length === 0) {
+    return undefined;
+  }
   const explicitOwnerPluginIds = resolveActivatableProviderOwnerPluginIds({
     pluginIds: base.explicitOwnerPluginIds,
     config: base.rawConfig,
@@ -283,6 +288,9 @@ export function resolvePluginProviders(params: {
     );
   }
   const loadState = resolveRuntimeProviderPluginLoadState(params, base);
+  if (!loadState) {
+    return [];
+  }
   const registry = resolveRuntimePluginRegistry(loadState.loadOptions);
   if (!registry) {
     return [];

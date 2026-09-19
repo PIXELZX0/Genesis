@@ -6,12 +6,14 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
-- Vercel AI Gateway: opt-in Jev tool router. With `plugins.entries.vercel-ai-gateway.config.jevRouter.enabled`, TypeSafe Jev (`typesafe-ai/jev`) picks the next tool before each model call. Tools whose arguments are all enum/boolean run without an LLM call, and the main model is only asked to write free-form arguments or the text reply. An optional `jev_evaluate` tool exposes Jev's typed boolean/choice/score answers to agents.
+- TypeSafe Jev: new bundled `typesafe` plugin with an opt-in tool router. When `plugins.entries.typesafe.config.jevRouter.enabled` is on (toggle in the Control UI), Jev picks the next tool before each model call. Tools whose arguments are all enum/boolean, browser clicks on numbered snapshot elements, and fresh browser snapshots run without an LLM call, and the main model is only asked to write free-form arguments or the text reply. An optional `jev_evaluate` tool exposes Jev's typed boolean/choice/score answers. Jev runs through the official TypeSafe API, Vercel AI Gateway, or OpenRouter (`backend`, default `auto`).
 - Plugins: new `before_model_call` hook lets plugins force a tool, disable tools, or run a tool without the model for each model call in the agent loop. OpenAI Responses requests now forward `tool_choice`.
+- Config: config backups (`.bak` rotation ring, `.last-good`, `.clobbered.*`, `.rejected.*`) are now written to a `config_backup/` folder next to `genesis.json` instead of cluttering the config directory. Existing backups in the old location are left untouched.
 
 ### Fixes
 
 - Vercel AI Gateway: model discovery no longer lists image, video, embedding, and evaluation models as chat models.
+- Gateway: the Control UI no longer freezes for 10+ seconds while the gateway starts or handles its first message. Provider hook lookups for providers with no owning plugin skip plugin loading, and plugin manifests and the bundled plugin directory are cached instead of being re-read for every model.
 
 ## 2026.9.12
 

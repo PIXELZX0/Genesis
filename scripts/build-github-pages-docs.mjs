@@ -29,6 +29,41 @@ const md = new MarkdownIt({
   linkify: true,
 });
 
+function slugify(text) {
+  return (
+    text
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s_-]/gu, "")
+      .trim()
+      .replace(/\s+/gu, "-") || "section"
+  );
+}
+
+// GitHub-style heading ids so cross-page `#anchor` links resolve; h2/h3 feed the page TOC.
+md.core.ruler.push("heading_ids", (state) => {
+  const used = (state.env.headingIds ??= new Map());
+  const headings = (state.env.headings ??= []);
+  state.tokens.forEach((token, index) => {
+    if (token.type !== "heading_open") {
+      return;
+    }
+    const inline = state.tokens[index + 1];
+    const text = (inline.children || [])
+      .filter((child) => child.type === "text" || child.type === "code_inline")
+      .map((child) => child.content)
+      .join("")
+      .trim();
+    const base = slugify(text);
+    const count = used.get(base) || 0;
+    used.set(base, count + 1);
+    const id = count ? `${base}-${count}` : base;
+    token.attrSet("id", id);
+    if (token.tag === "h2" || token.tag === "h3") {
+      headings.push({ level: token.tag, id, text });
+    }
+  });
+});
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
@@ -280,6 +315,112 @@ function markdownListItem(title, href, body) {
   return `- [${title}](${href})${suffix}\n`;
 }
 
+const CALLOUT_CLASSES = {
+  Note: "note",
+  Tip: "tip",
+  Warning: "warning",
+  Info: "note",
+  Check: "tip",
+};
+
+// MDX container bodies are indented; strip that indent so markdown-it does not see code blocks.
+// Fenced blocks are sliced by their own fence column, so fences the formatter left at a different
+// column than the surrounding text keep their contents intact.
+function dedent(value) {
+  const lines = value.replace(/^[ \t]*\n+|\s+$/gu, "").split("\n");
+  const indentOf = (line) => line.match(/^\s*/u)[0].length;
+  let fence = null;
+  const fenceColumns = lines.map((line) => {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/u)?.[1];
+    if (fence) {
+      const column = fence.column;
+      if (marker && marker[0] === fence.marker[0] && marker.length >= fence.marker.length) {
+        fence = null;
+      }
+      return column;
+    }
+    if (marker) {
+      fence = { column: indentOf(line), marker };
+      return fence.column;
+    }
+    return null;
+  });
+  // Text on the tag's own line (`<Tip>Heads up`) has no indent; measure the rest.
+  const skipFirst = !/^[ \t]*\n/u.test(value);
+  const textIndents = lines
+    .map((line, index) =>
+      line.trim() && fenceColumns[index] === null && !(skipFirst && index === 0)
+        ? indentOf(line)
+        : null,
+    )
+    .filter((indent) => indent !== null);
+  const fenceIndents = fenceColumns.filter((column) => column !== null);
+  const indent = Math.min(...(textIndents.length ? textIndents : fenceIndents), Infinity);
+  // A fence 4+ columns deeper than the text is still a fence in MDX, not indented code.
+  const fenceSlice = (column) => (column - indent >= 4 ? column : Math.min(indent, column));
+  return lines
+    .map((line, index) => {
+      const column = fenceColumns[index];
+      return line.slice(Math.min(indentOf(line), column === null ? indent : fenceSlice(column)));
+    })
+    .join("\n");
+}
+
+// Replaces `<Tag ...>body</Tag>` with dedented markdown, re-indented to the tag's own column so
+// nested blocks (Tab > Steps > Step) keep relative structure instead of becoming indented code.
+function replaceBlock(text, tag, render) {
+  // Body may not open the same tag, so nested blocks (Tab > Tab) resolve innermost-first.
+  const pattern = new RegExp(
+    `^([ \\t]*)<${tag}(\\s[^>]*)?>((?:(?!<${tag}[\\s>])[\\s\\S])*?)<\\/${tag}>`,
+    "gmu",
+  );
+  return text.replace(pattern, (_match, indent, attributes = "", body) =>
+    render(attributes, dedent(body))
+      .split("\n")
+      .map((line) => (line ? indent + line : line))
+      .join("\n"),
+  );
+}
+
+function fieldHeading(attributes, primary, fallback) {
+  const field =
+    getTagAttribute(attributes, primary) || getTagAttribute(attributes, fallback) || "Field";
+  const type = getTagAttribute(attributes, "type");
+  return `#### ${field}${type ? ` (${type})` : ""}`;
+}
+
+const WRAPPER_TAGS = [
+  "Steps",
+  "Tabs",
+  "AccordionGroup",
+  "Columns",
+  "CardGroup",
+  "CodeGroup",
+  "Frame",
+];
+
+// Each container becomes flush markdown at its own tag column. Wrappers are unwrapped the same way
+// (not just deleted) so their children lose the extra nesting indent instead of turning into code.
+const BLOCK_RENDERERS = [
+  ...WRAPPER_TAGS.map((tag) => [tag, (_attributes, body) => `\n${body}\n`]),
+  ...["Step", "Accordion", "Tab"].map((tag) => [
+    tag,
+    (attributes, body) => `\n### ${getTagAttribute(attributes, "title") || tag}\n\n${body}\n`,
+  ]),
+  [
+    "ParamField",
+    (attributes, body) => `\n${fieldHeading(attributes, "path", "name")}\n\n${body}\n`,
+  ],
+  [
+    "ResponseField",
+    (attributes, body) => `\n${fieldHeading(attributes, "name", "path")}\n\n${body}\n`,
+  ],
+  ...Object.entries(CALLOUT_CLASSES).map(([tag, className]) => [
+    tag,
+    (_attributes, body) => `\n<div class="callout ${className}">\n\n${body}\n\n</div>\n`,
+  ]),
+];
+
 function simplifyMintlifyMdx(source) {
   let text = source;
 
@@ -288,52 +429,21 @@ function simplifyMintlifyMdx(source) {
     const href = getTagAttribute(attributes, "href") || "#";
     return markdownListItem(title, href, body);
   });
-  text = text.replace(/<\/?Columns[^>]*>/gu, "\n");
-  text = text.replace(/<\/?CardGroup[^>]*>/gu, "\n");
-  text = text.replace(/<\/?Steps[^>]*>/gu, "\n");
-  text = text.replace(/<Step\s+([^>]*)>/gu, (_match, attributes) => {
-    const title = getTagAttribute(attributes, "title") || "Step";
-    return `\n### ${title}\n`;
-  });
-  text = text.replace(/<\/Step>/gu, "\n");
-  text = text.replace(/<\/?AccordionGroup[^>]*>/gu, "\n");
-  text = text.replace(/<Accordion\s+([^>]*)>/gu, (_match, attributes) => {
-    const title = getTagAttribute(attributes, "title") || "Details";
-    return `\n### ${title}\n`;
-  });
-  text = text.replace(/<\/Accordion>/gu, "\n");
-  text = text.replace(/<\/?Tabs[^>]*>/gu, "\n");
-  text = text.replace(/<Tab\s+([^>]*)>/gu, (_match, attributes) => {
-    const title = getTagAttribute(attributes, "title") || "Tab";
-    return `\n### ${title}\n`;
-  });
-  text = text.replace(/<\/Tab>/gu, "\n");
-  text = text.replace(/<ParamField\s+([^>]*)>/gu, (_match, attributes) => {
-    const field =
-      getTagAttribute(attributes, "path") || getTagAttribute(attributes, "name") || "Field";
-    const type = getTagAttribute(attributes, "type");
-    return `\n#### ${field}${type ? ` (${type})` : ""}\n`;
-  });
-  text = text.replace(/<\/ParamField>/gu, "\n");
-  text = text.replace(/<ResponseField\s+([^>]*)>/gu, (_match, attributes) => {
-    const field =
-      getTagAttribute(attributes, "name") || getTagAttribute(attributes, "path") || "Field";
-    const type = getTagAttribute(attributes, "type");
-    return `\n#### ${field}${type ? ` (${type})` : ""}\n`;
-  });
-  text = text.replace(/<\/ResponseField>/gu, "\n");
-  text = text.replace(/<Note>/gu, '<div class="callout note">');
-  text = text.replace(/<\/Note>/gu, "</div>");
-  text = text.replace(/<Tip>/gu, '<div class="callout tip">');
-  text = text.replace(/<\/Tip>/gu, "</div>");
-  text = text.replace(/<Warning>/gu, '<div class="callout warning">');
-  text = text.replace(/<\/Warning>/gu, "</div>");
-  text = text.replace(/<Info>/gu, '<div class="callout note">');
-  text = text.replace(/<\/Info>/gu, "</div>");
-  text = text.replace(/<Check>/gu, '<div class="callout tip">');
-  text = text.replace(/<\/Check>/gu, "</div>");
-  text = text.replace(/<\/?Frame[^>]*>/gu, "\n");
-  text = text.replace(/<\/?CodeGroup[^>]*>/gu, "\n");
+  let previous;
+  do {
+    previous = text;
+    for (const [tag, render] of BLOCK_RENDERERS) {
+      text = replaceBlock(text, tag, render);
+    }
+  } while (text !== previous);
+  // Leftovers that were not on their own line.
+  text = text.replace(
+    new RegExp(
+      `<\\/?(?:${WRAPPER_TAGS.join("|")}|Step|Accordion|Tab|ParamField|ResponseField)\\b[^>]*>`,
+      "gu",
+    ),
+    "\n",
+  );
   text = text.replace(/<Redirect\s+([^>]*)\/?>/gu, (_match, attributes) => {
     const target = getTagAttribute(attributes, "to") || getTagAttribute(attributes, "href") || "/";
     return `This page has moved to [${target}](${target}).`;
@@ -378,9 +488,12 @@ function rewriteDocUrl(url, route, routeAliases) {
   return `${relativeRoute(route, targetRoute)}${hashPart ? `#${hashPart}` : ""}`;
 }
 
-function renderMarkdown(page, routeAliases) {
+function renderMarkdown(page, routeAliases, env = {}) {
   const simplified = simplifyMintlifyMdx(page.body);
-  let html = md.render(simplified);
+  let html = md.render(simplified, env);
+  if (!/<h1[\s>]/u.test(html)) {
+    html = `<h1>${escapeHtml(page.title)}</h1>\n${html}`;
+  }
   html = html.replace(/href="([^"]+)"/gu, (_match, href) => {
     return `href="${escapeAttribute(rewriteDocUrl(href, page.route, routeAliases))}"`;
   });
@@ -393,7 +506,10 @@ function renderMarkdown(page, routeAliases) {
 function renderSidebar(tabs, pagesByRoute, currentRoute) {
   const parts = [];
   for (const tab of tabs) {
-    parts.push(`<section class="nav-tab"><h2>${escapeHtml(tab.tab || "Docs")}</h2>`);
+    const isCurrentTab = collectPagesFromNode(tab.groups || []).includes(currentRoute);
+    parts.push(
+      `<details class="nav-tab"${isCurrentTab ? " open" : ""}><summary>${escapeHtml(tab.tab || "Docs")}</summary>`,
+    );
     for (const group of tab.groups || []) {
       const routes = collectPagesFromNode(group.pages || []);
       if (routes.length === 0) {
@@ -410,9 +526,46 @@ function renderSidebar(tabs, pagesByRoute, currentRoute) {
       }
       parts.push("</ul></div>");
     }
-    parts.push("</section>");
+    parts.push("</details>");
   }
   return parts.join("\n");
+}
+
+function renderToc(headings) {
+  if (headings.length < 2) {
+    return "";
+  }
+  const items = headings
+    .map(
+      (heading) =>
+        `<li class="toc-${heading.level}"><a href="#${escapeAttribute(heading.id)}">${escapeHtml(heading.text)}</a></li>`,
+    )
+    .join("\n");
+  return `<nav class="toc" aria-label="On this page"><p>On this page</p><ul>${items}</ul></nav>`;
+}
+
+function renderDocPage(page, navEntries, pagesByRoute, routeAliases) {
+  const env = {};
+  const body = renderMarkdown(page, routeAliases, env);
+  const index = navEntries.findIndex((entry) => entry.route === page.route);
+  const entry = navEntries[index];
+  const crumbs = entry
+    ? `<p class="crumbs">${escapeHtml(entry.tab)}${entry.group ? ` <span>/</span> ${escapeHtml(entry.group)}` : ""}</p>`
+    : "";
+  const pager = [
+    [navEntries[index - 1], "prev", "Previous"],
+    [navEntries[index + 1], "next", "Next"],
+  ]
+    .filter(([target]) => index >= 0 && target)
+    .map(([target, className, label]) => {
+      const title = pagesByRoute.get(target.route)?.title || humanizeRoute(target.route);
+      return `<a class="pager-${className}" href="${escapeAttribute(relativeRoute(page.route, target.route))}"><span>${label}</span>${escapeHtml(title)}</a>`;
+    })
+    .join("");
+  return `<div class="doc">
+  <article class="prose">${crumbs}${body}${pager ? `<nav class="pager" aria-label="Pagination">${pager}</nav>` : ""}</article>
+  ${renderToc(env.headings || [])}
+</div>`;
 }
 
 function renderCards(route, pages, label) {
@@ -461,19 +614,20 @@ function renderHome(page, tabs, pagesByRoute, redirects) {
 <section class="hero">
   <div>
     <p class="eyebrow">Genesis documentation</p>
-    <h1>Self-hosted gateway docs for AI agents.</h1>
-    <p class="lede">Install Genesis, connect chat channels, run the Gateway, and operate the agent surface from one GitHub Pages site.</p>
+    <h1>Run your AI agent <em>everywhere</em> you chat.</h1>
+    <p class="lede">Install Genesis, connect chat channels, run the Gateway, and extend your agent with plugins — all on hardware you own.</p>
     <div class="hero-actions">
-      <a class="button primary" href="${escapeAttribute(relativeRoute("index", "start/getting-started"))}">Get started</a>
+      <a class="button primary" href="${escapeAttribute(relativeRoute("index", "start/getting-started"))}">Get started →</a>
       <a class="button" href="${escapeAttribute(relativeRoute("index", "start/hubs"))}">Browse all docs</a>
       <a class="button" href="${REPO_URL}">GitHub</a>
     </div>
   </div>
   <div class="hero-panel">
-    <img src="assets/genesis-logo-text.svg" alt="Genesis" />
-    <code>npm install -g @pixelzx/genesis@latest</code>
-    <code>genesis onboard --install-daemon</code>
-    <code>genesis dashboard</code>
+    <div class="hero-panel-head"><span></span><span></span><span></span><em>quick start</em></div>
+<pre><code><span class="c"># Node 24 recommended (22.14+ works)</span>
+<span class="p">$</span> npm install -g @pixelzx/genesis@latest
+<span class="p">$</span> genesis onboard --install-daemon
+<span class="p">$</span> genesis dashboard</code></pre>
   </div>
 </section>
 <section class="section">
@@ -514,38 +668,53 @@ function renderLayout({ page, currentRoute, tabs, pagesByRoute, content }) {
       ? CANONICAL_DOCS_URL
       : `${CANONICAL_DOCS_URL}${routeToPathname(currentRoute)}`;
 
+  const assetPrefix = rootRelativePrefix(currentRoute);
+  const logoHref = escapeAttribute(rewriteAssetUrl("/assets/pixel-lobster.svg", currentRoute));
+
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeAttribute(description)}" />
-    <link rel="icon" href="${escapeAttribute(rewriteAssetUrl("/assets/pixel-lobster.svg", currentRoute))}" />
+    <link rel="icon" href="${logoHref}" />
     <link rel="canonical" href="${escapeAttribute(canonicalHref)}" />
-    <link rel="stylesheet" href="${escapeAttribute(relativeRoute(currentRoute, "index").replace(/index\.html$/u, "styles.css"))}" />
+    <script>try{const t=localStorage.getItem("genesis-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&amp;f[]=sentient@400i&amp;display=swap" />
+    <link rel="stylesheet" href="${escapeAttribute(assetPrefix)}styles.css" />
+    <script defer src="${escapeAttribute(assetPrefix)}site.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
     <header class="site-header">
+      <button class="icon-btn menu-btn" type="button" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
       <a class="brand" href="${homeHref}" aria-label="Genesis Docs home">
-        <img src="${escapeAttribute(rewriteAssetUrl("/assets/pixel-lobster.svg", currentRoute))}" alt="" />
-        <span>Genesis Docs</span>
+        <img src="${logoHref}" alt="" />
+        <span>Genesis <em>Docs</em></span>
       </a>
       <nav class="top-nav" aria-label="External links">
-        <a href="${CANONICAL_DOCS_URL}">Mintlify docs</a>
+        <a href="${escapeAttribute(assetPrefix)}../">Home</a>
+        <a href="${REPO_URL}/releases">Releases</a>
         <a href="${REPO_URL}">GitHub</a>
       </nav>
+      <button class="icon-btn theme-btn" type="button" aria-label="Toggle color theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
     </header>
     <div class="shell">
-      <aside class="sidebar" aria-label="Docs navigation">
+      <aside class="sidebar" id="sidebar" aria-label="Docs navigation">
         ${sidebar}
       </aside>
       <main id="content" class="content">
         ${content}
         <footer class="page-footer">
-          <a href="${escapeAttribute(sourceHref)}">Edit source on GitHub</a>
-          <a href="${escapeAttribute(canonicalHref)}">Open canonical docs</a>
+          <a href="${escapeAttribute(sourceHref)}">Edit this page on GitHub</a>
+          <a href="${escapeAttribute(relativeRoute(currentRoute, "docs-map"))}">Docs map</a>
         </footer>
       </main>
     </div>
@@ -602,378 +771,9 @@ ${routes
 }
 
 function writeStyles() {
-  const css = `
-:root {
-  color-scheme: light;
-  --bg: #fbfaf7;
-  --surface: #ffffff;
-  --surface-strong: #f2eee7;
-  --text: #201e1b;
-  --muted: #625d55;
-  --border: #ddd5ca;
-  --accent: #ff5a36;
-  --accent-dark: #c83d22;
-  --code-bg: #f3eee6;
-  --shadow: 0 16px 45px rgba(49, 40, 32, 0.09);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.6;
-}
-
-a {
-  color: var(--accent-dark);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.skip-link {
-  left: 1rem;
-  position: absolute;
-  top: -4rem;
-}
-
-.skip-link:focus {
-  top: 1rem;
-}
-
-.site-header {
-  align-items: center;
-  background: rgba(251, 250, 247, 0.94);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  gap: 1rem;
-  height: 64px;
-  justify-content: space-between;
-  padding: 0 24px;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.brand,
-.top-nav {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-}
-
-.brand {
-  color: var(--text);
-  font-weight: 800;
-}
-
-.brand img {
-  height: 32px;
-  width: 32px;
-}
-
-.top-nav {
-  font-size: 0.92rem;
-}
-
-.shell {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  min-height: calc(100vh - 64px);
-}
-
-.sidebar {
-  border-right: 1px solid var(--border);
-  max-height: calc(100vh - 64px);
-  overflow: auto;
-  padding: 22px;
-  position: sticky;
-  top: 64px;
-}
-
-.nav-tab {
-  margin-bottom: 24px;
-}
-
-.nav-tab h2 {
-  color: var(--text);
-  font-size: 0.86rem;
-  letter-spacing: 0;
-  margin: 0 0 10px;
-  text-transform: uppercase;
-}
-
-.nav-group h3 {
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 700;
-  margin: 16px 0 6px;
-}
-
-.nav-group ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-group a {
-  border-radius: 6px;
-  color: var(--muted);
-  display: block;
-  font-size: 0.92rem;
-  padding: 5px 8px;
-}
-
-.nav-group a.active {
-  background: var(--surface-strong);
-  color: var(--text);
-  font-weight: 700;
-}
-
-.content {
-  min-width: 0;
-  padding: 36px clamp(18px, 4vw, 58px);
-}
-
-.hero {
-  align-items: stretch;
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-  margin: 0 auto 48px;
-  max-width: 1160px;
-}
-
-.hero h1 {
-  font-size: clamp(2.45rem, 5vw, 5.2rem);
-  letter-spacing: 0;
-  line-height: 0.96;
-  margin: 0 0 18px;
-}
-
-.lede {
-  color: var(--muted);
-  font-size: 1.14rem;
-  max-width: 760px;
-}
-
-.eyebrow,
-.card-label {
-  color: var(--accent-dark);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  margin: 0 0 10px;
-  text-transform: uppercase;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.button {
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  color: var(--text);
-  display: inline-flex;
-  font-weight: 750;
-  min-height: 42px;
-  padding: 9px 14px;
-}
-
-.button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #ffffff;
-}
-
-.hero-panel,
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-}
-
-.hero-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: center;
-  padding: 24px;
-}
-
-.hero-panel img {
-  display: block;
-  height: auto;
-  margin-bottom: 10px;
-  max-width: 100%;
-}
-
-code,
-pre {
-  background: var(--code-bg);
-  border-radius: 6px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-}
-
-code {
-  padding: 0.15em 0.35em;
-}
-
-pre {
-  overflow: auto;
-  padding: 16px;
-}
-
-pre code {
-  background: transparent;
-  padding: 0;
-}
-
-.section {
-  margin: 0 auto 42px;
-  max-width: 1160px;
-}
-
-.section-heading h2 {
-  font-size: 2rem;
-  letter-spacing: 0;
-  line-height: 1.1;
-  margin: 0 0 18px;
-}
-
-.grid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-
-.card {
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 150px;
-  padding: 18px;
-}
-
-.card.compact {
-  min-height: 126px;
-}
-
-.card span:last-child {
-  color: var(--muted);
-}
-
-.prose {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  margin: 0 auto;
-  max-width: 930px;
-  padding: clamp(20px, 4vw, 42px);
-}
-
-.prose h1 {
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  line-height: 1.05;
-  margin-top: 0;
-}
-
-.prose h2 {
-  border-top: 1px solid var(--border);
-  margin-top: 2.2rem;
-  padding-top: 1.4rem;
-}
-
-.prose img {
-  height: auto;
-  max-width: 100%;
-}
-
-.prose table {
-  border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  width: 100%;
-}
-
-.prose th,
-.prose td {
-  border: 1px solid var(--border);
-  padding: 8px 10px;
-}
-
-.callout {
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: 8px;
-  margin: 18px 0;
-  padding: 14px 16px;
-}
-
-.callout.warning {
-  border-left-color: #b42318;
-}
-
-.page-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  justify-content: center;
-  margin: 36px auto 0;
-  max-width: 930px;
-}
-
-@media (max-width: 920px) {
-  .shell,
-  .hero {
-    grid-template-columns: 1fr;
+  for (const file of ["styles.css", "site.js"]) {
+    fs.copyFileSync(path.join(SCRIPT_DIR, "github-pages-docs", file), path.join(OUT_DIR, file));
   }
-
-  .sidebar {
-    border-bottom: 1px solid var(--border);
-    border-right: 0;
-    max-height: 320px;
-    position: static;
-  }
-
-  .top-nav {
-    display: none;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #14110f;
-    --surface: #1f1a17;
-    --surface-strong: #2a231f;
-    --text: #fff8f2;
-    --muted: #c9baae;
-    --border: #40362f;
-    --accent: #ff6a42;
-    --accent-dark: #ff987c;
-    --code-bg: #2b241f;
-    --shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
-  }
-}
-`;
-  fs.writeFileSync(path.join(OUT_DIR, "styles.css"), css.trimStart());
 }
 
 function writeRobotsAndSitemap(routes) {
@@ -1022,7 +822,7 @@ function main() {
     const content =
       page.route === "index"
         ? renderHome(page, tabs, pagesByRoute, config.redirects || [])
-        : `<article class="prose">${renderMarkdown(page, routeAliases)}</article>`;
+        : renderDocPage(page, navEntries, pagesByRoute, routeAliases);
     writePage(
       page.route,
       renderLayout({

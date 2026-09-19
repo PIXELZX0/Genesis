@@ -189,4 +189,26 @@ describe("loadPluginManifest JSON5 tolerance", () => {
       expect(result.error).toContain("unsafe plugin manifest path");
     }
   });
+
+  it("reuses parsed manifests until the file changes and returns independent copies", () => {
+    const dir = makeTempDir();
+    const manifestPath = path.join(dir, "genesis.plugin.json");
+    fs.writeFileSync(manifestPath, `{ id: "cached", configSchema: { type: "object" } }`, "utf-8");
+
+    const first = loadPluginManifest(dir, false);
+    const second = loadPluginManifest(dir, false);
+    expect(first.ok && second.ok).toBe(true);
+    if (first.ok && second.ok) {
+      expect(second.manifest).toEqual(first.manifest);
+      expect(second.manifest.configSchema).not.toBe(first.manifest.configSchema);
+    }
+
+    fs.writeFileSync(
+      manifestPath,
+      `{ id: "cached-updated", configSchema: { type: "object" } }`,
+      "utf-8",
+    );
+    const updated = loadPluginManifest(dir, false);
+    expect(updated.ok && updated.manifest.id).toBe("cached-updated");
+  });
 });
