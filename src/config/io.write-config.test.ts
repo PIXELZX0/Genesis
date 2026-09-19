@@ -3,6 +3,7 @@ import path from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { PluginManifestRegistry } from "../plugins/manifest-registry.js";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
+import { resolveConfigBackupDir } from "./backup-rotation.js";
 import {
   createConfigIO,
   readConfigFileSnapshot,
@@ -311,7 +312,7 @@ describe("config io write", () => {
         "discord-dm",
       ]);
       await expect(fs.readFile(configPath, "utf-8")).resolves.toBe(cleanRaw);
-      const entries = await fs.readdir(path.dirname(configPath));
+      const entries = await fs.readdir(resolveConfigBackupDir(configPath));
       expect(entries.some((entry) => entry.includes(".clobbered."))).toBe(true);
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining("Config auto-stripped non-JSON prefix:"),
@@ -365,7 +366,7 @@ describe("config io write", () => {
       });
 
       await expect(fs.readFile(configPath, "utf-8")).resolves.toBe(originalRaw);
-      const entries = await fs.readdir(path.dirname(configPath));
+      const entries = await fs.readdir(resolveConfigBackupDir(configPath));
       expect(entries.some((entry) => entry.includes(".rejected."))).toBe(true);
       expect(warn).toHaveBeenCalledWith(expect.stringContaining("Config write rejected:"));
     });

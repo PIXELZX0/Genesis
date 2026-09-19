@@ -41,7 +41,7 @@ Notes:
 - Every `doctor` run automatically splits a monolithic `genesis.json` into per-section `~/.genesis/config/<section>.json` include files when splittable sections exist — no flag or prompt needed. See [Configuration](/gateway/configuration).
 - Interactive prompts (like keychain/OAuth fixes) only run when stdin is a TTY and `--non-interactive` is **not** set. Headless runs (cron, Telegram, no terminal) will skip prompts.
 - Performance: non-interactive `doctor` runs skip eager plugin loading so headless health checks stay fast. Interactive sessions still fully load plugins when a check needs their contribution.
-- `--fix` (alias for `--repair`) writes a backup to `~/.genesis/genesis.json.bak` and drops unknown config keys, listing each removal.
+- `--fix` (alias for `--repair`) writes a backup to `~/.genesis/config_backup/genesis.json.bak` and drops unknown config keys, listing each removal.
 - State integrity checks now detect orphan transcript files in the sessions directory and can archive them as `.deleted.<timestamp>` to reclaim space safely.
 - Doctor also scans `~/.genesis/cron/jobs.json` (or `cron.store`) for legacy cron job shapes and can rewrite them in place before the scheduler has to auto-normalize them at runtime.
 - Doctor repairs missing bundled plugin runtime dependencies without writing into packaged global installs. For root-owned npm installs or hardened systemd units, set `GENESIS_PLUGIN_STAGE_DIR` to a writable directory such as `/var/lib/genesis/plugin-runtime-deps`.

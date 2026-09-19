@@ -803,14 +803,14 @@ lives on the [First-run FAQ](/help/faq-first-run).
     Current Genesis protects many accidental clobbers:
 
     - Genesis-owned config writes validate the full post-change config before writing.
-    - Invalid or destructive Genesis-owned writes are rejected and saved as `genesis.json.rejected.*`.
-    - If a direct edit breaks startup or hot reload, the Gateway restores the last-known-good config and saves the rejected file as `genesis.json.clobbered.*`.
+    - Invalid or destructive Genesis-owned writes are rejected and saved as `config_backup/genesis.json.rejected.*`.
+    - If a direct edit breaks startup or hot reload, the Gateway restores the last-known-good config and saves the rejected file as `config_backup/genesis.json.clobbered.*`.
     - The main agent receives a boot warning after recovery so it does not blindly write the bad config again.
 
     Recover:
 
     - Check `genesis logs --follow` for `Config auto-restored from last-known-good`, `Config write rejected:`, or `config reload restored last-known-good config`.
-    - Inspect the newest `genesis.json.clobbered.*` or `genesis.json.rejected.*` beside the active config.
+    - Inspect the newest `genesis.json.clobbered.*` or `genesis.json.rejected.*` in the `config_backup/` folder beside the active config.
     - Keep the active restored config if it works, then copy only the intended keys back with `genesis config set` or `config.patch`.
     - Run `genesis config validate` and `genesis doctor`.
     - If you have no last-known-good or rejected payload, restore from backup, or re-run `genesis doctor` and reconfigure channels/models.

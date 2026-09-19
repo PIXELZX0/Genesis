@@ -95,7 +95,7 @@ describe("config io audit helpers", () => {
         changedPathCount: 3,
       }),
     ).toBe(
-      "Config overwrite: /tmp/genesis.json (sha256 prev-hash -> next-hash, backup=/tmp/genesis.json.bak, changedPaths=3)",
+      "Config overwrite: /tmp/genesis.json (sha256 prev-hash -> next-hash, backup=/tmp/config_backup/genesis.json.bak, changedPaths=3)",
     );
   });
 

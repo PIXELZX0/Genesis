@@ -1,6 +1,16 @@
 import path from "node:path";
 
 export const CONFIG_BACKUP_COUNT = 5;
+export const CONFIG_BACKUP_DIRNAME = "config_backup";
+
+export function resolveConfigBackupDir(configPath: string): string {
+  return path.join(path.dirname(configPath), CONFIG_BACKUP_DIRNAME);
+}
+
+/** Backup artifacts live in `<configDir>/config_backup/<configBasename><suffix>`. */
+export function resolveConfigBackupPath(configPath: string, suffix: string): string {
+  return path.join(resolveConfigBackupDir(configPath), `${path.basename(configPath)}${suffix}`);
+}
 
 export interface BackupRotationFs {
   unlink: (path: string) => Promise<void>;
@@ -11,6 +21,7 @@ export interface BackupRotationFs {
 
 export interface BackupMaintenanceFs extends BackupRotationFs {
   copyFile: (from: string, to: string) => Promise<void>;
+  mkdir: (path: string, options: { recursive: true; mode?: number }) => Promise<unknown>;
 }
 
 export async function rotateConfigBackups(
@@ -20,7 +31,7 @@ export async function rotateConfigBackups(
   if (CONFIG_BACKUP_COUNT <= 1) {
     return;
   }
-  const backupBase = `${configPath}.bak`;
+  const backupBase = resolveConfigBackupPath(configPath, ".bak");
   const maxIndex = CONFIG_BACKUP_COUNT - 1;
   await ioFs.unlink(`${backupBase}.${maxIndex}`).catch(() => {
     // best-effort
@@ -48,7 +59,7 @@ export async function hardenBackupPermissions(
   if (!ioFs.chmod) {
     return;
   }
-  const backupBase = `${configPath}.bak`;
+  const backupBase = resolveConfigBackupPath(configPath, ".bak");
   // Harden the primary .bak
   await ioFs.chmod(backupBase, 0o600).catch(() => {
     // best-effort
@@ -76,7 +87,7 @@ export async function cleanOrphanBackups(
   if (!ioFs.readdir) {
     return;
   }
-  const dir = path.dirname(configPath);
+  const dir = resolveConfigBackupDir(configPath);
   const base = path.basename(configPath);
   const bakPrefix = `${base}.bak.`;
 
@@ -116,8 +127,13 @@ export async function maintainConfigBackups(
   configPath: string,
   ioFs: BackupMaintenanceFs,
 ): Promise<void> {
+  await ioFs
+    .mkdir(resolveConfigBackupDir(configPath), { recursive: true, mode: 0o700 })
+    .catch(() => {
+      // best-effort
+    });
   await rotateConfigBackups(configPath, ioFs);
-  await ioFs.copyFile(configPath, `${configPath}.bak`).catch(() => {
+  await ioFs.copyFile(configPath, resolveConfigBackupPath(configPath, ".bak")).catch(() => {
     // best-effort
   });
   await hardenBackupPermissions(configPath, ioFs);

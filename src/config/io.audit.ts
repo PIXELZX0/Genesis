@@ -1,4 +1,5 @@
 import path from "node:path";
+import { resolveConfigBackupPath } from "./backup-rotation.js";
 import { resolveStateDir } from "./paths.js";
 
 const CONFIG_AUDIT_LOG_FILENAME = "config-audit.jsonl";
@@ -186,7 +187,7 @@ export function formatConfigOverwriteLogMessage(params: {
 }): string {
   const changeSummary =
     typeof params.changedPathCount === "number" ? `, changedPaths=${params.changedPathCount}` : "";
-  return `Config overwrite: ${params.configPath} (sha256 ${params.previousHash ?? "unknown"} -> ${params.nextHash}, backup=${params.configPath}.bak${changeSummary})`;
+  return `Config overwrite: ${params.configPath} (sha256 ${params.previousHash ?? "unknown"} -> ${params.nextHash}, backup=${resolveConfigBackupPath(params.configPath, ".bak")}${changeSummary})`;
 }
 
 export function createConfigWriteAuditRecordBase(params: {

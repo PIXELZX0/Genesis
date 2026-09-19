@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type { probeGatewayMemoryStatus } from "../commands/doctor-gateway-health.js";
 import type { DoctorOptions, DoctorPrompter } from "../commands/doctor-prompter.js";
+import { resolveConfigBackupPath } from "../config/backup-rotation.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import type { buildGatewayConnectionDetails } from "../gateway/call.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -482,7 +483,7 @@ async function runWriteConfigHealth(ctx: DoctorHealthFlowContext): Promise<void>
     });
     await writeConfigFile(ctx.cfg);
     logConfigUpdated(ctx.runtime);
-    const backupPath = `${CONFIG_PATH}.bak`;
+    const backupPath = resolveConfigBackupPath(CONFIG_PATH, ".bak");
     if (fs.existsSync(backupPath)) {
       ctx.runtime.log(`Backup: ${shortenHomePath(backupPath)}`);
     }

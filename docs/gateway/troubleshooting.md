@@ -278,7 +278,7 @@ Look for:
 - `Config auto-restored from last-known-good`
 - `gateway: invalid config was restored from last-known-good backup`
 - `config reload restored last-known-good config after invalid-config`
-- A timestamped `genesis.json.clobbered.*` file beside the active config
+- A timestamped `genesis.json.clobbered.*` file in the `config_backup/` folder beside the active config
 - A main-agent system event that starts with `Config recovery warning`
 
 What happened:
@@ -295,8 +295,9 @@ Inspect and repair:
 
 ```bash
 CONFIG="$(genesis config file)"
-ls -lt "$CONFIG".clobbered.* "$CONFIG".rejected.* 2>/dev/null | head
-diff -u "$CONFIG" "$(ls -t "$CONFIG".clobbered.* 2>/dev/null | head -n 1)"
+BACKUPS="$(dirname "$CONFIG")/config_backup/$(basename "$CONFIG")"
+ls -lt "$BACKUPS".clobbered.* "$BACKUPS".rejected.* 2>/dev/null | head
+diff -u "$CONFIG" "$(ls -t "$BACKUPS".clobbered.* 2>/dev/null | head -n 1)"
 genesis config validate
 genesis doctor
 ```

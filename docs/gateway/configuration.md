@@ -526,12 +526,15 @@ Plugin-local validation failures are the exception: if all issues are under
 `plugins.entries.<id>...`, reload keeps the current config and reports the plugin
 issue instead of restoring `.last-good`.
 
+Config backups (the `.bak` rotation ring, `.last-good`, `.clobbered.*`, and
+`.rejected.*`) are stored in a `config_backup/` folder next to `genesis.json`.
+
 Gateway CRUD writes for persistent agents use this same validation and write
 path before the updated configuration is activated.
 
 If you see `Config auto-restored from last-known-good` or
 `config reload restored last-known-good config` in logs, inspect the matching
-`.clobbered.*` file next to `genesis.json`, fix the rejected payload, then run
+`.clobbered.*` file in the `config_backup/` folder next to `genesis.json`, fix the rejected payload, then run
 `genesis config validate`. See [Gateway troubleshooting](/gateway/troubleshooting#gateway-restored-last-known-good-config)
 for the recovery checklist.
 

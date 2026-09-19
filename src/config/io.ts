@@ -23,7 +23,7 @@ import { sanitizeTerminalText } from "../terminal/safe-text.js";
 import { isRecord } from "../utils.js";
 import { VERSION } from "../version.js";
 import { DuplicateAgentDirError, findDuplicateAgentDirs } from "./agent-dirs.js";
-import { maintainConfigBackups } from "./backup-rotation.js";
+import { maintainConfigBackups, resolveConfigBackupPath } from "./backup-rotation.js";
 import { restoreEnvVarRefs } from "./env-preserve.js";
 import {
   type EnvSubstitutionWarning,
@@ -597,8 +597,12 @@ async function persistClobberedConfigSnapshot(params: {
   raw: string;
   observedAt: string;
 }): Promise<string | null> {
-  const targetPath = `${params.configPath}.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`;
+  const targetPath = resolveConfigBackupPath(
+    params.configPath,
+    `.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`,
+  );
   try {
+    await params.deps.fs.promises.mkdir(path.dirname(targetPath), { recursive: true, mode: 0o700 });
     await params.deps.fs.promises.writeFile(targetPath, params.raw, {
       encoding: "utf-8",
       mode: 0o600,
@@ -616,8 +620,12 @@ function persistClobberedConfigSnapshotSync(params: {
   raw: string;
   observedAt: string;
 }): string | null {
-  const targetPath = `${params.configPath}.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`;
+  const targetPath = resolveConfigBackupPath(
+    params.configPath,
+    `.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`,
+  );
   try {
+    params.deps.fs.mkdirSync(path.dirname(targetPath), { recursive: true, mode: 0o700 });
     params.deps.fs.writeFileSync(targetPath, params.raw, {
       encoding: "utf-8",
       mode: 0o600,
@@ -677,7 +685,7 @@ async function observeConfigSnapshot(
   const entry = getConfigHealthEntry(healthState, snapshot.path);
   const backupBaseline =
     entry.lastKnownGood ??
-    (await readConfigFingerprintForPath(deps, `${snapshot.path}.bak`)) ??
+    (await readConfigFingerprintForPath(deps, resolveConfigBackupPath(snapshot.path, ".bak"))) ??
     undefined;
   const suspicious = resolveConfigObserveSuspiciousReasons({
     bytes: current.bytes,
@@ -712,7 +720,7 @@ async function observeConfigSnapshot(
 
   const backup =
     (backupBaseline?.hash ? backupBaseline : null) ??
-    (await readConfigFingerprintForPath(deps, `${snapshot.path}.bak`));
+    (await readConfigFingerprintForPath(deps, resolveConfigBackupPath(snapshot.path, ".bak")));
   const clobberedPath = await persistClobberedConfigSnapshot({
     deps,
     configPath: snapshot.path,
@@ -811,7 +819,7 @@ function observeConfigSnapshotSync(
   const entry = getConfigHealthEntry(healthState, snapshot.path);
   const backupBaseline =
     entry.lastKnownGood ??
-    readConfigFingerprintForPathSync(deps, `${snapshot.path}.bak`) ??
+    readConfigFingerprintForPathSync(deps, resolveConfigBackupPath(snapshot.path, ".bak")) ??
     undefined;
   const suspicious = resolveConfigObserveSuspiciousReasons({
     bytes: current.bytes,
@@ -846,7 +854,7 @@ function observeConfigSnapshotSync(
 
   const backup =
     (backupBaseline?.hash ? backupBaseline : null) ??
-    readConfigFingerprintForPathSync(deps, `${snapshot.path}.bak`);
+    readConfigFingerprintForPathSync(deps, resolveConfigBackupPath(snapshot.path, ".bak"));
   const clobberedPath = persistClobberedConfigSnapshotSync({
     deps,
     configPath: snapshot.path,
@@ -2004,13 +2012,19 @@ export function createConfigIO(
     };
     const blockingReasons = resolveConfigWriteBlockingReasons(suspiciousReasons);
     if (blockingReasons.length > 0 && options.allowDestructiveWrite !== true) {
-      const rejectedPath = `${configPath}.rejected.${formatConfigArtifactTimestamp(new Date().toISOString())}`;
+      const rejectedPath = resolveConfigBackupPath(
+        configPath,
+        `.rejected.${formatConfigArtifactTimestamp(new Date().toISOString())}`,
+      );
       await deps.fs.promises
-        .writeFile(rejectedPath, json, {
-          encoding: "utf-8",
-          mode: 0o600,
-          flag: "wx",
-        })
+        .mkdir(path.dirname(rejectedPath), { recursive: true, mode: 0o700 })
+        .then(() =>
+          deps.fs.promises.writeFile(rejectedPath, json, {
+            encoding: "utf-8",
+            mode: 0o600,
+            flag: "wx",
+          }),
+        )
         .catch(() => {});
       const message = `Config write rejected: ${configPath} (${blockingReasons.join(", ")}). Rejected payload saved to ${rejectedPath}.`;
       const err = Object.assign(new Error(message), {

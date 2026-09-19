@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { isPathInside } from "../security/scan-paths.js";
 import { isRecord } from "../utils.js";
+import { resolveConfigBackupPath } from "./backup-rotation.js";
 import {
   appendConfigAuditRecord,
   appendConfigAuditRecordSync,
@@ -563,7 +564,7 @@ function formatConfigArtifactTimestamp(ts: string): string {
 }
 
 export function resolveLastKnownGoodConfigPath(configPath: string): string {
-  return `${configPath}.last-good`;
+  return resolveConfigBackupPath(configPath, ".last-good");
 }
 
 function isSensitiveConfigPath(pathLabel: string): boolean {
@@ -609,8 +610,12 @@ async function persistClobberedConfigSnapshot(params: {
   raw: string;
   observedAt: string;
 }): Promise<string | null> {
-  const targetPath = `${params.configPath}.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`;
+  const targetPath = resolveConfigBackupPath(
+    params.configPath,
+    `.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`,
+  );
   try {
+    await params.deps.fs.promises.mkdir(path.dirname(targetPath), { recursive: true, mode: 0o700 });
     await params.deps.fs.promises.writeFile(targetPath, params.raw, {
       encoding: "utf-8",
       mode: 0o600,
@@ -628,8 +633,12 @@ function persistClobberedConfigSnapshotSync(params: {
   raw: string;
   observedAt: string;
 }): string | null {
-  const targetPath = `${params.configPath}.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`;
+  const targetPath = resolveConfigBackupPath(
+    params.configPath,
+    `.clobbered.${formatConfigArtifactTimestamp(params.observedAt)}`,
+  );
   try {
+    params.deps.fs.mkdirSync(path.dirname(targetPath), { recursive: true, mode: 0o700 });
     params.deps.fs.writeFileSync(targetPath, params.raw, {
       encoding: "utf-8",
       mode: 0o600,
@@ -660,7 +669,7 @@ export async function maybeRecoverSuspiciousConfigRead(params: {
 
   let healthState = await readConfigHealthState(params.deps);
   const entry = getConfigHealthEntry(healthState, params.configPath);
-  const backupPath = `${params.configPath}.bak`;
+  const backupPath = resolveConfigBackupPath(params.configPath, ".bak");
   const backupBaseline =
     entry.lastKnownGood ??
     (await readConfigFingerprintForPath(params.deps, backupPath)) ??
@@ -750,7 +759,7 @@ export function maybeRecoverSuspiciousConfigReadSync(params: {
 
   let healthState = readConfigHealthStateSync(params.deps);
   const entry = getConfigHealthEntry(healthState, params.configPath);
-  const backupPath = `${params.configPath}.bak`;
+  const backupPath = resolveConfigBackupPath(params.configPath, ".bak");
   const backupBaseline =
     entry.lastKnownGood ?? readConfigFingerprintForPathSync(params.deps, backupPath) ?? undefined;
   const recoveryContext = resolveConfigReadRecoveryContext({
@@ -844,7 +853,7 @@ export async function observeConfigSnapshot(
   const entry = getConfigHealthEntry(healthState, snapshot.path);
   const backupBaseline =
     entry.lastKnownGood ??
-    (await readConfigFingerprintForPath(deps, `${snapshot.path}.bak`)) ??
+    (await readConfigFingerprintForPath(deps, resolveConfigBackupPath(snapshot.path, ".bak"))) ??
     undefined;
   const suspicious = resolveConfigObserveSuspiciousReasons({
     bytes: current.bytes,
@@ -890,7 +899,7 @@ export async function observeConfigSnapshot(
 
   const backup =
     (backupBaseline?.hash ? backupBaseline : null) ??
-    (await readConfigFingerprintForPath(deps, `${snapshot.path}.bak`));
+    (await readConfigFingerprintForPath(deps, resolveConfigBackupPath(snapshot.path, ".bak")));
   const clobberedPath = await persistClobberedConfigSnapshot({
     deps,
     configPath: snapshot.path,
@@ -943,7 +952,7 @@ export function observeConfigSnapshotSync(
   const entry = getConfigHealthEntry(healthState, snapshot.path);
   const backupBaseline =
     entry.lastKnownGood ??
-    readConfigFingerprintForPathSync(deps, `${snapshot.path}.bak`) ??
+    readConfigFingerprintForPathSync(deps, resolveConfigBackupPath(snapshot.path, ".bak")) ??
     undefined;
   const suspicious = resolveConfigObserveSuspiciousReasons({
     bytes: current.bytes,
@@ -972,7 +981,7 @@ export function observeConfigSnapshotSync(
 
   const backup =
     (backupBaseline?.hash ? backupBaseline : null) ??
-    readConfigFingerprintForPathSync(deps, `${snapshot.path}.bak`);
+    readConfigFingerprintForPathSync(deps, resolveConfigBackupPath(snapshot.path, ".bak"));
   const clobberedPath = persistClobberedConfigSnapshotSync({
     deps,
     configPath: snapshot.path,
@@ -1029,6 +1038,7 @@ export async function promoteConfigSnapshotToLastKnownGood(params: {
     observedAt: now,
   });
   const lastGoodPath = resolveLastKnownGoodConfigPath(snapshot.path);
+  await deps.fs.promises.mkdir(path.dirname(lastGoodPath), { recursive: true, mode: 0o700 });
   await deps.fs.promises.writeFile(lastGoodPath, snapshot.raw, {
     encoding: "utf-8",
     mode: 0o600,

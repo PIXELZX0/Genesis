@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import JSON5 from "json5";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { resolveConfigBackupPath } from "./backup-rotation.js";
 import {
   maybeRecoverSuspiciousConfigRead,
   maybeRecoverSuspiciousConfigReadSync,
@@ -47,7 +48,9 @@ describe("config observe recovery", () => {
 
   async function seedConfigBackup(configPath: string, config: Record<string, unknown>) {
     await seedConfig(configPath, config);
-    await fsp.copyFile(configPath, `${configPath}.bak`);
+    const backupPath = resolveConfigBackupPath(configPath, ".bak");
+    await fsp.mkdir(path.dirname(backupPath), { recursive: true });
+    await fsp.copyFile(configPath, backupPath);
   }
 
   async function writeConfigRaw(configPath: string, config: Record<string, unknown>) {
