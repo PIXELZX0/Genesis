@@ -27,13 +27,14 @@ type VercelPricingShape = {
 type VercelGatewayModelShape = {
   id?: string;
   name?: string;
+  type?: string;
   context_window?: number;
   max_tokens?: number;
   tags?: string[];
   pricing?: VercelPricingShape;
 };
 
-type VercelGatewayModelsResponse = {
+export type VercelGatewayModelsResponse = {
   data?: VercelGatewayModelShape[];
 };
 
@@ -147,7 +148,8 @@ function buildDiscoveredModelDefinition(
   model: VercelGatewayModelShape,
 ): ModelDefinitionConfig | null {
   const id = typeof model.id === "string" ? model.id.trim() : "";
-  if (!id) {
+  // Gateway also lists image/video/embedding/evaluation models; only language models can chat.
+  if (!id || (model.type !== undefined && model.type !== "language")) {
     return null;
   }
 
@@ -186,6 +188,14 @@ function buildDiscoveredModelDefinition(
   };
 }
 
+export function parseVercelAiGatewayModels(
+  data: VercelGatewayModelsResponse,
+): ModelDefinitionConfig[] {
+  return (data.data ?? [])
+    .map(buildDiscoveredModelDefinition)
+    .filter((entry): entry is ModelDefinitionConfig => entry !== null);
+}
+
 export async function discoverVercelAiGatewayModels(): Promise<ModelDefinitionConfig[]> {
   if (process.env.VITEST || process.env.NODE_ENV === "test") {
     return getStaticVercelAiGatewayModelCatalog();
@@ -202,10 +212,9 @@ export async function discoverVercelAiGatewayModels(): Promise<ModelDefinitionCo
         log.warn(`Failed to discover Vercel AI Gateway models: HTTP ${response.status}`);
         return getStaticVercelAiGatewayModelCatalog();
       }
-      const data = (await response.json()) as VercelGatewayModelsResponse;
-      const discovered = (data.data ?? [])
-        .map(buildDiscoveredModelDefinition)
-        .filter((entry): entry is ModelDefinitionConfig => entry !== null);
+      const discovered = parseVercelAiGatewayModels(
+        (await response.json()) as VercelGatewayModelsResponse,
+      );
       return discovered.length > 0 ? discovered : getStaticVercelAiGatewayModelCatalog();
     } finally {
       await release();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getStaticVercelAiGatewayModelCatalog, VERCEL_AI_GATEWAY_BASE_URL } from "./api.js";
+import { parseVercelAiGatewayModels } from "./models.js";
 import {
   buildStaticVercelAiGatewayProvider,
   buildVercelAiGatewayProvider,
@@ -36,5 +37,20 @@ describe("vercel ai gateway provider catalog", () => {
     expect(buildStaticVercelAiGatewayProvider().models?.map((model) => model.id)).toEqual(
       expect.arrayContaining(["moonshotai/kimi-k2.6"]),
     );
+  });
+
+  it("keeps only language models from live discovery", () => {
+    const models = parseVercelAiGatewayModels({
+      data: [
+        { id: "anthropic/claude-opus-4.6", type: "language" },
+        { id: "typesafe-ai/jev", type: "evaluation" },
+        { id: "openai/text-embedding-3-small", type: "embedding" },
+        { id: "legacy/untyped-model" },
+      ],
+    });
+    expect(models.map((model) => model.id)).toEqual([
+      "anthropic/claude-opus-4.6",
+      "legacy/untyped-model",
+    ]);
   });
 });
