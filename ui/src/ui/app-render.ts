@@ -534,34 +534,6 @@ async function handleMcpOAuthStart(state: McpOAuthHostState, name: string) {
   state.mcpOAuthPopup = popup;
 }
 
-function formatDreamNextCycle(nextRunAtMs: number | undefined): string | null {
-  if (typeof nextRunAtMs !== "number" || !Number.isFinite(nextRunAtMs)) {
-    return null;
-  }
-  return new Date(nextRunAtMs).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function resolveDreamingNextCycle(
-  status: { phases?: Record<string, { enabled: boolean; nextRunAtMs?: number }> } | null,
-): string | null {
-  if (!status?.phases) {
-    return null;
-  }
-  let nextRunAtMs: number | undefined;
-  for (const phase of Object.values(status.phases)) {
-    if (!phase.enabled || typeof phase.nextRunAtMs !== "number") {
-      continue;
-    }
-    if (nextRunAtMs === undefined || phase.nextRunAtMs < nextRunAtMs) {
-      nextRunAtMs = phase.nextRunAtMs;
-    }
-  }
-  return formatDreamNextCycle(nextRunAtMs);
-}
-
 let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let pluginClawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 function renderLazyPlaceholder() {
@@ -1080,7 +1052,6 @@ export function renderApp(state: AppViewState) {
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);
   const configuredDreaming = resolveConfiguredDreaming(configValue);
   const dreamingOn = state.dreamingStatus?.enabled ?? configuredDreaming.enabled;
-  const dreamingNextCycle = resolveDreamingNextCycle(state.dreamingStatus);
   const dreamingLoading = state.dreamingStatusLoading || state.dreamingModeSaving;
   const dreamingRefreshLoading = state.dreamingStatusLoading || state.dreamDiaryLoading;
   const refreshDreaming = () => {
@@ -3263,17 +3234,12 @@ export function renderApp(state: AppViewState) {
           : nothing}
         ${state.tab === "dreams"
           ? renderDreaming({
-              active: dreamingOn,
               shortTermCount: state.dreamingStatus?.shortTermCount ?? 0,
               groundedSignalCount: state.dreamingStatus?.groundedSignalCount ?? 0,
               totalSignalCount: state.dreamingStatus?.totalSignalCount ?? 0,
               promotedCount: state.dreamingStatus?.promotedToday ?? 0,
-              phases: state.dreamingStatus?.phases ?? undefined,
               shortTermEntries: state.dreamingStatus?.shortTermEntries ?? [],
               promotedEntries: state.dreamingStatus?.promotedEntries ?? [],
-              dreamingOf: null,
-              nextCycle: dreamingNextCycle,
-              timezone: state.dreamingStatus?.timezone ?? null,
               statusLoading: state.dreamingStatusLoading,
               statusError: state.dreamingStatusError,
               modeSaving: state.dreamingModeSaving,

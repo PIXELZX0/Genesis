@@ -12,16 +12,10 @@ import {
 
 function buildProps(overrides?: Partial<DreamingProps>): DreamingProps {
   return {
-    active: true,
     shortTermCount: 47,
     groundedSignalCount: 9,
     totalSignalCount: 182,
     promotedCount: 12,
-    phases: {
-      light: { enabled: true, cron: "0 * * * *", nextRunAtMs: Date.parse("2026-04-05T11:30:00Z") },
-      deep: { enabled: true, cron: "30 * * * *", nextRunAtMs: Date.parse("2026-04-05T12:00:00Z") },
-      rem: { enabled: false, cron: "0 4 * * *" },
-    },
     shortTermEntries: [
       {
         key: "memory:memory/2026-04-05.md:1:2",
@@ -55,9 +49,6 @@ function buildProps(overrides?: Partial<DreamingProps>): DreamingProps {
         promotedAt: "2026-04-05T04:00:00.000Z",
       },
     ],
-    dreamingOf: null,
-    nextCycle: "4:00 AM",
-    timezone: "America/Los_Angeles",
     statusLoading: false,
     statusError: null,
     modeSaving: false,
@@ -198,64 +189,14 @@ function renderInto(props: DreamingProps): HTMLDivElement {
 }
 
 describe("dreaming view", () => {
-  it("renders the active dream scene chrome and status", () => {
-    const container = renderInto(buildProps({ dreamingOf: "reindexing old chats\u2026" }));
-
-    const svg = container.querySelector(".dreams__lobster svg");
-    expect(svg).not.toBeNull();
-
-    const zs = container.querySelectorAll(".dreams__z");
-    expect(zs.length).toBe(3);
-
-    const stars = container.querySelectorAll(".dreams__star");
-    expect(stars.length).toBe(12);
-
-    expect(container.querySelector(".dreams__moon")).not.toBeNull();
-
-    const phases = [...container.querySelectorAll(".dreams__phase-name")].map((node) =>
+  it("renders diary and advanced tabs, defaulting to diary", () => {
+    const container = renderInto(buildProps());
+    const tabs = [...container.querySelectorAll(".dreams__tab")].map((node) =>
       node.textContent?.trim(),
     );
-    expect(phases).toEqual(["Light", "Deep", "Rem"]);
-    expect(container.querySelectorAll(".dreams__phase").length).toBe(3);
-    expect(container.querySelector(".dreams__phase--off")?.textContent).toContain("off");
-
-    const buttons = [...container.querySelectorAll("button")].map((node) =>
-      node.textContent?.trim(),
-    );
-    expect(buttons).not.toContain("Backfill");
-    expect(buttons).not.toContain("Reset");
-    expect(buttons).not.toContain("Clear Replayed");
-    expect(container.querySelector(".dreams__bubble")).not.toBeNull();
-    const text = container.querySelector(".dreams__bubble-text");
-    expect(text?.textContent).toBe("reindexing old chats\u2026");
-    const label = container.querySelector(".dreams__status-label");
-    expect(label?.textContent).toBe("Dreaming Active");
-    const detail = container.querySelector(".dreams__status-detail span");
-    expect(detail?.textContent).toContain("4:00 AM");
-    const tabs = container.querySelectorAll(".dreams__tab");
-    expect(tabs.length).toBe(3);
-    expect(tabs[0]?.textContent).toContain("Scene");
-    expect(tabs[1]?.textContent).toContain("Diary");
-    expect(tabs[2]?.textContent).toContain("Advanced");
-  });
-
-  it("renders idle and unavailable scene states", () => {
-    const idleContainer = renderInto(buildProps({ active: false }));
-    expect(idleContainer.querySelector(".dreams__bubble")).toBeNull();
-    expect(idleContainer.querySelector(".dreams__status-label")?.textContent).toBe("Dreaming Idle");
-    expect(idleContainer.querySelector(".dreams--idle")).not.toBeNull();
-
-    const unknownPhaseContainer = renderInto(buildProps({ phases: undefined }));
-    const statuses = [...unknownPhaseContainer.querySelectorAll(".dreams__phase-next")].map(
-      (node) => node.textContent?.trim(),
-    );
-    expect(statuses).toEqual(["—", "—", "—"]);
-    expect(unknownPhaseContainer.querySelectorAll(".dreams__phase--off").length).toBe(0);
-
-    const errorContainer = renderInto(buildProps({ statusError: "patch failed" }));
-    expect(errorContainer.querySelector(".dreams__controls-error")?.textContent).toContain(
-      "patch failed",
-    );
+    expect(tabs).toEqual(["Diary", "Advanced"]);
+    expect(container.querySelector(".dreams__tab--active")?.textContent).toContain("Diary");
+    expect(container.querySelector(".dreams-diary")).not.toBeNull();
   });
 
   it("renders imported memory topics inside the diary tab", () => {
@@ -274,7 +215,7 @@ describe("dreaming view", () => {
       "imported insights clustered from external history",
     );
     setDreamDiarySubTab("dreams");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("opens the full imported source page from diary cards", async () => {
@@ -292,7 +233,7 @@ describe("dreaming view", () => {
     await Promise.resolve();
     expect(onOpenWikiPage).toHaveBeenCalledWith("sources/chatgpt-2026-04-10-alpha.md");
     setDreamDiarySubTab("dreams");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("shows a truncation hint when the wiki preview only contains the first chunk", async () => {
@@ -328,7 +269,7 @@ describe("dreaming view", () => {
       .querySelector<HTMLButtonElement>(".dreams-diary__preview-header .btn")
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     setDreamDiarySubTab("dreams");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("renders the memory palace inside the diary tab", () => {
@@ -344,7 +285,7 @@ describe("dreaming view", () => {
       "compiled memory wiki surface",
     );
     setDreamDiarySubTab("dreams");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("shows a memory-wiki enablement CTA when wiki subtabs are selected but the plugin is disabled", () => {
@@ -365,7 +306,7 @@ describe("dreaming view", () => {
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onOpenConfig).toHaveBeenCalledTimes(1);
     setDreamDiarySubTab("dreams");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("renders dream diary with parsed entry on diary tab", () => {
@@ -381,7 +322,7 @@ describe("dreaming view", () => {
     expect(date?.textContent).toContain("April 5, 2026");
     const body = container.querySelector(".dreams-diary__para");
     expect(body?.textContent).toContain("forgotten endpoints");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("flattens structured backfill diary entries into plain prose", () => {
@@ -424,7 +365,7 @@ describe("dreaming view", () => {
     expect(prose).toContain("Happy Together rule");
     expect(prose).toContain("Use Happy Together for flights.");
     expect(container.querySelector(".dreams-diary__panel-title")).toBeNull();
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("renders diary day chips without the old density map", () => {
@@ -465,7 +406,7 @@ describe("dreaming view", () => {
       node.textContent?.replace(/\s+/g, "").trim(),
     );
     expect(labels.filter(Boolean).some((label) => /^\d+\/\d+$/.test(label ?? ""))).toBe(true);
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("renders diary empty, error, and removed-navigation states", () => {
@@ -485,7 +426,7 @@ describe("dreaming view", () => {
     const container = renderInto(buildProps());
     expect(container.querySelector(".dreams-diary__page")).toBeNull();
     expect(container.querySelector(".dreams-diary__nav-btn")).toBeNull();
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("renders operator actions and evidence lists on the advanced tab", () => {
@@ -519,7 +460,7 @@ describe("dreaming view", () => {
     );
     expect(container.textContent).not.toContain("Signal Hotspots");
     setDreamAdvancedWaitingSort("recent");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("sorts waiting entries by strongest support without swapping datasets", () => {
@@ -583,7 +524,7 @@ describe("dreaming view", () => {
     expect(new Set(signalOrder)).toEqual(new Set(recentOrder));
 
     setDreamAdvancedWaitingSort("recent");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   it("treats malformed waiting-entry timestamps as oldest in both sort modes", () => {
@@ -646,7 +587,7 @@ describe("dreaming view", () => {
     expect(signalOrder).toEqual(["memory:valid-recent", "memory:malformed-time"]);
 
     setDreamAdvancedWaitingSort("recent");
-    setDreamSubTab("scene");
+    setDreamSubTab("diary");
   });
 
   // Toggle lives in the page header (app-render.ts), not inside the dreaming view.
