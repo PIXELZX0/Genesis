@@ -19,6 +19,7 @@ const BUNDLED_TYPED_HOOK_REGISTRATION_FILES = [
   "extensions/memory-lancedb/index.ts",
   "extensions/skill-workshop/index.ts",
   "extensions/thread-ownership/index.ts",
+  "extensions/typesafe/index.ts",
 ] as const;
 const BUNDLED_TYPED_HOOK_REGISTRATION_GUARDS = {
   "extensions/acpx/index.ts": ["reply_dispatch"],
@@ -44,6 +45,7 @@ const BUNDLED_TYPED_HOOK_REGISTRATION_GUARDS = {
   "extensions/memory-lancedb/index.ts": ["agent_end", "before_prompt_build"],
   "extensions/skill-workshop/index.ts": ["agent_end", "before_prompt_build"],
   "extensions/thread-ownership/index.ts": ["message_received", "message_sending"],
+  "extensions/typesafe/index.ts": ["agent_end", "before_model_call"],
 } as const satisfies Record<
   (typeof BUNDLED_TYPED_HOOK_REGISTRATION_FILES)[number],
   readonly string[]
@@ -68,6 +70,7 @@ const BUNDLED_LIVE_CONFIG_HOOK_GUARDS = {
     '"thread-ownership"',
     "api.runtime.config?.loadConfig?.() ?? api.config",
   ],
+  "extensions/typesafe/index.ts": ["resolveLivePluginConfigObject(", '"typesafe"'],
 } as const satisfies Record<string, readonly string[]>;
 const BUNDLED_LIVE_CONFIG_PROVIDER_GUARDS = {
   "extensions/amazon-bedrock/register.sync.runtime.ts": [

@@ -1,9 +1,13 @@
 {
-  "name": "@genesis/vercel-ai-gateway-provider",
+  "name": "@genesis/typesafe-plugin",
   "version": "2026.4.20",
   "private": true,
-  "description": "Genesis Vercel AI Gateway provider plugin",
+  "description": "Genesis TypeSafe Jev plugin",
   "type": "module",
+  "dependencies": {
+    "typebox": "1.1.31",
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"
   },

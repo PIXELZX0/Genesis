@@ -1330,13 +1330,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
 
-  extensions/venice:
-    devDependencies:
-      '@genesis/plugin-sdk':
-        specifier: workspace:*
-        version: link:../../packages/plugin-sdk
-
-  extensions/vercel-ai-gateway:
+  extensions/typesafe:
     dependencies:
       typebox:
         specifier: 1.1.31
@@ -1344,6 +1338,18 @@ importers:
       zod:
         specifier: ^4.3.6
         version: 4.4.3
+    devDependencies:
+      '@genesis/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+
+  extensions/venice:
+    devDependencies:
+      '@genesis/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+
+  extensions/vercel-ai-gateway:
     devDependencies:
       '@genesis/plugin-sdk':
         specifier: workspace:*

@@ -127,9 +127,8 @@ export const pluginRegistrationContractCases = {
     webSearchProviderIds: ["tavily"],
     toolNames: ["tavily_search", "tavily_extract"],
   },
-  "vercel-ai-gateway": {
-    pluginId: "vercel-ai-gateway",
-    providerIds: ["vercel-ai-gateway"],
+  typesafe: {
+    pluginId: "typesafe",
     toolNames: ["jev_evaluate"],
   },
   xai: {

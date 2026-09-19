@@ -224,7 +224,104 @@ function argValue(param: ClosedParam, answer: JevResult["answers"][string] | und
   return undefined;
 }
 
-/** Picks the next step with Jev; any doubt defers to the LLM. */
+const BROWSER_TOOL = "browser";
+const BROWSER_OPERATION_QUESTION = "browser:operation";
+const BROWSER_TARGET_QUESTION = "browser:click_target";
+// Bounds criteria size; elements past the cap cannot be picked (jev-ultrafast keeps 250).
+const MAX_BROWSER_TARGETS = 150;
+const SNAPSHOT_REF_LINE = /^\s*-\s*([\w-]+)(?:\s+"([^"\n]*)")?[^\n]*?\[ref=(e\d+)\]/gm;
+
+/** Indexed elements (`ref` → label) from the latest browser tool result, if it was a snapshot. */
+export function latestBrowserTargets(messages: unknown[]): Record<string, string> {
+  const last = messages.findLast(
+    (message): message is { role: string; toolName?: string; content?: unknown } =>
+      (message as { role?: string })?.role === "toolResult" &&
+      (message as { toolName?: string }).toolName === BROWSER_TOOL,
+  );
+  const targets: Record<string, string> = {};
+  if (!last) {
+    return targets;
+  }
+  for (const [, role, name, ref] of textOf(last.content).matchAll(SNAPSHOT_REF_LINE)) {
+    if (Object.keys(targets).length >= MAX_BROWSER_TARGETS) {
+      break;
+    }
+    targets[ref] = truncate(name ? `${role} "${name}"` : role, TOOL_DESCRIPTION_CHARS);
+  }
+  return targets;
+}
+
+function buildBrowserQuestions(targets: Record<string, string>): Record<string, JevQuestion> {
+  const hasTargets = Object.keys(targets).length > 0;
+  const operations: Record<string, string> = {
+    snapshot: "Take a fresh page snapshot: there is no current snapshot or the page has changed.",
+    other: "Anything else: typing text, navigating, opening or switching tabs, screenshots.",
+  };
+  if (hasTargets) {
+    operations.click = "Click one element listed in the latest page snapshot.";
+  }
+  const questions: Record<string, JevQuestion> = {
+    [BROWSER_OPERATION_QUESTION]: {
+      type: "choice",
+      instructions: "If the next step uses the browser, which kind of browser step is it?",
+      criteria: operations,
+    },
+  };
+  if (hasTargets) {
+    // Speculative: only read when the operation answer is `click`.
+    questions[BROWSER_TARGET_QUESTION] = {
+      type: "choice",
+      instructions:
+        "Assuming the next step clicks an element on the current page, which element should be clicked?",
+      criteria: Object.fromEntries(
+        Object.entries(targets).map(([ref, label]) => [ref, `[${ref}] ${label}`]),
+      ),
+    };
+  }
+  return questions;
+}
+
+function decideBrowserCall(
+  answers: JevResult["answers"],
+  targets: Record<string, string>,
+  minConfidence: number,
+) {
+  const operation = answers[BROWSER_OPERATION_QUESTION];
+  if (operation?.type !== "choice" || jevAnswerConfidence(operation) < minConfidence) {
+    return undefined;
+  }
+  if (operation.choice === "snapshot") {
+    return {
+      action: "tool_call" as const,
+      toolName: BROWSER_TOOL,
+      arguments: { action: "snapshot" },
+    };
+  }
+  const target = answers[BROWSER_TARGET_QUESTION];
+  if (
+    operation.choice === "click" &&
+    target?.type === "choice" &&
+    Object.hasOwn(targets, target.choice) &&
+    jevAnswerConfidence(target) >= minConfidence
+  ) {
+    return {
+      action: "tool_call" as const,
+      toolName: BROWSER_TOOL,
+      arguments: { action: "act", request: { kind: "click", ref: target.choice } },
+    };
+  }
+  return undefined;
+}
+
+function argQuestionId(toolName: string, paramName: string): string {
+  return `arg:${toolName}:${paramName}`;
+}
+
+/**
+ * Picks the next step with Jev in one request; any doubt defers to the LLM.
+ * Argument questions for closed-set tools ride along speculatively (TypeSafe fan-out),
+ * so a model-free call needs a single round trip; unused answers are ignored.
+ */
 export async function decideModelCallRoute(params: {
   messages: unknown[];
   tools: PluginHookModelCallTool[];
@@ -232,14 +329,33 @@ export async function decideModelCallRoute(params: {
   allowDirectCall: boolean;
   evaluate: JevEvaluate;
 }): Promise<PluginHookBeforeModelCallResult> {
-  const { tools, config, evaluate } = params;
+  const { tools, config } = params;
   if (tools.length === 0) {
     return { action: "pass" };
   }
-  const state = buildRouterState(params.messages);
-  const next = (await evaluate(state, { [NEXT_QUESTION]: buildNextActionQuestion(tools) })).answers[
-    NEXT_QUESTION
-  ];
+  const questions: Record<string, JevQuestion> = {
+    [NEXT_QUESTION]: buildNextActionQuestion(tools),
+  };
+  const browserTargets =
+    params.allowDirectCall && tools.some((tool) => tool.name === BROWSER_TOOL)
+      ? latestBrowserTargets(params.messages)
+      : undefined;
+  if (browserTargets) {
+    Object.assign(questions, buildBrowserQuestions(browserTargets));
+  }
+  if (params.allowDirectCall) {
+    for (const tool of tools) {
+      const shape = classifyToolParams(tool.parameters);
+      if (shape.kind !== "closed") {
+        continue;
+      }
+      for (const [paramName, question] of Object.entries(buildArgQuestions(tool, shape.required))) {
+        questions[argQuestionId(tool.name, paramName)] = question;
+      }
+    }
+  }
+  const { answers } = await params.evaluate(buildRouterState(params.messages), questions);
+  const next = answers[NEXT_QUESTION];
   if (next?.type !== "choice" || jevAnswerConfidence(next) < config.minConfidence) {
     return { action: "pass" };
   }
@@ -251,17 +367,16 @@ export async function decideModelCallRoute(params: {
     return { action: "pass" };
   }
   const forced = { action: "force_tool", toolName: tool.name } as const;
+  if (tool.name === BROWSER_TOOL && browserTargets) {
+    return decideBrowserCall(answers, browserTargets, config.minConfidence) ?? forced;
+  }
   const shape = classifyToolParams(tool.parameters);
   if (shape.kind === "open" || !params.allowDirectCall) {
     return forced;
   }
-  const questions = buildArgQuestions(tool, shape.required);
-  const answers = Object.keys(questions).length
-    ? (await evaluate({ ...state, next_tool: tool.name }, questions)).answers
-    : {};
   const args: Record<string, unknown> = {};
   for (const param of shape.required) {
-    const answer = answers[param.name];
+    const answer = answers[argQuestionId(tool.name, param.name)];
     if (answer && jevAnswerConfidence(answer) < config.minConfidence) {
       return forced;
     }

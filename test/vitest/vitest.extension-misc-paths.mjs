@@ -20,6 +20,7 @@ export const miscExtensionTestRoots = [
   "extensions/synthetic",
   "extensions/tavily",
   "extensions/thread-ownership",
+  "extensions/typesafe",
   "extensions/vercel-ai-gateway",
   "extensions/webhooks",
 ];

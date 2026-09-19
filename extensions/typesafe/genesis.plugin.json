@@ -1,0 +1,79 @@
+{
+  "id": "typesafe",
+  "enabledByDefault": true,
+  "providerAuthEnvVars": {
+    "typesafe": ["TYPESAFE_API_KEY"]
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "TypeSafe API key",
+      "help": "Key for the official TypeSafe API (fallback: TYPESAFE_API_KEY env var).",
+      "sensitive": true
+    },
+    "backend": {
+      "label": "Jev backend",
+      "help": "Where Jev requests go. auto uses the first backend with a key: TypeSafe, then Vercel AI Gateway (AI_GATEWAY_API_KEY), then OpenRouter (OPENROUTER_API_KEY)."
+    },
+    "jevRouter": {
+      "label": "Jev tool router",
+      "help": "TypeSafe Jev picks the next tool before each model call. Turning it on needs a gateway restart; turning it off and other edits apply immediately."
+    },
+    "jevRouter.enabled": {
+      "label": "Enable Jev tool router",
+      "help": "Let Jev pick the next tool before each model call; the LLM only writes free-text arguments and replies."
+    },
+    "jevRouter.minConfidence": {
+      "label": "Jev min confidence",
+      "help": "Jev decisions below this probability fall back to a normal model call (0-1).",
+      "advanced": true
+    },
+    "jevRouter.maxConsecutiveDirectCalls": {
+      "label": "Jev max direct calls",
+      "help": "Maximum consecutive tool calls Jev may run without the model in one run.",
+      "advanced": true
+    },
+    "jevRouter.timeoutMs": {
+      "label": "Jev timeout (ms)",
+      "help": "Per-request Jev timeout; on timeout the model is called normally.",
+      "advanced": true
+    }
+  },
+  "contracts": {
+    "tools": ["jev_evaluate"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string"
+      },
+      "backend": {
+        "type": "string",
+        "enum": ["auto", "typesafe", "vercel-ai-gateway", "openrouter"]
+      },
+      "jevRouter": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "minConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "maxConsecutiveDirectCalls": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}
