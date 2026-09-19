@@ -228,6 +228,7 @@ import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById, type ConfigPresetId } from "./views/config-presets.ts";
 import {
   renderQuickSettings,
+  renderQuickSettingsConfirm,
   type QuickSettingsChannel,
   type QuickSettingsApiKey,
 } from "./views/config-quick.ts";
@@ -924,11 +925,12 @@ function extractMcpServerCount(state: AppViewState): number {
 function extractQuickSettingsSecurity(state: AppViewState): {
   gatewayAuth: string;
   execPolicy: string;
+  execAsk: string;
   deviceAuth: boolean;
 } {
   const config = state.configForm ?? state.configSnapshot?.config;
   if (!config || typeof config !== "object") {
-    return { gatewayAuth: "unknown", execPolicy: "unknown", deviceAuth: false };
+    return { gatewayAuth: "unknown", execPolicy: "unknown", execAsk: "unknown", deviceAuth: false };
   }
   const cfg = config;
   const gateway =
@@ -962,6 +964,8 @@ function extractQuickSettingsSecurity(state: AppViewState): {
   const security =
     exec && typeof exec === "object" ? (exec as Record<string, unknown>).security : undefined;
   const execPolicy = typeof security === "string" && security ? security : "default";
+  const ask = exec && typeof exec === "object" ? (exec as Record<string, unknown>).ask : undefined;
+  const execAsk = typeof ask === "string" && ask ? ask : "default";
   let deviceAuth = true;
   if (gateway) {
     const controlUi =
@@ -972,7 +976,7 @@ function extractQuickSettingsSecurity(state: AppViewState): {
       deviceAuth = false;
     }
   }
-  return { gatewayAuth, execPolicy, deviceAuth };
+  return { gatewayAuth, execPolicy, execAsk, deviceAuth };
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -1461,7 +1465,7 @@ export function renderApp(state: AppViewState) {
               ? activeSession.fastMode
               : configDefaults.fastModeDefault;
           const defaultAgentId = configDefaults.defaultAgentId;
-          return renderQuickSettings({
+          const quickSettings = renderQuickSettings({
             scope,
             onScopeChange: (next) => {
               state.quickSettingsScope = next;
@@ -1530,9 +1534,31 @@ export function renderApp(state: AppViewState) {
             },
             security: extractQuickSettingsSecurity(state),
             onSecurityConfigure: () => {
-              state.configSettingsMode = "advanced";
-              state.configActiveSection = "auth";
-              requestHostUpdate?.();
+              state.infrastructureActiveSection = "gateway";
+              state.setTab("infrastructure");
+            },
+            onExecPolicyChange: (policy) => {
+              const patch = { tools: { exec: { security: policy } } };
+              if (policy === "full") {
+                // Full lets agents run any host command without an allowlist.
+                state.quickSettingsConfirm = {
+                  title: "Allow unrestricted exec?",
+                  sub: "Agents will be able to run any command on the gateway host without an allowlist.",
+                  patch,
+                };
+                requestHostUpdate?.();
+                return;
+              }
+              void patchQuickSettingsConfig(state, patch, "Failed to update exec policy").then(() =>
+                requestHostUpdate?.(),
+              );
+            },
+            onExecAskChange: (ask) => {
+              void patchQuickSettingsConfig(
+                state,
+                { tools: { exec: { ask } } },
+                "Failed to update exec approval",
+              ).then(() => requestHostUpdate?.());
             },
             themeMode: state.themeMode,
             borderRadius: state.settings.borderRadius,
@@ -1563,6 +1589,28 @@ export function renderApp(state: AppViewState) {
             assistantName: state.assistantName,
             version: state.hello?.server?.version ?? "",
           });
+          return html`
+            ${quickSettings}
+            ${renderQuickSettingsConfirm(state.quickSettingsConfirm, {
+              busy: state.configApplying,
+              onCancel: () => {
+                state.quickSettingsConfirm = null;
+                requestHostUpdate?.();
+              },
+              onConfirm: () => {
+                const confirm = state.quickSettingsConfirm;
+                if (!confirm) {
+                  return;
+                }
+                void patchQuickSettingsConfig(state, confirm.patch, "Failed to apply change").then(
+                  () => {
+                    state.quickSettingsConfirm = null;
+                    requestHostUpdate?.();
+                  },
+                );
+              },
+            })}
+          `;
         }
         if (state.configSettingsMode === "authProfiles") {
           const providers = projectAuthStatusToProviders(state.modelAuthStatusResult);

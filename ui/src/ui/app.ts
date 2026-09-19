@@ -133,6 +133,7 @@ import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./u
 import { generateUUID } from "./uuid.ts";
 import type { AuthProfileDialog } from "./views/auth-profiles.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { QuickSettingsConfirm } from "./views/config-quick.ts";
 
 declare global {
   interface Window {
@@ -329,6 +330,7 @@ export class GenesisApp extends LitElement {
   @state() configFormDirty = false;
   @state() configSettingsMode: "quick" | "advanced" | "authProfiles" = "quick";
   @state() authProfileDialog: AuthProfileDialog | null = null;
+  @state() quickSettingsConfirm: QuickSettingsConfirm | null = null;
   @state() quickSettingsScope: "session" | "default" = "session";
   @state() configFormMode: "form" | "raw" = "form";
   @state() configSearchQuery = "";

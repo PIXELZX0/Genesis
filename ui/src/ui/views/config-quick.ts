@@ -20,6 +20,7 @@ import {
   resolveLocalUserName,
 } from "../user-identity.ts";
 import { CONFIG_PRESETS, detectActivePreset, type ConfigPresetId } from "./config-presets.ts";
+import { dialogChrome } from "./entity-dialogs.ts";
 
 // ── Types ──
 
@@ -59,9 +60,15 @@ export type QuickSettingsAutomation = {
 
 export type QuickSettingsSecurity = {
   gatewayAuth: string;
+  /** tools.exec.security, or "default" when unset. */
   execPolicy: string;
+  /** tools.exec.ask, or "default" when unset. */
+  execAsk: string;
   deviceAuth: boolean;
 };
+
+const EXEC_POLICIES = ["deny", "allowlist", "full"] as const;
+const EXEC_ASK_MODES = ["off", "on-miss", "always"] as const;
 
 export type QuickSettingsScope = "session" | "default";
 
@@ -96,6 +103,8 @@ export type QuickSettingsProps = {
   // Security
   security: QuickSettingsSecurity;
   onSecurityConfigure?: () => void;
+  onExecPolicyChange?: (policy: (typeof EXEC_POLICIES)[number]) => void;
+  onExecAskChange?: (ask: (typeof EXEC_ASK_MODES)[number]) => void;
 
   // Appearance
   themeMode: ThemeMode;
@@ -443,8 +452,37 @@ function renderAutomationsCard(props: QuickSettingsProps) {
   `;
 }
 
+function renderSegmented<T extends string>(
+  label: string,
+  options: readonly T[],
+  active: string,
+  onSelect: ((value: T) => void) | undefined,
+) {
+  return html`
+    <div class="qs-segmented" role="group" aria-label=${label}>
+      ${options.map(
+        (option) => html`
+          <button
+            class="qs-segmented__btn qs-segmented__btn--compact ${option === active
+              ? "qs-segmented__btn--active"
+              : ""}"
+            aria-pressed=${option === active}
+            @click=${() => {
+              if (option !== active) {
+                onSelect?.(option);
+              }
+            }}
+          >
+            ${option}
+          </button>
+        `,
+      )}
+    </div>
+  `;
+}
+
 function renderSecurityCard(props: QuickSettingsProps) {
-  const { gatewayAuth, execPolicy, deviceAuth } = props.security;
+  const { gatewayAuth, execPolicy, execAsk, deviceAuth } = props.security;
 
   return html`
     <div class="qs-card">
@@ -464,8 +502,18 @@ function renderSecurityCard(props: QuickSettingsProps) {
         </div>
         <div class="qs-row">
           <span class="qs-row__label">Exec policy</span>
-          <span class="qs-row__value"><span class="qs-badge">${execPolicy}</span></span>
+          ${renderSegmented("Exec policy", EXEC_POLICIES, execPolicy, props.onExecPolicyChange)}
         </div>
+        <div class="qs-row">
+          <span class="qs-row__label">Exec approval</span>
+          ${renderSegmented("Exec approval", EXEC_ASK_MODES, execAsk, props.onExecAskChange)}
+        </div>
+        ${execPolicy === "default" || execAsk === "default"
+          ? html`<div class="muted qs-card__note">
+              Unset values fall back to exec-approvals defaults, then full on the gateway host (deny
+              in the sandbox) with approval off.
+            </div>`
+          : nothing}
         <div class="qs-row">
           <span class="qs-row__label">Device auth</span>
           <span class="qs-row__value">
@@ -698,6 +746,34 @@ function renderConnectionFooter(props: QuickSettingsProps) {
 
 function renderStack(...cards: TemplateResult[]) {
   return html`<div class="qs-stack">${cards}</div>`;
+}
+
+// ── Confirm dialog for risky config patches ──
+
+export type QuickSettingsConfirm = {
+  title: string;
+  sub: string;
+  patch: Record<string, unknown>;
+};
+
+export function renderQuickSettingsConfirm(
+  confirm: QuickSettingsConfirm | null,
+  cb: { busy: boolean; onCancel: () => void; onConfirm: () => void },
+) {
+  if (!confirm) {
+    return nothing;
+  }
+  return dialogChrome({
+    title: confirm.title,
+    sub: confirm.sub,
+    body: html``,
+    busy: cb.busy,
+    error: null,
+    submitLabel: "Apply",
+    canSubmit: true,
+    onCancel: cb.onCancel,
+    onSubmit: cb.onConfirm,
+  });
 }
 
 // ── Main render ──

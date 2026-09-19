@@ -56,6 +56,7 @@ import type {
 import type { ChatAttachment, ChatQueueItem } from "./ui-types.ts";
 import type { AuthProfileDialog } from "./views/auth-profiles.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { QuickSettingsConfirm } from "./views/config-quick.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
 export function resolveSelectedAgentId(state: {
@@ -218,6 +219,7 @@ export type AppViewState = {
   configFormMode: "form" | "raw";
   configSettingsMode: "quick" | "advanced" | "authProfiles";
   authProfileDialog: AuthProfileDialog | null;
+  quickSettingsConfirm: QuickSettingsConfirm | null;
   quickSettingsScope: "session" | "default";
   configSearchQuery: string;
   configActiveSection: string | null;

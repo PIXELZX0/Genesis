@@ -29,7 +29,8 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     onConfigureMcp: vi.fn(),
     security: {
       gatewayAuth: "Unknown",
-      execPolicy: "Allowlist",
+      execPolicy: "allowlist",
+      execAsk: "default",
       deviceAuth: true,
     },
     onSecurityConfigure: vi.fn(),
@@ -65,6 +66,21 @@ describe("renderQuickSettings", () => {
 
     expect(container.querySelectorAll(".qs-stack")).toHaveLength(4);
     expect(container.querySelectorAll(".qs-card--span-all")).toHaveLength(1);
+  });
+
+  it("edits exec policy from the security card", () => {
+    const onExecPolicyChange = vi.fn();
+    const container = document.createElement("div");
+    render(renderQuickSettings(createProps({ onExecPolicyChange })), container);
+
+    const group = container.querySelector('[aria-label="Exec policy"]');
+    const full = [...(group?.querySelectorAll("button") ?? [])].find(
+      (button) => button.textContent?.trim() === "full",
+    );
+    full?.click();
+
+    expect(onExecPolicyChange).toHaveBeenCalledWith("full");
+    expect(group?.querySelector('[aria-pressed="true"]')?.textContent?.trim()).toBe("allowlist");
   });
 
   it("rejects oversized avatar uploads before reading them", () => {
