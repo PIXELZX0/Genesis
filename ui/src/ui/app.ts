@@ -131,6 +131,7 @@ import type {
 } from "./types.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
 import { generateUUID } from "./uuid.ts";
+import type { AuthProfileDialog } from "./views/auth-profiles.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 
 declare global {
@@ -326,7 +327,8 @@ export class GenesisApp extends LitElement {
   @state() wikiMemoryPalaceError: string | null = null;
   @state() wikiMemoryPalace: WikiMemoryPalace | null = null;
   @state() configFormDirty = false;
-  @state() configSettingsMode: "quick" | "advanced" = "quick";
+  @state() configSettingsMode: "quick" | "advanced" | "authProfiles" = "quick";
+  @state() authProfileDialog: AuthProfileDialog | null = null;
   @state() quickSettingsScope: "session" | "default" = "session";
   @state() configFormMode: "form" | "raw" = "form";
   @state() configSearchQuery = "";

@@ -21,7 +21,7 @@ export function setAgentsCreateDialogField(
   return { ...dialog, form: { ...dialog.form, [field]: value } };
 }
 
-interface DialogChrome {
+export interface DialogChrome {
   title: string;
   sub: string;
   body: TemplateResult;
@@ -33,7 +33,7 @@ interface DialogChrome {
   onSubmit: () => void;
 }
 
-function field(
+export function field(
   label: string,
   value: string,
   onInput: (value: string) => void,
@@ -53,7 +53,7 @@ function field(
   `;
 }
 
-function dialogChrome(c: DialogChrome): TemplateResult {
+export function dialogChrome(c: DialogChrome): TemplateResult {
   return html`
     <div
       class="exec-approval-overlay"

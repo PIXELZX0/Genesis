@@ -54,6 +54,7 @@ import type {
   WalletSummaryResult,
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem } from "./ui-types.ts";
+import type { AuthProfileDialog } from "./views/auth-profiles.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
@@ -215,7 +216,8 @@ export type AppViewState = {
   wikiMemoryPalaceError: string | null;
   wikiMemoryPalace: import("./controllers/dreaming.js").WikiMemoryPalace | null;
   configFormMode: "form" | "raw";
-  configSettingsMode: "quick" | "advanced";
+  configSettingsMode: "quick" | "advanced" | "authProfiles";
+  authProfileDialog: AuthProfileDialog | null;
   quickSettingsScope: "session" | "default";
   configSearchQuery: string;
   configActiveSection: string | null;

@@ -34,6 +34,7 @@ import {
   refreshVisibleToolsEffectiveForCurrentSession,
   saveAgentsConfig,
 } from "./controllers/agents.ts";
+import { AuthProfileController } from "./controllers/auth-profiles-controller.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { cancelPendingStream, loadChatHistory } from "./controllers/chat.ts";
 import {
@@ -178,6 +179,14 @@ import {
   titleForTab,
   type Tab,
 } from "./navigation.ts";
+import {
+  canSubmitAuthProfileDialog,
+  openAuthProfileDialog,
+  projectAuthStatusToProviders,
+  renderAuthProfileDialog,
+  renderAuthProfilesView,
+  type AuthProfileDialog,
+} from "./views/auth-profiles.ts";
 import { emptyAgentsCreateDialog, setAgentsCreateDialogField } from "./views/entity-dialogs.ts";
 
 // Tabs whose view renders its own Pencil-style header (title + subtitle +
@@ -1037,6 +1046,45 @@ function resolveQuickSettingsSessionRow(state: AppViewState) {
   return state.sessionsResult?.sessions?.find((row) => row.key === state.sessionKey);
 }
 
+async function submitAuthProfileDialog(state: AppViewState) {
+  const dialog = state.authProfileDialog;
+  if (!dialog || !state.client || !canSubmitAuthProfileDialog(dialog)) {
+    return;
+  }
+  const controller = new AuthProfileController({ client: state.client });
+  state.authProfileDialog = { ...dialog, busy: true, error: null };
+  try {
+    switch (dialog.kind) {
+      case "add":
+        await controller.add({
+          provider: dialog.provider.trim(),
+          profileId: dialog.profileId.trim(),
+          mode: dialog.mode,
+          value: dialog.value,
+          ...(dialog.displayName.trim() ? { displayName: dialog.displayName.trim() } : {}),
+        });
+        break;
+      case "rename":
+        await controller.rename(dialog.profileId, dialog.displayName.trim());
+        break;
+      case "priority":
+        await controller.setPriority(
+          dialog.profileId,
+          dialog.priority.trim() === "" ? null : Number(dialog.priority),
+        );
+        break;
+      case "remove":
+        await controller.remove(dialog.profileId);
+        break;
+    }
+    state.authProfileDialog = null;
+    await loadModelAuthStatusState(state, { refresh: true });
+  } catch (err) {
+    const current = state.authProfileDialog ?? dialog;
+    state.authProfileDialog = { ...current, busy: false, error: String(err) };
+  }
+}
+
 // Sends only the merge patch (the gateway merges it, object arrays by id), so
 // unsaved edits in the advanced form are never written as a side effect.
 async function patchQuickSettingsConfig(
@@ -1459,7 +1507,11 @@ export function renderApp(state: AppViewState) {
             },
             apiKeys: extractQuickSettingsApiKeys(state),
             onApiKeyChange: () => {
-              state.setTab("models");
+              state.configSettingsMode = "authProfiles";
+              void loadModelAuthStatusState(state, { refresh: true }).then(() =>
+                requestHostUpdate?.(),
+              );
+              requestHostUpdate?.();
             },
             automation: {
               cronJobCount: state.cronJobs?.length ?? 0,
@@ -1511,6 +1563,57 @@ export function renderApp(state: AppViewState) {
             assistantName: state.assistantName,
             version: state.hello?.server?.version ?? "",
           });
+        }
+        if (state.configSettingsMode === "authProfiles") {
+          const providers = projectAuthStatusToProviders(state.modelAuthStatusResult);
+          const findProfile = (profileId: string) =>
+            providers.flatMap((p) => p.profiles).find((row) => row.profileId === profileId);
+          const openDialog = (kind: AuthProfileDialog["kind"], profileId: string) => {
+            const row = findProfile(profileId);
+            state.authProfileDialog = openAuthProfileDialog(kind, {
+              provider: row?.provider,
+              profileId,
+              displayName: row?.displayName,
+              priority: typeof row?.priority === "number" ? String(row.priority) : "",
+            });
+            requestHostUpdate?.();
+          };
+          return html`
+            ${renderAuthProfilesView({
+              providers,
+              loading: state.modelAuthStatusLoading,
+              error: state.modelAuthStatusError,
+              onBack: () => {
+                state.configSettingsMode = "quick";
+                requestHostUpdate?.();
+              },
+              onAdd: (provider) => {
+                state.authProfileDialog = openAuthProfileDialog("add", {
+                  provider,
+                  profileId: provider ? `${provider}:` : "",
+                });
+                requestHostUpdate?.();
+              },
+              onRename: (profileId) => openDialog("rename", profileId),
+              onSetPriority: (profileId) => openDialog("priority", profileId),
+              onRemove: (profileId) => openDialog("remove", profileId),
+            })}
+            ${renderAuthProfileDialog(state.authProfileDialog, {
+              onChange: (patch) => {
+                if (state.authProfileDialog) {
+                  state.authProfileDialog = { ...state.authProfileDialog, ...patch };
+                  requestHostUpdate?.();
+                }
+              },
+              onCancel: () => {
+                state.authProfileDialog = null;
+                requestHostUpdate?.();
+              },
+              onSubmit: () => {
+                void submitAuthProfileDialog(state).then(() => requestHostUpdate?.());
+              },
+            })}
+          `;
         }
         // Advanced mode — full config form with accordion groups
         return renderConfigTab({
