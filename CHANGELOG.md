@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Changes
+
+- Vercel AI Gateway: opt-in Jev tool router. With `plugins.entries.vercel-ai-gateway.config.jevRouter.enabled`, TypeSafe Jev (`typesafe-ai/jev`) picks the next tool before each model call. Tools whose arguments are all enum/boolean run without an LLM call, and the main model is only asked to write free-form arguments or the text reply. An optional `jev_evaluate` tool exposes Jev's typed boolean/choice/score answers to agents.
+- Plugins: new `before_model_call` hook lets plugins force a tool, disable tools, or run a tool without the model for each model call in the agent loop. OpenAI Responses requests now forward `tool_choice`.
+
+### Fixes
+
+- Vercel AI Gateway: model discovery no longer lists image, video, embedding, and evaluation models as chat models.
+
 ## 2026.9.12
 
 ### Changes

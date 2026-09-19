@@ -23,6 +23,57 @@
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": {}
+    "properties": {
+      "jevRouter": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "minConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "maxConsecutiveDirectCalls": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  },
+  "contracts": {
+    "tools": ["jev_evaluate"]
+  },
+  "uiHints": {
+    "jevRouter": {
+      "label": "Jev tool router",
+      "help": "TypeSafe Jev picks the next tool before each model call. Changes apply after a gateway restart."
+    },
+    "jevRouter.enabled": {
+      "label": "Enable Jev tool router",
+      "help": "Let TypeSafe Jev (via Vercel AI Gateway) pick the next tool before each model call; the LLM only writes free-text arguments and replies."
+    },
+    "jevRouter.minConfidence": {
+      "label": "Jev min confidence",
+      "help": "Jev decisions below this probability fall back to a normal model call (0-1).",
+      "advanced": true
+    },
+    "jevRouter.maxConsecutiveDirectCalls": {
+      "label": "Jev max direct calls",
+      "help": "Maximum consecutive tool calls Jev may run without the model in one run.",
+      "advanced": true
+    },
+    "jevRouter.timeoutMs": {
+      "label": "Jev timeout (ms)",
+      "help": "Per-request Jev timeout; on timeout the model is called normally.",
+      "advanced": true
+    }
   }
 }

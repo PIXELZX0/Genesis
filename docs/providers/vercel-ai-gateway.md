@@ -81,6 +81,59 @@ You can use either the shorthand or the fully qualified model ref in your
 configuration. Genesis resolves the canonical form automatically.
 </Tip>
 
+## Jev tool router
+
+[TypeSafe Jev](https://typesafe.ai) (`typesafe-ai/jev` on Vercel AI Gateway) is
+an evaluation model. It takes state plus typed questions and returns
+probabilities. It cannot chat, write text, or call tools, so it is not
+selectable as a chat model. Genesis uses it in two opt-in ways:
+
+- **Tool router.** Before each model call in the agent loop, Jev picks the next
+  step from the agent's tools (or "reply in text"):
+  - If every parameter of the chosen tool is an enum, const, or boolean, Jev
+    picks the arguments and the tool runs without an LLM call.
+  - If the tool needs free-form arguments (paths, commands, URLs, text), the
+    main model is called with that tool forced and only writes the arguments.
+  - If Jev picks a text reply, the main model is called with tools disabled.
+  - Low-confidence answers, errors, and timeouts fall back to a normal model
+    call.
+- **`jev_evaluate` tool.** Lets the agent ask Jev boolean, choice, and score
+  questions directly. It is optional, so add it to the tool allowlist.
+
+```json5
+{
+  plugins: {
+    entries: {
+      "vercel-ai-gateway": {
+        config: {
+          jevRouter: {
+            enabled: true,
+            minConfidence: 0.6, // below this, the model decides
+            maxConsecutiveDirectCalls: 8, // model-free tool calls in a row per run
+            timeoutMs: 3000,
+          },
+        },
+      },
+    },
+  },
+  tools: { alsoAllow: ["jev_evaluate"] },
+}
+```
+
+In the Control UI, open **Config → Plugins → Vercel AI Gateway Provider** and
+switch **Enable Jev tool router** on or off. Plugin config changes take effect
+after a gateway restart; the Control UI offers to restart when you apply.
+
+The router works with any main model and provider; only Jev itself goes through
+Vercel AI Gateway, using the same `AI_GATEWAY_API_KEY`.
+
+<Warning>
+Tool results (for example web page text) become part of the state Jev reads, and
+Jev does not treat that content as untrusted. Model-free calls are limited to
+closed-set arguments and still pass through tool policy, `before_tool_call`
+hooks, and approvals. Keep approvals on for tools with side effects.
+</Warning>
+
 ## Advanced configuration
 
 <AccordionGroup>
