@@ -1220,6 +1220,7 @@
                   "tools/exec-approvals-advanced",
                   "tools/exec",
                   "tools/image-generation",
+                  "tools/jev",
                   "tools/llm-task",
                   "tools/lobster",
                   "tools/media-overview",
