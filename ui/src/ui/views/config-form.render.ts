@@ -4,7 +4,13 @@ import { icons } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { ConfigUiHints } from "../types.ts";
 import { matchesNodeSearch, parseConfigSearchQuery, renderNode } from "./config-form.node.ts";
-import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
+import {
+  hintForPath,
+  humanize,
+  schemaType,
+  type ConfigFieldSuggestions,
+  type JsonSchema,
+} from "./config-form.shared.ts";
 
 export type ConfigFormProps = {
   schema: JsonSchema | null;
@@ -19,6 +25,8 @@ export type ConfigFormProps = {
   revealSensitive?: boolean;
   isSensitivePathRevealed?: (path: Array<string | number>) => boolean;
   onToggleSensitivePath?: (path: Array<string | number>) => void;
+  /** Value suggestions for string fields, keyed by dotted config path. */
+  suggestions?: ConfigFieldSuggestions;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 };
 
@@ -466,6 +474,7 @@ export function renderConfigForm(props: ConfigFormProps) {
           value: params.nodeValue,
           path: params.path,
           hints: props.uiHints,
+          suggestions: props.suggestions,
           rawAvailable: props.rawAvailable ?? true,
           unsupported,
           disabled: props.disabled ?? false,

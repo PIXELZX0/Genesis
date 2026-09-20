@@ -201,3 +201,15 @@ export function countSensitiveConfigValues(
 
   return 0;
 }
+
+/**
+ * Extra value suggestions for string fields, keyed by dotted config path
+ * (see {@link pathKey}). Rendered as a native `<datalist>`: the field keeps
+ * accepting free text, so values outside the list stay editable.
+ */
+export type ConfigFieldSuggestions = Record<string, readonly string[]>;
+
+/** DOM id for the `<datalist>` backing the field at `path`. */
+export function suggestionsListId(path: Array<string | number>): string {
+  return `cfg-suggest-${pathKey(path).replace(/[^A-Za-z0-9]+/g, "-")}`;
+}

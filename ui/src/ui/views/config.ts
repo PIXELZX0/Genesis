@@ -14,6 +14,7 @@ import {
   pathKey,
   REDACTED_PLACEHOLDER,
   schemaType,
+  type ConfigFieldSuggestions,
   type JsonSchema,
 } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
@@ -43,6 +44,8 @@ export type ConfigProps = {
   rawAvailable?: boolean;
   showModeToggle?: boolean;
   formValue: Record<string, unknown> | null;
+  /** Value suggestions for string fields, keyed by dotted config path. */
+  suggestions?: ConfigFieldSuggestions;
   originalValue: Record<string, unknown> | null;
   restartPrompt: ConfigRestartPrompt | null;
   searchQuery: string;
@@ -1188,6 +1191,7 @@ export function renderConfig(props: ConfigProps) {
                         rawAvailable,
                         disabled: props.loading || !props.formValue,
                         unsupportedPaths: analysis.unsupportedPaths,
+                        suggestions: props.suggestions,
                         onPatch: props.onFormPatch,
                         searchQuery: props.searchQuery,
                         activeSection: props.activeSection,

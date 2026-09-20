@@ -35,6 +35,48 @@ const rootSchema = {
 const rootAnalysis = analyzeConfigSchema(rootSchema);
 
 describe("config form renderer", () => {
+  it("offers suggestions as a datalist while keeping the field free-text", () => {
+    const onPatch = vi.fn();
+    const container = document.createElement("div");
+    const schema = {
+      type: "object",
+      properties: {
+        tools: {
+          type: "object",
+          properties: { advisor: { type: "object", properties: { model: { type: "string" } } } },
+        },
+      },
+    };
+    const analysis = analyzeConfigSchema(schema);
+    render(
+      renderConfigForm({
+        schema: analysis.schema,
+        uiHints: {},
+        unsupportedPaths: analysis.unsupportedPaths,
+        value: {},
+        suggestions: { "tools.advisor.model": ["anthropic/claude-opus-4-8", "openai/gpt-5.4"] },
+        onPatch,
+      }),
+      container,
+    );
+
+    const input: HTMLInputElement | null = container.querySelector("input.cfg-input");
+    expect(input).not.toBeNull();
+    const listId = input?.getAttribute("list");
+    expect(listId).toBeTruthy();
+    const options = Array.from(
+      container.querySelectorAll<HTMLOptionElement>(`datalist#${listId} option`),
+    ).map((option) => option.value);
+    expect(options).toEqual(["anthropic/claude-opus-4-8", "openai/gpt-5.4"]);
+
+    // Still a plain text input: a model the catalog does not know is accepted.
+    if (input) {
+      input.value = "custom/model";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    expect(onPatch).toHaveBeenCalledWith(["tools", "advisor", "model"], "custom/model");
+  });
+
   it("renders inputs and patches values", () => {
     const onPatch = vi.fn();
     const container = document.createElement("div");

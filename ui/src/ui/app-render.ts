@@ -21,6 +21,7 @@ import { loadOverviewLogs, warnQueryToken } from "./app-settings.ts";
 import { resolveSelectedAgentId, type AppViewState } from "./app-view-state.ts";
 import { sortCopy } from "./array.ts";
 import { renderMobileTabBar } from "./components/mobile-tab-bar.ts";
+import { buildConfigModelSuggestions } from "./config-model-suggestions.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -1371,6 +1372,7 @@ export function renderApp(state: AppViewState) {
     connected: state.connected,
     schema: state.configSchema,
     schemaLoading: state.configSchemaLoading,
+    suggestions: buildConfigModelSuggestions(state.chatModelCatalog),
     uiHints: state.configUiHints,
     formValue: state.configForm,
     originalValue: state.configFormOriginal,
@@ -1416,12 +1418,15 @@ export function renderApp(state: AppViewState) {
     | "excludeSections"
     | "includeVirtualSections"
   >;
-  const renderConfigTab = (overrides: ConfigTabOverrides) =>
-    renderConfig({
+  const renderConfigTab = (overrides: ConfigTabOverrides) => {
+    // Model-reference fields (advisor, exec safeguard) offer the catalog as a dropdown.
+    ensureModelsLoaded(state);
+    return renderConfig({
       ...commonConfigProps,
       includeVirtualSections: false,
       ...overrides,
     });
+  };
   const configSelection = normalizeMainConfigSelection(
     state.configActiveSection,
     state.configActiveSubsection,

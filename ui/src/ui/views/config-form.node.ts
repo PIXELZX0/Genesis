@@ -15,6 +15,8 @@ import {
   pathKey,
   REDACTED_PLACEHOLDER,
   schemaType,
+  suggestionsListId,
+  type ConfigFieldSuggestions,
   type JsonSchema,
 } from "./config-form.shared.ts";
 
@@ -442,6 +444,7 @@ export function renderNode(params: {
   revealSensitive?: boolean;
   isSensitivePathRevealed?: (path: Array<string | number>) => boolean;
   onToggleSensitivePath?: (path: Array<string | number>) => void;
+  suggestions?: ConfigFieldSuggestions;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult | typeof nothing {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
@@ -662,6 +665,7 @@ function renderTextInput(params: {
   revealSensitive?: boolean;
   isSensitivePathRevealed?: (path: Array<string | number>) => boolean;
   onToggleSensitivePath?: (path: Array<string | number>) => void;
+  suggestions?: ConfigFieldSuggestions;
   inputType: "text" | "number";
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
@@ -695,15 +699,28 @@ function renderTextInput(params: {
       ? jsonValue(value)
       : (value ?? "");
   const effectiveInputType = sensitiveState.isSensitive && !effectiveRedacted ? "text" : inputType;
+  // Suggestions ride on a native datalist: a dropdown of known values that still
+  // accepts anything typed, so values the catalog does not know stay editable.
+  const suggestions =
+    effectiveRedacted || sensitiveState.isSensitive
+      ? []
+      : (params.suggestions?.[pathKey(path)] ?? []);
+  const listId = suggestions.length > 0 ? suggestionsListId(path) : undefined;
 
   return html`
     <div class="cfg-field">
       ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
       ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing} ${renderTags(tags)}
       <div class="cfg-input-wrap">
+        ${listId
+          ? html`<datalist id=${listId}>
+              ${suggestions.map((option) => html`<option value=${option}></option>`)}
+            </datalist>`
+          : nothing}
         <input
           type=${effectiveInputType}
           class="cfg-input${effectiveRedacted ? " cfg-input--redacted" : ""}"
+          list=${listId ?? nothing}
           placeholder=${placeholder}
           .value=${formatUnknownText(displayValue)}
           ?disabled=${disabled}
@@ -938,6 +955,7 @@ function renderObject(params: {
   path: Array<string | number>;
   hints: ConfigUiHints;
   rawAvailable?: boolean;
+  suggestions?: ConfigFieldSuggestions;
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
@@ -997,6 +1015,7 @@ function renderObject(params: {
       value: obj[propKey],
       path: [...path, propKey],
       hints,
+      suggestions: params.suggestions,
       rawAvailable,
       unsupported,
       disabled,
