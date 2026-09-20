@@ -173,6 +173,8 @@ describe("installBundledRuntimeDeps", () => {
     vi.spyOn(fs, "existsSync").mockImplementation(
       (candidate) => candidate === "C:\\node\\node_modules\\npm\\bin\\npm-cli.js",
     );
+    vi.spyOn(fs, "mkdirSync").mockImplementation(() => undefined);
+    vi.spyOn(fs, "writeFileSync").mockImplementation(() => undefined);
     spawnSyncMock.mockReturnValue({
       pid: 123,
       output: [],
@@ -266,6 +268,56 @@ describe("installBundledRuntimeDeps", () => {
         cwd: installExecutionRoot,
       }),
     );
+  });
+
+  it("marks a bare install root so npm cannot escape into a parent package", () => {
+    const installRoot = makeTempDir();
+    spawnSyncMock.mockReturnValue({
+      pid: 123,
+      output: [],
+      stdout: "",
+      stderr: "",
+      signal: null,
+      status: 0,
+    });
+
+    installBundledRuntimeDeps({
+      installRoot,
+      missingSpecs: ["tokenjuice@0.6.1"],
+      env: {},
+    });
+
+    expect(JSON.parse(fs.readFileSync(path.join(installRoot, "package.json"), "utf8"))).toEqual({
+      name: "genesis-runtime-deps-install",
+      private: true,
+    });
+  });
+
+  it("keeps an existing package.json in the install root", () => {
+    const installRoot = makeTempDir();
+    fs.writeFileSync(
+      path.join(installRoot, "package.json"),
+      JSON.stringify({ name: "genesis-telegram", version: "1.2.3" }),
+    );
+    spawnSyncMock.mockReturnValue({
+      pid: 123,
+      output: [],
+      stdout: "",
+      stderr: "",
+      signal: null,
+      status: 0,
+    });
+
+    installBundledRuntimeDeps({
+      installRoot,
+      missingSpecs: ["tokenjuice@0.6.1"],
+      env: {},
+    });
+
+    expect(JSON.parse(fs.readFileSync(path.join(installRoot, "package.json"), "utf8"))).toEqual({
+      name: "genesis-telegram",
+      version: "1.2.3",
+    });
   });
 
   it("uses an Genesis-owned npm cache for runtime dependency installs", () => {

@@ -1212,9 +1212,12 @@ export function installBundledRuntimeDeps(params: {
   try {
     fs.mkdirSync(params.installRoot, { recursive: true });
     fs.mkdirSync(installExecutionRoot, { recursive: true });
-    if (isolatedExecutionRoot) {
+    // Without a `package.json` here npm walks up the tree and installs into the
+    // nearest parent package (e.g. `$HOME/node_modules`) instead of this root.
+    const executionRootPackageJson = path.join(installExecutionRoot, "package.json");
+    if (isolatedExecutionRoot || !fs.existsSync(executionRootPackageJson)) {
       fs.writeFileSync(
-        path.join(installExecutionRoot, "package.json"),
+        executionRootPackageJson,
         `${JSON.stringify({ name: "genesis-runtime-deps-install", private: true }, null, 2)}\n`,
         "utf8",
       );
