@@ -2,7 +2,7 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## Unreleased
+## 2026.9.20
 
 ### Changes
 
@@ -11,6 +11,10 @@ Docs: https://genesis.pixelzx.com/docs
 - Control UI: Settings -> Backups lists the config backup ring plus the last-known-good copy and restores one over the live config after a confirmation. The config being replaced is rotated into the ring first, so a restore can be undone by restoring again.
 - Control UI: settings pages now share a sub-navigation bar (General, AI & Agents, Communications, Automation, Infrastructure, Appearance) instead of only being reachable from Quick Settings cards or by URL, Quick Settings gained a language picker and chat thinking/tool-call visibility toggles, the Model card can target either the active session or the defaults for new sessions, the API Keys card opens a full auth-profile panel (add/rename/priority/remove), and the Security card edits the exec policy and approval mode.
 - Config: config backups (`.bak` rotation ring, `.last-good`, `.clobbered.*`, `.rejected.*`) are now written to a `config_backup/` folder next to `genesis.json` instead of cluttering the config directory. Existing backups in the old location are left untouched.
+- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.85.1 to 0.86.0. Upstream now carries the system prompt and tool declarations inside the transcript's system messages instead of separate `systemPrompt` and `tools` request fields, so the Anthropic, OpenAI (HTTP and WebSocket), Google, and Ollama transports, the prompt-cache boundary handling, the `before_model_call` routing hook, and system-prompt overrides were moved onto the new transcript shape.
+- Control UI: the settings navigation labels are translated in all 13 non-English locales instead of falling back to English.
+- Control UI: the Dreaming view drops the Scene sub-tab; Diary is now the default tab.
+- Site: the marketing landing page and the GitHub Pages docs are redesigned (dark-first with a theme toggle, tabbed install card, collapsible sidebar, on-this-page contents, breadcrumbs, prev/next links, and copyable code blocks).
 
 ### Fixes
 
@@ -19,6 +23,11 @@ Docs: https://genesis.pixelzx.com/docs
 - CLI: mistyped or unknown arguments now fail in well under a second instead of taking several (and much longer on a cold cache). `genesis <unknown-command>` no longer loads every bundled plugin runtime just to find out no plugin owns the command — it uses the cheap plugin CLI metadata surface — and an unknown root option (`genesis --nope`) skips plugin command discovery entirely, since nothing a plugin registers can make that argv parse.
 - Vercel AI Gateway: model discovery no longer lists image, video, embedding, and evaluation models as chat models.
 - Gateway: the Control UI no longer freezes for 10+ seconds while the gateway starts or handles its first message. Provider hook lookups for providers with no owning plugin skip plugin loading, and plugin manifests and the bundled plugin directory are cached instead of being re-read for every model.
+- Wizard: an abandoned wizard dialog (tab closed, page refreshed, connection dropped) no longer leaves the session stuck as "running" and blocking every later start with "wizard already running". Sessions idle for more than 10 minutes are now reaped.
+- Control UI: the Memory tab now renders the journal-style `MEMORY.md` that the memory pipeline actually writes, instead of always reporting "No memories stored yet.", and the memory graph no longer fails with `gateway request timeout for agents.memory.graph` while the embedding provider is still starting up — the graph is served immediately and the provider initializes in the background.
+- Control UI: single-section config views no longer repeat the section header below the hero block, and first-level subsections render flat instead of inside an always-open collapsible box.
+- Session memory: daily memory files no longer capture the same user and assistant turn twice in one conversation summary, which was then quoted verbatim into the next session's startup context.
+- Docs: cross-page `#anchor` links work again (headings were emitted without ids), and indented `<Steps>`/`<Tabs>` bodies plus `<Note>`/`<Tip>` callout bodies render as markdown instead of literal code blocks.
 
 ## 2026.9.12
 
