@@ -138,8 +138,11 @@ What happens:
 
 1. The gateway raises a pending secret request and forwards a prompt to the
    originating chat surface (and to any approvals-scoped client, such as the
-   Control UI) using the same routing config as plugin approvals,
-   `approvals.plugin`.
+   Control UI). Delivery reuses the `approvals.plugin` mode and targets, but not
+   its `enabled` flag or agent/session filters: a secret prompt is always
+   forwarded, because the user has no other way to answer it. If no chat route
+   and no approvals client exist, the request is dropped immediately and the
+   tool reports that the prompt could not be delivered.
 2. The user answers with `/secret STRIPE_API_KEY`, then sends the value as their
    next message. That message is intercepted before the agent turn, so the value
    never enters the transcript. `/secret STRIPE_API_KEY cancel` declines.

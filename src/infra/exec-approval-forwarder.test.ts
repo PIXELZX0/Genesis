@@ -615,6 +615,31 @@ describe("exec approval forwarder", () => {
     await expectDiscordSessionTargetRequest(params);
   });
 
+  it("forwards secret prompts to the origin chat even when plugin approvals are off", async () => {
+    const { deliver, forwarder } = createForwarder({
+      cfg: { approvals: {} } as GenesisConfig,
+      resolveSessionTarget: () => ({ channel: "telegram", to: "123" }),
+    });
+
+    await expect(
+      forwarder.handleSecretRequested?.({
+        id: "secret:req-1",
+        request: {
+          name: "STRIPE_API_KEY",
+          description: "Billing sync",
+          agentId: "main",
+          sessionKey: "agent:main:main",
+          turnSourceChannel: "telegram",
+          turnSourceTo: "123",
+        },
+        createdAtMs: 1000,
+        expiresAtMs: 6000,
+      }),
+    ).resolves.toBe(true);
+    expect(deliver).toHaveBeenCalledTimes(1);
+    expect(getFirstDeliveryText(deliver)).toContain("🔑 Secret requested");
+  });
+
   it("can forward resolved notices without pending cache when request payload is present", async () => {
     const { deliver, forwarder } = createForwarder({
       cfg: makeTargetsCfg([{ channel: "telegram", to: "123" }]),

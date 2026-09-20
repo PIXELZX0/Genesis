@@ -763,8 +763,16 @@ const secretRequestStrategy = createApprovalStrategy<SecretRequest, SecretReques
   kind: "secret",
   // Secret prompts route exactly like plugin approvals ("the agent needs the
   // operator"), so they reuse that forwarding config instead of adding a
-  // parallel config surface operators would have to configure twice.
-  config: (cfg) => cfg.approvals?.plugin,
+  // parallel config surface operators would have to configure twice. The
+  // enable toggle and the agent/session filters are deliberately not reused:
+  // a secret request blocks the tool call and, unlike an exec approval,
+  // produces no in-turn text the agent could relay, so a prompt that is not
+  // forwarded leaves the user with nothing to answer and the tool times out.
+  config: (cfg) => ({
+    mode: cfg.approvals?.plugin?.mode,
+    targets: cfg.approvals?.plugin?.targets,
+    enabled: true,
+  }),
   buildExpiredText: (request) => `🔑 Secret ${request.request.name} request expired.`,
   // Plain text only: the operator answers by typing a value, so the
   // allow/deny button set approvals use would be misleading here.

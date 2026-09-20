@@ -37,7 +37,14 @@ function formatResult(params: {
   name: string;
   status: SecretRequestStatus;
   ref: SecretRef | null;
+  undelivered?: boolean;
 }): string {
+  if (params.undelivered) {
+    return [
+      "No secret stored: the prompt could not be delivered to the user (no chat route and no approvals client).",
+      "Do not ask for the value in chat. Tell the user to store it with `genesis secrets` instead.",
+    ].join("\n");
+  }
   if (params.status !== "provided" || !params.ref) {
     const reason =
       params.status === "cancelled" ? "declined the request" : "did not answer in time";
@@ -88,11 +95,18 @@ export function createRequestSecretTool(context?: RequestSecretContext): AnyAgen
         { expectFinal: false },
       )) as { id?: string; status?: string } | undefined;
 
+      // The gateway only keeps the request pending when it found somewhere to
+      // deliver it; otherwise it answers with a decision instead of "accepted".
       const id = typeof registration?.id === "string" ? registration.id : null;
-      if (!id) {
+      if (!id || registration?.status !== "accepted") {
         return {
-          content: [{ type: "text", text: formatResult({ name, status: "expired", ref: null }) }],
-          details: { status: "expired" as const, name },
+          content: [
+            {
+              type: "text",
+              text: formatResult({ name, status: "expired", ref: null, undelivered: true }),
+            },
+          ],
+          details: { status: "expired" as const, name, undelivered: true },
         };
       }
 

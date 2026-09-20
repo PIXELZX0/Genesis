@@ -125,6 +125,9 @@ export function createSecretRequestHandlers(
         requestEventName: "secret.requested",
         requestEvent,
         twoPhase: p.twoPhase === true,
+        // The secret tool blocks on the answer and emits no in-turn text, so
+        // only an actual delivery (chat forward or approvals client) counts.
+        turnSourceDelivers: false,
         deliverRequest: () => {
           if (!opts?.forwarder?.handleSecretRequested) {
             return false;

@@ -154,6 +154,13 @@ export async function handlePendingApprovalRequest<
   requestEvent: RequestedApprovalEvent<TPayload>;
   twoPhase: boolean;
   deliverRequest: () => boolean | Promise<boolean>;
+  /**
+   * Whether an approval-capable turn source counts as a delivery route on its
+   * own. True for exec/plugin approvals, whose tool call hands the agent text
+   * it relays into the chat. False for prompts with no such in-turn fallback:
+   * for those, an undelivered request would hang until it expires.
+   */
+  turnSourceDelivers?: boolean;
   afterDecision?: (
     decision: ExecApprovalDecision | null,
     requestEvent: RequestedApprovalEvent<TPayload>,
@@ -163,10 +170,12 @@ export async function handlePendingApprovalRequest<
   params.context.broadcast(params.requestEventName, params.requestEvent, { dropIfSlow: true });
 
   const hasApprovalClients = params.context.hasExecApprovalClients?.(params.clientConnId) ?? false;
-  const hasTurnSourceRoute = hasApprovalTurnSourceRoute({
-    turnSourceChannel: params.record.request.turnSourceChannel,
-    turnSourceAccountId: params.record.request.turnSourceAccountId,
-  });
+  const hasTurnSourceRoute =
+    params.turnSourceDelivers !== false &&
+    hasApprovalTurnSourceRoute({
+      turnSourceChannel: params.record.request.turnSourceChannel,
+      turnSourceAccountId: params.record.request.turnSourceAccountId,
+    });
   const deliveredResult = params.deliverRequest();
   const delivered = isPromiseLike(deliveredResult) ? await deliveredResult : deliveredResult;
 
