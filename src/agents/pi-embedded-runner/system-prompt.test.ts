@@ -12,27 +12,35 @@ type MutableSession = {
   _rebuildSystemPrompt?: (toolNames: string[]) => string;
 };
 
+type MockMessage = { role: string; content?: unknown; timestamp?: number };
+
 type MockSession = MutableSession & {
   agent: {
     state: {
-      systemPrompt?: string;
+      messages: MockMessage[];
     };
   };
 };
 
-function createMockSession(): {
+function createMockSession(messages: MockMessage[] = []): {
   session: MockSession;
 } {
   const session = {
-    agent: { state: {} },
+    agent: { state: { messages } },
   } as MockSession;
   return { session };
 }
 
+/** The prompt lives in the transcript's leading system message since pi 0.86. */
+function readMockSystemPrompt(session: MockSession): unknown {
+  return session.agent.state.messages.find((message) => message.role === "system")?.content;
+}
+
 function applyAndGetMutableSession(
   prompt: Parameters<typeof applySystemPromptOverrideToSession>[1],
+  messages?: MockMessage[],
 ) {
-  const { session } = createMockSession();
+  const { session } = createMockSession(messages);
   applySystemPromptOverrideToSession(session as unknown as AgentSession, prompt);
   return {
     mutable: session,
@@ -44,21 +52,35 @@ describe("applySystemPromptOverrideToSession", () => {
     const prompt = "You are a helpful assistant with custom context.";
     const { mutable } = applyAndGetMutableSession(prompt);
 
-    expect(mutable.agent.state.systemPrompt).toBe(prompt);
+    expect(readMockSystemPrompt(mutable)).toBe(prompt);
     expect(mutable._baseSystemPrompt).toBe(prompt);
   });
 
   it("trims whitespace from string overrides", () => {
     const { mutable } = applyAndGetMutableSession("  padded prompt  ");
 
-    expect(mutable.agent.state.systemPrompt).toBe("padded prompt");
+    expect(readMockSystemPrompt(mutable)).toBe("padded prompt");
   });
 
   it("applies a function override to the session system prompt", () => {
     const override = createSystemPromptOverride("function-based prompt");
     const { mutable } = applyAndGetMutableSession(override);
 
-    expect(mutable.agent.state.systemPrompt).toBe("function-based prompt");
+    expect(readMockSystemPrompt(mutable)).toBe("function-based prompt");
+  });
+
+  it("replaces an existing leading system message and clears later prompt text", () => {
+    const { mutable } = applyAndGetMutableSession("replacement prompt", [
+      { role: "system", content: "original prompt", timestamp: 0 },
+      { role: "user", content: "hi", timestamp: 1 },
+      { role: "system", content: "later instructions", timestamp: 2 },
+    ]);
+
+    expect(mutable.agent.state.messages).toMatchObject([
+      { role: "system", content: "replacement prompt" },
+      { role: "user", content: "hi" },
+      { role: "system", content: "" },
+    ]);
   });
 
   it("sets _rebuildSystemPrompt that returns the override", () => {

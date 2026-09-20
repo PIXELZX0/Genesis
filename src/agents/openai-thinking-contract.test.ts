@@ -99,14 +99,17 @@ describe("OpenAI thinking contract", () => {
     expect(payload.reasoning).toEqual({ effort: "high", summary: "auto" });
   });
 
-  it("leaves Codex Responses reasoning absent when pi-agent-core disables thinking", async () => {
+  it("keeps Codex Responses reasoning explicitly disabled when pi-agent-core disables thinking", async () => {
+    // pi 0.86 aligned the Codex transport with OpenAI Responses: a reasoning model with no
+    // requested effort now sends `effort: "none"` instead of omitting the field. Genesis still
+    // deletes it for an explicit "off" think level (createOpenAIThinkingLevelWrapper).
     const payload = await captureProviderPayload({
       model: codexModel,
       streamFunction: streamSimpleOpenAICodexResponses,
       options: { transport: "sse" },
     });
 
-    expect(payload).not.toHaveProperty("reasoning");
+    expect(payload.reasoning).toEqual({ effort: "none" });
   });
 
   it("keeps OpenAI Responses reasoning explicitly disabled when pi-agent-core disables thinking", async () => {
