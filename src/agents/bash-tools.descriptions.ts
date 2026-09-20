@@ -22,6 +22,7 @@ export function describeExecTool(params?: { agentId?: string; hasCronTool?: bool
       ? "Do not use exec sleep or delay loops for reminders or deferred follow-ups; use cron instead."
       : undefined,
     "Use pty=true for TTY-required commands (terminal UIs, coding agents).",
+    'Do not run `genesis gateway restart` here; it is blocked. Restart via the gateway tool action "restart", which reports back once the gateway is up.',
   ]
     .filter(Boolean)
     .join(" ");

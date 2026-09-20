@@ -1084,7 +1084,33 @@ function parseExecApprovalShellCommand(raw: string): ParsedExecApprovalCommand |
   };
 }
 
-function rejectExecApprovalShellCommand(command: string): void {
+const GENESIS_CLI_BIN_PATTERN = /^genesis(\.(?:cjs|cmd|exe|js|mjs|ps1))?$/i;
+
+/**
+ * True when a normalized shell candidate invokes `genesis gateway restart`.
+ *
+ * The gateway restart has to go through the `gateway` tool so the restart
+ * sentinel carries the caller's sessionKey and the agent is told the gateway
+ * came back up; a raw CLI restart loses that continuation.
+ */
+function isGatewayRestartShellCommand(candidate: string): boolean {
+  const argv = splitShellArgs(candidate) ?? candidate.split(/\s+/).filter(Boolean);
+  for (let i = 0; i < argv.length; i += 1) {
+    if (!GENESIS_CLI_BIN_PATTERN.test(path.basename(argv[i] ?? ""))) {
+      continue;
+    }
+    const rest = argv.slice(i + 1).filter((token) => !token.startsWith("-"));
+    if (normalizeLowercaseStringOrEmpty(rest[0] ?? "") !== "gateway") {
+      continue;
+    }
+    if (normalizeLowercaseStringOrEmpty(rest[1] ?? "") === "restart") {
+      return true;
+    }
+  }
+  return false;
+}
+
+function rejectBlockedExecShellCommand(command: string): void {
   const isEnvAssignmentToken = (token: string): boolean =>
     /^[A-Za-z_][A-Za-z0-9_]*=.*$/u.test(token);
   const shellWrappers = new Set(["bash", "dash", "fish", "ksh", "sh", "zsh"]);
@@ -1305,15 +1331,22 @@ function rejectExecApprovalShellCommand(command: string): void {
           return argv ? buildCandidates(argv) : [line];
         });
   for (const candidate of candidates) {
-    if (!parseExecApprovalShellCommand(candidate)) {
-      continue;
+    if (parseExecApprovalShellCommand(candidate)) {
+      throw new Error(
+        [
+          "exec cannot run /approve commands.",
+          "Show the /approve command to the user as chat text, or route it through the approval command handler instead of shell execution.",
+        ].join(" "),
+      );
     }
-    throw new Error(
-      [
-        "exec cannot run /approve commands.",
-        "Show the /approve command to the user as chat text, or route it through the approval command handler instead of shell execution.",
-      ].join(" "),
-    );
+    if (isGatewayRestartShellCommand(candidate)) {
+      throw new Error(
+        [
+          "exec cannot restart the gateway.",
+          'Use the gateway tool with action "restart" instead; it reports back once the gateway is up again.',
+        ].join(" "),
+      );
+    }
   }
 }
 
@@ -1604,7 +1637,7 @@ export function createExecTool(
         const rawWorkdir = explicitWorkdir ?? defaultWorkdir ?? process.cwd();
         workdir = resolveWorkdir(rawWorkdir, warnings);
       }
-      rejectExecApprovalShellCommand(params.command);
+      rejectBlockedExecShellCommand(params.command);
 
       const inheritedBaseEnv = coerceEnv(process.env);
       const hostEnvResult =
@@ -1899,5 +1932,6 @@ export function createExecTool(
 export const execTool = createExecTool();
 
 export const __testing = {
+  rejectBlockedExecShellCommand,
   validateScriptFileForShellBleed,
 };

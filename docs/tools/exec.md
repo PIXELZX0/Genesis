@@ -169,6 +169,19 @@ It updates **session state only** and does not write config. To hard-disable exe
 policy (`tools.deny: ["exec"]` or per-agent). Host approvals still apply unless you explicitly set
 `security=full` and `ask=off`.
 
+## Blocked commands
+
+`exec` refuses two command shapes regardless of host, approvals, or allowlist:
+
+- `/approve …` — show it to the user as chat text, or route it through the
+  approval command handler.
+- `genesis gateway restart` — use the [`gateway` tool](/tools/#built-in-tools)'s
+  `restart` action instead, so the restart sentinel keeps the calling session
+  and the agent reports back once the gateway is up again.
+
+Both checks run on the normalized command, so `sudo`, `env`, and `sh -c`
+wrappers do not bypass them.
+
 ## Exec approvals (companion app / node host)
 
 Sandboxed agents can require per-request approval before `exec` runs on the gateway or node host.

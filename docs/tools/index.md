@@ -88,11 +88,19 @@ active runtime model label from the latest transcript usage entry.
 
 `gateway` is the owner-only runtime tool for gateway operations:
 
+- `restart` for a gateway restart
 - `config.schema.lookup` for one path-scoped config subtree before edits
 - `config.get` for the current config snapshot + hash
 - `config.patch` for partial config updates with restart
 - `config.apply` only for full-config replacement
 - `update.run` for explicit self-update + restart
+
+`restart` is the only restart path available to an agent: `exec` refuses to run
+`genesis gateway restart`. The tool records the calling session in the restart
+sentinel, so once the gateway is back up that same agent is woken with the
+restart result and tells the user the gateway restarted. Pass `note` for the
+completion message and `continuationMessage` when you still owe the user a
+reply after boot.
 
 For partial changes, prefer `config.schema.lookup` then `config.patch`. Use
 `config.apply` only when you intentionally replace the entire config.

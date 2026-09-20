@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- Agents: `exec` no longer runs `genesis gateway restart`. A CLI restart killed the gateway without recording who asked for it, so the agent went silent mid-task. Restarts now go through the `gateway` tool's `restart` action, which stores the calling session in the restart sentinel and wakes that same agent after boot to report that the gateway restarted.
 - TypeSafe Jev: new bundled `typesafe` plugin with an opt-in tool router. When `plugins.entries.typesafe.config.jevRouter.enabled` is on (toggle in the Control UI), Jev picks the next tool before each model call. Tools whose arguments are all enum/boolean, browser clicks on numbered snapshot elements, and fresh browser snapshots run without an LLM call, and the main model is only asked to write free-form arguments or the text reply. An optional `jev_evaluate` tool exposes Jev's typed boolean/choice/score answers. Jev runs through the official TypeSafe API, Vercel AI Gateway, or OpenRouter (`backend`, default `auto`).
 - Plugins: new `before_model_call` hook lets plugins force a tool, disable tools, or run a tool without the model for each model call in the agent loop. OpenAI Responses requests now forward `tool_choice`.
 - Control UI: Settings -> Backups lists the config backup ring plus the last-known-good copy and restores one over the live config after a confirmation. The config being replaced is rotated into the ring first, so a restore can be undone by restoring again.
