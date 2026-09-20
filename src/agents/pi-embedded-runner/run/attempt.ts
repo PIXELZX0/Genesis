@@ -550,10 +550,7 @@ export async function runEmbeddedAttempt(
   let abortSessionForYield: (() => void) | null = null;
   let queueYieldInterruptForSession: (() => void) | null = null;
   let yieldAbortSettled: Promise<void> | null = null;
-  const diagnosticTrace =
-    params.isolatedToolBridge?.trace !== undefined
-      ? freezeDiagnosticTraceContext(params.isolatedToolBridge.trace)
-      : freezeDiagnosticTraceContext(createDiagnosticTraceContext());
+  const diagnosticTrace = freezeDiagnosticTraceContext(createDiagnosticTraceContext());
   const runTrace = freezeDiagnosticTraceContext(createChildDiagnosticTraceContext(diagnosticTrace));
   const toolContext = await prepareEmbeddedAttemptToolContext(params);
   const {
@@ -765,13 +762,11 @@ export async function runEmbeddedAttempt(
         model: params.model,
       });
     const clientTools = toolsEnabled ? params.clientTools : undefined;
-    const bundleMcpEnabled =
-      !params.isolatedToolBridge &&
-      shouldCreateBundleMcpRuntimeForAttempt({
-        toolsEnabled,
-        disableTools: params.disableTools,
-        toolsAllow: params.toolsAllow,
-      });
+    const bundleMcpEnabled = shouldCreateBundleMcpRuntimeForAttempt({
+      toolsEnabled,
+      disableTools: params.disableTools,
+      toolsAllow: params.toolsAllow,
+    });
     const bundleMcpSessionRuntime = bundleMcpEnabled
       ? await getOrCreateSessionMcpRuntime({
           sessionId: params.sessionId,
@@ -789,18 +784,17 @@ export async function runEmbeddedAttempt(
           ],
         })
       : undefined;
-    const bundleLspRuntime =
-      toolsEnabled && !params.isolatedToolBridge
-        ? await createBundleLspToolRuntime({
-            workspaceDir: effectiveWorkspace,
-            cfg: params.config,
-            reservedToolNames: [
-              ...tools.map((tool) => tool.name),
-              ...(clientTools?.map((tool) => tool.function.name) ?? []),
-              ...(bundleMcpRuntime?.tools.map((tool) => tool.name) ?? []),
-            ],
-          })
-        : undefined;
+    const bundleLspRuntime = toolsEnabled
+      ? await createBundleLspToolRuntime({
+          workspaceDir: effectiveWorkspace,
+          cfg: params.config,
+          reservedToolNames: [
+            ...tools.map((tool) => tool.name),
+            ...(clientTools?.map((tool) => tool.function.name) ?? []),
+            ...(bundleMcpRuntime?.tools.map((tool) => tool.name) ?? []),
+          ],
+        })
+      : undefined;
     const filteredBundledTools = applyFinalEffectiveToolPolicy({
       bundledTools: [...(bundleMcpRuntime?.tools ?? []), ...(bundleLspRuntime?.tools ?? [])],
       config: params.config,
@@ -1195,10 +1189,7 @@ export async function runEmbeddedAttempt(
         contextTokenBudget: params.contextTokenBudget,
       });
 
-      // Isolated attempts must not observe a child-global plugin runner. Only the
-      // explicitly bridged parent hooks are available through this narrow proxy.
-      const unbridgedHookRunner = params.isolatedHookRunner ? undefined : getGlobalHookRunner();
-      const hookRunner = params.isolatedHookRunner ?? unbridgedHookRunner;
+      const hookRunner = getGlobalHookRunner();
 
       const { customTools } = splitSdkTools({
         tools: effectiveTools,
@@ -1655,7 +1646,7 @@ export async function runEmbeddedAttempt(
       activeSession.agent.streamFunction = wrapStreamFnWithBeforeModelCallHook(
         activeSession.agent.streamFunction,
         {
-          hookRunner: unbridgedHookRunner,
+          hookRunner,
           runId: params.runId,
           sessionId: params.sessionId,
           hookCtx: {
@@ -1925,7 +1916,7 @@ export async function runEmbeddedAttempt(
           session: activeSession,
           runId: params.runId,
           initialReplayState: params.initialReplayState,
-          hookRunner: unbridgedHookRunner ?? undefined,
+          hookRunner: hookRunner ?? undefined,
           verboseLevel: params.verboseLevel,
           reasoningMode: params.reasoningLevel ?? "off",
           toolResultFormat: params.toolResultFormat,
@@ -2001,7 +1992,6 @@ export async function runEmbeddedAttempt(
         params.replyOperation.attachBackend(queueHandle);
       }
       setActiveEmbeddedRun(params.sessionId, queueHandle, params.sessionKey);
-      await params.isolatedToolBridge?.onReady?.();
 
       let abortWarnTimer: NodeJS.Timeout | undefined;
       const isProbeSession = params.sessionId?.startsWith("probe-") ?? false;
@@ -2352,8 +2342,8 @@ export async function runEmbeddedAttempt(
             );
           }
 
-          if (unbridgedHookRunner?.hasHooks("llm_input")) {
-            unbridgedHookRunner
+          if (hookRunner?.hasHooks("llm_input")) {
+            hookRunner
               .runLlmInput(
                 {
                   runId: params.runId,
@@ -2859,8 +2849,8 @@ export async function runEmbeddedAttempt(
         }
       }
 
-      if (unbridgedHookRunner?.hasHooks("llm_output")) {
-        unbridgedHookRunner
+      if (hookRunner?.hasHooks("llm_output")) {
+        hookRunner
           .runLlmOutput(
             {
               runId: params.runId,
