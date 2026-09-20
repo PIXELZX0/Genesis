@@ -400,7 +400,7 @@ describe("registerPluginCliCommands", () => {
     expect(mocks.memoryListAction).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps full CLI loading when primary command planning finds no plugin match", async () => {
+  it("uses the cli-metadata registry when primary command planning finds no plugin match", async () => {
     const program = createProgram();
     program.exitOverride();
 
@@ -409,11 +409,11 @@ describe("registerPluginCliCommands", () => {
       primary: "memory",
     });
 
-    expect(mocks.loadGenesisPlugins).toHaveBeenCalledWith(
-      expect.not.objectContaining({
-        onlyPluginIds: expect.anything(),
-      }),
-    );
+    // Unknown (or activation-metadata-less) commands must not pay for loading
+    // every plugin runtime just to discover CLI command names.
+    expect(mocks.loadGenesisPlugins).not.toHaveBeenCalled();
+    expect(mocks.loadGenesisPluginCliRegistry).toHaveBeenCalledTimes(1);
+    expect(program.commands.map((command) => command.name())).toEqual(["memory", "other"]);
   });
 
   it("returns null for validated plugin CLI config when the snapshot is invalid", async () => {

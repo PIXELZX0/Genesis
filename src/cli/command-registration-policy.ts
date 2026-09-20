@@ -1,5 +1,6 @@
 import { isTruthyEnvValue } from "../infra/env.js";
 import { resolveCliArgvInvocation } from "./argv-invocation.js";
+import { hasUnknownRootOption } from "./argv.js";
 
 export function shouldRegisterPrimaryCommandOnly(argv: string[]): boolean {
   const invocation = resolveCliArgvInvocation(argv);
@@ -15,7 +16,9 @@ export function shouldSkipPluginCommandRegistration(params: {
     return true;
   }
   if (!params.primary) {
-    return resolveCliArgvInvocation(params.argv).hasHelpOrVersion;
+    return (
+      resolveCliArgvInvocation(params.argv).hasHelpOrVersion || hasUnknownRootOption(params.argv)
+    );
   }
   return false;
 }

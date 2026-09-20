@@ -101,6 +101,38 @@ function isRootInvocationForFlags(
   return hasTarget;
 }
 
+/**
+ * True when the invocation names no command and carries an option Commander
+ * will reject. Nothing a plugin registers can rescue such an argv, so the CLI
+ * can skip plugin command registration and fail fast.
+ */
+export function hasUnknownRootOption(argv: string[]): boolean {
+  const args = argv.slice(2);
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (!arg) {
+      continue;
+    }
+    if (arg === FLAG_TERMINATOR) {
+      break;
+    }
+    if (HELP_FLAGS.has(arg) || VERSION_FLAGS.has(arg) || arg === ROOT_VERSION_ALIAS_FLAG) {
+      continue;
+    }
+    const consumed = consumeRootOptionToken(args, i);
+    if (consumed > 0) {
+      i += consumed - 1;
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      return true;
+    }
+    // A command owns everything past this token.
+    return false;
+  }
+  return false;
+}
+
 export function isRootHelpInvocation(argv: string[]): boolean {
   return isRootInvocationForFlags(argv, HELP_FLAGS);
 }

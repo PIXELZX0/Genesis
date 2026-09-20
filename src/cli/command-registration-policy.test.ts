@@ -38,6 +38,33 @@ describe("command-registration-policy", () => {
     ).toBe(false);
   });
 
+  it("skips plugin registration for root invocations Commander will reject", () => {
+    // Unknown root options fail before any command dispatch, so paying for
+    // plugin command discovery only delays the error.
+    expect(
+      shouldSkipPluginCommandRegistration({
+        argv: ["node", "genesis", "--bogus-flag"],
+        primary: null,
+        hasBuiltinPrimary: false,
+      }),
+    ).toBe(true);
+    // Known root options still render the full root help listing.
+    expect(
+      shouldSkipPluginCommandRegistration({
+        argv: ["node", "genesis", "--dev"],
+        primary: null,
+        hasBuiltinPrimary: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldSkipPluginCommandRegistration({
+        argv: ["node", "genesis"],
+        primary: null,
+        hasBuiltinPrimary: false,
+      }),
+    ).toBe(false);
+  });
+
   it("matches lazy subcommand registration policy", () => {
     expect(shouldEagerRegisterSubcommands({ GENESIS_DISABLE_LAZY_SUBCOMMANDS: "1" })).toBe(true);
     expect(shouldEagerRegisterSubcommands({ GENESIS_DISABLE_LAZY_SUBCOMMANDS: "0" })).toBe(false);

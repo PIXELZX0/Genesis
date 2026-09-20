@@ -113,6 +113,17 @@ export async function loadPluginCliCommandRegistryWithContext(params: {
   loaderOptions?: PluginCliLoaderOptions;
 }): Promise<PluginCliRegistryLoadResult> {
   const onlyPluginIds = resolvePrimaryCommandPluginIds(params.context, params.primaryCommand);
+  if (params.primaryCommand?.trim() && onlyPluginIds.length === 0) {
+    // A command was named but no manifest declares an owner for it (unknown
+    // command, or a plugin command without activation metadata). Loading every
+    // plugin runtime just to discover CLI commands costs seconds; the
+    // cli-metadata registry exposes the same command surface without it.
+    return loadPluginCliMetadataRegistryWithContext(
+      params.context,
+      { primaryCommand: params.primaryCommand },
+      params.loaderOptions,
+    );
+  }
   return {
     ...params.context,
     registry: loadGenesisPlugins(
