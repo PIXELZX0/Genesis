@@ -1016,35 +1016,38 @@ function resolveQuickSettingsConfigDefaults(config: Record<string, unknown>): {
 function renderSettingsNav(state: AppViewState) {
   const labelFor = (tab: Tab) => (tab === "config" ? t("settingsNav.config") : titleForTab(tab));
   return html`
-    <nav class="settings-subnav" aria-label=${t("settingsNav.label")}>
-      ${SETTINGS_TABS.map(
-        (tab) => html`
-          <a
-            class="settings-subnav__item ${state.tab === tab
-              ? "settings-subnav__item--active"
-              : ""}"
-            href=${pathForTab(tab, state.basePath)}
-            aria-current=${state.tab === tab ? "page" : "false"}
-            @click=${(event: MouseEvent) => {
-              if (
-                event.defaultPrevented ||
-                event.button !== 0 ||
-                event.metaKey ||
-                event.ctrlKey ||
-                event.shiftKey ||
-                event.altKey
-              ) {
-                return;
-              }
-              event.preventDefault();
-              state.setTab(tab);
-            }}
-          >
-            ${labelFor(tab)}
-          </a>
-        `,
-      )}
-    </nav>
+    <aside class="sidebar sidebar--settings">
+      <div class="settings-subnav__title">${t("nav.settings")}</div>
+      <nav class="settings-subnav" aria-label=${t("settingsNav.label")}>
+        ${SETTINGS_TABS.map(
+          (tab) => html`
+            <a
+              class="settings-subnav__item ${state.tab === tab
+                ? "settings-subnav__item--active"
+                : ""}"
+              href=${pathForTab(tab, state.basePath)}
+              aria-current=${state.tab === tab ? "page" : "false"}
+              @click=${(event: MouseEvent) => {
+                if (
+                  event.defaultPrevented ||
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                state.setTab(tab);
+              }}
+            >
+              ${labelFor(tab)}
+            </a>
+          `,
+        )}
+      </nav>
+    </aside>
   `;
 }
 
@@ -1197,7 +1200,10 @@ export function renderApp(state: AppViewState) {
     : [];
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
-  const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
+  // Settings pages swap the old top sub-nav for a second nav column, so the
+  // primary sidebar drops to its icon rail to make room for it.
+  const settingsNavOpen = isSettingsTab(state.tab) && !state.onboarding;
+  const navCollapsed = (state.settings.navCollapsed || settingsNavOpen) && !navDrawerOpen;
   const showThinking = !state.onboarding && state.settings.chatShowThinking;
   const showToolCalls = !state.onboarding && state.settings.chatShowToolCalls;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
@@ -1900,9 +1906,11 @@ export function renderApp(state: AppViewState) {
     <div
       class="shell ${isChat ? "shell--chat" : ""} ${chatFocus
         ? "shell--chat-focus"
-        : ""} ${navCollapsed ? "shell--nav-collapsed" : ""} ${navDrawerOpen
-        ? "shell--nav-drawer-open"
-        : ""} ${state.onboarding ? "shell--onboarding" : ""}"
+        : ""} ${navCollapsed ? "shell--nav-collapsed" : ""} ${settingsNavOpen
+        ? "shell--settings-nav"
+        : ""} ${navDrawerOpen ? "shell--nav-drawer-open" : ""} ${state.onboarding
+        ? "shell--onboarding"
+        : ""}"
     >
       <button
         type="button"
@@ -2085,6 +2093,7 @@ export function renderApp(state: AppViewState) {
             </div>
           </div>
         </aside>
+        ${settingsNavOpen ? renderSettingsNav(state) : nothing}
       </div>
       <main class="content ${isChat ? "content--chat" : ""}">
         ${state.updateAvailable &&
@@ -3509,7 +3518,6 @@ export function renderApp(state: AppViewState) {
               basePath: state.basePath ?? "",
             })
           : nothing}
-        ${isSettingsTab(state.tab) ? renderSettingsNav(state) : nothing}
         ${renderConfigTabForActiveTab()}
         ${state.tab === "debug"
           ? lazyRender(lazyDebug, (m) =>

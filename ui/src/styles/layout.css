@@ -7,6 +7,7 @@
   --shell-gap: 16px;
   --shell-nav-width: 240px;
   --shell-nav-rail-width: 78px;
+  --shell-settings-nav-width: 220px;
   --shell-topbar-height: 52px;
   --shell-focus-duration: 200ms;
   --shell-focus-ease: var(--ease-out);
@@ -43,6 +44,13 @@
 
 .shell--nav-collapsed {
   grid-template-columns: var(--shell-nav-rail-width) minmax(0, 1fr);
+}
+
+/* Settings pages: icon rail + settings nav column. */
+.shell--settings-nav {
+  grid-template-columns:
+    calc(var(--shell-nav-rail-width) + var(--shell-settings-nav-width))
+    minmax(0, 1fr);
 }
 
 .shell--chat-focus {
@@ -808,6 +816,12 @@
 .shell--nav-collapsed .shell-nav {
   width: var(--shell-nav-rail-width);
   min-width: var(--shell-nav-rail-width);
+}
+
+.shell--settings-nav .shell-nav,
+.shell--nav-collapsed.shell--settings-nav .shell-nav {
+  width: calc(var(--shell-nav-rail-width) + var(--shell-settings-nav-width));
+  min-width: calc(var(--shell-nav-rail-width) + var(--shell-settings-nav-width));
 }
 
 .shell--chat-focus .shell-nav {
