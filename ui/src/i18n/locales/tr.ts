@@ -194,8 +194,8 @@ export const tr: TranslationMap = {
     dreams: "Düşler",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Ayar bölümleri",
+    config: "Genel",
   },
   subtitles: {
     agents: "Çalışma alanları, araçlar, kimlikler.",

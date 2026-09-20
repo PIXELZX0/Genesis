@@ -195,8 +195,8 @@ export const de: TranslationMap = {
     dreams: "Träume",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Einstellungsbereiche",
+    config: "Allgemein",
   },
   subtitles: {
     agents: "Agent-Arbeitsbereiche, Tools und Identitäten verwalten.",

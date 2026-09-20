@@ -193,8 +193,8 @@ export const pl: TranslationMap = {
     dreams: "Sny",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Sekcje ustawień",
+    config: "Ogólne",
   },
   subtitles: {
     agents: "Obszary robocze, narzędzia, tożsamości.",

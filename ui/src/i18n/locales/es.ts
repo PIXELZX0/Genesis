@@ -192,7 +192,7 @@ export const es: TranslationMap = {
     dreams: "Sueños",
   },
   settingsNav: {
-    label: "Settings sections",
+    label: "Secciones de ajustes",
     config: "General",
   },
   subtitles: {

@@ -191,8 +191,8 @@ export const ko: TranslationMap = {
     dreams: "드리밍",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "설정 섹션",
+    config: "일반",
   },
   subtitles: {
     agents: "워크스페이스, 도구, 정체성.",

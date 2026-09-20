@@ -195,8 +195,8 @@ export const ja_JP: TranslationMap = {
     dreams: "Dreaming",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "設定セクション",
+    config: "一般",
   },
   subtitles: {
     agents: "ワークスペース、ツール、ID。",

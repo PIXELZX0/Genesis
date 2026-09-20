@@ -173,8 +173,6 @@
     "overview.wallet.noAccounts",
     "overview.wallet.subtitle",
     "overview.wallet.title",
-    "settingsNav.config",
-    "settingsNav.label",
     "subtitles.canvas",
     "subtitles.contact",
     "subtitles.files",
@@ -258,6 +256,6 @@
   "provider": "openai",
   "sourceHash": "88debfab32b13cc676d37f0a5d5d1a839ba36cb8ebbe402889d910ecc30d5764",
   "totalKeys": 983,
-  "translatedKeys": 732,
+  "translatedKeys": 734,
   "workflow": 1
 }

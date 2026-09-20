@@ -191,8 +191,8 @@ export const zh_TW: TranslationMap = {
     dreams: "夢境",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "設定分區",
+    config: "一般",
   },
   subtitles: {
     agents: "工作區、工具、身份。",

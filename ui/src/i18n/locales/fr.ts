@@ -194,8 +194,8 @@ export const fr: TranslationMap = {
     dreams: "Rêves",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Sections des paramètres",
+    config: "Général",
   },
   subtitles: {
     agents: "Espaces de travail, outils, identités.",

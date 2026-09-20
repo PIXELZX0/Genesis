@@ -191,8 +191,8 @@ export const th: TranslationMap = {
     dreams: "การฝัน",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "ส่วนการตั้งค่า",
+    config: "ทั่วไป",
   },
   subtitles: {
     agents: "เวิร์กสเปซ เครื่องมือ และข้อมูลประจำตัว",

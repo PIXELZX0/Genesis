@@ -192,8 +192,8 @@ export const id: TranslationMap = {
     dreams: "Mimpi",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Bagian pengaturan",
+    config: "Umum",
   },
   subtitles: {
     agents: "Ruang kerja, alat, identitas.",

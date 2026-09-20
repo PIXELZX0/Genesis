@@ -193,8 +193,8 @@ export const uk: TranslationMap = {
     dreams: "Сни",
   },
   settingsNav: {
-    label: "Settings sections",
-    config: "General",
+    label: "Розділи налаштувань",
+    config: "Загальні",
   },
   subtitles: {
     agents: "Робочі простори, інструменти, ідентичності.",
