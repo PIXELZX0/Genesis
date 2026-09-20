@@ -141,6 +141,10 @@ import {
   ConfigSchemaLookupParamsSchema,
   type ConfigSchemaLookupResult,
   ConfigSchemaLookupResultSchema,
+  type ConfigBackupRestoreParams,
+  ConfigBackupRestoreParamsSchema,
+  type ConfigBackupsParams,
+  ConfigBackupsParamsSchema,
   type ConfigSchemaParams,
   ConfigSchemaParamsSchema,
   type ConfigSchemaResponse,
@@ -599,6 +603,11 @@ export const validateConfigSetParams = ajv.compile<ConfigSetParams>(ConfigSetPar
 export const validateConfigApplyParams = ajv.compile<ConfigApplyParams>(ConfigApplyParamsSchema);
 export const validateConfigPatchParams = ajv.compile<ConfigPatchParams>(ConfigPatchParamsSchema);
 export const validateConfigSchemaParams = ajv.compile<ConfigSchemaParams>(ConfigSchemaParamsSchema);
+export const validateConfigBackupsParams =
+  ajv.compile<ConfigBackupsParams>(ConfigBackupsParamsSchema);
+export const validateConfigBackupRestoreParams = ajv.compile<ConfigBackupRestoreParams>(
+  ConfigBackupRestoreParamsSchema,
+);
 export const validateConfigSchemaLookupParams = ajv.compile<ConfigSchemaLookupParams>(
   ConfigSchemaLookupParamsSchema,
 );
@@ -874,6 +883,8 @@ export {
   ConfigApplyParamsSchema,
   ConfigPatchParamsSchema,
   ConfigSchemaParamsSchema,
+  ConfigBackupsParamsSchema,
+  ConfigBackupRestoreParamsSchema,
   ConfigSchemaLookupParamsSchema,
   ConfigSchemaResponseSchema,
   ConfigSchemaLookupResultSchema,
@@ -1049,6 +1060,8 @@ export type {
   ConfigApplyParams,
   ConfigPatchParams,
   ConfigSchemaParams,
+  ConfigBackupsParams,
+  ConfigBackupRestoreParams,
   ConfigSchemaResponse,
   WizardStartParams,
   WizardNextParams,

@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import {
   createConfigIO,
@@ -46,6 +47,8 @@ import {
   errorShape,
   formatValidationErrors,
   validateConfigApplyParams,
+  validateConfigBackupRestoreParams,
+  validateConfigBackupsParams,
   validateConfigGetParams,
   validateConfigPatchParams,
   validateConfigSchemaLookupParams,
@@ -54,6 +57,7 @@ import {
   validateConfigSetParams,
 } from "../protocol/index.js";
 import { resolveBaseHashParam } from "./base-hash.js";
+import { listConfigBackups, resolveConfigBackupFilePath } from "./config-backups.js";
 import { parseRestartRequestParams } from "./restart-request.js";
 import type { GatewayRequestContext, GatewayRequestHandlers, RespondFn } from "./types.js";
 import { assertValidParams } from "./validation.js";
@@ -540,6 +544,78 @@ export const configHandlers: GatewayRequestHandlers = {
           writeResult,
         }),
         schema: parsed.schema,
+      }),
+      undefined,
+    );
+    queueSharedGatewayAuthGenerationRefresh(true, parsed.config, context);
+  },
+  "config.backups": async ({ params, respond }) => {
+    if (!assertValidParams(params, validateConfigBackupsParams, "config.backups", respond)) {
+      return;
+    }
+    const snapshot = await readConfigFileSnapshot();
+    respond(true, await listConfigBackups(snapshot.path), undefined);
+  },
+  "config.backupRestore": async ({ params, respond, client, context }) => {
+    if (
+      !assertValidParams(params, validateConfigBackupRestoreParams, "config.backupRestore", respond)
+    ) {
+      return;
+    }
+    const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+    if (!requireConfigBaseHash(params, snapshot, respond)) {
+      return;
+    }
+    const id = (params as { id: string }).id;
+    const backupPath = resolveConfigBackupFilePath(snapshot.path, id);
+    if (!backupPath) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown backup id"));
+      return;
+    }
+    let raw: string;
+    try {
+      raw = await readFile(backupPath, "utf8");
+    } catch (error) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `backup unavailable: ${formatErrorMessage(error)}`),
+      );
+      return;
+    }
+    // Same validation and write path as config.set, so restoring rotates the
+    // current config into the backup ring and stays undoable.
+    const parsed = parseValidateConfigFromRawOrRespond(
+      { raw },
+      "config.backupRestore",
+      snapshot,
+      respond,
+    );
+    if (!parsed) {
+      return;
+    }
+    if (!(await ensureResolvableSecretRefsOrRespond({ config: parsed.config, respond }))) {
+      return;
+    }
+    const writeResult = await writeConfigFileWithResult(parsed.config, {
+      ...writeOptions,
+      baseSnapshot: snapshot,
+      runtimeRefreshIncludeAuthStoreRefs: false,
+    });
+    context.logGateway.info(
+      `config.backupRestore restored ${id} by ${formatControlPlaneActor(resolveControlPlaneActor(client))}`,
+    );
+    respond(
+      true,
+      buildConfigWriteResponse({
+        snapshot: buildConfigWriteSnapshot({
+          path: snapshot.path,
+          raw: parsed.raw,
+          config: parsed.config,
+          writeResult,
+        }),
+        schema: parsed.schema,
+        extra: { restoredFrom: id },
       }),
       undefined,
     );

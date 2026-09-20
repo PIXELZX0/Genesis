@@ -528,6 +528,10 @@ issue instead of restoring `.last-good`.
 
 Config backups (the `.bak` rotation ring, `.last-good`, `.clobbered.*`, and
 `.rejected.*`) are stored in a `config_backup/` folder next to `genesis.json`.
+The Control UI lists the rotation ring and `.last-good` under Settings ->
+Backups and can restore one over the live config; restoring runs through the
+same validation and write path, so the config being replaced is rotated into the
+ring first.
 
 Gateway CRUD writes for persistent agents use this same validation and write
 path before the updated configuration is activated.

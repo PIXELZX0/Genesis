@@ -4,6 +4,7 @@ import type { ModelProviderWizardStep, ModelProviderWizardTarget } from "./app-m
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
 import type { RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
+import type { ConfigBackupsResult } from "./controllers/config-backups.ts";
 import type { CronModelSuggestionsState, CronState } from "./controllers/cron.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
@@ -217,9 +218,14 @@ export type AppViewState = {
   wikiMemoryPalaceError: string | null;
   wikiMemoryPalace: import("./controllers/dreaming.js").WikiMemoryPalace | null;
   configFormMode: "form" | "raw";
-  configSettingsMode: "quick" | "advanced" | "authProfiles";
+  configSettingsMode: "quick" | "advanced" | "authProfiles" | "backups";
   authProfileDialog: AuthProfileDialog | null;
   quickSettingsConfirm: QuickSettingsConfirm | null;
+  configBackups: ConfigBackupsResult | null;
+  configBackupsLoading: boolean;
+  configBackupsError: string | null;
+  configBackupRestoreId: string | null;
+  configBackupRestoring: boolean;
   quickSettingsScope: "session" | "default";
   configSearchQuery: string;
   configActiveSection: string | null;

@@ -15,6 +15,12 @@
   margin-bottom: 24px;
 }
 
+.qs-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .qs-header__title {
   display: flex;
   align-items: center;

@@ -132,6 +132,7 @@ export type QuickSettingsProps = {
 
   // Navigation
   onAdvancedSettings?: () => void;
+  onOpenBackups?: () => void;
 
   // Connection
   connected: boolean;
@@ -783,9 +784,12 @@ export function renderQuickSettings(props: QuickSettingsProps) {
     <div class="qs-container">
       <div class="qs-header">
         <h2 class="qs-header__title">${icons.settings} Settings</h2>
-        <button class="btn btn--sm" @click=${props.onAdvancedSettings}>
-          Advanced ${icons.chevronRight}
-        </button>
+        <div class="qs-header__actions">
+          <button class="btn btn--sm" @click=${props.onOpenBackups}>Backups</button>
+          <button class="btn btn--sm" @click=${props.onAdvancedSettings}>
+            Advanced ${icons.chevronRight}
+          </button>
+        </div>
       </div>
 
       <div class="qs-grid">

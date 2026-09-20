@@ -42,6 +42,17 @@ const ConfigApplyLikeParamsSchema = Type.Object(
 export const ConfigApplyParamsSchema = ConfigApplyLikeParamsSchema;
 export const ConfigPatchParamsSchema = ConfigApplyLikeParamsSchema;
 
+export const ConfigBackupsParamsSchema = Type.Object({}, { additionalProperties: false });
+
+export const ConfigBackupRestoreParamsSchema = Type.Object(
+  {
+    // Ids come from config.backups; the handler rejects anything else.
+    id: Type.String({ minLength: 1, maxLength: 32, pattern: "^[a-z0-9.-]+$" }),
+    baseHash: Type.Optional(NonEmptyString),
+  },
+  { additionalProperties: false },
+);
+
 export const ConfigSchemaParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const ConfigSchemaLookupParamsSchema = Type.Object(

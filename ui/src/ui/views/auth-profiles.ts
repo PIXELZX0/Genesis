@@ -108,6 +108,7 @@ export function canSubmitAuthProfileDialog(dialog: AuthProfileDialog): boolean {
     case "remove":
       return true;
   }
+  return false;
 }
 
 export function renderAuthProfileDialog(
@@ -186,6 +187,7 @@ export function renderAuthProfileDialog(
         body: html``,
       });
   }
+  return nothing;
 }
 
 function renderPriorityPill(priority: number | undefined): TemplateResult {

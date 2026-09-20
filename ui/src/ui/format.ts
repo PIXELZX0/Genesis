@@ -5,6 +5,19 @@ import { t } from "../i18n/index.ts";
 
 export { formatRelativeTimestamp, formatDurationHuman };
 
+export function formatSize(size: number | undefined): string {
+  if (size === undefined) {
+    return "";
+  }
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function formatUnknownText(
   value: unknown,
   opts: { fallback?: string; pretty?: boolean } = {},

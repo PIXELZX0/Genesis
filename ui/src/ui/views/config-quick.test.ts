@@ -50,6 +50,7 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     configObject: {},
     onApplyPreset: vi.fn(),
     onAdvancedSettings: vi.fn(),
+    onOpenBackups: vi.fn(),
     connected: true,
     gatewayUrl: "ws://localhost:18789",
     assistantName: "Genesis",

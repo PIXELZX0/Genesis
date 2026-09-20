@@ -81,6 +81,7 @@ import {
   refreshVisibleToolsEffectiveForCurrentSession as refreshVisibleToolsEffectiveForCurrentSessionInternal,
 } from "./controllers/agents.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
+import type { ConfigBackupsResult } from "./controllers/config-backups.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type {
   DreamingStatus,
@@ -328,9 +329,14 @@ export class GenesisApp extends LitElement {
   @state() wikiMemoryPalaceError: string | null = null;
   @state() wikiMemoryPalace: WikiMemoryPalace | null = null;
   @state() configFormDirty = false;
-  @state() configSettingsMode: "quick" | "advanced" | "authProfiles" = "quick";
+  @state() configSettingsMode: "quick" | "advanced" | "authProfiles" | "backups" = "quick";
   @state() authProfileDialog: AuthProfileDialog | null = null;
   @state() quickSettingsConfirm: QuickSettingsConfirm | null = null;
+  @state() configBackups: ConfigBackupsResult | null = null;
+  @state() configBackupsLoading = false;
+  @state() configBackupsError: string | null = null;
+  @state() configBackupRestoreId: string | null = null;
+  @state() configBackupRestoring = false;
   @state() quickSettingsScope: "session" | "default" = "session";
   @state() configFormMode: "form" | "raw" = "form";
   @state() configSearchQuery = "";

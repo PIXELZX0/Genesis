@@ -37,6 +37,7 @@ import {
 import { AuthProfileController } from "./controllers/auth-profiles-controller.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { cancelPendingStream, loadChatHistory } from "./controllers/chat.ts";
+import { loadConfigBackups, restoreConfigBackup } from "./controllers/config-backups.ts";
 import {
   applyConfigRestartNow,
   cancelConfigRestartChanges,
@@ -225,6 +226,7 @@ import {
 } from "./views/agents-utils.ts";
 import { renderChat } from "./views/chat.ts";
 import { renderCommandPalette } from "./views/command-palette.ts";
+import { renderConfigBackupsView } from "./views/config-backups.ts";
 import { getPresetById, type ConfigPresetId } from "./views/config-presets.ts";
 import {
   renderQuickSettings,
@@ -1580,6 +1582,11 @@ export function renderApp(state: AppViewState) {
             onApplyPreset: (presetId) => {
               void applyQuickSettingsPreset(state, presetId).then(() => requestHostUpdate?.());
             },
+            onOpenBackups: () => {
+              state.configSettingsMode = "backups";
+              void loadConfigBackups(state).then(() => requestHostUpdate?.());
+              requestHostUpdate?.();
+            },
             onAdvancedSettings: () => {
               state.configSettingsMode = "advanced";
               requestHostUpdate?.();
@@ -1611,6 +1618,52 @@ export function renderApp(state: AppViewState) {
               },
             })}
           `;
+        }
+        if (state.configSettingsMode === "backups") {
+          return renderConfigBackupsView({
+            dir: state.configBackups?.dir ?? "",
+            entries: state.configBackups?.entries ?? [],
+            loading: state.configBackupsLoading,
+            error: state.configBackupsError,
+            restoreId: state.configBackupRestoreId,
+            restoring: state.configBackupRestoring,
+            onBack: () => {
+              state.configSettingsMode = "quick";
+              state.configBackupRestoreId = null;
+              requestHostUpdate?.();
+            },
+            onRefresh: () => {
+              void loadConfigBackups(state).then(() => requestHostUpdate?.());
+            },
+            onRestoreRequest: (id) => {
+              state.configBackupRestoreId = id;
+              requestHostUpdate?.();
+            },
+            onRestoreCancel: () => {
+              state.configBackupRestoreId = null;
+              requestHostUpdate?.();
+            },
+            onRestoreConfirm: () => {
+              const id = state.configBackupRestoreId;
+              if (!id || state.configBackupRestoring) {
+                return;
+              }
+              state.configBackupRestoring = true;
+              requestHostUpdate?.();
+              void restoreConfigBackup(state, id)
+                .then(async (result) => {
+                  if (result.ok) {
+                    state.configBackupRestoreId = null;
+                    await loadConfig(state);
+                    await loadConfigBackups(state);
+                  }
+                })
+                .finally(() => {
+                  state.configBackupRestoring = false;
+                  requestHostUpdate?.();
+                });
+            },
+          });
         }
         if (state.configSettingsMode === "authProfiles") {
           const providers = projectAuthStatusToProviders(state.modelAuthStatusResult);

@@ -1,20 +1,7 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
-import { formatRelativeTimestamp } from "../format.ts";
+import { formatRelativeTimestamp, formatSize } from "../format.ts";
 import type { FilesListResult, FilesReadResult } from "../types.ts";
-
-function formatSize(size: number | undefined): string {
-  if (size === undefined) {
-    return "";
-  }
-  if (size < 1024) {
-    return `${size} B`;
-  }
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1)} KB`;
-  }
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 // Split on both separators so Windows gateway paths still produce crumbs.
 function breadcrumbs(path: string): { label: string; path: string }[] {

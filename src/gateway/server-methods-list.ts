@@ -32,6 +32,8 @@ const BASE_METHODS = [
   "config.patch",
   "config.schema",
   "config.schema.lookup",
+  "config.backups",
+  "config.backupRestore",
   "exec.approvals.get",
   "exec.approvals.set",
   "exec.approvals.node.get",
