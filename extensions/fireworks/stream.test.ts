@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import {
   createFireworksKimiThinkingDisabledWrapper,
@@ -27,7 +28,7 @@ function capturePayload(params: {
       provider: params.provider,
       id: params.modelId,
     } as Model<"openai-completions">,
-    { messages: [] } as Context,
+    normalizeContext(normalizeContext({ messages: [] })),
     {},
   );
 
@@ -106,7 +107,7 @@ describe("createFireworksKimiThinkingDisabledWrapper", () => {
         provider: "fireworks",
         id: "accounts/fireworks/routers/kimi-k2p5-turbo",
       } as Model<"openai-completions">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {
         onPayload: (payload) => {
           callbackPayload = payload as Record<string, unknown>;

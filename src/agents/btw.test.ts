@@ -1,3 +1,4 @@
+import { getCurrentSystemPrompt } from "@earendil-works/pi-ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionEntry } from "../config/sessions.js";
 
@@ -245,6 +246,7 @@ function expectNoAssistantMessages(context: unknown) {
 function expectSanitizedAssistantContext(context: unknown, text: string) {
   expect(context).toMatchObject({
     messages: [
+      expect.objectContaining({ role: "system" }),
       expect.objectContaining({ role: "user" }),
       expect.objectContaining({
         role: "assistant",
@@ -258,6 +260,7 @@ function expectSanitizedAssistantContext(context: unknown, text: string) {
 function expectSeedOnlyUserContext(context: unknown) {
   expect(context).toMatchObject({
     messages: [
+      expect.objectContaining({ role: "system" }),
       expect.objectContaining({
         role: "user",
         content: [{ type: "text", text: "seed" }],
@@ -584,8 +587,11 @@ describe("runBtwSideQuestion", () => {
     expect(streamSimpleMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        systemPrompt: expect.stringContaining("ephemeral /btw side question"),
         messages: expect.arrayContaining([
+          expect.objectContaining({
+            role: "system",
+            content: expect.stringContaining("ephemeral /btw side question"),
+          }),
           expect.objectContaining({ role: "user" }),
           expect.objectContaining({
             role: "user",
@@ -620,6 +626,7 @@ describe("runBtwSideQuestion", () => {
       expect.anything(),
       expect.objectContaining({
         messages: [
+          expect.objectContaining({ role: "system" }),
           expect.objectContaining({
             role: "user",
             content: [
@@ -643,11 +650,9 @@ describe("runBtwSideQuestion", () => {
     await runSideQuestion({ question: "what is the distance to the sun?" });
 
     const [, context] = streamSimpleMock.mock.calls[0] ?? [];
-    expect(context).toMatchObject({
-      systemPrompt: expect.stringContaining(
-        "Do not continue, resume, or complete any unfinished task",
-      ),
-    });
+    expect(getCurrentSystemPrompt((context as { messages: [] }).messages)).toContain(
+      "Do not continue, resume, or complete any unfinished task",
+    );
     expect(context).toMatchObject({
       messages: expect.arrayContaining([
         expect.objectContaining({
@@ -755,6 +760,7 @@ describe("runBtwSideQuestion", () => {
     const [, context] = streamSimpleMock.mock.calls[0] ?? [];
     expect(context).toMatchObject({
       messages: [
+        expect.objectContaining({ role: "system" }),
         expect.objectContaining({ role: "user" }),
         expect.objectContaining({ role: "assistant" }),
         expect.objectContaining({ role: "user" }),

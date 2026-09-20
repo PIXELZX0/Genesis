@@ -1,3 +1,4 @@
+import { normalizeContext } from "@earendil-works/pi-ai";
 import type { Model } from "@earendil-works/pi-ai/compat";
 import { getModel, streamSimple } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
@@ -184,14 +185,10 @@ describeGeminiLive("pi embedded extra params (gemini live)", () => {
     };
     const agent = { streamFunction: baseStreamFn as typeof streamSimple };
     applyExtraParamsToAgent(agent, undefined, "google", params.model.id, undefined, "high");
-    void agent.streamFunction(
-      params.model,
-      { messages: [] },
-      {
-        reasoning: "high",
-        maxTokens: 64,
-      },
-    );
+    void agent.streamFunction(params.model, normalizeContext({ messages: [] }), {
+      reasoning: "high",
+      maxTokens: 64,
+    });
     return payload;
   }
 

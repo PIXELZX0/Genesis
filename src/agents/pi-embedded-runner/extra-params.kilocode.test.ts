@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai";
+import type { Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
 import { afterEach, describe, expect, it } from "vitest";
 import { captureEnv } from "../../test-utils/env.js";
 import { createKilocodeWrapper, isProxyReasoningUnsupported } from "./proxy-stream-wrappers.js";
@@ -25,7 +26,7 @@ function applyAndCapture(params: {
       ? createKilocodeWrapper(baseStreamFn, params.modelId === "kilo/auto" ? undefined : "high")
       : baseStreamFn;
 
-  const context: Context = { messages: [] };
+  const context = normalizeContext({ messages: [] });
   void streamFn(
     {
       api: "openai-completions",
@@ -58,7 +59,7 @@ function applyAndCaptureReasoning(params: {
       ? undefined
       : (params.thinkingLevel ?? "high");
   const streamFn = createKilocodeWrapper(baseStreamFn, thinkingLevel);
-  const context: Context = { messages: [] };
+  const context = normalizeContext({ messages: [] });
   void streamFn(
     {
       api: "openai-completions",

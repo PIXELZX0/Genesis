@@ -69,6 +69,7 @@ import {
   buildStreamErrorAssistantMessage,
 } from "./stream-message-shared.js";
 import { stripSystemPromptCacheBoundary } from "./system-prompt-cache-boundary.js";
+import { toLegacyContext } from "./transcript-context.js";
 import { mergeTransportMetadata } from "./transport-stream-shared.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -708,13 +709,16 @@ export function createOpenAIWebSocketStreamFn(
   sessionId: string,
   opts: OpenAIWebSocketStreamOptions = {},
 ): StreamFn {
-  return (model, context, options) => {
+  return (model, transcript, options) => {
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system
+    // messages; the payload builders below still take the flat pre-0.86 shape.
+    const context = toLegacyContext(transcript);
     const eventStream = createEventStream();
 
     const run = async () => {
       const transport = resolveWsTransport(options);
       if (transport === "sse") {
-        return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal);
+        return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal);
       }
 
       const signal = opts.signal ?? (options as WsOptions | undefined)?.signal;
@@ -767,7 +771,7 @@ export function createOpenAIWebSocketStreamFn(
           log.debug(
             `[ws-stream] session=${sessionId} in websocket cool-down; using HTTP fallback until ${new Date(session.degradedUntil!).toISOString()}`,
           );
-          return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+          return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
             suppressStart: emittedStart,
             turnState: resolveProviderTransportTurnState(model, {
               sessionId,
@@ -797,7 +801,7 @@ export function createOpenAIWebSocketStreamFn(
             log.warn(
               `[ws-stream] WebSocket connect failed for session=${sessionId}; falling back to HTTP. error=${String(connErr)}`,
             );
-            return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+            return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
               suppressStart: emittedStart,
               turnState: resolveProviderTransportTurnState(model, {
                 sessionId,
@@ -820,7 +824,7 @@ export function createOpenAIWebSocketStreamFn(
             createManager: () => createWsManager(opts.managerOptions, sessionHeaders),
             preserveDegradeUntil: true,
           });
-          return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+          return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
             suppressStart: emittedStart,
             turnState: resolveProviderTransportTurnState(model, {
               sessionId,
@@ -889,7 +893,7 @@ export function createOpenAIWebSocketStreamFn(
               log.warn(
                 `[ws-stream] reconnect after warm-up failed for session=${sessionId}; falling back to HTTP. error=${String(reconnectErr)}`,
               );
-              return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+              return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
                 suppressStart: emittedStart,
                 turnState: resolveProviderTransportTurnState(model, {
                   sessionId,
@@ -978,7 +982,7 @@ export function createOpenAIWebSocketStreamFn(
               createManager: () => createWsManager(opts.managerOptions, sessionHeaders),
               preserveDegradeUntil: true,
             });
-            return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+            return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
               suppressStart: emittedStart,
               turnState: resolveProviderTransportTurnState(model, {
                 sessionId,
@@ -1258,7 +1262,7 @@ export function createOpenAIWebSocketStreamFn(
               createManager: () => createWsManager(opts.managerOptions, sessionHeaders),
               preserveDegradeUntil: true,
             });
-            return fallbackToHttp(model, context, options, apiKey, eventStream, opts.signal, {
+            return fallbackToHttp(model, transcript, options, apiKey, eventStream, opts.signal, {
               suppressStart: true,
               turnState: resolveProviderTransportTurnState(model, {
                 sessionId,

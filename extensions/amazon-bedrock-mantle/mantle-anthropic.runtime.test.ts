@@ -1,4 +1,5 @@
 import type { Api, Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it, vi } from "vitest";
 import {
   createMantleAnthropicStreamFn,
@@ -34,7 +35,9 @@ describe("createMantleAnthropicStreamFn", () => {
   it("uses authToken bearer auth for Mantle Anthropic requests", () => {
     const stream = { kind: "anthropic-stream" };
     const model = createTestModel();
-    const context = { messages: [] };
+    const context = normalizeContext({ messages: [] } as unknown as Parameters<
+      typeof normalizeContext
+    >[0]);
     const deps = createTestDeps();
     deps.stream.mockReturnValue(stream as never);
 
@@ -75,7 +78,9 @@ describe("createMantleAnthropicStreamFn", () => {
 
   it("omits unsupported Opus 4.7 sampling and reasoning overrides", () => {
     const model = createTestModel();
-    const context = { messages: [] };
+    const context = normalizeContext({ messages: [] } as unknown as Parameters<
+      typeof normalizeContext
+    >[0]);
     const deps = createTestDeps();
     deps.stream.mockReturnValue({ kind: "anthropic-stream" } as never);
 

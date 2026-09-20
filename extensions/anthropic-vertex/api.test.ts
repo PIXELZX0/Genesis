@@ -1,4 +1,8 @@
-import { createAssistantMessageEventStream, type Model } from "@earendil-works/pi-ai";
+import {
+  normalizeContext,
+  createAssistantMessageEventStream,
+  type Model,
+} from "@earendil-works/pi-ai";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { AnthropicVertexStreamDeps } from "./stream-runtime.js";
 
@@ -49,8 +53,8 @@ describe("Anthropic Vertex API stream factories", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel();
 
-    await streamFn(model, { messages: [] }, {});
-    await streamFn(model, { messages: [] }, {});
+    await streamFn(model, normalizeContext({ messages: [] }), {});
+    await streamFn(model, normalizeContext({ messages: [] }), {});
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledTimes(1);
     expect(streamAnthropicMock).toHaveBeenCalledTimes(2);
@@ -68,8 +72,8 @@ describe("Anthropic Vertex API stream factories", () => {
     );
     const model = makeModel();
 
-    await streamFn(model, { messages: [] }, {});
-    await streamFn(model, { messages: [] }, {});
+    await streamFn(model, normalizeContext({ messages: [] }), {});
+    await streamFn(model, normalizeContext({ messages: [] }), {});
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledTimes(1);
     expect(streamAnthropicMock).toHaveBeenCalledTimes(2);

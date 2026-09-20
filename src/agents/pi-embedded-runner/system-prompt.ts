@@ -99,11 +99,39 @@ export function applySystemPromptOverrideToSession(
   override: string | ((defaultPrompt?: string) => string),
 ) {
   const prompt = typeof override === "function" ? override() : override.trim();
-  session.agent.state.systemPrompt = prompt;
+  // Since pi 0.86 `state.systemPrompt` is a read-only replay of the transcript's system
+  // messages, so a full override rewrites the leading system message and clears the
+  // prompt text of later ones, keeping their tool declarations in place.
+  replaceTranscriptSystemPrompt(session, prompt);
   const mutableSession = session as unknown as {
     _baseSystemPrompt?: string;
     _rebuildSystemPrompt?: (toolNames: string[]) => string;
   };
   mutableSession._baseSystemPrompt = prompt;
   mutableSession._rebuildSystemPrompt = () => prompt;
+}
+
+function replaceTranscriptSystemPrompt(session: AgentSession, prompt: string): void {
+  const state = session.agent?.state as
+    | { messages?: Array<{ role?: string } & Record<string, unknown>> }
+    | undefined;
+  if (!state || !Array.isArray(state.messages)) {
+    return;
+  }
+  let seenSystemMessage = false;
+  const messages = state.messages.map((message) => {
+    if (message?.role !== "system") {
+      return message;
+    }
+    const { sections: _sections, ...rest } = message;
+    if (seenSystemMessage) {
+      return { ...rest, content: "" };
+    }
+    seenSystemMessage = true;
+    return { ...rest, content: prompt };
+  });
+  if (!seenSystemMessage) {
+    messages.unshift({ role: "system", content: prompt, timestamp: Date.now() });
+  }
+  state.messages = messages;
 }

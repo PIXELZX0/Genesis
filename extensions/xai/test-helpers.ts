@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { expect } from "vitest";
 
 export type XaiToolPayloadFunction = {
@@ -56,7 +57,7 @@ export function runXaiGrok4ResponseStream(streamFn: StreamFn | null | undefined)
       provider: "xai",
       id: "grok-4",
     } as Model<"openai-responses">,
-    { messages: [] } as Context,
+    normalizeContext(normalizeContext({ messages: [] })),
     {},
   );
 }

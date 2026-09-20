@@ -16,6 +16,7 @@ import {
 } from "./anthropic-payload-policy.js";
 import { buildCopilotDynamicHeaders, hasCopilotVisionInput } from "./copilot-dynamic-headers.js";
 import { buildGuardedModelFetch } from "./provider-transport-fetch.js";
+import { toLegacyContext } from "./transcript-context.js";
 import { transformTransportMessages } from "./transport-message-transform.js";
 import {
   coerceTransportToolCallArguments,
@@ -740,8 +741,11 @@ function resolveAnthropicTransportOptions(
 }
 
 export function createAnthropicMessagesTransportStreamFn(): StreamFn {
-  return (rawModel, context, rawOptions) => {
+  return (rawModel, transcript, rawOptions) => {
     const model = rawModel as AnthropicTransportModel;
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system
+    // messages; the payload builders below still take the flat pre-0.86 shape.
+    const context = toLegacyContext(transcript);
     const options = rawOptions as AnthropicTransportOptions | undefined;
     const { eventStream, stream } = createWritableTransportEventStream();
     void (async () => {

@@ -1,5 +1,6 @@
 import fs from "node:fs";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";
 import { createCapturedThinkingConfigStream } from "../../test/helpers/plugins/stream-hooks.js";
@@ -58,7 +59,7 @@ describe("moonshot provider plugin", () => {
         provider: "moonshot",
         id: "kimi-k2.6",
       } as Model<"openai-completions">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 

@@ -1,8 +1,9 @@
 import { Agent, type StreamFn } from "@earendil-works/pi-agent-core";
 import {
   createAssistantMessageEventStream,
+  normalizeContext,
   type AssistantMessage,
-  type Context,
+  type TranscriptContext,
   type Model,
   type SimpleStreamOptions,
 } from "@earendil-works/pi-ai";
@@ -163,7 +164,7 @@ async function captureProviderPayload<
   model: Model<TApi>;
   streamFunction: (
     model: Model<TApi>,
-    context: Context,
+    context: TranscriptContext,
     options?: SimpleStreamOptions,
   ) => ReturnType<StreamFn>;
   options: SimpleStreamOptions;
@@ -175,9 +176,9 @@ async function captureProviderPayload<
     );
     const stream = params.streamFunction(
       params.model,
-      {
+      normalizeContext({
         messages: [{ role: "user", content: "hello", timestamp: 0 }],
-      },
+      }),
       {
         apiKey: params.model.api === "openai-codex-responses" ? codexTestToken : "test-api-key",
         cacheRetention: "none",

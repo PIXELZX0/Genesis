@@ -1,9 +1,9 @@
 import {
+  normalizeContext,
   completeSimple,
   streamSimple,
   Type,
   type AssistantMessage,
-  type Context,
   type Model,
 } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
@@ -101,7 +101,7 @@ describeLive("deepseek plugin live", () => {
 
   it("accepts V4 thinking replay after a prior provider tool call", async () => {
     const toolCallId = "call_deepseek_live_replay_1";
-    const context: Context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -139,7 +139,7 @@ describeLive("deepseek plugin live", () => {
           parameters: Type.Object({}, { additionalProperties: false }),
         },
       ],
-    };
+    } as unknown as Parameters<typeof normalizeContext>[0]);
     let capturedPayload: Record<string, unknown> | undefined;
     const streamFn = createDeepSeekV4ThinkingWrapper(streamSimple, "high");
     expect(streamFn).toBeDefined();

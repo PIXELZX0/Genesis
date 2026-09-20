@@ -1,9 +1,11 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
 import {
   createAssistantMessageEventStream,
+  getCurrentSystemPrompt,
+  normalizeContext,
   type AssistantMessage,
-  type Context,
   type Model,
+  type TranscriptContext,
 } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import {
@@ -66,7 +68,7 @@ describe("plugin text transforms", () => {
 
   it("rewrites system prompt and message text content before transport", () => {
     const context = transformStreamContextText(
-      {
+      normalizeContext({
         systemPrompt: "Use orchid mailbox inside north tower",
         messages: [
           {
@@ -77,7 +79,7 @@ describe("plugin text transforms", () => {
             ],
           },
         ],
-      } as Context,
+      } as unknown as Parameters<typeof normalizeContext>[0]),
       [
         {
           from: /orchid mailbox/g,
@@ -85,21 +87,21 @@ describe("plugin text transforms", () => {
         },
         { from: /red basket/g, to: "blue basket" },
       ],
-    ) as unknown as { systemPrompt: string; messages: Array<{ content: unknown[] }> };
+    ) as unknown as TranscriptContext & { messages: Array<{ content: unknown[] }> };
 
-    expect(context.systemPrompt).toBe("Use pine mailbox inside north tower");
-    expect(context.messages[0]?.content[0]).toMatchObject({
+    expect(getCurrentSystemPrompt(context.messages)).toBe("Use pine mailbox inside north tower");
+    expect(context.messages[1]?.content[0]).toMatchObject({
       type: "text",
       text: "Please use the blue basket",
     });
-    expect(context.messages[0]?.content[1]).toMatchObject({
+    expect(context.messages[1]?.content[1]).toMatchObject({
       type: "image",
       url: "data:image/png;base64,abc",
     });
   });
 
   it("wraps stream functions with inbound and outbound replacements", async () => {
-    let capturedContext: Context | undefined;
+    let capturedContext: TranscriptContext | undefined;
     const baseStreamFn: StreamFn = (_model, context) => {
       capturedContext = context;
       const stream = createAssistantMessageEventStream();
@@ -133,10 +135,10 @@ describe("plugin text transforms", () => {
     const stream = await Promise.resolve(
       wrapped(
         model,
-        {
+        normalizeContext({
           systemPrompt: "Keep red basket untouched here",
           messages: [{ role: "user", content: "Use red basket" }],
-        } as Context,
+        } as unknown as Parameters<typeof normalizeContext>[0]),
         undefined,
       ),
     );
@@ -146,8 +148,13 @@ describe("plugin text transforms", () => {
     }
     const result = await stream.result();
 
-    expect(capturedContext?.systemPrompt).toBe("Keep red basket untouched here");
-    expect(capturedContext?.messages).toMatchObject([{ role: "user", content: "Use blue basket" }]);
+    expect(getCurrentSystemPrompt(capturedContext?.messages ?? [])).toBe(
+      "Keep red basket untouched here",
+    );
+    expect(capturedContext?.messages.at(-1)).toMatchObject({
+      role: "user",
+      content: "Use blue basket",
+    });
     expect(events[0]).toMatchObject({
       type: "text_delta",
       delta: "red basket on the left shelf",

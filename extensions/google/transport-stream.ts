@@ -33,6 +33,7 @@ import {
   type GoogleThinkingInputLevel,
   type GoogleThinkingLevel,
 } from "./thinking-api.js";
+import { toLegacyContext } from "./transcript-context.js";
 
 type GoogleTransportModel = Model<"google-generative-ai"> & {
   headers?: Record<string, string>;
@@ -632,8 +633,9 @@ function pushTextBlockEnd(
 }
 
 export function createGoogleGenerativeAiTransportStreamFn(): StreamFn {
-  return (rawModel, context, rawOptions) => {
+  return (rawModel, transcript, rawOptions) => {
     const model = rawModel as GoogleTransportModel;
+    const context = toLegacyContext(transcript);
     const options = rawOptions as GoogleTransportOptions | undefined;
     const { eventStream, stream } = createWritableTransportEventStream();
     void (async () => {

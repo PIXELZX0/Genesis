@@ -1,4 +1,8 @@
-import { streamSimpleOpenAICompletions, type Model } from "@earendil-works/pi-ai/compat";
+import {
+  normalizeContext,
+  streamSimpleOpenAICompletions,
+  type Model,
+} from "@earendil-works/pi-ai/compat";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ModelProviderConfig } from "../config/config.js";
 import { withFetchPreconnect } from "../test-utils/fetch-mock.js";
@@ -989,7 +993,7 @@ describe("applyLocalNoAuthHeaderOverride", () => {
 
     streamSimpleOpenAICompletions(
       model,
-      {
+      normalizeContext({
         messages: [
           {
             role: "user",
@@ -997,7 +1001,7 @@ describe("applyLocalNoAuthHeaderOverride", () => {
             timestamp: Date.now(),
           },
         ],
-      },
+      }),
       {
         apiKey: CUSTOM_LOCAL_AUTH_MARKER,
       },

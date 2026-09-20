@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import { normalizeContext, type Model } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import {
   createMinimaxFastModeWrapper,
@@ -26,7 +26,7 @@ function captureThinkingPayload(params: {
       provider: params.provider,
       id: params.modelId,
     } as Model<"anthropic-messages">,
-    { messages: [] } as Context,
+    normalizeContext({ messages: [] }),
     {},
   );
 
@@ -92,7 +92,7 @@ describe("createMinimaxThinkingDisabledWrapper", () => {
         provider: "minimax",
         id: "MiniMax-M2.7",
       } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext({ messages: [] }),
       {},
     );
 
@@ -115,7 +115,7 @@ describe("createMinimaxFastModeWrapper", () => {
         provider: "minimax",
         id: "MiniMax-M2.7",
       } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext({ messages: [] }),
       {},
     );
 

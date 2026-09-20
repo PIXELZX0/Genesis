@@ -11,9 +11,10 @@ import type {
 } from "./openai-ws-types.js";
 import { resolveProviderRequestPolicyConfig } from "./provider-request-config.js";
 import { stripSystemPromptCacheBoundary } from "./system-prompt-cache-boundary.js";
+import type { toLegacyContext } from "./transcript-context.js";
 
 type WsModel = Parameters<StreamFn>[0];
-type WsContext = Parameters<StreamFn>[1];
+type WsContext = ReturnType<typeof toLegacyContext>;
 type WsOptions = Parameters<StreamFn>[2] & {
   temperature?: number;
   maxTokens?: number;

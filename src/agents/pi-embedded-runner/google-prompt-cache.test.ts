@@ -161,13 +161,14 @@ describe("google prompt cache", () => {
         parts: [{ text: "Follow policy." }],
       },
     });
+    const [, managedContext, managedOptions] = innerStreamFn.mock.calls[0] ?? [];
+    expect(managedContext).not.toHaveProperty("systemPrompt");
+    expect(managedContext).toMatchObject({ tools: expect.any(Array) });
+    expect(managedOptions).toMatchObject({ temperature: 0.2 });
     expect(innerStreamFn).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        systemPrompt: undefined,
-        tools: expect.any(Array),
-      }),
-      expect.objectContaining({ temperature: 0.2 }),
+      expect.any(Object),
+      expect.any(Object),
     );
     expect(getCapturedPayload()).toMatchObject({
       cachedContent: "cachedContents/system-cache-1",
@@ -209,9 +210,10 @@ describe("google prompt cache", () => {
     );
 
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(innerStreamFn.mock.calls[0]?.[1]).not.toHaveProperty("systemPrompt");
     expect(innerStreamFn).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ systemPrompt: undefined }),
+      expect.any(Object),
       expect.any(Object),
     );
     expect(getCapturedPayload()).toMatchObject({
@@ -268,9 +270,10 @@ describe("google prompt cache", () => {
       "https://generativelanguage.googleapis.com/v1beta/cachedContents/system-cache-3?updateMask=ttl",
     );
     expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: "PATCH" });
+    expect(innerStreamFn.mock.calls[0]?.[1]).not.toHaveProperty("systemPrompt");
     expect(innerStreamFn).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ systemPrompt: undefined }),
+      expect.any(Object),
       expect.any(Object),
     );
     expect(getCapturedPayload()).toMatchObject({

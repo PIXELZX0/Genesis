@@ -437,6 +437,15 @@ function buildTranscriptEvents(params: {
           name: entry.name,
         });
         break;
+      case "usage":
+        push("session.usage", {
+          kind: entry.kind,
+          provider: entry.provider,
+          modelId: entry.model,
+          usage: sanitizeDiagnosticPayload(entry.usage),
+          note: entry.note,
+        });
+        break;
     }
   }
   return events;

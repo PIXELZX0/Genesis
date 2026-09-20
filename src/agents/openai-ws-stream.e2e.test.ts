@@ -18,7 +18,6 @@ import type {
   AssistantMessage,
   AssistantMessageEvent,
   AssistantMessageEventStream,
-  Context,
 } from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isLiveTestEnabled } from "./live-test-helpers.js";
@@ -71,7 +70,7 @@ function makeToolContext(userMessage: string): StreamFnParams[1] {
         },
       },
     ],
-  } as unknown as Context;
+  } as unknown as StreamFnParams[1];
 }
 
 function makeToolResultMessage(

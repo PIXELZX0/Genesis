@@ -8,7 +8,7 @@
  *  - Session registry helpers (releaseWsSession, hasWsSession)
  */
 
-import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
+import { createAssistantMessageEventStream, normalizeContext } from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResponseObject } from "./openai-ws-connection.js";
 import {
@@ -28,6 +28,7 @@ import {
 import type { InputItem, ResponseCreateEvent } from "./openai-ws-types.js";
 import { log } from "./pi-embedded-runner/logger.js";
 import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
+import { toLegacyContext } from "./transcript-context.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock OpenAIWebSocketManager
@@ -1576,7 +1577,7 @@ describe("planTurnInput", () => {
   const replayModel = { input: ["text"] };
 
   it("uses incremental tool result replay when a previous response id and new tool results exist", () => {
-    const context = {
+    const context = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [
         userMsg("Run ls"),
@@ -1584,7 +1585,7 @@ describe("planTurnInput", () => {
         toolResultMsg("call_1|fc_1", "file.txt"),
       ] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
     const turnInput = planTurnInput({
       context,
@@ -1628,7 +1629,7 @@ describe("planTurnInput", () => {
       usage: { input_tokens: 12, output_tokens: 8, total_tokens: 20 },
     } as ResponseObject;
 
-    const context = {
+    const context = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [
         userMsg("Run ls"),
@@ -1639,7 +1640,7 @@ describe("planTurnInput", () => {
         }),
       ] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
     const turnInput = planTurnInput({
       context,
@@ -1664,11 +1665,11 @@ describe("planTurnInput", () => {
   });
 
   it("uses full context on the initial turn", () => {
-    const context = {
+    const context = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [userMsg("Hello!")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
     const turnInput = planTurnInput({
       context,
@@ -1794,11 +1795,11 @@ describe("createOpenAIWebSocketStreamFn", () => {
     name: "GPT-5.2",
   };
 
-  const contextStub = {
+  const contextStub = normalizeContext({
     systemPrompt: "You are helpful.",
     messages: [userMsg("Hello!") as Parameters<typeof convertMessagesToInputItems>[0][number]],
     tools: [],
-  };
+  });
 
   beforeEach(() => {
     MockManager.reset();
@@ -1857,10 +1858,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("connects to the WebSocket on first call", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-1");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     // Give the microtask queue time to run
     await new Promise((r) => setImmediate(r));
@@ -1875,10 +1873,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("sends a response.create event on first turn (full context)", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-full");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const completed = new Promise<void>((res, rej) => {
       queueMicrotask(async () => {
@@ -1914,10 +1909,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("includes store:false by default", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-store-default");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const completed = new Promise<void>((res, rej) => {
       queueMicrotask(async () => {
@@ -1950,10 +1942,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
       compat: { supportsStore: false },
     };
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-store-compat");
-    const stream = streamFn(
-      noStoreModel as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(noStoreModel as Parameters<typeof streamFn>[0], contextStub);
 
     const completed = new Promise<void>((res, rej) => {
       queueMicrotask(async () => {
@@ -1994,9 +1983,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
       model: proxiedModel as Parameters<
         typeof buildOpenAIWebSocketResponseCreatePayload
       >[0]["model"],
-      context: contextStub as Parameters<
-        typeof buildOpenAIWebSocketResponseCreatePayload
-      >[0]["context"],
+      context: toLegacyContext(contextStub),
       turnInput,
       tools: [],
     }) as Record<string, unknown>;
@@ -2005,10 +1992,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("emits an AssistantMessage on response.completed", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-2");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: unknown[] = [];
     const done = (async () => {
@@ -2039,10 +2023,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("suppresses commentary-only text on completed WebSocket responses", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phase");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: unknown[] = [];
     const done = (async () => {
@@ -2074,10 +2055,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("emits accumulated phase-aware partials when output item mapping is available", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phase-stream");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: Array<{
       type?: string;
@@ -2198,10 +2176,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("buffers text deltas until item mapping is available", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phase-late-map");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: Array<{
       type?: string;
@@ -2288,10 +2263,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("keeps buffering text deltas until item phase is defined", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phase-late-map-undefined");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: Array<{
       type?: string;
@@ -2387,10 +2359,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
   });
   it("buffers text when output_item.added arrives without phase metadata", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phaseless-gate");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: Array<{
       type?: string;
@@ -2476,10 +2445,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("buffers output_text.done until item phase is defined", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-phaseless-done-gate");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
     const events: Array<{
       type?: string;
@@ -2564,10 +2530,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
     try {
       const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-fallback");
-      const stream = streamFn(
-        modelStub as Parameters<typeof streamFn>[0],
-        contextStub as Parameters<typeof streamFn>[1],
-      );
+      const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
 
       // Consume — should fall back to HTTP (streamSimple mock).
       const messages: unknown[] = [];
@@ -2587,11 +2550,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("falls back to HTTP when WebSocket errors before any output in auto mode", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-runtime-fallback");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "auto" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "auto",
+    } as Parameters<typeof streamFn>[2]);
 
     await new Promise((r) => setImmediate(r));
     const manager = MockManager.lastInstance!;
@@ -2616,11 +2577,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("falls back to HTTP when OpenAI sends a nested websocket error payload", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-runtime-fallback-nested");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "auto" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "auto",
+    } as Parameters<typeof streamFn>[2]);
 
     await new Promise((r) => setImmediate(r));
     const manager = MockManager.lastInstance!;
@@ -2650,11 +2609,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("retries one retryable mid-request close before falling back in auto mode", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-runtime-retry");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "auto" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "auto",
+    } as Parameters<typeof streamFn>[2]);
 
     await new Promise((r) => setImmediate(r));
     const firstManager = MockManager.lastInstance!;
@@ -2684,11 +2641,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("keeps native turn metadata stable across websocket retries and increments attempt", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-turn-metadata-retry");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "auto" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "auto",
+    } as Parameters<typeof streamFn>[2]);
 
     await new Promise((r) => setImmediate(r));
     const firstManager = MockManager.lastInstance!;
@@ -2722,11 +2677,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
       ...modelStub,
       baseUrl: "http://127.0.0.1:4100/v1",
     };
-    const stream = streamFn(
-      customEndpointModel as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "websocket" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(customEndpointModel as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "websocket",
+    } as Parameters<typeof streamFn>[2]);
 
     await new Promise((r) => setImmediate(r));
     const manager = MockManager.lastInstance!;
@@ -2757,11 +2710,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
       const sessionId = "sess-degraded-cooldown";
       const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
-      const firstStream = streamFn(
-        modelStub as Parameters<typeof streamFn>[0],
-        contextStub as Parameters<typeof streamFn>[1],
-        { transport: "auto" } as Parameters<typeof streamFn>[2],
-      );
+      const firstStream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+        transport: "auto",
+      } as Parameters<typeof streamFn>[2]);
       void firstStream;
       await new Promise((resolve) => setImmediate(resolve));
       await new Promise((resolve) => setImmediate(resolve));
@@ -2773,11 +2724,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
       MockManager.globalConnectShouldFail = false;
 
-      const secondStream = streamFn(
-        modelStub as Parameters<typeof streamFn>[0],
-        contextStub as Parameters<typeof streamFn>[1],
-        { transport: "auto" } as Parameters<typeof streamFn>[2],
-      );
+      const secondStream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+        transport: "auto",
+      } as Parameters<typeof streamFn>[2]);
       void secondStream;
       await new Promise((resolve) => setImmediate(resolve));
       await new Promise((resolve) => setImmediate(resolve));
@@ -2788,11 +2737,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
       nowSpy.mockReturnValue(1_060);
 
-      const thirdStream = streamFn(
-        modelStub as Parameters<typeof streamFn>[0],
-        contextStub as Parameters<typeof streamFn>[1],
-        { transport: "auto" } as Parameters<typeof streamFn>[2],
-      );
+      const thirdStream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+        transport: "auto",
+      } as Parameters<typeof streamFn>[2]);
 
       void thirdStream;
       await new Promise((resolve) => setImmediate(resolve));
@@ -2818,16 +2765,13 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
     // ── Turn 1: full context ─────────────────────────────────────────────
-    const ctx1 = {
+    const ctx1 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [userMsg("Run ls")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream1 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx1 as Parameters<typeof streamFn>[1],
-    );
+    const stream1 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx1);
 
     const events1: unknown[] = [];
     const done1 = (async () => {
@@ -2845,7 +2789,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     await done1;
 
     // ── Turn 2: incremental (tool results only) ───────────────────────────
-    const ctx2 = {
+    const ctx2 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [
         userMsg("Run ls"),
@@ -2853,12 +2797,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
         toolResultMsg("call_abc|item_2", "file.txt"),
       ] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream2 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx2 as Parameters<typeof streamFn>[1],
-    );
+    const stream2 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx2);
 
     const events2: unknown[] = [];
     const done2 = (async () => {
@@ -2891,16 +2832,13 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const sessionId = "sess-user-delta";
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
-    const ctx1 = {
+    const ctx1 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [userMsg("Hello")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream1 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx1 as Parameters<typeof streamFn>[1],
-    );
+    const stream1 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx1);
     const done1 = (async () => {
       for await (const _ of await resolveStream(stream1)) {
         /* consume */
@@ -2913,7 +2851,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     manager.simulateEvent({ type: "response.completed", response: turn1Response });
     await done1;
 
-    const ctx2 = {
+    const ctx2 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [
         userMsg("Hello"),
@@ -2921,12 +2859,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
         userMsg("What can you do?"),
       ] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream2 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx2 as Parameters<typeof streamFn>[1],
-    );
+    const stream2 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx2);
     const done2 = (async () => {
       for await (const _ of await resolveStream(stream2)) {
         /* consume */
@@ -2952,11 +2887,11 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const sessionId = "sess-full-context-replay";
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
-    const ctx1 = {
+    const ctx1 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [userMsg("Run ls")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
     const turn1Response = {
       id: "resp_turn1_reasoning",
@@ -2981,10 +2916,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
       usage: { input_tokens: 12, output_tokens: 8, total_tokens: 20 },
     } as ResponseObject;
 
-    const stream1 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx1 as Parameters<typeof streamFn>[1],
-    );
+    const stream1 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx1);
     const done1 = (async () => {
       for await (const _ of await resolveStream(stream1)) {
         /* consume */
@@ -2996,19 +2928,16 @@ describe("createOpenAIWebSocketStreamFn", () => {
     manager.simulateEvent({ type: "response.completed", response: turn1Response });
     await done1;
 
-    const ctx2 = {
+    const ctx2 = normalizeContext({
       systemPrompt: "You are helpful.",
       messages: [
         userMsg("Run ls"),
         buildAssistantMessageFromResponse(turn1Response, modelStub),
       ] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream2 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx2 as Parameters<typeof streamFn>[1],
-    );
+    const stream2 = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx2);
     const done2 = (async () => {
       for await (const _ of await resolveStream(stream2)) {
         /* consume */
@@ -3032,16 +2961,13 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("sends instructions (system prompt) in each request", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-tools");
-    const ctx = {
+    const ctx = normalizeContext({
       systemPrompt: "Be concise.",
       messages: [userMsg("Hello")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [{ name: "exec", description: "run", parameters: {} }],
-    };
+    });
 
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx);
 
     await new Promise((r) => setImmediate(r));
     const manager = MockManager.lastInstance!;
@@ -3065,16 +2991,13 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("strips the internal cache boundary from websocket instructions", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-boundary");
-    const ctx = {
+    const ctx = normalizeContext({
       systemPrompt: `Stable prefix${SYSTEM_PROMPT_CACHE_BOUNDARY}Dynamic suffix`,
       messages: [userMsg("Hello")] as Parameters<typeof convertMessagesToInputItems>[0],
       tools: [],
-    };
+    });
 
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      ctx as Parameters<typeof streamFn>[1],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], ctx);
 
     await new Promise((r) => setImmediate(r));
     const manager = MockManager.lastInstance!;
@@ -3098,10 +3021,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
     // 1. Run a successful first turn to populate the registry
-    const stream1 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream1 = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3126,10 +3046,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const callsBefore = streamSimpleCalls.length;
 
     // 3. Second call: send throws → must fall back to HTTP and clear registry
-    const stream2 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream2 = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
     for await (const _ of await resolveStream(stream2)) {
       /* consume */
     }
@@ -3156,10 +3073,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const sessionId = "sess-boundary-http-fallback";
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", sessionId);
 
-    const stream1 = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-    );
+    const stream1 = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3203,7 +3117,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { temperature: 0.3, maxTokens: 256 };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3234,7 +3148,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { maxTokens: 0 };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3264,7 +3178,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { textVerbosity: "low" };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3296,7 +3210,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
       const opts = { textVerbosity: "loud" };
       const stream = streamFn(
         modelStub as Parameters<typeof streamFn>[0],
-        contextStub as Parameters<typeof streamFn>[1],
+        contextStub,
         opts as unknown as Parameters<typeof streamFn>[2],
       );
       await new Promise<void>((resolve, reject) => {
@@ -3330,7 +3244,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { reasoningEffort: "high", reasoningSummary: "auto" };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3359,7 +3273,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-reason-default");
     const stream = streamFn(
       { ...modelStub, reasoning: true } as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       undefined,
     );
     await new Promise<void>((resolve, reject) => {
@@ -3389,7 +3303,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { reasoning: "medium" };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3439,7 +3353,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
         baseUrl: "https://chatgpt.com/backend-api",
         reasoning: true,
       } as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3469,7 +3383,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { reasoningEffort: "none" };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3496,19 +3410,15 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("applies onPayload mutations before sending response.create", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-onpayload");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      {
-        onPayload: (payload: unknown) => {
-          const request = payload as Record<string, unknown>;
-          request.reasoning = { effort: "none" };
-          request.text = { verbosity: "low" };
-          request.service_tier = "priority";
-          return undefined;
-        },
-      } as unknown as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      onPayload: (payload: unknown) => {
+        const request = payload as Record<string, unknown>;
+        request.reasoning = { effort: "none" };
+        request.text = { verbosity: "low" };
+        request.service_tier = "priority";
+        return undefined;
+      },
+    } as unknown as Parameters<typeof streamFn>[2]);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3535,18 +3445,14 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("awaits async onPayload mutations before sending response.create", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-onpayload-async");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      {
-        onPayload: async (payload: unknown) => {
-          const request = payload as Record<string, unknown>;
-          await Promise.resolve();
-          request.metadata = { async_hook: "applied" };
-          return undefined;
-        },
-      } as unknown as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      onPayload: async (payload: unknown) => {
+        const request = payload as Record<string, unknown>;
+        await Promise.resolve();
+        request.metadata = { async_hook: "applied" };
+        return undefined;
+      },
+    } as unknown as Parameters<typeof streamFn>[2]);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3573,7 +3479,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
     const opts = { topP: 0.9, toolChoice: "auto" };
     const stream = streamFn(
       modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
+      contextStub,
       opts as unknown as Parameters<typeof streamFn>[2],
     );
     await new Promise<void>((resolve, reject) => {
@@ -3601,11 +3507,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("keeps explicit websocket mode surfacing mid-request drops", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-drop");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { transport: "websocket" } as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      transport: "websocket",
+    } as Parameters<typeof streamFn>[2]);
     // Let the send go through, then simulate connection drop before response.completed
     await new Promise<void>((resolve) => {
       queueMicrotask(async () => {
@@ -3633,11 +3537,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("sends warm-up event before first request when openaiWsWarmup=true", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-warmup-enabled");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { openaiWsWarmup: true } as unknown as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      openaiWsWarmup: true,
+    } as unknown as Parameters<typeof streamFn>[2]);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3664,11 +3566,9 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
   it("skips warm-up when openaiWsWarmup=false", async () => {
     const streamFn = createOpenAIWebSocketStreamFn("sk-test", "sess-warmup-disabled");
-    const stream = streamFn(
-      modelStub as Parameters<typeof streamFn>[0],
-      contextStub as Parameters<typeof streamFn>[1],
-      { openaiWsWarmup: false } as unknown as Parameters<typeof streamFn>[2],
-    );
+    const stream = streamFn(modelStub as Parameters<typeof streamFn>[0], contextStub, {
+      openaiWsWarmup: false,
+    } as unknown as Parameters<typeof streamFn>[2]);
     await new Promise<void>((resolve, reject) => {
       queueMicrotask(async () => {
         try {
@@ -3728,11 +3628,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.2",
       } as Parameters<typeof streamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Hi") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof streamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3764,11 +3664,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.2",
       } as Parameters<typeof streamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Hi") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof streamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3800,11 +3700,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.4",
       } as Parameters<typeof streamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Hi") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof streamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3866,11 +3766,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.4",
       } as Parameters<typeof firstStreamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Hi") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof firstStreamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3903,11 +3803,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.4",
       } as Parameters<typeof secondStreamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Again") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof secondStreamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3941,11 +3841,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.4",
       } as Parameters<typeof firstStreamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Hi") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof firstStreamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));
@@ -3972,11 +3872,11 @@ describe("releaseWsSession / hasWsSession", () => {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         name: "GPT-5.4",
       } as Parameters<typeof secondStreamFn>[0],
-      {
+      normalizeContext({
         systemPrompt: "test",
         messages: [userMsg("Again") as Parameters<typeof convertMessagesToInputItems>[0][number]],
         tools: [],
-      } as Parameters<typeof secondStreamFn>[1],
+      }),
     );
 
     await new Promise((r) => setImmediate(r));

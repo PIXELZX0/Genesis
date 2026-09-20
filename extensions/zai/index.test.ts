@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";
 import plugin from "./index.js";
@@ -170,7 +171,7 @@ describe("zai provider plugin", () => {
         provider: "zai",
         id: "glm-5.1",
       } as Model<"openai-completions">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 
@@ -191,7 +192,7 @@ describe("zai provider plugin", () => {
         provider: "zai",
         id: "glm-5.1",
       } as Model<"openai-completions">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 

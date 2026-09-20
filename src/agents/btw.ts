@@ -1,4 +1,5 @@
 import {
+  normalizeContext,
   streamSimple,
   type Api,
   type AssistantMessageEvent,
@@ -474,7 +475,7 @@ export async function runBtwSideQuestion(
   const stream = await streamWithPayloadPatch(
     providerStreamFn ?? streamSimple,
     runtimeModel,
-    {
+    normalizeContext({
       systemPrompt: buildBtwSystemPrompt(),
       messages: [
         ...messages,
@@ -489,7 +490,7 @@ export async function runBtwSideQuestion(
           timestamp: Date.now(),
         },
       ],
-    },
+    }),
     {
       apiKey,
       // BTW is intentionally a lightweight side question path. Keep provider

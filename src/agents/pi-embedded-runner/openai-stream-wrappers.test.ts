@@ -1,6 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
 import type { Model } from "@earendil-works/pi-ai";
-import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
+import { normalizeContext, createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { createOpenAIThinkingLevelWrapper } from "./openai-stream-wrappers.js";
 
@@ -36,7 +36,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "none" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "medium");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "medium" });
   });
@@ -46,7 +46,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "none" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "high");
-    void wrapped(openaiModel, { messages: [] }, {});
+    void wrapped(openaiModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "high" });
   });
@@ -56,7 +56,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "medium" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "off");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]).not.toHaveProperty("reasoning");
   });
@@ -66,7 +66,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "none" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "adaptive");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "medium" });
   });
@@ -74,7 +74,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
   it("replaces string disabled reasoning when thinkingLevel is enabled", () => {
     const { baseStreamFn, payloads } = createPayloadCapture({ initialReasoning: "none" });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "low");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "low" });
   });
@@ -82,7 +82,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
   it("does not add reasoning for non-reasoning models without existing reasoning payload", () => {
     const { baseStreamFn, payloads } = createPayloadCapture();
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "medium");
-    void wrapped(openaiModel, { messages: [] }, {});
+    void wrapped(openaiModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toBeUndefined();
   });
@@ -92,7 +92,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "none" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "medium");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "medium" });
   });
@@ -108,7 +108,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "none", summary: "auto" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "high");
-    void wrapped(codexModel, { messages: [] }, {});
+    void wrapped(codexModel, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "high", summary: "auto" });
   });
@@ -123,7 +123,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
         id: "gpt-4o",
         baseUrl: "https://proxy.example.com/v1",
       } as Model<"openai-completions">,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       {},
     );
 
@@ -140,7 +140,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
         id: "gpt-5.2",
         baseUrl: "https://proxy.example.com/v1",
       } as Model<"openai-responses">,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       {},
     );
 
@@ -154,7 +154,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
         initialReasoning: { effort: "none" },
       });
       const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, level);
-      void wrapped(codexModel, { messages: [] }, {});
+      void wrapped(codexModel, normalizeContext({ messages: [] }), {});
       expect(payloads[0]?.reasoning).toEqual({ effort: level });
     }
   });
@@ -175,7 +175,7 @@ describe("createOpenAIThinkingLevelWrapper", () => {
       initialReasoning: { effort: "high" },
     });
     const wrapped = createOpenAIThinkingLevelWrapper(baseStreamFn, "xhigh");
-    void wrapped(model as Model<typeof model.api>, { messages: [] }, {});
+    void wrapped(model as Model<typeof model.api>, normalizeContext({ messages: [] }), {});
 
     expect(payloads[0]?.reasoning).toEqual({ effort: "xhigh" });
   });

@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import {
   createKimiThinkingWrapper,
@@ -37,7 +38,7 @@ const KIMI_MODEL = {
   provider: "kimi",
   id: "k2p5",
 } as Model<"anthropic-messages">;
-const KIMI_CONTEXT = { messages: [] } as Context;
+const KIMI_CONTEXT = normalizeContext(normalizeContext({ messages: [] }));
 
 function createReadToolCall() {
   return {
@@ -125,7 +126,7 @@ describe("kimi tool-call markup wrapper", () => {
     const wrapped = createKimiToolCallMarkupWrapper(baseStreamFn);
     const stream = wrapped(
       { api: "anthropic-messages", provider: "kimi", id: "k2p5" } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     ) as FakeStream;
 
@@ -188,7 +189,7 @@ describe("kimi tool-call markup wrapper", () => {
     const wrapped = createKimiToolCallMarkupWrapper(baseStreamFn);
     const stream = wrapped(
       { api: "anthropic-messages", provider: "kimi", id: "k2p5" } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     ) as FakeStream;
 
@@ -272,7 +273,7 @@ describe("kimi tool-call markup wrapper", () => {
         provider: "kimi",
         id: "kimi-code",
       } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 
@@ -298,7 +299,7 @@ describe("kimi tool-call markup wrapper", () => {
         provider: "kimi",
         id: "kimi-code",
       } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 
@@ -323,7 +324,7 @@ describe("kimi tool-call markup wrapper", () => {
         provider: "kimi",
         id: "kimi-code",
       } as Model<"anthropic-messages">,
-      { messages: [] } as Context,
+      normalizeContext(normalizeContext({ messages: [] })),
       {},
     );
 

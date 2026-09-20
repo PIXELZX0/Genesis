@@ -5,6 +5,7 @@ import {
   calculateCost,
   createAssistantMessageEventStream,
   getEnvApiKey,
+  normalizeContext,
   parseStreamingJson,
   type Api,
   type Context,
@@ -46,6 +47,7 @@ import {
 } from "./openai-tool-schema.js";
 import { buildGuardedModelFetch } from "./provider-transport-fetch.js";
 import { stripSystemPromptCacheBoundary } from "./system-prompt-cache-boundary.js";
+import { toLegacyContext } from "./transcript-context.js";
 import { transformTransportMessages } from "./transport-message-transform.js";
 import { mergeTransportMetadata, sanitizeTransportPayloadText } from "./transport-stream-shared.js";
 
@@ -690,7 +692,10 @@ function createOpenAIResponsesClient(
 }
 
 export function createOpenAIResponsesTransportStreamFn(): StreamFn {
-  return (model, context, options) => {
+  return (model, transcript, options) => {
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system
+    // messages; the payload builders below still take the flat pre-0.86 shape.
+    const context = toLegacyContext(transcript);
     const eventStream = createAssistantMessageEventStream();
     const stream = eventStream as unknown as { push(event: unknown): void; end(): void };
     void (async () => {
@@ -922,7 +927,10 @@ export function buildOpenAIResponsesParams(
 }
 
 export function createAzureOpenAIResponsesTransportStreamFn(): StreamFn {
-  return (model, context, options) => {
+  return (model, transcript, options) => {
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system
+    // messages; the payload builders below still take the flat pre-0.86 shape.
+    const context = toLegacyContext(transcript);
     const eventStream = createAssistantMessageEventStream();
     const stream = eventStream as unknown as { push(event: unknown): void; end(): void };
     void (async () => {
@@ -1125,7 +1133,10 @@ function buildOpenAICompletionsClientConfig(
 }
 
 export function createOpenAICompletionsTransportStreamFn(): StreamFn {
-  return (model, context, options) => {
+  return (model, transcript, options) => {
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system
+    // messages; the payload builders below still take the flat pre-0.86 shape.
+    const context = toLegacyContext(transcript);
     const eventStream = createAssistantMessageEventStream();
     const stream = eventStream as unknown as { push(event: unknown): void; end(): void };
     void (async () => {
@@ -1730,12 +1741,14 @@ export function buildOpenAICompletionsParams(
   options: OpenAICompletionsOptions | undefined,
 ) {
   const compat = getCompat(model);
-  const completionsContext = context.systemPrompt
-    ? {
-        ...context,
-        systemPrompt: stripSystemPromptCacheBoundary(context.systemPrompt),
-      }
-    : context;
+  const completionsContext = normalizeContext(
+    context.systemPrompt
+      ? {
+          ...context,
+          systemPrompt: stripSystemPromptCacheBoundary(context.systemPrompt),
+        }
+      : context,
+  );
   const messages = convertMessages(model as never, completionsContext, compat as never);
   injectToolCallThoughtSignatures(messages as unknown[], context, model);
   const cacheRetention = resolveCacheRetention(options?.cacheRetention);

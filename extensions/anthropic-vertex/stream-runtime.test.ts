@@ -1,4 +1,8 @@
-import { createAssistantMessageEventStream, type Model } from "@earendil-works/pi-ai";
+import {
+  normalizeContext,
+  createAssistantMessageEventStream,
+  type Model,
+} from "@earendil-works/pi-ai";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { AnthropicVertexStreamDeps } from "./stream-runtime.js";
 
@@ -109,7 +113,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const { deps, anthropicVertexCtorMock } = createStreamDeps();
     const streamFn = createAnthropicVertexStreamFn(undefined, "global", undefined, deps);
 
-    void streamFn(makeModel({ id: "claude-sonnet-4-6", maxTokens: 128000 }), { messages: [] }, {});
+    void streamFn(
+      makeModel({ id: "claude-sonnet-4-6", maxTokens: 128000 }),
+      normalizeContext({ messages: [] }),
+      {},
+    );
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledWith({
       region: "global",
@@ -125,7 +133,11 @@ describe("createAnthropicVertexStreamFn", () => {
       deps,
     );
 
-    void streamFn(makeModel({ id: "claude-sonnet-4-6", maxTokens: 128000 }), { messages: [] }, {});
+    void streamFn(
+      makeModel({ id: "claude-sonnet-4-6", maxTokens: 128000 }),
+      normalizeContext({ messages: [] }),
+      {},
+    );
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledWith({
       projectId: "vertex-project",
@@ -139,11 +151,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel({ id: "claude-opus-4-6", maxTokens: 128000 });
 
-    void streamFn(model, { messages: [] }, {});
+    void streamFn(model, normalizeContext({ messages: [] }), {});
 
     expect(streamAnthropicMock).toHaveBeenCalledWith(
       model,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       expect.objectContaining({
         maxTokens: 128000,
       }),
@@ -155,11 +167,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel({ id: "claude-sonnet-4-6", maxTokens: 128000 });
 
-    void streamFn(model, { messages: [] }, { maxTokens: 999999 });
+    void streamFn(model, normalizeContext({ messages: [] }), { maxTokens: 999999 });
 
     expect(streamAnthropicMock).toHaveBeenCalledWith(
       model,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       expect.objectContaining({
         maxTokens: 128000,
       }),
@@ -171,11 +183,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel({ id: "claude-opus-4-6", maxTokens: 64000 });
 
-    void streamFn(model, { messages: [] }, { reasoning: "xhigh" });
+    void streamFn(model, normalizeContext({ messages: [] }), { reasoning: "xhigh" });
 
     expect(streamAnthropicMock).toHaveBeenCalledWith(
       model,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       expect.objectContaining({
         thinkingEnabled: true,
         effort: "max",
@@ -188,11 +200,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel({ id: "claude-opus-4-7", maxTokens: 64000 });
 
-    void streamFn(model, { messages: [] }, { reasoning: "xhigh" });
+    void streamFn(model, normalizeContext({ messages: [] }), { reasoning: "xhigh" });
 
     expect(streamAnthropicMock).toHaveBeenCalledWith(
       model,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       expect.objectContaining({
         thinkingEnabled: true,
         effort: "xhigh",
@@ -264,11 +276,11 @@ describe("createAnthropicVertexStreamFn", () => {
     const streamFn = createAnthropicVertexStreamFn("vertex-project", "us-east5", undefined, deps);
     const model = makeModel({ id: "claude-sonnet-4-6" });
 
-    void streamFn(model, { messages: [] }, { maxTokens: Number.NaN });
+    void streamFn(model, normalizeContext({ messages: [] }), { maxTokens: Number.NaN });
 
     expect(streamAnthropicMock).toHaveBeenCalledWith(
       model,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       expect.not.objectContaining({
         maxTokens: expect.anything(),
       }),
@@ -285,7 +297,11 @@ describe("createAnthropicVertexStreamFnForModel", () => {
       deps,
     );
 
-    void streamFn(makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }), { messages: [] }, {});
+    void streamFn(
+      makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }),
+      normalizeContext({ messages: [] }),
+      {},
+    );
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledWith({
       projectId: "vertex-project",
@@ -302,7 +318,11 @@ describe("createAnthropicVertexStreamFnForModel", () => {
       deps,
     );
 
-    void streamFn(makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }), { messages: [] }, {});
+    void streamFn(
+      makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }),
+      normalizeContext({ messages: [] }),
+      {},
+    );
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledWith({
       projectId: "vertex-project",
@@ -319,7 +339,11 @@ describe("createAnthropicVertexStreamFnForModel", () => {
       deps,
     );
 
-    void streamFn(makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }), { messages: [] }, {});
+    void streamFn(
+      makeModel({ id: "claude-sonnet-4-6", maxTokens: 64000 }),
+      normalizeContext({ messages: [] }),
+      {},
+    );
 
     expect(anthropicVertexCtorMock).toHaveBeenCalledWith({
       projectId: "vertex-project",

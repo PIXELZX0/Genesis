@@ -1,5 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai";
+import type { Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   GPT_PARALLEL_TOOL_CALLS_PAYLOAD_APIS,
@@ -109,7 +110,7 @@ describe("transport params runtime contract (Pi/OpenAI path)", () => {
         provider: "openai",
         id: "gpt-5.4",
       } as Model<"openai-responses">,
-      { messages: [] },
+      normalizeContext({ messages: [] }),
       {},
     );
 
@@ -216,7 +217,7 @@ function runPayloadMutation(params: {
     undefined,
     params.thinkingLevel,
   );
-  const context: Context = { messages: [] };
+  const context = normalizeContext({ messages: [] });
   void agent.streamFunction?.(params.model, context, {} as SimpleStreamOptions);
   return payload;
 }

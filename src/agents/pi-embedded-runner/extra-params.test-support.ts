@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
+import type { Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
 import type { ThinkLevel } from "../../auto-reply/thinking.shared.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
 import { __testing as extraParamsTesting, applyExtraParamsToAgent } from "./extra-params.js";
@@ -75,7 +75,8 @@ export function runExtraParamsCase<
     }
   }
 
-  const context: Context = { messages: [] };
+  // Built without normalizeContext so suites that mock pi-ai do not need to stub it.
+  const context = { messages: [] } as unknown as Parameters<StreamFn>[1];
   void agent.streamFunction?.(params.model, context, {
     ...params.options,
     headers: params.callerHeaders ?? params.options?.headers,

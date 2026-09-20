@@ -7,6 +7,7 @@
  * after_tool_call invocation (see PR #27283 → dedup in this fix).
  */
 import type { AgentTool } from "@earendil-works/pi-agent-core";
+import { normalizeContext } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBaseToolHandlerState } from "./pi-tool-handler-state.test-helpers.js";
@@ -57,7 +58,7 @@ function createToolHandlerCtx() {
   return {
     params: {
       runId: "integration-test",
-      session: { messages: [] },
+      session: normalizeContext({ messages: [] }),
     },
     hookRunner: hookMocks.runner,
     state: {

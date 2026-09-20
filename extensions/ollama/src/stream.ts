@@ -9,7 +9,11 @@ import type {
   Tool,
   Usage,
 } from "@earendil-works/pi-ai/compat";
-import { createAssistantMessageEventStream, streamSimple } from "@earendil-works/pi-ai/compat";
+import {
+  createAssistantMessageEventStream,
+  streamSimple,
+  type JsonObject,
+} from "@earendil-works/pi-ai/compat";
 import { formatErrorMessage } from "genesis/plugin-sdk/error-runtime";
 import type {
   GenesisConfig,
@@ -35,6 +39,7 @@ import {
   parseJsonPreservingUnsafeIntegers,
 } from "./ollama-json.js";
 import { buildOllamaBaseUrlSsrFPolicy } from "./provider-models.js";
+import { toLegacyContext } from "./transcript-context.js";
 
 const log = createSubsystemLogger("ollama-stream");
 
@@ -537,7 +542,7 @@ export function buildAssistantMessage(
         type: "toolCall",
         id: `ollama_call_${randomUUID()}`,
         name: toolCall.function.name,
-        arguments: toolCall.function.arguments,
+        arguments: toolCall.function.arguments as JsonObject,
       });
     }
   }
@@ -612,8 +617,10 @@ export function createOllamaStreamFn(
   const chatUrl = resolveOllamaChatUrl(baseUrl);
   const ssrfPolicy = buildOllamaBaseUrlSsrFPolicy(chatUrl);
 
-  return (model, context, options) => {
+  return (model, transcript, options) => {
     const stream = createAssistantMessageEventStream();
+    // Pi 0.86 carries the prompt and tool declarations in the transcript's system messages.
+    const context = toLegacyContext(transcript);
 
     const run = async () => {
       try {

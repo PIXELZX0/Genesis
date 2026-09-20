@@ -1,5 +1,5 @@
 import type { AssistantMessage, Model, ToolResultMessage } from "@earendil-works/pi-ai/compat";
-import { streamOpenAIResponses } from "@earendil-works/pi-ai/compat";
+import { normalizeContext, streamOpenAIResponses } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 
@@ -90,11 +90,11 @@ async function runAbortedOpenAIResponsesStream(params: {
 
   const stream = streamOpenAIResponses(
     buildModel(),
-    {
+    normalizeContext({
       systemPrompt: "system",
       messages: params.messages,
       ...(params.tools ? { tools: params.tools } : {}),
-    },
+    }),
     {
       apiKey: "test",
       signal: controller.signal,

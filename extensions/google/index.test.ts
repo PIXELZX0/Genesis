@@ -1,4 +1,5 @@
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import type {
   ProviderReplaySessionEntry,
   ProviderSanitizeReplayHistoryContext,
@@ -162,7 +163,7 @@ describe("google provider plugin hooks", () => {
           provider: providerId,
           id: "gemini-3.1-pro-preview",
         } as Model<"google-generative-ai">,
-        { messages: [] } as Context,
+        normalizeContext(normalizeContext({ messages: [] })),
         {},
       );
 

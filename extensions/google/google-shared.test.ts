@@ -1,4 +1,5 @@
-import type { Context, Tool } from "@earendil-works/pi-ai";
+import type { Tool } from "@earendil-works/pi-ai";
+import { normalizeContext } from "@earendil-works/pi-ai/compat";
 import { describe, expect, it } from "vitest";
 import {
   convertMessages,
@@ -141,7 +142,7 @@ describe("google-shared convertMessages", () => {
     second: string;
   }) {
     const model = makeModel(params.modelId);
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -152,7 +153,7 @@ describe("google-shared convertMessages", () => {
           content: params.second,
         },
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     expect(contents).toHaveLength(2);
@@ -164,7 +165,7 @@ describe("google-shared convertMessages", () => {
 
   it("keeps thinking blocks when provider/model match", () => {
     const model = makeModel("gemini-1.5-pro");
-    const context = {
+    const context = normalizeContext({
       messages: [
         makeGoogleAssistantMessage(model.id, [
           {
@@ -174,7 +175,7 @@ describe("google-shared convertMessages", () => {
           },
         ]),
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     expect(contents).toHaveLength(1);
@@ -187,7 +188,7 @@ describe("google-shared convertMessages", () => {
 
   it("keeps thought signatures for Claude models", () => {
     const model = makeModel("claude-3-opus");
-    const context = {
+    const context = normalizeContext({
       messages: [
         makeGoogleAssistantMessage(model.id, [
           {
@@ -197,7 +198,7 @@ describe("google-shared convertMessages", () => {
           },
         ]),
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     const parts = contents?.[0]?.parts ?? [];
@@ -226,7 +227,7 @@ describe("google-shared convertMessages", () => {
 
   it("does not merge consecutive model messages for Gemini", () => {
     const model = makeModel("gemini-1.5-pro");
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -235,7 +236,7 @@ describe("google-shared convertMessages", () => {
         makeGoogleAssistantMessage(model.id, [{ type: "text", text: "Hi there!" }]),
         makeGoogleAssistantMessage(model.id, [{ type: "text", text: "How can I help?" }]),
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     expectConvertedRoles(contents, ["user", "model", "model"]);
@@ -245,7 +246,7 @@ describe("google-shared convertMessages", () => {
 
   it("handles user message after tool result without model response in between", () => {
     const model = makeModel("gemini-1.5-pro");
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -272,7 +273,7 @@ describe("google-shared convertMessages", () => {
           content: "Now do something else",
         },
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     expect(contents).toHaveLength(4);
@@ -290,7 +291,7 @@ describe("google-shared convertMessages", () => {
 
   it("ensures function call comes after user turn, not after model turn", () => {
     const model = makeModel("gemini-1.5-pro");
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -306,7 +307,7 @@ describe("google-shared convertMessages", () => {
           },
         ]),
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model, context);
     expectConvertedRoles(contents, ["user", "model", "model", "user"]);
@@ -319,7 +320,7 @@ describe("google-shared convertMessages", () => {
 
   it("strips tool call and response ids for google-gemini-cli below gemini 3", () => {
     const model = makeGeminiCliModel("gemini-2.5-flash");
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -343,7 +344,7 @@ describe("google-shared convertMessages", () => {
           timestamp: 0,
         },
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model as never, context);
     const parts = contents.flatMap((content) => content.parts ?? []);
@@ -363,7 +364,7 @@ describe("google-shared convertMessages", () => {
 
   it("keeps tool call and response ids for google-gemini-cli on gemini 3 and above", () => {
     const model = makeGeminiCliModel("gemini-3-flash");
-    const context = {
+    const context = normalizeContext({
       messages: [
         {
           role: "user",
@@ -387,7 +388,7 @@ describe("google-shared convertMessages", () => {
           timestamp: 0,
         },
       ],
-    } as unknown as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
 
     const contents = convertMessages(model as never, context);
     const parts = contents.flatMap((content) => content.parts ?? []);

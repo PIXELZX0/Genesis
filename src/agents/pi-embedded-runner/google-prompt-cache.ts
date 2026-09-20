@@ -7,6 +7,7 @@ import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { buildGuardedModelFetch } from "../provider-transport-fetch.js";
 import { stableStringify } from "../stable-stringify.js";
 import { stripSystemPromptCacheBoundary } from "../system-prompt-cache-boundary.js";
+import { withoutSystemPrompt } from "../transcript-context.js";
 import { mergeTransportHeaders, sanitizeTransportPayloadText } from "../transport-stream-shared.js";
 import { log } from "./logger.js";
 import { isGooglePromptCacheEligible, resolveCacheRetention } from "./prompt-cache-retention.js";
@@ -179,13 +180,7 @@ function parseExpireTimeMs(expireTime: string | undefined): number | null {
 }
 
 function buildManagedContextWithoutSystemPrompt(context: Parameters<StreamFn>[1]) {
-  if (!context.systemPrompt) {
-    return context;
-  }
-  return {
-    ...context,
-    systemPrompt: undefined,
-  };
+  return withoutSystemPrompt(context);
 }
 
 async function updateGooglePromptCacheTtl(params: {

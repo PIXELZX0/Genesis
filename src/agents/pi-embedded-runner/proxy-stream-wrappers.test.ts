@@ -1,6 +1,6 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
-import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
+import { normalizeContext, createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import {
   createOpenRouterSystemCacheWrapper,
@@ -24,7 +24,7 @@ function runSystemCacheWrapper(model: Partial<Model<"openai-completions">>) {
       id: "anthropic/claude-sonnet-4.6",
       ...model,
     } as Model<"openai-completions">,
-    { messages: [] },
+    normalizeContext({ messages: [] }),
     {},
   );
 
@@ -47,7 +47,7 @@ describe("proxy stream wrappers", () => {
       provider: "openrouter",
       id: "openrouter/auto",
     } as Model<"openai-completions">;
-    const context: Context = { messages: [] };
+    const context = normalizeContext({ messages: [] });
 
     void wrapped(model, context, { headers: { "X-Custom": "1" } });
 

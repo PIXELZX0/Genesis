@@ -1,5 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { Context, Model } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
 import { applyExtraParamsToAgent } from "./pi-embedded-runner/extra-params.js";
 
 export function runExtraParamsPayloadCase(params: {
@@ -32,7 +32,8 @@ export function runExtraParamsPayloadCase(params: {
     provider: params.provider,
     id: params.modelId,
   } as Model<"openai-completions">;
-  const context: Context = { messages: [] };
+  // Built without normalizeContext so suites that mock pi-ai do not need to stub it.
+  const context = { messages: [] } as unknown as Parameters<StreamFn>[1];
   void agent.streamFunction?.(model, context, {});
 
   return payloads[0] ?? {};

@@ -5,6 +5,7 @@ import { createOpenAIWebSocketStreamFn } from "../openai-ws-stream.js";
 import { getModelProviderRequestTransport } from "../provider-request-config.js";
 import { createBoundaryAwareStreamFnForModel } from "../provider-transport-stream.js";
 import { stripSystemPromptCacheBoundary } from "../system-prompt-cache-boundary.js";
+import { mapSystemPrompt } from "../transcript-context.js";
 import type { EmbeddedRunAttemptParams } from "./run/types.js";
 
 let embeddedAgentBaseStreamFnCache = new WeakMap<object, StreamFn | undefined>();
@@ -85,12 +86,7 @@ export function resolveEmbeddedAgentStreamFn(params: {
   if (params.providerStreamFn) {
     const inner = params.providerStreamFn;
     const normalizeContext = (context: Parameters<StreamFn>[1]) =>
-      context.systemPrompt
-        ? {
-            ...context,
-            systemPrompt: stripSystemPromptCacheBoundary(context.systemPrompt),
-          }
-        : context;
+      mapSystemPrompt(context, stripSystemPromptCacheBoundary);
     const mergeRunSignal = (options: Parameters<StreamFn>[2]) => {
       const signal = options?.signal ?? params.signal;
       return signal ? { ...options, signal } : options;

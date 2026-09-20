@@ -1,5 +1,5 @@
 import type { Context, Model } from "@earendil-works/pi-ai";
-import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
+import { normalizeContext, createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { buildOpenAICompletionsParams } from "../../src/agents/openai-transport-stream.js";
 import { resolveProviderPluginChoice } from "../../src/plugins/provider-auth-choice.runtime.js";
@@ -135,7 +135,7 @@ describe("deepseek provider plugin", () => {
         maxTokensField: "max_tokens",
       },
     } as Model<"openai-completions">;
-    const context = {
+    const context = normalizeContext({
       messages: [
         { role: "user", content: "hi", timestamp: 1 },
         {
@@ -178,7 +178,7 @@ describe("deepseek provider plugin", () => {
           parameters: { type: "object", properties: {}, required: [], additionalProperties: false },
         },
       ],
-    } as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
     const baseStreamFn = (
       streamModel: Model<"openai-completions">,
       streamContext: Context,
@@ -236,7 +236,7 @@ describe("deepseek provider plugin", () => {
         maxTokensField: "max_tokens",
       },
     } as Model<"openai-completions">;
-    const context = {
+    const context = normalizeContext({
       messages: [
         { role: "user", content: "hi", timestamp: 1 },
         {
@@ -272,7 +272,7 @@ describe("deepseek provider plugin", () => {
           parameters: { type: "object", properties: {}, required: [], additionalProperties: false },
         },
       ],
-    } as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
     const baseStreamFn = (
       streamModel: Model<"openai-completions">,
       streamContext: Context,
@@ -326,7 +326,7 @@ describe("deepseek provider plugin", () => {
         maxTokensField: "max_tokens",
       },
     } as Model<"openai-completions">;
-    const context = {
+    const context = normalizeContext({
       messages: [
         { role: "user", content: "hi", timestamp: 1 },
         {
@@ -369,7 +369,7 @@ describe("deepseek provider plugin", () => {
           parameters: { type: "object", properties: {}, required: [], additionalProperties: false },
         },
       ],
-    } as Context;
+    } as unknown as Parameters<typeof normalizeContext>[0]);
     const baseStreamFn = (
       streamModel: Model<"openai-completions">,
       streamContext: Context,

@@ -1,4 +1,5 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
+import { getCurrentTools, normalizeContext } from "@earendil-works/pi-ai";
 import { describe, expect, it, vi } from "vitest";
 import type { PluginHookBeforeModelCallResult } from "../../../plugins/hook-types.js";
 import {
@@ -10,14 +11,14 @@ type Model = Parameters<StreamFn>[0];
 type Context = Parameters<StreamFn>[1];
 
 const anthropicModel = { api: "anthropic-messages", provider: "anthropic", id: "claude" } as Model;
-const context = {
+const context = normalizeContext({
   systemPrompt: "sys",
   messages: [],
   tools: [
     { name: "read", description: "Read a file", parameters: {} },
     { name: "browser", description: "Control the browser", parameters: {} },
   ],
-} as unknown as Context;
+} as unknown as Parameters<typeof normalizeContext>[0]);
 
 function setup(route: PluginHookBeforeModelCallResult | Error | undefined) {
   const inner = vi.fn((() => "inner-stream") as unknown as StreamFn);
@@ -94,7 +95,8 @@ describe("wrapStreamFnWithBeforeModelCallHook", () => {
       sessionId: "session-1",
       hookCtx: {},
     });
-    const withLast = (role: string) => ({ ...context, messages: [{ role }] }) as unknown as Context;
+    const withLast = (role: string) =>
+      ({ ...context, messages: [...context.messages, { role }] }) as unknown as Context;
     await wrapped(anthropicModel, withLast("user"), { reasoning: "high" });
     await wrapped(anthropicModel, withLast("toolResult"), { reasoning: "high" });
     await wrapped(anthropicModel, withLast("user"), { reasoning: "high" });
@@ -152,7 +154,9 @@ describe("applyModelCallRoute", () => {
       options: {},
       route: { action: "force_tool", toolName: "read" },
     });
-    expect(applied?.context.tools?.map((tool) => tool.name)).toEqual(["read"]);
+    expect(getCurrentTools(applied?.context.messages ?? []).map((tool) => tool.name)).toEqual([
+      "read",
+    ]);
   });
 
   it("disables tools with tool_choice none, or skips when unsupported", () => {

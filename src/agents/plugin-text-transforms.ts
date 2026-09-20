@@ -63,6 +63,14 @@ function transformMessageText(message: unknown, replacements?: PluginTextReplace
   if (Object.hasOwn(next, "content")) {
     next.content = transformContentText(next.content, replacements);
   }
+  if (isRecord(next.sections)) {
+    next.sections = Object.fromEntries(
+      Object.entries(next.sections).map(([name, value]) => [
+        name,
+        typeof value === "string" ? applyPluginTextReplacements(value, replacements) : value,
+      ]),
+    );
+  }
   if (typeof next.errorMessage === "string") {
     next.errorMessage = applyPluginTextReplacements(next.errorMessage, replacements);
   }
@@ -77,14 +85,21 @@ export function transformStreamContextText(
   if (!replacements || replacements.length === 0) {
     return context;
   }
+  const transformSystem = options?.systemPrompt !== false;
+  // Pi 0.86 folds the prompt and tools into a leading system message, but a raw
+  // `Context` with a `systemPrompt` field can still reach this wrapper through compat.
+  const legacy = context as unknown as { systemPrompt?: unknown };
   return {
     ...context,
-    systemPrompt:
-      options?.systemPrompt !== false && typeof context.systemPrompt === "string"
-        ? applyPluginTextReplacements(context.systemPrompt, replacements)
-        : context.systemPrompt,
+    ...(transformSystem && typeof legacy.systemPrompt === "string"
+      ? { systemPrompt: applyPluginTextReplacements(legacy.systemPrompt, replacements) }
+      : {}),
     messages: Array.isArray(context.messages)
-      ? context.messages.map((message) => transformMessageText(message, replacements))
+      ? context.messages.map((message) =>
+          !transformSystem && (message as { role?: string }).role === "system"
+            ? message
+            : transformMessageText(message, replacements),
+        )
       : context.messages,
   } as Parameters<StreamFn>[1];
 }

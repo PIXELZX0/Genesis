@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import type { AssistantMessage, ToolCall } from "@earendil-works/pi-ai";
+import type { AssistantMessage, JsonObject, ToolCall } from "@earendil-works/pi-ai";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai/compat";
 import type {
   PluginHookAgentContext,
@@ -8,6 +8,7 @@ import type {
 } from "../../../plugins/hook-types.js";
 import type { HookRunner } from "../../../plugins/hooks.js";
 import { buildAssistantMessageWithZeroUsage } from "../../stream-message-shared.js";
+import { filterDeclaredTools, readSystemPrompt, readTools } from "../../transcript-context.js";
 import { log } from "../logger.js";
 
 type StreamModel = Parameters<StreamFn>[0];
@@ -57,10 +58,7 @@ export function applyModelCallRoute(params: {
     // No named tool_choice on this transport: narrow the advertised tools instead.
     // Tool execution still resolves against the agent's full tool set.
     return {
-      context: {
-        ...context,
-        tools: context.tools?.filter((tool) => tool.name === route.toolName),
-      },
+      context: filterDeclaredTools(context, (tool) => tool.name === route.toolName),
       options,
     };
   }
@@ -76,7 +74,7 @@ export function applyModelCallRoute(params: {
 export function createSyntheticToolCallStream(params: {
   model: StreamModel;
   toolName: string;
-  arguments: Record<string, unknown>;
+  arguments: JsonObject;
 }): ReturnType<typeof createAssistantMessageEventStream> {
   const toolCall: ToolCall = {
     type: "toolCall",
@@ -101,7 +99,7 @@ export function createSyntheticToolCallStream(params: {
 }
 
 function isKnownTool(context: StreamContext, toolName: string): boolean {
-  return context.tools?.some((tool) => tool.name === toolName) ?? false;
+  return readTools(context).some((tool) => tool.name === toolName);
 }
 
 /**
@@ -141,9 +139,9 @@ export function wrapStreamFnWithBeforeModelCallHook(
           provider: model.provider,
           model: model.id,
           api: model.api,
-          systemPrompt: context.systemPrompt,
+          systemPrompt: readSystemPrompt(context),
           messages: context.messages,
-          tools: (context.tools ?? []).map((tool) => ({
+          tools: readTools(context).map((tool) => ({
             name: tool.name,
             description: tool.description,
             parameters: tool.parameters,
@@ -169,7 +167,8 @@ export function wrapStreamFnWithBeforeModelCallHook(
       return createSyntheticToolCallStream({
         model,
         toolName: route.toolName,
-        arguments: route.arguments,
+        // Hook arguments come from plugins as JSON-serializable values.
+        arguments: route.arguments as JsonObject,
       });
     }
     const applied = applyModelCallRoute({ model, context, options, route });
