@@ -194,6 +194,10 @@ export const de: TranslationMap = {
     logs: "Protokolle",
     dreams: "Träume",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Agent-Arbeitsbereiche, Tools und Identitäten verwalten.",
     overview: "Gateway-Status, Einstiegspunkte und eine schnelle Zustandsprüfung.",

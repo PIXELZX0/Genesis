@@ -190,6 +190,10 @@ export const zh_TW: TranslationMap = {
     logs: "日誌",
     dreams: "夢境",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "工作區、工具、身份。",
     overview: "狀態、入口點、健康。",

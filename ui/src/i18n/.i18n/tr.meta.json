@@ -173,6 +173,8 @@
     "overview.wallet.noAccounts",
     "overview.wallet.subtitle",
     "overview.wallet.title",
+    "settingsNav.config",
+    "settingsNav.label",
     "subtitles.canvas",
     "subtitles.contact",
     "subtitles.files",
@@ -250,12 +252,12 @@
     "wallet.tokens.title",
     "wallet.warnings.title"
   ],
-  "generatedAt": "2026-08-14T06:46:26.854Z",
+  "generatedAt": "2026-09-20T00:28:03.835Z",
   "locale": "tr",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "ca95e132fb0d35f58894d14f6a1a9edcb985ccec09e175c44036741a9d3584f9",
-  "totalKeys": 981,
+  "sourceHash": "88debfab32b13cc676d37f0a5d5d1a839ba36cb8ebbe402889d910ecc30d5764",
+  "totalKeys": 983,
   "translatedKeys": 732,
   "workflow": 1
 }

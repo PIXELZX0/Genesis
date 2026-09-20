@@ -190,6 +190,10 @@ export const th: TranslationMap = {
     logs: "บันทึก",
     dreams: "การฝัน",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "เวิร์กสเปซ เครื่องมือ และข้อมูลประจำตัว",
     overview: "สถานะ จุดเข้าใช้งาน และความพร้อมใช้งาน",

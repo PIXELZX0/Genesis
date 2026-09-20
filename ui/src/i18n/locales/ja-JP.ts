@@ -194,6 +194,10 @@ export const ja_JP: TranslationMap = {
     logs: "ログ",
     dreams: "Dreaming",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "ワークスペース、ツール、ID。",
     overview: "ステータス、エントリーポイント、健全性。",

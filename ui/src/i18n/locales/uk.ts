@@ -192,6 +192,10 @@ export const uk: TranslationMap = {
     logs: "Журнали",
     dreams: "Сни",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Робочі простори, інструменти, ідентичності.",
     overview: "Стан, точки входу, справність.",

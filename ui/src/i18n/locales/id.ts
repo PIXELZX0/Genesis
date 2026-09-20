@@ -191,6 +191,10 @@ export const id: TranslationMap = {
     logs: "Log",
     dreams: "Mimpi",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Ruang kerja, alat, identitas.",
     overview: "Status, titik masuk, kesehatan.",

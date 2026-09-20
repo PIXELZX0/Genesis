@@ -190,6 +190,10 @@ export const ko: TranslationMap = {
     logs: "로그",
     dreams: "드리밍",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "워크스페이스, 도구, 정체성.",
     overview: "상태, 진입점, 상태 정보.",

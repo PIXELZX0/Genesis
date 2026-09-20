@@ -193,6 +193,10 @@ export const tr: TranslationMap = {
     logs: "Günlükler",
     dreams: "Düşler",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Çalışma alanları, araçlar, kimlikler.",
     overview: "Durum, giriş noktaları, sağlık.",

@@ -191,6 +191,10 @@ export const es: TranslationMap = {
     logs: "Registros",
     dreams: "Sueños",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Gestionar espacios de trabajo, herramientas e identidades de agentes.",
     overview: "Estado de la puerta de enlace, puntos de entrada y lectura rápida de salud.",

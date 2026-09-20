@@ -193,6 +193,10 @@ export const fr: TranslationMap = {
     logs: "Journaux",
     dreams: "Rêves",
   },
+  settingsNav: {
+    label: "Settings sections",
+    config: "General",
+  },
   subtitles: {
     agents: "Espaces de travail, outils, identités.",
     overview: "Statut, points d’entrée, santé.",
