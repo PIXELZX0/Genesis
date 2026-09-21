@@ -27,6 +27,14 @@ type DeliveryContextSource = {
   deliveryContext?: DeliveryContext;
 };
 
+// These helpers look like copies of `utils/delivery-context.shared.ts` but are
+// intentionally separate. The shared normalizer canonicalizes `accountId`
+// (`bot:123` -> `bot-123`) and maps channel aliases, while announce delivery
+// hands `accountId` to the gateway `agent` method, whose delivery plan uses the
+// raw value. `deliveryContextFromSession` below also prefers the stored
+// `deliveryContext` over `last*` fields, the reverse of the shared resolver.
+// Swapping in the shared versions changes which account and route an announce
+// uses (covered by subagent-announce.test.ts).
 function normalizeDeliveryContext(context?: DeliveryContext): DeliveryContext | undefined {
   if (!context) {
     return undefined;
