@@ -278,7 +278,10 @@ export function createSessionMcpRuntime(params: {
               failIfDisposed();
               const listedTools = await listAllTools(client);
               failIfDisposed();
-              return { serverName, safeServerName, resolved, listedTools };
+              // Populated by the SDK from the `initialize` result; servers use it
+              // to explain how their tools are meant to be combined.
+              const instructions = normalizeOptionalString(client.getInstructions());
+              return { serverName, safeServerName, resolved, listedTools, instructions };
             } catch (error) {
               if (!disposed) {
                 logWarn(
@@ -298,11 +301,12 @@ export function createSessionMcpRuntime(params: {
           if (result.status !== "fulfilled") {
             continue;
           }
-          const { serverName, safeServerName, resolved, listedTools } = result.value;
+          const { serverName, safeServerName, resolved, listedTools, instructions } = result.value;
           servers[serverName] = {
             serverName,
             launchSummary: resolved.description,
             toolCount: listedTools.length,
+            ...(instructions ? { instructions } : {}),
           };
           for (const tool of listedTools) {
             const toolName = tool.name.trim();

@@ -4,12 +4,7 @@ import { resolveStateDir } from "../config/paths.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { findGitRoot } from "../infra/git-root.js";
 import { resolveHomeRelativePath } from "../infra/home-dir.js";
-import {
-  formatUserTime,
-  resolveUserTimeFormat,
-  resolveUserTimezone,
-  type ResolvedTimeFormat,
-} from "./date-time.js";
+import { resolveUserTimezone } from "./date-time.js";
 
 export type RuntimeInfoInput = {
   agentId?: string;
@@ -28,11 +23,14 @@ export type RuntimeInfoInput = {
   canvasRootDir?: string;
 };
 
+/**
+ * The system prompt carries the time zone only; the clock value is injected on
+ * the user side (`appendCronStyleCurrentTimeLine`) so the prompt stays
+ * byte-stable across turns for provider prompt caching.
+ */
 export type SystemPromptRuntimeParams = {
   runtimeInfo: RuntimeInfoInput;
   userTimezone: string;
-  userTime?: string;
-  userTimeFormat?: ResolvedTimeFormat;
 };
 
 export function buildSystemPromptParams(params: {
@@ -48,8 +46,6 @@ export function buildSystemPromptParams(params: {
     cwd: params.cwd,
   });
   const userTimezone = resolveUserTimezone(params.config?.agents?.defaults?.userTimezone);
-  const userTimeFormat = resolveUserTimeFormat(params.config?.agents?.defaults?.timeFormat);
-  const userTime = formatUserTime(new Date(), userTimezone, userTimeFormat);
   const stateDir = resolveStateDir(process.env);
   const canvasRootDir = resolveCanvasRootDir({
     config: params.config,
@@ -63,8 +59,6 @@ export function buildSystemPromptParams(params: {
       canvasRootDir,
     },
     userTimezone,
-    userTime,
-    userTimeFormat,
   };
 }
 

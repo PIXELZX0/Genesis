@@ -1,10 +1,17 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { TSchema } from "typebox";
 import type { GenesisConfig } from "../config/types.genesis.js";
+import type { McpServerInstructions } from "./pi-bundle-mcp-instructions.js";
 import type { AnyAgentTool } from "./tools/common.js";
 
 export type BundleMcpToolRuntime = {
   tools: AnyAgentTool[];
+  /**
+   * Usage guidance each connected server published in its `initialize` result,
+   * keyed by sanitized server name. Rendered into the system prompt only for
+   * servers whose tools survive tool policy.
+   */
+  serverInstructions?: McpServerInstructions;
   dispose: () => Promise<void>;
 };
 
@@ -12,6 +19,8 @@ export type McpServerCatalog = {
   serverName: string;
   launchSummary: string;
   toolCount: number;
+  /** Server-supplied usage guidance from the MCP `initialize` result. */
+  instructions?: string;
 };
 
 export type McpCatalogTool = {

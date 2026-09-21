@@ -52,7 +52,7 @@ import {
   isRealConversationMessage,
 } from "../compaction-real-conversation.js";
 import { resolveContextWindowInfo } from "../context-window-guard.js";
-import { formatUserTime, resolveUserTimeFormat, resolveUserTimezone } from "../date-time.js";
+import { resolveUserTimezone } from "../date-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { resolveGenesisDocsPath } from "../docs-path.js";
 import {
@@ -708,8 +708,6 @@ export async function compactEmbeddedPiSessionDirect(
       model,
     });
     const userTimezone = resolveUserTimezone(params.config?.agents?.defaults?.userTimezone);
-    const userTimeFormat = resolveUserTimeFormat(params.config?.agents?.defaults?.timeFormat);
-    const userTime = formatUserTime(new Date(), userTimezone, userTimeFormat);
     const promptMode =
       isSubagentSessionKey(params.sessionKey) || isCronSessionKey(params.sessionKey)
         ? "minimal"
@@ -764,8 +762,6 @@ export async function compactEmbeddedPiSessionDirect(
           tools: effectiveTools,
           modelAliasLines: buildModelAliasLines(params.config),
           userTimezone,
-          userTime,
-          userTimeFormat,
           contextFiles,
           memoryCitationsMode: params.config?.memory?.citations,
           promptContribution,

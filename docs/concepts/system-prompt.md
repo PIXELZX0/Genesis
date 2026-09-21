@@ -35,6 +35,7 @@ The prompt is intentionally compact and uses fixed sections:
 - **Execution Bias**: compact follow-through guidance: act in-turn on
   actionable requests, continue until done or blocked, recover from weak tool
   results, check mutable state live, and verify before finalizing.
+- **MCP Server Instructions** (when any connected MCP server publishes them): see [MCP server instructions](#mcp-server-instructions).
 - **Safety**: short guardrail reminder to avoid power-seeking behavior or bypassing oversight.
 - **Skills** (when available): tells the model how to load skill instructions on demand.
 - **Genesis Self-Update**: how to inspect config safely with
@@ -47,7 +48,7 @@ The prompt is intentionally compact and uses fixed sections:
 - **Documentation**: local path to Genesis docs (repo or npm package) and when to read them.
 - **Workspace Files (injected)**: indicates bootstrap files are included below.
 - **Sandbox** (when enabled): indicates sandboxed runtime, sandbox paths, and whether elevated exec is available.
-- **Current Date & Time**: user-local time, timezone, and time format.
+- **Current Date & Time**: user time zone only. No clock value, so the section stays prompt-cache stable. See [Time handling](#time-handling).
 - **Reply Tags**: optional reply tag syntax for supported providers.
 - **Heartbeats**: heartbeat prompt and ack behavior, when heartbeats are enabled for the default agent.
 - **Runtime**: host, OS, node, model, repo root (when detected), thinking level (one line).
@@ -131,8 +132,10 @@ occurs, Genesis can inject a warning block in Project Context; control this with
 `agents.defaults.bootstrapPromptTruncationWarning` (`off`, `once`, `always`;
 default: `once`).
 
-Sub-agent sessions only inject `AGENTS.md` and `TOOLS.md` (other bootstrap files
-are filtered out to keep the sub-agent context small).
+Sub-agent and cron sessions only inject `AGENTS.md`, `TOOLS.md`, `SOUL.md`,
+`IDENTITY.md`, and `USER.md`. `HEARTBEAT.md`, `BOOTSTRAP.md`, and `MEMORY.md` are
+filtered out to keep those contexts small. Cron runs in lightweight context mode
+inject no bootstrap files at all.
 
 Internal hooks can intercept this step via `agent:bootstrap` to mutate or replace
 the injected bootstrap files (for example swapping `SOUL.md` for an alternate persona).
@@ -199,6 +202,26 @@ Generic bounded runtime excerpts use a different surface:
 
 That split keeps skills sizing separate from runtime read/injection sizing such
 as `memory_get`, live tool results, and post-compaction AGENTS.md refreshes.
+
+## MCP server instructions
+
+MCP servers can publish usage guidance in their `initialize` result. Genesis
+renders that text into an **MCP Server Instructions** section so the model knows
+how a server's tools are meant to be combined, instead of inferring it from tool
+descriptions alone.
+
+Rules:
+
+- Only servers whose tools survive tool policy are included. Guidance for tools
+  the model cannot call is dropped.
+- Servers are emitted in sorted name order, so the section stays byte-stable
+  across turns for prompt caching.
+- Each server's text is capped at 2,000 chars, and the whole section at 8,000
+  chars, with truncation markers.
+- Each block is fenced and scoped to that server's own tools. Server text cannot
+  override the Genesis system prompt or widen tool access.
+
+Servers that publish no instructions add nothing to the prompt.
 
 ## Documentation
 

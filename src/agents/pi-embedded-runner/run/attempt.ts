@@ -74,6 +74,10 @@ import { supportsModelTools } from "../../model-tool-support.js";
 import { releaseWsSession } from "../../openai-ws-stream.js";
 import { resolveOwnerDisplaySetting } from "../../owner-display.js";
 import { createBundleLspToolRuntime } from "../../pi-bundle-lsp-runtime.js";
+import {
+  buildMcpServerInstructionsSection,
+  filterMcpServerInstructionsByAvailableTools,
+} from "../../pi-bundle-mcp-instructions.js";
 import { TOOL_NAME_SEPARATOR } from "../../pi-bundle-mcp-names.js";
 import {
   getOrCreateSessionMcpRuntime,
@@ -817,6 +821,12 @@ export async function runEmbeddedAttempt(
       warn: (message) => log.warn(message),
     });
     const effectiveTools = [...tools, ...filteredBundledTools];
+    const mcpServerInstructions = buildMcpServerInstructionsSection(
+      filterMcpServerInstructionsByAvailableTools({
+        instructions: bundleMcpRuntime?.serverInstructions,
+        toolNames: filteredBundledTools.map((tool) => tool.name),
+      }),
+    );
     const allowedToolNames = collectAllowedToolNames({
       tools: effectiveTools,
       clientTools,
@@ -941,7 +951,7 @@ export async function runEmbeddedAttempt(
       agentId: sessionAgentId,
     });
     const defaultModelLabel = `${defaultModelRef.provider}/${defaultModelRef.model}`;
-    const { runtimeInfo, userTimezone, userTime, userTimeFormat } = buildSystemPromptParams({
+    const { runtimeInfo, userTimezone } = buildSystemPromptParams({
       config: params.config,
       agentId: sessionAgentId,
       workspaceDir: effectiveWorkspace,
@@ -1018,9 +1028,8 @@ export async function runEmbeddedAttempt(
         sandboxInfo,
         tools: effectiveTools,
         modelAliasLines: buildModelAliasLines(params.config),
+        mcpServerInstructions,
         userTimezone,
-        userTime,
-        userTimeFormat,
         contextFiles,
         includeMemorySection: !params.contextEngine || params.contextEngine.info.id === "legacy",
         memoryCitationsMode: params.config?.memory?.citations,

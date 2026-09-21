@@ -15,7 +15,6 @@ import {
   buildFullBootstrapPromptLines,
   buildLimitedBootstrapPromptLines,
 } from "./bootstrap-prompt.js";
-import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import type {
   EmbeddedFullAccessBlockedReason,
@@ -396,9 +395,9 @@ export function buildAgentSystemPrompt(params: {
   toolNames?: string[];
   toolSummaries?: Record<string, string>;
   modelAliasLines?: string[];
+  /** Pre-rendered `## MCP Server Instructions` section, when any server published one. */
+  mcpServerInstructions?: string;
   userTimezone?: string;
-  userTime?: string;
-  userTimeFormat?: ResolvedTimeFormat;
   contextFiles?: EmbeddedContextFile[];
   skillsPrompt?: string;
   docsPath?: string;
@@ -680,6 +679,9 @@ export function buildAgentSystemPrompt(params: {
       : []),
     "Do not poll `subagents list` / `sessions_list` in a loop; only check status on-demand (for intervention, debugging, or when explicitly asked).",
     "",
+    // Sits above the cache boundary: the section is derived from connected MCP
+    // servers plus tool policy, so it is stable for the life of the config.
+    params.mcpServerInstructions ?? "",
     ...buildOverridablePromptSection({
       override: providerSectionOverrides.interaction_style,
       fallback: [],

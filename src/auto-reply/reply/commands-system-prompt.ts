@@ -108,7 +108,7 @@ export async function resolveCommandsSystemPromptBundle(
     agentId: sessionAgentId,
   });
   const defaultModelLabel = `${defaultModelRef.provider}/${defaultModelRef.model}`;
-  const { runtimeInfo, userTimezone, userTime, userTimeFormat } = buildSystemPromptParams({
+  const { runtimeInfo, userTimezone } = buildSystemPromptParams({
     config: params.cfg,
     agentId: sessionAgentId,
     workspaceDir,
@@ -156,8 +156,6 @@ export async function resolveCommandsSystemPromptBundle(
     toolNames,
     modelAliasLines: [],
     userTimezone,
-    userTime,
-    userTimeFormat,
     contextFiles: injectedFiles,
     skillsPrompt,
     ttsHint,

@@ -5,6 +5,7 @@ import type { GenesisConfig } from "../config/types.genesis.js";
 import { logWarn } from "../logger.js";
 import { setPluginToolMeta } from "../plugins/tools.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
+import type { McpServerInstructions } from "./pi-bundle-mcp-instructions.js";
 import {
   buildSafeToolName,
   normalizeReservedToolNames,
@@ -133,8 +134,24 @@ export async function materializeBundleMcpToolsForRun(params: {
   // Cannot fix name collisions: collision suffixes above are order-dependent.
   tools.sort((a, b) => a.name.localeCompare(b.name));
 
+  const serverInstructions: McpServerInstructions = {};
+  for (const tool of sortedCatalogTools) {
+    if (serverInstructions[tool.safeServerName]) {
+      continue;
+    }
+    const instructions = catalog.servers[tool.serverName]?.instructions?.trim();
+    if (instructions) {
+      serverInstructions[tool.safeServerName] = {
+        serverName: tool.serverName,
+        safeServerName: tool.safeServerName,
+        instructions,
+      };
+    }
+  }
+
   return {
     tools,
+    ...(Object.keys(serverInstructions).length > 0 ? { serverInstructions } : {}),
     dispose: async () => {
       if (disposed) {
         return;

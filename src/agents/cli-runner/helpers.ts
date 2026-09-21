@@ -81,7 +81,7 @@ export function buildSystemPrompt(params: {
     agentId: params.agentId,
   });
   const defaultModelLabel = `${defaultModelRef.provider}/${defaultModelRef.model}`;
-  const { runtimeInfo, userTimezone, userTime, userTimeFormat } = buildSystemPromptParams({
+  const { runtimeInfo, userTimezone } = buildSystemPromptParams({
     config: params.config,
     agentId: params.agentId,
     workspaceDir: params.workspaceDir,
@@ -113,8 +113,6 @@ export function buildSystemPrompt(params: {
     modelAliasLines: buildModelAliasLines(params.config),
     skillsPrompt: params.skillsPrompt,
     userTimezone,
-    userTime,
-    userTimeFormat,
     contextFiles: params.contextFiles,
     ttsHint,
     memoryCitationsMode: params.config?.memory?.citations,

@@ -1,7 +1,6 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
-import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import type { ProviderSystemPromptContribution } from "../system-prompt-contribution.js";
 import { buildAgentSystemPrompt } from "../system-prompt.js";
@@ -48,9 +47,8 @@ export function buildEmbeddedSystemPrompt(params: {
   sandboxInfo?: EmbeddedSandboxInfo;
   tools: AgentTool[];
   modelAliasLines: string[];
+  mcpServerInstructions?: string;
   userTimezone: string;
-  userTime?: string;
-  userTimeFormat?: ResolvedTimeFormat;
   contextFiles?: EmbeddedContextFile[];
   includeMemorySection?: boolean;
   memoryCitationsMode?: MemoryCitationsMode;
@@ -77,9 +75,8 @@ export function buildEmbeddedSystemPrompt(params: {
     sandboxInfo: params.sandboxInfo,
     toolNames: params.tools.map((tool) => tool.name),
     modelAliasLines: params.modelAliasLines,
+    mcpServerInstructions: params.mcpServerInstructions,
     userTimezone: params.userTimezone,
-    userTime: params.userTime,
-    userTimeFormat: params.userTimeFormat,
     contextFiles: params.contextFiles,
     includeMemorySection: params.includeMemorySection,
     memoryCitationsMode: params.memoryCitationsMode,

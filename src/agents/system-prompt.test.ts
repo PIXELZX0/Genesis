@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { typedCases } from "../test-utils/typed-cases.js";
 import { buildSubagentSystemPrompt } from "./subagent-system-prompt.js";
+import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
 import {
   buildAgentSystemPrompt,
   buildAgentUserPromptPrefix,
@@ -453,43 +454,6 @@ describe("buildAgentSystemPrompt", () => {
     );
   });
 
-  it("shows timezone section for 12h, 24h, and timezone-only modes", () => {
-    const cases = [
-      {
-        name: "12-hour",
-        params: {
-          workspaceDir: "/tmp/genesis",
-          userTimezone: "America/Chicago",
-          userTime: "Monday, January 5th, 2026 — 3:26 PM",
-          userTimeFormat: "12" as const,
-        },
-      },
-      {
-        name: "24-hour",
-        params: {
-          workspaceDir: "/tmp/genesis",
-          userTimezone: "America/Chicago",
-          userTime: "Monday, January 5th, 2026 — 15:26",
-          userTimeFormat: "24" as const,
-        },
-      },
-      {
-        name: "timezone-only",
-        params: {
-          workspaceDir: "/tmp/genesis",
-          userTimezone: "America/Chicago",
-          userTimeFormat: "24" as const,
-        },
-      },
-    ] as const;
-
-    for (const testCase of cases) {
-      const prompt = buildAgentSystemPrompt(testCase.params);
-      expect(prompt, testCase.name).toContain("## Current Date & Time");
-      expect(prompt, testCase.name).toContain("Time zone: America/Chicago");
-    }
-  });
-
   it("hints to use session_status for current date/time", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/clawd",
@@ -510,19 +474,36 @@ describe("buildAgentSystemPrompt", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/clawd",
       userTimezone: "America/Chicago",
-      userTime: "Monday, January 5th, 2026 — 3:26 PM",
-      userTimeFormat: "12",
     });
 
-    // The prompt should contain the timezone but NOT the formatted date/time string.
-    // This is intentional for prompt cache stability — the date/time was removed in
-    // commit 66eec295b. If you're here because you want to add it back, please see
+    // The Current Date & Time section carries the timezone and nothing else.
+    // `buildAgentSystemPrompt` takes no clock value at all, so this is enforced by
+    // the parameter list as well as by the assertions below. If you're here because
+    // you want to add the date back, please see
     // https://github.com/moltbot/moltbot/issues/3658 for the preferred approach:
     // gateway-level timestamp injection into messages, not the system prompt.
+    expect(prompt).toContain("## Current Date & Time");
     expect(prompt).toContain("Time zone: America/Chicago");
-    expect(prompt).not.toContain("Monday, January 5th, 2026");
-    expect(prompt).not.toContain("3:26 PM");
-    expect(prompt).not.toContain("15:26");
+    expect(prompt).not.toMatch(/\d{1,2}:\d{2}/u);
+  });
+
+  it("places MCP server instructions above the prompt cache boundary", () => {
+    const section = "## MCP Server Instructions\nGuidance for docs-server.\n";
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/genesis",
+      mcpServerInstructions: section,
+    });
+
+    expect(prompt).toContain("## MCP Server Instructions");
+    expect(prompt).toContain("Guidance for docs-server.");
+    expect(prompt.indexOf("## MCP Server Instructions")).toBeLessThan(
+      prompt.indexOf(SYSTEM_PROMPT_CACHE_BOUNDARY),
+    );
+  });
+
+  it("omits the MCP section when no server published instructions", () => {
+    const prompt = buildAgentSystemPrompt({ workspaceDir: "/tmp/genesis" });
+    expect(prompt).not.toContain("## MCP Server Instructions");
   });
 
   it("includes model alias guidance when aliases are provided", () => {
