@@ -34,6 +34,7 @@ const resolveModelAsyncMock = vi.fn<
   },
 }));
 const selectAgentHarnessMock = vi.fn((_params: unknown) => ({ id: "pi" }));
+const loadModelCatalogMock = vi.fn<(params: unknown) => Promise<unknown[]>>(async () => []);
 const resolveEmbeddedAgentRuntimeMock = vi.fn(() => "auto");
 
 vi.mock("../agents/agent-paths.js", () => ({
@@ -64,6 +65,13 @@ vi.mock("../agents/pi-embedded-runner/model.js", () => ({
 vi.mock("../agents/pi-embedded-runner/runtime.js", () => ({
   resolveEmbeddedAgentRuntime: () => resolveEmbeddedAgentRuntimeMock(),
 }));
+
+vi.mock("../agents/model-catalog.js", () => ({
+  loadModelCatalog: (params: unknown) => loadModelCatalogMock(params),
+}));
+
+vi.mock("../auto-reply/reply/get-reply-from-config.runtime.js", () => ({}));
+vi.mock("../auto-reply/reply/agent-runner.runtime.js", () => ({}));
 
 let prewarmConfiguredPrimaryModel: typeof import("./server-startup.js").__testing.prewarmConfiguredPrimaryModel;
 
@@ -259,5 +267,42 @@ describe("gateway startup primary model warmup", () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("startup model warmup failed for codex/gpt-5.4"),
     );
+  });
+});
+
+describe("gateway startup reply path warmup", () => {
+  let prewarmInboundReplyPath: typeof import("./server-startup.js").__testing.prewarmInboundReplyPath;
+
+  beforeAll(async () => {
+    ({
+      __testing: { prewarmInboundReplyPath },
+    } = await import("./server-startup.js"));
+  });
+
+  beforeEach(() => {
+    loadModelCatalogMock.mockClear();
+    loadModelCatalogMock.mockResolvedValue([]);
+  });
+
+  it("loads the model catalog so the first inbound message does not", async () => {
+    const cfg = {} as GenesisConfig;
+    const info = vi.fn();
+
+    await prewarmInboundReplyPath({ cfg, log: { info, warn: vi.fn() } });
+
+    expect(loadModelCatalogMock).toHaveBeenCalledWith({ config: cfg });
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("reply warmup model-catalog"));
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("reply warmup done"));
+  });
+
+  it("keeps warming the rest when one stage fails", async () => {
+    loadModelCatalogMock.mockRejectedValue(new Error("no auth"));
+    const info = vi.fn();
+    const warn = vi.fn();
+
+    await prewarmInboundReplyPath({ cfg: {} as GenesisConfig, log: { info, warn } });
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("reply warmup model-catalog failed"));
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("reply warmup agent-runner"));
   });
 });

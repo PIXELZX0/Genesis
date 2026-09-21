@@ -131,13 +131,44 @@ async function prewarmConfiguredPrimaryModel(params: {
   }
 }
 
+// The first inbound message otherwise pays for the model catalog load plus the
+// reply/agent module graph: `resolveDefaultThinkingLevel` hydrates the runtime
+// catalog (provider plugin load, auth discovery) before command handling, so on
+// a cold container the "New session started." ack lands minutes late. Warm it in
+// the background once channels are up.
+async function prewarmInboundReplyPath(params: {
+  cfg: GenesisConfig;
+  log: { info: (msg: string) => void; warn: (msg: string) => void };
+}): Promise<void> {
+  const startedAt = Date.now();
+  const stage = async (name: string, run: () => Promise<unknown>) => {
+    const at = Date.now();
+    try {
+      await run();
+      params.log.info(`reply warmup ${name} ${Date.now() - at}ms`);
+    } catch (err) {
+      params.log.warn(`reply warmup ${name} failed: ${String(err)}`);
+    }
+  };
+  await stage("model-catalog", async () => {
+    const { loadModelCatalog } = await import("../agents/model-catalog.js");
+    await loadModelCatalog({ config: params.cfg });
+  });
+  await stage(
+    "reply-runtime",
+    () => import("../auto-reply/reply/get-reply-from-config.runtime.js"),
+  );
+  await stage("agent-runner", () => import("../auto-reply/reply/agent-runner.runtime.js"));
+  params.log.info(`reply warmup done ${Date.now() - startedAt}ms`);
+}
+
 export async function startGatewaySidecars(params: {
   cfg: GenesisConfig;
   pluginRegistry: ReturnType<typeof loadGenesisPlugins>;
   defaultWorkspaceDir: string;
   deps: CliDeps;
   startChannels: () => Promise<void>;
-  log: { warn: (msg: string) => void };
+  log: { info: (msg: string) => void; warn: (msg: string) => void };
   logHooks: {
     info: (msg: string) => void;
     warn: (msg: string) => void;
@@ -271,6 +302,15 @@ export async function startGatewaySidecars(params: {
         "skipping channel start (GENESIS_SKIP_CHANNELS=1 or GENESIS_SKIP_PROVIDERS=1)",
       );
     }
+  });
+
+  await measureStartup(params.startupTrace, "sidecars.reply-warmup", async () => {
+    if (skipChannels) {
+      return;
+    }
+    setImmediate(() => {
+      void prewarmInboundReplyPath({ cfg: params.cfg, log: params.log });
+    });
   });
 
   const shouldDispatchGatewayStartupInternalHook =
@@ -557,4 +597,5 @@ export async function startGatewayPostAttachRuntime(
 
 export const __testing = {
   prewarmConfiguredPrimaryModel,
+  prewarmInboundReplyPath,
 };

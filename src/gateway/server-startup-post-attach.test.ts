@@ -261,7 +261,7 @@ describe("startGatewayPostAttachRuntime", () => {
         defaultWorkspaceDir: "/tmp/genesis-workspace",
         deps,
         startChannels: vi.fn(async () => undefined),
-        log: { warn: vi.fn() },
+        log: { info: vi.fn(), warn: vi.fn() },
         logHooks: {
           info: vi.fn(),
           warn: vi.fn(),
