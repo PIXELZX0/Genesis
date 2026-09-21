@@ -14,8 +14,8 @@ describe("buildBareSessionResetPrompt", () => {
     expect(prompt).toContain("already included in this run's context");
     expect(prompt).toContain("treat that as your startup sequence");
     expect(prompt).toContain("Do not reread those files with tools before replying");
-    expect(prompt).toContain("If BOOTSTRAP.md is present in the provided Project Context");
-    expect(prompt).toContain("follow its instructions first");
+    // Bootstrap guidance only ships when BOOTSTRAP.md is pending.
+    expect(prompt).not.toContain("BOOTSTRAP.md");
     // The old wording sent every /new through a round of redundant file reads.
     expect(prompt).not.toContain("Execute your Session Startup sequence now");
     expect(prompt).not.toContain("read the required files before responding to the user");

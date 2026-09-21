@@ -12,7 +12,6 @@ const BARE_SESSION_RESET_PROMPT_BASE = [
   "A new session was started via /new or /reset.",
   "Your Session Startup files and recent daily memory are already included in this run's context - treat that as your startup sequence and answer straight from it.",
   "Do not reread those files with tools before replying; read only when the provided context is missing something you actually need for this turn, or the user asks.",
-  "If BOOTSTRAP.md is present in the provided Project Context, follow its instructions first.",
   "Then greet the user in your configured persona, if one is provided.",
   "Be yourself - use your defined voice, mannerisms, and mood.",
   "Keep it to 1-3 sentences and ask what they want to do.",

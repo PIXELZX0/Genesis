@@ -653,9 +653,10 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
 
   const result: WorkspaceBootstrapFile[] = [];
   for (const entry of entries) {
+    // Optional files: skip entirely when absent instead of injecting a [MISSING] marker.
     if (
-      entry.name === DEFAULT_MEMORY_FILENAME &&
-      !(await exactWorkspaceEntryExists(resolvedDir, DEFAULT_MEMORY_FILENAME))
+      (entry.name === DEFAULT_MEMORY_FILENAME || entry.name === DEFAULT_BOOTSTRAP_FILENAME) &&
+      !(await exactWorkspaceEntryExists(resolvedDir, entry.name))
     ) {
       continue;
     }
