@@ -2,7 +2,7 @@
 summary: "TypeSafe Jev evaluation tool and model-call tool router"
 read_when:
   - You want fast typed judgments (yes/no, choice, score) inside an agent
-  - You want Jev to pick tools so the main model only writes text
+  - You want browser or computer-use steps to skip LLM calls
   - You are choosing between TypeSafe, OpenRouter, and Vercel AI Gateway for Jev
 title: "TypeSafe Jev"
 ---
@@ -12,21 +12,19 @@ It takes state plus typed questions and returns calibrated probabilities. It
 cannot chat, write text, or call tools, so it is not a chat model in Genesis.
 The bundled `typesafe` plugin uses it in two opt-in ways:
 
-- **Tool router.** Before each model call in the agent loop, Jev picks the next
-  step from the agent's tools (or "reply in text"). Argument questions for
-  enum/boolean-only tools go in the same request, so one round trip decides
-  the whole call.
-  - If every parameter of the chosen tool is an enum, const, or boolean, the
-    tool runs without an LLM call.
-  - If the tool needs free-form arguments (paths, commands, URLs, text), the
-    main model is called with that tool forced and only writes the arguments.
+- **Tool router.** Inside a browser or computer-use loop (the latest tool result
+  came from `browser` or a computer-use style MCP server such as
+  `computer-use`, `desktop`, or `claude-in-chrome`), Jev checks whether the
+  next step can run without an LLM call. One request decides the whole step.
   - **Browser:** Jev reads the numbered elements (`[ref=eN]`) from the latest
-    browser snapshot and, in the same request, picks the browser step and the
-    element to click. Clicks and fresh snapshots run without an LLM call.
-    Typing, navigation, and other browser steps go to the main model.
-  - If Jev picks a text reply, the main model is called with tools disabled.
-  - Low-confidence answers, errors, and timeouts fall back to a normal model
-    call.
+    snapshot and picks a fresh snapshot or the element to click.
+  - **Computer use:** MCP use tools whose arguments are all enum, const, or
+    boolean (for example a screenshot) run with Jev-picked arguments.
+    Coordinate clicks, typing, and navigation stay with the main model.
+  - Otherwise, and on low confidence, errors, or timeouts, the main model is
+    called exactly as it would be without the router. The router never
+    changes `tool_choice`, thinking, or the tool list, so provider prompt
+    caches keep hitting. Outside use loops Jev is not called at all.
 - **`jev_evaluate` tool.** Lets the agent ask Jev boolean, choice, and score
   questions directly.
 

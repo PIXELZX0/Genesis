@@ -5,8 +5,8 @@ import type {
 import { z } from "zod";
 import { jevAnswerConfidence, type JevQuestion, type JevResult } from "./jev-client.js";
 
-export const REPLY_OPTION = "__reply__";
 const NEXT_QUESTION = "next_action";
+const OTHER_OPTION = "__other__";
 // Jev accuracy drops with irrelevant context, and its window is ~32k tokens.
 const STATE_BUDGET_CHARS = 16_000;
 const ENTRY_TEXT_CHARS = 2_000;
@@ -112,21 +112,6 @@ export function buildRouterState(messages: unknown[]): {
   };
 }
 
-export function buildNextActionQuestion(tools: PluginHookModelCallTool[]): JevQuestion {
-  const criteria: Record<string, string> = {};
-  for (const tool of tools.toSorted((a, b) => a.name.localeCompare(b.name))) {
-    criteria[tool.name] = truncate(tool.description || tool.name, TOOL_DESCRIPTION_CHARS);
-  }
-  criteria[REPLY_OPTION] =
-    "Respond to the user in text: the task is done, the user must be asked something, or no tool is needed.";
-  return {
-    type: "choice",
-    instructions:
-      "Which single action should the assistant take next to make progress on the user's request?",
-    criteria,
-  };
-}
-
 type JsonSchemaProperty = {
   type?: unknown;
   enum?: unknown;
@@ -225,11 +210,24 @@ function argValue(param: ClosedParam, answer: JevResult["answers"][string] | und
 }
 
 const BROWSER_TOOL = "browser";
-const BROWSER_OPERATION_QUESTION = "browser:operation";
+const BROWSER_SNAPSHOT_OPTION = "browser:snapshot";
+const BROWSER_CLICK_OPTION = "browser:click";
 const BROWSER_TARGET_QUESTION = "browser:click_target";
 // Bounds criteria size; elements past the cap cannot be picked (jev-ultrafast keeps 250).
 const MAX_BROWSER_TARGETS = 150;
 const SNAPSHOT_REF_LINE = /^\s*-\s*([\w-]+)(?:\s+"([^"\n]*)")?[^\n]*?\[ref=(e\d+)\]/gm;
+// MCP tools are named `<server>__<tool>`; computer-use style servers pick their own names.
+// ponytail: server-name heuristic; add a config allowlist if a use server is missed.
+const USE_SERVER_NAME = /computer|desktop|screen|browser|chrome|playwright|puppeteer/i;
+
+/** Browser or computer-use style tool: observe/act loops where Jev can skip the LLM. */
+export function isUseTool(name: string): boolean {
+  if (name === BROWSER_TOOL) {
+    return true;
+  }
+  const separator = name.indexOf("__");
+  return separator > 0 && USE_SERVER_NAME.test(name.slice(0, separator));
+}
 
 /** Indexed elements (`ref` → label) from the latest browser tool result, if it was a snapshot. */
 export function latestBrowserTargets(messages: unknown[]): Record<string, string> {
@@ -251,140 +249,117 @@ export function latestBrowserTargets(messages: unknown[]): Record<string, string
   return targets;
 }
 
-function buildBrowserQuestions(targets: Record<string, string>): Record<string, JevQuestion> {
-  const hasTargets = Object.keys(targets).length > 0;
-  const operations: Record<string, string> = {
-    snapshot: "Take a fresh page snapshot: there is no current snapshot or the page has changed.",
-    other: "Anything else: typing text, navigating, opening or switching tabs, screenshots.",
-  };
-  if (hasTargets) {
-    operations.click = "Click one element listed in the latest page snapshot.";
-  }
-  const questions: Record<string, JevQuestion> = {
-    [BROWSER_OPERATION_QUESTION]: {
-      type: "choice",
-      instructions: "If the next step uses the browser, which kind of browser step is it?",
-      criteria: operations,
-    },
-  };
-  if (hasTargets) {
-    // Speculative: only read when the operation answer is `click`.
-    questions[BROWSER_TARGET_QUESTION] = {
-      type: "choice",
-      instructions:
-        "Assuming the next step clicks an element on the current page, which element should be clicked?",
-      criteria: Object.fromEntries(
-        Object.entries(targets).map(([ref, label]) => [ref, `[${ref}] ${label}`]),
-      ),
-    };
-  }
-  return questions;
-}
-
-function decideBrowserCall(
-  answers: JevResult["answers"],
-  targets: Record<string, string>,
-  minConfidence: number,
-) {
-  const operation = answers[BROWSER_OPERATION_QUESTION];
-  if (operation?.type !== "choice" || jevAnswerConfidence(operation) < minConfidence) {
-    return undefined;
-  }
-  if (operation.choice === "snapshot") {
-    return {
-      action: "tool_call" as const,
-      toolName: BROWSER_TOOL,
-      arguments: { action: "snapshot" },
-    };
-  }
-  const target = answers[BROWSER_TARGET_QUESTION];
-  if (
-    operation.choice === "click" &&
-    target?.type === "choice" &&
-    Object.hasOwn(targets, target.choice) &&
-    jevAnswerConfidence(target) >= minConfidence
-  ) {
-    return {
-      action: "tool_call" as const,
-      toolName: BROWSER_TOOL,
-      arguments: { action: "act", request: { kind: "click", ref: target.choice } },
-    };
-  }
-  return undefined;
-}
-
 function argQuestionId(toolName: string, paramName: string): string {
   return `arg:${toolName}:${paramName}`;
 }
 
+type DirectTool = { tool: PluginHookModelCallTool; params: ClosedParam[] };
+
+function isConfident(answer: JevResult["answers"][string] | undefined, min: number): boolean {
+  return answer !== undefined && jevAnswerConfidence(answer) >= min;
+}
+
 /**
- * Picks the next step with Jev in one request; any doubt defers to the LLM.
- * Argument questions for closed-set tools ride along speculatively (TypeSafe fan-out),
- * so a model-free call needs a single round trip; unused answers are ignored.
+ * Inside a browser/computer-use loop, asks Jev in one request whether the next step is a
+ * model-free action (snapshot, click on a snapshot element, closed-argument use tool).
+ * Only ever returns `tool_call` or `pass`: the LLM request itself is never altered, so
+ * tool_choice/thinking/tool lists stay stable and provider prompt caches keep hitting.
  */
 export async function decideModelCallRoute(params: {
   messages: unknown[];
   tools: PluginHookModelCallTool[];
   config: Pick<JevRouterConfig, "minConfidence">;
-  allowDirectCall: boolean;
   evaluate: JevEvaluate;
 }): Promise<PluginHookBeforeModelCallResult> {
   const { tools, config } = params;
-  if (tools.length === 0) {
+  const last = params.messages.at(-1) as { role?: string; toolName?: string } | undefined;
+  // Only continue an active use loop; other turns skip Jev entirely (no added latency).
+  if (last?.role !== "toolResult" || !last.toolName || !isUseTool(last.toolName)) {
     return { action: "pass" };
   }
-  const questions: Record<string, JevQuestion> = {
-    [NEXT_QUESTION]: buildNextActionQuestion(tools),
-  };
-  const browserTargets =
-    params.allowDirectCall && tools.some((tool) => tool.name === BROWSER_TOOL)
-      ? latestBrowserTargets(params.messages)
-      : undefined;
-  if (browserTargets) {
-    Object.assign(questions, buildBrowserQuestions(browserTargets));
-  }
-  if (params.allowDirectCall) {
-    for (const tool of tools) {
-      const shape = classifyToolParams(tool.parameters);
-      if (shape.kind !== "closed") {
-        continue;
-      }
-      for (const [paramName, question] of Object.entries(buildArgQuestions(tool, shape.required))) {
-        questions[argQuestionId(tool.name, paramName)] = question;
-      }
+  const options: Record<string, string> = {};
+  const questions: Record<string, JevQuestion> = {};
+  const hasBrowser = tools.some((tool) => tool.name === BROWSER_TOOL);
+  const targets = hasBrowser ? latestBrowserTargets(params.messages) : {};
+  if (hasBrowser) {
+    options[BROWSER_SNAPSHOT_OPTION] =
+      "Take a fresh browser page snapshot: there is no current snapshot or the page has changed.";
+    if (Object.keys(targets).length > 0) {
+      options[BROWSER_CLICK_OPTION] = "Click one element listed in the latest browser snapshot.";
+      // Speculative: only read when the next action is a click.
+      questions[BROWSER_TARGET_QUESTION] = {
+        type: "choice",
+        instructions:
+          "Assuming the next step clicks an element on the current page, which element should be clicked?",
+        criteria: Object.fromEntries(
+          Object.entries(targets).map(([ref, label]) => [ref, `[${ref}] ${label}`]),
+        ),
+      };
     }
   }
-  const { answers } = await params.evaluate(buildRouterState(params.messages), questions);
+  const direct = new Map<string, DirectTool>();
+  for (const tool of tools.toSorted((a, b) => a.name.localeCompare(b.name))) {
+    if (tool.name === BROWSER_TOOL || !isUseTool(tool.name)) {
+      continue;
+    }
+    const shape = classifyToolParams(tool.parameters);
+    if (shape.kind !== "closed") {
+      continue;
+    }
+    direct.set(tool.name, { tool, params: shape.required });
+    options[tool.name] = truncate(tool.description || tool.name, TOOL_DESCRIPTION_CHARS);
+    for (const [paramName, question] of Object.entries(buildArgQuestions(tool, shape.required))) {
+      questions[argQuestionId(tool.name, paramName)] = question;
+    }
+  }
+  if (Object.keys(options).length === 0) {
+    return { action: "pass" };
+  }
+  options[OTHER_OPTION] =
+    "Anything else: typing text, navigating, clicking by screen coordinates, using another tool, or replying to the user.";
+  const { answers } = await params.evaluate(buildRouterState(params.messages), {
+    [NEXT_QUESTION]: {
+      type: "choice",
+      instructions:
+        "Which single action should the assistant take next to make progress on the user's request?",
+      criteria: options,
+    },
+    ...questions,
+  });
   const next = answers[NEXT_QUESTION];
-  if (next?.type !== "choice" || jevAnswerConfidence(next) < config.minConfidence) {
+  if (next?.type !== "choice" || !isConfident(next, config.minConfidence)) {
     return { action: "pass" };
   }
-  if (next.choice === REPLY_OPTION) {
-    return { action: "no_tools" };
+  if (next.choice === BROWSER_SNAPSHOT_OPTION && hasBrowser) {
+    return { action: "tool_call", toolName: BROWSER_TOOL, arguments: { action: "snapshot" } };
   }
-  const tool = tools.find((candidate) => candidate.name === next.choice);
-  if (!tool) {
+  if (next.choice === BROWSER_CLICK_OPTION) {
+    const target = answers[BROWSER_TARGET_QUESTION];
+    return target?.type === "choice" &&
+      Object.hasOwn(targets, target.choice) &&
+      isConfident(target, config.minConfidence)
+      ? {
+          action: "tool_call",
+          toolName: BROWSER_TOOL,
+          arguments: { action: "act", request: { kind: "click", ref: target.choice } },
+        }
+      : { action: "pass" };
+  }
+  const picked = direct.get(next.choice);
+  if (!picked) {
     return { action: "pass" };
-  }
-  const forced = { action: "force_tool", toolName: tool.name } as const;
-  if (tool.name === BROWSER_TOOL && browserTargets) {
-    return decideBrowserCall(answers, browserTargets, config.minConfidence) ?? forced;
-  }
-  const shape = classifyToolParams(tool.parameters);
-  if (shape.kind === "open" || !params.allowDirectCall) {
-    return forced;
   }
   const args: Record<string, unknown> = {};
-  for (const param of shape.required) {
-    const answer = answers[argQuestionId(tool.name, param.name)];
-    if (answer && jevAnswerConfidence(answer) < config.minConfidence) {
-      return forced;
+  for (const param of picked.params) {
+    const answer = answers[argQuestionId(picked.tool.name, param.name)];
+    if (answer && !isConfident(answer, config.minConfidence)) {
+      return { action: "pass" };
     }
     const value = argValue(param, answer);
     if (value === undefined) {
-      return forced;
+      return { action: "pass" };
     }
     args[param.name] = value;
   }
-  return { action: "tool_call", toolName: tool.name, arguments: args };
+  return { action: "tool_call", toolName: picked.tool.name, arguments: args };
 }

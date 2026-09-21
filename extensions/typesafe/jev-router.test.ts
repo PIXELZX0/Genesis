@@ -4,41 +4,71 @@ import {
   buildRouterState,
   classifyToolParams,
   decideModelCallRoute,
+  isUseTool,
   latestBrowserTargets,
-  REPLY_OPTION,
   type JevEvaluate,
 } from "./jev-router.js";
 import { toJevQuestions } from "./jev-tool.js";
 
-const tools = [
-  {
-    name: "browser",
-    description: "Control the browser",
-    parameters: {
-      type: "object",
-      properties: {
-        action: { type: "string", enum: ["snapshot", "click"] },
-        ref: { type: "string" },
-      },
-      required: ["action"],
+const browserTool = {
+  name: "browser",
+  description: "Control the browser",
+  parameters: {
+    type: "object",
+    properties: {
+      action: { type: "string", enum: ["snapshot", "click"] },
+      ref: { type: "string" },
     },
+    required: ["action"],
   },
-  {
-    name: "session_status",
-    description: "Show session status",
-    parameters: {
-      type: "object",
-      properties: {
-        scope: { type: "string", enum: ["current", "all"] },
-        verbose: { type: "boolean" },
-        extra: { type: "boolean" },
-      },
-      required: ["scope", "verbose"],
+};
+const screenshotTool = {
+  name: "computer-use__screenshot",
+  description: "Capture the screen",
+  parameters: {
+    type: "object",
+    properties: {
+      display: { type: "string", enum: ["main", "secondary"] },
+      save: { type: "boolean" },
     },
+    required: ["display"],
   },
-];
+};
+const clickTool = {
+  name: "computer-use__left_click",
+  description: "Click at screen coordinates",
+  parameters: {
+    type: "object",
+    properties: { coordinate: { type: "array", items: { type: "number" } } },
+    required: ["coordinate"],
+  },
+};
+const statusTool = {
+  name: "session_status",
+  description: "Show session status",
+  parameters: {
+    type: "object",
+    properties: { scope: { type: "string", enum: ["current", "all"] } },
+    required: ["scope"],
+  },
+};
+const tools = [browserTool, screenshotTool, clickTool, statusTool];
 
-const messages = [{ role: "user", content: "open example.com" }];
+const snapshotResult = {
+  role: "toolResult",
+  toolName: "browser",
+  content: [
+    {
+      type: "text",
+      text: '<<<EXTERNAL>>>\n- heading "Example" [ref=e1]\n  - button "Sign in" [ref=e2]\n  - link [ref=e3] [nth=1]\n<<<END>>>',
+    },
+  ],
+};
+const browserLoop = [{ role: "user", content: "sign in" }, snapshotResult];
+const screenLoop = [
+  { role: "user", content: "check the screen" },
+  { role: "toolResult", toolName: "computer-use__left_click", content: "clicked" },
+];
 
 function evaluator(answers: JevResult["answers"]) {
   const calls: Array<Record<string, JevQuestion>> = [];
@@ -49,32 +79,40 @@ function evaluator(answers: JevResult["answers"]) {
   return { evaluate, calls };
 }
 
-function next(choice: string, probability: number): JevResult["answers"] {
+function next(choice: string, probability = 0.9): JevResult["answers"] {
   return { next_action: { type: "choice", choice, probabilities: { [choice]: probability } } };
 }
 
-async function decide(evaluate: JevEvaluate, allowDirectCall = true) {
-  return decideModelCallRoute({
-    messages,
-    tools,
-    config: { minConfidence: 0.6 },
-    allowDirectCall,
+function decide(answers: JevResult["answers"], messages: unknown[] = browserLoop) {
+  const { evaluate, calls } = evaluator(answers);
+  return {
+    calls,
     evaluate,
-  });
+    route: decideModelCallRoute({ messages, tools, config: { minConfidence: 0.6 }, evaluate }),
+  };
 }
 
 describe("classifyToolParams", () => {
   it("treats any free-form field as open", () => {
-    expect(classifyToolParams(tools[0].parameters)).toEqual({ kind: "open" });
+    expect(classifyToolParams(browserTool.parameters)).toEqual({ kind: "open" });
   });
 
   it("collects required closed params only", () => {
-    const shape = classifyToolParams(tools[1].parameters);
+    const shape = classifyToolParams(screenshotTool.parameters);
     expect(shape.kind === "closed" && shape.required.map((param) => param.name)).toEqual([
-      "scope",
-      "verbose",
+      "display",
     ]);
     expect(classifyToolParams(undefined)).toEqual({ kind: "closed", required: [] });
+  });
+});
+
+describe("isUseTool", () => {
+  it("matches the browser and computer-use style MCP servers only", () => {
+    expect(isUseTool("browser")).toBe(true);
+    expect(isUseTool("computer-use__screenshot")).toBe(true);
+    expect(isUseTool("claude-in-chrome__navigate")).toBe(true);
+    expect(isUseTool("session_status")).toBe(false);
+    expect(isUseTool("github__screen_pr")).toBe(false);
   });
 });
 
@@ -97,68 +135,84 @@ describe("buildRouterState", () => {
 });
 
 describe("decideModelCallRoute", () => {
-  it("passes when Jev is unsure", async () => {
-    await expect(decide(evaluator(next("browser", 0.4)).evaluate)).resolves.toEqual({
-      action: "pass",
-    });
+  it("skips Jev outside a browser/computer-use loop", async () => {
+    for (const messages of [
+      [{ role: "user", content: "hi" }],
+      [{ role: "toolResult", toolName: "session_status", content: "ok" }],
+    ]) {
+      const { route, evaluate } = decide(next("browser:snapshot"), messages);
+      await expect(route).resolves.toEqual({ action: "pass" });
+      expect(evaluate).not.toHaveBeenCalled();
+    }
   });
 
-  it("disables tools when Jev picks a text reply", async () => {
-    const { evaluate, calls } = evaluator(next(REPLY_OPTION, 0.9));
-    await expect(decide(evaluate)).resolves.toEqual({ action: "no_tools" });
-    expect(Object.keys((calls[0].next_action as { criteria: object }).criteria)).toEqual([
-      "browser",
-      "session_status",
-      REPLY_OPTION,
-    ]);
-  });
-
-  it("forces the tool when the LLM must write free-form arguments", async () => {
-    await expect(decide(evaluator(next("browser", 0.9)).evaluate)).resolves.toEqual({
-      action: "force_tool",
-      toolName: "browser",
-    });
-  });
-
-  it("calls closed-set tools directly with Jev-picked arguments", async () => {
-    const { evaluate, calls } = evaluator({
-      ...next("session_status", 0.95),
-      "arg:session_status:scope": {
-        type: "choice",
-        choice: "all",
-        probabilities: { all: 0.9, current: 0.1 },
-      },
-      "arg:session_status:verbose": { type: "boolean", probability: 0.1 },
-    });
-    await expect(decide(evaluate)).resolves.toEqual({
-      action: "tool_call",
-      toolName: "session_status",
-      arguments: { scope: "all", verbose: false },
-    });
-    // One round trip: tool choice plus speculative browser/closed-set arg questions.
+  it("offers only model-free use actions in one round trip", async () => {
+    const { route, calls } = decide(next("__other__"));
+    await expect(route).resolves.toEqual({ action: "pass" });
     expect(calls).toHaveLength(1);
+    expect(Object.keys((calls[0].next_action as { criteria: object }).criteria)).toEqual([
+      "browser:snapshot",
+      "browser:click",
+      "computer-use__screenshot",
+      "__other__",
+    ]);
     expect(Object.keys(calls[0])).toEqual([
       "next_action",
-      "browser:operation",
-      "arg:session_status:scope",
-      "arg:session_status:verbose",
+      "browser:click_target",
+      "arg:computer-use__screenshot:display",
     ]);
   });
 
-  it("defers to the LLM when an argument is uncertain or direct calls are exhausted", async () => {
-    const uncertain = evaluator({
-      ...next("session_status", 0.95),
-      "arg:session_status:scope": {
-        type: "choice",
-        choice: "all",
-        probabilities: { all: 0.5, current: 0.5 },
-      },
-      "arg:session_status:verbose": { type: "boolean", probability: 0.9 },
+  it("never alters the model call: uncertainty passes", async () => {
+    await expect(decide(next("browser:snapshot", 0.4)).route).resolves.toEqual({
+      action: "pass",
     });
-    await expect(decide(uncertain.evaluate)).resolves.toMatchObject({ action: "force_tool" });
     await expect(
-      decide(evaluator(next("session_status", 0.95)).evaluate, false),
-    ).resolves.toMatchObject({ action: "force_tool" });
+      decide({
+        ...next("browser:click"),
+        "browser:click_target": { type: "choice", choice: "e2", probabilities: { e2: 0.4 } },
+      }).route,
+    ).resolves.toEqual({ action: "pass" });
+  });
+
+  it("clicks the Jev-picked snapshot element", async () => {
+    const { route, calls } = decide({
+      ...next("browser:click"),
+      "browser:click_target": { type: "choice", choice: "e2", probabilities: { e2: 0.95 } },
+    });
+    await expect(route).resolves.toEqual({
+      action: "tool_call",
+      toolName: "browser",
+      arguments: { action: "act", request: { kind: "click", ref: "e2" } },
+    });
+    expect(calls[0]["browser:click_target"]).toMatchObject({
+      criteria: { e1: '[e1] heading "Example"', e2: '[e2] button "Sign in"', e3: "[e3] link" },
+    });
+  });
+
+  it("calls closed-argument computer-use tools directly", async () => {
+    const { route, calls } = decide(
+      {
+        ...next("computer-use__screenshot", 0.95),
+        "arg:computer-use__screenshot:display": {
+          type: "choice",
+          choice: "main",
+          probabilities: { main: 0.9, secondary: 0.1 },
+        },
+      },
+      screenLoop,
+    );
+    await expect(route).resolves.toEqual({
+      action: "tool_call",
+      toolName: "computer-use__screenshot",
+      arguments: { display: "main" },
+    });
+    // No browser snapshot yet, so no click option or target question.
+    expect(Object.keys((calls[0].next_action as { criteria: object }).criteria)).toEqual([
+      "browser:snapshot",
+      "computer-use__screenshot",
+      "__other__",
+    ]);
   });
 });
 
@@ -190,96 +244,18 @@ describe("toJevQuestions", () => {
   });
 });
 
-describe("browser element selection", () => {
-  const snapshotResult = {
-    role: "toolResult",
-    toolName: "browser",
-    content: [
-      {
-        type: "text",
-        text: '<<<EXTERNAL>>>\n- heading "Example" [ref=e1]\n  - button "Sign in" [ref=e2]\n  - link [ref=e3] [nth=1]\n<<<END>>>',
-      },
-    ],
-  };
-  const browserMessages = [{ role: "user", content: "sign in" }, snapshotResult];
-
-  function decideBrowser(answers: JevResult["answers"], messages: unknown[] = browserMessages) {
-    const { evaluate, calls } = evaluator(answers);
-    return {
-      calls,
-      route: decideModelCallRoute({
-        messages,
-        tools,
-        config: { minConfidence: 0.6 },
-        allowDirectCall: true,
-        evaluate,
-      }),
-    };
-  }
-
-  function op(choice: string, probability = 0.9): JevResult["answers"] {
-    return {
-      "browser:operation": { type: "choice", choice, probabilities: { [choice]: probability } },
-    };
-  }
-
+describe("latestBrowserTargets", () => {
   it("indexes refs from the latest browser snapshot only", () => {
-    expect(latestBrowserTargets(browserMessages)).toEqual({
+    expect(latestBrowserTargets(browserLoop)).toEqual({
       e1: 'heading "Example"',
       e2: 'button "Sign in"',
       e3: "link",
     });
     expect(
       latestBrowserTargets([
-        ...browserMessages,
+        ...browserLoop,
         { role: "toolResult", toolName: "browser", content: "clicked" },
       ]),
     ).toEqual({});
-  });
-
-  it("clicks the Jev-picked element in one round trip", async () => {
-    const { route, calls } = decideBrowser({
-      ...next("browser", 0.9),
-      ...op("click"),
-      "browser:click_target": { type: "choice", choice: "e2", probabilities: { e2: 0.95 } },
-    });
-    await expect(route).resolves.toEqual({
-      action: "tool_call",
-      toolName: "browser",
-      arguments: { action: "act", request: { kind: "click", ref: "e2" } },
-    });
-    expect(calls).toHaveLength(1);
-    expect(calls[0]["browser:click_target"]).toMatchObject({
-      criteria: { e1: '[e1] heading "Example"', e2: '[e2] button "Sign in"', e3: "[e3] link" },
-    });
-  });
-
-  it("takes a snapshot directly and offers no click without one", async () => {
-    const { route, calls } = decideBrowser({ ...next("browser", 0.9), ...op("snapshot") }, [
-      { role: "user", content: "open the page" },
-    ]);
-    await expect(route).resolves.toEqual({
-      action: "tool_call",
-      toolName: "browser",
-      arguments: { action: "snapshot" },
-    });
-    expect(Object.keys((calls[0]["browser:operation"] as { criteria: object }).criteria)).toEqual([
-      "snapshot",
-      "other",
-    ]);
-    expect(calls[0]["browser:click_target"]).toBeUndefined();
-  });
-
-  it("hands typing and uncertain targets to the LLM", async () => {
-    await expect(decideBrowser({ ...next("browser", 0.9), ...op("other") }).route).resolves.toEqual(
-      { action: "force_tool", toolName: "browser" },
-    );
-    await expect(
-      decideBrowser({
-        ...next("browser", 0.9),
-        ...op("click"),
-        "browser:click_target": { type: "choice", choice: "e2", probabilities: { e2: 0.4 } },
-      }).route,
-    ).resolves.toEqual({ action: "force_tool", toolName: "browser" });
   });
 });

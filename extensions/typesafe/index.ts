@@ -114,12 +114,16 @@ export default definePluginEntry({
         return { action: "pass" };
       }
       const used = directCalls.get(event.runId) ?? 0;
+      if (used >= router.maxConsecutiveDirectCalls) {
+        // Hand the loop back to the model; it resets the count on its next step.
+        directCalls.delete(event.runId);
+        return { action: "pass" };
+      }
       try {
         const route = await decideModelCallRoute({
           messages: event.messages,
           tools: event.tools,
           config: router,
-          allowDirectCall: used < router.maxConsecutiveDirectCalls,
           evaluate: (state, questions) =>
             evaluate(state, questions, { timeoutMs: router.timeoutMs }),
         });

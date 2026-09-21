@@ -16,11 +16,11 @@
     },
     "jevRouter": {
       "label": "Jev tool router",
-      "help": "TypeSafe Jev picks the next tool before each model call. Turning it on needs a gateway restart; turning it off and other edits apply immediately."
+      "help": "TypeSafe Jev skips LLM calls for simple browser and computer-use steps. Turning it on needs a gateway restart; turning it off and other edits apply immediately."
     },
     "jevRouter.enabled": {
       "label": "Enable Jev tool router",
-      "help": "Let Jev pick the next tool before each model call; the LLM only writes free-text arguments and replies."
+      "help": "In browser and computer-use loops, let Jev run snapshots, clicks, and closed-argument use tools without an LLM call. Other steps call the model unchanged."
     },
     "jevRouter.minConfidence": {
       "label": "Jev min confidence",
