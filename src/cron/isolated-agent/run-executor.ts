@@ -1,4 +1,5 @@
 import type { SkillSnapshot } from "../../agents/skills.js";
+import { CRON_REPORT_TOOL_NAME, peekCronRunReport } from "../../agents/tools/cron-report-tool.js";
 import type { ThinkLevel, VerboseLevel } from "../../auto-reply/thinking.js";
 import type { AgentDefaultsConfig } from "../../config/types.agent-defaults.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
@@ -196,7 +197,9 @@ export function createCronPromptExecutor(params: {
           timeoutMs: params.timeoutMs,
           bootstrapContextMode: params.agentPayload?.lightContext ? "lightweight" : undefined,
           bootstrapContextRunKind: "cron",
-          toolsAllow: params.agentPayload?.toolsAllow,
+          toolsAllow: params.agentPayload?.toolsAllow?.length
+            ? [...params.agentPayload.toolsAllow, CRON_REPORT_TOOL_NAME]
+            : params.agentPayload?.toolsAllow,
           execOverrides: params.suppressExecNotifyOnExit
             ? {
                 notifyOnExit: false,
@@ -366,6 +369,7 @@ export async function executeCronRun(params: {
     const interimText = interimOutputText?.trim() ?? "";
     const shouldRetryInterimAck =
       !runResult.meta?.error &&
+      !peekCronRunReport(params.cronSession.sessionEntry.sessionId) &&
       !runResult.didSendViaMessagingTool &&
       !interimPayloadHasStructuredContent &&
       !interimPayloads.some((payload) => payload?.isError === true) &&
@@ -389,7 +393,7 @@ export async function executeCronRun(params: {
         "Your previous response was only an acknowledgement and did not complete this cron task.",
         "Complete the original task now.",
         "Do not send a status update like 'on it'.",
-        "Use tools when needed, including sessions_spawn for parallel subtasks, wait for spawned subagents to finish, then return only the final summary.",
+        "Use tools when needed, including sessions_spawn for parallel subtasks, wait for spawned subagents to finish, then report the final result with the cron_report tool (or return only the final summary if that tool is unavailable).",
       ].join(" ");
       await executor.runPrompt(continuationPrompt);
       ({ runResult, fallbackProvider, fallbackModel, runEndedAt } = executor.getState());

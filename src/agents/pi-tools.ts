@@ -68,6 +68,7 @@ import {
   mergeAlsoAllowPolicy,
   resolveToolProfilePolicy,
 } from "./tool-policy.js";
+import { createCronReportTool } from "./tools/cron-report-tool.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 
 function isOpenAIProvider(provider?: string) {
@@ -858,7 +859,13 @@ export function createGenesisCodingTools(options?: {
   // Always normalize tool JSON Schemas before handing them to pi-agent/pi-ai.
   // Without this, some providers (notably OpenAI) will reject root-level union schemas.
   // Provider-specific cleaning: Gemini needs constraint keywords stripped, but Anthropic expects them.
-  const normalized = subagentFiltered.map((tool) =>
+  // cron_report is a cron-run control tool: added after policy filtering so
+  // profile/job allowlists cannot hide it, and never exposed outside cron runs.
+  const withCronReport =
+    options?.trigger === "cron" && options.runId
+      ? [...subagentFiltered, createCronReportTool({ runId: options.runId })]
+      : subagentFiltered;
+  const normalized = withCronReport.map((tool) =>
     normalizeToolParameters(tool, {
       modelProvider: options?.modelProvider,
       modelId: options?.modelId,

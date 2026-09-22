@@ -12,6 +12,7 @@ import {
   mockRunCronFallbackPassthrough,
   resetRunCronIsolatedAgentTurnHarness,
   resolveCronDeliveryPlanMock,
+  resolveCronPayloadOutcomeMock,
   resolveDeliveryTargetMock,
   restoreFastTestEnv,
   runEmbeddedPiAgentMock,
@@ -19,6 +20,7 @@ import {
 
 const runCronIsolatedAgentTurn = await loadRunCronIsolatedAgentTurn();
 const { createCronPromptExecutor } = await import("./run-executor.js");
+const { createCronReportTool } = await import("../../agents/tools/cron-report-tool.js");
 
 function makeMessageToolPolicyJob(
   delivery: Record<string, unknown> = { mode: "none" },
@@ -747,7 +749,8 @@ describe("runCronIsolatedAgentTurn delivery instruction", () => {
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
     const prompt: string = runEmbeddedPiAgentMock.mock.calls[0]?.[0]?.prompt ?? "";
-    expect(prompt).toContain("Use the message tool");
+    expect(prompt).toContain("cron_report");
+    expect(prompt).toContain("Use the message tool only");
     expect(prompt).toContain("will be delivered automatically");
     expect(prompt).not.toContain("note who/where");
   });
@@ -772,7 +775,8 @@ describe("runCronIsolatedAgentTurn delivery instruction", () => {
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
     const prompt: string = runEmbeddedPiAgentMock.mock.calls[0]?.[0]?.prompt ?? "";
     expect(prompt).not.toContain("Use the message tool");
-    expect(prompt).toContain("Return your response as plain text");
+    expect(prompt).toContain("cron_report");
+    expect(prompt).toContain("note who/where");
   });
 
   it("does not append a delivery instruction when delivery is not requested", async () => {
@@ -783,8 +787,8 @@ describe("runCronIsolatedAgentTurn delivery instruction", () => {
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
     const prompt: string = runEmbeddedPiAgentMock.mock.calls[0]?.[0]?.prompt ?? "";
-    expect(prompt).not.toContain("Return your response as plain text");
-    expect(prompt).not.toContain("it will be delivered automatically");
+    expect(prompt).toContain("cron_report");
+    expect(prompt).not.toContain("delivered automatically");
   });
 
   it("does not instruct the agent to summarize when delivery is requested", async () => {
@@ -804,5 +808,45 @@ describe("runCronIsolatedAgentTurn delivery instruction", () => {
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
     const prompt: string = runEmbeddedPiAgentMock.mock.calls[0]?.[0]?.prompt ?? "";
     expect(prompt).not.toMatch(/\bsummary\b/i);
+  });
+
+  it("keeps cron_report available when job toolsAllow is narrowed", async () => {
+    mockRunCronFallbackPassthrough();
+    resolveCronDeliveryPlanMock.mockReturnValue({ requested: false, mode: "none" });
+
+    await runCronIsolatedAgentTurn({
+      ...makeParams(),
+      job: makeMessageToolPolicyJob(
+        { mode: "none" },
+        { kind: "agentTurn", message: "send a message", toolsAllow: ["read"] },
+      ),
+    });
+
+    expect(runEmbeddedPiAgentMock.mock.calls[0]?.[0]?.toolsAllow).toEqual(["read", "cron_report"]);
+  });
+
+  it("uses the cron_report tool call as the run status and delivery text", async () => {
+    mockRunCronFallbackPassthrough();
+    resolveCronDeliveryPlanMock.mockReturnValue(makeAnnounceDeliveryPlan());
+    runEmbeddedPiAgentMock.mockImplementation(async (params: { runId: string }) => {
+      await createCronReportTool({ runId: params.runId }).execute("call-1", {
+        status: "error",
+        result: "backup failed: disk full",
+      });
+      return { payloads: [{ text: "done" }], meta: { agentMeta: { usage: { input: 1 } } } };
+    });
+
+    const result = await runCronIsolatedAgentTurn({
+      ...makeParams(),
+      job: makeAnnounceMessageToolJob(),
+    });
+
+    // The report, not the final reply text, feeds the delivery outcome.
+    expect(resolveCronPayloadOutcomeMock).toHaveBeenLastCalledWith({
+      payloads: [{ text: "backup failed: disk full" }],
+    });
+    expect(dispatchCronDeliveryMock).toHaveBeenCalledTimes(1);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("backup failed: disk full");
   });
 });

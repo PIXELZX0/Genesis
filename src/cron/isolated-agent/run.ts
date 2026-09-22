@@ -2,6 +2,7 @@ import { hasAnyAuthProfileStoreSource } from "../../agents/auth-profiles/source-
 import { retireSessionMcpRuntime } from "../../agents/pi-bundle-mcp-tools.js";
 import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.types.js";
 import type { SkillSnapshot } from "../../agents/skills.js";
+import { takeCronRunReport } from "../../agents/tools/cron-report-tool.js";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { CliDeps } from "../../cli/outbound-send-deps.js";
 import type { AgentDefaultsConfig } from "../../config/types.agent-defaults.js";
@@ -344,22 +345,28 @@ async function resolveCronDeliveryContext(params: {
   };
 }
 
+const CRON_REPORT_INSTRUCTION =
+  "When the job is done, call the cron_report tool with its final status and full result. Report job status only through cron_report, not through the message tool or a plain-text reply.";
+
 function appendCronDeliveryInstruction(params: {
   commandBody: string;
   deliveryRequested: boolean;
   messageToolEnabled: boolean;
   resolvedDeliveryOk: boolean;
 }) {
+  const base = `${params.commandBody}\n\n${CRON_REPORT_INSTRUCTION}`;
   if (!params.deliveryRequested) {
-    return params.commandBody;
+    return base.trim();
   }
+  const delivery =
+    "The reported result will be delivered automatically; if cron_report is unavailable, your final plain-text reply is delivered instead.";
   if (params.messageToolEnabled) {
     const targetHint = params.resolvedDeliveryOk
       ? "for the current chat"
       : "with an explicit target";
-    return `${params.commandBody}\n\nUse the message tool if you need to notify the user directly ${targetHint}. If you do not send directly, your final plain-text reply will be delivered automatically.`.trim();
+    return `${base} ${delivery} Use the message tool only if the task explicitly calls for messaging someone directly ${targetHint}.`.trim();
   }
-  return `${params.commandBody}\n\nReturn your response as plain text; it will be delivered automatically. If the task explicitly calls for messaging a specific external recipient, note who/where it should go instead of sending it yourself.`.trim();
+  return `${base} ${delivery} If the task explicitly calls for messaging a specific external recipient, note who/where it should go instead of sending it yourself.`.trim();
 }
 
 function resolvePositiveContextTokens(value: unknown): number | undefined {
@@ -805,6 +812,7 @@ async function finalizeCronRun(params: {
   if (params.isAborted()) {
     return prepared.withRunSession({ status: "error", error: params.abortReason(), ...telemetry });
   }
+  const cronReport = takeCronRunReport(prepared.runSessionId);
   let {
     summary,
     outputText,
@@ -813,14 +821,22 @@ async function finalizeCronRun(params: {
     deliveryPayloadHasStructuredContent,
     hasFatalErrorPayload,
     embeddedRunError,
-  } = resolveCronPayloadOutcome({
-    payloads,
-    runLevelError: finalRunResult.meta?.error,
-    finalAssistantVisibleText: finalRunResult.meta?.finalAssistantVisibleText,
-    preferFinalAssistantVisibleText: (
-      await resolveCronChannelOutputPolicy(prepared.resolvedDelivery.channel)
-    ).preferFinalAssistantVisibleText,
-  });
+  } = cronReport
+    ? // The cron_report tool call is the authoritative job status + delivery text.
+      // Error reports still deliver, so status is applied outside the payload.
+      {
+        ...resolveCronPayloadOutcome({ payloads: [{ text: cronReport.result }] }),
+        hasFatalErrorPayload: cronReport.status === "error",
+        embeddedRunError: cronReport.status === "error" ? cronReport.result : undefined,
+      }
+    : resolveCronPayloadOutcome({
+        payloads,
+        runLevelError: finalRunResult.meta?.error,
+        finalAssistantVisibleText: finalRunResult.meta?.finalAssistantVisibleText,
+        preferFinalAssistantVisibleText: (
+          await resolveCronChannelOutputPolicy(prepared.resolvedDelivery.channel)
+        ).preferFinalAssistantVisibleText,
+      });
   const resolveRunOutcome = (result?: {
     delivered?: boolean;
     deliveryAttempted?: boolean;
@@ -840,7 +856,9 @@ async function finalizeCronRun(params: {
     });
 
   const skipHeartbeatDelivery =
-    prepared.deliveryRequested && isHeartbeatOnlyResponse(payloads, resolveHeartbeatAckMaxChars());
+    !cronReport &&
+    prepared.deliveryRequested &&
+    isHeartbeatOnlyResponse(payloads, resolveHeartbeatAckMaxChars());
   const {
     dispatchCronDelivery,
     matchesMessagingToolDeliveryTarget,
@@ -991,5 +1009,7 @@ export async function runCronIsolatedAgentTurn(params: {
     });
   } catch (err) {
     return prepared.context.withRunSession({ status: "error", error: String(err) });
+  } finally {
+    takeCronRunReport(prepared.context.runSessionId);
   }
 }

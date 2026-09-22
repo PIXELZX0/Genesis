@@ -148,6 +148,14 @@ agent sends to the configured/current target, Genesis skips the fallback
 announce. Otherwise `announce`, `webhook`, and `none` only control what the
 runner does with the final reply after the agent turn.
 
+Isolated cron runs also get a `cron_report` tool that no other session has. The
+agent reports the job's final status (`ok` or `error`) and full result through
+it instead of a `message` send or a plain-text reply. When the agent calls it,
+the reported status becomes the run status and the reported result is what the
+runner delivers; job `--tools` restrictions never hide it. If the agent never
+calls `cron_report` (for example on CLI backends, which do not expose Genesis
+tools), cron falls back to the final reply as before.
+
 Failure notifications follow a separate destination path:
 
 - `cron.failureDestination` sets a global default for failure notifications.
