@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { ConfigRestartPrompt } from "../controllers/config.ts";
 import { icons } from "../icons.ts";
@@ -81,6 +81,8 @@ export type ConfigProps = {
   includeVirtualSections?: boolean;
   /** Callback to navigate back to Quick Settings. */
   onBackToQuick?: () => void;
+  /** When set, the section nav is handed to the host (e.g. the app settings sidebar) instead of rendered inline. */
+  onSidebar?: (sidebar: TemplateResult) => void;
   onRequestUpdate?: () => void;
 };
 
@@ -781,9 +783,10 @@ export function renderConfig(props: ConfigProps) {
   const resetContentScroll = (target: EventTarget | null) => {
     queueMicrotask(() => {
       const origin = target instanceof Element ? target : null;
-      const content = origin
-        ?.closest(".config-layout")
-        ?.querySelector<HTMLElement>(".config-content");
+      // The section nav may live in the app sidebar, outside .config-layout.
+      const content = (origin?.closest(".config-layout") ?? document).querySelector<HTMLElement>(
+        ".config-content",
+      );
       if (!content) {
         return;
       }
@@ -796,9 +799,9 @@ export function renderConfig(props: ConfigProps) {
     });
   };
 
-  function renderSettingsSidebar() {
+  function renderSettingsSidebar(embedded: boolean) {
     return html`
-      <aside class="config-settings-sidebar">
+      <aside class="config-settings-sidebar ${embedded ? "config-settings-sidebar--embedded" : ""}">
         ${props.onBackToQuick
           ? html`
               <button class="config-settings-sidebar__back" @click=${props.onBackToQuick}>
@@ -935,8 +938,11 @@ export function renderConfig(props: ConfigProps) {
     props.activeSection === null &&
     Boolean(include?.has("__appearance__"));
 
+  const sidebarInline = !props.onSidebar;
+  props.onSidebar?.(renderSettingsSidebar(true));
+
   return html`
-    <div class="config-layout">
+    <div class="config-layout ${sidebarInline ? "" : "config-layout--no-sidebar"}">
       ${props.restartPrompt
         ? html`
             <div class="config-restart-modal" role="dialog" aria-modal="true">
@@ -972,7 +978,7 @@ export function renderConfig(props: ConfigProps) {
             </div>
           `
         : nothing}
-      ${renderSettingsSidebar()}
+      ${sidebarInline ? renderSettingsSidebar(false) : nothing}
       <main class="config-main">
         <div class="config-actions">
           <div class="config-actions__left">

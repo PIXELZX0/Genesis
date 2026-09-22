@@ -19,6 +19,10 @@
   animation: config-enter 0.3s var(--ease-out);
 }
 
+.config-layout--no-sidebar {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 @keyframes config-enter {
   from {
     opacity: 0;
@@ -355,6 +359,40 @@
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-elevated) 55%, var(--panel) 45%);
   overflow-y: auto;
+}
+
+/* Section nav hosted under the active item of the app settings sidebar. */
+.config-settings-sidebar--embedded {
+  border-right: none;
+  background: none;
+  overflow: visible;
+  animation: settings-sections-reveal var(--duration-normal) var(--ease-out);
+}
+
+.config-settings-sidebar--embedded .config-settings-sidebar__back {
+  border-bottom: none;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+}
+
+.config-settings-sidebar--embedded .config-search--sidebar {
+  padding: 4px 0 6px;
+}
+
+.config-settings-sidebar--embedded .config-settings-sidebar__nav {
+  overflow: visible;
+  padding: 0 0 4px;
+}
+
+@keyframes settings-sections-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .config-settings-sidebar__back {
@@ -1939,6 +1977,27 @@
   gap: 8px;
   border-left: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
   overflow-y: auto;
+  transition: flex-basis var(--duration-normal) var(--ease-out);
+}
+
+/* Primary sidebar hovered: it takes the width, settings drops to an icon rail. */
+.shell--settings-nav-compact .sidebar--settings {
+  flex-basis: calc(
+    var(--shell-nav-rail-width) + var(--shell-settings-nav-width) - var(--shell-nav-width)
+  );
+  width: auto;
+  padding-inline: 8px;
+}
+
+.shell--settings-nav-compact .settings-subnav__title,
+.shell--settings-nav-compact .settings-subnav__label,
+.shell--settings-nav-compact .settings-subnav__sections {
+  display: none;
+}
+
+.shell--settings-nav-compact.shell--settings-nav .sidebar--settings .settings-subnav__item {
+  justify-content: center;
+  padding: 8px;
 }
 
 .settings-subnav__title {
@@ -1957,12 +2016,50 @@
 }
 
 .settings-subnav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 8px 12px;
   border-radius: 6px;
   color: var(--text-secondary, var(--muted));
   font-size: 13px;
   font-weight: 560;
   text-decoration: none;
+  transition:
+    padding var(--duration-fast) var(--ease-out),
+    font-size var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.settings-subnav__icon {
+  display: flex;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.settings-subnav__icon svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settings-subnav__item--active .settings-subnav__icon {
+  opacity: 1;
+}
+
+/* While a category shows its sections, the other categories slim down. */
+.settings-subnav--expanded .settings-subnav__item:not(.settings-subnav__item--active) {
+  padding-block: 4px;
+  font-size: 12px;
+}
+
+.settings-subnav__sections {
+  margin: 2px 0 8px;
 }
 
 .settings-subnav__item:hover {

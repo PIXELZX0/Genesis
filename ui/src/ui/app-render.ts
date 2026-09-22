@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 import { until } from "lit/directives/until.js";
 import { i18n, t } from "../i18n/index.ts";
 import { getSafeLocalStorage } from "../local-storage.ts";
@@ -172,6 +172,7 @@ import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import {
+  iconForTab,
   isSettingsTab,
   normalizeBasePath,
   pathForTab,
@@ -1014,12 +1015,15 @@ function resolveQuickSettingsConfigDefaults(config: Record<string, unknown>): {
   };
 }
 
-function renderSettingsNav(state: AppViewState) {
+function renderSettingsNav(state: AppViewState, sectionNav: TemplateResult | null) {
   const labelFor = (tab: Tab) => (tab === "config" ? t("settingsNav.config") : titleForTab(tab));
   return html`
     <aside class="sidebar sidebar--settings">
       <div class="settings-subnav__title">${t("nav.settings")}</div>
-      <nav class="settings-subnav" aria-label=${t("settingsNav.label")}>
+      <nav
+        class="settings-subnav ${sectionNav ? "settings-subnav--expanded" : ""}"
+        aria-label=${t("settingsNav.label")}
+      >
         ${SETTINGS_TABS.map(
           (tab) => html`
             <a
@@ -1028,6 +1032,7 @@ function renderSettingsNav(state: AppViewState) {
                 : ""}"
               href=${pathForTab(tab, state.basePath)}
               aria-current=${state.tab === tab ? "page" : "false"}
+              title=${labelFor(tab)}
               @click=${(event: MouseEvent) => {
                 if (
                   event.defaultPrevented ||
@@ -1043,8 +1048,14 @@ function renderSettingsNav(state: AppViewState) {
                 state.setTab(tab);
               }}
             >
-              ${labelFor(tab)}
+              <span class="settings-subnav__icon" aria-hidden="true"
+                >${icons[iconForTab(tab)]}</span
+              >
+              <span class="settings-subnav__label">${labelFor(tab)}</span>
             </a>
+            ${state.tab === tab && sectionNav
+              ? html`<div class="settings-subnav__sections">${sectionNav}</div>`
+              : nothing}
           `,
         )}
       </nav>
@@ -1204,7 +1215,11 @@ export function renderApp(state: AppViewState) {
   // Settings pages swap the old top sub-nav for a second nav column, so the
   // primary sidebar drops to its icon rail to make room for it.
   const settingsNavOpen = isSettingsTab(state.tab) && !state.onboarding;
-  const navCollapsed = (state.settings.navCollapsed || settingsNavOpen) && !navDrawerOpen;
+  // With the settings column open, the hovered sidebar expands; otherwise the
+  // deepest one (settings) stays expanded and the primary sidebar is a rail.
+  const mainNavExpanded = settingsNavOpen && state.mainNavHovered;
+  const navCollapsed =
+    (settingsNavOpen ? !mainNavExpanded : state.settings.navCollapsed) && !navDrawerOpen;
   const showThinking = !state.onboarding && state.settings.chatShowThinking;
   const showToolCalls = !state.onboarding && state.settings.chatShowToolCalls;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
@@ -1418,6 +1433,8 @@ export function renderApp(state: AppViewState) {
     | "excludeSections"
     | "includeVirtualSections"
   >;
+  // Section nav of the active config tab, rendered under its item in the settings sidebar.
+  let settingsSectionNav: TemplateResult | null = null;
   const renderConfigTab = (overrides: ConfigTabOverrides) => {
     // Model-reference fields (advisor, exec safeguard) offer the catalog as a dropdown.
     ensureModelsLoaded(state);
@@ -1425,6 +1442,7 @@ export function renderApp(state: AppViewState) {
       ...commonConfigProps,
       includeVirtualSections: false,
       ...overrides,
+      onSidebar: (sidebar) => (settingsSectionNav = sidebar),
     });
   };
   const configSelection = normalizeMainConfigSelection(
@@ -1835,6 +1853,8 @@ export function renderApp(state: AppViewState) {
         return nothing;
     }
   };
+  // Rendered before the shell so the settings sidebar can host the section nav.
+  const configTabContent = renderConfigTabForActiveTab();
   const loadAgentPanelDataForSelectedAgent = (agentId: string | null) => {
     if (!agentId) {
       return;
@@ -1913,9 +1933,9 @@ export function renderApp(state: AppViewState) {
         ? "shell--chat-focus"
         : ""} ${navCollapsed ? "shell--nav-collapsed" : ""} ${settingsNavOpen
         ? "shell--settings-nav"
-        : ""} ${navDrawerOpen ? "shell--nav-drawer-open" : ""} ${state.onboarding
-        ? "shell--onboarding"
-        : ""}"
+        : ""} ${mainNavExpanded ? "shell--settings-nav-compact" : ""} ${navDrawerOpen
+        ? "shell--nav-drawer-open"
+        : ""} ${state.onboarding ? "shell--onboarding" : ""}"
     >
       <button
         type="button"
@@ -1962,7 +1982,18 @@ export function renderApp(state: AppViewState) {
         </div>
       </header>
       <div class="shell-nav">
-        <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
+        <aside
+          class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}"
+          @mouseenter=${() => {
+            // Touch taps emulate mouseenter; only real hover pointers expand.
+            if (settingsNavOpen && matchMedia("(hover: hover)").matches) {
+              state.mainNavHovered = true;
+            }
+          }}
+          @mouseleave=${() => {
+            state.mainNavHovered = false;
+          }}
+        >
           <div class="sidebar-shell">
             <div class="sidebar-shell__header">
               <div class="sidebar-brand">
@@ -2098,7 +2129,7 @@ export function renderApp(state: AppViewState) {
             </div>
           </div>
         </aside>
-        ${settingsNavOpen ? renderSettingsNav(state) : nothing}
+        ${settingsNavOpen ? renderSettingsNav(state, settingsSectionNav) : nothing}
       </div>
       <main class="content ${isChat ? "content--chat" : ""}">
         ${state.updateAvailable &&
@@ -3523,7 +3554,7 @@ export function renderApp(state: AppViewState) {
               basePath: state.basePath ?? "",
             })
           : nothing}
-        ${renderConfigTabForActiveTab()}
+        ${configTabContent}
         ${state.tab === "debug"
           ? lazyRender(lazyDebug, (m) =>
               m.renderDebug({

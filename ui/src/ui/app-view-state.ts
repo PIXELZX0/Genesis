@@ -162,6 +162,8 @@ export type AppViewState = {
   nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null;
   chatNewMessagesBelow: boolean;
   navDrawerOpen: boolean;
+  /** Pointer is over the primary sidebar while the settings nav column is open. */
+  mainNavHovered: boolean;
   sidebarOpen: boolean;
   sidebarContent: SidebarContent | null;
   sidebarError: string | null;

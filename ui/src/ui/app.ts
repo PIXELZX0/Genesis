@@ -251,6 +251,7 @@ export class GenesisApp extends LitElement {
   private realtimeTalkSession: RealtimeTalkSession | null = null;
   @state() chatManualRefreshInFlight = false;
   @state() navDrawerOpen = false;
+  @state() mainNavHovered = false;
 
   onSlashAction?: (action: string) => void;
 
