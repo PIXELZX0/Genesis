@@ -638,6 +638,27 @@ describe("exec approval forwarder", () => {
     ).resolves.toBe(true);
     expect(deliver).toHaveBeenCalledTimes(1);
     expect(getFirstDeliveryText(deliver)).toContain("🔑 Secret requested");
+
+    await forwarder.handleSecretResolved?.({
+      id: "secret:req-1",
+      status: "provided",
+      ref: null,
+      resolvedBy: "telegram:123",
+      ts: 2000,
+      request: {
+        name: "STRIPE_API_KEY",
+        description: "Billing sync",
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        turnSourceChannel: "telegram",
+        turnSourceTo: "123",
+      },
+    });
+    await flushPendingDelivery();
+    expect(deliver).toHaveBeenCalledTimes(2);
+    expect(deliver.mock.calls[1]?.[0]?.payloads?.[0]?.text).toBe(
+      "🔑 Secret STRIPE_API_KEY stored.",
+    );
   });
 
   it("can forward resolved notices without pending cache when request payload is present", async () => {

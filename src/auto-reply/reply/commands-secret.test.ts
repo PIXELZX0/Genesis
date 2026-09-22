@@ -75,6 +75,20 @@ describe("handleSecretCommand", () => {
     expect(await handleSecretCommand(params("a later normal message"), true)).toBeNull();
   });
 
+  it("stores an inline value in one message", async () => {
+    const result = await handleSecretCommand(params("/secret HF_TOKEN hf_abc def"), true);
+    expect(result?.reply?.text).toContain("Stored HF_TOKEN");
+    expect(result?.reply?.text).not.toContain("hf_abc");
+    expect(callGateway).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "secret.resolve",
+        params: { id: "HF_TOKEN", action: "provide", value: "hf_abc def" },
+      }),
+    );
+    expect(runMessageAction).toHaveBeenCalledWith(expect.objectContaining({ action: "delete" }));
+    expect(await handleSecretCommand(params("a later normal message"), true)).toBeNull();
+  });
+
   it("cancels without capturing", async () => {
     const result = await handleSecretCommand(params("/secret STRIPE_API_KEY cancel"), true);
     expect(result?.reply?.text).toContain("Declined STRIPE_API_KEY");

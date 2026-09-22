@@ -145,7 +145,9 @@ What happens:
    tool reports that the prompt could not be delivered.
 2. The user answers with `/secret STRIPE_API_KEY`, then sends the value as their
    next message. That message is intercepted before the agent turn, so the value
-   never enters the transcript. `/secret STRIPE_API_KEY cancel` declines.
+   never enters the transcript. `/secret STRIPE_API_KEY <value>` does both in one
+   message; use it in group rooms that drop unmentioned messages (for example
+   Matrix rooms with `requireMention`). `/secret STRIPE_API_KEY cancel` declines.
 3. The gateway stores the value in `<state dir>/credentials/secrets.json`
    (`0600`, same handling as `auth-profiles.json`) and resolves the waiting tool
    call with a handle, never the value:

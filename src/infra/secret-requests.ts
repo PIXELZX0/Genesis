@@ -54,7 +54,7 @@ export function buildSecretRequestMessage(request: SecretRequest, nowMs: number)
     `Purpose: ${request.request.description}`,
     `Expires in: ${secondsLeft}s`,
     "",
-    `Reply "/secret ${request.request.name}" and send the value in your next message.`,
+    `Reply "/secret ${request.request.name} <value>", or "/secret ${request.request.name}" and send the value in your next message.`,
     `Reply "/secret ${request.request.name} cancel" to decline.`,
     "The value is stored on the gateway and is never added to the agent transcript.",
   ].join("\n");

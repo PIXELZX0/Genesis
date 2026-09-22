@@ -11,7 +11,7 @@ import type { CommandHandler, HandleCommandsParams } from "./commands-types.js";
 
 const COMMAND_REGEX = /^\/?secret(?:\s|$)/i;
 const USAGE_TEXT =
-  'Usage: /secret <NAME> to start capture, then send the value in your next message. "/secret <NAME> cancel" declines.';
+  'Usage: /secret <NAME> <value> to store directly, or /secret <NAME> then send the value in your next message. "/secret <NAME> cancel" declines.';
 
 /**
  * Armed captures, keyed by who is answering where. The next message from that
@@ -80,6 +80,10 @@ async function submitSecretResolution(params: {
   }
 }
 
+function storedReplyText(name: string): string {
+  return `✅ Stored ${name}. The value was not added to the conversation. Delete your message if the platform kept it.`;
+}
+
 /** Best-effort removal of the message carrying the raw value. */
 async function tryDeleteCapturedMessage(params: HandleCommandsParams): Promise<void> {
   const ctx = params.ctx;
@@ -115,7 +119,10 @@ export const handleSecretCommand: CommandHandler = async (params, allowTextComma
       pendingCaptures.delete(key);
     } else {
       pendingCaptures.delete(key);
-      const value = params.command.rawBodyNormalized.trim();
+      // Group bodies may carry a leading bot mention; the stripped command body drops it.
+      const value = (
+        params.isGroup ? params.command.commandBodyNormalized : params.command.rawBodyNormalized
+      ).trim();
       if (!value) {
         return {
           shouldContinue: false,
@@ -134,9 +141,7 @@ export const handleSecretCommand: CommandHandler = async (params, allowTextComma
       }
       return {
         shouldContinue: false,
-        reply: {
-          text: `✅ Stored ${armed.name}. The value was not added to the conversation. Delete your message if the platform kept it.`,
-        },
+        reply: { text: storedReplyText(armed.name) },
       };
     }
   }
@@ -186,11 +191,31 @@ export const handleSecretCommand: CommandHandler = async (params, allowTextComma
     return { shouldContinue: false, reply: { text: `🔑 Declined ${name}.` } };
   }
 
+  // One-shot "/secret NAME value": a plain follow-up message can be dropped by
+  // channel gating (e.g. Matrix rooms require a mention unless it is a command).
+  const inlineValue = tokens[1]
+    ? trimmed.slice(commandMatch[0].length).trim().slice(name.length).trim()
+    : "";
+  if (inlineValue) {
+    pendingCaptures.delete(key);
+    const error = await submitSecretResolution({
+      handlerParams: params,
+      name,
+      action: "provide",
+      value: inlineValue,
+    });
+    await tryDeleteCapturedMessage(params);
+    if (error) {
+      return { shouldContinue: false, reply: { text: `❌ Failed to store secret: ${error}` } };
+    }
+    return { shouldContinue: false, reply: { text: storedReplyText(name) } };
+  }
+
   pendingCaptures.set(key, { name, armedAtMs: Date.now() });
   return {
     shouldContinue: false,
     reply: {
-      text: `🔑 Send the value for ${name} in your next message. It is stored on the gateway and never added to the conversation. Send "/secret ${name} cancel" to abort.`,
+      text: `🔑 Send the value for ${name} in your next message, or send "/secret ${name} <value>" (needed in group rooms that require a mention). It is stored on the gateway and never added to the conversation. Send "/secret ${name} cancel" to abort.`,
     },
   };
 };
