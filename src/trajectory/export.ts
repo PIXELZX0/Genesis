@@ -446,6 +446,12 @@ function buildTranscriptEvents(params: {
           note: entry.note,
         });
         break;
+      case "context_edit":
+        push("session.context_edit", {
+          targetId: entry.targetId,
+          replacement: sanitizeDiagnosticPayload(entry.replacement),
+        });
+        break;
     }
   }
   return events;

@@ -71,7 +71,7 @@ describe("session-compaction-checkpoints", () => {
     expect(fsSync.existsSync(snapshot!.sessionFile)).toBe(true);
     expect(await fs.readFile(snapshot!.sessionFile, "utf-8")).toBe(originalBefore);
 
-    session.appendCompaction("checkpoint summary", leafId!, 123, { ok: true });
+    session.appendCompaction("checkpoint summary", leafId, 123, { ok: true });
 
     expect(await fs.readFile(snapshot!.sessionFile, "utf-8")).toBe(originalBefore);
     expect(await fs.readFile(sessionFile!, "utf-8")).not.toBe(originalBefore);

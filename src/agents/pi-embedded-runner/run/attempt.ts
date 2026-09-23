@@ -160,6 +160,7 @@ import {
 import { prepareGooglePromptCacheStreamFn } from "../google-prompt-cache.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
+import { installLoopContextProjection } from "../loop-context-projection.js";
 import { buildEmbeddedMessageActionDiscoveryInput } from "../message-action-discovery-input.js";
 import {
   collectPromptCacheToolNames,
@@ -1296,6 +1297,7 @@ export async function runEmbeddedAttempt(
         throw new Error("Embedded agent session missing");
       }
       session.setActiveToolsByName(sessionToolAllowlist);
+      installLoopContextProjection(session);
       const activeSession = session;
       if (typeof activeSession.agent.convertToLlm === "function") {
         const baseConvertToLlm = activeSession.agent.convertToLlm.bind(activeSession.agent);
