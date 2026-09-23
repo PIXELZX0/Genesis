@@ -102,4 +102,24 @@ describe("overview view (Pencil design)", () => {
     expect(text).toContain("Channel disconnected");
     expect(text).toContain("Telegram lost its connection.");
   });
+
+  it("renders a daily usage bar per non-empty day", async () => {
+    const daily = [
+      { date: "2026-09-21", tokens: 1000, cost: 0.5, messages: 2, toolCalls: 0, errors: 0 },
+      { date: "2026-09-22", tokens: 0, cost: 0, messages: 0, toolCalls: 0, errors: 0 },
+      { date: "2026-09-23", tokens: 500, cost: 0.25, messages: 1, toolCalls: 0, errors: 0 },
+    ];
+    const container = document.createElement("div");
+    const usageResult = {
+      aggregates: { daily },
+    } as unknown as OverviewProps["usageResult"];
+    render(renderOverview(createOverviewProps({ usageResult })), container);
+    await Promise.resolve();
+    const bars = container.querySelectorAll(".daily-bar");
+    expect(bars.length).toBe(2);
+    // Tallest day fills the chart; half-sized day is half as tall.
+    expect((bars[0] as HTMLElement).style.height).toBe("120px");
+    expect((bars[1] as HTMLElement).style.height).toBe("60px");
+    expect(container.textContent ?? "").toContain("USAGE");
+  });
 });

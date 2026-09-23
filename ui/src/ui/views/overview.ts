@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { EventLogEntry } from "../app-events.ts";
-import { formatDurationHuman } from "../format.ts";
+import { formatCost, formatDurationHuman, formatTokens } from "../format.ts";
 import type { GatewayHelloOk } from "../gateway.ts";
 import type { UiSettings } from "../storage.ts";
 import type {
@@ -84,6 +84,70 @@ function statCell(value: string, label: string, last = false) {
   `;
 }
 
+const USAGE_CHART_DAYS = 14;
+const USAGE_CHART_HEIGHT_PX = 120;
+
+function usageChart(usage: SessionsUsageResult | null, onNavigate: (tab: string) => void) {
+  const daily = (usage?.aggregates?.daily ?? []).slice(-USAGE_CHART_DAYS);
+  const totalTokens = daily.reduce((sum, d) => sum + d.tokens, 0);
+  const totalCost = daily.reduce((sum, d) => sum + d.cost, 0);
+  const maxTokens = Math.max(...daily.map((d) => d.tokens), 1);
+  return html`
+    <div class="card" style="margin-top: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;">
+        <div style=${PANEL_LABEL}>USAGE · LAST ${USAGE_CHART_DAYS} DAYS</div>
+        <button
+          class="btn btn--sm"
+          style="margin-bottom: 12px;"
+          @click=${() => onNavigate("usage")}
+        >
+          ${t("tabs.usage")}
+        </button>
+      </div>
+      ${daily.length === 0
+        ? html`<div class="muted" style="padding: 8px 0;">${t("common.na")}</div>`
+        : html`
+            <div
+              style="display: flex; align-items: flex-end; gap: 6px; height: ${USAGE_CHART_HEIGHT_PX}px; --bar-max-width: 32px;"
+            >
+              ${daily.map((d) => {
+                const heightPx = (d.tokens / maxTokens) * USAGE_CHART_HEIGHT_PX;
+                return html`
+                  <div
+                    style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%;"
+                    title="${d.date} · ${formatTokens(d.tokens)} tokens · ${formatCost(d.cost)}"
+                  >
+                    ${d.tokens > 0
+                      ? html`<div class="daily-bar" style="height: ${heightPx.toFixed(0)}px"></div>`
+                      : nothing}
+                  </div>
+                `;
+              })}
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              ${daily.map(
+                (d) => html`
+                  <div
+                    class="muted"
+                    style="flex: 1; text-align: center; font-size: 11px; font-family: var(--mono);"
+                  >
+                    ${Number.parseInt(d.date.slice(8), 10)}
+                  </div>
+                `,
+              )}
+            </div>
+            <div
+              class="muted"
+              style="display: flex; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: 13px;"
+            >
+              <span>${formatTokens(totalTokens)} tokens</span>
+              <span>${formatCost(totalCost)}</span>
+            </div>
+          `}
+    </div>
+  `;
+}
+
 export function renderOverview(props: OverviewProps) {
   const snapshot = props.hello?.snapshot as { uptimeMs?: number } | undefined;
   const uptime = snapshot?.uptimeMs ? formatDurationHuman(snapshot.uptimeMs) : t("common.na");
@@ -113,6 +177,8 @@ export function renderOverview(props: OverviewProps) {
         ${statCell(String(props.presenceCount), "Online channels")}
         ${statCell(String(props.cronJobs.length), "Cron jobs")} ${statCell(uptime, "Uptime", true)}
       </div>
+
+      ${usageChart(props.usageResult, props.onNavigate)}
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
         <div class="card">
