@@ -655,10 +655,8 @@ describe("exec approval forwarder", () => {
       },
     });
     await flushPendingDelivery();
-    expect(deliver).toHaveBeenCalledTimes(2);
-    expect(deliver.mock.calls[1]?.[0]?.payloads?.[0]?.text).toBe(
-      "🔑 Secret STRIPE_API_KEY stored.",
-    );
+    // The /secret command reply already confirms storage; no duplicate notice.
+    expect(deliver).toHaveBeenCalledTimes(1);
   });
 
   it("can forward resolved notices without pending cache when request payload is present", async () => {

@@ -109,9 +109,10 @@ type ApprovalStrategy<
   buildPendingPayload: (
     params: ApprovalPendingRenderContext<TRequest, TRouteRequest>,
   ) => ReplyPayload;
+  // null = no resolved notice (another surface already confirmed it).
   buildResolvedPayload: (
     params: ApprovalResolvedRenderContext<TResolved, TRouteRequest>,
-  ) => ReplyPayload;
+  ) => ReplyPayload | null;
 };
 
 type ApprovalRouteRequestFields = {
@@ -352,7 +353,7 @@ function defaultResolveSessionTarget(params: {
 async function deliverToTargets(params: {
   cfg: GenesisConfig;
   targets: ForwardTarget[];
-  buildPayload: (target: ForwardTarget) => ReplyPayload;
+  buildPayload: (target: ForwardTarget) => ReplyPayload | null;
   deliver: DeliverOutboundPayloads;
   beforeDeliver?: (target: ForwardTarget, payload: ReplyPayload) => Promise<void> | void;
   shouldSend?: () => boolean;
@@ -367,6 +368,9 @@ async function deliverToTargets(params: {
     }
     try {
       const payload = params.buildPayload(target);
+      if (!payload) {
+        return;
+      }
       await params.beforeDeliver?.(target, payload);
       await params.deliver({
         cfg: params.cfg,
@@ -702,7 +706,7 @@ function createApprovalStrategy<
   ) => ReplyPayload;
   buildResolvedPayload: (
     params: ApprovalResolvedRenderContext<TResolved, ApprovalRouteRequest>,
-  ) => ReplyPayload;
+  ) => ReplyPayload | null;
 }): ApprovalStrategy<TRequest, TResolved> {
   return {
     kind: params.kind,
@@ -779,9 +783,11 @@ const secretRequestStrategy = createApprovalStrategy<SecretRequest, SecretReques
   buildPendingPayload: ({ request, nowMs }) => ({
     text: buildSecretRequestMessage(request, nowMs),
   }),
-  buildResolvedPayload: ({ resolved }) => ({
-    text: buildSecretRequestResolvedMessage(resolved),
-  }),
+  // "provided"/"cancelled" are already confirmed by the /secret command reply.
+  buildResolvedPayload: ({ resolved }) =>
+    resolved.status === "provided" || resolved.status === "cancelled"
+      ? null
+      : { text: buildSecretRequestResolvedMessage(resolved) },
 });
 
 export function createExecApprovalForwarder(
