@@ -2,11 +2,23 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.9.22
+## 2026.9.23
 
 ### Changes
 
 - Cron: isolated cron runs report job status through a new `cron_report` tool instead of a message or plain-text reply. The tool exists only in cron runs; its `ok`/`error` status becomes the run status and its result is what gets delivered. Runs that never call it keep the old final-reply delivery.
+- Control UI: the overview dashboard shows a 14-day daily token usage chart with per-day tooltips, period totals, and a shortcut to the Usage tab.
+- Control UI: settings sidebar items get icons, and the active item lists its config sections directly in the sidebar. Hovering the main sidebar expands it and collapses settings to an icon rail.
+- Pi runtime: the bundled `@earendil-works/pi-*` packages move from 0.86.1 to 0.87.1. Pi 0.87 rebuilds every model request from the persisted session, which would have dropped Genesis's history limits, context-engine assembly, and replay repairs after the first request; Genesis now keeps its own prepared history as the request context, as before.
+
+### Fixes
+
+- Secrets: `/secret <NAME> <value>` stores the value directly from the command. Mention-gated rooms such as Matrix drop unmentioned plain messages, so the two-step capture never received the value there.
+
+## 2026.9.22
+
+### Changes
+
 - Agents: `exec` no longer runs `genesis gateway restart`. A CLI restart killed the gateway without recording who asked for it, so the agent went silent mid-task. Restarts now go through the `gateway` tool's `restart` action, which stores the calling session in the restart sentinel and wakes that same agent after boot to report that the gateway restarted.
 - TypeSafe Jev: the tool router now only runs inside browser and computer-use loops and only ever skips a model call; it no longer forces a tool or disables tools on the model request. Forcing `tool_choice` and switching thinking off per call invalidated the provider prompt cache for the whole conversation, so routed turns cost more than they saved. Outside those loops Jev is not called, so ordinary turns get no extra latency. Browser snapshots, clicks on snapshot elements, and computer-use MCP tools with enum/boolean-only arguments (such as screenshots) still run without an LLM call.
 - MCP: usage guidance an MCP server publishes in its `initialize` result now reaches the model. Genesis only ever read the server's tool list, so a server could describe how its tools are meant to be combined and that text was silently dropped. The instructions are rendered into an `MCP Server Instructions` system prompt section, limited to servers whose tools survive tool policy, emitted in sorted order for prompt-cache stability, capped per server and in total, and fenced so server text cannot override the Genesis prompt or widen tool access.
