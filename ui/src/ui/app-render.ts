@@ -168,7 +168,12 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
-import { loadWalletSummary, setWalletRecoveryPhrase } from "./controllers/wallet.ts";
+import {
+  loadWalletSummary,
+  lockWallet,
+  setWalletRecoveryPhrase,
+  unlockWallet,
+} from "./controllers/wallet.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import {
@@ -2480,6 +2485,10 @@ export function renderApp(state: AppViewState) {
                 recoveryPhraseError: state.walletRecoveryPhraseError,
                 recoveryPhraseGeneratedMnemonic: state.walletRecoveryPhraseGeneratedMnemonic,
                 recoveryPhraseStatus: state.walletRecoveryPhraseStatus,
+                unlockBusy: state.walletUnlockBusy,
+                unlockError: state.walletUnlockError,
+                onUnlock: (input) => unlockWallet(state, input),
+                onLock: () => lockWallet(state),
                 onRefresh: () => loadWalletSummary(state, { includeBalances: true }),
                 onRecoveryPhraseModeChange: (mode) => {
                   state.walletRecoveryPhraseMode = mode;

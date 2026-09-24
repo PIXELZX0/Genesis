@@ -743,6 +743,12 @@ export const FIELD_HELP: Record<string, string> = {
     "Requires GENESIS_WALLET_ALLOW_SPEND=1 for send commands. Keep enabled when AI agents can run shell commands.",
   "wallet.spending.maxNativeAmount":
     "Maximum native currency amount allowed per send command. The unit is the selected chain native asset.",
+  "wallet.browser":
+    "Injects an EVM (EIP-1193/EIP-6963) and Solana (Wallet Standard + window.solana) provider into agent-controlled browser pages so dApps can request accounts and signatures.",
+  "wallet.browser.enabled":
+    "Enable the injected web3 provider in agent browser pages. Signing requests are queued until the agent approves them with the wallet tool, and require an unlocked wallet session (genesis wallet unlock).",
+  "wallet.browser.allowedOrigins":
+    "Optional origin allowlist (e.g., https://app.uniswap.org). When set, only these origins can reach the injected provider; leave unset to expose it on every page.",
   "tools.exec.approvalRunningNoticeMs":
     "Delay in milliseconds before showing an in-progress notice after an exec approval is granted. Increase to reduce flicker for fast commands, or lower for quicker operator feedback.",
   "tools.links.enabled":

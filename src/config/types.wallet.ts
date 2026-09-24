@@ -89,6 +89,11 @@ export type WalletSpendingConfig = {
   maxNativeAmount?: string;
 };
 
+export type WalletBrowserConfig = {
+  enabled?: boolean;
+  allowedOrigins?: string[];
+};
+
 export type WalletConfig = {
   enabled?: boolean;
   primaryAccount?: string;
@@ -101,4 +106,5 @@ export type WalletConfig = {
     lndhub?: WalletLndHubNetworkConfig;
   };
   spending?: WalletSpendingConfig;
+  browser?: WalletBrowserConfig;
 };

@@ -605,6 +605,11 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
       title: "Request Secret",
       detailKeys: ["name"],
     },
+    wallet: {
+      emoji: "👛",
+      title: "Wallet",
+      detailKeys: ["action", "requestId"],
+    },
   },
 };
 

@@ -10,6 +10,7 @@ import { asRecord } from "../record-shared.js";
 import type { ChromeMcpSnapshotNode } from "./chrome-mcp.snapshot.js";
 import type { BrowserTab } from "./client.types.js";
 import { BrowserProfileUnavailableError, BrowserTabNotFoundError } from "./errors.js";
+import { resolveWeb3ProviderInitScript } from "./web3-provider.js";
 
 const log = createSubsystemLogger("browser").child("chrome-mcp");
 
@@ -741,6 +742,9 @@ export async function navigateChromeMcpPage(params: {
   timeoutMs?: number;
 }): Promise<{ url: string }> {
   const resolvedTimeoutMs = params.timeoutMs ?? CHROME_MCP_NAVIGATE_TIMEOUT_MS;
+  // navigate_page's initScript only covers this navigation; the injected wallet
+  // survives SPA routing but not page-initiated full reloads.
+  const initScript = await resolveWeb3ProviderInitScript();
   await callTool(
     params.profileName,
     params.userDataDir,
@@ -750,6 +754,7 @@ export async function navigateChromeMcpPage(params: {
       type: "url",
       url: params.url,
       timeout: resolvedTimeoutMs,
+      ...(initScript ? { initScript } : {}),
     },
     { timeoutMs: resolvedTimeoutMs + 5_000 },
   );

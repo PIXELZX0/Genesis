@@ -590,6 +590,8 @@ export class GenesisApp extends LitElement {
   @state() walletRecoveryPhraseError: string | null = null;
   @state() walletRecoveryPhraseGeneratedMnemonic: string | null = null;
   @state() walletRecoveryPhraseStatus: "generated" | "imported" | null = null;
+  @state() walletUnlockBusy = false;
+  @state() walletUnlockError: string | null = null;
 
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;

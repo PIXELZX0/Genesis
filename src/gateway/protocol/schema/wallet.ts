@@ -33,6 +33,36 @@ export const WalletRecoveryPhraseSetParamsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const WalletUnlockParamsSchema = Type.Object(
+  {
+    passphrase: Type.String({ maxLength: 16 * 1024 }),
+    ttlMs: Type.Optional(Type.Integer({ minimum: 1, maximum: 24 * 60 * 60 * 1000 })),
+  },
+  { additionalProperties: false },
+);
+
+export const NodeWalletWeb3ParamsSchema = Type.Object(
+  {
+    op: Type.Union([Type.Literal("config"), Type.Literal("request")]),
+    chain: Type.Optional(Type.Union([Type.Literal("evm"), Type.Literal("sol")])),
+    origin: Type.Optional(Type.String({ minLength: 1, maxLength: 2048 })),
+    method: Type.Optional(Type.String({ minLength: 1, maxLength: 128 })),
+    params: Type.Optional(Type.Unknown()),
+    chainId: Type.Optional(Type.String({ maxLength: 66 })),
+  },
+  { additionalProperties: false },
+);
+
+export const WalletLockParamsSchema = Type.Object({}, { additionalProperties: false });
+
+export const WalletSessionStatusResultSchema = Type.Object(
+  {
+    unlocked: Type.Boolean(),
+    expiresAt: Type.Optional(Type.Integer({ minimum: 0 })),
+  },
+  { additionalProperties: false },
+);
+
 export const WalletPublicAccountSchema = Type.Object(
   {
     id: Type.String({ minLength: 1 }),
@@ -112,6 +142,7 @@ export const WalletSummaryResultSchema = Type.Object(
       {
         exists: Type.Boolean(),
         locked: Type.Boolean(),
+        unlockExpiresAt: Type.Optional(Type.Integer({ minimum: 0 })),
       },
       { additionalProperties: false },
     ),
@@ -137,6 +168,10 @@ export const WalletRecoveryPhraseSetResultSchema = Type.Object(
 export type WalletSummaryParams = Static<typeof WalletSummaryParamsSchema>;
 export type WalletRecoveryPhraseMode = Static<typeof WalletRecoveryPhraseModeSchema>;
 export type WalletRecoveryPhraseSetParams = Static<typeof WalletRecoveryPhraseSetParamsSchema>;
+export type WalletUnlockParams = Static<typeof WalletUnlockParamsSchema>;
+export type WalletLockParams = Static<typeof WalletLockParamsSchema>;
+export type NodeWalletWeb3Params = Static<typeof NodeWalletWeb3ParamsSchema>;
+export type WalletSessionStatusResult = Static<typeof WalletSessionStatusResultSchema>;
 export type WalletPublicAccount = Static<typeof WalletPublicAccountSchema>;
 export type WalletBalance = Static<typeof WalletBalanceSchema>;
 export type WalletTokenBalance = Static<typeof WalletTokenBalanceSchema>;

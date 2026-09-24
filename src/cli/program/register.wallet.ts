@@ -23,6 +23,7 @@ import {
   type WalletChain,
 } from "../../wallet/types.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
+import { addGatewayClientOptions, callGatewayFromCli } from "../gateway-rpc.js";
 
 const WALLET_CHAIN_SET = new Set<string>(WALLET_CHAINS);
 
@@ -237,6 +238,43 @@ export function registerWalletCommand(program: Command) {
         });
       });
     });
+
+  addGatewayClientOptions(
+    wallet
+      .command("unlock")
+      .description(
+        "Unlock the wallet in the running gateway so the agent can approve browser web3 requests",
+      )
+      .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+      .option("--empty-passphrase", "Unlock a keystore created without a passphrase", false)
+      .option("--ttl <minutes>", "Minutes to keep the wallet unlocked (max 1440)", "15"),
+  ).action(async (opts) => {
+    await runCommandWithRuntime(defaultRuntime, async () => {
+      const minutes = Number(opts.ttl);
+      if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) {
+        throw new Error("--ttl must be between 1 and 1440 minutes.");
+      }
+      const passphrase = opts.emptyPassphrase ? "" : await readPassphrase(opts);
+      const res = (await callGatewayFromCli("wallet.unlock", opts, {
+        passphrase,
+        ttlMs: Math.round(minutes * 60_000),
+      })) as { expiresAt?: number };
+      defaultRuntime.log(
+        theme.success(
+          `Wallet unlocked${res.expiresAt ? ` until ${new Date(res.expiresAt).toLocaleTimeString()}` : ""}.`,
+        ),
+      );
+    });
+  });
+
+  addGatewayClientOptions(
+    wallet.command("lock").description("Lock the wallet in the running gateway"),
+  ).action(async (opts) => {
+    await runCommandWithRuntime(defaultRuntime, async () => {
+      await callGatewayFromCli("wallet.lock", opts, {});
+      defaultRuntime.log(theme.success("Wallet locked."));
+    });
+  });
 
   wallet
     .command("list")

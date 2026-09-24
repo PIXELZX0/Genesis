@@ -620,6 +620,21 @@ export const en: TranslationMap = {
       successGenerated: "Wallet created from one generated phrase.",
       successImported: "Wallet updated from the imported phrase.",
     },
+    session: {
+      title: "Signing Session",
+      subtitle:
+        "Unlock the keystore in the gateway so the agent can approve web3 requests from browser pages. The phrase stays in gateway memory until the session expires, you lock it, or the gateway restarts.",
+      locked: "Locked",
+      unlockedUntil: "Unlocked until {time}",
+      passphrase: "Wallet passphrase",
+      duration: "Keep unlocked for",
+      minutes: "{count} minutes",
+      hours: "{count} hours",
+      unlock: "Unlock",
+      unlocking: "Unlocking…",
+      lock: "Lock now",
+      noKeystore: "Create or import a wallet before unlocking.",
+    },
     warnings: {
       title: "Warnings",
     },

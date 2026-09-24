@@ -156,6 +156,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/gateway-runtime` | Gateway client and channel-status patch helpers |
     | `plugin-sdk/config-runtime` | Config load/write helpers and plugin-config lookup helpers |
     | `plugin-sdk/telegram-command-config` | Telegram command-name/description normalization and duplicate/conflict checks, even when the bundled Telegram contract surface is unavailable |
+    | `plugin-sdk/wallet-runtime` | Browser-host seam for the injected web3 wallet provider: `handleWalletWeb3Request`, `WalletWeb3Error` |
     | `plugin-sdk/text-autolink-runtime` | File-reference autolink detection without the broad text-runtime barrel |
     | `plugin-sdk/approval-runtime` | Exec/plugin approval helpers, approval-capability builders, auth/profile helpers, native routing/runtime helpers, and structured approval display path formatting |
     | `plugin-sdk/reply-runtime` | Shared inbound/reply runtime helpers, chunking, dispatch, heartbeat, reply planner |

@@ -9,6 +9,10 @@ import { getMachineDisplayName } from "../infra/machine-name.js";
 import { NODE_EXEC_APPROVALS_COMMANDS, NODE_SYSTEM_RUN_COMMANDS } from "../infra/node-commands.js";
 import { ensureGenesisCliOnPath } from "../infra/path-env.js";
 import { VERSION } from "../version.js";
+import {
+  setWalletWeb3GatewayForwarder,
+  WALLET_WEB3_FORWARD_TIMEOUT_MS,
+} from "../wallet/web3-forward.js";
 import { ensureNodeHostConfig, saveNodeHostConfig, type NodeHostGatewayConfig } from "./config.js";
 import {
   coerceNodeInvokePayload,
@@ -222,6 +226,10 @@ export async function runNodeHost(opts: NodeHostRunOptions): Promise<void> {
     const bins = Array.isArray(res?.bins) ? res.bins.map((bin) => String(bin)) : [];
     return bins;
   }, pathEnv);
+
+  setWalletWeb3GatewayForwarder((params) =>
+    client.request("node.wallet.web3", params, { timeoutMs: WALLET_WEB3_FORWARD_TIMEOUT_MS }),
+  );
 
   client.start();
   await new Promise(() => {});

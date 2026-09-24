@@ -6,12 +6,21 @@ import {
   getWalletTokenBalancesForAccount,
   setWalletRecoveryPhrase,
 } from "../../wallet/service.js";
+import { lockWalletSession, unlockWalletSession } from "../../wallet/session.js";
 import type { WalletBalance, WalletNftCollection, WalletTokenBalance } from "../../wallet/types.js";
+import {
+  getWalletBrowserProviderConfig,
+  handleWalletWeb3Request,
+  WalletWeb3Error,
+} from "../../wallet/web3.js";
 import {
   ErrorCodes,
   errorShape,
+  validateNodeWalletWeb3Params,
+  validateWalletLockParams,
   validateWalletRecoveryPhraseSetParams,
   validateWalletSummaryParams,
+  validateWalletUnlockParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { assertValidParams } from "./validation.js";
@@ -115,6 +124,72 @@ export const walletHandlers: GatewayRequestHandlers = {
         false,
         undefined,
         errorShape(ErrorCodes.UNAVAILABLE, error instanceof Error ? error.message : String(error)),
+      );
+    }
+  },
+  "wallet.unlock": async ({ respond, params }) => {
+    if (!assertValidParams(params, validateWalletUnlockParams, "wallet.unlock", respond)) {
+      return;
+    }
+    try {
+      respond(
+        true,
+        await unlockWalletSession({ passphrase: params.passphrase, ttlMs: params.ttlMs }),
+        undefined,
+      );
+    } catch (error) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, error instanceof Error ? error.message : String(error)),
+      );
+    }
+  },
+  "wallet.lock": async ({ respond, params }) => {
+    if (!assertValidParams(params, validateWalletLockParams, "wallet.lock", respond)) {
+      return;
+    }
+    respond(true, lockWalletSession(), undefined);
+  },
+  // Node-role: browser pages on a node host reach the gateway wallet and approval queue.
+  // The node reports the page origin it resolved from the frame.
+  "node.wallet.web3": async ({ respond, params }) => {
+    if (!assertValidParams(params, validateNodeWalletWeb3Params, "node.wallet.web3", respond)) {
+      return;
+    }
+    if (params.op === "config") {
+      respond(true, getWalletBrowserProviderConfig(), undefined);
+      return;
+    }
+    if (!params.chain || !params.origin || !params.method) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          "node.wallet.web3 request needs chain, origin, method",
+        ),
+      );
+      return;
+    }
+    try {
+      const result = await handleWalletWeb3Request({
+        chain: params.chain,
+        origin: params.origin,
+        method: params.method,
+        params: params.params,
+        chainId: params.chainId,
+      });
+      respond(true, { ok: true, result: result ?? null }, undefined);
+    } catch (error) {
+      respond(
+        true,
+        {
+          ok: false,
+          code: error instanceof WalletWeb3Error ? error.code : -32603,
+          message: error instanceof Error ? error.message : String(error),
+        },
+        undefined,
       );
     }
   },

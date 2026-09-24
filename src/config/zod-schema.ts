@@ -381,6 +381,13 @@ const WalletSchema = z
       })
       .strict()
       .optional(),
+    browser: z
+      .object({
+        enabled: z.boolean().optional(),
+        allowedOrigins: z.array(z.string().url()).max(256).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

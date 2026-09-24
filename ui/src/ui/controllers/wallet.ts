@@ -24,6 +24,8 @@ export type WalletState = {
   walletRecoveryPhraseError: string | null;
   walletRecoveryPhraseGeneratedMnemonic: string | null;
   walletRecoveryPhraseStatus: "generated" | "imported" | null;
+  walletUnlockBusy: boolean;
+  walletUnlockError: string | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -111,5 +113,46 @@ export async function setWalletRecoveryPhrase(
     return false;
   } finally {
     state.walletRecoveryPhraseBusy = false;
+  }
+}
+
+export async function unlockWallet(
+  state: WalletState,
+  input: { passphrase: string; ttlMinutes: number },
+): Promise<boolean> {
+  if (!state.client || !state.connected) {
+    state.walletUnlockError = "Connect to the gateway before unlocking the wallet.";
+    return false;
+  }
+  state.walletUnlockBusy = true;
+  state.walletUnlockError = null;
+  try {
+    await state.client.request("wallet.unlock", {
+      passphrase: input.passphrase,
+      ttlMs: Math.round(input.ttlMinutes * 60_000),
+    });
+    await loadWalletSummary(state);
+    return true;
+  } catch (error) {
+    state.walletUnlockError = getErrorMessage(error);
+    return false;
+  } finally {
+    state.walletUnlockBusy = false;
+  }
+}
+
+export async function lockWallet(state: WalletState): Promise<void> {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  state.walletUnlockBusy = true;
+  state.walletUnlockError = null;
+  try {
+    await state.client.request("wallet.lock", {});
+    await loadWalletSummary(state);
+  } catch (error) {
+    state.walletUnlockError = getErrorMessage(error);
+  } finally {
+    state.walletUnlockBusy = false;
   }
 }

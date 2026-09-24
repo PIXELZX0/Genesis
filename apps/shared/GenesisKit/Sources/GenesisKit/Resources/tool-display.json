@@ -957,6 +957,14 @@
       "detailKeys": [
         "name"
       ]
+    },
+    "wallet": {
+      "emoji": "👛",
+      "title": "Wallet",
+      "detailKeys": [
+        "action",
+        "requestId"
+      ]
     }
   }
 }

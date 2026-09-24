@@ -276,7 +276,11 @@ import {
   WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
+  NodeWalletWeb3ParamsSchema,
+  WalletLockParamsSchema,
+  WalletSessionStatusResultSchema,
   WalletTokenBalanceSchema,
+  WalletUnlockParamsSchema,
 } from "./wallet.js";
 import {
   WizardCancelParamsSchema,
@@ -386,6 +390,10 @@ export const ProtocolSchemas = {
   WalletRecoveryPhraseSetResult: WalletRecoveryPhraseSetResultSchema,
   WalletSummaryParams: WalletSummaryParamsSchema,
   WalletSummaryResult: WalletSummaryResultSchema,
+  WalletUnlockParams: WalletUnlockParamsSchema,
+  WalletLockParams: WalletLockParamsSchema,
+  NodeWalletWeb3Params: NodeWalletWeb3ParamsSchema,
+  WalletSessionStatusResult: WalletSessionStatusResultSchema,
   TalkModeParams: TalkModeParamsSchema,
   TalkConfigParams: TalkConfigParamsSchema,
   TalkConfigResult: TalkConfigResultSchema,

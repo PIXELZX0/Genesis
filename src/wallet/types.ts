@@ -28,6 +28,7 @@ export type WalletPublicAccount = {
 export type WalletKeystoreStatus = {
   exists: boolean;
   locked: boolean;
+  unlockExpiresAt?: number;
 };
 
 export type WalletSummary = {

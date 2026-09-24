@@ -30,6 +30,7 @@ import {
   quoteLndHubSend,
   sendLndHubTransaction,
 } from "./lndhub.js";
+import { getWalletSessionStatus, lockWalletSession } from "./session.js";
 import type {
   LocalKeystoreWalletChain,
   WalletBalance,
@@ -164,6 +165,15 @@ function nativeAssetDecimals(chain: WalletChain): number {
   return 18;
 }
 
+function walletKeystoreStatus(exists: boolean): WalletSummary["keystore"] {
+  const session = getWalletSessionStatus();
+  return {
+    exists,
+    locked: !session.unlocked,
+    ...(session.expiresAt === undefined ? {} : { unlockExpiresAt: session.expiresAt }),
+  };
+}
+
 export async function getWalletSummary(options: WalletServiceOptions = {}): Promise<WalletSummary> {
   const config = resolveConfig(options.config);
   const warnings: string[] = [];
@@ -215,7 +225,7 @@ export async function getWalletSummary(options: WalletServiceOptions = {}): Prom
   }
   return {
     enabled: walletEnabled(config),
-    keystore: { exists: Boolean(keystore), locked: true },
+    keystore: walletKeystoreStatus(Boolean(keystore)),
     primaryAccount: normalizePrimaryAccount(
       keystore?.public.primaryAccount ?? primaryAccount(accounts, config),
       accounts,
@@ -253,6 +263,7 @@ export async function initWallet(params: WalletInitParams): Promise<{
     passphrase: params.passphrase ?? "",
   });
   await writeWalletKeystore(file, params.env);
+  lockWalletSession();
   return {
     mnemonicGenerated: !params.mnemonic,
     summary: await getWalletSummary({ config, env: params.env }),

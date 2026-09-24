@@ -44,6 +44,7 @@ import { createSubagentsTool } from "./tools/subagents-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createUpdatePlanTool } from "./tools/update-plan-tool.js";
 import { createVideoGenerateTool } from "./tools/video-generate-tool.js";
+import { createWalletTool, isWalletToolEnabled } from "./tools/wallet-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 
@@ -79,6 +80,7 @@ const GENESIS_TOOL_NAMES = new Set([
   "pdf",
   "contacts",
   "request_secret",
+  "wallet",
 ]);
 
 const CORE_TOOL_NAMES = new Set([
@@ -372,6 +374,9 @@ export function createGenesisTools(
             turnSourceThreadId: options?.agentThreadId,
           }),
         ]
+      : []),
+    ...(shouldCreateTool("wallet") && isWalletToolEnabled(resolvedConfig)
+      ? [createWalletTool()]
       : []),
     ...(shouldCreateTool("update_plan") &&
     isUpdatePlanToolEnabledForGenesisTools({

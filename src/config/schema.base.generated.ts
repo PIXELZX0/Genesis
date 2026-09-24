@@ -19244,6 +19244,32 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             description:
               "Guardrails for CLI send commands. These controls are independent of exec approvals and are checked before any broadcast.",
           },
+          browser: {
+            type: "object",
+            properties: {
+              enabled: {
+                type: "boolean",
+                title: "Browser Web3 Provider Enabled",
+                description:
+                  "Enable the injected web3 provider in agent browser pages. Signing requests are queued until the agent approves them with the wallet tool, and require an unlocked wallet session (genesis wallet unlock).",
+              },
+              allowedOrigins: {
+                maxItems: 256,
+                type: "array",
+                items: {
+                  type: "string",
+                  format: "uri",
+                },
+                title: "Browser Web3 Allowed Origins",
+                description:
+                  "Optional origin allowlist (e.g., https://app.uniswap.org). When set, only these origins can reach the injected provider; leave unset to expose it on every page.",
+              },
+            },
+            additionalProperties: false,
+            title: "Browser Web3 Provider",
+            description:
+              "Injects an EVM (EIP-1193/EIP-6963) and Solana (Wallet Standard + window.solana) provider into agent-controlled browser pages so dApps can request accounts and signatures.",
+          },
         },
         additionalProperties: false,
         title: "Wallet",
@@ -26275,6 +26301,21 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Max Native Amount per Send",
       help: "Maximum native currency amount allowed per send command. The unit is the selected chain native asset.",
       tags: ["performance"],
+    },
+    "wallet.browser": {
+      label: "Browser Web3 Provider",
+      help: "Injects an EVM (EIP-1193/EIP-6963) and Solana (Wallet Standard + window.solana) provider into agent-controlled browser pages so dApps can request accounts and signatures.",
+      tags: ["advanced"],
+    },
+    "wallet.browser.enabled": {
+      label: "Browser Web3 Provider Enabled",
+      help: "Enable the injected web3 provider in agent browser pages. Signing requests are queued until the agent approves them with the wallet tool, and require an unlocked wallet session (genesis wallet unlock).",
+      tags: ["advanced"],
+    },
+    "wallet.browser.allowedOrigins": {
+      label: "Browser Web3 Allowed Origins",
+      help: "Optional origin allowlist (e.g., https://app.uniswap.org). When set, only these origins can reach the injected provider; leave unset to expose it on every page.",
+      tags: ["access"],
     },
     "tools.exec.applyPatch.enabled": {
       label: "Enable apply_patch",

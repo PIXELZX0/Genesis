@@ -518,6 +518,8 @@ export type AppViewState = {
     walletRecoveryPhraseError: string | null;
     walletRecoveryPhraseGeneratedMnemonic: string | null;
     walletRecoveryPhraseStatus: "generated" | "imported" | null;
+    walletUnlockBusy: boolean;
+    walletUnlockError: string | null;
     client: GatewayBrowserClient | null;
     refreshSessionsAfterChat: Set<string>;
     connect: () => void;

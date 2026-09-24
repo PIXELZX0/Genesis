@@ -22,6 +22,10 @@ export type WalletProps = {
   recoveryPhraseError: string | null;
   recoveryPhraseGeneratedMnemonic: string | null;
   recoveryPhraseStatus: "generated" | "imported" | null;
+  unlockBusy: boolean;
+  unlockError: string | null;
+  onUnlock: (input: { passphrase: string; ttlMinutes: number }) => Promise<boolean> | boolean;
+  onLock: () => void;
   onRefresh: () => void;
   onConfigure: () => void;
   onRecoveryPhraseModeChange: (mode: WalletRecoveryPhraseMode) => void;
@@ -401,6 +405,110 @@ async function handleRecoveryPhraseSubmit(event: SubmitEvent, props: WalletProps
   }
 }
 
+const WALLET_UNLOCK_DURATIONS_MINUTES = [15, 60, 240, 1440] as const;
+
+function unlockDurationLabel(minutes: number): string {
+  return minutes < 60
+    ? t("wallet.session.minutes", { count: String(minutes) })
+    : t("wallet.session.hours", { count: String(minutes / 60) });
+}
+
+async function handleUnlockSubmit(event: SubmitEvent, props: WalletProps) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+  const data = new FormData(form);
+  const ok = await props.onUnlock({
+    passphrase: formValue(data, "unlockPassphrase"),
+    ttlMinutes: Number(formValue(data, "ttlMinutes")) || WALLET_UNLOCK_DURATIONS_MINUTES[0],
+  });
+  if (ok) {
+    form.reset();
+  }
+}
+
+function renderWalletSession(props: WalletProps) {
+  const keystore = props.summary?.keystore;
+  const unlocked = keystore?.exists === true && !keystore.locked;
+  const statusText =
+    unlocked && keystore.unlockExpiresAt
+      ? t("wallet.session.unlockedUntil", {
+          time: new Date(keystore.unlockExpiresAt).toLocaleTimeString(),
+        })
+      : t("wallet.session.locked");
+  return html`
+    <section class="card">
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 12px;">
+        <div>
+          <div class="card-title">${t("wallet.session.title")}</div>
+          <div class="card-sub">${t("wallet.session.subtitle")}</div>
+        </div>
+        <span class="chip ${unlocked ? "chip-ok" : ""}">${statusText}</span>
+      </div>
+      ${props.unlockError
+        ? html`<div class="callout danger" style="margin-top: 14px;">${props.unlockError}</div>`
+        : nothing}
+      ${!keystore?.exists
+        ? html`<div class="callout" style="margin-top: 14px;">
+            ${t("wallet.session.noKeystore")}
+          </div>`
+        : unlocked
+          ? html`
+              <div class="row" style="justify-content: flex-end; margin-top: 16px;">
+                <button
+                  class="btn"
+                  type="button"
+                  ?disabled=${props.unlockBusy || !props.connected}
+                  @click=${props.onLock}
+                >
+                  ${t("wallet.session.lock")}
+                </button>
+              </div>
+            `
+          : html`
+              <form
+                style="display: grid; gap: 14px; margin-top: 16px;"
+                @submit=${(event: SubmitEvent) => void handleUnlockSubmit(event, props)}
+              >
+                <div class="stat-grid">
+                  <label class="field">
+                    <span>${t("wallet.session.passphrase")}</span>
+                    <input
+                      name="unlockPassphrase"
+                      type="password"
+                      autocomplete="current-password"
+                      ?disabled=${props.unlockBusy}
+                    />
+                  </label>
+                  <label class="field">
+                    <span>${t("wallet.session.duration")}</span>
+                    <select name="ttlMinutes" ?disabled=${props.unlockBusy}>
+                      ${WALLET_UNLOCK_DURATIONS_MINUTES.map(
+                        (minutes) =>
+                          html`<option value=${String(minutes)}>
+                            ${unlockDurationLabel(minutes)}
+                          </option>`,
+                      )}
+                    </select>
+                  </label>
+                </div>
+                <div class="row" style="justify-content: flex-end;">
+                  <button
+                    class="btn primary"
+                    type="submit"
+                    ?disabled=${props.unlockBusy || !props.connected}
+                  >
+                    ${props.unlockBusy ? t("wallet.session.unlocking") : t("wallet.session.unlock")}
+                  </button>
+                </div>
+              </form>
+            `}
+    </section>
+  `;
+}
+
 function renderRecoveryPhraseModeButton(
   props: WalletProps,
   mode: WalletRecoveryPhraseMode,
@@ -557,7 +665,7 @@ function renderRecoveryPhraseManager(props: WalletProps) {
 
 export function renderWallet(props: WalletProps) {
   return html`
-    ${renderWalletStatus(props)} ${renderRecoveryPhraseManager(props)}
+    ${renderWalletStatus(props)} ${renderWalletSession(props)} ${renderRecoveryPhraseManager(props)}
     ${renderWalletAccounts(props)} ${renderWalletTokens(props)} ${renderWalletNfts(props)}
   `;
 }

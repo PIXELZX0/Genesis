@@ -605,7 +605,7 @@ function requireAccount(
   return account;
 }
 
-function resolveEvmProvider(network: ResolvedEvmNetwork): JsonRpcProvider {
+export function resolveEvmProvider(network: ResolvedEvmNetwork): JsonRpcProvider {
   const rpcUrl = resolveSecretString(network.rpcUrl, network.rpcUrlPath);
   if (!rpcUrl) {
     throw new Error(`${network.rpcUrlPath} is required for EVM balance and send.`);
@@ -997,7 +997,7 @@ function bigintFromNumberish(value: TransactionRequest["chainId"]): bigint | und
   return undefined;
 }
 
-function createEvmTransactionRequest(
+export function createEvmTransactionRequest(
   input: Record<string, unknown>,
   network: ResolvedEvmNetwork,
   fromAddress: string,
@@ -1234,7 +1234,7 @@ export async function broadcastWalletRawTransactionPayload(params: {
   };
 }
 
-function resolveSolConnection(config?: WalletSolNetworkConfig): Connection {
+export function resolveSolConnection(config?: WalletSolNetworkConfig): Connection {
   const rpcUrl =
     resolveSecretString(config?.rpcUrl, "wallet.networks.sol.rpcUrl") ??
     clusterApiUrl(config?.network ?? "mainnet-beta");

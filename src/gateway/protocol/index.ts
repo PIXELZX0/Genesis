@@ -419,6 +419,14 @@ import {
   UpdateRunParamsSchema,
   type WakeParams,
   WakeParamsSchema,
+  type NodeWalletWeb3Params,
+  NodeWalletWeb3ParamsSchema,
+  type WalletLockParams,
+  WalletLockParamsSchema,
+  type WalletSessionStatusResult,
+  WalletSessionStatusResultSchema,
+  type WalletUnlockParams,
+  WalletUnlockParamsSchema,
   type WalletRecoveryPhraseSetParams,
   WalletRecoveryPhraseSetParamsSchema,
   type WalletRecoveryPhraseSetResult,
@@ -787,6 +795,11 @@ export const validateWalletRecoveryPhraseSetParams = ajv.compile<WalletRecoveryP
 export const validateWalletRecoveryPhraseSetResult = ajv.compile<WalletRecoveryPhraseSetResult>(
   WalletRecoveryPhraseSetResultSchema,
 );
+export const validateWalletUnlockParams = ajv.compile<WalletUnlockParams>(WalletUnlockParamsSchema);
+export const validateWalletLockParams = ajv.compile<WalletLockParams>(WalletLockParamsSchema);
+export const validateNodeWalletWeb3Params = ajv.compile<NodeWalletWeb3Params>(
+  NodeWalletWeb3ParamsSchema,
+);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {
@@ -912,6 +925,10 @@ export {
   WebLoginWaitParamsSchema,
   WalletRecoveryPhraseSetParamsSchema,
   WalletRecoveryPhraseSetResultSchema,
+  WalletUnlockParamsSchema,
+  WalletLockParamsSchema,
+  WalletSessionStatusResultSchema,
+  NodeWalletWeb3ParamsSchema,
   WalletSummaryParamsSchema,
   WalletSummaryResultSchema,
   WalletPublicAccountSchema,
@@ -1226,4 +1243,8 @@ export type {
   WalletNftCollection,
   WalletRecoveryPhraseSetParams,
   WalletRecoveryPhraseSetResult,
+  WalletUnlockParams,
+  WalletLockParams,
+  WalletSessionStatusResult,
+  NodeWalletWeb3Params,
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WalletState } from "./wallet.ts";
-import { loadWalletSummary, setWalletRecoveryPhrase } from "./wallet.ts";
+import { loadWalletSummary, lockWallet, setWalletRecoveryPhrase, unlockWallet } from "./wallet.ts";
 
 function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState } {
   const request = vi.fn();
@@ -19,6 +19,8 @@ function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState 
       walletRecoveryPhraseError: null,
       walletRecoveryPhraseGeneratedMnemonic: null,
       walletRecoveryPhraseStatus: null,
+      walletUnlockBusy: false,
+      walletUnlockError: null,
     },
   };
 }
@@ -215,5 +217,40 @@ describe("setWalletRecoveryPhrase", () => {
     });
     expect(state.walletRecoveryPhraseStatus).toBe("generated");
     expect(state.walletRecoveryPhraseGeneratedMnemonic).toBe("fresh generated phrase");
+  });
+});
+
+describe("wallet unlock session", () => {
+  it("unlocks with a millisecond TTL and refreshes the summary", async () => {
+    const { request, state } = createState();
+    const summary = {
+      enabled: true,
+      keystore: { exists: true, locked: false, unlockExpiresAt: 1 },
+      accounts: [],
+      warnings: [],
+    };
+    request.mockImplementation(async (method: string) =>
+      method === "wallet.summary" ? summary : { unlocked: true, expiresAt: 1 },
+    );
+
+    await expect(unlockWallet(state, { passphrase: "pw", ttlMinutes: 60 })).resolves.toBe(true);
+    expect(request).toHaveBeenNthCalledWith(1, "wallet.unlock", {
+      passphrase: "pw",
+      ttlMs: 3_600_000,
+    });
+    expect(state.walletSummary).toEqual(summary);
+    expect(state.walletUnlockBusy).toBe(false);
+  });
+
+  it("surfaces unlock errors and locks through the gateway", async () => {
+    const { request, state } = createState();
+    request.mockRejectedValueOnce(new Error("bad passphrase"));
+    await expect(unlockWallet(state, { passphrase: "x", ttlMinutes: 15 })).resolves.toBe(false);
+    expect(state.walletUnlockError).toBe("bad passphrase");
+
+    request.mockResolvedValue({ enabled: true, keystore: { exists: true, locked: true } });
+    await lockWallet(state);
+    expect(request).toHaveBeenCalledWith("wallet.lock", {});
+    expect(state.walletUnlockError).toBeNull();
   });
 });

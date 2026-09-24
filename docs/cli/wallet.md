@@ -247,6 +247,75 @@ rate-limited and are best for setup, address display, and low-volume balance
 checks. For production or agentic send flows, configure private or secret-backed
 endpoints under `wallet.networks.evm.chains`.
 
+## Browser web3 provider
+
+With `wallet.browser.enabled: true`, every page the agent opens with the
+`browser` tool gets an injected web3 wallet named **Genesis**:
+
+- EVM: `window.ethereum` (EIP-1193) and an EIP-6963 announcement. Chains are the
+  enabled `wallet.networks.evm` networks; `wallet_switchEthereumChain` only
+  switches between them. Read-only JSON-RPC (`eth_call`, `eth_estimateGas`, ...)
+  goes to the configured RPC URL.
+- Solana: a Wallet Standard wallet plus `window.solana`, using the configured
+  `wallet.networks.sol` cluster.
+
+Account and chain queries answer immediately. `personal_sign`,
+`eth_signTypedData_v4`, `eth_sendTransaction`, and Solana `signMessage`,
+`signTransaction`, `signAllTransactions`, and `signAndSendTransaction` wait in an
+approval queue. The agent sees them through the owner-only `wallet` tool
+(`pending`, then `approve` or `reject`); unanswered requests are rejected after
+five minutes. Transaction signing also requires `wallet.spending.enabled: true`,
+and `eth_sendTransaction` values must fit `wallet.spending.maxNativeAmount`.
+
+Signing needs the keystore unlocked in the running gateway:
+
+```bash
+GENESIS_WALLET_PASSPHRASE=... genesis wallet unlock --ttl 30
+genesis wallet unlock --empty-passphrase   # keystore created without a passphrase
+genesis wallet lock
+```
+
+The Control UI Wallet tab has the same controls in its **Signing Session** card
+(passphrase, 15 minutes to 24 hours, **Lock now**). Both call the admin-scoped
+`wallet.unlock` / `wallet.lock` gateway methods.
+
+The mnemonic stays in gateway memory only until the TTL (default 15 minutes,
+max 24 hours) expires, `genesis wallet lock` runs, or the gateway restarts.
+
+```json5
+{
+  wallet: {
+    browser: {
+      enabled: true,
+      // Optional: only these origins see the provider.
+      allowedOrigins: ["https://app.uniswap.org", "https://jup.ag"],
+    },
+    spending: { enabled: true, maxNativeAmount: "0.05" },
+  },
+}
+```
+
+Notes:
+
+- Any page JavaScript on an allowed origin can raise signing requests and read
+  the wallet addresses. Prefer `allowedOrigins`, and keep in mind that the agent
+  decides approvals.
+- Tabs that were already open when the browser connected pick up the provider on
+  their next navigation or reload.
+- Managed and remote CDP profiles inject through a Playwright binding on every
+  page load.
+- `existing-session` profiles (Chrome DevTools MCP) get the provider as a
+  `navigate_page` init script on each browser-tool navigation, talking to a
+  token-protected loopback bridge (`http://127.0.0.1:<random port>`). Full page
+  reloads the dApp triggers itself drop it until the next browser-tool
+  navigation. Chrome may ask to allow local network access the first time a
+  site uses the bridge, and a strict page `connect-src` CSP blocks it (requests
+  then fail with code 4900).
+- Browsers on a paired node host forward provider requests to the gateway over
+  the node connection (`node.wallet.web3`), so they use the gateway's
+  `wallet.browser` config, unlocked session, and approval queue. The node's own
+  wallet config is ignored.
+
 ## Gateway and Control UI
 
 The Gateway exposes read-only `wallet.summary` for operator clients with

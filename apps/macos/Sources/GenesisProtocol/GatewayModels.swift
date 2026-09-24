@@ -2255,6 +2255,26 @@ public struct ConfigPatchParams: Codable, Sendable {
 
 public struct ConfigSchemaParams: Codable, Sendable {}
 
+public struct ConfigBackupsParams: Codable, Sendable {}
+
+public struct ConfigBackupRestoreParams: Codable, Sendable {
+    public let id: String
+    public let basehash: String?
+
+    public init(
+        id: String,
+        basehash: String?)
+    {
+        self.id = id
+        self.basehash = basehash
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case basehash = "baseHash"
+    }
+}
+
 public struct ConfigSchemaLookupParams: Codable, Sendable {
     public let path: String
 
@@ -2859,6 +2879,78 @@ public struct WalletSummaryResult: Codable, Sendable {
     }
 }
 
+public struct WalletUnlockParams: Codable, Sendable {
+    public let passphrase: String
+    public let ttlms: Int?
+
+    public init(
+        passphrase: String,
+        ttlms: Int?)
+    {
+        self.passphrase = passphrase
+        self.ttlms = ttlms
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case passphrase
+        case ttlms = "ttlMs"
+    }
+}
+
+public struct WalletLockParams: Codable, Sendable {}
+
+public struct NodeWalletWeb3Params: Codable, Sendable {
+    public let op: AnyCodable
+    public let chain: AnyCodable?
+    public let origin: String?
+    public let method: String?
+    public let params: AnyCodable?
+    public let chainid: String?
+
+    public init(
+        op: AnyCodable,
+        chain: AnyCodable?,
+        origin: String?,
+        method: String?,
+        params: AnyCodable?,
+        chainid: String?)
+    {
+        self.op = op
+        self.chain = chain
+        self.origin = origin
+        self.method = method
+        self.params = params
+        self.chainid = chainid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case op
+        case chain
+        case origin
+        case method
+        case params
+        case chainid = "chainId"
+    }
+}
+
+public struct WalletSessionStatusResult: Codable, Sendable {
+    public let unlocked: Bool
+    public let expiresat: Int?
+
+    public init(
+        unlocked: Bool,
+        expiresat: Int?)
+    {
+        self.unlocked = unlocked
+        self.expiresat = expiresat
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case unlocked
+        case expiresat = "expiresAt"
+    }
+}
+
 public struct TalkModeParams: Codable, Sendable {
     public let enabled: Bool
     public let phase: String?
@@ -3143,7 +3235,43 @@ public struct ChannelsStartParams: Codable, Sendable {
     }
 }
 
+public struct ChannelsRestartParams: Codable, Sendable {
+    public let channel: String
+    public let accountid: String?
+
+    public init(
+        channel: String,
+        accountid: String?)
+    {
+        self.channel = channel
+        self.accountid = accountid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case channel
+        case accountid = "accountId"
+    }
+}
+
 public struct ChannelsLogoutParams: Codable, Sendable {
+    public let channel: String
+    public let accountid: String?
+
+    public init(
+        channel: String,
+        accountid: String?)
+    {
+        self.channel = channel
+        self.accountid = accountid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case channel
+        case accountid = "accountId"
+    }
+}
+
+public struct ChannelsDeleteParams: Codable, Sendable {
     public let channel: String
     public let accountid: String?
 
@@ -3774,6 +3902,228 @@ public struct ContactsDeleteResult: Codable, Sendable {
         case agentid = "agentId"
         case deleted
         case id
+    }
+}
+
+public struct FilesEntry: Codable, Sendable {
+    public let name: String
+    public let type: AnyCodable
+    public let size: Int?
+    public let mtimems: Int?
+
+    public init(
+        name: String,
+        type: AnyCodable,
+        size: Int?,
+        mtimems: Int?)
+    {
+        self.name = name
+        self.type = type
+        self.size = size
+        self.mtimems = mtimems
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case type
+        case size
+        case mtimems = "mtimeMs"
+    }
+}
+
+public struct FilesListParams: Codable, Sendable {
+    public let path: String
+
+    public init(
+        path: String)
+    {
+        self.path = path
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+    }
+}
+
+public struct FilesListResult: Codable, Sendable {
+    public let path: String
+    public let entries: [FilesEntry]
+
+    public init(
+        path: String,
+        entries: [FilesEntry])
+    {
+        self.path = path
+        self.entries = entries
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case entries
+    }
+}
+
+public struct FilesReadParams: Codable, Sendable {
+    public let path: String
+    public let encoding: AnyCodable?
+
+    public init(
+        path: String,
+        encoding: AnyCodable?)
+    {
+        self.path = path
+        self.encoding = encoding
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case encoding
+    }
+}
+
+public struct FilesReadResult: Codable, Sendable {
+    public let path: String
+    public let size: Int
+    public let mtimems: Int
+    public let encoding: AnyCodable
+    public let content: String
+
+    public init(
+        path: String,
+        size: Int,
+        mtimems: Int,
+        encoding: AnyCodable,
+        content: String)
+    {
+        self.path = path
+        self.size = size
+        self.mtimems = mtimems
+        self.encoding = encoding
+        self.content = content
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case size
+        case mtimems = "mtimeMs"
+        case encoding
+        case content
+    }
+}
+
+public struct FilesWriteParams: Codable, Sendable {
+    public let path: String
+    public let content: String
+    public let encoding: AnyCodable?
+    public let overwrite: Bool?
+
+    public init(
+        path: String,
+        content: String,
+        encoding: AnyCodable?,
+        overwrite: Bool?)
+    {
+        self.path = path
+        self.content = content
+        self.encoding = encoding
+        self.overwrite = overwrite
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case content
+        case encoding
+        case overwrite
+    }
+}
+
+public struct FilesWriteResult: Codable, Sendable {
+    public let ok: Bool
+    public let path: String
+    public let size: Int
+    public let mtimems: Int
+
+    public init(
+        ok: Bool,
+        path: String,
+        size: Int,
+        mtimems: Int)
+    {
+        self.ok = ok
+        self.path = path
+        self.size = size
+        self.mtimems = mtimems
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+        case path
+        case size
+        case mtimems = "mtimeMs"
+    }
+}
+
+public struct FilesDeleteParams: Codable, Sendable {
+    public let path: String
+    public let recursive: Bool?
+
+    public init(
+        path: String,
+        recursive: Bool?)
+    {
+        self.path = path
+        self.recursive = recursive
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case recursive
+    }
+}
+
+public struct FilesRenameParams: Codable, Sendable {
+    public let path: String
+    public let newpath: String
+
+    public init(
+        path: String,
+        newpath: String)
+    {
+        self.path = path
+        self.newpath = newpath
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+        case newpath = "newPath"
+    }
+}
+
+public struct FilesMkdirParams: Codable, Sendable {
+    public let path: String
+
+    public init(
+        path: String)
+    {
+        self.path = path
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case path
+    }
+}
+
+public struct FilesOkResult: Codable, Sendable {
+    public let ok: Bool
+
+    public init(
+        ok: Bool)
+    {
+        self.ok = ok
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
     }
 }
 
@@ -4893,6 +5243,96 @@ public struct PluginApprovalResolveParams: Codable, Sendable {
     }
 }
 
+public struct SecretRequestParams: Codable, Sendable {
+    public let name: String
+    public let description: String
+    public let agentid: String?
+    public let sessionkey: String?
+    public let toolcallid: String?
+    public let turnsourcechannel: String?
+    public let turnsourceto: String?
+    public let turnsourceaccountid: String?
+    public let turnsourcethreadid: AnyCodable?
+    public let timeoutms: Int?
+    public let twophase: Bool?
+
+    public init(
+        name: String,
+        description: String,
+        agentid: String?,
+        sessionkey: String?,
+        toolcallid: String?,
+        turnsourcechannel: String?,
+        turnsourceto: String?,
+        turnsourceaccountid: String?,
+        turnsourcethreadid: AnyCodable?,
+        timeoutms: Int?,
+        twophase: Bool?)
+    {
+        self.name = name
+        self.description = description
+        self.agentid = agentid
+        self.sessionkey = sessionkey
+        self.toolcallid = toolcallid
+        self.turnsourcechannel = turnsourcechannel
+        self.turnsourceto = turnsourceto
+        self.turnsourceaccountid = turnsourceaccountid
+        self.turnsourcethreadid = turnsourcethreadid
+        self.timeoutms = timeoutms
+        self.twophase = twophase
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case description
+        case agentid = "agentId"
+        case sessionkey = "sessionKey"
+        case toolcallid = "toolCallId"
+        case turnsourcechannel = "turnSourceChannel"
+        case turnsourceto = "turnSourceTo"
+        case turnsourceaccountid = "turnSourceAccountId"
+        case turnsourcethreadid = "turnSourceThreadId"
+        case timeoutms = "timeoutMs"
+        case twophase = "twoPhase"
+    }
+}
+
+public struct SecretWaitRequestParams: Codable, Sendable {
+    public let id: String
+
+    public init(
+        id: String)
+    {
+        self.id = id
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+    }
+}
+
+public struct SecretResolveParams: Codable, Sendable {
+    public let id: String
+    public let action: String
+    public let value: String?
+
+    public init(
+        id: String,
+        action: String,
+        value: String?)
+    {
+        self.id = id
+        self.action = action
+        self.value = value
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case action
+        case value
+    }
+}
+
 public struct PluginInstallRecord: Codable, Sendable {
     public let source: String
     public let spec: String?
@@ -5868,18 +6308,22 @@ public struct McpServerTestResult: Codable, Sendable {
 public struct McpOAuthStartParams: Codable, Sendable {
     public let name: String
     public let scopes: [String]?
+    public let origin: String?
 
     public init(
         name: String,
-        scopes: [String]?)
+        scopes: [String]?,
+        origin: String?)
     {
         self.name = name
         self.scopes = scopes
+        self.origin = origin
     }
 
     private enum CodingKeys: String, CodingKey {
         case name
         case scopes
+        case origin
     }
 }
 
@@ -6040,6 +6484,190 @@ public struct McpOAuthRefreshResult: Codable, Sendable {
         case ok
         case expiresatms = "expiresAtMs"
         case message
+    }
+}
+
+public struct McpOAuthEmbeddedStartParams: Codable, Sendable {
+    public let name: String
+    public let scopes: [String]?
+    public let viewport: [String: AnyCodable]?
+
+    public init(
+        name: String,
+        scopes: [String]?,
+        viewport: [String: AnyCodable]?)
+    {
+        self.name = name
+        self.scopes = scopes
+        self.viewport = viewport
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case scopes
+        case viewport
+    }
+}
+
+public struct McpOAuthEmbeddedStartResult: Codable, Sendable {
+    public let sessionid: String
+    public let viewport: [String: AnyCodable]
+    public let providername: String?
+
+    public init(
+        sessionid: String,
+        viewport: [String: AnyCodable],
+        providername: String?)
+    {
+        self.sessionid = sessionid
+        self.viewport = viewport
+        self.providername = providername
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sessionid = "sessionId"
+        case viewport
+        case providername = "providerName"
+    }
+}
+
+public struct McpOAuthEmbeddedPollParams: Codable, Sendable {
+    public let sessionid: String
+
+    public init(
+        sessionid: String)
+    {
+        self.sessionid = sessionid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sessionid = "sessionId"
+    }
+}
+
+public struct McpOAuthEmbeddedPollResult: Codable, Sendable {
+    public let phase: AnyCodable
+    public let seq: Int
+    public let frame: [String: AnyCodable]?
+    public let message: String?
+    public let providername: String?
+    public let expiresatms: AnyCodable?
+
+    public init(
+        phase: AnyCodable,
+        seq: Int,
+        frame: [String: AnyCodable]?,
+        message: String?,
+        providername: String?,
+        expiresatms: AnyCodable?)
+    {
+        self.phase = phase
+        self.seq = seq
+        self.frame = frame
+        self.message = message
+        self.providername = providername
+        self.expiresatms = expiresatms
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case phase
+        case seq
+        case frame
+        case message
+        case providername = "providerName"
+        case expiresatms = "expiresAtMs"
+    }
+}
+
+public struct McpOAuthEmbeddedInputParams: Codable, Sendable {
+    public let sessionid: String
+    public let kind: AnyCodable
+    public let action: AnyCodable?
+    public let x: Double?
+    public let y: Double?
+    public let button: AnyCodable?
+    public let deltax: Double?
+    public let deltay: Double?
+    public let text: String?
+    public let key: String?
+
+    public init(
+        sessionid: String,
+        kind: AnyCodable,
+        action: AnyCodable?,
+        x: Double?,
+        y: Double?,
+        button: AnyCodable?,
+        deltax: Double?,
+        deltay: Double?,
+        text: String?,
+        key: String?)
+    {
+        self.sessionid = sessionid
+        self.kind = kind
+        self.action = action
+        self.x = x
+        self.y = y
+        self.button = button
+        self.deltax = deltax
+        self.deltay = deltay
+        self.text = text
+        self.key = key
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sessionid = "sessionId"
+        case kind
+        case action
+        case x
+        case y
+        case button
+        case deltax = "deltaX"
+        case deltay = "deltaY"
+        case text
+        case key
+    }
+}
+
+public struct McpOAuthEmbeddedInputResult: Codable, Sendable {
+    public let ok: Bool
+
+    public init(
+        ok: Bool)
+    {
+        self.ok = ok
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
+    }
+}
+
+public struct McpOAuthEmbeddedCancelParams: Codable, Sendable {
+    public let sessionid: String
+
+    public init(
+        sessionid: String)
+    {
+        self.sessionid = sessionid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sessionid = "sessionId"
+    }
+}
+
+public struct McpOAuthEmbeddedCancelResult: Codable, Sendable {
+    public let ok: Bool
+
+    public init(
+        ok: Bool)
+    {
+        self.ok = ok
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ok
     }
 }
 

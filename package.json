@@ -1261,6 +1261,10 @@
       "types": "./dist/plugin-sdk/voice-call.d.ts",
       "default": "./dist/plugin-sdk/voice-call.js"
     },
+    "./plugin-sdk/wallet-runtime": {
+      "types": "./dist/plugin-sdk/wallet-runtime.d.ts",
+      "default": "./dist/plugin-sdk/wallet-runtime.js"
+    },
     "./plugin-sdk/zalo": {
       "types": "./dist/plugin-sdk/zalo.d.ts",
       "default": "./dist/plugin-sdk/zalo.js"

@@ -109,6 +109,7 @@ const BUILT_IN_TOOL_NAMES = new Set([
   "image",
   "pdf",
   "contacts",
+  "wallet",
 ]);
 const CODING_TOOL_NAMES = new Set(["read", "write", "edit", "exec", "process", "apply_patch"]);
 

@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 
 import { render } from "lit";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { WalletSummaryResult } from "../types.ts";
 import { renderWallet, type WalletProps } from "./wallet.ts";
 
@@ -82,6 +82,10 @@ function createProps(overrides: Partial<WalletProps> = {}): WalletProps {
     onConfigure: () => undefined,
     onRecoveryPhraseModeChange: () => undefined,
     onManageRecoveryPhrase: () => true,
+    unlockBusy: false,
+    unlockError: null,
+    onUnlock: () => true,
+    onLock: () => undefined,
     ...overrides,
   };
 }
@@ -151,11 +155,11 @@ describe("wallet view", () => {
 
     const mnemonic = container.querySelector<HTMLTextAreaElement>("textarea[name='mnemonic']");
     const passphrase = container.querySelector<HTMLInputElement>("input[name='passphrase']");
+    const form = mnemonic?.closest("form") ?? null;
     const confirmPassphrase = container.querySelector<HTMLInputElement>(
       "input[name='confirmPassphrase']",
     );
     const overwrite = container.querySelector<HTMLInputElement>("input[name='overwrite']");
-    const form = container.querySelector<HTMLFormElement>("form");
     expect(mnemonic).not.toBeNull();
     expect(passphrase).not.toBeNull();
     expect(confirmPassphrase).toBeNull();
@@ -186,5 +190,57 @@ describe("wallet view", () => {
     expect(mnemonic.value).toBe("");
     expect(passphrase.value).toBe("");
     expect(overwrite.checked).toBe(false);
+  });
+
+  it("unlocks with the chosen duration and offers lock once unlocked", async () => {
+    const container = document.createElement("div");
+    const unlocks: Array<{ passphrase: string; ttlMinutes: number }> = [];
+    render(
+      renderWallet(
+        createProps({
+          onUnlock: async (input) => {
+            unlocks.push(input);
+            return true;
+          },
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+
+    const input = container.querySelector<HTMLInputElement>("input[name='unlockPassphrase']");
+    const duration = container.querySelector<HTMLSelectElement>("select[name='ttlMinutes']");
+    const form = input?.closest("form");
+    expect(form).toBeTruthy();
+    if (!input || !duration || !form) {
+      return;
+    }
+    input.value = "pw";
+    duration.value = "60";
+    form.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+    expect(unlocks).toEqual([{ passphrase: "pw", ttlMinutes: 60 }]);
+
+    const onLock = vi.fn();
+    const summary = createSummary();
+    render(
+      renderWallet(
+        createProps({
+          summary: {
+            ...summary,
+            keystore: { exists: true, locked: false, unlockExpiresAt: Date.now() + 60_000 },
+          },
+          onLock,
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+    expect(container.querySelector("input[name='unlockPassphrase']")).toBeNull();
+    const lockButton = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent?.trim() === "Lock now",
+    );
+    lockButton?.click();
+    expect(onLock).toHaveBeenCalledTimes(1);
   });
 });

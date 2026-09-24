@@ -32,6 +32,7 @@ import {
   withBrowserNavigationPolicy,
 } from "./navigation-guard.js";
 import { withPageScopedCdpClient } from "./pw-session.page-cdp.js";
+import { installWalletWeb3Provider } from "./web3-provider.js";
 
 export type BrowserConsoleMessage = {
   type: string;
@@ -422,6 +423,7 @@ function observeContext(context: BrowserContext) {
     ensurePageState(page);
   }
   context.on("page", (page) => ensurePageState(page));
+  void installWalletWeb3Provider(context);
 }
 
 export function ensureContextState(context: BrowserContext): ContextState {
