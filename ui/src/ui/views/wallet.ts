@@ -559,6 +559,10 @@ function renderGeneratedRecoveryPhrase(props: WalletProps) {
 }
 
 function renderRecoveryPhraseManager(props: WalletProps) {
+  // Configured wallet: hide setup, but keep a just-generated phrase visible for backup.
+  if (props.summary?.keystore.exists && !props.recoveryPhraseGeneratedMnemonic) {
+    return nothing;
+  }
   const isImport = props.recoveryPhraseMode === "import";
   const successText =
     props.recoveryPhraseStatus === "generated"

@@ -105,8 +105,7 @@ describe("wallet view", () => {
     expect(container.textContent).toContain("Badge");
     expect(container.textContent).toContain("#1 x1");
     expect(container.textContent).toContain("Primary");
-    expect(container.textContent).toContain("Secret Recovery Phrase");
-    expect(container.textContent).toContain("Generate wallet");
+    expect(container.textContent).not.toContain("Secret Recovery Phrase");
     expect(container.textContent).not.toMatch(/private key|send/i);
     expect(container.querySelector("button[aria-label='Copy address']")).not.toBeNull();
     expect(container.querySelector("button[aria-label='Copy token contract']")).not.toBeNull();
@@ -133,6 +132,21 @@ describe("wallet view", () => {
 
     expect(container.textContent).toContain("No wallet keystore found.");
     expect(container.textContent).toContain("Missing");
+    expect(container.textContent).toContain("Secret Recovery Phrase");
+    expect(container.textContent).toContain("Generate wallet");
+  });
+
+  it("keeps a just-generated phrase visible after the keystore exists", async () => {
+    const container = document.createElement("div");
+
+    render(
+      renderWallet(createProps({ recoveryPhraseGeneratedMnemonic: "alpha beta gamma" })),
+      container,
+    );
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Secret Recovery Phrase");
+    expect(container.textContent).toContain("alpha beta gamma");
   });
 
   it("submits recovery phrase imports and resets secret fields on success", async () => {
@@ -142,6 +156,7 @@ describe("wallet view", () => {
     render(
       renderWallet(
         createProps({
+          summary: { ...createSummary(), keystore: { exists: false, locked: true } },
           recoveryPhraseMode: "import",
           onManageRecoveryPhrase: async (input) => {
             submissions.push(input);
