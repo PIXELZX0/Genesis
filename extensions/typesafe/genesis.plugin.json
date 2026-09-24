@@ -36,6 +36,24 @@
       "label": "Jev timeout (ms)",
       "help": "Per-request Jev timeout; on timeout the model is called normally.",
       "advanced": true
+    },
+    "jevSafeguard": {
+      "label": "Jev exec safeguard",
+      "help": "TypeSafe Jev rates every exec command's system impact before it runs. Turning it on needs a gateway restart; turning it off and other edits apply immediately."
+    },
+    "jevSafeguard.enabled": {
+      "label": "Enable Jev exec safeguard",
+      "help": "Jev blocks high-impact commands and asks for approval on medium-impact ones. Only tightens exec; on Jev errors or timeouts the command runs under normal exec rules."
+    },
+    "jevSafeguard.blockConfidence": {
+      "label": "Jev block confidence",
+      "help": "High-risk verdicts at or above this probability are blocked; less certain ones ask for approval instead (0-1).",
+      "advanced": true
+    },
+    "jevSafeguard.timeoutMs": {
+      "label": "Jev safeguard timeout (ms)",
+      "help": "Per-command Jev timeout; on timeout the command runs under normal exec rules.",
+      "advanced": true
     }
   },
   "contracts": {
@@ -67,6 +85,24 @@
           "maxConsecutiveDirectCalls": {
             "type": "integer",
             "minimum": 0
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "jevSafeguard": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "blockConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           },
           "timeoutMs": {
             "type": "integer",

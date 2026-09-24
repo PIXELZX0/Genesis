@@ -14,6 +14,7 @@ import {
   type JevQuestion,
 } from "./jev-client.js";
 import { decideModelCallRoute, jevRouterConfigSchema } from "./jev-router.js";
+import { assessExecToolCall, jevSafeguardConfigSchema } from "./jev-safeguard.js";
 import { createJevEvaluateTool } from "./jev-tool.js";
 
 const log = createSubsystemLogger("agents/jev-router");
@@ -22,6 +23,7 @@ const pluginConfigSchema = z.object({
   apiKey: z.string().trim().min(1).optional(),
   backend: z.enum(["auto", ...JEV_BACKEND_ORDER]).default("auto"),
   jevRouter: jevRouterConfigSchema,
+  jevSafeguard: jevSafeguardConfigSchema,
 });
 
 type JevConnection = { backend: JevBackend; apiKey: string };
@@ -59,7 +61,7 @@ async function resolveConnection(
 export default definePluginEntry({
   id: "typesafe",
   name: "TypeSafe Jev",
-  description: "TypeSafe Jev evaluation tool and model-call router",
+  description: "TypeSafe Jev evaluation tool, model-call router, and exec safeguard",
   register(api) {
     const parseConfig = (raw: unknown) => {
       const parsed = pluginConfigSchema.safeParse(raw ?? {});
@@ -101,9 +103,34 @@ export default definePluginEntry({
       { names: ["jev_evaluate"], optional: true },
     );
 
+    const startupConfig = parseConfig(api.pluginConfig);
+    // Registered only when on at startup so other tool calls skip the hook; turning it
+    // off applies live, turning it on needs a restart.
+    if (startupConfig?.jevSafeguard.enabled) {
+      api.on("before_tool_call", async (event) => {
+        const safeguard = resolveCurrentConfig()?.jevSafeguard;
+        if (!safeguard?.enabled) {
+          return undefined;
+        }
+        try {
+          return await assessExecToolCall({
+            toolName: event.toolName,
+            toolParams: event.params,
+            config: safeguard,
+            evaluate: (state, questions) =>
+              evaluate(state, questions, { timeoutMs: safeguard.timeoutMs }),
+          });
+        } catch (err) {
+          // Fail open: core exec heuristics and approvals still apply.
+          log.warn(`Jev safeguard failed; skipping: ${String(err)}`);
+          return undefined;
+        }
+      });
+    }
+
     // Registering before_model_call pins isolated runs to the parent runtime, so only
     // register when the router is on at startup; turning it on later needs a restart.
-    if (!parseConfig(api.pluginConfig)?.jevRouter.enabled) {
+    if (!startupConfig?.jevRouter.enabled) {
       return;
     }
     // Consecutive model-free tool calls per run; bounds loops driven by tool output.

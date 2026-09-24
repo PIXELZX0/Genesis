@@ -1,8 +1,9 @@
 ---
-summary: "TypeSafe Jev evaluation tool and model-call tool router"
+summary: "TypeSafe Jev evaluation tool, model-call tool router, and exec safeguard"
 read_when:
   - You want fast typed judgments (yes/no, choice, score) inside an agent
   - You want browser or computer-use steps to skip LLM calls
+  - You want a model safeguard that blocks or gates risky exec commands
   - You are choosing between TypeSafe, OpenRouter, and Vercel AI Gateway for Jev
 title: "TypeSafe Jev"
 ---
@@ -10,7 +11,7 @@ title: "TypeSafe Jev"
 [TypeSafe Jev](https://docs.typesafe.ai/introduction) is an evaluation model.
 It takes state plus typed questions and returns calibrated probabilities. It
 cannot chat, write text, or call tools, so it is not a chat model in Genesis.
-The bundled `typesafe` plugin uses it in two opt-in ways:
+The bundled `typesafe` plugin uses it in three opt-in ways:
 
 - **Tool router.** Inside a browser or computer-use loop (the latest tool result
   came from `browser` or a computer-use style MCP server such as
@@ -25,6 +26,13 @@ The bundled `typesafe` plugin uses it in two opt-in ways:
     called exactly as it would be without the router. The router never
     changes `tool_choice`, thinking, or the tool list, so provider prompt
     caches keep hitting. Outside use loops Jev is not called at all.
+- **Exec safeguard.** Before every `exec` call, Jev rates the command's
+  system impact as high, medium, or low. A high verdict at or above
+  `blockConfidence` blocks the command; medium (or a less certain high) asks
+  for approval; low leaves it alone. It runs alongside the built-in
+  [`tools.exec.safeguard`](/tools/exec) heuristics and approvals and only ever
+  tightens them. On Jev errors or timeouts the command runs under the normal
+  exec rules.
 - **`jev_evaluate` tool.** Lets the agent ask Jev boolean, choice, and score
   questions directly.
 
@@ -46,6 +54,8 @@ In the Control UI, open **Config → Plugins → TypeSafe Jev**, pick the backen
 and switch **Enable Jev tool router** on or off. Turning the router on needs a
 gateway restart (the Control UI offers one when you apply). Turning it off,
 switching backends, and changing thresholds apply to the next model call.
+**Enable Jev exec safeguard** works the same way: on needs a restart, off and
+threshold edits apply to the next `exec` call.
 
 ```json5
 {
@@ -59,6 +69,11 @@ switching backends, and changing thresholds apply to the next model call.
             minConfidence: 0.6, // below this, the model decides
             maxConsecutiveDirectCalls: 8, // model-free tool calls in a row per run
             timeoutMs: 3000,
+          },
+          jevSafeguard: {
+            enabled: true,
+            blockConfidence: 0.8, // below this, a high verdict asks for approval instead
+            timeoutMs: 5000,
           },
         },
       },
