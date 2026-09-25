@@ -254,17 +254,20 @@ function findEvmNetwork(config: WalletConfig | undefined, chainId: unknown) {
     }
     return first;
   }
+  if (typeof chainId !== "string" && typeof chainId !== "number" && typeof chainId !== "bigint") {
+    throw new WalletWeb3Error(INVALID_PARAMS, "Invalid chainId.");
+  }
   let numeric: number;
   try {
-    numeric = Number(BigInt(String(chainId)));
+    numeric = Number(BigInt(chainId));
   } catch {
-    throw new WalletWeb3Error(INVALID_PARAMS, `Invalid chainId: ${String(chainId)}`);
+    throw new WalletWeb3Error(INVALID_PARAMS, `Invalid chainId: ${chainId}`);
   }
   const network = networks.find((entry) => entry.chainId === numeric);
   if (!network) {
     throw new WalletWeb3Error(
       UNRECOGNIZED_CHAIN,
-      `Chain ${String(chainId)} is not configured in wallet.networks.evm.chains.`,
+      `Chain ${chainId} is not configured in wallet.networks.evm.chains.`,
     );
   }
   return network;
@@ -432,7 +435,7 @@ async function handleEvmRequest(
       return queueApproval({
         request,
         network: network.name,
-        summary: `Send transaction to ${String(txRequest.to ?? "(contract creation)")} value ${value} ${network.currencySymbol}${data.length > 2 ? ` calldata ${data.slice(0, 10)}… (${(data.length - 2) / 2} bytes)` : ""}`,
+        summary: `Send transaction to ${typeof txRequest.to === "string" ? txRequest.to : "(contract creation)"} value ${value} ${network.currencySymbol}${data.length > 2 ? ` calldata ${data.slice(0, 10)}… (${(data.length - 2) / 2} bytes)` : ""}`,
         details: {
           from: address,
           to: txRequest.to,
@@ -516,7 +519,7 @@ function signSolTransaction(tx: VersionedTransaction, keypair: Keypair) {
   tx.sign([keypair]);
   return {
     signedTransaction: Buffer.from(tx.serialize()).toString("base64"),
-    signature: Buffer.from(tx.signatures[index] as Uint8Array).toString("base64"),
+    signature: Buffer.from(tx.signatures[index]).toString("base64"),
   };
 }
 
@@ -593,9 +596,7 @@ async function handleSolRequest(
           return {
             ...signed[0],
             txId,
-            transactionSignature: Buffer.from(described[0].tx.signatures[0] as Uint8Array).toString(
-              "base64",
-            ),
+            transactionSignature: Buffer.from(described[0].tx.signatures[0]).toString("base64"),
           };
         },
       });
