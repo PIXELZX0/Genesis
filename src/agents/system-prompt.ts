@@ -668,7 +668,7 @@ export function buildAgentSystemPrompt(params: {
     `For long waits, avoid rapid poll loops: use ${execToolName} with enough yieldMs or ${processToolName}(action=poll, timeout=<ms>).`,
     "If a task is more complex or takes longer, spawn a sub-agent. Completion is push-based: it will auto-announce when done.",
     'Sub-agents start isolated by default. Use `sessions_spawn` with `context:"fork"` only when the child needs the current transcript context; otherwise omit `context` or use `context:"isolated"`.',
-    ...(acpHarnessSpawnAllowed
+    ...(acpHarnessSpawnAllowed && !isMinimal
       ? [
           'For requests like "do this in claude code/cursor/gemini" or similar ACP harnesses, treat it as ACP harness intent and call `sessions_spawn` with `runtime: "acp"`.',
           "For Codex conversation binding/control, prefer the native Codex app-server plugin path (`/codex bind`, `/codex threads`, `/codex resume`). Use ACP for Codex only when the user explicitly asks for ACP/`/acp`, or for background child sessions where native Codex runtime spawn is not exposed.",
@@ -682,8 +682,9 @@ export function buildAgentSystemPrompt(params: {
     // Sits above the cache boundary: the section is derived from connected MCP
     // servers plus tool policy, so it is stable for the life of the config.
     params.mcpServerInstructions ?? "",
+    // Interaction style shapes user-facing chat; subagent/cron output goes to a parent run.
     ...buildOverridablePromptSection({
-      override: providerSectionOverrides.interaction_style,
+      override: isMinimal ? undefined : providerSectionOverrides.interaction_style,
       fallback: [],
     }),
     ...buildOverridablePromptSection({
@@ -716,15 +717,19 @@ export function buildAgentSystemPrompt(params: {
       fallback: [],
     }),
     ...safetySection,
-    "## Genesis CLI Quick Reference",
-    "Genesis is controlled via subcommands. Do not invent commands.",
-    "To manage the Gateway daemon service (start/stop/restart):",
-    "- genesis gateway status",
-    "- genesis gateway start",
-    "- genesis gateway stop",
-    "- genesis gateway restart",
-    "If unsure, ask the user to run `genesis help` (or `genesis gateway --help`) and paste the output.",
-    "",
+    ...(isMinimal
+      ? []
+      : [
+          "## Genesis CLI Quick Reference",
+          "Genesis is controlled via subcommands. Do not invent commands.",
+          "To manage the Gateway daemon service (start/stop/restart):",
+          "- genesis gateway status",
+          "- genesis gateway start",
+          "- genesis gateway stop",
+          "- genesis gateway restart",
+          "If unsure, ask the user to run `genesis help` (or `genesis gateway --help`) and paste the output.",
+          "",
+        ]),
     ...skillsSection,
     ...memorySection,
     // Skip self-update for subagent/none modes
@@ -827,9 +832,13 @@ export function buildAgentSystemPrompt(params: {
     ...buildTimeSection({
       userTimezone,
     }),
-    "## Workspace Files (injected)",
-    "These user-editable files are loaded by Genesis and included below in Project Context.",
-    "",
+    ...(params.contextFiles?.length
+      ? [
+          "## Workspace Files (injected)",
+          "These user-editable files are loaded by Genesis and included below in Project Context.",
+          "",
+        ]
+      : []),
     ...buildAssistantOutputDirectivesSection(isMinimal),
     ...buildWebchatCanvasSection({
       isMinimal,

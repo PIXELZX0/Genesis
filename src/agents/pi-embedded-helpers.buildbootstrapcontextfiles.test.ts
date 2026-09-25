@@ -46,14 +46,9 @@ describe("ensureSessionHeader", () => {
 });
 
 describe("buildBootstrapContextFiles", () => {
-  it("keeps missing markers", () => {
+  it("skips missing files", () => {
     const files = [makeFile({ missing: true, content: undefined })];
-    expect(buildBootstrapContextFiles(files)).toEqual([
-      {
-        path: "/tmp/AGENTS.md",
-        content: "[MISSING] Expected at: /tmp/AGENTS.md",
-      },
-    ]);
+    expect(buildBootstrapContextFiles(files)).toEqual([]);
   });
   it("skips empty or whitespace-only content", () => {
     const files = [makeFile({ content: "   \n  " })];
@@ -178,16 +173,6 @@ describe("buildBootstrapContextFiles", () => {
       totalMaxChars: 40,
     });
     expect(result).toEqual([]);
-  });
-
-  it("keeps missing markers under small total budgets", () => {
-    const files = [makeFile({ missing: true, content: undefined })];
-    const result = buildBootstrapContextFiles(files, {
-      totalMaxChars: 20,
-    });
-    expect(result).toHaveLength(1);
-    expect(result[0]?.content.length).toBeLessThanOrEqual(20);
-    expect(result[0]?.content.startsWith("[MISSING]")).toBe(true);
   });
 
   it("skips files with missing or invalid paths and emits warnings", () => {

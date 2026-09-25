@@ -225,11 +225,12 @@ export type AgentDefaultsConfig = {
    * - always: inject on every turn (default)
    * - continuation-skip: skip injection on safe continuation turns once the
    *   transcript already contains a completed assistant turn
+   * - never: never inject bootstrap files
    */
   contextInjection?: AgentContextInjection;
-  /** Max chars for injected bootstrap files before truncation (default: 20000). */
+  /** Max chars for injected bootstrap files before truncation (default: 12000). */
   bootstrapMaxChars?: number;
-  /** Max total chars across all injected bootstrap files (default: 150000). */
+  /** Max total chars across all injected bootstrap files (default: 60000). */
   bootstrapTotalMaxChars?: number;
   /** Experimental agent-default flags. Keep off unless you are intentionally testing a preview surface. */
   experimental?: {

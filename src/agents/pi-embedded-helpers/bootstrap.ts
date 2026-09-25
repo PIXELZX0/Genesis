@@ -290,17 +290,8 @@ export function buildBootstrapContextFiles(
       );
       continue;
     }
+    // Absent files carry no content; a marker would only spend prompt tokens.
     if (file.missing) {
-      const missingText = `[MISSING] Expected at: ${pathValue}`;
-      const cappedMissingText = clampToBudget(missingText, remainingTotalChars);
-      if (!cappedMissingText) {
-        break;
-      }
-      remainingTotalChars = Math.max(0, remainingTotalChars - cappedMissingText.length);
-      result.push({
-        path: pathValue,
-        content: cappedMissingText,
-      });
       continue;
     }
     if (remainingTotalChars < MIN_BOOTSTRAP_FILE_BUDGET_CHARS) {

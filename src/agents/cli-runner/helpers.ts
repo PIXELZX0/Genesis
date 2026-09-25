@@ -11,6 +11,7 @@ import type { CliBackendConfig } from "../../config/types.js";
 import { resolvePreferredGenesisTmpDir } from "../../infra/tmp-genesis-dir.js";
 import { MAX_IMAGE_BYTES } from "../../media/constants.js";
 import { extensionForMime } from "../../media/mime.js";
+import { isCronSessionKey, isSubagentSessionKey } from "../../routing/session-key.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -75,6 +76,7 @@ export function buildSystemPrompt(params: {
   skillsPrompt?: string;
   modelDisplay: string;
   agentId?: string;
+  sessionKey?: string;
 }) {
   const defaultModelRef = resolveDefaultModelForAgent({
     cfg: params.config ?? {},
@@ -102,6 +104,11 @@ export function buildSystemPrompt(params: {
     workspaceDir: params.workspaceDir,
     defaultThinkLevel: params.defaultThinkLevel,
     extraSystemPrompt: params.extraSystemPrompt,
+    promptMode:
+      params.sessionKey &&
+      (isSubagentSessionKey(params.sessionKey) || isCronSessionKey(params.sessionKey))
+        ? "minimal"
+        : "full",
     ownerNumbers: params.ownerNumbers,
     ownerDisplay: ownerDisplay.ownerDisplay,
     ownerDisplaySecret: ownerDisplay.ownerDisplaySecret,

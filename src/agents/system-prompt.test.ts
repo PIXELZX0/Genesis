@@ -229,6 +229,16 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Do not invent commands");
   });
 
+  it("omits the CLI quick reference and empty workspace files header in minimal prompts", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/genesis",
+      promptMode: "minimal",
+    });
+
+    expect(prompt).not.toContain("## Genesis CLI Quick Reference");
+    expect(prompt).not.toContain("## Workspace Files (injected)");
+  });
+
   it("guides runtime completion events without exposing internal metadata", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/genesis",

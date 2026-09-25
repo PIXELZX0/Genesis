@@ -271,19 +271,14 @@ describe("ensureAgentWorkspace", () => {
     await expect(isWorkspaceBootstrapPending(tempDir)).resolves.toBe(false);
   });
 
-  it("writes the current fenced HEARTBEAT template body into new workspaces", async () => {
+  it("does not seed HEARTBEAT.md into new workspaces", async () => {
     const tempDir = await makeTempWorkspace("genesis-workspace-");
 
     await ensureAgentWorkspace({ dir: tempDir, ensureBootstrapFiles: true });
 
-    const heartbeat = await fs.readFile(path.join(tempDir, DEFAULT_HEARTBEAT_FILENAME), "utf-8");
-    expect(heartbeat).toContain("```markdown");
-    expect(heartbeat).toContain(
-      "# Keep this file empty (or with only comments) to skip heartbeat API calls.",
-    );
-    expect(heartbeat).toContain(
-      "# Add tasks below when you want the agent to check something periodically.",
-    );
+    await expect(fs.access(path.join(tempDir, DEFAULT_HEARTBEAT_FILENAME))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 });
 

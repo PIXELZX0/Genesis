@@ -420,7 +420,7 @@ export function createCronTool(opts?: CronToolOptions, deps?: CronToolDeps): Any
     displaySummary: CRON_TOOL_DISPLAY_SUMMARY,
     description: `Manage Gateway cron jobs (status/list/add/update/remove/run/runs) and send wake events. Use this for reminders, "check back later" requests, delayed follow-ups, and recurring tasks. Do not emulate scheduling with exec sleep or process polling.
 
-Main-session cron jobs enqueue system events for heartbeat handling. Isolated cron jobs create background task runs that appear in \`genesis tasks\`.
+Main-session cron jobs enqueue system events for the next main-session turn. Isolated cron jobs create background task runs that appear in \`genesis tasks\`.
 
 ACTIONS:
 - status: Check cron scheduler status
@@ -481,10 +481,6 @@ CRITICAL CONSTRAINTS:
 - sessionTarget="isolated" | "current" | "session:xxx" REQUIRES payload.kind="agentTurn"
 - For webhook callbacks, use delivery.mode="webhook" with delivery.to set to a URL.
 Default: prefer isolated agentTurn jobs unless the user explicitly wants current-session binding.
-
-WAKE MODES (for wake action):
-- "next-heartbeat" (default): Wake on next heartbeat
-- "now": Wake immediately
 
 Use jobId as the canonical identifier; id is accepted for compatibility. Use contextMessages (0-10) to add previous messages as context to the job text.`,
     parameters: CronToolSchema,
