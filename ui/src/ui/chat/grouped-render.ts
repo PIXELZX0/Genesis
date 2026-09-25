@@ -328,30 +328,84 @@ export function renderMessageGroup(
   // Aggregate usage/cost/model across all messages in the group
   const meta = extractGroupMeta(group, opts.contextWindow ?? null);
 
-  // Collapse a turn's thinking + tool use into one block (Claude Desktop style).
+  // Collapse thinking + tool use into work blocks (Claude Desktop style), split
+  // at each visible message so the turn reads in order: Worked, text, Worked.
   // Tool/result messages are grouped with the assistant, so this spans the turn.
   const isAssistantTurn = normalizedRole === "assistant";
-  const workItems: TurnWorkItem[] = [];
-  if (isAssistantTurn) {
-    for (const entry of group.messages) {
-      const entryRecord = entry.message as Record<string, unknown>;
-      const entryRole = typeof entryRecord.role === "string" ? entryRecord.role.toLowerCase() : "";
-      if (opts.showReasoning && entryRole === "assistant") {
-        const thinking = extractThinkingCached(entry.message);
-        const markdown = thinking ? formatReasoningMarkdown(thinking) : "";
-        if (markdown) {
-          workItems.push({ kind: "thinking", markdown });
-        }
-      }
-      if (opts.showToolCalls ?? true) {
-        for (const card of extractToolCards(entry.message, entry.key)) {
-          workItems.push({ kind: "tool", card });
-        }
+  const showToolCalls = opts.showToolCalls ?? true;
+  const body: unknown[] = [];
+  let workItems: TurnWorkItem[] = [];
+  const flushWork = () => {
+    if (workItems.length === 0) {
+      return;
+    }
+    const disclosureId = `work:${group.key}:${body.length}`;
+    body.push(
+      renderTurnWorkBlock(workItems, {
+        disclosureId,
+        expanded: opts.isToolMessageExpanded?.(disclosureId) ?? false,
+        onToggle: (id: string) => opts.onToggleToolMessageExpanded?.(id),
+        onOpenSidebar: opts.onOpenSidebar,
+        canvasHostUrl: opts.canvasHostUrl,
+        embedSandboxMode: opts.embedSandboxMode,
+        allowExternalEmbedUrls: opts.allowExternalEmbedUrls,
+      }),
+    );
+    workItems = [];
+  };
+  group.messages.forEach((entry, index) => {
+    const entryRecord = entry.message as Record<string, unknown>;
+    const entryRole = typeof entryRecord.role === "string" ? entryRecord.role.toLowerCase() : "";
+    // Assistant text precedes its own tool calls; tool results belong before their media.
+    const cards =
+      isAssistantTurn && showToolCalls ? extractToolCards(entry.message, entry.key) : [];
+    const cardsBeforeMessage = entryRole !== "assistant";
+    if (isAssistantTurn && opts.showReasoning && entryRole === "assistant") {
+      const thinking = extractThinkingCached(entry.message);
+      const markdown = thinking ? formatReasoningMarkdown(thinking) : "";
+      if (markdown) {
+        workItems.push({ kind: "thinking", markdown });
       }
     }
-  }
-  const workDisclosureId = `work:${group.key}`;
-  const workExpanded = opts.isToolMessageExpanded?.(workDisclosureId) ?? false;
+    const rendered = renderGroupedMessage(
+      entry.message,
+      entry.key,
+      {
+        isStreaming: group.isStreaming && index === group.messages.length - 1,
+        showReasoning: opts.showReasoning,
+        showToolCalls,
+        autoExpandToolCalls: opts.autoExpandToolCalls ?? false,
+        answerOnly: isAssistantTurn,
+        isToolMessageExpanded: opts.isToolMessageExpanded,
+        onToggleToolMessageExpanded: opts.onToggleToolMessageExpanded,
+        isToolExpanded: opts.isToolExpanded,
+        onToggleToolExpanded: opts.onToggleToolExpanded,
+        onRequestUpdate: opts.onRequestUpdate,
+        canvasHostUrl: opts.canvasHostUrl,
+        basePath: opts.basePath,
+        localMediaPreviewRoots: opts.localMediaPreviewRoots,
+        assistantAttachmentAuthToken: opts.assistantAttachmentAuthToken,
+        embedSandboxMode: opts.embedSandboxMode,
+      },
+      opts.onOpenSidebar,
+    );
+    const pushCards = () => {
+      for (const card of cards) {
+        workItems.push({ kind: "tool", card });
+      }
+    };
+    if (cardsBeforeMessage) {
+      pushCards();
+    }
+    if (rendered !== nothing) {
+      flushWork();
+      body.push(rendered);
+    }
+    if (!cardsBeforeMessage) {
+      pushCards();
+    }
+  });
+  flushWork();
 
   return html`
     <div class="chat-group ${roleClass}">
@@ -369,41 +423,7 @@ export function renderMessageGroup(
         opts.assistantAttachmentAuthToken,
       )}
       <div class="chat-group-messages">
-        ${workItems.length > 0
-          ? renderTurnWorkBlock(workItems, {
-              disclosureId: workDisclosureId,
-              expanded: workExpanded,
-              onToggle: (id: string) => opts.onToggleToolMessageExpanded?.(id),
-              onOpenSidebar: opts.onOpenSidebar,
-              canvasHostUrl: opts.canvasHostUrl,
-              embedSandboxMode: opts.embedSandboxMode,
-              allowExternalEmbedUrls: opts.allowExternalEmbedUrls,
-            })
-          : nothing}
-        ${group.messages.map((item, index) =>
-          renderGroupedMessage(
-            item.message,
-            item.key,
-            {
-              isStreaming: group.isStreaming && index === group.messages.length - 1,
-              showReasoning: opts.showReasoning,
-              showToolCalls: opts.showToolCalls ?? true,
-              autoExpandToolCalls: opts.autoExpandToolCalls ?? false,
-              answerOnly: isAssistantTurn,
-              isToolMessageExpanded: opts.isToolMessageExpanded,
-              onToggleToolMessageExpanded: opts.onToggleToolMessageExpanded,
-              isToolExpanded: opts.isToolExpanded,
-              onToggleToolExpanded: opts.onToggleToolExpanded,
-              onRequestUpdate: opts.onRequestUpdate,
-              canvasHostUrl: opts.canvasHostUrl,
-              basePath: opts.basePath,
-              localMediaPreviewRoots: opts.localMediaPreviewRoots,
-              assistantAttachmentAuthToken: opts.assistantAttachmentAuthToken,
-              embedSandboxMode: opts.embedSandboxMode,
-            },
-            opts.onOpenSidebar,
-          ),
-        )}
+        ${body}
         <div class="chat-group-footer">
           <span class="chat-sender-name">${who}</span>
           <span class="chat-group-timestamp">${timestamp}</span>

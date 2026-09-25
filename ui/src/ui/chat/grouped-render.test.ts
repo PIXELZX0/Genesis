@@ -546,6 +546,50 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).toContain('"thread": true');
   });
 
+  it("splits a turn's work blocks around interleaved assistant text", () => {
+    const container = document.createElement("div");
+    const toolCall = (id: string) => ({
+      role: "assistant",
+      content: [{ type: "toolcall", id, name: "exec", arguments: { command: "ls" } }],
+    });
+    const toolResult = (id: string) => ({
+      role: "toolResult",
+      toolCallId: id,
+      content: [{ type: "text", text: "ok" }],
+    });
+    const messages = [
+      toolCall("c1"),
+      toolResult("c1"),
+      { role: "assistant", content: [{ type: "text", text: "Midway note" }] },
+      toolCall("c2"),
+      toolResult("c2"),
+      { role: "assistant", content: [{ type: "text", text: "Final answer" }] },
+    ];
+    renderMessageGroups(container, [
+      {
+        kind: "group",
+        key: "assistant:split",
+        role: "assistant",
+        messages: messages.map((message, index) => ({ key: `m${index}`, message })),
+        timestamp: Date.now(),
+        isStreaming: false,
+      },
+    ]);
+
+    const sequence = [
+      ...container.querySelectorAll<HTMLElement>(".chat-group-messages > *"),
+    ].flatMap((el) =>
+      el.classList.contains("chat-work-collapse")
+        ? ["work"]
+        : el.textContent?.includes("Midway note")
+          ? ["midway"]
+          : el.textContent?.includes("Final answer")
+            ? ["final"]
+            : [],
+    );
+    expect(sequence).toEqual(["work", "midway", "work", "final"]);
+  });
+
   it("renders expanded tool output rows and their json content", () => {
     const container = document.createElement("div");
     renderMessageGroups(
