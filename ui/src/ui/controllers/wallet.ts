@@ -11,6 +11,13 @@ export type WalletRecoveryPhraseInput = {
   overwrite: boolean;
 };
 
+export type WalletTokenDialog = {
+  accountId: string;
+  address: string;
+  busy: boolean;
+  error: string | null;
+};
+
 export type WalletState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
@@ -26,6 +33,7 @@ export type WalletState = {
   walletRecoveryPhraseStatus: "generated" | "imported" | null;
   walletUnlockBusy: boolean;
   walletUnlockError: string | null;
+  walletTokenDialog: WalletTokenDialog | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -154,5 +162,23 @@ export async function lockWallet(state: WalletState): Promise<void> {
     state.walletUnlockError = getErrorMessage(error);
   } finally {
     state.walletUnlockBusy = false;
+  }
+}
+
+export async function addWalletToken(state: WalletState): Promise<void> {
+  const dialog = state.walletTokenDialog;
+  if (!dialog || !state.client || !state.connected) {
+    return;
+  }
+  state.walletTokenDialog = { ...dialog, busy: true, error: null };
+  try {
+    await state.client.request("wallet.token.add", {
+      accountId: dialog.accountId,
+      address: dialog.address.trim(),
+    });
+    state.walletTokenDialog = null;
+    await loadWalletSummary(state, { includeBalances: true });
+  } catch (error) {
+    state.walletTokenDialog = { ...dialog, busy: false, error: getErrorMessage(error) };
   }
 }

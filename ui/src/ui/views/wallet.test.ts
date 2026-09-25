@@ -86,6 +86,9 @@ function createProps(overrides: Partial<WalletProps> = {}): WalletProps {
     unlockError: null,
     onUnlock: () => true,
     onLock: () => undefined,
+    tokenDialog: null,
+    onTokenDialogChange: () => undefined,
+    onAddToken: () => undefined,
     ...overrides,
   };
 }

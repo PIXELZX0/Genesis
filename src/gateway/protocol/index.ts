@@ -423,6 +423,10 @@ import {
   NodeWalletWeb3ParamsSchema,
   type WalletLockParams,
   WalletLockParamsSchema,
+  type WalletTokenAddParams,
+  WalletTokenAddParamsSchema,
+  type WalletTokenAddResult,
+  WalletTokenAddResultSchema,
   type WalletSessionStatusResult,
   WalletSessionStatusResultSchema,
   type WalletUnlockParams,
@@ -797,6 +801,9 @@ export const validateWalletRecoveryPhraseSetResult = ajv.compile<WalletRecoveryP
 );
 export const validateWalletUnlockParams = ajv.compile<WalletUnlockParams>(WalletUnlockParamsSchema);
 export const validateWalletLockParams = ajv.compile<WalletLockParams>(WalletLockParamsSchema);
+export const validateWalletTokenAddParams = ajv.compile<WalletTokenAddParams>(
+  WalletTokenAddParamsSchema,
+);
 export const validateNodeWalletWeb3Params = ajv.compile<NodeWalletWeb3Params>(
   NodeWalletWeb3ParamsSchema,
 );
@@ -927,6 +934,8 @@ export {
   WalletRecoveryPhraseSetResultSchema,
   WalletUnlockParamsSchema,
   WalletLockParamsSchema,
+  WalletTokenAddParamsSchema,
+  WalletTokenAddResultSchema,
   WalletSessionStatusResultSchema,
   NodeWalletWeb3ParamsSchema,
   WalletSummaryParamsSchema,
@@ -1245,6 +1254,8 @@ export type {
   WalletRecoveryPhraseSetResult,
   WalletUnlockParams,
   WalletLockParams,
+  WalletTokenAddParams,
+  WalletTokenAddResult,
   WalletSessionStatusResult,
   NodeWalletWeb3Params,
 };

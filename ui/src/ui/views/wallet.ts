@@ -1,6 +1,10 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { WalletRecoveryPhraseInput, WalletRecoveryPhraseMode } from "../controllers/wallet.ts";
+import type {
+  WalletRecoveryPhraseInput,
+  WalletRecoveryPhraseMode,
+  WalletTokenDialog,
+} from "../controllers/wallet.ts";
 import { icons } from "../icons.ts";
 import type {
   WalletBalance,
@@ -9,6 +13,7 @@ import type {
   WalletSummaryResult,
   WalletTokenBalance,
 } from "../types.ts";
+import { dialogChrome } from "./entity-dialogs.ts";
 
 export type WalletProps = {
   connected: boolean;
@@ -25,6 +30,9 @@ export type WalletProps = {
   unlockBusy: boolean;
   unlockError: string | null;
   onUnlock: (input: { passphrase: string; ttlMinutes: number }) => Promise<boolean> | boolean;
+  tokenDialog: WalletTokenDialog | null;
+  onTokenDialogChange: (dialog: WalletTokenDialog | null) => void;
+  onAddToken: () => void;
   onLock: () => void;
   onRefresh: () => void;
   onConfigure: () => void;
@@ -294,10 +302,31 @@ function renderWalletTokens(props: WalletProps) {
   const loadingText = props.balancesLoading ? t("common.loading") : null;
   const emptyText =
     tokens === undefined ? t("wallet.tokens.refreshHint") : t("wallet.tokens.empty");
+  const evmAccounts = (props.summary?.accounts ?? []).filter((account) => account.chain === "evm");
   return html`
     <section class="card">
-      <div class="card-title">${t("wallet.tokens.title")}</div>
-      <div class="card-sub">${t("wallet.tokens.subtitle")}</div>
+      <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 12px;">
+        <div>
+          <div class="card-title">${t("wallet.tokens.title")}</div>
+          <div class="card-sub">${t("wallet.tokens.subtitle")}</div>
+        </div>
+        <button
+          class="btn btn--icon"
+          type="button"
+          title=${t("wallet.tokens.add")}
+          aria-label=${t("wallet.tokens.add")}
+          ?disabled=${!props.connected || evmAccounts.length === 0}
+          @click=${() =>
+            props.onTokenDialogChange({
+              accountId: evmAccounts[0]?.id ?? "",
+              address: "",
+              busy: false,
+              error: null,
+            })}
+        >
+          ${icons.plus}
+        </button>
+      </div>
       <div class="list" style="margin-top: 16px;">
         ${loadingText
           ? html`<div class="callout">${loadingText}</div>`
@@ -307,6 +336,55 @@ function renderWalletTokens(props: WalletProps) {
       </div>
     </section>
   `;
+}
+
+function renderTokenDialog(props: WalletProps) {
+  const dialog = props.tokenDialog;
+  if (!dialog) {
+    return nothing;
+  }
+  const evmAccounts = (props.summary?.accounts ?? []).filter((account) => account.chain === "evm");
+  const update = (patch: Partial<WalletTokenDialog>) =>
+    props.onTokenDialogChange({ ...dialog, ...patch, error: null });
+  return dialogChrome({
+    title: t("wallet.tokens.add"),
+    sub: t("wallet.tokens.addSubtitle"),
+    busy: dialog.busy,
+    error: dialog.error,
+    submitLabel: t("wallet.tokens.addAction"),
+    canSubmit: Boolean(dialog.accountId) && /^0x[0-9a-fA-F]{40}$/.test(dialog.address.trim()),
+    onCancel: () => props.onTokenDialogChange(null),
+    onSubmit: props.onAddToken,
+    body: html`
+      <label class="field full">
+        <span>${t("wallet.tokens.chain")}</span>
+        <select
+          .value=${dialog.accountId}
+          ?disabled=${dialog.busy}
+          @change=${(e: Event) => update({ accountId: (e.target as HTMLSelectElement).value })}
+        >
+          ${evmAccounts.map(
+            (account) =>
+              html`<option value=${account.id} ?selected=${account.id === dialog.accountId}>
+                ${account.network ?? account.id}
+              </option>`,
+          )}
+        </select>
+      </label>
+      <label class="field full">
+        <span>${t("wallet.tokens.contractAddress")}</span>
+        <input
+          class="mono"
+          .value=${dialog.address}
+          placeholder="0x…"
+          autocomplete="off"
+          spellcheck="false"
+          ?disabled=${dialog.busy}
+          @input=${(e: Event) => update({ address: (e.target as HTMLInputElement).value })}
+        />
+      </label>
+    `,
+  });
 }
 
 function nftCollectionLabel(collection: WalletNftCollection): string {
@@ -671,5 +749,6 @@ export function renderWallet(props: WalletProps) {
   return html`
     ${renderWalletStatus(props)} ${renderWalletSession(props)} ${renderRecoveryPhraseManager(props)}
     ${renderWalletAccounts(props)} ${renderWalletTokens(props)} ${renderWalletNfts(props)}
+    ${renderTokenDialog(props)}
   `;
 }

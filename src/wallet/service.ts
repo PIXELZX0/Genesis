@@ -11,6 +11,8 @@ import {
   getWalletNftCollections,
   getWalletTokenBalances,
   isLocalKeystoreWalletChain,
+  readEvmTokenMetadata,
+  type WalletEvmTokenMetadata,
   quoteWalletSend,
   resolveEvmNetworks,
   signWalletDigestPayload,
@@ -349,6 +351,14 @@ export async function getWalletTokenBalancesForAccount(
     accountId: params.accountId,
     config,
   });
+}
+
+export async function readWalletEvmTokenMetadata(
+  params: WalletServiceOptions & { accountId: string; address: string },
+): Promise<WalletEvmTokenMetadata> {
+  const config = resolveConfig(params.config);
+  assertWalletOperationEnabled(config, "evm");
+  return readEvmTokenMetadata({ accountId: params.accountId, address: params.address, config });
 }
 
 export async function getWalletNftCollectionsForAccount(

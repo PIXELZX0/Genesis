@@ -55,6 +55,27 @@ export const NodeWalletWeb3ParamsSchema = Type.Object(
 
 export const WalletLockParamsSchema = Type.Object({}, { additionalProperties: false });
 
+export const WalletTokenAddParamsSchema = Type.Object(
+  {
+    accountId: Type.String({ pattern: "^evm:", minLength: 5, maxLength: 128 }),
+    address: Type.String({ minLength: 1, maxLength: 128 }),
+  },
+  { additionalProperties: false },
+);
+
+export const WalletTokenAddResultSchema = Type.Object(
+  {
+    tokenId: Type.String({ minLength: 1 }),
+    accountId: Type.String({ minLength: 1 }),
+    network: Type.String({ minLength: 1 }),
+    contractAddress: Type.String({ minLength: 1 }),
+    symbol: Type.String({ minLength: 1 }),
+    name: Type.Optional(Type.String()),
+    decimals: Type.Integer({ minimum: 0, maximum: 255 }),
+  },
+  { additionalProperties: false },
+);
+
 export const WalletSessionStatusResultSchema = Type.Object(
   {
     unlocked: Type.Boolean(),
@@ -170,6 +191,8 @@ export type WalletRecoveryPhraseMode = Static<typeof WalletRecoveryPhraseModeSch
 export type WalletRecoveryPhraseSetParams = Static<typeof WalletRecoveryPhraseSetParamsSchema>;
 export type WalletUnlockParams = Static<typeof WalletUnlockParamsSchema>;
 export type WalletLockParams = Static<typeof WalletLockParamsSchema>;
+export type WalletTokenAddParams = Static<typeof WalletTokenAddParamsSchema>;
+export type WalletTokenAddResult = Static<typeof WalletTokenAddResultSchema>;
 export type NodeWalletWeb3Params = Static<typeof NodeWalletWeb3ParamsSchema>;
 export type WalletSessionStatusResult = Static<typeof WalletSessionStatusResultSchema>;
 export type WalletPublicAccount = Static<typeof WalletPublicAccountSchema>;

@@ -587,6 +587,11 @@ export const en: TranslationMap = {
       empty: "No configured EVM token balances found.",
       refreshHint: "Refresh balances to load configured EVM token balances.",
       copyContract: "Copy token contract",
+      add: "Add token",
+      addSubtitle: "Name, symbol, and decimals are read from the contract.",
+      chain: "Chain",
+      contractAddress: "Contract address",
+      addAction: "Add",
     },
     nfts: {
       title: "NFTs",

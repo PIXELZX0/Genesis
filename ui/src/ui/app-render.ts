@@ -169,6 +169,7 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import {
+  addWalletToken,
   loadWalletSummary,
   lockWallet,
   setWalletRecoveryPhrase,
@@ -2493,6 +2494,11 @@ export function renderApp(state: AppViewState) {
                 unlockBusy: state.walletUnlockBusy,
                 unlockError: state.walletUnlockError,
                 onUnlock: (input) => unlockWallet(state, input),
+                tokenDialog: state.walletTokenDialog,
+                onTokenDialogChange: (dialog) => {
+                  state.walletTokenDialog = dialog;
+                },
+                onAddToken: () => addWalletToken(state),
                 onLock: () => lockWallet(state),
                 onRefresh: () => loadWalletSummary(state, { includeBalances: true }),
                 onRecoveryPhraseModeChange: (mode) => {

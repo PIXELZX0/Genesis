@@ -23,6 +23,7 @@ import {
   Wallet as EvmWallet,
   formatEther,
   formatUnits,
+  getAddress,
   getBytes,
   hexlify,
   parseEther,
@@ -741,6 +742,98 @@ export async function getWalletTokenBalances(params: {
     }
   }
   return balances;
+}
+
+export type WalletEvmTokenMetadata = {
+  accountId: string;
+  networkId: string;
+  network: string;
+  contractAddress: string;
+  symbol: string;
+  name?: string;
+  decimals: number;
+};
+
+// Reads ERC-20 metadata so a token can be added from its contract address alone.
+export async function readEvmTokenMetadata(params: {
+  accountId: string;
+  address: string;
+  config?: WalletConfig;
+}): Promise<WalletEvmTokenMetadata> {
+  let contractAddress: string;
+  try {
+    contractAddress = getAddress(params.address.trim());
+  } catch {
+    throw new Error(`Invalid EVM contract address: ${params.address}`);
+  }
+  const network = resolveEvmNetworkForAccount(params.config?.networks?.evm, params.accountId);
+  const contract = new Contract(contractAddress, ERC20_ABI, resolveEvmProvider(network));
+  let decimals: number;
+  try {
+    decimals = await resolveErc20Decimals(contract, { address: contractAddress }, contractAddress);
+  } catch {
+    throw new Error(`${contractAddress} is not an ERC-20 token on ${network.name}.`);
+  }
+  const symbol = await readOptionalContractString(contract, "symbol");
+  const name = await readOptionalContractString(contract, "name");
+  return {
+    accountId: network.accountId,
+    networkId: network.id,
+    network: network.name,
+    contractAddress,
+    symbol: symbol ?? contractAddress.slice(0, 8),
+    ...(name ? { name } : {}),
+    decimals,
+  };
+}
+
+function evmTokenIdFromSymbol(symbol: string, taken: Record<string, unknown>): string {
+  const base =
+    symbol
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^[^a-z]+/, "")
+      .slice(0, 56) || "token";
+  let id = base;
+  for (let n = 2; id in taken; n++) {
+    id = `${base}-${n}`;
+  }
+  return id;
+}
+
+// Returns a new wallet config with the token stored where resolveEvmNetworks reads it.
+export function addEvmTokenToWalletConfig(
+  wallet: WalletConfig | undefined,
+  token: WalletEvmTokenMetadata,
+): { wallet: WalletConfig; tokenId: string } {
+  const evm = wallet?.networks?.evm ?? {};
+  const legacy = !evm.chains && hasLegacyEvmNetworkConfig(evm);
+  const chain: WalletEvmChainConfig = legacy ? evm : (evm.chains?.[token.networkId] ?? {});
+  const tokens = chain.tokens ?? {};
+  const address = normalizeEvmAddress(token.contractAddress);
+  if (Object.values(tokens).some((entry) => normalizeEvmAddress(entry.address) === address)) {
+    throw new Error(`Token ${token.contractAddress} is already configured on ${token.network}.`);
+  }
+  const tokenId = evmTokenIdFromSymbol(token.symbol, tokens);
+  const nextChain: WalletEvmChainConfig = {
+    ...chain,
+    tokens: {
+      ...tokens,
+      [tokenId]: {
+        address: token.contractAddress,
+        symbol: token.symbol,
+        ...(token.name ? { name: token.name } : {}),
+        decimals: token.decimals,
+      },
+    },
+  };
+  const nextEvm: WalletEvmNetworkConfig = legacy
+    ? { ...evm, ...nextChain }
+    : { ...evm, chains: { ...evm.chains, [token.networkId]: nextChain } };
+  return {
+    wallet: { ...wallet, networks: { ...wallet?.networks, evm: nextEvm } },
+    tokenId,
+  };
 }
 
 async function readErc721Token(

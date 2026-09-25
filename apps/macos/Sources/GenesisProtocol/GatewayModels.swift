@@ -2899,6 +2899,62 @@ public struct WalletUnlockParams: Codable, Sendable {
 
 public struct WalletLockParams: Codable, Sendable {}
 
+public struct WalletTokenAddParams: Codable, Sendable {
+    public let accountid: String
+    public let address: String
+
+    public init(
+        accountid: String,
+        address: String)
+    {
+        self.accountid = accountid
+        self.address = address
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case accountid = "accountId"
+        case address
+    }
+}
+
+public struct WalletTokenAddResult: Codable, Sendable {
+    public let tokenid: String
+    public let accountid: String
+    public let network: String
+    public let contractaddress: String
+    public let symbol: String
+    public let name: String?
+    public let decimals: Int
+
+    public init(
+        tokenid: String,
+        accountid: String,
+        network: String,
+        contractaddress: String,
+        symbol: String,
+        name: String?,
+        decimals: Int)
+    {
+        self.tokenid = tokenid
+        self.accountid = accountid
+        self.network = network
+        self.contractaddress = contractaddress
+        self.symbol = symbol
+        self.name = name
+        self.decimals = decimals
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case tokenid = "tokenId"
+        case accountid = "accountId"
+        case network
+        case contractaddress = "contractAddress"
+        case symbol
+        case name
+        case decimals
+    }
+}
+
 public struct NodeWalletWeb3Params: Codable, Sendable {
     public let op: AnyCodable
     public let chain: AnyCodable?

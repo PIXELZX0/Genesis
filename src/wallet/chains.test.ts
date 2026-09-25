@@ -8,6 +8,7 @@ import {
 } from "ethers";
 import { describe, expect, it } from "vitest";
 import {
+  addEvmTokenToWalletConfig,
   derivePublicAccounts,
   getWalletNftCollections,
   getWalletTokenBalances,
@@ -338,5 +339,45 @@ describe("wallet chain derivation", () => {
         config: { networks: { evm: { chains: { base: { enabled: false } } } } },
       }),
     ).rejects.toThrow(/not enabled for account evm:base/);
+  });
+});
+
+describe("addEvmTokenToWalletConfig", () => {
+  const usdc = {
+    accountId: "evm:base",
+    networkId: "base",
+    network: "base",
+    contractAddress: TEST_ERC20_CONTRACT,
+    symbol: "USDC.e",
+    name: "USD Coin",
+    decimals: 6,
+  };
+
+  it("stores the token under its chain and dedupes ids and addresses", () => {
+    const first = addEvmTokenToWalletConfig(
+      { networks: { evm: { chains: { base: { tokens: { "usdc-e": { address: "0x1" } } } } } } },
+      usdc,
+    );
+    expect(first.tokenId).toBe("usdc-e-2");
+    expect(first.wallet.networks?.evm?.chains?.base?.tokens?.["usdc-e-2"]).toEqual({
+      address: TEST_ERC20_CONTRACT,
+      symbol: "USDC.e",
+      name: "USD Coin",
+      decimals: 6,
+    });
+    expect(
+      resolveEvmNetworks(first.wallet.networks?.evm).find((n) => n.id === "base")?.tokens,
+    ).toHaveProperty("usdc-e-2");
+    expect(() => addEvmTokenToWalletConfig(first.wallet, usdc)).toThrow(/already configured/);
+  });
+
+  it("writes top-level tokens for legacy single-network config", () => {
+    const { wallet, tokenId } = addEvmTokenToWalletConfig(
+      { networks: { evm: { chainId: 1 } } },
+      { ...usdc, symbol: "1INCH", networkId: "default" },
+    );
+    expect(tokenId).toBe("inch");
+    expect(wallet.networks?.evm?.tokens?.inch?.address).toBe(TEST_ERC20_CONTRACT);
+    expect(wallet.networks?.evm?.chains).toBeUndefined();
   });
 });

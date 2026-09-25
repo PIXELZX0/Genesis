@@ -279,6 +279,8 @@ import {
   NodeWalletWeb3ParamsSchema,
   WalletLockParamsSchema,
   WalletSessionStatusResultSchema,
+  WalletTokenAddParamsSchema,
+  WalletTokenAddResultSchema,
   WalletTokenBalanceSchema,
   WalletUnlockParamsSchema,
 } from "./wallet.js";
@@ -392,6 +394,8 @@ export const ProtocolSchemas = {
   WalletSummaryResult: WalletSummaryResultSchema,
   WalletUnlockParams: WalletUnlockParamsSchema,
   WalletLockParams: WalletLockParamsSchema,
+  WalletTokenAddParams: WalletTokenAddParamsSchema,
+  WalletTokenAddResult: WalletTokenAddResultSchema,
   NodeWalletWeb3Params: NodeWalletWeb3ParamsSchema,
   WalletSessionStatusResult: WalletSessionStatusResultSchema,
   TalkModeParams: TalkModeParamsSchema,

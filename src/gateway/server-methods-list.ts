@@ -68,6 +68,7 @@ const BASE_METHODS = [
   "wallet.recoveryPhrase.set",
   "wallet.unlock",
   "wallet.lock",
+  "wallet.token.add",
   "tools.catalog",
   "tools.effective",
   "mcp.servers.list",

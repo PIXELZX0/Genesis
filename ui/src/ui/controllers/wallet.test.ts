@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WalletState } from "./wallet.ts";
-import { loadWalletSummary, lockWallet, setWalletRecoveryPhrase, unlockWallet } from "./wallet.ts";
+import {
+  addWalletToken,
+  loadWalletSummary,
+  lockWallet,
+  setWalletRecoveryPhrase,
+  unlockWallet,
+} from "./wallet.ts";
 
 function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState } {
   const request = vi.fn();
@@ -21,6 +27,7 @@ function createState(): { request: ReturnType<typeof vi.fn>; state: WalletState 
       walletRecoveryPhraseStatus: null,
       walletUnlockBusy: false,
       walletUnlockError: null,
+      walletTokenDialog: null,
     },
   };
 }
@@ -252,5 +259,34 @@ describe("wallet unlock session", () => {
     await lockWallet(state);
     expect(request).toHaveBeenCalledWith("wallet.lock", {});
     expect(state.walletUnlockError).toBeNull();
+  });
+});
+
+describe("addWalletToken", () => {
+  const dialog = { accountId: "evm:base", address: " 0xabc ", busy: false, error: null };
+
+  it("adds the token, closes the dialog, and refreshes balances", async () => {
+    const { request, state } = createState();
+    state.walletTokenDialog = dialog;
+    request.mockResolvedValue({ enabled: true, keystore: { exists: true }, accounts: [] });
+    await addWalletToken(state);
+    expect(request).toHaveBeenNthCalledWith(1, "wallet.token.add", {
+      accountId: "evm:base",
+      address: "0xabc",
+    });
+    expect(request).toHaveBeenNthCalledWith(2, "wallet.summary", {
+      includeBalances: true,
+      includeTokens: true,
+      includeNfts: true,
+    });
+    expect(state.walletTokenDialog).toBeNull();
+  });
+
+  it("keeps the dialog open with the gateway error", async () => {
+    const { request, state } = createState();
+    state.walletTokenDialog = dialog;
+    request.mockRejectedValueOnce(new Error("not an ERC-20 token"));
+    await addWalletToken(state);
+    expect(state.walletTokenDialog).toEqual({ ...dialog, error: "not an ERC-20 token" });
   });
 });

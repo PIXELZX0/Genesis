@@ -1,9 +1,15 @@
-import { loadConfig } from "../../config/config.js";
+import {
+  loadConfig,
+  readConfigFileSnapshotForWrite,
+  writeConfigFileWithResult,
+} from "../../config/config.js";
+import { addEvmTokenToWalletConfig } from "../../wallet/chains.js";
 import {
   getWalletBalanceForChain,
   getWalletNftCollectionsForAccount,
   getWalletSummary,
   getWalletTokenBalancesForAccount,
+  readWalletEvmTokenMetadata,
   setWalletRecoveryPhrase,
 } from "../../wallet/service.js";
 import { lockWalletSession, unlockWalletSession } from "../../wallet/session.js";
@@ -20,6 +26,7 @@ import {
   validateWalletLockParams,
   validateWalletRecoveryPhraseSetParams,
   validateWalletSummaryParams,
+  validateWalletTokenAddParams,
   validateWalletUnlockParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
@@ -150,6 +157,47 @@ export const walletHandlers: GatewayRequestHandlers = {
       return;
     }
     respond(true, lockWalletSession(), undefined);
+  },
+  "wallet.token.add": async ({ respond, params }) => {
+    if (!assertValidParams(params, validateWalletTokenAddParams, "wallet.token.add", respond)) {
+      return;
+    }
+    try {
+      // Runtime config resolves RPC secret refs; the write goes through the raw file snapshot.
+      const token = await readWalletEvmTokenMetadata({
+        config: loadConfig().wallet,
+        accountId: params.accountId,
+        address: params.address,
+      });
+      const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+      const { wallet, tokenId } = addEvmTokenToWalletConfig(snapshot.config.wallet, token);
+      await writeConfigFileWithResult(
+        { ...snapshot.config, wallet },
+        { ...writeOptions, baseSnapshot: snapshot, runtimeRefreshIncludeAuthStoreRefs: false },
+      );
+      respond(
+        true,
+        {
+          tokenId,
+          accountId: token.accountId,
+          network: token.network,
+          contractAddress: token.contractAddress,
+          symbol: token.symbol,
+          ...(token.name ? { name: token.name } : {}),
+          decimals: token.decimals,
+        },
+        undefined,
+      );
+    } catch (error) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          error instanceof Error ? error.message : String(error),
+        ),
+      );
+    }
   },
   // Node-role: browser pages on a node host reach the gateway wallet and approval queue.
   // The node reports the page origin it resolved from the frame.
