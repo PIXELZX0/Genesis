@@ -205,10 +205,9 @@ for file in "${files[@]}"; do
   fi
 done
 
-run_git_with_lock_retry "unstaging files" git restore --staged :/
 run_git_with_lock_retry "staging files" git add --force -- "${files[@]}"
 
-if git diff --staged --quiet; then
+if git diff --staged --quiet -- "${files[@]}"; then
   printf 'Warning: no staged changes detected for: %s\n' "${files[*]}" >&2
   exit 1
 fi
@@ -216,11 +215,11 @@ fi
 committed=false
 if [ "$fast_commit" = true ]; then
   declare -a commit_env=(FAST_COMMIT=1)
-  if run_git_with_lock_retry "commit" env "${commit_env[@]}" git commit -m "$commit_message"; then
+  if run_git_with_lock_retry "commit" env "${commit_env[@]}" git commit --only -m "$commit_message" -- "${files[@]}"; then
     committed=true
   fi
 else
-  if run_git_with_lock_retry "commit" git commit -m "$commit_message"; then
+  if run_git_with_lock_retry "commit" git commit --only -m "$commit_message" -- "${files[@]}"; then
     committed=true
   fi
 fi
@@ -228,5 +227,9 @@ fi
 if [ "$committed" = false ]; then
   exit 1
 fi
+
+# --only commits through a temporary index, so hook re-stages (formatters) never
+# reach the real index; sync just the committed paths back to HEAD.
+run_git_with_lock_retry "syncing index" git reset -q -- "${files[@]}"
 
 printf 'Committed "%s" with %d files\n' "$commit_message" "${#files[@]}"

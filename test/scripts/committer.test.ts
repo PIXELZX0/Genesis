@@ -124,6 +124,18 @@ describe("scripts/committer", () => {
     expect(git(repo, "status", "--short")).toContain("M unrelated.ts");
   });
 
+  it("leaves other staged files staged and out of the commit", () => {
+    const repo = createRepo();
+    writeRepoFile(repo, "mine.txt", "mine\n");
+    writeRepoFile(repo, "theirs.txt", "theirs\n");
+    git(repo, "add", "theirs.txt");
+
+    commitWithHelper(repo, "test: only mine", "mine.txt");
+
+    expect(committedPaths(repo)).toEqual(["mine.txt"]);
+    expect(git(repo, "status", "--short")).toBe("A  theirs.txt");
+  });
+
   it("supports --fast before the commit message", () => {
     const repo = createRepo();
     writeRepoFile(repo, "note.txt", "hello\n");
