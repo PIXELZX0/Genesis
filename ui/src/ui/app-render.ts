@@ -1219,7 +1219,12 @@ export function renderApp(state: AppViewState) {
   const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
   // Settings pages swap the old top sub-nav for a second nav column, so the
   // primary sidebar drops to its icon rail to make room for it.
-  const settingsNavOpen = isSettingsTab(state.tab) && !state.onboarding;
+  // Quick settings (and its auth/backups sub-views) own their navigation; the
+  // section column only belongs to Advanced mode.
+  const settingsNavOpen =
+    isSettingsTab(state.tab) &&
+    !state.onboarding &&
+    (state.tab !== "config" || state.configSettingsMode === "advanced");
   // With the settings column open, the hovered sidebar expands; otherwise the
   // deepest one (settings) stays expanded and the primary sidebar is a rail.
   const mainNavExpanded = settingsNavOpen && state.mainNavHovered;
