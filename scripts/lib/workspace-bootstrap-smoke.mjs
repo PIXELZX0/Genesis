@@ -19,7 +19,6 @@ const REQUIRED_BOOTSTRAP_WORKSPACE_FILES = [
   "TOOLS.md",
   "IDENTITY.md",
   "USER.md",
-  "HEARTBEAT.md",
   "BOOTSTRAP.md",
 ];
 

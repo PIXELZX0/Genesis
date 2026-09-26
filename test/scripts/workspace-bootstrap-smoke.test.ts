@@ -33,7 +33,7 @@ fs.writeFileSync(path.join(packageRoot, "argv.json"), JSON.stringify(process.arg
 
 const workspaceDir = path.join(process.env.GENESIS_HOME, ".genesis", "workspace");
 fs.mkdirSync(workspaceDir, { recursive: true });
-for (const name of ["AGENTS.md", "SOUL.md", "TOOLS.md", "IDENTITY.md", "USER.md", "HEARTBEAT.md", "BOOTSTRAP.md"]) {
+for (const name of ["AGENTS.md", "SOUL.md", "TOOLS.md", "IDENTITY.md", "USER.md", "BOOTSTRAP.md"]) {
   fs.writeFileSync(path.join(workspaceDir, name), name);
 }
 `,
