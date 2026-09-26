@@ -252,6 +252,35 @@ function hasOnlySilentAssistantReply(assistantTexts: readonly string[]): boolean
   );
 }
 
+export const TRUNCATED_REPLY_NOTICE_TEXT =
+  "⚠️ Reply truncated at the model's output token limit. The text above is partial — ask to continue it.";
+
+/**
+ * A `length` stop delivers whatever partial text the model emitted; label it so
+ * the user does not mistake a cut-off answer for a complete one.
+ */
+export function appendTruncatedReplyNotice<T extends { text?: string; isError?: boolean }>(params: {
+  payloads: T[] | undefined;
+  attempt: Pick<
+    EmbeddedRunAttemptResult,
+    "assistantTexts" | "lastAssistant" | "clientToolCall" | "yieldDetected"
+  >;
+}): Array<T | { text: string }> | undefined {
+  const { payloads, attempt } = params;
+  if (
+    !payloads?.length ||
+    attempt.lastAssistant?.stopReason !== "length" ||
+    attempt.clientToolCall ||
+    attempt.yieldDetected ||
+    !attempt.assistantTexts.some((text) => text.trim().length > 0) ||
+    hasOnlySilentAssistantReply(attempt.assistantTexts) ||
+    !payloads.some((payload) => !payload.isError && payload.text?.trim())
+  ) {
+    return payloads;
+  }
+  return [...payloads, { text: TRUNCATED_REPLY_NOTICE_TEXT }];
+}
+
 export function resolveReplayInvalidFlag(params: {
   attempt: RunLivenessAttempt;
   incompleteTurnText?: string | null;

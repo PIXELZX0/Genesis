@@ -108,6 +108,13 @@ import {
   scrubAnthropicRefusalMagic,
 } from "./run/helpers.js";
 import {
+  createIdleTimeoutBreakerState,
+  hasCompletedModelProgressForIdleBreaker,
+  MAX_CONSECUTIVE_IDLE_TIMEOUTS_BEFORE_OUTPUT,
+  stepIdleTimeoutBreaker,
+} from "./run/idle-timeout-breaker.js";
+import {
+  appendTruncatedReplyNotice,
   DEFAULT_EMPTY_RESPONSE_RETRY_LIMIT,
   DEFAULT_REASONING_ONLY_RETRY_LIMIT,
   resolveAckExecutionFastPathInstruction,
@@ -608,6 +615,7 @@ export async function runEmbeddedPiAgent(
       let reasoningOnlyRetryAttempts = 0;
       let emptyResponseRetryAttempts = 0;
       let sameModelIdleTimeoutRetries = 0;
+      const idleTimeoutBreakerState = createIdleTimeoutBreakerState();
       let lastRetryFailoverReason: FailoverReason | null = null;
       let planningOnlyRetryInstruction: string | null = null;
       let reasoningOnlyRetryInstruction: string | null = null;
@@ -986,6 +994,43 @@ export async function runEmbeddedPiAgent(
           // reflects current context usage, not accumulated tool-loop usage.
           lastRunPromptUsage = lastAssistantUsage ?? attemptUsage;
           lastTurnTotal = lastAssistantUsage?.total ?? attemptUsage?.total;
+          const idleBreakerStep = stepIdleTimeoutBreaker(idleTimeoutBreakerState, {
+            idleTimedOut: timedOut && idleTimedOut,
+            completedModelProgress: hasCompletedModelProgressForIdleBreaker(attempt),
+          });
+          if (idleBreakerStep.tripped) {
+            const message =
+              `Idle-timeout breaker tripped: ${idleBreakerStep.consecutive} consecutive idle timeouts ` +
+              `without completed model progress (cap=${MAX_CONSECUTIVE_IDLE_TIMEOUTS_BEFORE_OUTPUT}). ` +
+              "Halting further attempts to bound paid model calls.";
+            log.error(
+              `[idle-timeout-breaker] sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                `provider=${provider}/${modelId} consecutive=${idleBreakerStep.consecutive}`,
+            );
+            return handleRetryLimitExhaustion({
+              message,
+              decision: resolveRunFailoverDecision({
+                stage: "retry_limit",
+                fallbackConfigured,
+                failoverReason: lastRetryFailoverReason,
+              }),
+              provider,
+              model: modelId,
+              profileId: lastProfileId,
+              durationMs: Date.now() - started,
+              agentMeta: buildErrorAgentMeta({
+                sessionId: params.sessionId,
+                provider,
+                model: model.id,
+                contextTokens: ctxInfo.tokens,
+                usageAccumulator,
+                lastRunPromptUsage,
+                lastTurnTotal,
+              }),
+              replayInvalid: accumulatedReplayState.replayInvalid ? true : undefined,
+              livenessState: "blocked",
+            });
+          }
           const attemptCompactionCount = Math.max(0, attempt.compactionCount ?? 0);
           autoCompactionCount += attemptCompactionCount;
           const activeErrorContext = resolveActiveErrorContext({
@@ -2242,8 +2287,12 @@ export async function runEmbeddedPiAgent(
             replayInvalid,
             livenessState,
           });
+          const finalPayloads = appendTruncatedReplyNotice({
+            payloads: payloadsWithToolMedia,
+            attempt,
+          });
           return {
-            payloads: payloadsWithToolMedia?.length ? payloadsWithToolMedia : undefined,
+            payloads: finalPayloads?.length ? finalPayloads : undefined,
             ...(attempt.diagnosticTrace
               ? { diagnosticTrace: freezeDiagnosticTraceContext(attempt.diagnosticTrace) }
               : {}),
