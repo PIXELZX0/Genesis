@@ -756,6 +756,48 @@ describe("wrapStreamFnTrimToolCallNames", () => {
     expect(result).toBe(finalMessage);
   });
 
+  it.each([
+    ["web-search", "web_search"],
+    ["web_serach", "web_search"],
+    ["sessions_spwn", "sessions_spawn"],
+  ])("repairs near-miss tool name %s to %s", async (rawName, expected) => {
+    const finalToolCall = { type: "toolCall", name: rawName };
+    const baseFn = vi.fn(() =>
+      createFakeStream({
+        events: [],
+        resultMessage: { role: "assistant", content: [finalToolCall] },
+      }),
+    );
+
+    const stream = await invokeWrappedStream(
+      baseFn,
+      new Set(["web_search", "web_fetch", "sessions_spawn", "sessions_send"]),
+    );
+    await stream.result();
+
+    expect(finalToolCall.name).toBe(expected);
+  });
+
+  it("leaves ambiguous or distant near-miss tool names unresolved", async () => {
+    const ambiguous = { type: "toolCall", name: "sessions_sen" };
+    const distant = { type: "toolCall", name: "websurf" };
+    const baseFn = vi.fn(() =>
+      createFakeStream({
+        events: [],
+        resultMessage: { role: "assistant", content: [ambiguous, distant] },
+      }),
+    );
+
+    const stream = await invokeWrappedStream(
+      baseFn,
+      new Set(["sessions_send", "sessions_seen", "web_search"]),
+    );
+    await stream.result();
+
+    expect(ambiguous.name).toBe("sessions_sen");
+    expect(distant.name).toBe("websurf");
+  });
+
   it("maps provider-prefixed tool names to allowed canonical tools", async () => {
     const partialToolCall = { type: "toolCall", name: " functions.read " };
     const messageToolCall = { type: "toolCall", name: " functions.write " };

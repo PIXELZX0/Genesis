@@ -183,6 +183,62 @@ function inferToolNameFromToolCallId(
   return singleMatch;
 }
 
+function foldToolNameForFuzzyMatch(name: string): string {
+  return normalizeLowercaseStringOrEmpty(name).replace(/[\s._-]+/g, "");
+}
+
+// Optimal string alignment distance: a swapped letter pair counts as one edit.
+function editDistance(a: string, b: string): number {
+  const rows = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      rows[i][j] = Math.min(rows[i - 1][j] + 1, rows[i][j - 1] + 1, rows[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        rows[i][j] = Math.min(rows[i][j], rows[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return rows[a.length][b.length];
+}
+
+/**
+ * Last-resort repair for near-miss tool names ("web-search", "web_serach"):
+ * separator-insensitive match, else one edit (incl. a swapped pair) on names of 5+ chars. Only a unique
+ * closest match is accepted so an ambiguous typo still fails as an unknown tool.
+ */
+function resolveFuzzyAllowedToolName(
+  rawName: string,
+  allowedToolNames: Set<string>,
+): string | null {
+  const folded = foldToolNameForFuzzyMatch(rawName);
+  if (!folded) {
+    return null;
+  }
+  const maxDistance = folded.length >= 5 ? 1 : 0;
+  let best: { name: string; distance: number } | null = null;
+  let ambiguous = false;
+  for (const name of allowedToolNames) {
+    const candidate = foldToolNameForFuzzyMatch(name);
+    if (Math.abs(candidate.length - folded.length) > maxDistance) {
+      continue;
+    }
+    const distance = candidate === folded ? 0 : editDistance(folded, candidate);
+    if (distance > maxDistance) {
+      continue;
+    }
+    if (!best || distance < best.distance) {
+      best = { name, distance };
+      ambiguous = false;
+    } else if (distance === best.distance) {
+      ambiguous = true;
+    }
+  }
+  return best && !ambiguous ? best.name : null;
+}
+
 function looksLikeMalformedToolNameCounter(rawName: string): boolean {
   const normalizedDelimiter = rawName.trim().replace(/\//g, ".");
   return (
@@ -217,7 +273,11 @@ function normalizeToolCallNameForDispatch(
     return trimmed;
   }
 
-  return resolveStructuredAllowedToolName(trimmed, allowedToolNames) ?? trimmed;
+  return (
+    resolveStructuredAllowedToolName(trimmed, allowedToolNames) ??
+    resolveFuzzyAllowedToolName(trimmed, allowedToolNames) ??
+    trimmed
+  );
 }
 
 function isToolCallBlockType(type: unknown): boolean {
