@@ -2,12 +2,26 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## 2026.9.23
+## 2026.9.26
 
 ### Changes
 
 - TypeSafe Jev: new opt-in exec safeguard (`plugins.entries.typesafe.config.jevSafeguard.enabled`). Before each `exec` call Jev rates the command high, medium, or low system impact: confident high verdicts are blocked, medium (or less certain high) verdicts ask for approval, and low verdicts run as before. It only tightens the built-in exec safeguard and approvals, and on Jev errors or timeouts the command runs under the normal exec rules.
 - Wallet: agent-controlled browser pages can use the Genesis wallet as a web3 wallet. With `wallet.browser.enabled`, pages get an injected EVM provider (`window.ethereum`, EIP-1193/EIP-6963) and a Solana Wallet Standard wallet (plus `window.solana`), optionally limited by `wallet.browser.allowedOrigins`. Account and chain queries answer directly; signatures and transactions wait until the agent approves them with the new owner-only `wallet` tool, and require the keystore to be unlocked in the gateway with `genesis wallet unlock` (in-memory, 15-minute default TTL; `genesis wallet lock` to clear). Transaction signing also honors `wallet.spending`. The Control UI Wallet tab can unlock and lock the session too. The provider also reaches `existing-session` (Chrome DevTools MCP) profiles through a navigation init script and a loopback bridge, and node-hosted browsers forward requests to the gateway wallet.
+- Wallet: the Control UI Tokens card can add an EVM token by chain and contract address. The gateway reads the token's decimals, symbol, and name from the contract (new `wallet.token.add` RPC) and stores it in `wallet.networks.evm`.
+
+### Fixes
+
+- Agents: system prompts no longer carry leftovers from the removed heartbeat feature or text the run cannot use. The GPT-5 interaction-style overlay dropped its ~3.5k-char heartbeat section, new workspaces no longer get `HEARTBEAT.md` or the heartbeat chapters of the `AGENTS.md` template, existing `HEARTBEAT.md` files are no longer injected, and absent workspace files no longer inject `[MISSING] Expected at: …` markers. Subagent and cron runs (including CLI backends, which always got the full prompt) now use the minimal prompt without the CLI quick reference, ACP harness notes, or interaction-style overlay.
+- Secrets: after a `/secret` reply, the chat no longer gets a second stored/declined notice on top of the command's own confirmation. Expiry notices are unchanged.
+- Control UI: the wallet recovery phrase setup is hidden once a keystore exists; a freshly generated phrase stays visible so it can still be backed up.
+- Control UI: the settings section navigation shows only in Advanced config mode.
+- Control UI: chat turns split their tool-work blocks around interleaved messages instead of merging them into one block.
+
+## 2026.9.23
+
+### Changes
+
 - Cron: isolated cron runs report job status through a new `cron_report` tool instead of a message or plain-text reply. The tool exists only in cron runs; its `ok`/`error` status becomes the run status and its result is what gets delivered. Runs that never call it keep the old final-reply delivery.
 - Control UI: the overview dashboard shows a 14-day daily token usage chart with per-day tooltips, period totals, and a shortcut to the Usage tab.
 - Control UI: settings sidebar items get icons, and the active item lists its config sections directly in the sidebar. Hovering the main sidebar expands it and collapses settings to an icon rail.
@@ -15,7 +29,6 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Fixes
 
-- Agents: system prompts no longer carry leftovers from the removed heartbeat feature or text the run cannot use. The GPT-5 interaction-style overlay dropped its ~3.5k-char heartbeat section, new workspaces no longer get `HEARTBEAT.md` or the heartbeat chapters of the `AGENTS.md` template, existing `HEARTBEAT.md` files are no longer injected, and absent workspace files no longer inject `[MISSING] Expected at: …` markers. Subagent and cron runs (including CLI backends, which always got the full prompt) now use the minimal prompt without the CLI quick reference, ACP harness notes, or interaction-style overlay.
 - Secrets: `/secret <NAME> <value>` stores the value directly from the command. Mention-gated rooms such as Matrix drop unmentioned plain messages, so the two-step capture never received the value there.
 
 ## 2026.9.22
