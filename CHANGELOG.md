@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Fixes
+
+- Agents: a run now stops after 5 consecutive LLM idle timeouts without any completed text or tool call, instead of rotating through every auth profile and fallback with more paid calls.
+- Agents: aborting a run while an Anthropic response stream has stalled now settles the run right away and releases the connection. A stream that sends 16 MB without an event boundary now fails instead of buffering without limit.
+- Agents: when tool loop detection blocks a call, the model now gets a "blocked" tool result explaining why, rather than a tool error that invites it to retry the same call.
+- Agents: a reply cut off at the model's output token limit now ends with a notice that the text is partial, so a truncated answer is not mistaken for a complete one.
+- Agents: tool calls with a near-miss name (`web-search`, `web_serach`) now go to the matching tool when exactly one allowed tool is that close, saving a failed round trip.
+- Agent harness: a plugin harness result classified `ok` no longer keeps a failure classification from an earlier attempt.
+
 ## 2026.9.26
 
 ### Changes
