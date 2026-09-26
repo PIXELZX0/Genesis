@@ -435,15 +435,56 @@ function resolveAnthropicMessagesUrl(baseUrl?: string): string {
   return normalized.endsWith("/v1") ? `${normalized}/messages` : `${normalized}/v1/messages`;
 }
 
+// Guards against a peer that streams without ever sending an SSE event boundary.
+const ANTHROPIC_SSE_PENDING_BUFFER_MAX_CHARS = 16 * 1024 * 1024;
+
+// reader.read() ignores the fetch signal once the body is streaming; race it so
+// an abort cannot leave the run parked on a stalled socket.
+function readAnthropicSseChunk(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal?: AbortSignal,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (!signal) {
+    return reader.read();
+  }
+  if (signal.aborted) {
+    return Promise.reject(createAnthropicSseAbortError(signal));
+  }
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(createAnthropicSseAbortError(signal));
+    signal.addEventListener("abort", onAbort, { once: true });
+    reader.read().then(
+      (result) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(result);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
+}
+
+function createAnthropicSseAbortError(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) {
+    return signal.reason;
+  }
+  const error = new Error("Request was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
 async function* parseAnthropicSseBody(
   body: ReadableStream<Uint8Array>,
+  signal?: AbortSignal,
 ): AsyncIterable<Record<string, unknown>> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      const { done, value } = await readAnthropicSseChunk(reader, signal);
       if (done) {
         break;
       }
@@ -462,6 +503,11 @@ async function* parseAnthropicSseBody(
         }
         frameEnd = buffer.indexOf("\n\n");
       }
+      if (buffer.length > ANTHROPIC_SSE_PENDING_BUFFER_MAX_CHARS) {
+        throw new Error(
+          `Anthropic Messages SSE response exceeded max pending buffer size (${ANTHROPIC_SSE_PENDING_BUFFER_MAX_CHARS} chars) without event boundary`,
+        );
+      }
     }
     const tail = `${buffer}${decoder.decode()}`.replaceAll("\r\n", "\n").trim();
     if (tail) {
@@ -475,6 +521,10 @@ async function* parseAnthropicSseBody(
       }
     }
   } finally {
+    if (signal?.aborted) {
+      // Cancel the pending read so the underlying socket is released.
+      await reader.cancel().catch(() => {});
+    }
     reader.releaseLock();
   }
 }
@@ -514,7 +564,7 @@ function createAnthropicMessagesClient(params: {
         if (!response.body) {
           return;
         }
-        yield* parseAnthropicSseBody(response.body);
+        yield* parseAnthropicSseBody(response.body, options?.signal);
       },
     },
   };

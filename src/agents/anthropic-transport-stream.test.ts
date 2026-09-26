@@ -135,6 +135,40 @@ describe("anthropic transport stream", () => {
     });
   });
 
+  it("settles a stalled SSE body when the run aborts mid-stream", async () => {
+    const controller = new AbortController();
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        streamController.enqueue(
+          new TextEncoder().encode(
+            `data: ${JSON.stringify({
+              type: "message_start",
+              message: { id: "msg_1", usage: { input_tokens: 1, output_tokens: 0 } },
+            })}\n\n`,
+          ),
+        );
+        // No further chunks: the socket stalls until the abort cancels it.
+        setTimeout(() => controller.abort(), 10);
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    guardedFetchMock.mockResolvedValue(
+      new Response(body, { status: 200, headers: { "content-type": "text/event-stream" } }),
+    );
+
+    const result = await runTransportStream(
+      makeAnthropicTransportModel(),
+      { messages: [{ role: "user", content: "hello" }] } as AnthropicStreamContext,
+      { apiKey: "sk-ant-api", signal: controller.signal } as AnthropicStreamOptions,
+    );
+
+    expect(result.stopReason).toBe("aborted");
+    expect(cancelled).toBe(true);
+  });
+
   it("ignores non-positive runtime maxTokens overrides and falls back to the model limit", async () => {
     await runTransportStream(
       makeAnthropicTransportModel(),
