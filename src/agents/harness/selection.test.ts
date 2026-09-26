@@ -199,6 +199,30 @@ describe("runAgentHarnessAttemptWithFallback", () => {
     });
   });
 
+  it("drops a stale classification when the harness now classifies the result ok", async () => {
+    registerAgentHarness(
+      {
+        id: "codex",
+        label: "Recovered Codex",
+        supports: (ctx) =>
+          ctx.provider === "codex" ? { supported: true, priority: 100 } : { supported: false },
+        runAttempt: vi.fn(async () => ({
+          ...createAttemptResult("codex"),
+          agentHarnessResultClassification: "empty" as const,
+        })),
+        classify: vi.fn(() => "ok" as const),
+      },
+      { ownerPluginId: "codex" },
+    );
+
+    const result = await runAgentHarnessAttemptWithFallback(
+      createAttemptParams({ agents: { defaults: { embeddedHarness: { runtime: "auto" } } } }),
+    );
+
+    expect(result.agentHarnessId).toBe("codex");
+    expect(result).not.toHaveProperty("agentHarnessResultClassification");
+  });
+
   it("honors env fallback override over config fallback", async () => {
     process.env.GENESIS_AGENT_HARNESS_FALLBACK = "none";
 

@@ -268,12 +268,17 @@ function applyHarnessResultClassification(
   result: EmbeddedRunAttemptResult,
   params: EmbeddedRunAttemptParams,
 ): EmbeddedRunAttemptResult {
-  const classification = harness.classify?.(result, params);
-  if (!classification || classification === "ok") {
+  if (!harness.classify) {
     return { ...result, agentHarnessId: harness.id };
   }
+  // Reclassify from the raw result so a prior attempt's classification cannot survive an "ok".
+  const { agentHarnessResultClassification: _previous, ...rawResult } = result;
+  const classification = harness.classify(rawResult, params);
+  if (!classification || classification === "ok") {
+    return { ...rawResult, agentHarnessId: harness.id };
+  }
   return {
-    ...result,
+    ...rawResult,
     agentHarnessId: harness.id,
     agentHarnessResultClassification: classification,
   };
