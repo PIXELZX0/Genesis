@@ -33,7 +33,9 @@ export type HookContext = {
   loopDetection?: ToolLoopDetectionConfig;
 };
 
-type HookOutcome = { blocked: true; reason: string } | { blocked: false; params: unknown };
+type HookOutcome =
+  | { blocked: true; reason: string; deniedReason?: "tool-loop" }
+  | { blocked: false; params: unknown };
 
 const log = createSubsystemLogger("agents/tools");
 const BEFORE_TOOL_CALL_WRAPPED = Symbol("beforeToolCallWrapped");
@@ -208,6 +210,7 @@ export async function runBeforeToolCallHook(args: {
         return {
           blocked: true,
           reason: loopResult.message,
+          deniedReason: "tool-loop",
         };
       }
       const warningKey = loopResult.warningKey ?? `${loopResult.detector}:${toolName}`;
@@ -443,6 +446,14 @@ export function wrapToolWithBeforeToolCallHook(
         signal,
       });
       if (outcome.blocked) {
+        if (outcome.deniedReason === "tool-loop") {
+          // A thrown error reads as a transient tool failure and invites a retry;
+          // a blocked result tells the model to change approach.
+          return {
+            content: [{ type: "text", text: outcome.reason }],
+            details: { status: "blocked", deniedReason: "tool-loop", reason: outcome.reason },
+          };
+        }
         throw new Error(outcome.reason);
       }
       if (toolCallId) {

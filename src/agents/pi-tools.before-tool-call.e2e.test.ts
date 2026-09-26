@@ -30,6 +30,13 @@ vi.mock("./tools/gateway.js", () => ({
 
 const mockGetGlobalHookRunner = vi.mocked(getGlobalHookRunner);
 
+function blockedLoopResult(reasonFragment: string) {
+  return {
+    content: [{ type: "text", text: expect.stringContaining(reasonFragment) }],
+    details: { status: "blocked", deniedReason: "tool-loop" },
+  };
+}
+
 describe("before_tool_call loop detection behavior", () => {
   let hookRunner: {
     hasHooks: ReturnType<typeof vi.fn>;
@@ -189,7 +196,7 @@ describe("before_tool_call loop detection behavior", () => {
 
     await expect(
       tool.execute(`poll-${CRITICAL_THRESHOLD}`, params, undefined, undefined),
-    ).rejects.toThrow("CRITICAL");
+    ).resolves.toMatchObject(blockedLoopResult("CRITICAL"));
   });
 
   it("does nothing when loopDetection.enabled is false", async () => {
@@ -241,7 +248,7 @@ describe("before_tool_call loop detection behavior", () => {
 
     await expect(
       tool.execute(`read-${GLOBAL_CIRCUIT_BREAKER_THRESHOLD}`, params, undefined, undefined),
-    ).rejects.toThrow("global circuit breaker");
+    ).resolves.toMatchObject(blockedLoopResult("global circuit breaker"));
   });
 
   it("coalesces repeated generic warning events into threshold buckets", async () => {
@@ -295,7 +302,7 @@ describe("before_tool_call loop detection behavior", () => {
           undefined,
           undefined,
         ),
-      ).rejects.toThrow("CRITICAL");
+      ).resolves.toMatchObject(blockedLoopResult("CRITICAL"));
 
       const loopEvent = emitted.at(-1);
       expectCriticalLoopEvent(loopEvent, {
@@ -340,7 +347,7 @@ describe("before_tool_call loop detection behavior", () => {
 
       await expect(
         tool.execute(`poll-${CRITICAL_THRESHOLD}`, params, undefined, undefined),
-      ).rejects.toThrow("CRITICAL");
+      ).resolves.toMatchObject(blockedLoopResult("CRITICAL"));
 
       const loopEvent = emitted.at(-1);
       expectCriticalLoopEvent(loopEvent, {
