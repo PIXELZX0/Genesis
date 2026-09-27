@@ -33,6 +33,7 @@ type WalletOpts = {
 
 type WalletPassphraseOpts = {
   passphraseStdin?: boolean;
+  emptyPassphrase?: boolean;
 };
 
 async function readStdin(maxBytes = 64 * 1024): Promise<string> {
@@ -50,6 +51,12 @@ async function readStdin(maxBytes = 64 * 1024): Promise<string> {
 }
 
 async function readPassphrase(opts: WalletPassphraseOpts): Promise<string> {
+  if (opts.emptyPassphrase) {
+    if (opts.passphraseStdin) {
+      throw new Error("--empty-passphrase cannot be combined with --passphrase-stdin.");
+    }
+    return "";
+  }
   const fromEnv = process.env.GENESIS_WALLET_PASSPHRASE?.trim();
   if (fromEnv) {
     return fromEnv;
@@ -70,12 +77,15 @@ async function readPassphraseWithDataStdin(
   dataFlag: string,
 ): Promise<string> {
   const fromEnv = process.env.GENESIS_WALLET_PASSPHRASE?.trim();
-  if (dataUsesStdin && opts.passphraseStdin && !fromEnv) {
+  if (dataUsesStdin && opts.passphraseStdin && !fromEnv && !opts.emptyPassphrase) {
     throw new Error(
       `${dataFlag} and --passphrase-stdin cannot both read stdin; set GENESIS_WALLET_PASSPHRASE instead.`,
     );
   }
-  return readPassphrase({ passphraseStdin: dataUsesStdin ? false : opts.passphraseStdin });
+  return readPassphrase({
+    passphraseStdin: dataUsesStdin ? false : opts.passphraseStdin,
+    emptyPassphrase: opts.emptyPassphrase,
+  });
 }
 
 function parseChain(value: unknown): WalletChain {
@@ -254,7 +264,7 @@ export function registerWalletCommand(program: Command) {
       if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) {
         throw new Error("--ttl must be between 1 and 1440 minutes.");
       }
-      const passphrase = opts.emptyPassphrase ? "" : await readPassphrase(opts);
+      const passphrase = await readPassphrase(opts);
       const res = (await callGatewayFromCli("wallet.unlock", opts, {
         passphrase,
         ttlMs: Math.round(minutes * 60_000),
@@ -420,6 +430,7 @@ export function registerWalletCommand(program: Command) {
     .option("--message <text>", "UTF-8 message to sign")
     .option("--message-hex <hex>", "0x-prefixed message bytes to sign")
     .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--empty-passphrase", "Use a keystore created without a passphrase", false)
     .option("--yes", "Confirm the signing request", false)
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {
@@ -446,6 +457,7 @@ export function registerWalletCommand(program: Command) {
     .requiredOption("--digest <hex>", "0x-prefixed 32-byte digest")
     .option("--account <id>", "Wallet account id")
     .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--empty-passphrase", "Use a keystore created without a passphrase", false)
     .option("--yes", "Confirm the signing request", false)
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {
@@ -472,6 +484,7 @@ export function registerWalletCommand(program: Command) {
     .option("--tx-json <json>", "Unsigned EVM transaction request JSON")
     .option("--tx-json-stdin", "Read unsigned EVM transaction request JSON from stdin", false)
     .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--empty-passphrase", "Use a keystore created without a passphrase", false)
     .option("--yes", "Confirm and sign the raw transaction", false)
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {
@@ -510,6 +523,7 @@ export function registerWalletCommand(program: Command) {
     .option("--raw-transaction <hex>", "Signed 0x-prefixed raw transaction")
     .option("--raw-transaction-stdin", "Read signed raw transaction hex from stdin", false)
     .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--empty-passphrase", "Use a keystore created without a passphrase", false)
     .option("--yes", "Confirm and broadcast the raw transaction", false)
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {
@@ -549,6 +563,7 @@ export function registerWalletCommand(program: Command) {
     .requiredOption("--amount <amount>", "Native asset amount")
     .option("--account <id>", "Wallet account id")
     .option("--passphrase-stdin", "Read the wallet passphrase from stdin", false)
+    .option("--empty-passphrase", "Use a keystore created without a passphrase", false)
     .option("--yes", "Confirm and broadcast the transfer", false)
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {

@@ -115,7 +115,8 @@ per-invocation guards:
 
 - `wallet.spending.enabled: true`
 - `--yes`
-- wallet passphrase from `GENESIS_WALLET_PASSPHRASE` or `--passphrase-stdin`
+- wallet passphrase from `GENESIS_WALLET_PASSPHRASE` or `--passphrase-stdin`, or
+  `--empty-passphrase` for a keystore created without one
 - `GENESIS_WALLET_ALLOW_SPEND=1` unless `wallet.spending.requireAllowEnv` is disabled
 - `wallet.spending.maxNativeAmount`, when configured
 
