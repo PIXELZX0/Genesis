@@ -804,6 +804,7 @@ export async function runPreparedReply(
       },
       timeoutMs,
       blockReplyBreak: resolvedBlockStreamingBreak,
+      blockStreamingEnabled,
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       inputProvenance: ctx.InputProvenance ?? sessionCtx.InputProvenance,
       extraSystemPrompt: extraSystemPromptParts.join("\n\n") || undefined,

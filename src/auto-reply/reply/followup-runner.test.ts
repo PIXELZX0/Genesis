@@ -1122,6 +1122,34 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
     };
   }
 
+  it("streams queued-turn blocks before the run finishes when block streaming is enabled", async () => {
+    const onBlockReply = vi.fn(async (_payload: unknown) => {});
+    const deliveredBeforeRunEnd: unknown[][] = [];
+    runEmbeddedPiAgentMock.mockImplementationOnce(
+      async (args: {
+        onBlockReply?: (payload: { text: string }) => void;
+        onBlockReplyFlush?: () => Promise<void>;
+      }) => {
+        args.onBlockReply?.({ text: "checking the wallet" });
+        await args.onBlockReplyFlush?.();
+        deliveredBeforeRunEnd.push(...onBlockReply.mock.calls);
+        args.onBlockReply?.({ text: "done" });
+        return { payloads: [{ text: "checking the wallet" }, { text: "done" }], meta: {} };
+      },
+    );
+    const runner = createMessagingDedupeRunner(onBlockReply);
+    await runner(
+      createQueuedRun({ run: { messageProvider: "whatsapp", blockStreamingEnabled: true } }),
+    );
+
+    expect(deliveredBeforeRunEnd).toEqual([
+      [expect.objectContaining({ text: "checking the wallet" })],
+    ]);
+    expect(onBlockReply.mock.calls.map(([payload]) => (payload as { text?: string }).text)).toEqual(
+      ["checking the wallet", "done"],
+    );
+  });
+
   it("persists usage even when replies are suppressed", async () => {
     const storePath = "/tmp/genesis-followup-usage.json";
     const sessionKey = "main";

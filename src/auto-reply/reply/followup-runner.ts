@@ -29,6 +29,11 @@ import {
   resolveQueuedReplyRuntimeConfig,
   resolveRunAuthProfile,
 } from "./agent-runner-utils.js";
+import { createBlockReplyPipeline, type BlockReplyPipeline } from "./block-reply-pipeline.js";
+import {
+  resolveBlockStreamingChunking,
+  resolveEffectiveBlockStreamingConfig,
+} from "./block-streaming.js";
 import { resolveFollowupDeliveryPayloads } from "./followup-delivery.js";
 import { resolveOriginMessageProvider } from "./origin-routing.js";
 import { refreshQueuedFollowupSession, type FollowupRun } from "./queue.js";
@@ -39,6 +44,8 @@ import { createTypingSignaler } from "./typing-mode.js";
 import type { TypingController } from "./typing.js";
 
 type EmbeddedAgentRunResult = Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
+
+const FOLLOWUP_BLOCK_REPLY_SEND_TIMEOUT_MS = 15_000;
 
 export function createFollowupRunner(params: {
   opts?: GetReplyOptions;
@@ -215,6 +222,7 @@ export function createFollowupRunner(params: {
         ? queued
         : { ...queued, run: { ...queued.run, config: runtimeConfig } };
     const run = effectiveQueued.run;
+    let blockReplyPipeline: BlockReplyPipeline | null = null;
     const replyOperation = createReplyOperation({
       sessionId: run.sessionId,
       sessionKey: replySessionKey ?? "",
@@ -257,6 +265,40 @@ export function createFollowupRunner(params: {
       let bootstrapPromptWarningSignaturesSeen = resolveBootstrapWarningSignaturesSeen(
         activeSessionEntry?.systemPromptReport,
       );
+      // Queued turns stream completed blocks like the main turn does; without
+      // this every block of the followup would only reach the channel at the end.
+      const blockChannel = queued.originatingChannel ?? run.messageProvider;
+      const blockAccountId = queued.originatingAccountId ?? run.agentAccountId;
+      const blockReplyChunking = run.blockStreamingEnabled
+        ? resolveBlockStreamingChunking(runtimeConfig, blockChannel, blockAccountId)
+        : undefined;
+      blockReplyPipeline = blockReplyChunking
+        ? createBlockReplyPipeline({
+            onBlockReply: async (payload) => {
+              const blockPayloads = resolveFollowupDeliveryPayloads({
+                cfg: runtimeConfig,
+                payloads: [payload],
+                messageProvider: run.messageProvider,
+                originatingAccountId: blockAccountId,
+                originatingChannel: queued.originatingChannel,
+                originatingChatType: queued.originatingChatType,
+                originatingTo: queued.originatingTo,
+              });
+              await sendFollowupPayloads(blockPayloads, effectiveQueued, {
+                provider: run.provider,
+                modelId: run.model,
+              });
+            },
+            timeoutMs: FOLLOWUP_BLOCK_REPLY_SEND_TIMEOUT_MS,
+            coalescing: resolveEffectiveBlockStreamingConfig({
+              cfg: runtimeConfig,
+              provider: blockChannel,
+              accountId: blockAccountId,
+              chunking: blockReplyChunking,
+            }).coalescing,
+          })
+        : null;
+      const activeBlockReplyPipeline = blockReplyPipeline;
       replyOperation.setPhase("running");
       try {
         const outcomePlan = buildAgentRuntimeOutcomePlan();
@@ -328,6 +370,14 @@ export function createFollowupRunner(params: {
                 allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
                 preferExternalAuth: runOptions?.preferExternalAuth,
                 blockReplyBreak: run.blockReplyBreak,
+                ...(activeBlockReplyPipeline
+                  ? {
+                      blockReplyChunking,
+                      onBlockReply: (payload: ReplyPayload) =>
+                        activeBlockReplyPipeline.enqueue(payload),
+                      onBlockReplyFlush: () => activeBlockReplyPipeline.flush({ force: true }),
+                    }
+                  : {}),
                 bootstrapPromptWarningSignaturesSeen,
                 bootstrapPromptWarningSignature:
                   bootstrapPromptWarningSignaturesSeen[
@@ -368,6 +418,7 @@ export function createFollowupRunner(params: {
         runResult = fallbackResult.result;
         fallbackProvider = fallbackResult.provider;
         fallbackModel = fallbackResult.model;
+        await activeBlockReplyPipeline?.flush({ force: true });
       } catch (err) {
         const message = formatErrorMessage(err);
         replyOperation.fail("run_failed", err);
@@ -432,9 +483,22 @@ export function createFollowupRunner(params: {
         originatingChannel: queued.originatingChannel,
         originatingChatType: queued.originatingChatType,
         originatingTo: queued.originatingTo,
-        sentMediaUrls: runResult.messagingToolSentMediaUrls,
+        sentMediaUrls: [
+          ...(runResult.messagingToolSentMediaUrls ?? []),
+          ...(activeBlockReplyPipeline?.getSentMediaUrls() ?? []),
+        ],
         sentTargets: runResult.messagingToolSentTargets,
         sentTexts: runResult.messagingToolSentTexts,
+      }).filter((payload) => {
+        if (!activeBlockReplyPipeline) {
+          return true;
+        }
+        // Same rule as the main turn: drop finals once streaming delivered
+        // everything; fall back to finals when streaming aborted mid-turn.
+        if (activeBlockReplyPipeline.didStream() && !activeBlockReplyPipeline.isAborted()) {
+          return payload.isError === true;
+        }
+        return !activeBlockReplyPipeline.hasSentPayload(payload);
       });
 
       if (finalPayloads.length === 0) {
@@ -480,6 +544,7 @@ export function createFollowupRunner(params: {
         modelId: modelUsed,
       });
     } finally {
+      blockReplyPipeline?.stop();
       replyOperation.complete();
       // Both signals are required for the typing controller to clean up.
       // The main inbound dispatch path calls markDispatchIdle() from the

@@ -84,6 +84,8 @@ export type FollowupRun = {
     };
     timeoutMs: number;
     blockReplyBreak: "text_end" | "message_end";
+    /** Stream completed blocks while the queued turn runs instead of only at the end. */
+    blockStreamingEnabled?: boolean;
     ownerNumbers?: string[];
     inputProvenance?: InputProvenance;
     extraSystemPrompt?: string;
