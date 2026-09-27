@@ -12,6 +12,11 @@ Docs: https://genesis.pixelzx.com/docs
 - Agents: a reply cut off at the model's output token limit now ends with a notice that the text is partial, so a truncated answer is not mistaken for a complete one.
 - Agents: tool calls with a near-miss name (`web-search`, `web_serach`) now go to the matching tool when exactly one allowed tool is that close, saving a failed round trip.
 - Agent harness: a plugin harness result classified `ok` no longer keeps a failure classification from an earlier attempt.
+- Control UI: the Overview "Online channels" count now counts channels that are online, not connected dashboard clients, so it agrees with the Channels page.
+- Control UI: the Channels list shows proper names (WhatsApp, iMessage, Google Chat) and marks channels you have not configured as "Not set up" instead of "Offline", without a restart button.
+- Control UI: Settings shows the gateway's actual auth mode, including token or password auth set by CLI flag or env var, instead of "Unknown". The Thinking level buttons now wrap instead of being cut off in narrow cards.
+- CLI: on a fresh install, `genesis` and `genesis status` point to `genesis onboard`. When the gateway is down, `status` suggests starting or restarting it rather than `logs --follow`, which needs a running gateway.
+- CLI: `genesis gateway status` reports a missing service as "not installed" instead of printing the raw launchctl error, and its troubleshooting hint now points to `genesis doctor` rather than back to `genesis status`.
 
 ## 2026.9.26
 
