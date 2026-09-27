@@ -2,7 +2,7 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## Unreleased
+## 2026.9.27
 
 ### Changes
 
@@ -14,6 +14,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Fixes
 
+- Wallet: `genesis wallet sign-message`, `sign-digest`, `sign-raw-transaction`, `broadcast-raw`, and `send` accept `--empty-passphrase`, so keystores created without a passphrase (from the Control UI or admin RPC) can sign from the CLI.
 - Channels: turns started from messages queued while the agent was busy now stream completed blocks to the channel as they finish when block streaming is on, instead of delivering everything at once when the turn ends.
 - Agents: a run now stops after 5 consecutive LLM idle timeouts without any completed text or tool call, instead of rotating through every auth profile and fallback with more paid calls.
 - Agents: aborting a run while an Anthropic response stream has stalled now settles the run right away and releases the connection. A stream that sends 16 MB without an event boundary now fails instead of buffering without limit.
