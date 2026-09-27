@@ -84,7 +84,7 @@ function pickOnboardProviderAuthOptionValues(
 export function registerOnboardCommand(program: Command) {
   const command = program
     .command("onboard")
-    .description("Interactive onboarding for the gateway, workspace, and skills")
+    .description("Guided first-run setup: model, workspace, gateway, channels, and skills")
     .addHelpText(
       "after",
       () =>

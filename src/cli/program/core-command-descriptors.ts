@@ -6,17 +6,17 @@ export type CoreCliCommandDescriptor = NamedCommandDescriptor;
 const coreCliCommandCatalog = defineCommandDescriptorCatalog([
   {
     name: "setup",
-    description: "Initialize local config and agent workspace",
+    description: "Create a minimal config and workspace without the wizard (see onboard)",
     hasSubcommands: false,
   },
   {
     name: "onboard",
-    description: "Interactive onboarding for gateway, workspace, and skills",
+    description: "Guided first-run setup: model, workspace, gateway, channels, and skills",
     hasSubcommands: false,
   },
   {
     name: "configure",
-    description: "Interactive configuration for credentials, channels, gateway, and agent defaults",
+    description: "Change credentials, channels, gateway, or agent defaults later (interactive)",
     hasSubcommands: false,
   },
   {

@@ -120,6 +120,27 @@ describe("configureProgramHelp", () => {
     expect(help).not.toContain("status *");
   });
 
+  it("groups root commands in documented order and hides legacy aliases", () => {
+    process.argv = ["node", "genesis", "--help"];
+    const program = new Command();
+    // Registration order deliberately differs from the documented order.
+    for (const name of ["status", "zeta-plugin", "daemon", "models", "onboard", "gateway"]) {
+      program.command(name).description(name);
+    }
+    configureProgramHelp(program, testProgramContext);
+
+    const help = captureHelpOutput(program);
+    const headings = ["Get started:", "Connect:", "Gateway & system:", "Other commands:"];
+    const positions = headings.map((heading) => help.indexOf(heading));
+    expect(positions.every((pos) => pos >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].toSorted((a, b) => a - b));
+    // Get started lists onboard before status, and the hint follows the first group.
+    expect(help.indexOf("  onboard")).toBeLessThan(help.indexOf("  status"));
+    expect(help.indexOf("Hint:")).toBeGreaterThan(help.indexOf("Get started:"));
+    expect(help.indexOf("zeta-plugin")).toBeGreaterThan(help.indexOf("Other commands:"));
+    expect(help).not.toMatch(/^ {2}daemon\s/m);
+  });
+
   it("includes banner and docs/examples in root help output", () => {
     process.argv = ["node", "genesis", "--help"];
     const program = makeProgramWithCommands();

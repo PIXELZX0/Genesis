@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import { Help, type Command, type Option } from "commander";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { isRich, theme } from "../../terminal/theme.js";
@@ -20,25 +20,76 @@ const ROOT_COMMANDS_WITH_SUBCOMMANDS = new Set([
 const ROOT_COMMANDS_HINT =
   "Hint: commands suffixed with * have subcommands. Run <command> --help for details.";
 
+// Root help groups, in display order. Commands not listed here (plugin commands,
+// `help`) land in the trailing "Other commands:" group.
+const ROOT_COMMAND_GROUPS: ReadonlyArray<readonly [heading: string, names: readonly string[]]> = [
+  [
+    "Get started:",
+    ["onboard", "setup", "configure", "dashboard", "chat", "status", "doctor", "update"],
+  ],
+  ["Agents & chat:", ["agent", "agents", "tui", "sessions", "message", "memory", "tasks"]],
+  [
+    "Connect:",
+    [
+      "channels",
+      "models",
+      "mcp",
+      "plugins",
+      "skills",
+      "nodes",
+      "node",
+      "devices",
+      "pairing",
+      "qr",
+      "directory",
+      "wallet",
+    ],
+  ],
+  ["Automation:", ["cron", "hooks", "webhooks", "approvals", "exec-policy"]],
+  [
+    "Gateway & system:",
+    ["gateway", "logs", "health", "system", "sandbox", "secrets", "security", "backup"],
+  ],
+  [
+    "Advanced:",
+    [
+      "config",
+      "acp",
+      "infer",
+      "proxy",
+      "dns",
+      "docs",
+      "completion",
+      "migrate",
+      "reset",
+      "uninstall",
+    ],
+  ],
+];
+const OTHER_COMMANDS_GROUP = "Other commands:";
+const ROOT_COMMAND_GROUP_BY_NAME = new Map(
+  ROOT_COMMAND_GROUPS.flatMap(([heading, names]) => names.map((name) => [name, heading] as const)),
+);
+const ROOT_COMMAND_GROUP_ORDER = [
+  ...ROOT_COMMAND_GROUPS.map(([heading]) => heading),
+  OTHER_COMMANDS_GROUP,
+];
+const ROOT_HELP_HEADINGS = ["Usage:", "Options:", "Commands:", ...ROOT_COMMAND_GROUP_ORDER];
+// Legacy aliases stay runnable but out of root help; each has a listed twin.
+const HIDDEN_ROOT_COMMANDS = new Set(["capability", "clawbot", "daemon", "terminal"]);
+
 const EXAMPLES = [
-  ["genesis models --help", "Show detailed help for the models command."],
-  ["genesis channels login --verbose", "Link personal WhatsApp Web and show QR + connection logs."],
   [
-    'genesis message send --target +15555550123 --message "Hi" --json',
-    "Send via your web session and print JSON result.",
+    "genesis onboard --install-daemon",
+    "First run: set up a model, your workspace, and the background gateway.",
   ],
-  ["genesis gateway --port 18789", "Run the WebSocket Gateway locally."],
+  ["genesis chat", "Chat with your agent in the terminal."],
+  ["genesis dashboard", "Open the Control UI in your browser."],
+  ["genesis channels add", "Connect Telegram, Discord, WhatsApp, and other channels."],
+  ["genesis status --deep", "Check gateway, channel, and model health."],
+  ["genesis doctor", "Find and fix common setup problems."],
   ["genesis --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
-  ["genesis gateway --force", "Kill anything bound to the default gateway port, then start it."],
-  ["genesis gateway ...", "Gateway control via WebSocket."],
-  [
-    'genesis agent --to +15555550123 --message "Run summary" --deliver',
-    "Talk directly to the agent using the Gateway; optionally send the WhatsApp reply.",
-  ],
-  [
-    'genesis message send --channel telegram --target @mychat --message "Hi"',
-    "Send via your Telegram bot.",
-  ],
+  ["genesis <command> --help", "Show detailed help for any command."],
 ] as const;
 
 export function configureProgramHelp(program: Command, ctx: ProgramContext) {
@@ -73,6 +124,51 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     sortSubcommands: true,
     sortOptions: true,
     optionTerm: (option) => theme.option(option.flags),
+    visibleCommands(cmd) {
+      const commands = Help.prototype.visibleCommands.call(this, cmd);
+      if (cmd !== program) {
+        return commands;
+      }
+      return commands.filter((sub) => {
+        if (HIDDEN_ROOT_COMMANDS.has(sub.name())) {
+          return false;
+        }
+        if (!sub.helpGroup()) {
+          sub.helpGroup(ROOT_COMMAND_GROUP_BY_NAME.get(sub.name()) ?? OTHER_COMMANDS_GROUP);
+        }
+        return true;
+      });
+    },
+    groupItems<T extends Command | Option>(
+      unsortedItems: T[],
+      visibleItems: T[],
+      getGroup: (item: T) => string,
+    ): Map<string, T[]> {
+      // The base implementation is stateless, so calling it off the prototype is safe.
+      const groups = Help.prototype.groupItems(unsortedItems, visibleItems, getGroup);
+      if (!unsortedItems.some((item) => "parent" in item && item.parent === program)) {
+        return groups;
+      }
+      // Registration order is lazy/plugin-dependent; pin the documented order.
+      const ordered = new Map<string, T[]>();
+      for (const [heading, names] of ROOT_COMMAND_GROUPS) {
+        const items = groups.get(heading);
+        if (items?.length) {
+          ordered.set(
+            heading,
+            items.toSorted(
+              (a, b) => names.indexOf((a as Command).name()) - names.indexOf((b as Command).name()),
+            ),
+          );
+        }
+      }
+      for (const [heading, items] of groups) {
+        if (!ordered.has(heading) && items.length) {
+          ordered.set(heading, items);
+        }
+      }
+      return ordered;
+    },
     subcommandTerm: (cmd) => {
       const isRootCommand = cmd.parent === program;
       const hasSubcommands = isRootCommand && ROOT_COMMANDS_WITH_SUBCOMMANDS.has(cmd.name());
@@ -86,14 +182,25 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
       `^Usage:\\s+${CLI_NAME_PATTERN}\\s+\\[options\\]\\s+\\[command\\]\\s*$`,
       "m",
     ).test(output);
-    if (isRootHelp && /^Commands:/m.test(output)) {
-      output = output.replace(/^Commands:/m, `Commands:\n  ${theme.muted(ROOT_COMMANDS_HINT)}`);
+    if (isRootHelp) {
+      const firstGroup = ROOT_COMMAND_GROUP_ORDER.find((heading) =>
+        new RegExp(`^${escapeRegExp(heading)}`, "m").test(output),
+      );
+      if (firstGroup) {
+        output = output.replace(
+          new RegExp(`^${escapeRegExp(firstGroup)}`, "m"),
+          `${firstGroup}\n  ${theme.muted(ROOT_COMMANDS_HINT)}`,
+        );
+      }
     }
 
-    return output
-      .replace(/^Usage:/gm, theme.heading("Usage:"))
-      .replace(/^Options:/gm, theme.heading("Options:"))
-      .replace(/^Commands:/gm, theme.heading("Commands:"));
+    for (const heading of ROOT_HELP_HEADINGS) {
+      output = output.replace(
+        new RegExp(`^${escapeRegExp(heading)}`, "gm"),
+        theme.heading(heading),
+      );
+    }
+    return output;
   };
 
   program.configureOutput({

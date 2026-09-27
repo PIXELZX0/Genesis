@@ -10,7 +10,7 @@ import { hasExplicitOptions } from "../command-options.js";
 export function registerSetupCommand(program: Command) {
   program
     .command("setup")
-    .description("Initialize the active Genesis config and agent workspace")
+    .description("Create a minimal config and workspace without the wizard (see onboard)")
     .addHelpText(
       "after",
       () =>
