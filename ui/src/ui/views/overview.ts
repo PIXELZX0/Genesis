@@ -18,8 +18,18 @@ import type {
 // The controller passes the full prop bag; the Pencil-design overview only
 // consumes a subset (stats + recent activity + status). Unused fields/callbacks
 // are kept on the type so the controller wiring stays valid.
+// Each step is null when its state is unknown (e.g. an older gateway), so the
+// checklist never nags about something it could not verify.
+export type OverviewSetupState = {
+  modelReady: boolean | null;
+  defaultModelLabel: string | null;
+  channelReady: boolean | null;
+  chatReady: boolean | null;
+};
+
 export type OverviewProps = {
   connected: boolean;
+  setup: OverviewSetupState;
   hello: GatewayHelloOk | null;
   settings: UiSettings;
   password: string;
@@ -84,11 +94,104 @@ function statCell(value: string, label: string, last = false) {
   `;
 }
 
+type SetupStep = {
+  done: boolean;
+  title: string;
+  description: string;
+  action: string;
+  tab: string;
+};
+
+function resolveSetupSteps(setup: OverviewSetupState): SetupStep[] {
+  const model = setup.defaultModelLabel ?? t("overview.setup.defaultModel");
+  const steps: Array<SetupStep | null> = [
+    setup.modelReady === null
+      ? null
+      : {
+          done: setup.modelReady,
+          title: t("overview.setup.modelTitle"),
+          description: setup.modelReady
+            ? t("overview.setup.modelDone", { model })
+            : t("overview.setup.modelTodo", { model }),
+          action: t("overview.setup.modelAction"),
+          tab: "config",
+        },
+    setup.channelReady === null
+      ? null
+      : {
+          done: setup.channelReady,
+          title: t("overview.setup.channelTitle"),
+          description: t("overview.setup.channelDesc"),
+          action: t("overview.setup.channelAction"),
+          tab: "channels",
+        },
+    setup.chatReady === null
+      ? null
+      : {
+          done: setup.chatReady,
+          title: t("overview.setup.chatTitle"),
+          description: t("overview.setup.chatDesc"),
+          action: t("overview.setup.chatAction"),
+          tab: "chat",
+        },
+  ];
+  return steps.filter((step): step is SetupStep => step !== null);
+}
+
+function renderSetupChecklist(setup: OverviewSetupState, onNavigate: (tab: string) => void) {
+  const steps = resolveSetupSteps(setup);
+  const doneCount = steps.filter((step) => step.done).length;
+  if (steps.length === 0 || doneCount === steps.length) {
+    return nothing;
+  }
+  // The first unfinished step gets the primary button; later ones stay quiet.
+  const nextIndex = steps.findIndex((step) => !step.done);
+  return html`
+    <div class="card overview-setup" style="margin-top: 24px;">
+      <div style=${PANEL_LABEL}>
+        ${t("overview.setup.title", { done: String(doneCount), total: String(steps.length) })}
+      </div>
+      ${steps.map(
+        (step, index) => html`
+          <div style="display: flex; gap: 12px; align-items: center; ${ROW}">
+            <span
+              class="status-dot ${step.done ? "status-dot--ok" : "status-dot--off"}"
+              style="flex: none;"
+            ></span>
+            <div style="min-width: 0; flex: 1;">
+              <div
+                style="color: var(--text); ${step.done
+                  ? "text-decoration: line-through; opacity: 0.6;"
+                  : ""}"
+              >
+                ${step.title}
+              </div>
+              <div class="muted" style="font-size: 13px;">${step.description}</div>
+            </div>
+            ${step.done
+              ? nothing
+              : html`<button
+                  class="btn btn--sm ${index === nextIndex ? "primary" : ""}"
+                  @click=${() => onNavigate(step.tab)}
+                >
+                  ${step.action}
+                </button>`}
+          </div>
+        `,
+      )}
+    </div>
+  `;
+}
+
 const USAGE_CHART_DAYS = 14;
 const USAGE_CHART_HEIGHT_PX = 120;
 
 function usageChart(usage: SessionsUsageResult | null, onNavigate: (tab: string) => void) {
   const daily = (usage?.aggregates?.daily ?? []).slice(-USAGE_CHART_DAYS);
+  // An empty chart on a fresh install is just noise; the Usage tab stays reachable.
+  if (daily.length === 0) {
+    return nothing;
+  }
   const totalTokens = daily.reduce((sum, d) => sum + d.tokens, 0);
   const totalCost = daily.reduce((sum, d) => sum + d.cost, 0);
   const maxTokens = Math.max(...daily.map((d) => d.tokens), 1);
@@ -106,46 +209,42 @@ function usageChart(usage: SessionsUsageResult | null, onNavigate: (tab: string)
           ${t("tabs.usage")}
         </button>
       </div>
-      ${daily.length === 0
-        ? html`<div class="muted" style="padding: 8px 0;">${t("common.na")}</div>`
-        : html`
+      <div
+        style="display: flex; align-items: flex-end; gap: 6px; height: ${USAGE_CHART_HEIGHT_PX}px; --bar-max-width: 32px;"
+      >
+        ${daily.map((d) => {
+          const heightPx = (d.tokens / maxTokens) * USAGE_CHART_HEIGHT_PX;
+          return html`
             <div
-              style="display: flex; align-items: flex-end; gap: 6px; height: ${USAGE_CHART_HEIGHT_PX}px; --bar-max-width: 32px;"
+              style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%;"
+              title="${d.date} · ${formatTokens(d.tokens)} tokens · ${formatCost(d.cost)}"
             >
-              ${daily.map((d) => {
-                const heightPx = (d.tokens / maxTokens) * USAGE_CHART_HEIGHT_PX;
-                return html`
-                  <div
-                    style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%;"
-                    title="${d.date} · ${formatTokens(d.tokens)} tokens · ${formatCost(d.cost)}"
-                  >
-                    ${d.tokens > 0
-                      ? html`<div class="daily-bar" style="height: ${heightPx.toFixed(0)}px"></div>`
-                      : nothing}
-                  </div>
-                `;
-              })}
+              ${d.tokens > 0
+                ? html`<div class="daily-bar" style="height: ${heightPx.toFixed(0)}px"></div>`
+                : nothing}
             </div>
-            <div style="display: flex; gap: 6px; margin-top: 6px;">
-              ${daily.map(
-                (d) => html`
-                  <div
-                    class="muted"
-                    style="flex: 1; text-align: center; font-size: 11px; font-family: var(--mono);"
-                  >
-                    ${Number.parseInt(d.date.slice(8), 10)}
-                  </div>
-                `,
-              )}
-            </div>
+          `;
+        })}
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: 6px;">
+        ${daily.map(
+          (d) => html`
             <div
               class="muted"
-              style="display: flex; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: 13px;"
+              style="flex: 1; text-align: center; font-size: 11px; font-family: var(--mono);"
             >
-              <span>${formatTokens(totalTokens)} tokens</span>
-              <span>${formatCost(totalCost)}</span>
+              ${Number.parseInt(d.date.slice(8), 10)}
             </div>
-          `}
+          `,
+        )}
+      </div>
+      <div
+        class="muted"
+        style="display: flex; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: 13px;"
+      >
+        <span>${formatTokens(totalTokens)} tokens</span>
+        <span>${formatCost(totalCost)}</span>
+      </div>
     </div>
   `;
 }
@@ -186,6 +285,8 @@ export function renderOverview(props: OverviewProps) {
         <div class="view-sub">${t("subtitles.overview")}</div>
       </div>
 
+      ${renderSetupChecklist(props.setup, props.onNavigate)}
+
       <div class="card" style="display: flex; padding: 0; margin-top: 24px; overflow: hidden;">
         ${statCell(String(props.sessionsCount ?? 0), t("overview.stats.activeSessions"))}
         ${statCell(String(props.onlineChannelCount), t("overview.stats.onlineChannels"))}
@@ -199,7 +300,9 @@ export function renderOverview(props: OverviewProps) {
         <div class="card">
           <div style=${PANEL_LABEL}>${t("overview.panels.recentActivity")}</div>
           ${activity.length === 0
-            ? html`<div class="muted" style="padding: 8px 0;">${t("common.na")}</div>`
+            ? html`<div class="muted" style="padding: 8px 0;">
+                ${t("overview.panels.allClear")}
+              </div>`
             : activity.map(
                 (item) => html`
                   <div style="display: flex; gap: 12px; align-items: flex-start; ${ROW}">

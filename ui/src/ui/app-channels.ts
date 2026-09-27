@@ -153,7 +153,7 @@ async function applyChannelWizardResult(
   await loadChannels(host as ChannelsState, true);
 }
 
-export async function handleChannelWizardStart(host: ChannelsActionHost) {
+export async function handleChannelWizardStart(host: ChannelsActionHost, channel?: string) {
   if (!host.client || !host.connected || host.channelWizardBusy) {
     return;
   }
@@ -163,6 +163,7 @@ export async function handleChannelWizardStart(host: ChannelsActionHost) {
   try {
     const result = await host.client.request<ChannelWizardResult>("wizard.start", {
       target: "channels",
+      ...(channel ? { channel } : {}),
     });
     await applyChannelWizardResult(host, result, result.sessionId ?? null);
   } catch (err) {

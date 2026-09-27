@@ -1,19 +1,17 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
-import { sortCopy } from "../array.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { icons } from "../icons.ts";
 import type { ChannelUiMetaEntry, ChannelsStatusSnapshot } from "../types.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import {
-  channelEnabled,
   getChannelAccountCount,
   resolveChannelDisplayState,
   resolveDefaultChannelAccount,
 } from "./channels.shared.ts";
 import type { ChannelKey, ChannelsProps } from "./channels.types.ts";
 
-const CHANNELS_GRID = "grid-template-columns: 1.5fr 0.9fr 1fr 0.7fr 0.9fr 0.9fr;";
+const CHANNELS_GRID = "grid-template-columns: 1.5fr 1fr 0.7fr 0.9fr 0.9fr;";
 
 // Shown before the gateway reports its channel catalog (e.g. no channel plugin
 // loaded yet on a fresh install).
@@ -128,7 +126,6 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
           >${label}</span
         >
       </span>
-      <span class="muted">${providerLabel(key)}</span>
       <span
         class="muted"
         style="font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
@@ -190,21 +187,34 @@ function renderChannelSettingsDialog(props: ChannelsProps) {
   `;
 }
 
+function renderAvailableChannel(key: ChannelKey, props: ChannelsProps) {
+  const label = resolveChannelLabel(props.snapshot, key);
+  const detail = props.snapshot?.channelDetailLabels?.[key];
+  return html`
+    <button
+      type="button"
+      class="channel-picker__item"
+      ?disabled=${!props.connected || props.channelWizardBusy}
+      @click=${() => props.onChannelWizardStart(key)}
+    >
+      <span class="channel-picker__name">${label}</span>
+      ${detail && detail !== label
+        ? html`<span class="channel-picker__detail muted">${detail}</span>`
+        : nothing}
+      <span class="channel-picker__action">${t("channels.list.setUp")}</span>
+    </button>
+  `;
+}
+
 export function renderChannels(props: ChannelsProps) {
   const channelOrder = resolveChannelOrder(props.snapshot);
-  const ordered = sortCopy(
-    channelOrder.map((key, index) => ({ key, enabled: channelEnabled(key, props), order: index })),
-    (a, b) => {
-      if (a.enabled !== b.enabled) {
-        return a.enabled ? -1 : 1;
-      }
-      return a.order - b.order;
-    },
-  );
-  const statuses = ordered.map((c) => resolveChannelStatus(c.key, props));
-  const onlineCount = statuses.filter((s) => s.kind === "online").length;
-  const notSetUpCount = statuses.filter((s) => s.kind === "notSetUp").length;
-  const idleCount = statuses.length - onlineCount - notSetUpCount;
+  const channels = channelOrder.map((key) => ({ key, status: resolveChannelStatus(key, props) }));
+  // Set-up channels are the ones people manage day to day; the rest are a
+  // picker, not a wall of "Not set up" rows.
+  const setUp = channels.filter((c) => c.status.kind !== "notSetUp");
+  const available = channels.filter((c) => c.status.kind === "notSetUp");
+  const onlineCount = setUp.filter((c) => c.status.kind === "online").length;
+  const idleCount = setUp.length - onlineCount;
 
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
@@ -215,7 +225,7 @@ export function renderChannels(props: ChannelsProps) {
             ${t("channels.list.summary", {
               online: String(onlineCount),
               idle: String(idleCount),
-              notSetUp: String(notSetUpCount),
+              notSetUp: String(available.length),
             })}
           </div>
         </div>
@@ -232,23 +242,42 @@ export function renderChannels(props: ChannelsProps) {
       ${props.lastError
         ? html`<div class="callout danger" style="margin-top: 16px;">${props.lastError}</div>`
         : nothing}
-      ${ordered.length === 0
+      ${channels.length === 0
         ? html`<div class="muted" style="padding: 16px;">
             ${props.loading ? t("common.loading") : t("common.na")}
           </div>`
-        : html`
+        : nothing}
+      ${setUp.length > 0
+        ? html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${CHANNELS_GRID}>
                 <span>${t("columns.channel")}</span>
-                <span>${t("columns.provider")}</span>
                 <span>${t("columns.agent")}</span>
                 <span>${t("columns.accounts")}</span>
                 <span>${t("columns.lastActivity")}</span>
                 <span>${t("columns.status")}</span>
               </div>
-              ${ordered.map((channel) => renderRow(channel.key, props))}
+              ${setUp.map((channel) => renderRow(channel.key, props))}
             </div>
-          `}
+          `
+        : nothing}
+      ${available.length > 0
+        ? html`
+            <div class="channel-picker">
+              <div class="channel-picker__title">
+                ${setUp.length === 0 ? t("channels.list.emptyTitle") : t("channels.list.available")}
+              </div>
+              ${setUp.length === 0
+                ? html`<div class="muted channel-picker__hint">
+                    ${t("channels.list.emptyHint")}
+                  </div>`
+                : nothing}
+              <div class="channel-picker__grid">
+                ${available.map((channel) => renderAvailableChannel(channel.key, props))}
+              </div>
+            </div>
+          `
+        : nothing}
       ${renderChannelWizardDialog(props)} ${renderChannelSettingsDialog(props)}
     </section>
   `;

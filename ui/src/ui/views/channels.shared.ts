@@ -90,6 +90,21 @@ export function countOnlineChannels(snapshot: ChannelsProps["snapshot"]): number
   ).length;
 }
 
+export function hasAnyConfiguredChannel(snapshot: ChannelsProps["snapshot"]): boolean {
+  const isActive = (status: Record<string, unknown> | undefined) =>
+    status?.configured === true || status?.running === true || status?.connected === true;
+  const channels = (snapshot?.channels ?? {}) as Record<
+    string,
+    Record<string, unknown> | undefined
+  >;
+  return (
+    Object.values(channels).some(isActive) ||
+    Object.values(snapshot?.channelAccounts ?? {}).some((accounts) =>
+      accounts.some((account) => isActive(account as Record<string, unknown>)),
+    )
+  );
+}
+
 export function channelEnabled(key: ChannelKey, props: ChannelsProps) {
   if (!props.snapshot) {
     return false;

@@ -1020,8 +1020,8 @@ export class GenesisApp extends LitElement {
     await handleChannelConfigReloadInternal(this);
   }
 
-  async handleChannelWizardStart() {
-    await handleChannelWizardStartInternal(this);
+  async handleChannelWizardStart(channel?: string) {
+    await handleChannelWizardStartInternal(this, channel);
   }
 
   async handleChannelWizardSubmit() {

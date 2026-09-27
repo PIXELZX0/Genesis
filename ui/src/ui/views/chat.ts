@@ -50,6 +50,9 @@ import "../components/resizable-divider.ts";
 
 export type ChatProps = {
   sessionKey: string;
+  /** Default model (provider/model) that has no usable credential yet; null when ready or unknown. */
+  defaultModelMissingAuth?: string | null;
+  onOpenModelSetup?: () => void;
   onSessionKeyChange: (next: string) => void;
   thinkingLevel: string | null;
   showThinking: boolean;
@@ -534,11 +537,20 @@ function renderWelcomeState(props: ChatProps): TemplateResult {
               <img src=${logoUrl} alt="Genesis" />
             </div>`}
       <h2>${name}</h2>
-      <div class="agent-chat__badges">
-        <span class="agent-chat__badge"
-          ><img src=${logoUrl} alt="" /> ${t("chat.welcome.ready")}</span
-        >
-      </div>
+      ${props.defaultModelMissingAuth
+        ? html`<div class="callout info agent-chat__setup-callout" role="status">
+            <div>${t("chat.welcome.modelMissing", { model: props.defaultModelMissingAuth })}</div>
+            ${props.onOpenModelSetup
+              ? html`<button class="btn btn--sm primary" @click=${props.onOpenModelSetup}>
+                  ${t("overview.setup.modelAction")}
+                </button>`
+              : nothing}
+          </div>`
+        : html`<div class="agent-chat__badges">
+            <span class="agent-chat__badge"
+              ><img src=${logoUrl} alt="" /> ${t("chat.welcome.ready")}</span
+            >
+          </div>`}
       <p class="agent-chat__hint">
         ${t("chat.welcome.typeBelow")} &middot; <kbd>/</kbd> ${t("chat.welcome.forCommands")}
       </p>

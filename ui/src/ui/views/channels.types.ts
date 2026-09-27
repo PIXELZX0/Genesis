@@ -51,7 +51,8 @@ export type ChannelsProps = {
   onChannelDelete: (key: ChannelKey) => void;
   onChannelSettingsClose: () => void;
   onRefresh: (probe: boolean) => void;
-  onChannelWizardStart: () => void;
+  /** Pass a channel id to skip the wizard's channel picker. */
+  onChannelWizardStart: (channel?: string) => void;
   onChannelWizardSubmit: () => void;
   onChannelWizardCancel: () => void;
   onChannelWizardInput: (value: unknown) => void;

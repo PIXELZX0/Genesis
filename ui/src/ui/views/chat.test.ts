@@ -135,3 +135,41 @@ describe("renderChat", () => {
     expect(avatar?.getAttribute("aria-label")).toBe("Val");
   });
 });
+
+describe("chat welcome state", () => {
+  afterEach(() => {
+    cleanupChatModuleState();
+  });
+
+  function renderWelcome(overrides: Partial<ChatProps>) {
+    const container = document.createElement("div");
+    render(
+      renderChat(
+        createProps({ stream: null, streamStartedAt: null, canAbort: false, ...overrides }),
+      ),
+      container,
+    );
+    return container;
+  }
+
+  it("asks for model auth instead of claiming ready when the default model has none", () => {
+    const onOpenModelSetup = vi.fn();
+    const container = renderWelcome({
+      defaultModelMissingAuth: "openai/gpt-5.4",
+      onOpenModelSetup,
+    });
+
+    const callout = container.querySelector(".agent-chat__setup-callout");
+    expect(callout?.textContent).toContain("openai/gpt-5.4 has no API key");
+    expect(container.textContent).not.toContain("Ready to chat");
+    callout?.querySelector<HTMLButtonElement>("button")?.click();
+    expect(onOpenModelSetup).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the ready badge when auth is fine or unknown", () => {
+    const container = renderWelcome({ defaultModelMissingAuth: null });
+
+    expect(container.querySelector(".agent-chat__setup-callout")).toBeNull();
+    expect(container.textContent).toContain("Ready to chat");
+  });
+});

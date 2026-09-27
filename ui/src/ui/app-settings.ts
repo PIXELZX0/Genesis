@@ -754,7 +754,11 @@ function buildAttentionItems(host: SettingsAppHost) {
   }
 
   const skills = host.skillsReport?.skills ?? [];
-  const missingDeps = skills.filter((s) => !s.disabled && hasMissingSkillDependencies(s.missing));
+  // Bundled skills are optional extras (many need a CLI you may never install);
+  // only flag skills the user installed on purpose.
+  const missingDeps = skills.filter(
+    (s) => !s.bundled && !s.disabled && hasMissingSkillDependencies(s.missing),
+  );
   if (missingDeps.length > 0) {
     const names = missingDeps.slice(0, 3).map((s) => s.name);
     const more = missingDeps.length > 3 ? ` +${missingDeps.length - 3} more` : "";

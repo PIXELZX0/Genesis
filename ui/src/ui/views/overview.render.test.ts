@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 
 import { render } from "lit";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { AttentionItem } from "../types.ts";
 import { renderOverview, type OverviewProps } from "./overview.ts";
 
@@ -9,6 +9,7 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
   return {
     warnQueryToken: false,
     connected: false,
+    setup: { modelReady: null, defaultModelLabel: null, channelReady: null, chatReady: null },
     hello: null,
     settings: {
       gatewayUrl: "",
@@ -104,6 +105,70 @@ describe("overview view (Pencil design)", () => {
     expect(text).toContain("Recent activity");
     expect(text).toContain("Channel disconnected");
     expect(text).toContain("Telegram lost its connection.");
+  });
+
+  it("shows the setup checklist with the next step highlighted until everything is done", async () => {
+    const onNavigate = vi.fn();
+    const container = document.createElement("div");
+    render(
+      renderOverview(
+        createOverviewProps({
+          onNavigate,
+          setup: {
+            modelReady: false,
+            defaultModelLabel: "openai/gpt-5.4",
+            channelReady: false,
+            chatReady: false,
+          },
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+    const checklist = container.querySelector(".overview-setup");
+    expect(checklist?.textContent).toContain("Get started · 0/3");
+    expect(checklist?.textContent).toContain("openai/gpt-5.4 needs an API key");
+    const primary = checklist?.querySelectorAll<HTMLButtonElement>("button.primary");
+    expect(primary).toHaveLength(1);
+    primary?.[0]?.click();
+    expect(onNavigate).toHaveBeenCalledWith("config");
+
+    render(
+      renderOverview(
+        createOverviewProps({
+          setup: {
+            modelReady: true,
+            defaultModelLabel: "openai/gpt-5.4",
+            channelReady: true,
+            chatReady: true,
+          },
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+    expect(container.querySelector(".overview-setup")).toBeNull();
+  });
+
+  it("skips checklist steps it cannot verify", async () => {
+    const container = document.createElement("div");
+    render(
+      renderOverview(
+        createOverviewProps({
+          setup: {
+            modelReady: null,
+            defaultModelLabel: null,
+            channelReady: false,
+            chatReady: true,
+          },
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+    const text = container.querySelector(".overview-setup")?.textContent ?? "";
+    expect(text).toContain("Get started · 1/2");
+    expect(text).not.toContain("Connect a model");
   });
 
   it("renders a daily usage bar per non-empty day", async () => {

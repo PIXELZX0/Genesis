@@ -1190,6 +1190,19 @@
   justify-content: center;
 }
 
+.agent-chat__setup-callout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 520px;
+  text-align: left;
+}
+
+.agent-chat__setup-callout .btn {
+  flex: none;
+  white-space: nowrap;
+}
+
 .agent-chat__badge {
   display: inline-flex;
   align-items: center;

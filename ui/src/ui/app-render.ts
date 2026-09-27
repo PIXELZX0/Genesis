@@ -232,7 +232,7 @@ import {
   resolveModelPrimary,
   sortLocaleStrings,
 } from "./views/agents-utils.ts";
-import { countOnlineChannels } from "./views/channels.shared.ts";
+import { countOnlineChannels, hasAnyConfiguredChannel } from "./views/channels.shared.ts";
 import { renderChat } from "./views/chat.ts";
 import { renderCommandPalette } from "./views/command-palette.ts";
 import { renderConfigBackupsView } from "./views/config-backups.ts";
@@ -254,7 +254,7 @@ import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
 import { buildMcpPresetConfig, withBearerToken } from "./views/mcp-presets.ts";
-import { renderOverview } from "./views/overview.ts";
+import { renderOverview, type OverviewSetupState } from "./views/overview.ts";
 
 function loadSessionsForSessionView(state: AppViewState): Promise<void> {
   return loadSessions(state, { search: state.sessionsSearchQuery });
@@ -931,6 +931,27 @@ function extractMcpServerCount(state: AppViewState): number {
       ? (mcp.servers as Record<string, unknown>)
       : {};
   return Object.keys(servers).length;
+}
+
+function resolveDefaultModelMissingAuth(state: AppViewState): string | null {
+  // Chat is often the landing tab, so fetch the snapshot here too (deduped).
+  if (state.modelAuthStatusResult === null) {
+    void loadModelAuthStatusState(state);
+  }
+  const defaultModel = state.modelAuthStatusResult?.defaultModel;
+  return defaultModel && !defaultModel.authAvailable
+    ? `${defaultModel.provider}/${defaultModel.model}`
+    : null;
+}
+
+function resolveOverviewSetupState(state: AppViewState): OverviewSetupState {
+  const defaultModel = state.modelAuthStatusResult?.defaultModel;
+  return {
+    modelReady: defaultModel ? defaultModel.authAvailable : null,
+    defaultModelLabel: defaultModel ? `${defaultModel.provider}/${defaultModel.model}` : null,
+    channelReady: state.channelsSnapshot ? hasAnyConfiguredChannel(state.channelsSnapshot) : null,
+    chatReady: state.sessionsResult ? state.sessionsResult.count > 0 : null,
+  };
 }
 
 function extractQuickSettingsSecurity(state: AppViewState): {
@@ -2224,6 +2245,7 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "overview"
           ? renderOverview({
               connected: state.connected,
+              setup: resolveOverviewSetupState(state),
               hello: state.hello,
               settings: state.settings,
               password: state.password,
@@ -2345,7 +2367,7 @@ export function renderApp(state: AppViewState) {
                   requestHostUpdate?.();
                 },
                 onRefresh: (probe) => loadChannels(state, probe),
-                onChannelWizardStart: () => state.handleChannelWizardStart(),
+                onChannelWizardStart: (channel) => state.handleChannelWizardStart(channel),
                 onChannelWizardSubmit: () => state.handleChannelWizardSubmit(),
                 onChannelWizardCancel: () => state.handleChannelWizardCancel(),
                 onChannelWizardInput: (value) => state.handleChannelWizardInput(value),
@@ -3473,6 +3495,8 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "chat"
           ? renderChat({
               sessionKey: state.sessionKey,
+              defaultModelMissingAuth: resolveDefaultModelMissingAuth(state),
+              onOpenModelSetup: () => state.setTab("config"),
               onSessionKeyChange: (next) => {
                 switchChatSession(state, next);
               },

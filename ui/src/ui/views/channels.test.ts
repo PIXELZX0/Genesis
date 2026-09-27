@@ -230,16 +230,43 @@ describe("channel setup wizard rendering", () => {
     expect(container.textContent).toContain("Restarting");
   });
 
-  it("labels unconfigured fallback channels as not set up, without a restart button", () => {
+  it("offers unconfigured channels as a picker instead of Not set up rows", () => {
+    const onChannelWizardStart = vi.fn();
     const container = document.createElement("div");
 
-    render(renderChannels(createProps(null)), container);
+    render(renderChannels(createProps(null, { onChannelWizardStart })), container);
 
-    expect(container.textContent).toContain("WhatsApp");
-    expect(container.textContent).toContain("iMessage");
-    expect(container.textContent).toContain("Not set up");
-    expect(container.textContent).not.toContain("Offline");
+    expect(container.querySelector(".table")).toBeNull();
+    expect(container.textContent).toContain("Connect your first channel");
+    const cards = [...container.querySelectorAll<HTMLButtonElement>(".channel-picker__item")];
+    expect(cards.map((card) => card.querySelector(".channel-picker__name")?.textContent)).toContain(
+      "WhatsApp",
+    );
     expect(container.querySelector('button[aria-label^="Restart"]')).toBeNull();
+    cards.find((card) => card.textContent?.includes("iMessage"))?.click();
+    // Guided setup for that channel, not the raw config form.
+    expect(onChannelWizardStart).toHaveBeenCalledWith("imessage");
+  });
+
+  it("keeps set-up channels in the table and the rest in the picker", () => {
+    const container = document.createElement("div");
+    const snapshot: ChannelsProps["snapshot"] = {
+      ts: Date.now(),
+      channelOrder: ["guildchat", "quietchat"],
+      channelLabels: { guildchat: "Guild Chat", quietchat: "Quiet Chat" },
+      channels: { guildchat: { configured: true, running: true } },
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    };
+
+    render(renderChannels(createProps(snapshot)), container);
+
+    expect(container.querySelector(".table")?.textContent).toContain("Guild Chat");
+    expect(container.querySelector(".table")?.textContent).not.toContain("Quiet Chat");
+    expect(container.querySelector(".channel-picker")?.textContent).toContain(
+      "Add another channel",
+    );
+    expect(container.querySelector(".channel-picker")?.textContent).toContain("Quiet Chat");
   });
 
   it("counts only connected or running channels as online", () => {
