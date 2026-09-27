@@ -72,6 +72,14 @@ export const en: TranslationMap = {
     generic: {
       subtitle: "Channel status and configuration.",
     },
+    list: {
+      summary: "{online} connected · {idle} set up · {notSetUp} available",
+      online: "Online",
+      idle: "Idle",
+      error: "Error",
+      restarting: "Restarting",
+      notSetUp: "Not set up",
+    },
     settings: {
       delete: "Delete account",
       deleting: "Deleting…",

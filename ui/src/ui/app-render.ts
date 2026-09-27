@@ -232,6 +232,7 @@ import {
   resolveModelPrimary,
   sortLocaleStrings,
 } from "./views/agents-utils.ts";
+import { countOnlineChannels } from "./views/channels.shared.ts";
 import { renderChat } from "./views/chat.ts";
 import { renderCommandPalette } from "./views/command-palette.ts";
 import { renderConfigBackupsView } from "./views/config-backups.ts";
@@ -938,9 +939,17 @@ function extractQuickSettingsSecurity(state: AppViewState): {
   execAsk: string;
   deviceAuth: boolean;
 } {
+  // The gateway reports its resolved auth mode (config + env + CLI flags); the
+  // config file alone misses flag/env-only setups.
+  const runtimeAuthMode = (state.hello?.snapshot as { authMode?: string } | undefined)?.authMode;
   const config = state.configForm ?? state.configSnapshot?.config;
   if (!config || typeof config !== "object") {
-    return { gatewayAuth: "unknown", execPolicy: "unknown", execAsk: "unknown", deviceAuth: false };
+    return {
+      gatewayAuth: runtimeAuthMode ?? "unknown",
+      execPolicy: "unknown",
+      execAsk: "unknown",
+      deviceAuth: false,
+    };
   }
   const cfg = config;
   const gateway =
@@ -951,8 +960,8 @@ function extractQuickSettingsSecurity(state: AppViewState): {
     gateway && "auth" in gateway && gateway.auth && typeof gateway.auth === "object"
       ? (gateway.auth as Record<string, unknown>)
       : null;
-  let gatewayAuth = "unknown";
-  if (auth) {
+  let gatewayAuth = runtimeAuthMode ?? "unknown";
+  if (!runtimeAuthMode && auth) {
     const mode = typeof auth.mode === "string" ? auth.mode.trim() : "";
     if (mode) {
       gatewayAuth = mode;
@@ -1208,7 +1217,6 @@ export function renderApp(state: AppViewState) {
     return html` ${renderLoginGate(state)} ${renderGatewayUrlConfirmation(state)} `;
   }
 
-  const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
@@ -2221,7 +2229,7 @@ export function renderApp(state: AppViewState) {
               password: state.password,
               lastError: state.lastError,
               lastErrorCode: state.lastErrorCode,
-              presenceCount,
+              onlineChannelCount: countOnlineChannels(state.channelsSnapshot),
               sessionsCount,
               cronEnabled: state.cronStatus?.enabled ?? null,
               cronNext,

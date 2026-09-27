@@ -30,7 +30,7 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
     password: "",
     lastError: null,
     lastErrorCode: null,
-    presenceCount: 0,
+    onlineChannelCount: 0,
     sessionsCount: null,
     cronEnabled: null,
     cronNext: null,
@@ -64,7 +64,10 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
 describe("overview view (Pencil design)", () => {
   it("renders the title and the stat row", async () => {
     const container = document.createElement("div");
-    render(renderOverview(createOverviewProps({ sessionsCount: 5, presenceCount: 3 })), container);
+    render(
+      renderOverview(createOverviewProps({ sessionsCount: 5, onlineChannelCount: 3 })),
+      container,
+    );
     await Promise.resolve();
     const text = container.textContent ?? "";
     expect(container.querySelector(".view-title")?.textContent).toContain("Overview");

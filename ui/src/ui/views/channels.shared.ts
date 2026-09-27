@@ -79,6 +79,17 @@ export function resolveChannelDisplayState(
   };
 }
 
+// Same "online" rule as the channels table status column.
+export function countOnlineChannels(snapshot: ChannelsProps["snapshot"]): number {
+  const channels = (snapshot?.channels ?? {}) as Record<
+    string,
+    Record<string, unknown> | undefined
+  >;
+  return Object.values(channels).filter(
+    (status) => status?.connected === true || status?.running === true,
+  ).length;
+}
+
 export function channelEnabled(key: ChannelKey, props: ChannelsProps) {
   if (!props.snapshot) {
     return false;

@@ -496,7 +496,12 @@ function renderSecurityCard(props: QuickSettingsProps) {
         <div class="qs-row">
           <span class="qs-row__label">Gateway auth</span>
           <span class="qs-row__value">
-            <span class="qs-badge ${gatewayAuth !== "none" ? "qs-badge--ok" : "qs-badge--warn"}"
+            <span
+              class="qs-badge ${gatewayAuth === "none"
+                ? "qs-badge--warn"
+                : gatewayAuth === "unknown"
+                  ? ""
+                  : "qs-badge--ok"}"
               >${gatewayAuth}</span
             >
           </span>

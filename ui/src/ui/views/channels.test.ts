@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { withoutArrayCopyMethods } from "../test-helpers/array-copy-methods.ts";
 import {
   channelEnabled,
+  countOnlineChannels,
   resolveChannelConfigured,
   resolveChannelDisplayState,
 } from "./channels.shared.ts";
@@ -227,6 +228,36 @@ describe("channel setup wizard rendering", () => {
     render(renderChannels(createProps(snapshot)), container);
 
     expect(container.textContent).toContain("Restarting");
+  });
+
+  it("labels unconfigured fallback channels as not set up, without a restart button", () => {
+    const container = document.createElement("div");
+
+    render(renderChannels(createProps(null)), container);
+
+    expect(container.textContent).toContain("WhatsApp");
+    expect(container.textContent).toContain("iMessage");
+    expect(container.textContent).toContain("Not set up");
+    expect(container.textContent).not.toContain("Offline");
+    expect(container.querySelector('button[aria-label^="Restart"]')).toBeNull();
+  });
+
+  it("counts only connected or running channels as online", () => {
+    expect(
+      countOnlineChannels({
+        ts: Date.now(),
+        channelOrder: [],
+        channelLabels: {},
+        channels: {
+          a: { connected: true },
+          b: { running: true },
+          c: { configured: true },
+        },
+        channelAccounts: {},
+        channelDefaultAccountId: {},
+      }),
+    ).toBe(2);
+    expect(countOnlineChannels(null)).toBe(0);
   });
 
   it("restarts an idle channel via the row restart button", () => {

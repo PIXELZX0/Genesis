@@ -15,29 +15,55 @@ import type { ChannelKey, ChannelsProps } from "./channels.types.ts";
 
 const CHANNELS_GRID = "grid-template-columns: 1.5fr 0.9fr 1fr 0.7fr 0.9fr 0.9fr;";
 
-type ChannelStatus = { label: string; dot: string; online: boolean };
+// Shown before the gateway reports its channel catalog (e.g. no channel plugin
+// loaded yet on a fresh install).
+const FALLBACK_CHANNEL_LABELS: Record<string, string> = {
+  whatsapp: "WhatsApp",
+  telegram: "Telegram",
+  discord: "Discord",
+  googlechat: "Google Chat",
+  slack: "Slack",
+  signal: "Signal",
+  imessage: "iMessage",
+  nostr: "Nostr",
+};
 
-function resolveChannelStatus(key: ChannelKey, props: ChannelsProps): ChannelStatus {
+type ChannelStatusKind = "restarting" | "error" | "online" | "idle" | "notSetUp";
+
+type ChannelStatus = { kind: ChannelStatusKind; label: string; dot: string };
+
+const CHANNEL_STATUS_DOTS: Record<ChannelStatusKind, string> = {
+  restarting: "status-dot--idle",
+  error: "status-dot--error",
+  online: "status-dot--ok",
+  idle: "status-dot--idle",
+  notSetUp: "status-dot--off",
+};
+
+function resolveChannelStatusKind(key: ChannelKey, props: ChannelsProps): ChannelStatusKind {
   const state = resolveChannelDisplayState(key, props);
   if (state.restartPending === true) {
-    return { label: "Restarting", dot: "status-dot--idle", online: false };
+    return "restarting";
   }
-  const lastError =
-    typeof state.status?.lastError === "string" ? state.status.lastError : undefined;
-  if (lastError) {
-    return { label: "Error", dot: "status-dot--error", online: false };
+  if (typeof state.status?.lastError === "string" && state.status.lastError) {
+    return "error";
   }
   if (state.connected === true || state.running === true) {
-    return { label: "Online", dot: "status-dot--ok", online: true };
+    return "online";
   }
   if (state.configured === true || state.hasAnyActiveAccount) {
-    return { label: "Idle", dot: "status-dot--idle", online: false };
+    return "idle";
   }
-  return { label: "Offline", dot: "status-dot--idle", online: false };
+  return "notSetUp";
+}
+
+function resolveChannelStatus(key: ChannelKey, props: ChannelsProps): ChannelStatus {
+  const kind = resolveChannelStatusKind(key, props);
+  return { kind, label: t(`channels.list.${kind}`), dot: CHANNEL_STATUS_DOTS[kind] };
 }
 
 function providerLabel(key: ChannelKey): string {
-  return key.charAt(0).toUpperCase() + key.slice(1);
+  return FALLBACK_CHANNEL_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 function resolveChannelMetaMap(
@@ -61,7 +87,7 @@ function resolveChannelOrder(snapshot: ChannelsStatusSnapshot | null): ChannelKe
   if (snapshot?.channelOrder?.length) {
     return snapshot.channelOrder;
   }
-  return ["whatsapp", "telegram", "discord", "googlechat", "slack", "signal", "imessage", "nostr"];
+  return Object.keys(FALLBACK_CHANNEL_LABELS);
 }
 
 function resolveChannelAgentLabel(key: ChannelKey, props: ChannelsProps): string {
@@ -88,7 +114,7 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
     ? formatRelativeTimestamp(defaultAccount.lastInboundAt)
     : t("common.na");
   const restarting = props.channelRestartingKey === key;
-  const canRestart = !status.online && !restarting;
+  const canRestart = (status.kind === "error" || status.kind === "idle") && !restarting;
   return html`
     <div
       class="table-row"
@@ -113,7 +139,7 @@ function renderRow(key: ChannelKey, props: ChannelsProps) {
       <span class="muted" style="font-family: var(--mono);">${lastInbound}</span>
       <span class="muted" style="display: flex; align-items: center; gap: 8px;">
         ${status.label}
-        ${status.label !== "Restarting"
+        ${status.kind !== "restarting" && status.kind !== "notSetUp"
           ? html`
               <button
                 class="icon-btn"
@@ -175,15 +201,23 @@ export function renderChannels(props: ChannelsProps) {
       return a.order - b.order;
     },
   );
-  const onlineCount = ordered.filter((c) => resolveChannelStatus(c.key, props).online).length;
-  const idleCount = ordered.length - onlineCount;
+  const statuses = ordered.map((c) => resolveChannelStatus(c.key, props));
+  const onlineCount = statuses.filter((s) => s.kind === "online").length;
+  const notSetUpCount = statuses.filter((s) => s.kind === "notSetUp").length;
+  const idleCount = statuses.length - onlineCount - notSetUpCount;
 
   return html`
     <section class="card" style="border: none; background: transparent; padding: 0;">
       <div class="row" style="justify-content: space-between; align-items: flex-start; gap: 16px;">
         <div>
           <div class="view-title">${t("tabs.channels")}</div>
-          <div class="view-sub">${onlineCount} connected · ${idleCount} idle</div>
+          <div class="view-sub">
+            ${t("channels.list.summary", {
+              online: String(onlineCount),
+              idle: String(idleCount),
+              notSetUp: String(notSetUpCount),
+            })}
+          </div>
         </div>
         <button
           class="btn primary"

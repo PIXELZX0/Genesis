@@ -25,7 +25,7 @@ export type OverviewProps = {
   password: string;
   lastError: string | null;
   lastErrorCode: string | null;
-  presenceCount: number;
+  onlineChannelCount: number;
   sessionsCount: number | null;
   cronEnabled: boolean | null;
   cronNext: number | null;
@@ -161,7 +161,7 @@ export function renderOverview(props: OverviewProps) {
       ok: props.cronEnabled ?? false,
     },
     { label: "Active sessions", value: String(props.sessionsCount ?? 0), ok: null },
-    { label: "Channels online", value: String(props.presenceCount), ok: null },
+    { label: "Channels online", value: String(props.onlineChannelCount), ok: null },
     { label: "Version", value: version, ok: null },
   ];
 
@@ -174,7 +174,7 @@ export function renderOverview(props: OverviewProps) {
 
       <div class="card" style="display: flex; padding: 0; margin-top: 24px; overflow: hidden;">
         ${statCell(String(props.sessionsCount ?? 0), "Active sessions")}
-        ${statCell(String(props.presenceCount), "Online channels")}
+        ${statCell(String(props.onlineChannelCount), "Online channels")}
         ${statCell(String(props.cronJobs.length), "Cron jobs")} ${statCell(uptime, "Uptime", true)}
       </div>
 
