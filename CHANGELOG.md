@@ -7,6 +7,8 @@ Docs: https://genesis.pixelzx.com/docs
 ### Changes
 
 - CLI: `genesis --help` groups commands (Get started, Agents & chat, Connect, Automation, Gateway & system, Advanced), starts with `onboard`, and shows first-run examples. The legacy aliases `daemon`, `clawbot`, `terminal`, and `capability` still work but no longer appear in root help. `setup`, `onboard`, and `configure` descriptions now say when to use each.
+- Control UI: Overview shows a "Get started" checklist (connect a model, connect a channel, send a first message) until each step is done, and chat shows an "Add API key" prompt instead of "Ready to chat" when the default model has no usable credential. `models.authStatus` now reports whether the default model has usable auth, including env keys and local providers, in a new `defaultModel` field.
+- Control UI: the Channels page lists channels you have set up in the table and offers the rest as cards that start guided setup for that channel, instead of eight "Not set up" rows. Overview hides the usage chart until there is usage and no longer flags missing dependencies for optional bundled skills.
 - Control UI: Overview, the chat welcome screen and composer, the Settings summary cards, and table column headers are now translatable. Other languages show English for these strings until the locale bundles are translated.
 
 ### Fixes
