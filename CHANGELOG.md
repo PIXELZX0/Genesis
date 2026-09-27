@@ -4,6 +4,11 @@ Docs: https://genesis.pixelzx.com/docs
 
 ## Unreleased
 
+### Changes
+
+- CLI: `genesis --help` groups commands (Get started, Agents & chat, Connect, Automation, Gateway & system, Advanced), starts with `onboard`, and shows first-run examples. The legacy aliases `daemon`, `clawbot`, `terminal`, and `capability` still work but no longer appear in root help. `setup`, `onboard`, and `configure` descriptions now say when to use each.
+- Control UI: Overview, the chat welcome screen and composer, the Settings summary cards, and table column headers are now translatable. Other languages show English for these strings until the locale bundles are translated.
+
 ### Fixes
 
 - Agents: a run now stops after 5 consecutive LLM idle timeouts without any completed text or tool call, instead of rotating through every auth profile and fallback with more paid calls.
