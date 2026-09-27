@@ -74,9 +74,6 @@ function copyText(value: string) {
   void navigator.clipboard?.writeText(value).catch(() => undefined);
 }
 
-const WALLET_PANEL_LABEL =
-  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 8px;";
-
 function shortenAddress(address: string): string {
   return address.length > 14 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
 }
@@ -159,7 +156,7 @@ function renderWalletStatus(props: WalletProps) {
         style="display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 24px; padding: 24px; flex-wrap: wrap;"
       >
         <div>
-          <div style=${WALLET_PANEL_LABEL}>${headlineLabel}</div>
+          <div class="panel-label" style="margin-bottom: 8px;">${headlineLabel}</div>
           <div
             style="font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--text);"
           >

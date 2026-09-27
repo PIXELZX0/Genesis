@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 import { TAB_GROUPS, tabFromPath } from "./navigation.ts";
 
 describe("TAB_GROUPS", () => {
-  it("publishes Canvas in the Control group", () => {
-    const control = TAB_GROUPS.find((group) => group.label === "control");
-    expect(control?.tabs).toContain("canvas");
+  it("publishes Canvas in the Data group", () => {
+    const data = TAB_GROUPS.find((group) => group.label === "data");
+    expect(data?.tabs).toContain("canvas");
     expect(tabFromPath("/canvas")).toBe("canvas");
+  });
+
+  it("keeps everyday tabs in the unlabeled top group", () => {
+    expect(TAB_GROUPS[0]).toMatchObject({ label: "control" });
+    expect(TAB_GROUPS[0].tabs.slice(0, 2)).toEqual(["overview", "chat"]);
   });
 
   it("does not expose settings slices as a sidebar group", () => {

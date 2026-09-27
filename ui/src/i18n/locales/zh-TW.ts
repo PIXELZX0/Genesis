@@ -269,8 +269,9 @@ export const zh_TW: TranslationMap = {
     chat: "聊天",
     control: "控制",
     agent: "代理",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "設置",
     more: "More",
     expand: "展開側邊欄",
@@ -515,6 +516,11 @@ export const zh_TW: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -686,6 +692,8 @@ export const zh_TW: TranslationMap = {
     palette: {
       placeholder: "輸入指令…",
       noResults: "無結果",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

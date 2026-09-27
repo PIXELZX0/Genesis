@@ -270,8 +270,9 @@ export const id: TranslationMap = {
     chat: "Chat",
     control: "Kontrol",
     agent: "Agen",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "Pengaturan",
     more: "More",
     expand: "Perluas bilah samping",
@@ -516,6 +517,11 @@ export const id: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -693,6 +699,8 @@ export const id: TranslationMap = {
     palette: {
       placeholder: "Ketik perintah…",
       noResults: "Tidak ada hasil",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

@@ -933,6 +933,11 @@ function extractMcpServerCount(state: AppViewState): number {
   return Object.keys(servers).length;
 }
 
+// The palette opens on Cmd+K or Ctrl+K (app.ts); show the one this platform uses.
+const PALETTE_SHORTCUT = /Mac|iPhone|iPad/i.test(globalThis.navigator?.platform ?? "")
+  ? "⌘K"
+  : "Ctrl K";
+
 function resolveDefaultModelMissingAuth(state: AppViewState): string | null {
   // Chat is often the landing tab, so fetch the snapshot here too (deduped).
   if (state.modelAuthStatusResult === null) {
@@ -2008,11 +2013,11 @@ export function renderApp(state: AppViewState) {
               @click=${() => {
                 state.paletteOpen = !state.paletteOpen;
               }}
-              title="Search or jump to… (⌘K)"
-              aria-label="Open command palette"
+              title="${t("overview.palette.openTitle", { shortcut: PALETTE_SHORTCUT })}"
+              aria-label=${t("overview.palette.openLabel")}
             >
               <span class="topbar-search__label">${t("common.search")}</span>
-              <kbd class="topbar-search__kbd">⌘K</kbd>
+              <kbd class="topbar-search__kbd">${PALETTE_SHORTCUT}</kbd>
             </button>
             <div class="topbar-status">
               ${isChat ? renderChatMobileToggle(state, chatSessionOptionGroups) : nothing}

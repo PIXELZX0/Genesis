@@ -2,27 +2,17 @@ import { t } from "../i18n/index.ts";
 import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
-// Sidebar navigation, matching the Pencil design. The first group is unlabeled;
-// "tools" renders the TOOLS category label. Settings is rendered as a single
-// footer item (see app-render). Tabs not listed here (instances, usage, and the
-// settings sub-tabs) remain URL-routable but are hidden from the sidebar.
+// Sidebar navigation. The first group is unlabeled and holds the everyday
+// tabs; the rest are grouped by task (connect, automate, data). Settings is
+// rendered as a single footer item (see app-render). Tabs not listed here
+// (instances, usage, and the settings sub-tabs) remain URL-routable but are
+// hidden from the sidebar. Group labels double as keys for the persisted
+// collapsed state (`settings.navGroupsCollapsed`).
 export const TAB_GROUPS = [
-  {
-    label: "control",
-    tabs: [
-      "overview",
-      "agents",
-      "chat",
-      "canvas",
-      "channels",
-      "sessions",
-      "cron",
-      "models",
-      "nodes",
-    ],
-  },
-  { label: "tools", tabs: ["skills", "plugins", "mcp", "files", "wallet"] },
-  { label: "memory", tabs: ["memory", "dreams", "contact"] },
+  { label: "control", tabs: ["overview", "chat", "agents", "sessions"] },
+  { label: "connect", tabs: ["channels", "models", "nodes"] },
+  { label: "automate", tabs: ["cron", "skills", "mcp", "plugins"] },
+  { label: "data", tabs: ["memory", "dreams", "files", "canvas", "contact", "wallet"] },
 ] as const;
 
 // Settings sub-pages, shown as a secondary nav on every settings page. The

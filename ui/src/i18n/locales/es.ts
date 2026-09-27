@@ -270,8 +270,9 @@ export const es: TranslationMap = {
     chat: "Chat",
     control: "Control",
     agent: "Agente",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "Ajustes",
     more: "More",
     expand: "Expandir barra lateral",
@@ -516,6 +517,11 @@ export const es: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -693,6 +699,8 @@ export const es: TranslationMap = {
     palette: {
       placeholder: "Escribe un comando…",
       noResults: "Sin resultados",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

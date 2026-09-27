@@ -272,8 +272,9 @@ export const fr: TranslationMap = {
     chat: "Chat",
     control: "Contrôle",
     agent: "Agent",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "Paramètres",
     more: "More",
     expand: "Développer la barre latérale",
@@ -518,6 +519,11 @@ export const fr: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -697,6 +703,8 @@ export const fr: TranslationMap = {
     palette: {
       placeholder: "Saisissez une commande…",
       noResults: "Aucun résultat",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

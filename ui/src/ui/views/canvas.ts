@@ -543,15 +543,12 @@ function renderRecentDocuments(props: CanvasProps) {
   `;
 }
 
-const CANVAS_PANEL_LABEL =
-  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 12px;";
-
 function renderCanvasProperties(props: CanvasProps, hostLabel: string, sandbox: string) {
   const canMutate = props.connected && !canvasBusy && currentSourceReady();
   const canUpdate = canMutate && canvasDocumentIdDraft.trim().length > 0;
   return html`
     <aside class="card" style="align-self: start;">
-      <div style=${CANVAS_PANEL_LABEL}>PROPERTIES</div>
+      <div class="panel-label">${t("canvasView.panels.properties")}</div>
 
       <div class="canvas-source-tabs">
         ${SOURCE_MODES.map((item) => renderSourceModeButton(props, item))}
@@ -638,7 +635,7 @@ function renderCanvasProperties(props: CanvasProps, hostLabel: string, sandbox: 
       ${renderCanvasMessage()}
 
       <div style="border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
-        <div style=${CANVAS_PANEL_LABEL}>STATUS</div>
+        <div class="panel-label">${t("canvasView.panels.status")}</div>
         <div class="canvas-status-grid">
           ${renderStatusItem(
             t("canvasView.status.gateway"),
@@ -656,11 +653,7 @@ function renderCanvasProperties(props: CanvasProps, hostLabel: string, sandbox: 
 
       <div style="border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
         <div class="row" style="justify-content: space-between; align-items: center;">
-          <div
-            style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b);"
-          >
-            RECENT
-          </div>
+          <div class="panel-label" style="margin-bottom: 0;">${t("canvasView.panels.recent")}</div>
           <button
             class="btn btn--icon"
             type="button"

@@ -271,8 +271,9 @@ export const uk: TranslationMap = {
     chat: "Чат",
     control: "Керування",
     agent: "Агент",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "Налаштування",
     more: "More",
     expand: "Розгорнути бічну панель",
@@ -517,6 +518,11 @@ export const uk: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -696,6 +702,8 @@ export const uk: TranslationMap = {
     palette: {
       placeholder: "Введіть команду…",
       noResults: "Немає результатів",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

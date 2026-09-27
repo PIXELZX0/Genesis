@@ -273,8 +273,9 @@ export const ja_JP: TranslationMap = {
     chat: "チャット",
     control: "コントロール",
     agent: "エージェント",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "設定",
     more: "More",
     expand: "サイドバーを展開",
@@ -519,6 +520,11 @@ export const ja_JP: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -697,6 +703,8 @@ export const ja_JP: TranslationMap = {
     palette: {
       placeholder: "コマンドを入力…",
       noResults: "結果がありません",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

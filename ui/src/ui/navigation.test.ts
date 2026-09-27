@@ -189,8 +189,7 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
-    expect(labels).toContain("control");
-    expect(labels).toContain("tools");
+    expect(labels).toEqual(["control", "connect", "automate", "data"]);
     // Settings is a footer item, not a sidebar group (Pencil design).
     expect(labels).not.toContain("settings");
   });

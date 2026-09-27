@@ -65,11 +65,6 @@ export type OverviewProps = {
   onRefreshLogs: () => void;
 };
 
-const PANEL_LABEL =
-  "font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary, #6b6b6b); margin-bottom: 12px;";
-const ROW =
-  "display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border);";
-
 function severityDot(severity: AttentionItem["severity"]): string {
   if (severity === "error") {
     return "status-dot--error";
@@ -148,12 +143,12 @@ function renderSetupChecklist(setup: OverviewSetupState, onNavigate: (tab: strin
   const nextIndex = steps.findIndex((step) => !step.done);
   return html`
     <div class="card overview-setup" style="margin-top: 24px;">
-      <div style=${PANEL_LABEL}>
+      <div class="panel-label">
         ${t("overview.setup.title", { done: String(doneCount), total: String(steps.length) })}
       </div>
       ${steps.map(
         (step, index) => html`
-          <div style="display: flex; gap: 12px; align-items: center; ${ROW}">
+          <div class="panel-row">
             <span
               class="status-dot ${step.done ? "status-dot--ok" : "status-dot--off"}"
               style="flex: none;"
@@ -198,7 +193,7 @@ function usageChart(usage: SessionsUsageResult | null, onNavigate: (tab: string)
   return html`
     <div class="card" style="margin-top: 24px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;">
-        <div style=${PANEL_LABEL}>
+        <div class="panel-label">
           ${t("overview.panels.usage", { days: String(USAGE_CHART_DAYS) })}
         </div>
         <button
@@ -298,14 +293,14 @@ export function renderOverview(props: OverviewProps) {
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
         <div class="card">
-          <div style=${PANEL_LABEL}>${t("overview.panels.recentActivity")}</div>
+          <div class="panel-label">${t("overview.panels.recentActivity")}</div>
           ${activity.length === 0
             ? html`<div class="muted" style="padding: 8px 0;">
                 ${t("overview.panels.allClear")}
               </div>`
             : activity.map(
                 (item) => html`
-                  <div style="display: flex; gap: 12px; align-items: flex-start; ${ROW}">
+                  <div class="panel-row">
                     <span
                       class="status-dot ${severityDot(item.severity)}"
                       style="margin-top: 6px; flex: none;"
@@ -320,10 +315,10 @@ export function renderOverview(props: OverviewProps) {
         </div>
 
         <div class="card">
-          <div style=${PANEL_LABEL}>${t("overview.panels.status")}</div>
+          <div class="panel-label">${t("overview.panels.status")}</div>
           ${statusRows.map(
             (row) => html`
-              <div style=${ROW}>
+              <div class="panel-row">
                 <span class="muted">${row.label}</span>
                 <span
                   style="display: flex; align-items: center; gap: 8px; font-family: var(--mono);"
@@ -342,7 +337,7 @@ export function renderOverview(props: OverviewProps) {
       </div>
 
       <div class="card" style="margin-top: 24px;">
-        <div style=${PANEL_LABEL}>${t("overview.panels.connection")}</div>
+        <div class="panel-label">${t("overview.panels.connection")}</div>
         <div
           style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end;"
         >

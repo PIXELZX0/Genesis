@@ -272,8 +272,9 @@ export const tr: TranslationMap = {
     chat: "Sohbet",
     control: "Kontrol",
     agent: "Aracı",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "Ayarlar",
     more: "More",
     expand: "Kenar çubuğunu genişlet",
@@ -518,6 +519,11 @@ export const tr: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -698,6 +704,8 @@ export const tr: TranslationMap = {
     palette: {
       placeholder: "Bir komut yazın…",
       noResults: "Sonuç yok",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

@@ -336,11 +336,12 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: var(--bg);
+  --sidebar-bg: var(--bg);
+  background: var(--sidebar-bg);
 }
 
 :root[data-theme-mode="light"] .sidebar {
-  background: color-mix(in srgb, var(--panel) 98%, white 2%);
+  --sidebar-bg: color-mix(in srgb, var(--panel) 98%, white 2%);
 }
 
 .sidebar-shell {
@@ -435,11 +436,24 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted) 40%, transparent) transparent;
+  /* Scroll shadow: the "local" cover scrolls with the content and hides the
+     fixed shadow once the end is reached, so the shadow only shows while more
+     tabs sit below the fold. */
+  background:
+    linear-gradient(transparent, var(--sidebar-bg) 70%) 0 100% / 100% 40px no-repeat local,
+    linear-gradient(transparent, color-mix(in srgb, var(--text) 10%, transparent)) 0 100% / 100%
+      16px no-repeat scroll;
 }
 
 .sidebar-nav::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
 }
 
 .nav-collapse-toggle {

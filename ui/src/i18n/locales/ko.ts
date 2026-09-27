@@ -269,8 +269,9 @@ export const ko: TranslationMap = {
     chat: "채팅",
     control: "Control",
     agent: "에이전트",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "설정",
     more: "More",
     expand: "사이드바 펼치기",
@@ -515,6 +516,11 @@ export const ko: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -692,6 +698,8 @@ export const ko: TranslationMap = {
     palette: {
       placeholder: "명령을 입력하세요…",
       noResults: "결과 없음",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

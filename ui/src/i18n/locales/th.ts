@@ -269,8 +269,9 @@ export const th: TranslationMap = {
     chat: "แชต",
     control: "ควบคุม",
     agent: "เอเจนต์",
-    tools: "Tools",
-    memory: "Memory",
+    connect: "Connect",
+    automate: "Automate",
+    data: "Data",
     settings: "การตั้งค่า",
     more: "More",
     expand: "ขยายแถบด้านข้าง",
@@ -515,6 +516,11 @@ export const th: TranslationMap = {
       reset: "Reset",
       open: "Open",
     },
+    panels: {
+      properties: "Properties",
+      status: "Status",
+      recent: "Recent",
+    },
     status: {
       gateway: "Gateway",
       host: "Host",
@@ -686,6 +692,8 @@ export const th: TranslationMap = {
     palette: {
       placeholder: "พิมพ์คำสั่ง…",
       noResults: "ไม่พบผลลัพธ์",
+      openTitle: "Search or jump to… ({shortcut})",
+      openLabel: "Open command palette",
     },
   },
   wallet: {

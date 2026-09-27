@@ -501,6 +501,26 @@
   background: var(--danger);
 }
 
+/* Small mono caption above a card section (overview, canvas, wallet). */
+.panel-label {
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-tertiary, #6b6b6b);
+}
+
+/* Label/value row inside a card list, separated by hairlines. */
+.panel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
 .channel-picker {
   margin-top: 28px;
 }
