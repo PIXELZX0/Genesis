@@ -138,23 +138,53 @@ describe("status.command-sections", () => {
   });
 
   it("builds footer lines from update and reachability state", () => {
-    expect(
-      buildStatusFooterLines({
-        updateHint: "upgrade ready",
-        warn: (value) => `warn(${value})`,
-        formatCliCommand: (value) => `cmd:${value}`,
-        nodeOnlyGateway: null,
-        gatewayReachable: false,
-      }),
-    ).toEqual([
+    const base = {
+      updateHint: null,
+      warn: (value: string) => `warn(${value})`,
+      formatCliCommand: (value: string) => `cmd:${value}`,
+      nodeOnlyGateway: null,
+      gatewayReachable: false,
+      gatewayMode: "local" as const,
+      configMissing: false,
+      gatewayServiceInstalled: true,
+    };
+    expect(buildStatusFooterLines({ ...base, updateHint: "upgrade ready" })).toEqual([
       "FAQ: https://genesis.pixelzx.com/docs/faq",
       "Troubleshooting: https://genesis.pixelzx.com/docs/troubleshooting",
       "",
       "warn(upgrade ready)",
       "Next steps:",
       "  Need to share?      cmd:genesis status --all",
-      "  Need to debug live? cmd:genesis logs --follow",
+      "  Gateway not answering? cmd:genesis gateway restart, then cmd:genesis doctor",
+    ]);
+    expect(buildStatusFooterLines({ ...base, gatewayServiceInstalled: false }).at(-1)).toBe(
+      "  Start the gateway:  cmd:genesis gateway install (or cmd:genesis gateway run in the foreground)",
+    );
+    expect(buildStatusFooterLines({ ...base, gatewayMode: "remote" }).at(-1)).toBe(
       "  Fix reachability first: cmd:genesis gateway probe",
+    );
+    expect(buildStatusFooterLines({ ...base, gatewayReachable: true }).slice(-2)).toEqual([
+      "  Need to debug live? cmd:genesis logs --follow",
+      "  Need to test channels? cmd:genesis status --deep",
+    ]);
+  });
+
+  it("points a fresh install at onboarding before anything else", () => {
+    expect(
+      buildStatusFooterLines({
+        updateHint: null,
+        warn: (value) => value,
+        formatCliCommand: (value) => value,
+        nodeOnlyGateway: null,
+        gatewayReachable: false,
+        gatewayMode: "local",
+        configMissing: true,
+        gatewayServiceInstalled: false,
+      }).slice(-3),
+    ).toEqual([
+      "Next steps:",
+      "  Not set up yet?     genesis onboard --install-daemon",
+      "  Need to share?      genesis status --all",
     ]);
   });
 

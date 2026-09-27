@@ -33,6 +33,7 @@ export async function buildStatusCommandReportData(
       verbose?: boolean;
     };
     surface: StatusOverviewSurface;
+    configMissing: boolean;
     osSummary: ReturnType<typeof resolveOsSummary>;
     summary: StatusSummary;
     securityAudit?: SecurityAuditReport;
@@ -193,6 +194,9 @@ export async function buildStatusCommandReportData(
       formatCliCommand: params.formatCliCommand,
       nodeOnlyGateway: params.surface.nodeOnlyGateway,
       gatewayReachable: params.surface.gatewayReachable,
+      gatewayMode: params.surface.gatewayMode,
+      configMissing: params.configMissing,
+      gatewayServiceInstalled: params.surface.gatewayService.installed,
     }),
   };
 }

@@ -174,7 +174,12 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
     spacer();
   }
 
-  const runtimeLine = formatRuntimeStatus(service.runtime);
+  // An unloaded, missing unit is just "not installed"; the raw launchctl/systemd
+  // error text only adds noise there.
+  const runtimeLine =
+    service.runtime?.missingUnit && !service.loaded
+      ? "not installed"
+      : formatRuntimeStatus(service.runtime);
   if (runtimeLine) {
     const runtimeColor = resolveRuntimeStatusColor(service.runtime?.status);
     defaultRuntime.log(`${label("Runtime:")} ${colorize(rich, runtimeColor, runtimeLine)}`);
@@ -349,7 +354,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
     spacer();
   }
 
-  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("genesis status")}`);
+  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("genesis doctor")}`);
   defaultRuntime.log(
     `${label("Troubleshooting:")} https://genesis.pixelzx.com/docs/troubleshooting`,
   );

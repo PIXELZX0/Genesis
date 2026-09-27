@@ -214,6 +214,7 @@ export function createStatusCommandReportDataParams(
   return {
     opts: { deep: true, verbose: true },
     surface: baseStatusOverviewSurface,
+    configMissing: false,
     osSummary: { label: "macOS" } as never,
     summary: baseStatusSummary,
     securityAudit: {

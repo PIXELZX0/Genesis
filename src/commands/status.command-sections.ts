@@ -284,19 +284,39 @@ export function buildStatusFooterLines(params: {
   formatCliCommand: (value: string) => string;
   nodeOnlyGateway: unknown;
   gatewayReachable: boolean;
+  gatewayMode: "local" | "remote";
+  configMissing: boolean;
+  gatewayServiceInstalled: boolean | null;
 }) {
+  const cmd = params.formatCliCommand;
+  const nextSteps: string[] = [];
+  if (params.configMissing && !params.nodeOnlyGateway) {
+    nextSteps.push(`  Not set up yet?     ${cmd("genesis onboard --install-daemon")}`);
+  }
+  nextSteps.push(`  Need to share?      ${cmd("genesis status --all")}`);
+  if (params.nodeOnlyGateway) {
+    nextSteps.push(`  Need node service?  ${cmd("genesis node status")}`);
+  } else if (params.gatewayReachable) {
+    nextSteps.push(
+      `  Need to debug live? ${cmd("genesis logs --follow")}`,
+      `  Need to test channels? ${cmd("genesis status --deep")}`,
+    );
+  } else if (params.gatewayMode === "remote") {
+    nextSteps.push(`  Fix reachability first: ${cmd("genesis gateway probe")}`);
+  } else if (!params.configMissing) {
+    // `logs --follow` goes through the gateway, so it can't help while it's down.
+    nextSteps.push(
+      params.gatewayServiceInstalled === false
+        ? `  Start the gateway:  ${cmd("genesis gateway install")} (or ${cmd("genesis gateway run")} in the foreground)`
+        : `  Gateway not answering? ${cmd("genesis gateway restart")}, then ${cmd("genesis doctor")}`,
+    );
+  }
   return [
     "FAQ: https://genesis.pixelzx.com/docs/faq",
     "Troubleshooting: https://genesis.pixelzx.com/docs/troubleshooting",
     ...(params.updateHint ? ["", params.warn(params.updateHint)] : []),
     "Next steps:",
-    `  Need to share?      ${params.formatCliCommand("genesis status --all")}`,
-    `  Need to debug live? ${params.formatCliCommand("genesis logs --follow")}`,
-    params.nodeOnlyGateway
-      ? `  Need node service?  ${params.formatCliCommand("genesis node status")}`
-      : params.gatewayReachable
-        ? `  Need to test channels? ${params.formatCliCommand("genesis status --deep")}`
-        : `  Fix reachability first: ${params.formatCliCommand("genesis gateway probe")}`,
+    ...nextSteps,
   ];
 }
 

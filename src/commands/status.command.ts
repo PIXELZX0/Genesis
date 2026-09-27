@@ -19,6 +19,7 @@ import {
 import { buildStatusCommandReportData } from "./status.command-report-data.ts";
 import { buildStatusCommandReportLines } from "./status.command-report.ts";
 import { logGatewayConnectionDetails } from "./status.gateway-connection.ts";
+import { resolveStatusScanColdStart } from "./status.scan.config-shared.js";
 
 let statusScanModulePromise: Promise<typeof import("./status.scan.js")> | undefined;
 let statusScanFastJsonModulePromise:
@@ -291,6 +292,7 @@ export async function statusCommand(
     await buildStatusCommandReportData({
       opts,
       surface: overviewSurface,
+      configMissing: resolveStatusScanColdStart(),
       osSummary,
       summary,
       securityAudit,

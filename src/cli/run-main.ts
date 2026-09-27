@@ -3,7 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { CommanderError } from "commander";
-import { resolveStateDir } from "../config/paths.js";
+import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
 import type { GenesisConfig } from "../config/types.genesis.js";
 import { normalizeEnv } from "../infra/env.js";
 import { formatUncaughtError } from "../infra/errors.js";
@@ -26,6 +26,7 @@ import {
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
 import { resolveCliArgvInvocation } from "./argv-invocation.js";
+import { formatCliCommand } from "./command-format.js";
 import {
   shouldRegisterPrimaryCommandOnly,
   shouldSkipPluginCommandRegistration,
@@ -296,6 +297,11 @@ export async function runCli(argv: string[] = process.argv) {
         throw error;
       }
       process.exitCode = error.exitCode;
+    }
+    // Bare `genesis` prints help; on a fresh install point at the one command
+    // that gets you started instead of leaving 50+ commands to guess from.
+    if (primary === null && !invocation.hasHelpOrVersion && !existsSync(resolveConfigPath())) {
+      console.error(`\nNo Genesis config yet. Start here: ${formatCliCommand("genesis onboard")}`);
     }
   } finally {
     await closeCliMemoryManagers();
