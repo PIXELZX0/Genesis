@@ -95,7 +95,9 @@ function usageChart(usage: SessionsUsageResult | null, onNavigate: (tab: string)
   return html`
     <div class="card" style="margin-top: 24px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;">
-        <div style=${PANEL_LABEL}>USAGE · LAST ${USAGE_CHART_DAYS} DAYS</div>
+        <div style=${PANEL_LABEL}>
+          ${t("overview.panels.usage", { days: String(USAGE_CHART_DAYS) })}
+        </div>
         <button
           class="btn btn--sm"
           style="margin-bottom: 12px;"
@@ -154,15 +156,27 @@ export function renderOverview(props: OverviewProps) {
   const version = props.hello?.server?.version ?? t("common.na");
   const activity = props.attentionItems.slice(0, 6);
   const statusRows: Array<{ label: string; value: string; ok: boolean | null }> = [
-    { label: "Gateway", value: props.connected ? "Online" : "Offline", ok: props.connected },
     {
-      label: "Cron",
-      value: props.cronEnabled ? "Enabled" : "Disabled",
+      label: t("overview.stats.gateway"),
+      value: props.connected ? t("common.online") : t("common.offline"),
+      ok: props.connected,
+    },
+    {
+      label: t("overview.stats.cron"),
+      value: props.cronEnabled ? t("common.enabled") : t("common.disabled"),
       ok: props.cronEnabled ?? false,
     },
-    { label: "Active sessions", value: String(props.sessionsCount ?? 0), ok: null },
-    { label: "Channels online", value: String(props.onlineChannelCount), ok: null },
-    { label: "Version", value: version, ok: null },
+    {
+      label: t("overview.stats.activeSessions"),
+      value: String(props.sessionsCount ?? 0),
+      ok: null,
+    },
+    {
+      label: t("overview.stats.onlineChannels"),
+      value: String(props.onlineChannelCount),
+      ok: null,
+    },
+    { label: t("common.version"), value: version, ok: null },
   ];
 
   return html`
@@ -173,16 +187,17 @@ export function renderOverview(props: OverviewProps) {
       </div>
 
       <div class="card" style="display: flex; padding: 0; margin-top: 24px; overflow: hidden;">
-        ${statCell(String(props.sessionsCount ?? 0), "Active sessions")}
-        ${statCell(String(props.onlineChannelCount), "Online channels")}
-        ${statCell(String(props.cronJobs.length), "Cron jobs")} ${statCell(uptime, "Uptime", true)}
+        ${statCell(String(props.sessionsCount ?? 0), t("overview.stats.activeSessions"))}
+        ${statCell(String(props.onlineChannelCount), t("overview.stats.onlineChannels"))}
+        ${statCell(String(props.cronJobs.length), t("overview.stats.cronJobs"))}
+        ${statCell(uptime, t("overview.stats.uptime"), true)}
       </div>
 
       ${usageChart(props.usageResult, props.onNavigate)}
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
         <div class="card">
-          <div style=${PANEL_LABEL}>RECENT ACTIVITY</div>
+          <div style=${PANEL_LABEL}>${t("overview.panels.recentActivity")}</div>
           ${activity.length === 0
             ? html`<div class="muted" style="padding: 8px 0;">${t("common.na")}</div>`
             : activity.map(
@@ -202,7 +217,7 @@ export function renderOverview(props: OverviewProps) {
         </div>
 
         <div class="card">
-          <div style=${PANEL_LABEL}>STATUS</div>
+          <div style=${PANEL_LABEL}>${t("overview.panels.status")}</div>
           ${statusRows.map(
             (row) => html`
               <div style=${ROW}>
@@ -224,7 +239,7 @@ export function renderOverview(props: OverviewProps) {
       </div>
 
       <div class="card" style="margin-top: 24px;">
-        <div style=${PANEL_LABEL}>CONNECTION</div>
+        <div style=${PANEL_LABEL}>${t("overview.panels.connection")}</div>
         <div
           style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end;"
         >

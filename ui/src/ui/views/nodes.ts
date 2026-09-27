@@ -41,10 +41,10 @@ export function renderNodes(props: NodesProps) {
           : html`
               <div class="table" style="margin-top: 16px;">
                 <div class="table-head" style=${NODES_GRID}>
-                  <span>NODE</span>
-                  <span>PLATFORM</span>
-                  <span>ROLE</span>
-                  <span>STATUS</span>
+                  <span>${t("columns.node")}</span>
+                  <span>${t("columns.platform")}</span>
+                  <span>${t("columns.role")}</span>
+                  <span>${t("columns.status")}</span>
                   <span></span>
                 </div>
                 ${props.nodes.map((node) => renderNodeRow(node, props))}

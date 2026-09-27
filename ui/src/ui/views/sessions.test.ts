@@ -100,9 +100,9 @@ describe("sessions view", () => {
     await Promise.resolve();
 
     const text = container.textContent ?? "";
-    expect(text).toContain("SESSION");
-    expect(text).toContain("CHANNEL");
-    expect(text).toContain("STATUS");
+    expect(text).toContain("Session");
+    expect(text).toContain("Channel");
+    expect(text).toContain("Status");
     expect(text).toContain("alpha");
     expect(text).toContain("orchestrator");
     expect(text).toContain("telegram");

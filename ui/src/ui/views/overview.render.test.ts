@@ -82,7 +82,7 @@ describe("overview view (Pencil design)", () => {
     render(renderOverview(createOverviewProps({ connected: true, cronEnabled: true })), container);
     await Promise.resolve();
     const text = container.textContent ?? "";
-    expect(text).toContain("STATUS");
+    expect(text).toContain("Status");
     expect(text).toContain("Gateway");
     expect(text).toContain("Online");
     expect(text).toContain("Version");
@@ -101,7 +101,7 @@ describe("overview view (Pencil design)", () => {
     render(renderOverview(createOverviewProps({ attentionItems: items })), container);
     await Promise.resolve();
     const text = container.textContent ?? "";
-    expect(text).toContain("RECENT ACTIVITY");
+    expect(text).toContain("Recent activity");
     expect(text).toContain("Channel disconnected");
     expect(text).toContain("Telegram lost its connection.");
   });
@@ -123,6 +123,6 @@ describe("overview view (Pencil design)", () => {
     // Tallest day fills the chart; half-sized day is half as tall.
     expect((bars[0] as HTMLElement).style.height).toBe("120px");
     expect((bars[1] as HTMLElement).style.height).toBe("60px");
-    expect(container.textContent ?? "").toContain("USAGE");
+    expect(container.textContent ?? "").toContain("Usage");
   });
 });

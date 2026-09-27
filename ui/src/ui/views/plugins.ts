@@ -186,10 +186,10 @@ export function renderPlugins(props: PluginsProps) {
         : html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${PLUGINS_GRID}>
-                <span>PLUGIN</span>
-                <span>VERSION</span>
-                <span>TYPE</span>
-                <span>ENABLED</span>
+                <span>${t("columns.plugin")}</span>
+                <span>${t("columns.version")}</span>
+                <span>${t("columns.type")}</span>
+                <span>${t("columns.enabled")}</span>
               </div>
               ${filtered.map((plugin) => renderPluginRow(plugin, props))}
             </div>

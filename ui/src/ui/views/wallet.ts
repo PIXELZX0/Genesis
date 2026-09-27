@@ -248,10 +248,10 @@ function renderWalletAccounts(props: WalletProps) {
         : html`
             <div class="table" style="margin-top: 16px;">
               <div class="table-head" style=${WALLET_ACCOUNTS_GRID}>
-                <span>ASSET</span>
-                <span>BALANCE</span>
-                <span>NETWORK</span>
-                <span>ADDRESS</span>
+                <span>${t("columns.asset")}</span>
+                <span>${t("columns.balance")}</span>
+                <span>${t("columns.network")}</span>
+                <span>${t("columns.address")}</span>
               </div>
               ${accounts.map((account) => renderAccount(account, props))}
             </div>

@@ -92,12 +92,12 @@ describe("cron view (Pencil design)", () => {
     );
 
     const head = container.querySelector(".table-head");
-    expect(head?.textContent).toContain("JOB");
-    expect(head?.textContent).toContain("SCHEDULE");
-    expect(head?.textContent).toContain("AGENT");
-    expect(head?.textContent).toContain("NEXT RUN");
-    expect(head?.textContent).toContain("LAST RUN");
-    expect(head?.textContent).toContain("STATUS");
+    expect(head?.textContent).toContain("Job");
+    expect(head?.textContent).toContain("Schedule");
+    expect(head?.textContent).toContain("Agent");
+    expect(head?.textContent).toContain("Next run");
+    expect(head?.textContent).toContain("Last run");
+    expect(head?.textContent).toContain("Status");
     expect(container.querySelectorAll(".table-row")).toHaveLength(1);
     expect(container.textContent).toContain("Daily ping");
     expect(container.textContent).toContain("0 9 * * *");

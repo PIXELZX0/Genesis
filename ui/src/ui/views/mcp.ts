@@ -169,10 +169,10 @@ export function renderMcp(props: McpProps) {
           : html`
               <div class="table" style="margin-top: 20px;">
                 <div class="table-head" style=${MCP_GRID}>
-                  <span>SERVER</span>
-                  <span>TRANSPORT</span>
-                  <span>TOOLS</span>
-                  <span>STATUS</span>
+                  <span>${t("columns.server")}</span>
+                  <span>${t("columns.transport")}</span>
+                  <span>${t("columns.tools")}</span>
+                  <span>${t("columns.status")}</span>
                   <span></span>
                 </div>
                 ${entries.map(([name, server]) => renderServerRow(name, server, props))}

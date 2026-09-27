@@ -239,12 +239,12 @@ export function renderChannels(props: ChannelsProps) {
         : html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${CHANNELS_GRID}>
-                <span>CHANNEL</span>
-                <span>PROVIDER</span>
-                <span>AGENT</span>
-                <span>ACCOUNTS</span>
-                <span>LAST ACTIVITY</span>
-                <span>STATUS</span>
+                <span>${t("columns.channel")}</span>
+                <span>${t("columns.provider")}</span>
+                <span>${t("columns.agent")}</span>
+                <span>${t("columns.accounts")}</span>
+                <span>${t("columns.lastActivity")}</span>
+                <span>${t("columns.status")}</span>
               </div>
               ${ordered.map((channel) => renderRow(channel.key, props))}
             </div>

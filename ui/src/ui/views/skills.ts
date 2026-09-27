@@ -134,8 +134,8 @@ export function renderSkills(props: SkillsProps) {
         : html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${SKILLS_GRID}>
-                <span>SKILL</span>
-                <span>ENABLED</span>
+                <span>${t("columns.skill")}</span>
+                <span>${t("columns.enabled")}</span>
               </div>
               ${filtered.map((skill) => renderSkillRow(skill, props))}
             </div>

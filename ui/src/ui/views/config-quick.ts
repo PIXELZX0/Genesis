@@ -141,12 +141,12 @@ export type QuickSettingsProps = {
   version: string;
 };
 
-const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; label: string }> = [
-  { value: 0, label: "None" },
-  { value: 25, label: "Slight" },
-  { value: 50, label: "Soft" },
-  { value: 75, label: "Round" },
-  { value: 100, label: "Full" },
+const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; labelKey: string }> = [
+  { value: 0, labelKey: "quickSettings.roundness.none" },
+  { value: 25, labelKey: "quickSettings.roundness.slight" },
+  { value: 50, labelKey: "quickSettings.roundness.soft" },
+  { value: 75, labelKey: "quickSettings.roundness.round" },
+  { value: 100, labelKey: "quickSettings.roundness.full" },
 ];
 
 // Keep raw uploads comfortably below the 2 MB persisted data URL limit after
@@ -232,15 +232,15 @@ function resolveThinkingLevels(current: string): readonly string[] {
 function renderModelCard(props: QuickSettingsProps) {
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.brain, "Model & Thinking")}
+      ${renderCardHeader(icons.brain, t("quickSettings.model.title"))}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Applies to</span>
-          <div class="qs-segmented" role="group" aria-label="Settings scope">
+          <span class="qs-row__label">${t("quickSettings.model.appliesTo")}</span>
+          <div class="qs-segmented" role="group" aria-label=${t("quickSettings.model.scope")}>
             ${(
               [
-                ["session", "This session"],
-                ["default", "New sessions"],
+                ["session", t("quickSettings.model.thisSession")],
+                ["default", t("quickSettings.model.newSessions")],
               ] as const
             ).map(
               ([scope, label]) => html`
@@ -258,14 +258,14 @@ function renderModelCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Model</span>
+          <span class="qs-row__label">${t("quickSettings.model.model")}</span>
           <button class="qs-row__value qs-row__value--action" @click=${props.onModelChange}>
             <code>${props.currentModel || "default"}</code>
             <span class="qs-row__chevron">${icons.chevronRight}</span>
           </button>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Thinking</span>
+          <span class="qs-row__label">${t("quickSettings.model.thinking")}</span>
           <div class="qs-segmented">
             ${resolveThinkingLevels(props.thinkingLevel).map(
               (level) => html`
@@ -282,7 +282,7 @@ function renderModelCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Fast mode</span>
+          <span class="qs-row__label">${t("quickSettings.model.fastMode")}</span>
           <label class="qs-toggle">
             <input
               type="checkbox"
@@ -293,10 +293,10 @@ function renderModelCard(props: QuickSettingsProps) {
             <span class="qs-toggle__track"></span>
             <span class="qs-toggle__hint muted"
               >${props.scope === "default" && !props.fastModeDefaultAvailable
-                ? "Set per agent in AI & Agents"
+                ? t("quickSettings.model.fastModePerAgent")
                 : props.fastMode
-                  ? "On — cheaper, less capable"
-                  : "Off"}</span
+                  ? t("quickSettings.model.fastModeOn")
+                  : t("quickSettings.model.fastModeOff")}</span
             >
           </label>
         </div>
@@ -314,10 +314,10 @@ function renderChannelsCard(props: QuickSettingsProps) {
 
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.send, "Channels", badge)}
+      ${renderCardHeader(icons.send, t("quickSettings.channels.title"), badge)}
       <div class="qs-card__body">
         ${props.channels.length === 0
-          ? html`<div class="qs-empty muted">No channels configured</div>`
+          ? html`<div class="qs-empty muted">${t("quickSettings.channels.empty")}</div>`
           : props.channels.map(
               (ch) => html`
                 <div class="qs-row">
@@ -327,7 +327,7 @@ function renderChannelsCard(props: QuickSettingsProps) {
                   </span>
                   <span class="qs-row__value">
                     ${ch.connected
-                      ? html`<span class="muted">${ch.detail ?? "Connected"}</span>`
+                      ? html`<span class="muted">${ch.detail ?? t("common.connected")}</span>`
                       : html`<button
                           class="qs-link-btn"
                           @click=${() => props.onChannelConfigure?.(ch.id)}
@@ -353,10 +353,10 @@ function renderApiKeysCard(props: QuickSettingsProps) {
     totalProfiles > 1 ? html`<span class="qs-badge">${totalProfiles} profiles</span>` : undefined;
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.plug, "API Keys", badge)}
+      ${renderCardHeader(icons.plug, t("quickSettings.apiKeys.title"), badge)}
       <div class="qs-card__body">
         ${props.apiKeys.length === 0
-          ? html`<div class="qs-empty muted">No API keys configured</div>`
+          ? html`<div class="qs-empty muted">${t("quickSettings.apiKeys.empty")}</div>`
           : props.apiKeys.map((key) => {
               // Multi-profile providers render one row per profile; the
               // single-credential shape is preserved for backwards compat
@@ -428,25 +428,31 @@ function renderAutomationsCard(props: QuickSettingsProps) {
 
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.zap, "Automations")}
+      ${renderCardHeader(icons.zap, t("quickSettings.automations.title"))}
       <div class="qs-card__body">
         <div class="qs-row">
           <span class="qs-row__label">
-            ${cronJobCount} scheduled task${cronJobCount !== 1 ? "s" : ""}
+            ${t("quickSettings.automations.scheduledTasks", { count: String(cronJobCount) })}
           </span>
-          <button class="qs-link-btn" @click=${props.onManageCron}>Manage →</button>
+          <button class="qs-link-btn" @click=${props.onManageCron}>
+            ${t("quickSettings.actions.manage")}
+          </button>
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
-            ${skillCount} skill${skillCount !== 1 ? "s" : ""} installed
+            ${t("quickSettings.automations.skillsInstalled", { count: String(skillCount) })}
           </span>
-          <button class="qs-link-btn" @click=${props.onBrowseSkills}>Browse →</button>
+          <button class="qs-link-btn" @click=${props.onBrowseSkills}>
+            ${t("quickSettings.actions.browse")}
+          </button>
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
-            ${mcpServerCount} MCP server${mcpServerCount !== 1 ? "s" : ""}
+            ${t("quickSettings.automations.mcpServers", { count: String(mcpServerCount) })}
           </span>
-          <button class="qs-link-btn" @click=${props.onConfigureMcp}>Configure →</button>
+          <button class="qs-link-btn" @click=${props.onConfigureMcp}>
+            ${t("quickSettings.actions.configure")}
+          </button>
         </div>
       </div>
     </div>
@@ -489,12 +495,14 @@ function renderSecurityCard(props: QuickSettingsProps) {
     <div class="qs-card">
       ${renderCardHeader(
         icons.eye,
-        "Security",
-        html`<button class="qs-link-btn" @click=${props.onSecurityConfigure}>Configure →</button>`,
+        t("quickSettings.security.title"),
+        html`<button class="qs-link-btn" @click=${props.onSecurityConfigure}>
+          ${t("quickSettings.actions.configure")}
+        </button>`,
       )}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Gateway auth</span>
+          <span class="qs-row__label">${t("quickSettings.security.gatewayAuth")}</span>
           <span class="qs-row__value">
             <span
               class="qs-badge ${gatewayAuth === "none"
@@ -507,12 +515,22 @@ function renderSecurityCard(props: QuickSettingsProps) {
           </span>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Exec policy</span>
-          ${renderSegmented("Exec policy", EXEC_POLICIES, execPolicy, props.onExecPolicyChange)}
+          <span class="qs-row__label">${t("quickSettings.security.execPolicy")}</span>
+          ${renderSegmented(
+            t("quickSettings.security.execPolicy"),
+            EXEC_POLICIES,
+            execPolicy,
+            props.onExecPolicyChange,
+          )}
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Exec approval</span>
-          ${renderSegmented("Exec approval", EXEC_ASK_MODES, execAsk, props.onExecAskChange)}
+          <span class="qs-row__label">${t("quickSettings.security.execApproval")}</span>
+          ${renderSegmented(
+            t("quickSettings.security.execApproval"),
+            EXEC_ASK_MODES,
+            execAsk,
+            props.onExecAskChange,
+          )}
         </div>
         ${execPolicy === "default" || execAsk === "default"
           ? html`<div class="muted qs-card__note">
@@ -521,10 +539,10 @@ function renderSecurityCard(props: QuickSettingsProps) {
             </div>`
           : nothing}
         <div class="qs-row">
-          <span class="qs-row__label">Device auth</span>
+          <span class="qs-row__label">${t("quickSettings.security.deviceAuth")}</span>
           <span class="qs-row__value">
             <span class="qs-badge ${deviceAuth ? "qs-badge--ok" : "qs-badge--warn"}"
-              >${deviceAuth ? "Enabled" : "Disabled"}</span
+              >${deviceAuth ? t("common.enabled") : t("common.disabled")}</span
             >
           </span>
         </div>
@@ -536,10 +554,10 @@ function renderSecurityCard(props: QuickSettingsProps) {
 function renderAppearanceCard(props: QuickSettingsProps) {
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.spark, "Appearance")}
+      ${renderCardHeader(icons.spark, t("quickSettings.appearance.title"))}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Mode</span>
+          <span class="qs-row__label">${t("common.mode")}</span>
           <div class="qs-segmented">
             ${(["light", "dark", "system"] as ThemeMode[]).map(
               (mode) => html`
@@ -562,7 +580,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Roundness</span>
+          <span class="qs-row__label">${t("quickSettings.appearance.roundness")}</span>
           <div class="qs-segmented">
             ${BORDER_RADIUS_STOPS.map(
               (stop) => html`
@@ -573,7 +591,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
                     : ""}"
                   @click=${() => props.setBorderRadius(stop.value)}
                 >
-                  ${stop.label}
+                  ${t(stop.labelKey)}
                 </button>
               `,
             )}
@@ -593,18 +611,18 @@ function renderPersonalCard(props: QuickSettingsProps) {
   const label = resolveLocalUserName(identity);
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.image, "Personal")}
+      ${renderCardHeader(icons.image, t("quickSettings.personal.title"))}
       <div class="qs-card__body">
         <div class="qs-personal-preview">
           ${renderLocalUserAvatarPreview(props.userName, props.userAvatar)}
           <div class="qs-personal-preview__copy">
             <div class="qs-personal-preview__title">${label}</div>
-            <div class="muted">This browser only</div>
+            <div class="muted">${t("quickSettings.thisBrowserOnly")}</div>
           </div>
         </div>
         <div class="qs-row">
           <label class="qs-field">
-            <span class="qs-row__label">Name</span>
+            <span class="qs-row__label">${t("quickSettings.personal.name")}</span>
             <input
               class="qs-field__input"
               type="text"
@@ -617,7 +635,7 @@ function renderPersonalCard(props: QuickSettingsProps) {
         </div>
         <div class="qs-row">
           <label class="qs-field">
-            <span class="qs-row__label">Avatar text / emoji</span>
+            <span class="qs-row__label">${t("quickSettings.personal.avatar")}</span>
             <input
               class="qs-field__input"
               type="text"
@@ -677,11 +695,11 @@ function renderToggleRow(label: string, checked: boolean, onChange: (next: boole
 function renderLanguageChatCard(props: QuickSettingsProps) {
   return html`
     <div class="qs-card">
-      ${renderCardHeader(icons.messageSquare, "Language & Chat")}
+      ${renderCardHeader(icons.messageSquare, t("quickSettings.languageChat.title"))}
       <div class="qs-card__body">
         <div class="qs-row">
           <label class="qs-field">
-            <span class="qs-row__label">Language</span>
+            <span class="qs-row__label">${t("overview.access.language")}</span>
             <select
               class="qs-field__input"
               .value=${props.locale}
@@ -698,13 +716,17 @@ function renderLanguageChatCard(props: QuickSettingsProps) {
             </select>
           </label>
         </div>
-        ${renderToggleRow("Show thinking", props.chatShowThinking, (next) =>
-          props.onChatDisplayChange?.({ chatShowThinking: next }),
+        ${renderToggleRow(
+          t("quickSettings.languageChat.showThinking"),
+          props.chatShowThinking,
+          (next) => props.onChatDisplayChange?.({ chatShowThinking: next }),
         )}
-        ${renderToggleRow("Show tool calls", props.chatShowToolCalls, (next) =>
-          props.onChatDisplayChange?.({ chatShowToolCalls: next }),
+        ${renderToggleRow(
+          t("quickSettings.languageChat.showToolCalls"),
+          props.chatShowToolCalls,
+          (next) => props.onChatDisplayChange?.({ chatShowToolCalls: next }),
         )}
-        <div class="muted qs-card__note">This browser only</div>
+        <div class="muted qs-card__note">${t("quickSettings.thisBrowserOnly")}</div>
       </div>
     </div>
   `;
@@ -714,11 +736,15 @@ function renderPresetsCard(props: QuickSettingsProps) {
   const activePreset = props.configObject ? detectActivePreset(props.configObject) : null;
   const badge = activePreset
     ? undefined
-    : html`<span class="qs-badge">${props.configObject ? "Custom" : "Unknown"}</span>`;
+    : html`<span class="qs-badge"
+        >${props.configObject
+          ? t("quickSettings.profile.custom")
+          : t("quickSettings.profile.unknown")}</span
+      >`;
 
   return html`
     <div class="qs-card qs-card--span-all">
-      ${renderCardHeader(icons.zap, "Profile", badge)}
+      ${renderCardHeader(icons.zap, t("quickSettings.profile.title"), badge)}
       <div class="qs-card__body qs-presets-grid">
         ${CONFIG_PRESETS.map(
           (preset) => html`
@@ -742,7 +768,7 @@ function renderConnectionFooter(props: QuickSettingsProps) {
     <div class="qs-footer">
       <div class="qs-footer__row">
         <span class="qs-status-dot ${props.connected ? "qs-status-dot--ok" : ""}"></span>
-        <span class="muted">${props.connected ? "Connected" : "Offline"}</span>
+        <span class="muted">${props.connected ? t("common.connected") : t("common.offline")}</span>
         ${props.assistantName ? html`<span class="muted">· ${props.assistantName}</span>` : nothing}
         ${props.version ? html`<span class="muted">· v${props.version}</span>` : nothing}
       </div>
@@ -775,7 +801,7 @@ export function renderQuickSettingsConfirm(
     body: html``,
     busy: cb.busy,
     error: null,
-    submitLabel: "Apply",
+    submitLabel: t("quickSettings.apply"),
     canSubmit: true,
     onCancel: cb.onCancel,
     onSubmit: cb.onConfirm,
@@ -788,11 +814,13 @@ export function renderQuickSettings(props: QuickSettingsProps) {
   return html`
     <div class="qs-container">
       <div class="qs-header">
-        <h2 class="qs-header__title">${icons.settings} Settings</h2>
+        <h2 class="qs-header__title">${icons.settings} ${t("nav.settings")}</h2>
         <div class="qs-header__actions">
-          <button class="btn btn--sm" @click=${props.onOpenBackups}>Backups</button>
+          <button class="btn btn--sm" @click=${props.onOpenBackups}>
+            ${t("quickSettings.backups")}
+          </button>
           <button class="btn btn--sm" @click=${props.onAdvancedSettings}>
-            Advanced ${icons.chevronRight}
+            ${t("quickSettings.advanced")} ${icons.chevronRight}
           </button>
         </div>
       </div>

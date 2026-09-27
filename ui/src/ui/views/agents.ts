@@ -257,10 +257,10 @@ export function renderAgents(props: AgentsProps) {
           : html`
               <div class="table" style="margin-top: 24px;">
                 <div class="table-head" style=${AGENTS_GRID}>
-                  <span>AGENT</span>
-                  <span>MODEL</span>
-                  <span>FALLBACKS</span>
-                  <span>WORKSPACE</span>
+                  <span>${t("columns.agent")}</span>
+                  <span>${t("columns.model")}</span>
+                  <span>${t("columns.fallbacks")}</span>
+                  <span>${t("columns.workspace")}</span>
                 </div>
                 ${agents.map((agent) => renderAgentRow(agent, props, defaultId, selectedId))}
               </div>

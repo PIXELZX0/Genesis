@@ -180,7 +180,7 @@ describe("channel agent column", () => {
 
     render(renderChannels(createProps(snapshot)), container);
 
-    expect(container.textContent).toContain("AGENT");
+    expect(container.textContent).toContain("Agent");
     expect(container.textContent).toContain("genesis +1");
   });
 });

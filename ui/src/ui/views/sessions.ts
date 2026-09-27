@@ -163,12 +163,12 @@ export function renderSessions(props: SessionsProps) {
         : html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${SESSIONS_GRID}>
-                <span>SESSION</span>
-                <span>AGENT</span>
-                <span>CHANNEL</span>
-                <span>UPDATED</span>
-                <span>TOKENS</span>
-                <span>STATUS</span>
+                <span>${t("columns.session")}</span>
+                <span>${t("columns.agent")}</span>
+                <span>${t("columns.channel")}</span>
+                <span>${t("columns.updated")}</span>
+                <span>${t("columns.tokens")}</span>
+                <span>${t("columns.status")}</span>
               </div>
               ${rows.map((row) => renderRow(row, props))}
             </div>

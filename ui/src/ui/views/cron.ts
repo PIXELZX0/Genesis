@@ -197,12 +197,12 @@ export function renderCron(props: CronProps) {
         : html`
             <div class="table" style="margin-top: 20px;">
               <div class="table-head" style=${CRON_GRID}>
-                <span>JOB</span>
-                <span>SCHEDULE</span>
-                <span>AGENT</span>
-                <span>NEXT RUN</span>
-                <span>LAST RUN</span>
-                <span>STATUS</span>
+                <span>${t("columns.job")}</span>
+                <span>${t("columns.schedule")}</span>
+                <span>${t("columns.agent")}</span>
+                <span>${t("columns.nextRun")}</span>
+                <span>${t("columns.lastRun")}</span>
+                <span>${t("columns.status")}</span>
               </div>
               ${jobs.map((job) => renderRow(job, props))}
             </div>
