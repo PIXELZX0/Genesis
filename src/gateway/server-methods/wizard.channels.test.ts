@@ -4,6 +4,7 @@ import type { GatewayRequestHandlerOptions } from "./types.js";
 const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
   normalizeAnyChannelId: vi.fn((value: string | null | undefined) => value ?? null),
+  normalizeChatChannelId: vi.fn((_value: string | null | undefined): string | null => null),
   runInteractiveChannelsAddWizard: vi.fn(),
   runCustomModelWizard: vi.fn(),
   runModelProviderWizard: vi.fn(),
@@ -15,6 +16,10 @@ vi.mock("../../config/config.js", () => ({
 
 vi.mock("../../channels/registry.js", () => ({
   normalizeAnyChannelId: mocks.normalizeAnyChannelId,
+}));
+
+vi.mock("../../channels/ids.js", () => ({
+  normalizeChatChannelId: mocks.normalizeChatChannelId,
 }));
 
 vi.mock("../../flows/channel-add-wizard.js", () => ({
@@ -97,6 +102,28 @@ describe("wizardHandlers channel setup target", () => {
       });
       await prompter.outro(`Selected ${selected}`);
     });
+  });
+
+  it("preselects a bundled channel whose plugin is not loaded yet", async () => {
+    mocks.normalizeAnyChannelId.mockReturnValue(null);
+    mocks.normalizeChatChannelId.mockImplementation((value) =>
+      value === "telegram" ? "telegram" : null,
+    );
+    const context = createContext();
+    const start = await callWizard(
+      "wizard.start",
+      { target: "channels", channel: "telegram" },
+      context,
+    );
+    await callWizard(
+      "wizard.next",
+      { sessionId: start.sessionId, answer: { stepId: start.step?.id, value: true } },
+      context,
+    );
+
+    expect(mocks.runInteractiveChannelsAddWizard).toHaveBeenCalledWith(
+      expect.objectContaining({ initialSelection: ["telegram"] }),
+    );
   });
 
   it("runs the channel add wizard through the shared wizard session", async () => {

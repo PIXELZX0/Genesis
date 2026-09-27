@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { normalizeChatChannelId } from "../../channels/ids.js";
 import { normalizeAnyChannelId } from "../../channels/registry.js";
 import { readConfigFileSnapshot } from "../../config/config.js";
 import type { GenesisConfig } from "../../config/types.genesis.js";
@@ -25,7 +26,11 @@ async function runChannelsWizard(params: { channel?: unknown; prompter: WizardPr
     throw new Error("config invalid; fix it before running channel setup");
   }
   const rawChannel = readStringValue(params.channel);
-  const initialChannel = rawChannel ? normalizeAnyChannelId(rawChannel) : null;
+  // A channel that is bundled but not loaded yet (fresh install) is still a
+  // valid wizard choice: the wizard installs/enables it.
+  const initialChannel = rawChannel
+    ? (normalizeAnyChannelId(rawChannel) ?? normalizeChatChannelId(rawChannel))
+    : null;
   if (rawChannel && !initialChannel) {
     throw new Error(`unknown channel: ${rawChannel}`);
   }

@@ -8,6 +8,9 @@ import {
   formatRemainingShort,
 } from "../../agents/auth-health.js";
 import { ensureAuthProfileStore } from "../../agents/auth-profiles.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { hasAvailableAuthForProvider } from "../../agents/model-auth.js";
+import { resolveConfiguredModelRef } from "../../agents/model-selection.js";
 import { normalizeProviderId } from "../../agents/provider-id.js";
 import { loadConfig, type GenesisConfig } from "../../config/config.js";
 import { isSecretRef } from "../../config/types.secrets.js";
@@ -72,11 +75,44 @@ export type ModelAuthStatusProvider = {
   };
 };
 
+export type ModelAuthStatusDefaultModel = {
+  provider: string;
+  model: string;
+  /** Whether any credential (env, config, auth profile, local/synthetic) can serve it. */
+  authAvailable: boolean;
+};
+
 export type ModelAuthStatusResult = {
   /** Snapshot build time, ms since epoch. 0 = never loaded (UI fallback sentinel). */
   ts: number;
   providers: ModelAuthStatusProvider[];
+  /** Omitted when the check itself failed; unknown is not "missing". */
+  defaultModel?: ModelAuthStatusDefaultModel;
 };
+
+async function resolveDefaultModelStatus(params: {
+  cfg: GenesisConfig;
+  store: ReturnType<typeof ensureAuthProfileStore>;
+  agentDir: string;
+}): Promise<ModelAuthStatusDefaultModel | undefined> {
+  const { provider, model } = resolveConfiguredModelRef({
+    cfg: params.cfg,
+    defaultProvider: DEFAULT_PROVIDER,
+    defaultModel: DEFAULT_MODEL,
+  });
+  try {
+    const authAvailable = await hasAvailableAuthForProvider({
+      provider,
+      cfg: params.cfg,
+      store: params.store,
+      agentDir: params.agentDir,
+    });
+    return { provider, model, authAvailable };
+  } catch (err) {
+    log.debug(`default model auth check failed: provider=${provider} error=${formatForLog(err)}`);
+    return undefined;
+  }
+}
 
 const CACHE_TTL_MS = 60_000;
 let cached: { ts: number; result: ModelAuthStatusResult } | null = null;
@@ -382,7 +418,12 @@ export const modelsAuthStatusHandlers: GatewayRequestHandlers = {
       const providers = authHealth.providers.map((prov) =>
         mapProvider(prov, usageByProvider, configured.expectsOAuth, store, cfg),
       );
-      const result: ModelAuthStatusResult = { ts: now, providers };
+      const defaultModel = await resolveDefaultModelStatus({ cfg, store, agentDir });
+      const result: ModelAuthStatusResult = {
+        ts: now,
+        providers,
+        ...(defaultModel ? { defaultModel } : {}),
+      };
       cached = { ts: now, result };
       respond(true, result, undefined);
     } catch (err) {

@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
     (): AuthHealthSummary => ({ now: 0, warnAfterMs: 0, profiles: [], providers: [] }),
   ),
   loadProviderUsageSummary: vi.fn(async () => ({ updatedAt: 0, providers: [] })),
+  hasAvailableAuthForProvider: vi.fn(async (): Promise<boolean> => true),
 }));
 
 vi.mock("../../config/config.js", () => ({
@@ -33,6 +34,10 @@ vi.mock("../../agents/auth-health.js", async () => {
     buildAuthHealthSummary: mocks.buildAuthHealthSummary,
   };
 });
+
+vi.mock("../../agents/model-auth.js", () => ({
+  hasAvailableAuthForProvider: mocks.hasAvailableAuthForProvider,
+}));
 
 vi.mock("../../infra/provider-usage.load.js", () => ({
   loadProviderUsageSummary: mocks.loadProviderUsageSummary,
@@ -119,6 +124,37 @@ describe("models.authStatus", () => {
     expect(result.providers[0].status).toBe("ok");
     expect(result.providers[0].expiry?.at).toBe(1_000_000);
     expect(result.providers[0].profiles[0].type).toBe("oauth");
+  });
+
+  it("reports whether the configured default model has usable auth", async () => {
+    mocks.loadConfig.mockReturnValue({
+      agents: { defaults: { model: { primary: "anthropic/claude-test" } } },
+    });
+    mocks.hasAvailableAuthForProvider.mockResolvedValueOnce(false);
+
+    const opts = createOptions();
+    await handler(opts);
+
+    const result = opts.respond.mock.calls[0]?.[1] as ModelAuthStatusResult;
+    expect(result.defaultModel).toEqual({
+      provider: "anthropic",
+      model: "claude-test",
+      authAvailable: false,
+    });
+    expect(mocks.hasAvailableAuthForProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "anthropic" }),
+    );
+  });
+
+  it("omits defaultModel when the auth check throws instead of claiming it is missing", async () => {
+    mocks.hasAvailableAuthForProvider.mockRejectedValueOnce(new Error("keychain locked"));
+
+    const opts = createOptions();
+    await handler(opts);
+
+    const [ok, payload] = opts.respond.mock.calls[0] ?? [];
+    expect(ok).toBe(true);
+    expect((payload as ModelAuthStatusResult).defaultModel).toBeUndefined();
   });
 
   it("serves cached response within TTL and marks it as cached", async () => {
