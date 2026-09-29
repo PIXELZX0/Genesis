@@ -30,6 +30,12 @@ export type McpConfig = {
    */
   sessionIdleTtlMs?: number;
   /**
+   * How agents reach MCP tools. `cli` (default) keeps them out of the tool list;
+   * agents run `genesis mcp tools` / `genesis mcp call` instead. `inject` loads
+   * every configured server's tools directly into each run.
+   */
+  toolExposure?: "cli" | "inject";
+  /**
    * Controls for outbound metadata/OAuth discovery fetches (Control UI
    * "Add by link" and the OAuth flow). These requests are SSRF-guarded and
    * block private/internal addresses by default.

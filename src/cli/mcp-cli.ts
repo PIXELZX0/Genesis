@@ -1,10 +1,13 @@
+import crypto from "node:crypto";
 import { Command } from "commander";
+import type { SessionMcpRuntime } from "../agents/pi-bundle-mcp-types.js";
 import { parseConfigValue } from "../auto-reply/reply/config-value.js";
 import {
   listConfiguredMcpServers,
   setConfiguredMcpServer,
   unsetConfiguredMcpServer,
 } from "../config/mcp-config.js";
+import { loadConfig } from "../config/config.js";
 import { serveGenesisChannelMcp } from "../mcp/channel-server.js";
 import { defaultRuntime } from "../runtime.js";
 import {
@@ -17,6 +20,22 @@ function fail(message: string): never {
   defaultRuntime.error(message);
   defaultRuntime.exit(1);
   throw new Error(message);
+}
+
+async function withMcpRuntime<T>(
+  fn: (runtime: SessionMcpRuntime) => Promise<T>,
+): Promise<T> {
+  const { createSessionMcpRuntime } = await import("../agents/pi-bundle-mcp-runtime.js");
+  const runtime = createSessionMcpRuntime({
+    sessionId: `mcp-cli:${crypto.randomUUID()}`,
+    workspaceDir: process.cwd(),
+    cfg: loadConfig(),
+  });
+  try {
+    return await fn(runtime);
+  } finally {
+    await runtime.dispose();
+  }
 }
 
 function printJson(value: unknown): void {
@@ -146,5 +165,79 @@ export function registerMcpCli(program: Command) {
         fail(`No MCP server named "${name}" in ${result.path}.`);
       }
       defaultRuntime.log(`Removed MCP server "${name}" from ${result.path}.`);
+    });
+
+  mcp
+    .command("tools")
+    .description("Connect to configured MCP servers and list their tools")
+    .argument("[server]", "MCP server name (defaults to all servers)")
+    .option("--json", "Print JSON")
+    .action(async (server: string | undefined, opts: { json?: boolean }) => {
+      try {
+        const catalog = await withMcpRuntime((runtime) => runtime.getCatalog());
+        if (server && !catalog.servers[server]) {
+          throw new Error(`No connected MCP server named "${server}".`);
+        }
+        const tools = catalog.tools
+          .filter((tool) => !server || tool.serverName === server)
+          .map((tool) => ({
+            server: tool.serverName,
+            tool: tool.toolName,
+            description: tool.description ?? tool.title ?? tool.fallbackDescription,
+            inputSchema: tool.inputSchema,
+          }));
+        if (opts.json) {
+          printJson(tools);
+          return;
+        }
+        if (tools.length === 0) {
+          defaultRuntime.log("No MCP tools found.");
+          return;
+        }
+        for (const tool of tools) {
+          defaultRuntime.log(`${tool.server}/${tool.tool} - ${tool.description}`);
+        }
+      } catch (err) {
+        fail(err instanceof Error ? err.message : String(err));
+      }
+    });
+
+  mcp
+    .command("call")
+    .description("Call one tool on a configured MCP server")
+    .argument("<server>", "MCP server name")
+    .argument("<tool>", "Tool name")
+    .argument("[args]", "Tool arguments as a JSON object", "{}")
+    .option("--json", "Print the raw tool result as JSON")
+    .action(async (server: string, tool: string, rawArgs: string, opts: { json?: boolean }) => {
+      try {
+        const parsed = parseConfigValue(rawArgs);
+        if (parsed.error) {
+          throw new Error(parsed.error);
+        }
+        const result = await withMcpRuntime(async (runtime) => {
+          const catalog = await runtime.getCatalog();
+          if (!catalog.servers[server]) {
+            throw new Error(`No connected MCP server named "${server}".`);
+          }
+          return await runtime.callTool(server, tool, parsed.value);
+        });
+        if (opts.json) {
+          printJson(result);
+        } else {
+          for (const block of result.content ?? []) {
+            if (block.type === "text") {
+              defaultRuntime.log(block.text);
+            } else {
+              printJson(block);
+            }
+          }
+        }
+        if (result.isError) {
+          defaultRuntime.exit(1);
+        }
+      } catch (err) {
+        fail(err instanceof Error ? err.message : String(err));
+      }
     });
 }

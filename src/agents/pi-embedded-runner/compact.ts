@@ -65,6 +65,7 @@ import { supportsModelTools } from "../model-tool-support.js";
 import { ensureGenesisModelsJson } from "../models-config.js";
 import { resolveOwnerDisplaySetting } from "../owner-display.js";
 import { createBundleLspToolRuntime } from "../pi-bundle-lsp-runtime.js";
+import { resolveMcpToolExposure } from "../pi-bundle-mcp-exposure.js";
 import { createBundleMcpToolRuntime } from "../pi-bundle-mcp-tools.js";
 import { ensureSessionHeader } from "../pi-embedded-helpers.js";
 import { pickFallbackThinkingLevel } from "../pi-embedded-helpers.js";
@@ -572,7 +573,8 @@ export async function compactEmbeddedPiSessionDirect(
       toolsEnabled ? toolsRaw : [],
       runtimePlanModelContext,
     );
-    const bundleMcpRuntime = toolsEnabled
+    const bundleMcpRuntime =
+      toolsEnabled && resolveMcpToolExposure(params.config) === "inject"
       ? await createBundleMcpToolRuntime({
           workspaceDir: effectiveWorkspace,
           cfg: params.config,

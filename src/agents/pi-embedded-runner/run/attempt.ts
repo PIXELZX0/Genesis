@@ -78,7 +78,9 @@ import {
   buildMcpServerInstructionsSection,
   filterMcpServerInstructionsByAvailableTools,
 } from "../../pi-bundle-mcp-instructions.js";
+import { buildMcpCliUsageSection, resolveMcpToolExposure } from "../../pi-bundle-mcp-exposure.js";
 import { TOOL_NAME_SEPARATOR } from "../../pi-bundle-mcp-names.js";
+import { loadEmbeddedPiMcpConfig } from "../../embedded-pi-mcp.js";
 import {
   getOrCreateSessionMcpRuntime,
   materializeBundleMcpToolsForRun,
@@ -767,11 +769,14 @@ export async function runEmbeddedAttempt(
         model: params.model,
       });
     const clientTools = toolsEnabled ? params.clientTools : undefined;
-    const bundleMcpEnabled = shouldCreateBundleMcpRuntimeForAttempt({
-      toolsEnabled,
-      disableTools: params.disableTools,
-      toolsAllow: params.toolsAllow,
-    });
+    const mcpToolExposure = resolveMcpToolExposure(params.config);
+    const bundleMcpEnabled =
+      mcpToolExposure === "inject" &&
+      shouldCreateBundleMcpRuntimeForAttempt({
+        toolsEnabled,
+        disableTools: params.disableTools,
+        toolsAllow: params.toolsAllow,
+      });
     const bundleMcpSessionRuntime = bundleMcpEnabled
       ? await getOrCreateSessionMcpRuntime({
           sessionId: params.sessionId,
@@ -822,12 +827,22 @@ export async function runEmbeddedAttempt(
       warn: (message) => log.warn(message),
     });
     const effectiveTools = [...tools, ...filteredBundledTools];
-    const mcpServerInstructions = buildMcpServerInstructionsSection(
-      filterMcpServerInstructionsByAvailableTools({
-        instructions: bundleMcpRuntime?.serverInstructions,
-        toolNames: filteredBundledTools.map((tool) => tool.name),
-      }),
-    );
+    const mcpServerInstructions =
+      mcpToolExposure === "cli"
+        ? toolsEnabled && params.disableTools !== true
+          ? buildMcpCliUsageSection(
+              Object.keys(
+                loadEmbeddedPiMcpConfig({ workspaceDir: effectiveWorkspace, cfg: params.config })
+                  .mcpServers,
+              ),
+            )
+          : undefined
+        : buildMcpServerInstructionsSection(
+            filterMcpServerInstructionsByAvailableTools({
+              instructions: bundleMcpRuntime?.serverInstructions,
+              toolNames: filteredBundledTools.map((tool) => tool.name),
+            }),
+          );
     const allowedToolNames = collectAllowedToolNames({
       tools: effectiveTools,
       clientTools,
