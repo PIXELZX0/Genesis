@@ -246,6 +246,7 @@ const McpConfigSchema = z
   .object({
     servers: z.record(z.string(), McpServerSchema).optional(),
     sessionIdleTtlMs: z.number().finite().min(0).optional(),
+    toolExposure: z.enum(["cli", "inject"]).optional(),
     metadataFetch: z
       .object({
         allowedHosts: z.array(z.string()).optional(),

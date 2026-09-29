@@ -6,6 +6,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 ### Changes
 
+- MCP: agents no longer get configured MCP tools injected into their tool list by default. They use `genesis mcp tools` and `genesis mcp call` from the shell instead; set `mcp.toolExposure: "inject"` to keep the old behavior.
 - CLI: `genesis --help` groups commands (Get started, Agents & chat, Connect, Automation, Gateway & system, Advanced), starts with `onboard`, and shows first-run examples. The legacy aliases `daemon`, `clawbot`, `terminal`, and `capability` still work but no longer appear in root help. `setup`, `onboard`, and `configure` descriptions now say when to use each.
 - Control UI: the sidebar is regrouped by task: Overview, Chat, Agents, and Sessions at the top, then Connect, Automate, and Data. The sidebar now shows a thin scrollbar and a fade at the bottom when more tabs are below the fold (Memory, Files, and Wallet were easy to miss on shorter screens). The search button shows `Ctrl K` instead of `⌘K` outside Apple platforms.
 - Control UI: Overview shows a "Get started" checklist (connect a model, connect a channel, send a first message) until each step is done, and chat shows an "Add API key" prompt instead of "Ready to chat" when the default model has no usable credential. `models.authStatus` now reports whether the default model has usable auth, including env keys and local providers, in a new `defaultModel` field.

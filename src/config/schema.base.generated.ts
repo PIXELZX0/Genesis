@@ -24010,6 +24010,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             description:
               "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
           },
+          toolExposure: {
+            type: "string",
+            enum: ["cli", "inject"],
+            title: "MCP Tool Exposure",
+            description:
+              "How agents reach MCP tools. \"cli\" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; \"inject\" loads every configured server's tools directly into each run.",
+          },
           metadataFetch: {
             type: "object",
             properties: {
@@ -28398,6 +28405,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "MCP Runtime Idle TTL",
       help: "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
       tags: ["storage"],
+    },
+    "mcp.toolExposure": {
+      label: "MCP Tool Exposure",
+      help: "How agents reach MCP tools. \"cli\" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; \"inject\" loads every configured server's tools directly into each run.",
+      tags: ["advanced"],
     },
     "mcp.metadataFetch": {
       label: "MCP Metadata Fetch",

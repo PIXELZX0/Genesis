@@ -12,6 +12,7 @@ title: "MCP"
 - run Genesis as an MCP server with `genesis mcp serve`
 - manage Genesis-owned outbound MCP server definitions with `list`, `show`,
   `set`, and `unset`
+- use those servers on demand with `tools` and `call`
 
 In other words:
 
@@ -373,9 +374,12 @@ Important behavior:
   reachable right now
 - runtime adapters decide which transport shapes they actually support at
   execution time
-- embedded Pi exposes configured MCP tools in normal `coding` and `messaging`
-  tool profiles; `minimal` still hides them, and `tools.deny: ["bundle-mcp"]`
-  disables them explicitly
+- by default (`mcp.toolExposure: "cli"`) agents do not get MCP tools in their
+  tool list; the system prompt names the configured servers and agents call
+  `genesis mcp tools` / `genesis mcp call` from the shell tool
+- with `mcp.toolExposure: "inject"`, embedded Pi exposes configured MCP tools
+  in normal `coding` and `messaging` tool profiles; `minimal` still hides them,
+  and `tools.deny: ["bundle-mcp"]` disables them explicitly
 - session-scoped bundled MCP runtimes are reaped after `mcp.sessionIdleTtlMs`
   milliseconds of idle time (default 10 minutes; set `0` to disable) and
   one-shot embedded runs clean them up at run end
@@ -383,6 +387,24 @@ Important behavior:
   `genesis.json` edit) hot-reloads without restarting the gateway: the runtime
   config snapshot is swapped in place and each session rebuilds its MCP clients
   on its next turn, so in-flight work is not interrupted
+
+## Using MCP servers from the CLI
+
+`tools` and `call` connect to the configured servers, so they do need the
+servers to be reachable:
+
+```bash
+genesis mcp tools                       # every server
+genesis mcp tools context7 --json       # one server, with input schemas
+genesis mcp call context7 resolve-library-id '{"libraryName":"react"}'
+genesis mcp call context7 resolve-library-id '{"libraryName":"react"}' --json
+```
+
+- `call` takes tool arguments as one JSON object (default `{}`) and prints the
+  text content; `--json` prints the raw tool result.
+- `call` exits non-zero when the server marks the result as an error.
+- each invocation opens its own connection and closes it on exit, so stdio
+  servers are started per call.
 
 ## Saved MCP server definitions
 

@@ -1436,6 +1436,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Named MCP server definitions. Genesis stores them in its own config and runtime adapters decide which transports are supported at execution time.",
   "mcp.sessionIdleTtlMs":
     "Idle TTL in milliseconds for session-scoped bundled MCP runtimes. Defaults to 10 minutes; set 0 to disable idle eviction.",
+  "mcp.toolExposure":
+    'How agents reach MCP tools. "cli" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; "inject" loads every configured server\'s tools directly into each run.',
   "mcp.metadataFetch":
     "Controls for outbound MCP metadata/OAuth discovery fetches (Control UI 'Add by link' and the OAuth flow). These requests are SSRF-guarded and block private/internal addresses by default.",
   "mcp.metadataFetch.allowedHosts":
