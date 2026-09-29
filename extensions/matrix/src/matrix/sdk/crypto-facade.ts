@@ -1,3 +1,4 @@
+import { ensureMatrixCryptoRuntime } from "../deps.js";
 import type { MatrixRecoveryKeyStore } from "./recovery-key-store.js";
 import type { EncryptedFile } from "./types.js";
 import type {
@@ -69,7 +70,15 @@ let matrixCryptoNodeRuntimePromise: Promise<MatrixCryptoNodeRuntime> | null = nu
 
 async function loadMatrixCryptoNodeRuntime(): Promise<MatrixCryptoNodeRuntime> {
   // Keep the native crypto package out of the main CLI startup graph.
-  matrixCryptoNodeRuntimePromise ??= import("./crypto-node.runtime.js");
+  // Runtime-deps installs skip lifecycle scripts, so the native binding may
+  // still be missing here; bootstrap it before the first load.
+  matrixCryptoNodeRuntimePromise ??= ensureMatrixCryptoRuntime()
+    .then(() => import("./crypto-node.runtime.js"))
+    .catch((err: unknown) => {
+      // Do not cache failures, or a later successful bootstrap is never seen.
+      matrixCryptoNodeRuntimePromise = null;
+      throw err;
+    });
   return await matrixCryptoNodeRuntimePromise;
 }
 
