@@ -80,6 +80,18 @@ function warnOnIgnoredLegacyCompatibilityConfig(params: {
   );
 }
 
+function warnOnRestrictedPermissionMode(params: {
+  pluginConfig: ResolvedAcpxPluginConfig;
+  logger?: PluginLogger;
+}): void {
+  if (params.pluginConfig.permissionMode === "approve-all") {
+    return;
+  }
+  params.logger?.warn(
+    `acpx permissionMode=${params.pluginConfig.permissionMode}: ACP sessions cannot write files or run commands without approval, so coding tasks may do no work. Set plugins.entries.acpx.config.permissionMode=approve-all to allow it.`,
+  );
+}
+
 function formatDoctorDetail(detail: unknown): string | null {
   if (!detail) {
     return null;
@@ -157,6 +169,11 @@ export function createAcpxRuntimeService(
       });
       await fs.mkdir(pluginConfig.stateDir, { recursive: true });
       warnOnIgnoredLegacyCompatibilityConfig({
+        pluginConfig,
+        logger: ctx.logger,
+      });
+
+      warnOnRestrictedPermissionMode({
         pluginConfig,
         logger: ctx.logger,
       });

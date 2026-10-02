@@ -231,6 +231,40 @@ describe("createAcpxRuntimeService", () => {
     await service.stop?.(ctx);
   });
 
+  it("warns when permissionMode blocks writes and exec", async () => {
+    const workspaceDir = await makeTempDir();
+    const ctx = createServiceContext(workspaceDir);
+    const service = createAcpxRuntimeService({
+      pluginConfig: {},
+      runtimeFactory: () => createMockRuntime() as never,
+    });
+
+    await service.start(ctx);
+
+    expect(ctx.logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("acpx permissionMode=approve-reads"),
+    );
+
+    await service.stop?.(ctx);
+  });
+
+  it("does not warn about permissionMode when approve-all is set", async () => {
+    const workspaceDir = await makeTempDir();
+    const ctx = createServiceContext(workspaceDir);
+    const service = createAcpxRuntimeService({
+      pluginConfig: { permissionMode: "approve-all" },
+      runtimeFactory: () => createMockRuntime() as never,
+    });
+
+    await service.start(ctx);
+
+    expect(ctx.logger.warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("permissionMode="),
+    );
+
+    await service.stop?.(ctx);
+  });
+
   it("warns when legacy compatibility config is explicitly ignored", async () => {
     const workspaceDir = await makeTempDir();
     const ctx = createServiceContext(workspaceDir);
