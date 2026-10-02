@@ -141,6 +141,27 @@ describe("createSessionVisibilityGuard", () => {
     sessionsResolutionTesting.setDepsForTest();
   });
 
+  it("allows tree visibility for cross-agent children the requester spawned", async () => {
+    sessionsResolutionTesting.setDepsForTest({
+      callGateway: (async (request: { method?: string }) =>
+        request.method === "sessions.list"
+          ? { sessions: [{ key: "agent:claude:acp:child-1" }] }
+          : {}) as never,
+    });
+
+    const guard = await createSessionVisibilityGuard({
+      action: "history",
+      requesterSessionKey: "agent:main:main",
+      visibility: "tree",
+      a2aPolicy: createAgentToAgentPolicy({} as unknown as GenesisConfig),
+    });
+
+    expect(guard.check("agent:claude:acp:child-1")).toEqual({ allowed: true });
+    expect(guard.check("agent:claude:acp:other")).toMatchObject({ allowed: false });
+
+    sessionsResolutionTesting.setDepsForTest();
+  });
+
   it("blocks cross-agent send when agent-to-agent is disabled", async () => {
     const guard = await createSessionVisibilityGuard({
       action: "send",
