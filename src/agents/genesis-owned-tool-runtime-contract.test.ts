@@ -1,5 +1,5 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   installGenesisOwnedToolHooks,
@@ -85,8 +85,8 @@ function toolExecutionEndEvent(params: {
   } as ToolExecutionEndEvent;
 }
 
-function createToolExtensionContext(): ExtensionContext {
-  return {} as ExtensionContext;
+function createToolExtensionContext(): ExtensionToolContext {
+  return {} as ExtensionToolContext;
 }
 
 describe("Genesis-owned tool runtime contract — Pi adapter", () => {

@@ -24015,7 +24015,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             enum: ["cli", "inject"],
             title: "MCP Tool Exposure",
             description:
-              "How agents reach MCP tools. \"cli\" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; \"inject\" loads every configured server's tools directly into each run.",
+              'How agents reach MCP tools. "cli" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; "inject" loads every configured server\'s tools directly into each run.',
           },
           metadataFetch: {
             type: "object",
@@ -28408,7 +28408,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "mcp.toolExposure": {
       label: "MCP Tool Exposure",
-      help: "How agents reach MCP tools. \"cli\" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; \"inject\" loads every configured server's tools directly into each run.",
+      help: 'How agents reach MCP tools. "cli" (default) keeps them out of the tool list and agents use `genesis mcp tools` / `genesis mcp call`; "inject" loads every configured server\'s tools directly into each run.',
       tags: ["advanced"],
     },
     "mcp.metadataFetch": {
@@ -30022,6 +30022,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2026.9.27",
+  version: "2026.10.2",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };
