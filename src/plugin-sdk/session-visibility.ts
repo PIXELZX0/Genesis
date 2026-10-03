@@ -198,6 +198,11 @@ export function createSessionVisibilityChecker(params: {
     const targetAgentId = resolveAgentIdFromSessionKey(targetSessionKey);
     const isCrossAgent = targetAgentId !== requesterAgentId;
     if (isCrossAgent) {
+      // A requester can always reach sessions it spawned itself (e.g. ACP harness children
+      // whose agent id differs from the parent's) under tree visibility.
+      if (params.visibility === "tree" && spawnedKeys?.has(targetSessionKey)) {
+        return { allowed: true };
+      }
       if (params.visibility !== "all") {
         return {
           allowed: false,
