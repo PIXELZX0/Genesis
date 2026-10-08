@@ -176,7 +176,11 @@ describe("AcpxRuntime fresh reset wrapper", () => {
   });
 
   it("reports the configured permission mode in capabilities", async () => {
-    const { runtime } = makeRuntime();
+    const baseStore: TestSessionStore = {
+      load: vi.fn(async () => undefined),
+      save: vi.fn(async () => {}),
+    };
+    const { runtime } = makeRuntime(baseStore);
     await expect(runtime.getCapabilities()).resolves.toMatchObject({
       permissionMode: "approve-reads",
     });
