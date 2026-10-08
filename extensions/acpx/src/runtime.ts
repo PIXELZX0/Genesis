@@ -7,6 +7,7 @@ import {
   decodeAcpxRuntimeHandleState,
   encodeAcpxRuntimeHandleState,
   type AcpAgentRegistry,
+  type AcpRuntimeCapabilities,
   type AcpRuntimeDoctorReport,
   type AcpRuntimeEvent,
   type AcpRuntimeHandle,
@@ -214,6 +215,7 @@ export class AcpxRuntime implements AcpRuntime {
   private readonly delegate: BaseAcpxRuntime;
   private readonly bridgeSafeDelegate: BaseAcpxRuntime;
   private readonly probeDelegate: BaseAcpxRuntime;
+  private readonly permissionMode: string | undefined;
 
   constructor(
     options: AcpRuntimeOptions,
@@ -221,6 +223,8 @@ export class AcpxRuntime implements AcpRuntime {
   ) {
     this.sessionStore = createResetAwareSessionStore(options.sessionStore);
     this.agentRegistry = options.agentRegistry;
+    this.permissionMode =
+      typeof options.permissionMode === "string" ? options.permissionMode : undefined;
     const sharedOptions = {
       ...options,
       sessionStore: this.sessionStore,
@@ -279,8 +283,11 @@ export class AcpxRuntime implements AcpRuntime {
     yield* (await this.resolveDelegateForHandle(input.handle)).runTurn(input);
   }
 
-  getCapabilities(): ReturnType<BaseAcpxRuntime["getCapabilities"]> {
-    return this.delegate.getCapabilities();
+  async getCapabilities(): Promise<AcpRuntimeCapabilities> {
+    const capabilities = await this.delegate.getCapabilities();
+    return this.permissionMode
+      ? { ...capabilities, permissionMode: this.permissionMode }
+      : capabilities;
   }
 
   async getStatus(

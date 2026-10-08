@@ -61,6 +61,11 @@ export type AcpRuntimeCapabilities = {
    * Empty/undefined means "backend accepts keys, but did not advertise a strict list".
    */
   configOptionKeys?: string[];
+  /**
+   * Backend permission policy for tool requests (for example acpx "approve-reads").
+   * Anything other than "approve-all" can silently deny write/exec work in non-interactive runs.
+   */
+  permissionMode?: string;
 };
 
 export type AcpRuntimeStatus = {

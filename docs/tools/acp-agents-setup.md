@@ -283,6 +283,8 @@ Restart the gateway after changing these values.
 
 > **Important:** Genesis currently defaults to `permissionMode=approve-reads` and `nonInteractivePermissions=fail`. In non-interactive ACP sessions, any write or exec that triggers a permission prompt can fail with `AcpRuntimeError: Permission prompt unavailable in non-interactive mode`.
 >
+> `sessions_spawn` adds a note to its accepted result whenever `permissionMode` is not `approve-all`, because denied write/exec calls do not fail the run.
+>
 > If you need to restrict permissions, set `nonInteractivePermissions` to `deny` so sessions degrade gracefully instead of crashing.
 
 ## Related

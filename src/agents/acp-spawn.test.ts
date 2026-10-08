@@ -772,6 +772,35 @@ describe("spawnAcpDirect", () => {
     });
   });
 
+  it("warns in the accepted note when the ACP backend restricts tool permissions", async () => {
+    const base = hoisted.initializeSessionMock.getMockImplementation();
+    hoisted.initializeSessionMock.mockImplementation(async (args: unknown) => {
+      const init = (await base?.(args)) as { runtime: Record<string, unknown> };
+      init.runtime.getCapabilities = async () => ({
+        controls: [],
+        permissionMode: "approve-reads",
+      });
+      return init;
+    });
+
+    const result = await spawnAcpDirect(createSpawnRequest(), createRequesterContext());
+
+    expect(expectAcceptedSpawn(result).note).toContain("permissionMode=approve-reads");
+  });
+
+  it("adds no permission warning when the ACP backend approves all tools", async () => {
+    const base = hoisted.initializeSessionMock.getMockImplementation();
+    hoisted.initializeSessionMock.mockImplementation(async (args: unknown) => {
+      const init = (await base?.(args)) as { runtime: Record<string, unknown> };
+      init.runtime.getCapabilities = async () => ({ controls: [], permissionMode: "approve-all" });
+      return init;
+    });
+
+    const result = await spawnAcpDirect(createSpawnRequest(), createRequesterContext());
+
+    expect(expectAcceptedSpawn(result).note).not.toContain("permissionMode");
+  });
+
   it("rejects ACP spawns that exceed subagent max depth", async () => {
     replaceSpawnConfig({
       ...hoisted.state.cfg,

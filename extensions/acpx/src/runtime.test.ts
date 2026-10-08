@@ -175,6 +175,13 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultEnsure).not.toHaveBeenCalled();
   });
 
+  it("reports the configured permission mode in capabilities", async () => {
+    const { runtime } = makeRuntime();
+    await expect(runtime.getCapabilities()).resolves.toMatchObject({
+      permissionMode: "approve-reads",
+    });
+  });
+
   it("routes non-genesis sessions through the default delegate", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),

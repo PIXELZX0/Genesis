@@ -13,6 +13,7 @@ Docs: https://genesis.pixelzx.com/docs
 
 - Matrix: the native crypto runtime is bootstrapped before media downloads load it, so encrypted media no longer fails on a cold start.
 - MCP: `genesis mcp call` retries inside the same connection while a server reports it is not ready (`--wait <ms>`, default 10000) and exits non-zero if it never becomes ready.
+- ACP: `sessions_spawn` now notes in its result when the ACP backend permission mode (for example `approve-reads`) will deny write/exec tool calls.
 
 ## 2026.9.27
 

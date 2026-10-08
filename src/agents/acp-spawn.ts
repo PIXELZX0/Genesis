@@ -161,6 +161,22 @@ export function isSpawnAcpAcceptedResult(result: SpawnAcpResult): result is Spaw
 
 export const ACP_SPAWN_ACCEPTED_NOTE =
   "initial ACP task queued in isolated session; follow-ups continue in the bound thread.";
+const ACP_SPAWN_RESTRICTED_PERMISSIONS_NOTE = (mode: string) =>
+  `ACP permissionMode=${mode}: write/exec tool calls may be denied without failing the run; ` +
+  "use approve-all for coding tasks.";
+
+async function resolveRestrictedPermissionNote(
+  runtime: AcpSpawnInitializedSession["runtime"],
+  handle: AcpSpawnInitializedSession["handle"],
+): Promise<string | undefined> {
+  try {
+    const mode = (await runtime.getCapabilities?.({ handle }))?.permissionMode;
+    return mode && mode !== "approve-all" ? ACP_SPAWN_RESTRICTED_PERMISSIONS_NOTE(mode) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export const ACP_SPAWN_SESSION_ACCEPTED_NOTE =
   "thread-bound ACP session stays active after this task; continue in-thread for follow-ups.";
 
@@ -1060,6 +1076,7 @@ export async function spawnAcpDirect(
   let binding: SessionBindingRecord | null = null;
   let sessionCreated = false;
   let initializedRuntime: AcpSpawnRuntimeCloseHandle | undefined;
+  let permissionNote: string | undefined;
   try {
     await callGateway({
       method: "sessions.patch",
@@ -1082,6 +1099,10 @@ export async function spawnAcpDirect(
       cwd: runtimeCwd,
     });
     initializedRuntime = initializedSession.runtimeCloseHandle;
+    permissionNote = await resolveRestrictedPermissionNote(
+      initializedSession.initialized.runtime,
+      initializedSession.initialized.handle,
+    );
 
     if (preparedBinding) {
       ({ binding } = await bindPreparedAcpThread({
@@ -1229,7 +1250,12 @@ export async function spawnAcpDirect(
       runId: childRunId,
       mode: spawnMode,
       ...(streamLogPath ? { streamLogPath } : {}),
-      note: spawnMode === "session" ? ACP_SPAWN_SESSION_ACCEPTED_NOTE : ACP_SPAWN_ACCEPTED_NOTE,
+      note: [
+        spawnMode === "session" ? ACP_SPAWN_SESSION_ACCEPTED_NOTE : ACP_SPAWN_ACCEPTED_NOTE,
+        permissionNote,
+      ]
+        .filter(Boolean)
+        .join(" "),
     };
   }
 
@@ -1261,6 +1287,11 @@ export async function spawnAcpDirect(
     childSessionKey: sessionKey,
     runId: childRunId,
     mode: spawnMode,
-    note: spawnMode === "session" ? ACP_SPAWN_SESSION_ACCEPTED_NOTE : ACP_SPAWN_ACCEPTED_NOTE,
+    note: [
+      spawnMode === "session" ? ACP_SPAWN_SESSION_ACCEPTED_NOTE : ACP_SPAWN_ACCEPTED_NOTE,
+      permissionNote,
+    ]
+      .filter(Boolean)
+      .join(" "),
   };
 }
