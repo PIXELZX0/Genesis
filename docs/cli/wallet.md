@@ -188,7 +188,7 @@ Minimal example:
       btc: { network: "mainnet" },
       evm: {
         // Optional. Omit `rpcUrl` to use the built-in public RPC defaults for
-        // ethereum, base, and monad. Override or disable individual EVM chains
+        // ethereum, base, monad, polygon, arbitrum, and unichain. Override or disable individual EVM chains
         // under `chains`.
         chains: {
           ethereum: {
@@ -241,8 +241,9 @@ Secret-bearing wallet fields support SecretRef inputs where the config schema
 marks them sensitive. See [Secrets Management](/gateway/secrets).
 
 When `wallet.networks.evm.rpcUrl` is omitted and no legacy single-chain EVM
-config is set, Genesis creates EVM accounts for `evm:ethereum`, `evm:base`, and
-`evm:monad`. A legacy single-chain config for Ethereum, Base, or Monad also uses
+config is set, Genesis creates EVM accounts for `evm:ethereum`, `evm:base`,
+`evm:monad`, `evm:polygon`, `evm:arbitrum`, and `evm:unichain`. A legacy
+single-chain config for any of these chains also uses
 that chain's public RPC when `rpcUrl` is omitted. These defaults are
 rate-limited and are best for setup, address display, and low-volume balance
 checks. For production or agentic send flows, configure private or secret-backed

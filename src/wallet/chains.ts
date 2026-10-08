@@ -70,7 +70,14 @@ const ECPair = ECPairFactory(ecc);
 bitcoin.initEccLib(ecc);
 
 const EVM_NETWORK_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
-const DEFAULT_EVM_NETWORK_ORDER = ["ethereum", "base", "monad"] as const;
+const DEFAULT_EVM_NETWORK_ORDER = [
+  "ethereum",
+  "base",
+  "monad",
+  "polygon",
+  "arbitrum",
+  "unichain",
+] as const;
 const DEFAULT_EVM_NETWORK_IDS = new Set<string>(DEFAULT_EVM_NETWORK_ORDER);
 const DEFAULT_EVM_NETWORKS: Record<
   (typeof DEFAULT_EVM_NETWORK_ORDER)[number],
@@ -97,6 +104,27 @@ const DEFAULT_EVM_NETWORKS: Record<
     rpcUrl: "https://rpc.monad.xyz",
     currencySymbol: "MON",
     explorerTxUrl: "https://monadscan.com/tx",
+  },
+  polygon: {
+    chainId: 137,
+    name: "polygon",
+    rpcUrl: "https://polygon-bor-rpc.publicnode.com",
+    currencySymbol: "POL",
+    explorerTxUrl: "https://polygonscan.com/tx",
+  },
+  arbitrum: {
+    chainId: 42161,
+    name: "arbitrum",
+    rpcUrl: "https://arb1.arbitrum.io/rpc",
+    currencySymbol: "ETH",
+    explorerTxUrl: "https://arbiscan.io/tx",
+  },
+  unichain: {
+    chainId: 130,
+    name: "unichain",
+    rpcUrl: "https://mainnet.unichain.org",
+    currencySymbol: "ETH",
+    explorerTxUrl: "https://uniscan.xyz/tx",
   },
 };
 

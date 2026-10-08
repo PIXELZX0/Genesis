@@ -34,6 +34,9 @@ describe("wallet keystore", () => {
       "evm:ethereum",
       "evm:base",
       "evm:monad",
+      "evm:polygon",
+      "evm:arbitrum",
+      "evm:unichain",
       "sol:default",
       "trx:default",
     ]);
@@ -84,6 +87,9 @@ describe("wallet keystore", () => {
     expect(filtered.accounts.map((account) => account.id)).toEqual([
       "evm:ethereum",
       "evm:monad",
+      "evm:polygon",
+      "evm:arbitrum",
+      "evm:unichain",
       "sol:default",
       "trx:default",
     ]);
@@ -117,6 +123,9 @@ describe("wallet keystore", () => {
       "evm:ethereum",
       "evm:base",
       "evm:monad",
+      "evm:polygon",
+      "evm:arbitrum",
+      "evm:unichain",
       "sol:default",
       "trx:default",
     ]);
@@ -136,6 +145,9 @@ describe("wallet keystore", () => {
       "evm:ethereum",
       "evm:base",
       "evm:monad",
+      "evm:polygon",
+      "evm:arbitrum",
+      "evm:unichain",
       "sol:default",
       "trx:default",
     ]);

@@ -106,6 +106,9 @@ describe("wallet chain derivation", () => {
       "evm:ethereum",
       "evm:base",
       "evm:monad",
+      "evm:polygon",
+      "evm:arbitrum",
+      "evm:unichain",
       "sol:default",
       "trx:default",
     ]);
@@ -118,6 +121,7 @@ describe("wallet chain derivation", () => {
     expect(byId["evm:ethereum"]?.network).toBe("ethereum");
     expect(byId["evm:base"]?.network).toBe("base");
     expect(byId["evm:monad"]?.network).toBe("monad");
+    expect(byId["evm:unichain"]?.address).toBe("0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
   });
 
   it("uses public RPC defaults for built-in EVM chains", () => {
@@ -150,6 +154,27 @@ describe("wallet chain derivation", () => {
         currencySymbol: "MON",
         name: "monad",
         rpcUrl: "https://rpc.monad.xyz",
+      },
+      {
+        accountId: "evm:polygon",
+        chainId: 137,
+        currencySymbol: "POL",
+        name: "polygon",
+        rpcUrl: "https://polygon-bor-rpc.publicnode.com",
+      },
+      {
+        accountId: "evm:arbitrum",
+        chainId: 42161,
+        currencySymbol: "ETH",
+        name: "arbitrum",
+        rpcUrl: "https://arb1.arbitrum.io/rpc",
+      },
+      {
+        accountId: "evm:unichain",
+        chainId: 130,
+        currencySymbol: "ETH",
+        name: "unichain",
+        rpcUrl: "https://mainnet.unichain.org",
       },
     ]);
   });
@@ -202,6 +227,9 @@ describe("wallet chain derivation", () => {
                 },
                 base: { enabled: false },
                 monad: { enabled: false },
+                polygon: { enabled: false },
+                arbitrum: { enabled: false },
+                unichain: { enabled: false },
               },
             },
           },
@@ -232,6 +260,9 @@ describe("wallet chain derivation", () => {
               },
               base: { enabled: false },
               monad: { enabled: false },
+              polygon: { enabled: false },
+              arbitrum: { enabled: false },
+              unichain: { enabled: false },
             },
           },
         },
