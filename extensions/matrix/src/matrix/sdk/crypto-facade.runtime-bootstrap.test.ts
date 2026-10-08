@@ -10,7 +10,7 @@ vi.mock("./crypto-node.runtime.js", () => ({
       encryptedData: new Uint8Array([1, 2, 3]),
     }),
   },
-  EncryptedAttachment: class {},
+  EncryptedAttachment: vi.fn(),
 }));
 
 describe("createMatrixCryptoFacade native runtime bootstrap", () => {
