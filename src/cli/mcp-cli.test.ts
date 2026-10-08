@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => {
   return {
     runtime,
     serveGenesisChannelMcp: vi.fn(),
+    callTool: vi.fn(),
   };
 });
 
@@ -34,6 +35,14 @@ vi.mock("../runtime.js", () => ({
 
 vi.mock("../mcp/channel-server.js", () => ({
   serveGenesisChannelMcp: mocks.serveGenesisChannelMcp,
+}));
+
+vi.mock("../agents/pi-bundle-mcp-runtime.js", () => ({
+  createSessionMcpRuntime: () => ({
+    getCatalog: async () => ({ servers: { srv: {} }, tools: [] }),
+    callTool: mocks.callTool,
+    dispose: async () => {},
+  }),
 }));
 
 const tempDirs: string[] = [];
@@ -79,6 +88,36 @@ describe("mcp cli", () => {
       mockLog.mockClear();
       await runMcpCommand(["mcp", "show", "context7", "--json"]);
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"command": "uvx"'));
+    });
+  });
+
+  it("retries mcp call in-session while the server reports not ready", async () => {
+    await withTempHome("genesis-cli-mcp-home-", async () => {
+      vi.useFakeTimers();
+      try {
+        const notReady = { content: [{ type: "text", text: "Connection is not ready yet." }] };
+        mocks.callTool
+          .mockResolvedValueOnce(notReady)
+          .mockResolvedValueOnce({ content: [{ type: "text", text: "real result" }] });
+        const run = runMcpCommand(["mcp", "call", "srv", "tool"]);
+        await vi.advanceTimersByTimeAsync(1000);
+        await run;
+        expect(mocks.callTool).toHaveBeenCalledTimes(2);
+        expect(mockLog).toHaveBeenCalledWith("real result");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  it("exits non-zero when mcp call stays not ready past --wait", async () => {
+    await withTempHome("genesis-cli-mcp-home-", async () => {
+      mocks.callTool.mockResolvedValue({
+        content: [{ type: "text", text: "not ready yet" }],
+      });
+      await expect(
+        runMcpCommand(["mcp", "call", "srv", "tool", "{}", "--wait", "0"]),
+      ).rejects.toThrow("__exit__:1");
     });
   });
 

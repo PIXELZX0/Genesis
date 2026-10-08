@@ -403,6 +403,9 @@ genesis mcp call context7 resolve-library-id '{"libraryName":"react"}' --json
 - `call` takes tool arguments as one JSON object (default `{}`) and prints the
   text content; `--json` prints the raw tool result.
 - `call` exits non-zero when the server marks the result as an error.
+- `call` retries inside the same connection while a server answers "not ready"
+  (stdio servers that connect their backend asynchronously), up to `--wait <ms>`
+  (default 10000); if still not ready it exits non-zero.
 - each invocation opens its own connection and closes it on exit, so stdio
   servers are started per call.
 

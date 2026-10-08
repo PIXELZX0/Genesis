@@ -1,13 +1,14 @@
 import crypto from "node:crypto";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { Command } from "commander";
 import type { SessionMcpRuntime } from "../agents/pi-bundle-mcp-types.js";
 import { parseConfigValue } from "../auto-reply/reply/config-value.js";
+import { loadConfig } from "../config/config.js";
 import {
   listConfiguredMcpServers,
   setConfiguredMcpServer,
   unsetConfiguredMcpServer,
 } from "../config/mcp-config.js";
-import { loadConfig } from "../config/config.js";
 import { serveGenesisChannelMcp } from "../mcp/channel-server.js";
 import { defaultRuntime } from "../runtime.js";
 import {
@@ -22,9 +23,7 @@ function fail(message: string): never {
   throw new Error(message);
 }
 
-async function withMcpRuntime<T>(
-  fn: (runtime: SessionMcpRuntime) => Promise<T>,
-): Promise<T> {
+async function withMcpRuntime<T>(fn: (runtime: SessionMcpRuntime) => Promise<T>): Promise<T> {
   const { createSessionMcpRuntime } = await import("../agents/pi-bundle-mcp-runtime.js");
   const runtime = createSessionMcpRuntime({
     sessionId: `mcp-cli:${crypto.randomUUID()}`,
@@ -35,6 +34,35 @@ async function withMcpRuntime<T>(
     return await fn(runtime);
   } finally {
     await runtime.dispose();
+  }
+}
+
+const NOT_READY_RE = /\bnot (?:yet )?(?:ready|connected)\b/i;
+const NOT_READY_POLL_MS = 1000;
+const DEFAULT_READY_WAIT_MS = 10_000;
+
+function isNotReadyResult(result: CallToolResult): boolean {
+  return (result.content ?? []).some((b) => b.type === "text" && NOT_READY_RE.test(b.text));
+}
+
+// Servers with async backend startup answer "not ready" until connected; retry in-session.
+async function callToolWhenReady(
+  runtime: SessionMcpRuntime,
+  server: string,
+  tool: string,
+  input: unknown,
+  waitMs: number,
+): Promise<CallToolResult> {
+  const deadline = Date.now() + waitMs;
+  for (;;) {
+    const result = await runtime.callTool(server, tool, input);
+    if (!isNotReadyResult(result)) {
+      return result;
+    }
+    if (Date.now() >= deadline) {
+      return { ...result, isError: true };
+    }
+    await new Promise((resolve) => setTimeout(resolve, NOT_READY_POLL_MS));
   }
 }
 
@@ -209,35 +237,50 @@ export function registerMcpCli(program: Command) {
     .argument("<tool>", "Tool name")
     .argument("[args]", "Tool arguments as a JSON object", "{}")
     .option("--json", "Print the raw tool result as JSON")
-    .action(async (server: string, tool: string, rawArgs: string, opts: { json?: boolean }) => {
-      try {
-        const parsed = parseConfigValue(rawArgs);
-        if (parsed.error) {
-          throw new Error(parsed.error);
-        }
-        const result = await withMcpRuntime(async (runtime) => {
-          const catalog = await runtime.getCatalog();
-          if (!catalog.servers[server]) {
-            throw new Error(`No connected MCP server named "${server}".`);
+    .option(
+      "--wait <ms>",
+      `Retry while the server reports it is not ready, up to this long (default ${DEFAULT_READY_WAIT_MS})`,
+    )
+    .action(
+      async (
+        server: string,
+        tool: string,
+        rawArgs: string,
+        opts: { json?: boolean; wait?: string },
+      ) => {
+        try {
+          const waitMs = opts.wait === undefined ? DEFAULT_READY_WAIT_MS : Number(opts.wait);
+          if (!Number.isFinite(waitMs) || waitMs < 0) {
+            throw new Error("Invalid --wait value. Use a non-negative number of milliseconds.");
           }
-          return await runtime.callTool(server, tool, parsed.value);
-        });
-        if (opts.json) {
-          printJson(result);
-        } else {
-          for (const block of result.content ?? []) {
-            if (block.type === "text") {
-              defaultRuntime.log(block.text);
-            } else {
-              printJson(block);
+          const parsed = parseConfigValue(rawArgs);
+          if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+          const result = await withMcpRuntime(async (runtime) => {
+            const catalog = await runtime.getCatalog();
+            if (!catalog.servers[server]) {
+              throw new Error(`No connected MCP server named "${server}".`);
+            }
+            return await callToolWhenReady(runtime, server, tool, parsed.value, waitMs);
+          });
+          if (opts.json) {
+            printJson(result);
+          } else {
+            for (const block of result.content ?? []) {
+              if (block.type === "text") {
+                defaultRuntime.log(block.text);
+              } else {
+                printJson(block);
+              }
             }
           }
+          if (result.isError) {
+            defaultRuntime.exit(1);
+          }
+        } catch (err) {
+          fail(err instanceof Error ? err.message : String(err));
         }
-        if (result.isError) {
-          defaultRuntime.exit(1);
-        }
-      } catch (err) {
-        fail(err instanceof Error ? err.message : String(err));
-      }
-    });
+      },
+    );
 }
