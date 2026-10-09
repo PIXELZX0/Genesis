@@ -355,7 +355,7 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
     }
   });
 
-  it("applies direct-run prepend system context helpers on the CLI path", async () => {
+  it("keeps active task context in the user prompt on the CLI path", async () => {
     const { dir, sessionFile } = createSessionFile();
     try {
       mockBuildActiveVideoGenerationTaskPromptContextForSession.mockReturnValue(
@@ -385,7 +385,8 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
         config: createCliBackendConfig(),
       });
 
-      expect(context.systemPrompt).toBe("active video task\n\nhook prepend system\n\nhook system");
+      expect(context.systemPrompt).toBe("hook prepend system\n\nhook system");
+      expect(context.params.prompt).toBe("active video task\n\nlatest ask");
       expect(mockBuildActiveVideoGenerationTaskPromptContextForSession).toHaveBeenCalledWith(
         "agent:main:test",
       );

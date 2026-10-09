@@ -31,7 +31,7 @@ import {
   resolveBootstrapTotalMaxChars,
 } from "../pi-embedded-helpers.js";
 import { resolvePromptBuildHookResult } from "../pi-embedded-runner/run/attempt.prompt-helpers.js";
-import { resolveAttemptPrependSystemContext } from "../pi-embedded-runner/run/attempt.prompt-helpers.js";
+import { resolveAttemptTurnContext } from "../pi-embedded-runner/run/attempt.prompt-helpers.js";
 import { composeSystemPromptWithHookContext } from "../pi-embedded-runner/run/attempt.thread-helpers.js";
 import { applyPluginTextReplacements } from "../plugin-text-transforms.js";
 import { resolveSkillsPromptForRun } from "../skills.js";
@@ -337,16 +337,19 @@ export async function prepareCliRunContext(
       systemPrompt =
         composeSystemPromptWithHookContext({
           baseSystemPrompt: systemPrompt,
-          prependSystemContext: resolveAttemptPrependSystemContext({
-            sessionKey: params.sessionKey,
-            trigger: params.trigger,
-            hookPrependSystemContext: hookResult.prependSystemContext,
-          }),
+          prependSystemContext: hookResult.prependSystemContext,
           appendSystemContext: hookResult.appendSystemContext,
         }) ?? systemPrompt;
     } catch (error) {
       cliBackendLog.warn(`cli prompt-build hook preparation failed: ${String(error)}`);
     }
+  }
+  const turnContext = resolveAttemptTurnContext({
+    sessionKey: params.sessionKey,
+    trigger: params.trigger,
+  });
+  if (turnContext) {
+    preparedPrompt = `${turnContext}\n\n${preparedPrompt}`;
   }
   systemPrompt = applyPluginTextReplacements(systemPrompt, backendResolved.textTransforms?.input);
   const systemPromptReport = buildSystemPromptReport({

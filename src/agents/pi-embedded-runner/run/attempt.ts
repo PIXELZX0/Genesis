@@ -66,6 +66,7 @@ import {
 } from "../../channel-tools.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
 import { resolveGenesisDocsPath } from "../../docs-path.js";
+import { loadEmbeddedPiMcpConfig } from "../../embedded-pi-mcp.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { buildModelAliasLines } from "../../model-alias-lines.js";
@@ -74,13 +75,12 @@ import { supportsModelTools } from "../../model-tool-support.js";
 import { releaseWsSession } from "../../openai-ws-stream.js";
 import { resolveOwnerDisplaySetting } from "../../owner-display.js";
 import { createBundleLspToolRuntime } from "../../pi-bundle-lsp-runtime.js";
+import { buildMcpCliUsageSection, resolveMcpToolExposure } from "../../pi-bundle-mcp-exposure.js";
 import {
   buildMcpServerInstructionsSection,
   filterMcpServerInstructionsByAvailableTools,
 } from "../../pi-bundle-mcp-instructions.js";
-import { buildMcpCliUsageSection, resolveMcpToolExposure } from "../../pi-bundle-mcp-exposure.js";
 import { TOOL_NAME_SEPARATOR } from "../../pi-bundle-mcp-names.js";
-import { loadEmbeddedPiMcpConfig } from "../../embedded-pi-mcp.js";
 import {
   getOrCreateSessionMcpRuntime,
   materializeBundleMcpToolsForRun,
@@ -250,7 +250,7 @@ import {
   buildAfterTurnRuntimeContextFromUsage,
   prependSystemPromptAddition,
   resolveAttemptFsWorkspaceOnly,
-  resolveAttemptPrependSystemContext,
+  resolveAttemptTurnContext,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   hasPromptSubmissionContent,
@@ -316,7 +316,7 @@ export {
   mergeOrphanedTrailingUserPrompt,
   prependSystemPromptAddition,
   resolveAttemptFsWorkspaceOnly,
-  resolveAttemptPrependSystemContext,
+  resolveAttemptTurnContext,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   shouldWarnOnOrphanedUserRepair,
@@ -2157,6 +2157,13 @@ export async function runEmbeddedAttempt(
               `hooks: prepended context to prompt (${hookResult.prependContext.length} chars)`,
             );
           }
+          const turnContext = resolveAttemptTurnContext({
+            sessionKey: params.sessionKey,
+            trigger: params.trigger,
+          });
+          if (turnContext) {
+            effectivePrompt = `${turnContext}\n\n${effectivePrompt}`;
+          }
           const legacySystemPrompt = normalizeOptionalString(hookResult?.systemPrompt) ?? "";
           if (legacySystemPrompt) {
             applySystemPromptOverrideToSession(activeSession, legacySystemPrompt);
@@ -2165,11 +2172,7 @@ export async function runEmbeddedAttempt(
           }
           const prependedOrAppendedSystemPrompt = composeSystemPromptWithHookContext({
             baseSystemPrompt: systemPromptText,
-            prependSystemContext: resolveAttemptPrependSystemContext({
-              sessionKey: params.sessionKey,
-              trigger: params.trigger,
-              hookPrependSystemContext: hookResult?.prependSystemContext,
-            }),
+            prependSystemContext: hookResult?.prependSystemContext,
             appendSystemContext: hookResult?.appendSystemContext,
           });
           if (prependedOrAppendedSystemPrompt) {

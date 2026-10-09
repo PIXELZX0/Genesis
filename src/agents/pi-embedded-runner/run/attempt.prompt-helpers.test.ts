@@ -13,12 +13,12 @@ vi.mock("../../video-generation-task-status.js", () => videoGenerationTaskStatus
 
 import {
   hasPromptSubmissionContent,
-  resolveAttemptPrependSystemContext,
+  resolveAttemptTurnContext,
   shouldRunPreemptiveContextPrecheck,
 } from "./attempt.prompt-helpers.js";
 
-describe("resolveAttemptPrependSystemContext", () => {
-  it("prepends active video task guidance ahead of hook system context", () => {
+describe("resolveAttemptTurnContext", () => {
+  it("joins active video and music task guidance for user turns", () => {
     videoGenerationTaskStatusMocks.buildActiveVideoGenerationTaskPromptContextForSession.mockReturnValue(
       "Active task hint",
     );
@@ -26,10 +26,9 @@ describe("resolveAttemptPrependSystemContext", () => {
       "Music task hint",
     );
 
-    const result = resolveAttemptPrependSystemContext({
+    const result = resolveAttemptTurnContext({
       sessionKey: "agent:main:discord:direct:123",
       trigger: "user",
-      hookPrependSystemContext: "Hook system context",
     });
 
     expect(
@@ -38,10 +37,10 @@ describe("resolveAttemptPrependSystemContext", () => {
     expect(
       musicGenerationTaskStatusMocks.buildActiveMusicGenerationTaskPromptContextForSession,
     ).toHaveBeenCalledWith("agent:main:discord:direct:123");
-    expect(result).toBe("Active task hint\n\nMusic task hint\n\nHook system context");
+    expect(result).toBe("Active task hint\n\nMusic task hint");
   });
 
-  it("skips active video task guidance for non-user triggers", () => {
+  it("skips active task guidance for non-user triggers", () => {
     videoGenerationTaskStatusMocks.buildActiveVideoGenerationTaskPromptContextForSession.mockReset();
     videoGenerationTaskStatusMocks.buildActiveVideoGenerationTaskPromptContextForSession.mockReturnValue(
       "Should not be used",
@@ -51,10 +50,9 @@ describe("resolveAttemptPrependSystemContext", () => {
       "Should not be used",
     );
 
-    const result = resolveAttemptPrependSystemContext({
+    const result = resolveAttemptTurnContext({
       sessionKey: "agent:main:discord:direct:123",
       trigger: "cron",
-      hookPrependSystemContext: "Hook system context",
     });
 
     expect(
@@ -63,7 +61,7 @@ describe("resolveAttemptPrependSystemContext", () => {
     expect(
       musicGenerationTaskStatusMocks.buildActiveMusicGenerationTaskPromptContextForSession,
     ).not.toHaveBeenCalled();
-    expect(result).toBe("Hook system context");
+    expect(result).toBeUndefined();
   });
 });
 

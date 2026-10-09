@@ -332,21 +332,20 @@ export function prependSystemPromptAddition(params: {
   return prependSystemPromptAdditionAfterCacheBoundary(params);
 }
 
-export function resolveAttemptPrependSystemContext(params: {
+/**
+ * Per-turn runtime facts (task ids, status, progress) for the user prompt. They stay
+ * out of the system prompt so changing them never invalidates the cached prefix.
+ */
+export function resolveAttemptTurnContext(params: {
   sessionKey?: string;
   trigger?: EmbeddedRunAttemptParams["trigger"];
-  hookPrependSystemContext?: string;
 }): string | undefined {
-  const activeMediaTaskPromptContexts =
-    params.trigger === "user" || params.trigger === "manual"
-      ? [
-          buildActiveVideoGenerationTaskPromptContextForSession(params.sessionKey),
-          buildActiveMusicGenerationTaskPromptContextForSession(params.sessionKey),
-        ]
-      : [];
+  if (params.trigger !== "user" && params.trigger !== "manual") {
+    return undefined;
+  }
   return joinPresentTextSegments([
-    ...activeMediaTaskPromptContexts,
-    params.hookPrependSystemContext,
+    buildActiveVideoGenerationTaskPromptContextForSession(params.sessionKey),
+    buildActiveMusicGenerationTaskPromptContextForSession(params.sessionKey),
   ]);
 }
 
