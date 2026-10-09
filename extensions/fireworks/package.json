@@ -5,7 +5,7 @@
   "description": "Genesis Fireworks provider plugin",
   "type": "module",
   "dependencies": {
-    "@earendil-works/pi-ai": "1.0.0"
+    "@earendil-works/pi-ai": "1.0.4"
   },
   "devDependencies": {
     "@genesis/plugin-sdk": "workspace:*"

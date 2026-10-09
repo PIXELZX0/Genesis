@@ -5,7 +5,7 @@
   "description": "Genesis LM Studio provider plugin",
   "type": "module",
   "dependencies": {
-    "@earendil-works/pi-ai": "1.0.0"
+    "@earendil-works/pi-ai": "1.0.4"
   },
   "genesis": {
     "extensions": [
