@@ -298,6 +298,22 @@ describe("buildAgentSystemPrompt", () => {
     );
   });
 
+  it("gates tool usage guidance on available tools", () => {
+    const withTools = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/genesis",
+      toolNames: ["read", "edit", "grep", "exec", "process", "web_fetch"],
+    });
+    expect(withTools).toContain("## Tool Usage");
+    expect(withTools).toContain("Inspect files with `read`");
+    expect(withTools).toContain("Search contents with `grep`");
+    expect(withTools).toContain("external, untrusted data");
+    expect(withTools).not.toContain("Discover paths with");
+    expect(withTools).not.toContain("sub-agent delegations together");
+
+    const withoutTools = buildAgentSystemPrompt({ workspaceDir: "/tmp/genesis" });
+    expect(withoutTools).not.toContain("## Tool Usage");
+  });
+
   it("lists available tools when provided", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/genesis",
