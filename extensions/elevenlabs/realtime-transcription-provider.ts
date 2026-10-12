@@ -1,5 +1,7 @@
+import { assertOkOrThrowProviderError } from "genesis/plugin-sdk/provider-http";
 import {
   createRealtimeTranscriptionWebSocketSession,
+  type RealtimeTranscriptionBrowserSession,
   type RealtimeTranscriptionProviderConfig,
   type RealtimeTranscriptionProviderPlugin,
   type RealtimeTranscriptionSession,
@@ -7,6 +9,10 @@ import {
   type RealtimeTranscriptionWebSocketTransport,
 } from "genesis/plugin-sdk/realtime-transcription";
 import { normalizeResolvedSecretInputString } from "genesis/plugin-sdk/secret-input";
+import {
+  fetchWithSsrFGuard,
+  ssrfPolicyFromHttpBaseUrlAllowedHostname,
+} from "genesis/plugin-sdk/ssrf-runtime";
 import { normalizeOptionalString } from "genesis/plugin-sdk/text-runtime";
 import { resolveElevenLabsApiKeyWithProfileFallback } from "./config-api.js";
 import { normalizeElevenLabsBaseUrl } from "./shared.js";
@@ -25,7 +31,7 @@ type ElevenLabsRealtimeTranscriptionProviderConfig = {
   minSilenceDurationMs?: number;
 };
 
-type ElevenLabsRealtimeTranscriptionSessionConfig = RealtimeTranscriptionSessionCreateRequest & {
+type ElevenLabsRealtimeConnectionConfig = {
   apiKey: string;
   baseUrl: string;
   modelId: string;
@@ -38,6 +44,9 @@ type ElevenLabsRealtimeTranscriptionSessionConfig = RealtimeTranscriptionSession
   minSpeechDurationMs?: number;
   minSilenceDurationMs?: number;
 };
+
+type ElevenLabsRealtimeTranscriptionSessionConfig = RealtimeTranscriptionSessionCreateRequest &
+  ElevenLabsRealtimeConnectionConfig;
 
 type ElevenLabsRealtimeTranscriptionEvent = {
   message_type?: string;
@@ -56,6 +65,12 @@ const ELEVENLABS_REALTIME_CLOSE_TIMEOUT_MS = 5_000;
 const ELEVENLABS_REALTIME_MAX_RECONNECT_ATTEMPTS = 5;
 const ELEVENLABS_REALTIME_RECONNECT_DELAY_MS = 1000;
 const ELEVENLABS_REALTIME_MAX_QUEUED_BYTES = 2 * 1024 * 1024;
+// Browsers capture PCM16 at 16 kHz regardless of the telephony default above.
+const ELEVENLABS_BROWSER_AUDIO_FORMAT = "pcm_16000";
+const ELEVENLABS_BROWSER_SAMPLE_RATE = 16_000;
+// Single-use tokens expire after 15 minutes (ElevenLabs docs); report a little less.
+const ELEVENLABS_SINGLE_USE_TOKEN_TTL_MS = 14 * 60_000;
+const ELEVENLABS_SINGLE_USE_TOKEN_TIMEOUT_MS = 10_000;
 
 function readRecord(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -120,7 +135,7 @@ function normalizeElevenLabsRealtimeBaseUrl(value?: string): string {
   return url.toString().replace(/\/+$/, "");
 }
 
-function toElevenLabsRealtimeWsUrl(config: ElevenLabsRealtimeTranscriptionSessionConfig): string {
+function toElevenLabsRealtimeWsUrl(config: ElevenLabsRealtimeConnectionConfig): string {
   const url = new URL(
     `${normalizeElevenLabsRealtimeBaseUrl(config.baseUrl)}/v1/speech-to-text/realtime`,
   );
@@ -238,6 +253,52 @@ function createElevenLabsRealtimeTranscriptionSession(
   });
 }
 
+function resolveConnectionConfig(
+  providerConfig: RealtimeTranscriptionProviderConfig,
+): ElevenLabsRealtimeConnectionConfig {
+  const config = normalizeProviderConfig(providerConfig);
+  const apiKey =
+    config.apiKey || resolveElevenLabsApiKeyWithProfileFallback() || process.env.XI_API_KEY;
+  if (!apiKey) {
+    throw new Error("ElevenLabs API key missing");
+  }
+  return {
+    apiKey,
+    baseUrl: normalizeElevenLabsBaseUrl(config.baseUrl),
+    modelId: config.modelId ?? ELEVENLABS_REALTIME_DEFAULT_MODEL,
+    audioFormat: config.audioFormat ?? ELEVENLABS_REALTIME_DEFAULT_AUDIO_FORMAT,
+    sampleRate: config.sampleRate ?? ELEVENLABS_REALTIME_DEFAULT_SAMPLE_RATE,
+    commitStrategy: config.commitStrategy ?? ELEVENLABS_REALTIME_DEFAULT_COMMIT_STRATEGY,
+    languageCode: config.languageCode,
+    vadSilenceThresholdSecs: config.vadSilenceThresholdSecs,
+    vadThreshold: config.vadThreshold,
+    minSpeechDurationMs: config.minSpeechDurationMs,
+    minSilenceDurationMs: config.minSilenceDurationMs,
+  };
+}
+
+async function createElevenLabsSingleUseToken(
+  config: Pick<ElevenLabsRealtimeConnectionConfig, "apiKey" | "baseUrl">,
+): Promise<string> {
+  const { response, release } = await fetchWithSsrFGuard({
+    url: `${config.baseUrl}/v1/single-use-token/realtime_scribe`,
+    init: { method: "POST", headers: { "xi-api-key": config.apiKey } },
+    timeoutMs: ELEVENLABS_SINGLE_USE_TOKEN_TIMEOUT_MS,
+    policy: ssrfPolicyFromHttpBaseUrlAllowedHostname(config.baseUrl),
+    auditContext: "elevenlabs.realtime-transcription.token",
+  });
+  try {
+    await assertOkOrThrowProviderError(response, "ElevenLabs single-use token error");
+    const body = (await response.json()) as { token?: unknown };
+    if (typeof body.token !== "string" || !body.token) {
+      throw new Error("ElevenLabs single-use token response missing token");
+    }
+    return body.token;
+  } finally {
+    await release();
+  }
+}
+
 export function buildElevenLabsRealtimeTranscriptionProvider(): RealtimeTranscriptionProviderPlugin {
   return {
     id: "elevenlabs",
@@ -251,27 +312,28 @@ export function buildElevenLabsRealtimeTranscriptionProvider(): RealtimeTranscri
         resolveElevenLabsApiKeyWithProfileFallback() ||
         process.env.XI_API_KEY,
       ),
-    createSession: (req) => {
-      const config = normalizeProviderConfig(req.providerConfig);
-      const apiKey =
-        config.apiKey || resolveElevenLabsApiKeyWithProfileFallback() || process.env.XI_API_KEY;
-      if (!apiKey) {
-        throw new Error("ElevenLabs API key missing");
-      }
-      return createElevenLabsRealtimeTranscriptionSession({
+    createSession: (req) =>
+      createElevenLabsRealtimeTranscriptionSession({
         ...req,
-        apiKey,
-        baseUrl: normalizeElevenLabsBaseUrl(config.baseUrl),
-        modelId: config.modelId ?? ELEVENLABS_REALTIME_DEFAULT_MODEL,
-        audioFormat: config.audioFormat ?? ELEVENLABS_REALTIME_DEFAULT_AUDIO_FORMAT,
-        sampleRate: config.sampleRate ?? ELEVENLABS_REALTIME_DEFAULT_SAMPLE_RATE,
-        commitStrategy: config.commitStrategy ?? ELEVENLABS_REALTIME_DEFAULT_COMMIT_STRATEGY,
-        languageCode: config.languageCode,
-        vadSilenceThresholdSecs: config.vadSilenceThresholdSecs,
-        vadThreshold: config.vadThreshold,
-        minSpeechDurationMs: config.minSpeechDurationMs,
-        minSilenceDurationMs: config.minSilenceDurationMs,
-      });
+        ...resolveConnectionConfig(req.providerConfig),
+      }),
+    createBrowserSession: async ({ providerConfig }) => {
+      const config = {
+        ...resolveConnectionConfig(providerConfig),
+        audioFormat: ELEVENLABS_BROWSER_AUDIO_FORMAT,
+        sampleRate: ELEVENLABS_BROWSER_SAMPLE_RATE,
+        commitStrategy: "vad" as const,
+      };
+      const token = await createElevenLabsSingleUseToken(config);
+      const url = new URL(toElevenLabsRealtimeWsUrl(config));
+      url.searchParams.set("token", token);
+      return {
+        provider: "elevenlabs",
+        protocol: "elevenlabs-scribe-realtime",
+        url: url.toString(),
+        sampleRate: config.sampleRate,
+        expiresAt: Date.now() + ELEVENLABS_SINGLE_USE_TOKEN_TTL_MS,
+      } satisfies RealtimeTranscriptionBrowserSession;
     },
   };
 }

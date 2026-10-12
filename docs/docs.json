@@ -1153,6 +1153,7 @@
                   "plugins/codex-harness",
                   "plugins/google-meet",
                   "plugins/webhooks",
+                  "plugins/voice-agent",
                   "plugins/voice-call",
                   "plugins/memory-wiki",
                   "plugins/message-presentation",

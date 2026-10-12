@@ -31,6 +31,8 @@ import type { ProviderUsageSnapshot } from "../infra/provider-usage.types.js";
 import type { MediaUnderstandingProvider } from "../media-understanding/types.js";
 import type { MusicGenerationProvider } from "../music-generation/types.js";
 import type {
+  RealtimeTranscriptionBrowserSession,
+  RealtimeTranscriptionBrowserSessionCreateRequest,
   RealtimeTranscriptionProviderConfig,
   RealtimeTranscriptionProviderConfiguredContext,
   RealtimeTranscriptionProviderId,
@@ -1791,6 +1793,10 @@ export type RealtimeTranscriptionProviderPlugin = {
   ) => RealtimeTranscriptionProviderConfig;
   isConfigured: (ctx: RealtimeTranscriptionProviderConfiguredContext) => boolean;
   createSession: (req: RealtimeTranscriptionSessionCreateRequest) => RealtimeTranscriptionSession;
+  /** Optional: mint short-lived credentials so a browser can stream audio directly. */
+  createBrowserSession?: (
+    req: RealtimeTranscriptionBrowserSessionCreateRequest,
+  ) => Promise<RealtimeTranscriptionBrowserSession>;
 };
 
 export type PluginRealtimeTranscriptionProviderEntry = RealtimeTranscriptionProviderPlugin & {

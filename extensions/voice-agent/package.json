@@ -1,0 +1,18 @@
+{
+  "name": "@genesis/voice-agent",
+  "version": "2026.4.20",
+  "private": true,
+  "description": "Genesis voice agent plugin: talk to an agent through gateway or node microphones and speakers",
+  "type": "module",
+  "dependencies": {
+    "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@genesis/plugin-sdk": "workspace:*"
+  },
+  "genesis": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

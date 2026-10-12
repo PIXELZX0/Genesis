@@ -1,5 +1,7 @@
 export type { RealtimeTranscriptionProviderPlugin } from "../plugins/types.js";
 export type {
+  RealtimeTranscriptionBrowserSession,
+  RealtimeTranscriptionBrowserSessionCreateRequest,
   RealtimeTranscriptionProviderConfig,
   RealtimeTranscriptionProviderConfiguredContext,
   RealtimeTranscriptionProviderId,
