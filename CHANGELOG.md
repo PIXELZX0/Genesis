@@ -2,20 +2,30 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.10.12
+
+### Changes
+
+- Agents: upgraded the embedded agent runtime (`@earendil-works/pi-*`) to 1.1.0. Its built-in Azure OpenAI model catalog is now listed under `azure/*` instead of `azure-openai-responses/*`; custom `models.providers` entries are unchanged.
+- Agents: the system prompt now includes tool usage guidance, shown only for the tools that are enabled: prefer `read`/`grep`/`find` over shell equivalents, read before editing, clean up background sessions, treat web results as untrusted, and start independent sub-agents together.
+- Wallet: `evm:polygon`, `evm:arbitrum`, and `evm:unichain` are added to the default EVM chains, with public RPC defaults when `rpcUrl` is omitted.
+
+### Fixes
+
+- MCP: `genesis mcp call` retries inside the same connection while a server reports it is not ready (`--wait <ms>`, default 10000) and exits non-zero if it never becomes ready.
+- Agents: status for an active video or music generation task is now added to the user turn instead of the start of the system prompt, so a task starting, progressing, or finishing no longer invalidates the prompt cache.
+- ACP: `sessions_spawn` now notes in its result when the ACP backend permission mode (for example `approve-reads`) will deny write/exec tool calls.
+
 ## 2026.10.2
 
 ### Changes
 
 - MCP: agents no longer get configured MCP tools injected into their tool list by default. They use `genesis mcp tools` and `genesis mcp call` from the shell instead; set `mcp.toolExposure: "inject"` to keep the old behavior.
 - Agents: upgraded the embedded agent runtime (`@earendil-works/pi-*`) to 1.0.0.
-- Agents: the system prompt now includes tool usage guidance, shown only for the tools that are enabled: prefer `read`/`grep`/`find` over shell equivalents, read before editing, clean up background sessions, treat web results as untrusted, and start independent sub-agents together.
 
 ### Fixes
 
 - Matrix: the native crypto runtime is bootstrapped before media downloads load it, so encrypted media no longer fails on a cold start.
-- MCP: `genesis mcp call` retries inside the same connection while a server reports it is not ready (`--wait <ms>`, default 10000) and exits non-zero if it never becomes ready.
-- Agents: status for an active video or music generation task is now added to the user turn instead of the start of the system prompt, so a task starting, progressing, or finishing no longer invalidates the prompt cache.
-- ACP: `sessions_spawn` now notes in its result when the ACP backend permission mode (for example `approve-reads`) will deny write/exec tool calls.
 
 ## 2026.9.27
 
