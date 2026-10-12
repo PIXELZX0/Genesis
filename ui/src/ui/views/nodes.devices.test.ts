@@ -38,6 +38,12 @@ function baseProps(overrides: Partial<NodesProps> = {}): NodesProps {
     execApprovalsTargetNodeId: null,
     nodesActionMenuId: null,
     nodesModal: null,
+    voiceAgentAvailable: null,
+    voiceAgentSessions: [],
+    voiceAgentBusyTarget: null,
+    voiceAgentError: null,
+    onVoiceAgentStart: () => undefined,
+    onVoiceAgentStop: () => undefined,
     onRefresh: () => undefined,
     onToggleActionMenu: () => undefined,
     onOpenNodeModal: () => undefined,
@@ -87,6 +93,43 @@ describe("nodes devices pending rendering", () => {
     paired: true,
     commands: ["system.run", "system.which", "device.status"],
   };
+
+  it("shows voice agent sessions and offers start only on nodes with the audio command", () => {
+    const text = renderNodesText({
+      nodes: [runnableNode, { ...runnableNode, nodeId: "node-2", commands: ["voiceagent.audio"] }],
+      nodesActionMenuId: "node-2",
+      voiceAgentAvailable: true,
+      voiceAgentSessions: [
+        {
+          id: "s",
+          target: "gateway",
+          sttProvider: "elevenlabs",
+          state: "speaking",
+          startedAt: new Date().toISOString(),
+          turns: 2,
+          lastTranscript: "what time is it",
+        },
+      ],
+    });
+    expect(text).toContain("Gateway host");
+    expect(text).toContain("Heard: what time is it");
+    expect(text).toContain("2 turns");
+    expect(text).not.toContain("Listen on gateway");
+    expect(text).toContain("Start voice agent");
+    expect(
+      renderNodesText({
+        nodes: [runnableNode],
+        nodesActionMenuId: "node-1",
+        voiceAgentAvailable: true,
+      }),
+    ).not.toContain("Start voice agent");
+  });
+
+  it("hints to enable the plugin when voice agent methods are missing", () => {
+    expect(renderNodesText({ voiceAgentAvailable: false })).toContain(
+      "Enable the Voice Agent plugin",
+    );
+  });
 
   it("lists nodes in the inventory table", () => {
     const text = renderNodesText({ nodes: [runnableNode] });

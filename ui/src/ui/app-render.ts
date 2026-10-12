@@ -169,6 +169,11 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import {
+  loadVoiceAgentStatus,
+  startVoiceAgent,
+  stopVoiceAgent,
+} from "./controllers/voice-agent.ts";
+import {
   addWalletToken,
   loadWalletSummary,
   lockWallet,
@@ -3399,7 +3404,19 @@ export function renderApp(state: AppViewState) {
                 execApprovalsSelectedAgent: state.execApprovalsSelectedAgent,
                 execApprovalsTarget: state.execApprovalsTarget,
                 execApprovalsTargetNodeId: state.execApprovalsTargetNodeId,
-                onRefresh: () => loadNodes(state),
+                voiceAgentAvailable: state.voiceAgentAvailable,
+                voiceAgentSessions: state.voiceAgentSessions,
+                voiceAgentBusyTarget: state.voiceAgentBusyTarget,
+                voiceAgentError: state.voiceAgentError,
+                onVoiceAgentStart: (nodeId) => {
+                  state.nodesActionMenuId = null;
+                  void startVoiceAgent(state, nodeId);
+                },
+                onVoiceAgentStop: (target) => void stopVoiceAgent(state, target),
+                onRefresh: () => {
+                  void loadNodes(state);
+                  void loadVoiceAgentStatus(state);
+                },
                 onToggleActionMenu: (nodeId) => {
                   state.nodesActionMenuId = nodeId;
                 },
@@ -3522,6 +3539,10 @@ export function renderApp(state: AppViewState) {
               draft: state.chatMessage,
               queue: state.chatQueue,
               realtimeTalkActive: state.realtimeTalkActive,
+              voiceChatActive: state.voiceChatActive,
+              voiceChatStatus: state.voiceChatStatus,
+              voiceChatDetail: state.voiceChatDetail,
+              voiceChatPartial: state.voiceChatPartial,
               realtimeTalkStatus: state.realtimeTalkStatus,
               realtimeTalkDetail: state.realtimeTalkDetail,
               realtimeTalkTranscript: state.realtimeTalkTranscript,
@@ -3553,6 +3574,8 @@ export function renderApp(state: AppViewState) {
               onSend: () => state.handleSendChat(),
               onCompact: () => state.handleSendChat("/compact", { restoreDraft: true }),
               onToggleRealtimeTalk: () => state.toggleRealtimeTalk(),
+              onToggleVoiceChat:
+                state.voiceAgentAvailable === false ? undefined : () => state.toggleVoiceChat(),
               canAbort: Boolean(state.chatRunId),
               onAbort: () => void state.handleAbortChat(),
               onQueueRemove: (id) => state.removeQueuedMessage(id),

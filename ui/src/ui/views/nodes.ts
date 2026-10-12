@@ -6,11 +6,13 @@ import {
 } from "../../../../src/shared/device-pairing-access.js";
 import { t } from "../../i18n/index.ts";
 import type { DeviceTokenSummary, PairedDevice, PendingDevice } from "../controllers/devices.ts";
+import { VOICE_AGENT_NODE_COMMAND } from "../controllers/voice-agent.ts";
 import { formatRelativeTimestamp, formatList, formatUnknownText } from "../format.ts";
 import { icons } from "../icons.ts";
 import { normalizeOptionalString } from "../string-coerce.ts";
 import { renderExecApprovals, resolveExecApprovalsState } from "./nodes-exec-approvals.ts";
 import { resolveConfigAgents, resolveNodeTargets, type NodeTargetOption } from "./nodes-shared.ts";
+import { renderVoiceAgent } from "./nodes-voice-agent.ts";
 export type { NodesProps } from "./nodes.types.ts";
 import type { NodesProps } from "./nodes.types.ts";
 
@@ -51,7 +53,7 @@ export function renderNodes(props: NodesProps) {
               </div>
             `}
       </section>
-      ${renderDevices(props)}
+      ${renderVoiceAgent(props)} ${renderDevices(props)}
     </div>
     ${renderNodeModals(props)}
   `;
@@ -112,13 +114,13 @@ function renderNodeRow(node: Record<string, unknown>, props: NodesProps) {
         >
           ${icons.moreHorizontal}
         </button>
-        ${id ? renderActionMenu(id, props) : nothing}
+        ${id ? renderActionMenu(id, node, props) : nothing}
       </span>
     </div>
   `;
 }
 
-function renderActionMenu(nodeId: string, props: NodesProps) {
+function renderActionMenu(nodeId: string, node: Record<string, unknown>, props: NodesProps) {
   if (props.nodesActionMenuId !== nodeId) {
     return nothing;
   }
@@ -128,6 +130,14 @@ function renderActionMenu(nodeId: string, props: NodesProps) {
     ["Run command", icons.play, () => props.onOpenNodeModal("run", nodeId)],
     ["Open terminal", icons.terminal, () => props.onOpenNodeModal("terminal", nodeId)],
   ];
+  const voiceAgentReady =
+    props.voiceAgentAvailable === true &&
+    Array.isArray(node.commands) &&
+    node.commands.includes(VOICE_AGENT_NODE_COMMAND) &&
+    !props.voiceAgentSessions.some((session) => session.target === nodeId);
+  if (voiceAgentReady) {
+    items.push(["Start voice agent", icons.mic, () => props.onVoiceAgentStart(nodeId)]);
+  }
   return html`
     <div
       class="nodes-action-menu"

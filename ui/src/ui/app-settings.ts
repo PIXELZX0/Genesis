@@ -47,6 +47,7 @@ import { loadPresence, type PresenceState } from "./controllers/presence.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
 import { loadUsage, type UsageState } from "./controllers/usage.ts";
+import { loadVoiceAgentStatus, type VoiceAgentState } from "./controllers/voice-agent.ts";
 import { loadWalletSummary, type WalletState } from "./controllers/wallet.ts";
 import { isMonitoredAuthProvider } from "./model-auth-helpers.ts";
 import {
@@ -132,6 +133,7 @@ type SettingsAppHost = SettingsHost &
   PluginsState &
   ModelAuthStatusState &
   UsageState &
+  VoiceAgentState &
   WalletState & {
     overviewLogCursor: number | null;
     overviewLogLines: string[];
@@ -408,6 +410,7 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "nodes":
       await loadNodes(app);
+      await loadVoiceAgentStatus(app);
       await loadDevices(app);
       await loadConfig(app);
       await loadExecApprovals(app);
@@ -422,6 +425,7 @@ export async function refreshActiveTab(host: SettingsHost) {
       ]);
       return;
     case "chat":
+      void loadVoiceAgentStatus(app);
       await refreshChat(host as unknown as Parameters<typeof refreshChat>[0]);
       scheduleChatScroll(
         host as unknown as Parameters<typeof scheduleChatScroll>[0],

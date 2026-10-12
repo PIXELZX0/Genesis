@@ -4,6 +4,7 @@ import type { LogsState } from "./controllers/logs.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import type { NodesState } from "./controllers/nodes.ts";
 import { loadNodes } from "./controllers/nodes.ts";
+import { loadVoiceAgentStatus, type VoiceAgentState } from "./controllers/voice-agent.ts";
 
 type PollingHost = {
   nodesPollInterval: number | null;
@@ -16,10 +17,12 @@ export function startNodesPolling(host: PollingHost) {
   if (host.nodesPollInterval != null) {
     return;
   }
-  host.nodesPollInterval = window.setInterval(
-    () => void loadNodes(host as unknown as NodesState, { quiet: true }),
-    5000,
-  );
+  host.nodesPollInterval = window.setInterval(() => {
+    void loadNodes(host as unknown as NodesState, { quiet: true });
+    if (host.tab === "nodes") {
+      void loadVoiceAgentStatus(host as unknown as VoiceAgentState, { quiet: true });
+    }
+  }, 5000);
 }
 
 export function stopNodesPolling(host: PollingHost) {

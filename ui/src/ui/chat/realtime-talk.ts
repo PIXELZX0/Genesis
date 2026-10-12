@@ -43,7 +43,7 @@ type ChatPayload = {
   message?: unknown;
 };
 
-function extractTextFromMessage(message: unknown): string {
+export function extractTextFromMessage(message: unknown): string {
   if (!message || typeof message !== "object") {
     return "";
   }

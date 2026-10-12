@@ -111,6 +111,29 @@ describe("renderChat", () => {
     cleanupChatModuleState();
   });
 
+  it("shows the voice agent toggle and its live transcript", () => {
+    const container = document.createElement("div");
+    const onToggleVoiceChat = vi.fn();
+    render(
+      renderChat(
+        createProps({
+          onToggleVoiceChat,
+          voiceChatActive: true,
+          voiceChatStatus: "listening",
+          voiceChatPartial: "what is the wea",
+        }),
+      ),
+      container,
+    );
+    const button = container.querySelector<HTMLButtonElement>('[aria-label="Stop voice agent"]');
+    button?.click();
+    expect(onToggleVoiceChat).toHaveBeenCalledOnce();
+    expect(container.textContent).toContain("what is the wea");
+
+    render(renderChat(createProps()), container);
+    expect(container.querySelector('[aria-label="Start voice agent"]')).toBeNull();
+  });
+
   it("renders configured assistant text avatars in transcript groups", () => {
     const container = document.createElement("div");
 

@@ -142,6 +142,10 @@ export type AppViewState = {
   memoryViewMode: "table" | "graph";
   chatQueue: ChatQueueItem[];
   realtimeTalkActive: boolean;
+  voiceChatActive: boolean;
+  voiceChatStatus: import("./chat/voice-agent.ts").VoiceChatStatus | null;
+  voiceChatDetail: string | null;
+  voiceChatPartial: string | null;
   realtimeTalkStatus: RealtimeTalkStatus;
   realtimeTalkDetail: string | null;
   realtimeTalkTranscript: string | null;
@@ -159,6 +163,10 @@ export type AppViewState = {
   nodeManagementError: string | null;
   nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null;
   nodesActionMenuId: string | null;
+  voiceAgentAvailable: boolean | null;
+  voiceAgentSessions: import("./controllers/voice-agent.ts").VoiceAgentSessionStatus[];
+  voiceAgentBusyTarget: string | null;
+  voiceAgentError: string | null;
   nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null;
   chatNewMessagesBelow: boolean;
   navDrawerOpen: boolean;
@@ -595,6 +603,7 @@ export type AppViewState = {
     setChatMessage: (next: string) => void;
     handleSendChat: (messageOverride?: string, opts?: { restoreDraft?: boolean }) => Promise<void>;
     toggleRealtimeTalk: () => Promise<void>;
+    toggleVoiceChat: () => Promise<void>;
     steerQueuedChatMessage: (id: string) => Promise<void>;
     handleAbortChat: () => Promise<void>;
     removeQueuedMessage: (id: string) => void;

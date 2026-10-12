@@ -76,6 +76,7 @@ import { handleCanvasAgentRunMessage } from "./canvas-agent-run.ts";
 import { exportChatMarkdown } from "./chat/export.ts";
 import { RealtimeTalkSession, type RealtimeTalkStatus } from "./chat/realtime-talk.ts";
 import type { ChatSideResult } from "./chat/side-result.ts";
+import { VoiceChatSession, type VoiceChatStatus } from "./chat/voice-agent.ts";
 import {
   loadToolsEffective as loadToolsEffectiveInternal,
   refreshVisibleToolsEffectiveForCurrentSession as refreshVisibleToolsEffectiveForCurrentSessionInternal,
@@ -249,6 +250,11 @@ export class GenesisApp extends LitElement {
   @state() realtimeTalkDetail: string | null = null;
   @state() realtimeTalkTranscript: string | null = null;
   private realtimeTalkSession: RealtimeTalkSession | null = null;
+  @state() voiceChatActive = false;
+  @state() voiceChatStatus: VoiceChatStatus | null = null;
+  @state() voiceChatDetail: string | null = null;
+  @state() voiceChatPartial: string | null = null;
+  private voiceChatSession: VoiceChatSession | null = null;
   @state() chatManualRefreshInFlight = false;
   @state() navDrawerOpen = false;
   @state() mainNavHovered = false;
@@ -275,6 +281,11 @@ export class GenesisApp extends LitElement {
   @state() nodeManagementResult: import("./controllers/nodes.ts").NodeManagementResult | null =
     null;
   @state() nodesActionMenuId: string | null = null;
+  @state() voiceAgentAvailable: boolean | null = null;
+  @state() voiceAgentSessions: import("./controllers/voice-agent.ts").VoiceAgentSessionStatus[] =
+    [];
+  @state() voiceAgentBusyTarget: string | null = null;
+  @state() voiceAgentError: string | null = null;
   @state() nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null = null;
   @state() devicesLoading = false;
   @state() devicesError: string | null = null;
@@ -982,6 +993,53 @@ export class GenesisApp extends LitElement {
       this.realtimeTalkStatus = "error";
       this.realtimeTalkDetail = error instanceof Error ? error.message : String(error);
       this.lastError = this.realtimeTalkDetail;
+    }
+  }
+
+  async toggleVoiceChat() {
+    if (this.voiceChatSession) {
+      this.voiceChatSession.stop();
+      this.voiceChatSession = null;
+      this.voiceChatActive = false;
+      this.voiceChatStatus = null;
+      this.voiceChatDetail = null;
+      this.voiceChatPartial = null;
+      return;
+    }
+    if (!this.client || !this.connected) {
+      this.lastError = "Gateway not connected";
+      return;
+    }
+    this.voiceChatActive = true;
+    this.voiceChatDetail = null;
+    this.voiceChatPartial = null;
+    const session = new VoiceChatSession(this.client, () => this.sessionKey, {
+      onStatus: (status, detail) => {
+        this.voiceChatStatus = status;
+        this.voiceChatDetail = detail ?? null;
+      },
+      onPartial: (text) => {
+        this.voiceChatPartial = text || null;
+      },
+      onUtterance: (text) => void this.handleSendChat(text),
+    });
+    this.voiceChatSession = session;
+    try {
+      await session.start();
+    } catch (error) {
+      session.stop();
+      if (this.voiceChatSession === session) {
+        this.voiceChatSession = null;
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("unknown method")) {
+        this.voiceAgentAvailable = false;
+      }
+      this.voiceChatActive = false;
+      this.voiceChatStatus = "error";
+      this.voiceChatDetail = message.includes("unknown method")
+        ? "Enable the Voice Agent plugin to talk to the agent here."
+        : message;
     }
   }
 

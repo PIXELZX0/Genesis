@@ -37,6 +37,7 @@ import { isSttSupported, startStt, stopStt } from "../chat/speech.ts";
 import { renderCompactionIndicator, renderFallbackIndicator } from "../chat/status-indicators.ts";
 import { buildSidebarContent } from "../chat/tool-cards.ts";
 import { getExpandedToolCards } from "../chat/tool-expansion-state.ts";
+import type { VoiceChatStatus } from "../chat/voice-agent.ts";
 import type { EmbedSandboxMode } from "../embed-sandbox.ts";
 import { icons } from "../icons.ts";
 import type { SidebarContent } from "../sidebar-content.ts";
@@ -47,6 +48,14 @@ import { resolveLocalUserName } from "../user-identity.ts";
 import { agentLogoUrl, resolveChatAvatarRenderUrl } from "./agents-utils.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
+
+const VOICE_CHAT_STATUS_LABEL: Record<VoiceChatStatus, string> = {
+  connecting: "Connecting voice agent...",
+  listening: "Listening...",
+  thinking: "Asking Genesis...",
+  speaking: "Speaking...",
+  error: "Voice agent error",
+};
 
 export type ChatProps = {
   sessionKey: string;
@@ -72,6 +81,10 @@ export type ChatProps = {
   draft: string;
   queue: ChatQueueItem[];
   realtimeTalkActive?: boolean;
+  voiceChatActive?: boolean;
+  voiceChatStatus?: VoiceChatStatus | null;
+  voiceChatDetail?: string | null;
+  voiceChatPartial?: string | null;
   realtimeTalkStatus?: RealtimeTalkStatus;
   realtimeTalkDetail?: string | null;
   realtimeTalkTranscript?: string | null;
@@ -106,6 +119,7 @@ export type ChatProps = {
   onSend: () => void;
   onCompact?: () => void | Promise<void>;
   onToggleRealtimeTalk?: () => void;
+  onToggleVoiceChat?: () => void;
   onAbort?: () => void;
   onQueueRemove: (id: string) => void;
   onQueueSteer?: (id: string) => void;
@@ -1302,6 +1316,15 @@ export function renderChat(props: ChatProps) {
               </div>
             `
           : nothing}
+        ${props.voiceChatActive || props.voiceChatDetail
+          ? html`
+              <div class="agent-chat__stt-interim agent-chat__talk-status">
+                ${props.voiceChatDetail ??
+                (props.voiceChatPartial ||
+                  VOICE_CHAT_STATUS_LABEL[props.voiceChatStatus ?? "connecting"])}
+              </div>
+            `
+          : nothing}
 
         <textarea
           ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
@@ -1395,6 +1418,21 @@ export function renderChat(props: ChatProps) {
                     ?disabled=${!props.connected}
                   >
                     ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
+                  </button>
+                `
+              : nothing}
+            ${props.onToggleVoiceChat
+              ? html`
+                  <button
+                    class="agent-chat__input-btn ${props.voiceChatActive
+                      ? "agent-chat__input-btn--talk"
+                      : ""}"
+                    @click=${props.onToggleVoiceChat}
+                    title=${props.voiceChatActive ? "Stop voice agent" : "Start voice agent"}
+                    aria-label=${props.voiceChatActive ? "Stop voice agent" : "Start voice agent"}
+                    ?disabled=${!props.connected}
+                  >
+                    ${props.voiceChatActive ? icons.volume2 : icons.bot}
                   </button>
                 `
               : nothing}

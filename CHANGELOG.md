@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Changes
+
+- Plugins: new Voice Agent plugin (`voice-agent`) lets you talk to an agent through the gateway host's or a paired node's microphone and speaker, using ElevenLabs Scribe v2 Realtime for streaming speech-to-text and your configured TTS for replies. Start it with `genesis voice-agent start [--node <id>]`, `autoStart`, or the Voice agent card on the Control UI Nodes page. In Control UI chat, the new voice agent button uses the browser's microphone and speaker for the current session.
+
 ## 2026.10.12
 
 ### Changes

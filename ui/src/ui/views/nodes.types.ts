@@ -1,6 +1,7 @@
 import type { DevicePairingList } from "../controllers/devices.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "../controllers/exec-approvals.ts";
 import type { NodeManagementPreset, NodeManagementResult } from "../controllers/nodes.ts";
+import type { VoiceAgentSessionStatus } from "../controllers/voice-agent.ts";
 
 export type NodesProps = {
   loading: boolean;
@@ -33,6 +34,12 @@ export type NodesProps = {
   execApprovalsTargetNodeId: string | null;
   nodesActionMenuId: string | null;
   nodesModal: { kind: "permissions" | "run" | "terminal"; nodeId: string } | null;
+  voiceAgentAvailable: boolean | null;
+  voiceAgentSessions: VoiceAgentSessionStatus[];
+  voiceAgentBusyTarget: string | null;
+  voiceAgentError: string | null;
+  onVoiceAgentStart: (nodeId: string | null) => void;
+  onVoiceAgentStop: (target: string) => void;
   onRefresh: () => void;
   onToggleActionMenu: (nodeId: string | null) => void;
   onOpenNodeModal: (kind: "permissions" | "run" | "terminal", nodeId: string) => void;
