@@ -1,4 +1,5 @@
 import type { GenesisConfig } from "genesis/plugin-sdk/config-runtime";
+import { withTrustedEnvProxyGuardedFetchMode } from "genesis/plugin-sdk/fetch-runtime";
 import {
   type ProviderResolveDynamicModelContext,
   type ProviderRuntimeModel,
@@ -11,6 +12,10 @@ import {
   normalizeProviderId,
   type ProviderPlugin,
 } from "genesis/plugin-sdk/provider-model-shared";
+import {
+  fetchWithSsrFGuard,
+  ssrfPolicyFromHttpBaseUrlAllowedHostname,
+} from "genesis/plugin-sdk/ssrf-runtime";
 import { normalizeLowercaseStringOrEmpty } from "genesis/plugin-sdk/text-runtime";
 import { OPENAI_API_KEY_LABEL, OPENAI_API_KEY_WIZARD_GROUP } from "./auth-choice-copy.js";
 import { isOpenAIApiBaseUrl } from "./base-url.js";
@@ -101,9 +106,6 @@ type OpenAIModelsListWire = { data?: Array<{ id?: unknown }> };
 /**
  * Live `GET /models` lookup for the "Add models" wizard. Never throws: a
  * failed discovery just leaves the wizard with nothing to offer.
- *
- * No SSRF guard — the only reachable target is `models.providers.openai.baseUrl`,
- * which the operator sets themselves, and the response body is never surfaced.
  */
 async function listOpenAIModels(ctx: {
   config?: GenesisConfig;
@@ -117,23 +119,35 @@ async function listOpenAIModels(ctx: {
   if (!apiKey) {
     return [];
   }
+  const baseUrl = resolveConfiguredOpenAIBaseUrl(ctx.config);
   try {
-    const response = await fetch(`${resolveConfiguredOpenAIBaseUrl(ctx.config)}/models`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(OPENAI_LIST_MODELS_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      return [];
+    // The operator sets the base URL: allow its host even when private (local
+    // proxies) and honor a configured HTTP(S)_PROXY.
+    const { response, release } = await fetchWithSsrFGuard(
+      withTrustedEnvProxyGuardedFetchMode({
+        url: `${baseUrl}/models`,
+        init: { headers: { Authorization: `Bearer ${apiKey}` } },
+        timeoutMs: OPENAI_LIST_MODELS_TIMEOUT_MS,
+        policy: ssrfPolicyFromHttpBaseUrlAllowedHostname(baseUrl),
+        auditContext: "openai-provider.list-models",
+      }),
+    );
+    try {
+      if (!response.ok) {
+        return [];
+      }
+      const payload = (await response.json()) as OpenAIModelsListWire;
+      return (payload.data ?? [])
+        .map((item) => (typeof item?.id === "string" ? item.id.trim() : ""))
+        .filter(
+          (id) =>
+            id.length > 0 &&
+            !OPENAI_NON_CHAT_MODEL_MARKERS.some((marker) => id.toLowerCase().includes(marker)),
+        )
+        .map((id) => ({ id, name: id, provider: PROVIDER_ID }));
+    } finally {
+      await release();
     }
-    const payload = (await response.json()) as OpenAIModelsListWire;
-    return (payload.data ?? [])
-      .map((item) => (typeof item?.id === "string" ? item.id.trim() : ""))
-      .filter(
-        (id) =>
-          id.length > 0 &&
-          !OPENAI_NON_CHAT_MODEL_MARKERS.some((marker) => id.toLowerCase().includes(marker)),
-      )
-      .map((id) => ({ id, name: id, provider: PROVIDER_ID }));
   } catch {
     return [];
   }
