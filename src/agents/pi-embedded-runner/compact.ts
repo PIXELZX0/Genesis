@@ -96,7 +96,10 @@ import {
   applySkillEnvOverridesFromSnapshot,
   resolveSkillsPromptForRun,
 } from "../skills.js";
-import { resolveSystemPromptOverride } from "../system-prompt-override.js";
+import {
+  resolveSystemPromptOverride,
+  resolveSystemPromptSectionOrder,
+} from "../system-prompt-override.js";
 import { classifyCompactionReason, resolveCompactionFailureReason } from "./compact-reasons.js";
 import type { CompactEmbeddedPiSessionParams, CompactionMessageMetrics } from "./compact.types.js";
 import {
@@ -575,12 +578,12 @@ export async function compactEmbeddedPiSessionDirect(
     );
     const bundleMcpRuntime =
       toolsEnabled && resolveMcpToolExposure(params.config) === "inject"
-      ? await createBundleMcpToolRuntime({
-          workspaceDir: effectiveWorkspace,
-          cfg: params.config,
-          reservedToolNames: tools.map((tool) => tool.name),
-        })
-      : undefined;
+        ? await createBundleMcpToolRuntime({
+            workspaceDir: effectiveWorkspace,
+            cfg: params.config,
+            reservedToolNames: tools.map((tool) => tool.name),
+          })
+        : undefined;
     const bundleLspRuntime = toolsEnabled
       ? await createBundleLspToolRuntime({
           workspaceDir: effectiveWorkspace,
@@ -767,6 +770,10 @@ export async function compactEmbeddedPiSessionDirect(
           contextFiles,
           memoryCitationsMode: params.config?.memory?.citations,
           promptContribution,
+          sectionOrder: resolveSystemPromptSectionOrder({
+            config: params.config,
+            agentId: sessionAgentId,
+          }),
         });
       return createSystemPromptOverride(
         transformProviderSystemPrompt({

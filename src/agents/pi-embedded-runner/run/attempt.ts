@@ -133,7 +133,10 @@ import {
   isSubagentEnvelopeSession,
   resolveSubagentCapabilityStore,
 } from "../../subagent-capabilities.js";
-import { resolveSystemPromptOverride } from "../../system-prompt-override.js";
+import {
+  resolveSystemPromptOverride,
+  resolveSystemPromptSectionOrder,
+} from "../../system-prompt-override.js";
 import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
 import { resolveAgentTimeoutMs } from "../../timeout.js";
@@ -1050,6 +1053,10 @@ export async function runEmbeddedAttempt(
         includeMemorySection: !params.contextEngine || params.contextEngine.info.id === "legacy",
         memoryCitationsMode: params.config?.memory?.citations,
         promptContribution,
+        sectionOrder: resolveSystemPromptSectionOrder({
+          config: params.config,
+          agentId: sessionAgentId,
+        }),
       });
     const appendPrompt = transformProviderSystemPrompt({
       provider: params.provider,

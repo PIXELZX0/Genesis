@@ -25,6 +25,7 @@ import { detectImageReferences, loadImageFromRef } from "../pi-embedded-runner/r
 import type { SandboxFsBridge } from "../sandbox/fs-bridge.js";
 import { detectRuntimeShell } from "../shell-utils.js";
 import { stripSystemPromptCacheBoundary } from "../system-prompt-cache-boundary.js";
+import { resolveSystemPromptSectionOrder } from "../system-prompt-override.js";
 import { buildSystemPromptParams } from "../system-prompt-params.js";
 import { buildAgentSystemPrompt } from "../system-prompt.js";
 import { sanitizeImageBlocks } from "../tool-images.js";
@@ -123,6 +124,10 @@ export function buildSystemPrompt(params: {
     contextFiles: params.contextFiles,
     ttsHint,
     memoryCitationsMode: params.config?.memory?.citations,
+    sectionOrder: resolveSystemPromptSectionOrder({
+      config: params.config,
+      agentId: params.agentId,
+    }),
   });
 }
 

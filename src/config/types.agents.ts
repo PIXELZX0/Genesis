@@ -75,6 +75,8 @@ export type AgentConfig = {
   agentDir?: string;
   /** Optional per-agent full system prompt replacement. */
   systemPromptOverride?: AgentDefaultsConfig["systemPromptOverride"];
+  /** Optional per-agent system prompt section order (replaces the default list). */
+  systemPromptSectionOrder?: AgentDefaultsConfig["systemPromptSectionOrder"];
   /** Optional per-agent embedded harness policy override. */
   embeddedHarness?: AgentEmbeddedHarnessConfig;
   model?: AgentModelConfig;

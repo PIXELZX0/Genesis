@@ -116,6 +116,15 @@ describe("resolveCommandsSystemPromptBundle", () => {
     vi.clearAllMocks();
     createGenesisCodingToolsMock.mockClear();
     createGenesisCodingToolsMock.mockReturnValue([]);
+    // clearAllMocks keeps implementations; undo per-test overrides so they cannot leak.
+    vi.mocked(resolveSandboxRuntimeStatus).mockReturnValue({
+      sandboxed: false,
+      mode: "off",
+    } as never);
+    vi.mocked(resolveSessionAgentIds).mockReturnValue({
+      sessionAgentId: "main",
+      defaultAgentId: "main",
+    });
   });
 
   it("opts command tool builds into gateway subagent binding", async () => {
@@ -233,6 +242,27 @@ describe("resolveCommandsSystemPromptBundle", () => {
           }),
         }),
       }),
+    );
+  });
+
+  it("uses a configured system prompt override like real runs do", async () => {
+    const params = makeParams();
+    params.cfg = { agents: { defaults: { systemPromptOverride: "custom prompt" } } };
+
+    const bundle = await resolveCommandsSystemPromptBundle(params);
+
+    expect(bundle.systemPrompt).toBe("custom prompt");
+    expect(vi.mocked(buildAgentSystemPrompt)).not.toHaveBeenCalled();
+  });
+
+  it("passes the configured section order to the prompt builder", async () => {
+    const params = makeParams();
+    params.cfg = { agents: { defaults: { systemPromptSectionOrder: ["safety", "*"] } } };
+
+    await resolveCommandsSystemPromptBundle(params);
+
+    expect(vi.mocked(buildAgentSystemPrompt)).toHaveBeenCalledWith(
+      expect.objectContaining({ sectionOrder: ["safety", "*"] }),
     );
   });
 });

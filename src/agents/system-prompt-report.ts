@@ -2,23 +2,8 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { SessionSystemPromptReport } from "../config/sessions/types.js";
 import { buildBootstrapInjectionStats } from "./bootstrap-budget.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
+import { buildProjectContextPrompt } from "./system-prompt-project-context.js";
 import type { WorkspaceBootstrapFile } from "./workspace.js";
-
-function extractBetween(
-  input: string,
-  startMarker: string,
-  endMarker: string,
-): { text: string; found: boolean } {
-  const start = input.indexOf(startMarker);
-  if (start === -1) {
-    return { text: "", found: false };
-  }
-  const end = input.indexOf(endMarker, start + startMarker.length);
-  if (end === -1) {
-    return { text: input.slice(start), found: true };
-  }
-  return { text: input.slice(start, end), found: true };
-}
 
 function parseSkillBlocks(skillsPrompt: string): Array<{ name: string; blockChars: number }> {
   const prompt = skillsPrompt.trim();
@@ -85,12 +70,10 @@ export function buildSystemPromptReport(params: {
   tools: AgentTool[];
 }): SessionSystemPromptReport {
   const systemPrompt = params.systemPrompt.trim();
-  const projectContext = extractBetween(
-    systemPrompt,
-    "\n# Project Context\n",
-    "\n## Silent Replies\n",
-  );
-  const projectContextChars = projectContext.text.length;
+  // Rendered from the injected files: exact for any section order and prompt mode.
+  const projectContext = buildProjectContextPrompt(params.injectedFiles);
+  const projectContextChars =
+    projectContext && systemPrompt.includes(projectContext) ? projectContext.length : 0;
   const toolsEntries = buildToolsEntries(params.tools);
   const toolsSchemaChars = toolsEntries.reduce((sum, t) => sum + (t.schemaChars ?? 0), 0);
   const skillsEntries = parseSkillBlocks(params.skillsPrompt);

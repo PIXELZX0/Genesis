@@ -228,6 +228,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional per-agent default reasoning visibility (on|off|stream). Applies when no per-message or session reasoning override is set.",
   "agents.list[].fastModeDefault":
     "Optional per-agent default for fast mode. Applies when no per-message or session fast-mode override is set.",
+  "agents.list[].systemPromptSectionOrder":
+    "Optional per-agent system prompt section order. Replaces agents.defaults.systemPromptSectionOrder for this agent; an empty list restores the built-in order.",
   "agents.list[].runtime":
     "Optional runtime descriptor for this agent. Use embedded for default Genesis execution or acp for external ACP harness defaults.",
   "agents.list[].runtime.type":
@@ -1045,6 +1047,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Maximum total characters retained across all loaded daily memory files in the startup prelude (default: 2800). Additional files are truncated from the prelude once this cap is reached.",
   "agents.defaults.repoRoot":
     "Optional repository root shown in the system prompt runtime line (overrides auto-detect).",
+  "agents.defaults.systemPromptSectionOrder":
+    'Order of the stable system prompt sections (above the prompt-cache boundary), by section id such as "project_context", "safety", or "tooling". Ids before "*" come first and ids after it come last; unlisted sections keep their default order at the "*" (or after all listed ids when "*" is omitted). Runtime and per-turn context always stay at the end. Per-agent agents.list[].systemPromptSectionOrder replaces this list. Ignored when systemPromptOverride is set.',
   "agents.defaults.promptOverlays":
     "Provider-independent prompt overlays applied by model family before provider-specific prompt hooks.",
   "agents.defaults.promptOverlays.gpt5":

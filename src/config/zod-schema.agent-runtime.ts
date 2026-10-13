@@ -4,6 +4,7 @@ import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
+import { SYSTEM_PROMPT_SECTION_IDS } from "./system-prompt-sections.js";
 import { AgentModelSchema } from "./zod-schema.agent-model.js";
 import {
   GroupChatSchema,
@@ -757,6 +758,13 @@ export const AgentEmbeddedHarnessSchema = z
   .strict()
   .optional();
 
+export const SystemPromptSectionOrderSchema = z
+  .array(z.enum([...SYSTEM_PROMPT_SECTION_IDS, "*"]))
+  .refine((entries) => new Set(entries).size === entries.length, {
+    message: "systemPromptSectionOrder entries must be unique",
+  })
+  .optional();
+
 export const AgentEntrySchema = z
   .object({
     id: z.string(),
@@ -765,6 +773,7 @@ export const AgentEntrySchema = z
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     systemPromptOverride: z.string().optional(),
+    systemPromptSectionOrder: SystemPromptSectionOrderSchema,
     embeddedHarness: AgentEmbeddedHarnessSchema,
     model: AgentModelSchema.optional(),
     thinkingDefault: z

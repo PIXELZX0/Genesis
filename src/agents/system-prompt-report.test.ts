@@ -123,4 +123,32 @@ describe("buildSystemPromptReport", () => {
 
     expect(report.injectedWorkspaceFiles[0]?.injectedChars).toBe("trimmed".length);
   });
+
+  it("measures project context exactly wherever the section sits", () => {
+    const projectContext = [
+      "# Project Context",
+      "The following project context files have been loaded:",
+      "## AGENTS.md",
+      "project rules",
+    ].join("\n");
+    const measure = (systemPrompt: string) =>
+      buildSystemPromptReport({
+        source: "run",
+        generatedAt: 0,
+        bootstrapMaxChars: 20_000,
+        systemPrompt,
+        bootstrapFiles: [],
+        injectedFiles: [{ path: "AGENTS.md", content: "project rules" }],
+        skillsPrompt: "",
+        tools: [],
+      }).systemPrompt.projectContextChars;
+
+    expect(
+      measure(["identity", projectContext, "## Tooling", "## Silent Replies"].join("\n")),
+    ).toBe(projectContext.length);
+    expect(measure(["identity", "## Tooling", projectContext, "## Runtime"].join("\n"))).toBe(
+      projectContext.length,
+    );
+    expect(measure("override prompt")).toBe(0);
+  });
 });

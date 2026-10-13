@@ -471,6 +471,25 @@ Replace the entire Genesis-assembled system prompt with a fixed string. Set at t
 }
 ```
 
+### `agents.defaults.systemPromptSectionOrder`
+
+Reorder the stable sections of the Genesis-assembled system prompt. Ids before `"*"` come first and ids after it come last; unlisted sections keep their default order at the `"*"`. Without `"*"`, unlisted sections follow all listed ones. Set per agent with `agents.list[].systemPromptSectionOrder`, which replaces the default list (an empty list restores the built-in order). Unknown or duplicate ids fail config validation. Ignored when `systemPromptOverride` replaces the prompt.
+
+Section ids, in default order: `tooling`, `tool_usage`, `mcp_instructions`, `interaction_style`, `tool_call_style`, `execution_bias`, `provider_prefix`, `safety`, `cli_reference`, `skills`, `memory`, `self_update`, `model_aliases`, `workspace`, `docs`, `sandbox`, `authorized_senders`, `time`, `workspace_files`, `output_directives`, `control_ui_embed`, `messaging`, `voice`, `reactions`, `reasoning_format`, `project_context`, `silent_replies`.
+
+The identity line always stays ahead of these sections, and per-session context (group chat/subagent context, provider dynamic suffix, Runtime) always stays at the end, after the prompt-cache boundary. Changing the order changes the cached prompt prefix once. Workspace files (`project_context`) change most often, so keep them late: providers that cache by prompt prefix re-read everything after the first changed section.
+
+```json5
+{
+  agents: {
+    defaults: {
+      // Safety first, everything else in default order.
+      systemPromptSectionOrder: ["safety", "*"],
+    },
+  },
+}
+```
+
 ### `agents.defaults.promptOverlays`
 
 Provider-independent prompt overlays applied by model family. GPT-5-family model ids receive the shared behavior contract across providers; `personality` controls only the friendly interaction-style layer.

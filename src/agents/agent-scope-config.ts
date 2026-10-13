@@ -18,6 +18,7 @@ export type ResolvedAgentConfig = {
   workspace?: string;
   agentDir?: string;
   systemPromptOverride?: AgentEntry["systemPromptOverride"];
+  systemPromptSectionOrder?: AgentEntry["systemPromptSectionOrder"];
   model?: AgentEntry["model"];
   thinkingDefault?: AgentEntry["thinkingDefault"];
   verboseDefault?: AgentDefaultsConfig["verboseDefault"];
@@ -108,6 +109,9 @@ export function resolveAgentConfig(
     workspace: readStringValue(entry.workspace),
     agentDir: readStringValue(entry.agentDir),
     systemPromptOverride: readStringValue(entry.systemPromptOverride),
+    systemPromptSectionOrder: Array.isArray(entry.systemPromptSectionOrder)
+      ? entry.systemPromptSectionOrder
+      : undefined,
     model:
       typeof entry.model === "string" || (entry.model && typeof entry.model === "object")
         ? entry.model

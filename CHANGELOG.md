@@ -2,6 +2,17 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## Unreleased
+
+### Changes
+
+- Agents: new `agents.defaults.systemPromptSectionOrder` (and per-agent `agents.list[].systemPromptSectionOrder`) reorders the stable system prompt sections by id, with `"*"` marking where unlisted sections go. The default prompt is unchanged.
+
+### Fixes
+
+- Agents: `/context` now measures Project Context exactly for subagent and other minimal-mode prompts, where it also counted the runtime and subagent context.
+- Agents: `/context` estimates and `/export-session` now use `systemPromptOverride` when it is set, matching what real runs send.
+
 ## 2026.10.13
 
 ### Changes

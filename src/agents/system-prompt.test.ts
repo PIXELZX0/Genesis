@@ -3,10 +3,13 @@ import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { typedCases } from "../test-utils/typed-cases.js";
 import { buildSubagentSystemPrompt } from "./subagent-system-prompt.js";
 import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
+import { buildProjectContextPrompt } from "./system-prompt-project-context.js";
+import { buildSystemPromptReport } from "./system-prompt-report.js";
 import {
   buildAgentSystemPrompt,
   buildAgentUserPromptPrefix,
   buildRuntimeLine,
+  orderPromptSections,
 } from "./system-prompt.js";
 
 describe("buildAgentSystemPrompt", () => {
@@ -296,6 +299,127 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain(
       "When a first-class tool exists for an action, use the tool directly instead of asking the user to run equivalent CLI or slash commands.",
     );
+  });
+
+  it("orders sections by sectionOrder with an optional rest marker", () => {
+    const ids = ["a", "b", "c", "d"] as const;
+    expect(orderPromptSections(ids)).toEqual(["a", "b", "c", "d"]);
+    expect(orderPromptSections(ids, ["c"])).toEqual(["c", "a", "b", "d"]);
+    expect(orderPromptSections(ids, ["c", "*", "a"])).toEqual(["c", "b", "d", "a"]);
+    expect(orderPromptSections(ids, ["*", "b"])).toEqual(["a", "c", "d", "b"]);
+    expect(orderPromptSections(ids, ["d", "c", "b", "a", "*"])).toEqual(["d", "c", "b", "a"]);
+    expect(orderPromptSections(ids, ["b", "b", "*", "b"])).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("applies sectionOrder above the cache boundary only", () => {
+    const params = {
+      workspaceDir: "/tmp/genesis",
+      contextFiles: [{ path: "AGENTS.md", content: "project rules" }],
+      extraSystemPrompt: "group context",
+    };
+    const defaultPrompt = buildAgentSystemPrompt(params);
+    const prompt = buildAgentSystemPrompt({
+      ...params,
+      sectionOrder: ["project_context", "*", "tooling"],
+    });
+    const [stable, dynamic] = prompt.split(SYSTEM_PROMPT_CACHE_BOUNDARY);
+    expect(
+      stable.startsWith("You are a personal assistant running inside Genesis.\n# Project Context"),
+    ).toBe(true);
+    expect(stable.split("# Project Context")).toHaveLength(2);
+    expect(stable).toContain("## Silent Replies");
+    expect(stable.indexOf("## Tooling")).toBeGreaterThan(stable.indexOf("## Silent Replies"));
+    expect(dynamic).toBe(defaultPrompt.split(SYSTEM_PROMPT_CACHE_BOUNDARY)[1]);
+    expect(dynamic).toContain("## Group Chat Context");
+    expect(dynamic).toContain("## Runtime");
+    // Cross-reference wording follows where Project Context actually lands.
+    expect(defaultPrompt).toContain("included below in Project Context.");
+    expect(prompt).toContain("included above in Project Context.");
+  });
+
+  it("keeps the default section order stable", () => {
+    // Reordering this list changes every cached prompt prefix; keep docs in sync.
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/genesis",
+      toolNames: ["read", "exec", "gateway"],
+      mcpServerInstructions: "## MCP Server Instructions\nmcp",
+      promptContribution: {
+        stablePrefix: "STABLE PREFIX",
+        sectionOverrides: { interaction_style: "## Interaction Style\nstyle" },
+      },
+      skillsPrompt: "<available_skills></available_skills>",
+      modelAliasLines: ["- fast: openai/gpt-5.4"],
+      docsPath: "/docs",
+      sandboxInfo: { enabled: true },
+      ownerNumbers: ["+15550001111"],
+      userTimezone: "UTC",
+      contextFiles: [{ path: "AGENTS.md", content: "rules" }],
+      runtimeInfo: { channel: "webchat" },
+      ttsHint: "speak",
+      reactionGuidance: { level: "minimal", channel: "telegram" },
+      reasoningTagHint: true,
+    });
+    const positions = [
+      "## Tooling",
+      "## Tool Usage",
+      "## MCP Server Instructions",
+      "## Interaction Style",
+      "## Tool Call Style",
+      "## Execution Bias",
+      "STABLE PREFIX",
+      "## Safety",
+      "## Genesis CLI Quick Reference",
+      "## Skills (mandatory)",
+      "## Genesis Self-Update",
+      "## Model Aliases",
+      "## Workspace\n",
+      "## Documentation",
+      "## Sandbox",
+      "## Authorized Senders",
+      "## Current Date & Time",
+      "## Workspace Files (injected)",
+      "## Assistant Output Directives",
+      "## Control UI Embed",
+      "## Messaging",
+      "## Voice (TTS)",
+      "## Reactions",
+      "## Reasoning Format",
+      "# Project Context",
+      "## Silent Replies",
+    ].map((heading) => prompt.indexOf(heading));
+
+    expect(positions).not.toContain(-1);
+    expect(positions).toEqual(positions.toSorted((a, b) => a - b));
+  });
+
+  it("reports exact project context size for reordered and minimal prompts", () => {
+    const contextFiles = [
+      { path: "AGENTS.md", content: "project rules" },
+      { path: "SOUL.md", content: "persona" },
+    ];
+    for (const promptMode of ["full", "minimal"] as const) {
+      const systemPrompt = buildAgentSystemPrompt({
+        workspaceDir: "/tmp/genesis",
+        promptMode,
+        contextFiles,
+        extraSystemPrompt: "subagent or group context",
+        sectionOrder: ["project_context", "*"],
+      });
+      const report = buildSystemPromptReport({
+        source: "run",
+        generatedAt: 0,
+        bootstrapMaxChars: 20_000,
+        systemPrompt,
+        bootstrapFiles: [],
+        injectedFiles: contextFiles,
+        skillsPrompt: "",
+        tools: [],
+      });
+
+      expect(report.systemPrompt.projectContextChars).toBe(
+        buildProjectContextPrompt(contextFiles).length,
+      );
+    }
   });
 
   it("gates tool usage guidance on available tools", () => {

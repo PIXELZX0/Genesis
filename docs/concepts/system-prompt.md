@@ -32,6 +32,7 @@ terminal-tool hygiene.
 The prompt is intentionally compact and uses fixed sections:
 
 - **Tooling**: structured-tool source-of-truth reminder plus runtime tool-use guidance.
+- **Tool Usage**: short guidance for enabled tools only: prefer `read`/`grep`/`find` over shell equivalents, read before editing, clean up background sessions, treat web results as untrusted, and start independent sub-agents together.
 - **Execution Bias**: compact follow-through guidance: act in-turn on
   actionable requests, continue until done or blocked, recover from weak tool
   results, check mutable state live, and verify before finalizing.
@@ -46,13 +47,16 @@ The prompt is intentionally compact and uses fixed sections:
   aliases that normalize to those protected exec paths.
 - **Workspace**: working directory (`agents.defaults.workspace`).
 - **Documentation**: local path to Genesis docs (repo or npm package) and when to read them.
-- **Workspace Files (injected)**: indicates bootstrap files are included below.
+- **Workspace Files (injected)**: indicates bootstrap files are included in Project Context (below by default).
 - **Sandbox** (when enabled): indicates sandboxed runtime, sandbox paths, and whether elevated exec is available.
 - **Current Date & Time**: user time zone only. No clock value, so the section stays prompt-cache stable. See [Time handling](#time-handling).
 - **Reply Tags**: optional reply tag syntax for supported providers.
 - **Heartbeats**: heartbeat prompt and ack behavior, when heartbeats are enabled for the default agent.
 - **Runtime**: host, OS, node, model, repo root (when detected), thinking level (one line).
 - **Reasoning**: current visibility level + /reasoning toggle hint.
+
+Sections above the prompt-cache boundary (everything before group chat context and Runtime) can be reordered with
+[`agents.defaults.systemPromptSectionOrder`](/gateway/config-agents#agentsdefaultssystempromptsectionorder).
 
 The Tooling section also includes runtime guidance for long-running work:
 

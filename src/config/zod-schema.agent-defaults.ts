@@ -7,6 +7,7 @@ import {
   AgentEmbeddedHarnessSchema,
   AgentModelSchema,
   MemorySearchSchema,
+  SystemPromptSectionOrderSchema,
 } from "./zod-schema.agent-runtime.js";
 import {
   BlockStreamingChunkSchema,
@@ -68,6 +69,7 @@ export const AgentDefaultsSchema = z
     silentReplyRewrite: SilentReplyRewriteConfigSchema.optional(),
     repoRoot: z.string().optional(),
     systemPromptOverride: z.string().optional(),
+    systemPromptSectionOrder: SystemPromptSectionOrderSchema,
     promptOverlays: z
       .object({
         gpt5: z

@@ -3,6 +3,11 @@ import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { resolveChannelApprovalCapability } from "../channels/plugins/approvals.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
+import {
+  SYSTEM_PROMPT_SECTION_IDS,
+  type SystemPromptSectionId,
+  type SystemPromptSectionOrderEntry,
+} from "../config/system-prompt-sections.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
 import { buildMemoryPromptSection } from "../plugins/memory-state.js";
 import {
@@ -30,6 +35,7 @@ import type {
   ProviderSystemPromptContribution,
   ProviderSystemPromptSectionId,
 } from "./system-prompt-contribution.js";
+import { buildProjectContextPrompt } from "./system-prompt-project-context.js";
 import type { PromptMode } from "./system-prompt.types.js";
 
 /**
@@ -39,62 +45,6 @@ import type { PromptMode } from "./system-prompt.types.js";
  * - "none": Just basic identity line, no sections
  */
 type OwnerIdDisplay = "raw" | "hash";
-
-const CONTEXT_FILE_ORDER = new Map<string, number>([
-  ["agents.md", 10],
-  ["soul.md", 20],
-  ["identity.md", 30],
-  ["user.md", 40],
-  ["tools.md", 50],
-  ["bootstrap.md", 60],
-  ["memory.md", 70],
-]);
-
-function normalizeContextFilePath(pathValue: string): string {
-  return pathValue.trim().replace(/\\/g, "/");
-}
-
-function getContextFileBasename(pathValue: string): string {
-  const normalizedPath = normalizeContextFilePath(pathValue);
-  return normalizeLowercaseStringOrEmpty(normalizedPath.split("/").pop() ?? normalizedPath);
-}
-
-function sortContextFilesForPrompt(contextFiles: EmbeddedContextFile[]): EmbeddedContextFile[] {
-  return contextFiles.toSorted((a, b) => {
-    const aPath = normalizeContextFilePath(a.path);
-    const bPath = normalizeContextFilePath(b.path);
-    const aBase = getContextFileBasename(a.path);
-    const bBase = getContextFileBasename(b.path);
-    const aOrder = CONTEXT_FILE_ORDER.get(aBase) ?? Number.MAX_SAFE_INTEGER;
-    const bOrder = CONTEXT_FILE_ORDER.get(bBase) ?? Number.MAX_SAFE_INTEGER;
-    if (aOrder !== bOrder) {
-      return aOrder - bOrder;
-    }
-    if (aBase !== bBase) {
-      return aBase.localeCompare(bBase);
-    }
-    return aPath.localeCompare(bPath);
-  });
-}
-
-function buildProjectContextSection(params: { files: EmbeddedContextFile[]; heading: string }) {
-  if (params.files.length === 0) {
-    return [];
-  }
-  const lines = [params.heading, ""];
-  const hasSoulFile = params.files.some((file) => getContextFileBasename(file.path) === "soul.md");
-  lines.push("The following project context files have been loaded:");
-  if (hasSoulFile) {
-    lines.push(
-      "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
-    );
-  }
-  lines.push("");
-  for (const file of params.files) {
-    lines.push(`## ${file.path}`, "", file.content, "");
-  }
-  return lines;
-}
 
 function buildExecApprovalPromptGuidance(params: {
   runtimeChannel?: string;
@@ -308,6 +258,58 @@ function buildToolUsageSection(params: {
   return ["## Tool Usage", ...lines, ""];
 }
 
+function buildReactionsSection(guidance?: { level: "minimal" | "extensive"; channel: string }) {
+  if (!guidance) {
+    return [];
+  }
+  const { level, channel } = guidance;
+  const guidanceText =
+    level === "minimal"
+      ? [
+          `Reactions are enabled for ${channel} in MINIMAL mode.`,
+          "React ONLY when truly relevant:",
+          "- Acknowledge important user requests or confirmations",
+          "- Express genuine sentiment (humor, appreciation) sparingly",
+          "- Avoid reacting to routine messages or your own replies",
+          "Guideline: at most 1 reaction per 5-10 exchanges.",
+        ].join("\n")
+      : [
+          `Reactions are enabled for ${channel} in EXTENSIVE mode.`,
+          "Feel free to react liberally:",
+          "- Acknowledge messages with appropriate emojis",
+          "- Express sentiment and personality through reactions",
+          "- React to interesting content, humor, or notable events",
+          "- Use reactions to confirm understanding or agreement",
+          "Guideline: react whenever it feels natural.",
+        ].join("\n");
+  return ["## Reactions", guidanceText, ""];
+}
+
+/**
+ * Apply a configured section order to the default id order: ids before `*` come first,
+ * ids after it come last, and unlisted ids keep their default relative order in between
+ * (or after the listed ones when there is no `*`).
+ */
+export function orderPromptSections<Id extends string>(
+  ids: readonly Id[],
+  order?: readonly (Id | "*")[],
+): Id[] {
+  if (!order?.length) {
+    return [...ids];
+  }
+  const restIndex = order.indexOf("*");
+  const known = (entries: readonly (Id | "*")[]) =>
+    entries.filter((id): id is Id => id !== "*" && ids.includes(id));
+  // Set keeps each section once even if a direct caller repeats an id.
+  return [
+    ...new Set([
+      ...known(restIndex === -1 ? order : order.slice(0, restIndex)),
+      ...ids.filter((id) => !order.includes(id)),
+      ...known(restIndex === -1 ? [] : order.slice(restIndex + 1)),
+    ]),
+  ];
+}
+
 function normalizeProviderPromptBlock(value?: string): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -465,6 +467,8 @@ export function buildAgentSystemPrompt(params: {
   includeMemorySection?: boolean;
   memoryCitationsMode?: MemoryCitationsMode;
   promptContribution?: ProviderSystemPromptContribution;
+  /** Configured order for sections above the cache boundary (`agents.*.systemPromptSectionOrder`). */
+  sectionOrder?: readonly SystemPromptSectionOrderEntry[];
 }) {
   const acpEnabled = params.acpEnabled !== false;
   const sandboxedRuntime = params.sandboxInfo?.enabled === true;
@@ -672,57 +676,63 @@ export function buildAgentSystemPrompt(params: {
     return "You are a personal assistant running inside Genesis.";
   }
 
-  const lines = [
-    "You are a personal assistant running inside Genesis.",
-    "",
-    "## Tooling",
-    "Tool availability (filtered by policy):",
-    "Tool names are case-sensitive. Call tools exactly as listed.",
-    toolLines.length > 0
-      ? toolLines.join("\n")
-      : [
-          "Pi lists the standard tools above. This runtime enables:",
-          "- grep: search file contents for patterns",
-          "- find: find files by glob pattern",
-          "- ls: list directory contents",
-          "- apply_patch: apply multi-file patches",
-          `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
-          `- ${processToolName}: manage background exec sessions`,
-          "- browser: control Genesis's dedicated browser",
-          "- canvas: present/eval/snapshot the Canvas",
-          "- nodes: list/describe/notify/camera/screen on paired nodes",
-          "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
-          "- sessions_list: list sessions",
-          "- sessions_history: fetch session history",
-          "- sessions_send: send to another session",
-          "- subagents: list/steer/kill sub-agent runs",
-          '- session_status: show usage/time/model state and answer "what model are we using?"',
-        ].join("\n"),
-    "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
-    `For long waits, avoid rapid poll loops: use ${execToolName} with enough yieldMs or ${processToolName}(action=poll, timeout=<ms>).`,
-    "If a task is more complex or takes longer, spawn a sub-agent. Completion is push-based: it will auto-announce when done.",
-    'Sub-agents start isolated by default. Use `sessions_spawn` with `context:"fork"` only when the child needs the current transcript context; otherwise omit `context` or use `context:"isolated"`.',
-    ...(acpHarnessSpawnAllowed && !isMinimal
-      ? [
-          'For requests like "do this in claude code/cursor/gemini" or similar ACP harnesses, treat it as ACP harness intent and call `sessions_spawn` with `runtime: "acp"`.',
-          "For Codex conversation binding/control, prefer the native Codex app-server plugin path (`/codex bind`, `/codex threads`, `/codex resume`). Use ACP for Codex only when the user explicitly asks for ACP/`/acp`, or for background child sessions where native Codex runtime spawn is not exposed.",
-          'On Discord, default ACP harness requests to thread-bound persistent sessions (`thread: true`, `mode: "session"`) unless the user asks otherwise.',
-          "Set `agentId` explicitly unless `acp.defaultAgent` is configured, and do not route ACP harness requests through `subagents`/`agents_list` or local PTY exec flows.",
-          'For ACP harness thread spawns, do not call `message` with `action=thread-create`; use `sessions_spawn` (`runtime: "acp"`, `thread: true`) as the single thread creation path.',
-        ]
-      : []),
-    "Do not poll `subagents list` / `sessions_list` in a loop; only check status on-demand (for intervention, debugging, or when explicitly asked).",
-    "",
-    ...buildToolUsageSection({ availableTools, resolveToolName }),
+  // Sections above the cache boundary, emitted in `sectionIds` order.
+  const sectionIds = orderPromptSections(SYSTEM_PROMPT_SECTION_IDS, params.sectionOrder);
+  const projectContextPlacement =
+    sectionIds.indexOf("project_context") > sectionIds.indexOf("workspace_files")
+      ? "below"
+      : "above";
+  const sections: Record<SystemPromptSectionId, string[]> = {
+    tooling: [
+      "## Tooling",
+      "Tool availability (filtered by policy):",
+      "Tool names are case-sensitive. Call tools exactly as listed.",
+      toolLines.length > 0
+        ? toolLines.join("\n")
+        : [
+            "Pi lists the standard tools above. This runtime enables:",
+            "- grep: search file contents for patterns",
+            "- find: find files by glob pattern",
+            "- ls: list directory contents",
+            "- apply_patch: apply multi-file patches",
+            `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
+            `- ${processToolName}: manage background exec sessions`,
+            "- browser: control Genesis's dedicated browser",
+            "- canvas: present/eval/snapshot the Canvas",
+            "- nodes: list/describe/notify/camera/screen on paired nodes",
+            "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
+            "- sessions_list: list sessions",
+            "- sessions_history: fetch session history",
+            "- sessions_send: send to another session",
+            "- subagents: list/steer/kill sub-agent runs",
+            '- session_status: show usage/time/model state and answer "what model are we using?"',
+          ].join("\n"),
+      "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
+      `For long waits, avoid rapid poll loops: use ${execToolName} with enough yieldMs or ${processToolName}(action=poll, timeout=<ms>).`,
+      "If a task is more complex or takes longer, spawn a sub-agent. Completion is push-based: it will auto-announce when done.",
+      'Sub-agents start isolated by default. Use `sessions_spawn` with `context:"fork"` only when the child needs the current transcript context; otherwise omit `context` or use `context:"isolated"`.',
+      ...(acpHarnessSpawnAllowed && !isMinimal
+        ? [
+            'For requests like "do this in claude code/cursor/gemini" or similar ACP harnesses, treat it as ACP harness intent and call `sessions_spawn` with `runtime: "acp"`.',
+            "For Codex conversation binding/control, prefer the native Codex app-server plugin path (`/codex bind`, `/codex threads`, `/codex resume`). Use ACP for Codex only when the user explicitly asks for ACP/`/acp`, or for background child sessions where native Codex runtime spawn is not exposed.",
+            'On Discord, default ACP harness requests to thread-bound persistent sessions (`thread: true`, `mode: "session"`) unless the user asks otherwise.',
+            "Set `agentId` explicitly unless `acp.defaultAgent` is configured, and do not route ACP harness requests through `subagents`/`agents_list` or local PTY exec flows.",
+            'For ACP harness thread spawns, do not call `message` with `action=thread-create`; use `sessions_spawn` (`runtime: "acp"`, `thread: true`) as the single thread creation path.',
+          ]
+        : []),
+      "Do not poll `subagents list` / `sessions_list` in a loop; only check status on-demand (for intervention, debugging, or when explicitly asked).",
+      "",
+    ],
+    tool_usage: buildToolUsageSection({ availableTools, resolveToolName }),
     // Sits above the cache boundary: the section is derived from connected MCP
     // servers plus tool policy, so it is stable for the life of the config.
-    params.mcpServerInstructions ?? "",
+    mcp_instructions: [params.mcpServerInstructions ?? ""],
     // Interaction style shapes user-facing chat; subagent/cron output goes to a parent run.
-    ...buildOverridablePromptSection({
+    interaction_style: buildOverridablePromptSection({
       override: isMinimal ? undefined : providerSectionOverrides.interaction_style,
       fallback: [],
     }),
-    ...buildOverridablePromptSection({
+    tool_call_style: buildOverridablePromptSection({
       override: providerSectionOverrides.tool_call_style,
       fallback: [
         "## Tool Call Style",
@@ -741,18 +751,18 @@ export function buildAgentSystemPrompt(params: {
         "",
       ],
     }),
-    ...buildOverridablePromptSection({
+    execution_bias: buildOverridablePromptSection({
       override: providerSectionOverrides.execution_bias,
       fallback: buildExecutionBiasSection({
         isMinimal,
       }),
     }),
-    ...buildOverridablePromptSection({
+    provider_prefix: buildOverridablePromptSection({
       override: providerStablePrefix,
       fallback: [],
     }),
-    ...safetySection,
-    ...(isMinimal
+    safety: safetySection,
+    cli_reference: isMinimal
       ? []
       : [
           "## Genesis CLI Quick Reference",
@@ -764,124 +774,130 @@ export function buildAgentSystemPrompt(params: {
           "- genesis gateway restart",
           "If unsure, ask the user to run `genesis help` (or `genesis gateway --help`) and paste the output.",
           "",
-        ]),
-    ...skillsSection,
-    ...memorySection,
+        ],
+    skills: skillsSection,
+    memory: memorySection,
     // Skip self-update for subagent/none modes
-    hasGateway && !isMinimal ? "## Genesis Self-Update" : "",
-    hasGateway && !isMinimal
-      ? [
-          "Get Updates (self-update) is ONLY allowed when the user explicitly asks for it.",
-          "Do not run config.apply or update.run unless the user explicitly requests an update or config change; if it's not explicit, ask first.",
-          "Use config.schema.lookup with a specific dot path to inspect only the relevant config subtree before making config changes or answering config-field questions; avoid guessing field names/types.",
-          "Actions: config.schema.lookup, config.get, config.apply (validate + write full config, then restart), config.patch (partial update, merges with existing), update.run (update deps or git, then restart).",
-          "After restart, Genesis pings the last active session automatically.",
-        ].join("\n")
-      : "",
-    hasGateway && !isMinimal ? "" : "",
-    "",
+    self_update: [
+      hasGateway && !isMinimal ? "## Genesis Self-Update" : "",
+      hasGateway && !isMinimal
+        ? [
+            "Get Updates (self-update) is ONLY allowed when the user explicitly asks for it.",
+            "Do not run config.apply or update.run unless the user explicitly requests an update or config change; if it's not explicit, ask first.",
+            "Use config.schema.lookup with a specific dot path to inspect only the relevant config subtree before making config changes or answering config-field questions; avoid guessing field names/types.",
+            "Actions: config.schema.lookup, config.get, config.apply (validate + write full config, then restart), config.patch (partial update, merges with existing), update.run (update deps or git, then restart).",
+            "After restart, Genesis pings the last active session automatically.",
+          ].join("\n")
+        : "",
+      hasGateway && !isMinimal ? "" : "",
+      "",
+    ],
     // Skip model aliases for subagent/none modes
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
-      ? "## Model Aliases"
-      : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
-      ? "Prefer aliases when specifying model overrides; full provider/model is also accepted."
-      : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
-      ? params.modelAliasLines.join("\n")
-      : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal ? "" : "",
-    userTimezone
-      ? "If you need the current date, time, or day of week, run session_status (📊 session_status)."
-      : "",
-    "## Workspace",
-    `Your working directory is: ${displayWorkspaceDir}`,
-    workspaceGuidance,
-    ...workspaceNotes,
-    "",
-    ...docsSection,
-    params.sandboxInfo?.enabled ? "## Sandbox" : "",
-    params.sandboxInfo?.enabled
-      ? [
-          "You are running in a sandboxed runtime (tools execute in Docker).",
-          "Some tools may be unavailable due to sandbox policy.",
-          "A sandbox/permission denial is policy, not a command bug: do not retry it through another tool or path; report it or ask.",
-          "Sub-agents stay sandboxed (no elevated/host access). Need outside-sandbox read/write? Don't spawn; ask first.",
-          hasSessionsSpawn && acpEnabled
-            ? 'ACP harness spawns are blocked from sandboxed sessions (`sessions_spawn` with `runtime: "acp"`). Use `runtime: "subagent"` instead.'
-            : "",
-          params.sandboxInfo.containerWorkspaceDir
-            ? `Sandbox container workdir: ${sanitizeForPromptLiteral(params.sandboxInfo.containerWorkspaceDir)}`
-            : "",
-          params.sandboxInfo.workspaceDir
-            ? `Sandbox host mount source (file tools bridge only; not valid inside sandbox exec): ${sanitizeForPromptLiteral(params.sandboxInfo.workspaceDir)}`
-            : "",
-          params.sandboxInfo.workspaceAccess
-            ? `Agent workspace access: ${params.sandboxInfo.workspaceAccess}${
-                params.sandboxInfo.agentWorkspaceMount
-                  ? ` (mounted at ${sanitizeForPromptLiteral(params.sandboxInfo.agentWorkspaceMount)})`
-                  : ""
-              }`
-            : "",
-          params.sandboxInfo.browserBridgeUrl ? "Sandbox browser: enabled." : "",
-          params.sandboxInfo.hostBrowserAllowed === true
-            ? "Host browser control: allowed."
-            : params.sandboxInfo.hostBrowserAllowed === false
-              ? "Host browser control: blocked."
+    model_aliases: [
+      params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+        ? "## Model Aliases"
+        : "",
+      params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+        ? "Prefer aliases when specifying model overrides; full provider/model is also accepted."
+        : "",
+      params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+        ? params.modelAliasLines.join("\n")
+        : "",
+      params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal ? "" : "",
+    ],
+    workspace: [
+      userTimezone
+        ? "If you need the current date, time, or day of week, run session_status (📊 session_status)."
+        : "",
+      "## Workspace",
+      `Your working directory is: ${displayWorkspaceDir}`,
+      workspaceGuidance,
+      ...workspaceNotes,
+      "",
+    ],
+    docs: docsSection,
+    sandbox: [
+      params.sandboxInfo?.enabled ? "## Sandbox" : "",
+      params.sandboxInfo?.enabled
+        ? [
+            "You are running in a sandboxed runtime (tools execute in Docker).",
+            "Some tools may be unavailable due to sandbox policy.",
+            "A sandbox/permission denial is policy, not a command bug: do not retry it through another tool or path; report it or ask.",
+            "Sub-agents stay sandboxed (no elevated/host access). Need outside-sandbox read/write? Don't spawn; ask first.",
+            hasSessionsSpawn && acpEnabled
+              ? 'ACP harness spawns are blocked from sandboxed sessions (`sessions_spawn` with `runtime: "acp"`). Use `runtime: "subagent"` instead.'
               : "",
-          elevated?.allowed
-            ? "Elevated exec is available for this session."
-            : elevated
-              ? "Elevated exec is unavailable for this session."
+            params.sandboxInfo.containerWorkspaceDir
+              ? `Sandbox container workdir: ${sanitizeForPromptLiteral(params.sandboxInfo.containerWorkspaceDir)}`
               : "",
-          elevated?.allowed && elevated.fullAccessAvailable
-            ? "User can toggle with /elevated on|off|ask|full."
-            : "",
-          elevated?.allowed && !elevated.fullAccessAvailable
-            ? "User can toggle with /elevated on|off|ask."
-            : "",
-          elevated?.allowed && elevated.fullAccessAvailable
-            ? "You may also send /elevated on|off|ask|full when needed."
-            : "",
-          elevated?.allowed && !elevated.fullAccessAvailable
-            ? "You may also send /elevated on|off|ask when needed."
-            : "",
-          elevated?.fullAccessAvailable === false
-            ? `Auto-approved /elevated full is unavailable here (${fullAccessBlockedReasonLabel}).`
-            : "",
-          elevated?.allowed && elevated.fullAccessAvailable
-            ? `Current elevated level: ${elevated.defaultLevel} (ask runs exec on host with approvals; full auto-approves).`
-            : elevated?.allowed
-              ? `Current elevated level: ${elevated.defaultLevel} (full auto-approval unavailable here; use ask/on instead).`
-              : elevated
-                ? "Current elevated level: off (elevated exec unavailable)."
+            params.sandboxInfo.workspaceDir
+              ? `Sandbox host mount source (file tools bridge only; not valid inside sandbox exec): ${sanitizeForPromptLiteral(params.sandboxInfo.workspaceDir)}`
+              : "",
+            params.sandboxInfo.workspaceAccess
+              ? `Agent workspace access: ${params.sandboxInfo.workspaceAccess}${
+                  params.sandboxInfo.agentWorkspaceMount
+                    ? ` (mounted at ${sanitizeForPromptLiteral(params.sandboxInfo.agentWorkspaceMount)})`
+                    : ""
+                }`
+              : "",
+            params.sandboxInfo.browserBridgeUrl ? "Sandbox browser: enabled." : "",
+            params.sandboxInfo.hostBrowserAllowed === true
+              ? "Host browser control: allowed."
+              : params.sandboxInfo.hostBrowserAllowed === false
+                ? "Host browser control: blocked."
                 : "",
-          elevated && !elevated.allowed
-            ? "Do not tell the user to switch to /elevated full in this session."
-            : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
-      : "",
-    params.sandboxInfo?.enabled ? "" : "",
-    ...buildUserIdentitySection(ownerLine, isMinimal),
-    ...buildTimeSection({
-      userTimezone,
-    }),
-    ...(params.contextFiles?.length
+            elevated?.allowed
+              ? "Elevated exec is available for this session."
+              : elevated
+                ? "Elevated exec is unavailable for this session."
+                : "",
+            elevated?.allowed && elevated.fullAccessAvailable
+              ? "User can toggle with /elevated on|off|ask|full."
+              : "",
+            elevated?.allowed && !elevated.fullAccessAvailable
+              ? "User can toggle with /elevated on|off|ask."
+              : "",
+            elevated?.allowed && elevated.fullAccessAvailable
+              ? "You may also send /elevated on|off|ask|full when needed."
+              : "",
+            elevated?.allowed && !elevated.fullAccessAvailable
+              ? "You may also send /elevated on|off|ask when needed."
+              : "",
+            elevated?.fullAccessAvailable === false
+              ? `Auto-approved /elevated full is unavailable here (${fullAccessBlockedReasonLabel}).`
+              : "",
+            elevated?.allowed && elevated.fullAccessAvailable
+              ? `Current elevated level: ${elevated.defaultLevel} (ask runs exec on host with approvals; full auto-approves).`
+              : elevated?.allowed
+                ? `Current elevated level: ${elevated.defaultLevel} (full auto-approval unavailable here; use ask/on instead).`
+                : elevated
+                  ? "Current elevated level: off (elevated exec unavailable)."
+                  : "",
+            elevated && !elevated.allowed
+              ? "Do not tell the user to switch to /elevated full in this session."
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n")
+        : "",
+      params.sandboxInfo?.enabled ? "" : "",
+    ],
+    authorized_senders: buildUserIdentitySection(ownerLine, isMinimal),
+    time: buildTimeSection({ userTimezone }),
+    workspace_files: params.contextFiles?.length
       ? [
           "## Workspace Files (injected)",
-          "These user-editable files are loaded by Genesis and included below in Project Context.",
+          `These user-editable files are loaded by Genesis and included ${projectContextPlacement} in Project Context.`,
           "",
         ]
-      : []),
-    ...buildAssistantOutputDirectivesSection(isMinimal),
-    ...buildWebchatCanvasSection({
+      : [],
+    output_directives: buildAssistantOutputDirectivesSection(isMinimal),
+    control_ui_embed: buildWebchatCanvasSection({
       isMinimal,
       runtimeChannel,
       canvasRootDir: params.runtimeInfo?.canvasRootDir,
     }),
-    ...buildMessagingSection({
+    messaging: buildMessagingSection({
       isMinimal,
       availableTools,
       messageChannelOptions,
@@ -889,65 +905,34 @@ export function buildAgentSystemPrompt(params: {
       runtimeChannel,
       messageToolHints: params.messageToolHints,
     }),
-    ...buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }),
+    voice: buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }),
+    reactions: buildReactionsSection(params.reactionGuidance),
+    reasoning_format: reasoningHint ? ["## Reasoning Format", reasoningHint, ""] : [],
+    project_context: [buildProjectContextPrompt(params.contextFiles)],
+    // Skip silent replies for subagent/none modes
+    silent_replies: isMinimal
+      ? []
+      : [
+          "## Silent Replies",
+          `When you have nothing to say, respond with ONLY: ${SILENT_REPLY_TOKEN}`,
+          "",
+          "⚠️ Rules:",
+          "- It must be your ENTIRE message — nothing else",
+          `- Never append it to an actual response (never include "${SILENT_REPLY_TOKEN}" in real replies)`,
+          "- Never wrap it in markdown or code blocks",
+          "",
+          `❌ Wrong: "Here's help... ${SILENT_REPLY_TOKEN}"`,
+          `❌ Wrong: "${SILENT_REPLY_TOKEN}"`,
+          `✅ Right: ${SILENT_REPLY_TOKEN}`,
+          "",
+        ],
+  };
+
+  const lines = [
+    "You are a personal assistant running inside Genesis.",
+    "",
+    ...sectionIds.flatMap((id) => sections[id]),
   ];
-
-  if (params.reactionGuidance) {
-    const { level, channel } = params.reactionGuidance;
-    const guidanceText =
-      level === "minimal"
-        ? [
-            `Reactions are enabled for ${channel} in MINIMAL mode.`,
-            "React ONLY when truly relevant:",
-            "- Acknowledge important user requests or confirmations",
-            "- Express genuine sentiment (humor, appreciation) sparingly",
-            "- Avoid reacting to routine messages or your own replies",
-            "Guideline: at most 1 reaction per 5-10 exchanges.",
-          ].join("\n")
-        : [
-            `Reactions are enabled for ${channel} in EXTENSIVE mode.`,
-            "Feel free to react liberally:",
-            "- Acknowledge messages with appropriate emojis",
-            "- Express sentiment and personality through reactions",
-            "- React to interesting content, humor, or notable events",
-            "- Use reactions to confirm understanding or agreement",
-            "Guideline: react whenever it feels natural.",
-          ].join("\n");
-    lines.push("## Reactions", guidanceText, "");
-  }
-  if (reasoningHint) {
-    lines.push("## Reasoning Format", reasoningHint, "");
-  }
-
-  const contextFiles = params.contextFiles ?? [];
-  const validContextFiles = contextFiles.filter(
-    (file) => typeof file.path === "string" && file.path.trim().length > 0,
-  );
-  const orderedContextFiles = sortContextFilesForPrompt(validContextFiles);
-  lines.push(
-    ...buildProjectContextSection({
-      files: orderedContextFiles,
-      heading: "# Project Context",
-    }),
-  );
-
-  // Skip silent replies for subagent/none modes
-  if (!isMinimal) {
-    lines.push(
-      "## Silent Replies",
-      `When you have nothing to say, respond with ONLY: ${SILENT_REPLY_TOKEN}`,
-      "",
-      "⚠️ Rules:",
-      "- It must be your ENTIRE message — nothing else",
-      `- Never append it to an actual response (never include "${SILENT_REPLY_TOKEN}" in real replies)`,
-      "- Never wrap it in markdown or code blocks",
-      "",
-      `❌ Wrong: "Here's help... ${SILENT_REPLY_TOKEN}"`,
-      `❌ Wrong: "${SILENT_REPLY_TOKEN}"`,
-      `✅ Right: ${SILENT_REPLY_TOKEN}`,
-      "",
-    );
-  }
 
   // Keep large stable prompt context above this seam so Anthropic-family
   // transports can reuse it across labs and turns. Dynamic group/session

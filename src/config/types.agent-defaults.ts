@@ -2,6 +2,7 @@ import type {
   SilentReplyPolicyShape,
   SilentReplyRewriteShape,
 } from "../shared/silent-reply-policy.js";
+import type { SystemPromptSectionOrderEntry } from "./system-prompt-sections.js";
 import type {
   AgentEmbeddedHarnessConfig,
   AgentModelConfig,
@@ -215,6 +216,11 @@ export type AgentDefaultsConfig = {
   repoRoot?: string;
   /** Optional full system prompt replacement. Primarily for prompt debugging and controlled experiments. */
   systemPromptOverride?: string;
+  /**
+   * Order of system prompt sections above the cache boundary. Listed ids come first;
+   * `*` marks where unlisted sections go (default: after the listed ones).
+   */
+  systemPromptSectionOrder?: SystemPromptSectionOrderEntry[];
   /** Provider-independent prompt overlays applied by model family. */
   promptOverlays?: PromptOverlaysConfig;
   /** Skip bootstrap (BOOTSTRAP.md creation, etc.) for pre-configured deployments. */

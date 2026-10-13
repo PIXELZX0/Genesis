@@ -9,6 +9,10 @@ import { createGenesisCodingTools } from "../../agents/pi-tools.js";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import { buildWorkspaceSkillSnapshot } from "../../agents/skills.js";
 import { getSkillsSnapshotVersion } from "../../agents/skills/refresh-state.js";
+import {
+  resolveSystemPromptOverride,
+  resolveSystemPromptSectionOrder,
+} from "../../agents/system-prompt-override.js";
 import { buildSystemPromptParams } from "../../agents/system-prompt-params.js";
 import { buildAgentSystemPrompt } from "../../agents/system-prompt.js";
 import type { WorkspaceBootstrapFile } from "../../agents/workspace.js";
@@ -146,24 +150,31 @@ export async function resolveCommandsSystemPromptBundle(
     : { enabled: false };
   const ttsHint = params.cfg ? buildTtsSystemPromptHint(params.cfg) : undefined;
 
-  const systemPrompt = buildAgentSystemPrompt({
-    workspaceDir,
-    defaultThinkLevel: params.resolvedThinkLevel,
-    reasoningLevel: params.resolvedReasoningLevel,
-    extraSystemPrompt: undefined,
-    ownerNumbers: undefined,
-    reasoningTagHint: false,
-    toolNames,
-    modelAliasLines: [],
-    userTimezone,
-    contextFiles: injectedFiles,
-    skillsPrompt,
-    ttsHint,
-    acpEnabled: params.cfg?.acp?.enabled !== false,
-    runtimeInfo,
-    sandboxInfo,
-    memoryCitationsMode: params.cfg?.memory?.citations,
-  });
+  // Same precedence as real runs: a configured override replaces the assembled prompt.
+  const systemPrompt =
+    resolveSystemPromptOverride({ config: params.cfg, agentId: sessionAgentId }) ??
+    buildAgentSystemPrompt({
+      workspaceDir,
+      defaultThinkLevel: params.resolvedThinkLevel,
+      reasoningLevel: params.resolvedReasoningLevel,
+      extraSystemPrompt: undefined,
+      ownerNumbers: undefined,
+      reasoningTagHint: false,
+      toolNames,
+      modelAliasLines: [],
+      userTimezone,
+      contextFiles: injectedFiles,
+      skillsPrompt,
+      sectionOrder: resolveSystemPromptSectionOrder({
+        config: params.cfg,
+        agentId: sessionAgentId,
+      }),
+      ttsHint,
+      acpEnabled: params.cfg?.acp?.enabled !== false,
+      runtimeInfo,
+      sandboxInfo,
+      memoryCitationsMode: params.cfg?.memory?.citations,
+    });
 
   return { systemPrompt, tools, skillsPrompt, bootstrapFiles, injectedFiles, sandboxRuntime };
 }
