@@ -1,5 +1,6 @@
 import { t } from "../../i18n/index.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
+import { openBlankPopupWindow } from "../open-external-url.ts";
 
 export type McpServersMap = Record<string, Record<string, unknown>>;
 
@@ -486,8 +487,7 @@ function updateEmbeddedPopup(state: McpState) {
  */
 function openEmbeddedPopup(state: McpState, flow: McpEmbeddedFlow): Window | null {
   const { w, h } = flow.viewport;
-  const popup = window.open(
-    "",
+  const popup = openBlankPopupWindow(
     `mcp-oauth-embedded-${encodeURIComponent(flow.name)}`,
     `width=${w},height=${h + 40},noopener=no`,
   );

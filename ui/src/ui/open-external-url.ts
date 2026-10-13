@@ -104,3 +104,12 @@ export function openPopupWindowSafe(
   }
   return window.open(safeUrl, target, features);
 }
+
+/**
+ * Open a named blank popup that the caller renders into itself (e.g. the
+ * embedded MCP OAuth viewer). Nothing is navigated, so there is no URL to vet;
+ * the live handle is returned so the caller can write the popup's document.
+ */
+export function openBlankPopupWindow(target: string, features: string): WindowProxy | null {
+  return window.open("", target, features);
+}
