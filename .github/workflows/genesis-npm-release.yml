@@ -124,6 +124,8 @@ jobs:
       - name: Run release checks
         env:
           RELEASE_TAG: ${{ steps.publish-target.outputs.tag }}
+          # Hotfix holds pi at 1.1.0 on purpose; the 1.2 bump ships separately.
+          GENESIS_SKIP_PI_LATEST_CHECK: "1"
         run: |
           pnpm check:architecture
           pnpm check:test-types

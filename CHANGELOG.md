@@ -2,6 +2,12 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
+## 2026.10.12-1
+
+### Fixes
+
+- Install/update: fresh installs and `genesis update` no longer crash with `does not provide an export named 'MCP_TYPESCRIPT_PREAMBLE'`. A newer upstream `@earendil-works/pi-codemode` release was being picked up; the embedded runtime's helper packages are now pinned to 1.1.0.
+
 ## 2026.10.12
 
 ### Changes
