@@ -1608,9 +1608,13 @@
   "dependencies": {
     "@agentclientprotocol/sdk": "0.19.1",
     "@clack/prompts": "^1.2.0",
+    "@earendil-works/chord": "1.1.0",
     "@earendil-works/pi-agent-core": "1.1.0",
     "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-codemode": "1.1.0",
     "@earendil-works/pi-coding-agent": "1.1.0",
+    "@earendil-works/pi-mcp": "1.1.0",
+    "@earendil-works/pi-telemetry": "1.1.0",
     "@earendil-works/pi-tui": "1.1.0",
     "@lydell/node-pty": "1.2.0-beta.12",
     "@modelcontextprotocol/sdk": "1.29.0",
