@@ -2,12 +2,18 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## Unreleased
+## 2026.10.13
 
 ### Changes
 
 - Plugins: new Voice Agent plugin (`voice-agent`) lets you talk to an agent through the gateway host's or a paired node's microphone and speaker, using ElevenLabs Scribe v2 Realtime for streaming speech-to-text and your configured TTS for replies. Start it with `genesis voice-agent start [--node <id>]`, `autoStart`, or the Voice agent card on the Control UI Nodes page. In Control UI chat, the new voice agent button uses the browser's microphone and speaker for the current session.
 - Agents: upgraded the embedded agent runtime (`@earendil-works/pi-*`) to 1.2.0. Codemode tool declarations now show input constraints (integer, min/max, defaults), MCP tools that return non-object structured content no longer fail, and Anthropic requests rejected for strict tool-schema limits are retried once with non-strict tools.
+
+## 2026.10.12-1
+
+### Fixes
+
+- Install/update: fresh installs and `genesis update` no longer crash with `does not provide an export named 'MCP_TYPESCRIPT_PREAMBLE'`. A newer upstream `@earendil-works/pi-codemode` release was being picked up; the embedded runtime's helper packages are now pinned to 1.1.0.
 
 ## 2026.10.12
 
