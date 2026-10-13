@@ -52,8 +52,5 @@ export function runNodeMain(params?: {
   args?: string[];
   env?: NodeJS.ProcessEnv;
   platform?: NodeJS.Platform;
-  runRuntimePostBuild?: (params: {
-    cwd: string;
-    env: NodeJS.ProcessEnv;
-  }) => void | Promise<void>;
+  runRuntimePostBuild?: (params: { cwd: string; env: NodeJS.ProcessEnv }) => void | Promise<void>;
 }): Promise<number>;
