@@ -3,6 +3,7 @@ import {
   isSilentReplyPrefixText,
   isSilentReplyText,
   startsWithSilentToken,
+  startsWithSilentTokenDeclaration,
   stripLeadingSilentToken,
   stripSilentToken,
 } from "./tokens.js";
@@ -103,6 +104,22 @@ describe("startsWithSilentToken", () => {
     expect(startsWithSilentToken("NO_REPLY—note")).toBe(false);
     expect(startsWithSilentToken("NO_REPLY")).toBe(false);
     expect(startsWithSilentToken("  NO_REPLY  ")).toBe(false);
+  });
+});
+
+describe("startsWithSilentTokenDeclaration", () => {
+  it("matches a leading standalone token followed by a rationale", () => {
+    expect(startsWithSilentTokenDeclaration("NO_REPLY — Safe nonce 48 그대로")).toBe(true);
+    expect(startsWithSilentTokenDeclaration("  NO_REPLY: nothing changed")).toBe(true);
+    expect(startsWithSilentTokenDeclaration("NO_REPLY\nstill pending")).toBe(true);
+    expect(startsWithSilentTokenDeclaration("NO_REPLY")).toBe(true);
+  });
+
+  it("rejects glued, mid-text, or lowercase tokens", () => {
+    expect(startsWithSilentTokenDeclaration("NO_REPLYThe user")).toBe(false);
+    expect(startsWithSilentTokenDeclaration("NO_REPLY_EXTRA done")).toBe(false);
+    expect(startsWithSilentTokenDeclaration("Done. NO_REPLY")).toBe(false);
+    expect(startsWithSilentTokenDeclaration("no_reply — note")).toBe(false);
   });
 });
 

@@ -4,6 +4,7 @@ import {
   isSilentReplyText,
   SILENT_REPLY_TOKEN,
   startsWithSilentToken,
+  startsWithSilentTokenDeclaration,
   stripLeadingSilentToken,
   stripSilentToken,
 } from "../../auto-reply/tokens.js";
@@ -45,7 +46,10 @@ function normalizeSilentReplyText(text: string | undefined): NormalizedSilentRep
   if (!text) {
     return { text, strippedTrailingSilentToken: false };
   }
-  if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
+  if (
+    isSilentReplyText(text, SILENT_REPLY_TOKEN) ||
+    startsWithSilentTokenDeclaration(text, SILENT_REPLY_TOKEN)
+  ) {
     return { text: undefined, strippedTrailingSilentToken: false };
   }
 

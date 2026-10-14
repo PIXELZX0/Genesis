@@ -193,6 +193,23 @@ export function startsWithSilentToken(
   return getSilentLeadingAttachedRegex(token).test(text);
 }
 
+/**
+ * Check whether text opens with the silent token as a standalone word, e.g.
+ * `NO_REPLY — nothing changed`. Agents often append a rationale after the
+ * token; callers that treat the token as an intent declaration (cron
+ * deliveries) can suppress the whole message. Case-sensitive on purpose.
+ */
+export function startsWithSilentTokenDeclaration(
+  text: string | undefined,
+  token: string = SILENT_REPLY_TOKEN,
+): boolean {
+  if (!text) {
+    return false;
+  }
+  const trimmed = text.trimStart();
+  return trimmed.startsWith(token) && !/^[\p{L}\p{N}_]/u.test(trimmed.slice(token.length));
+}
+
 export function isSilentReplyPrefixText(
   text: string | undefined,
   token: string = SILENT_REPLY_TOKEN,
