@@ -8,6 +8,8 @@ Docs: https://genesis.pixelzx.com/docs
 
 - Agents: new `agents.defaults.systemPromptSectionOrder` (and per-agent `agents.list[].systemPromptSectionOrder`) reorders the stable system prompt sections by id, with `"*"` marking where unlisted sections go. The default prompt is unchanged.
 
+- Nodes: `genesis node run` is lighter on small devices. It now loads only the plugins that provide node-host commands (Browser, Google Meet, Voice Agent, and any non-bundled plugins) and skips the extra supervisor process, so it starts faster and uses much less memory. Bundled plugins mark node-host commands with the new manifest hint `activation.onCapabilities: ["node-host"]`.
+
 ### Fixes
 
 - Agents: `/context` now measures Project Context exactly for subagent and other minimal-mode prompts, where it also counted the runtime and subagent context.

@@ -6,7 +6,7 @@
   "commandAliases": [{ "name": "googlemeet" }],
   "activation": {
     "onCommands": ["googlemeet"],
-    "onCapabilities": ["tool"]
+    "onCapabilities": ["tool", "node-host"]
   },
   "uiHints": {
     "defaults.meeting": {

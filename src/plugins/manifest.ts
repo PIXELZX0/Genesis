@@ -106,7 +106,12 @@ export type PluginManifestProviderEndpoint = {
   baseUrls?: string[];
 };
 
-export type PluginManifestActivationCapability = "provider" | "channel" | "tool" | "hook";
+export type PluginManifestActivationCapability =
+  | "provider"
+  | "channel"
+  | "tool"
+  | "hook"
+  | "node-host";
 
 export type PluginManifestActivation = {
   /**
@@ -680,7 +685,8 @@ function normalizeManifestActivation(value: unknown): PluginManifestActivation |
       capability === "provider" ||
       capability === "channel" ||
       capability === "tool" ||
-      capability === "hook",
+      capability === "hook" ||
+      capability === "node-host",
   );
 
   const activation = {

@@ -7,12 +7,14 @@ import {
 } from "./entry.respawn.js";
 
 const shouldSkipRespawnForArgvMock = vi.hoisted(() => vi.fn(() => false));
+const shouldSkipWarningOnlyRespawnForArgvMock = vi.hoisted(() => vi.fn(() => false));
 const isTruthyEnvValueMock = vi.hoisted(() =>
   vi.fn((value: string | undefined) => value === "1" || value === "true"),
 );
 
 vi.mock("./cli/respawn-policy.js", () => ({
   shouldSkipRespawnForArgv: shouldSkipRespawnForArgvMock,
+  shouldSkipWarningOnlyRespawnForArgv: shouldSkipWarningOnlyRespawnForArgvMock,
 }));
 
 vi.mock("./infra/env.js", () => ({
@@ -71,5 +73,33 @@ describe("buildCliRespawnPlan", () => {
         autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
       }),
     ).toBeNull();
+  });
+
+  it("skips the warning-only respawn when policy opts the argv out", () => {
+    shouldSkipWarningOnlyRespawnForArgvMock.mockReturnValueOnce(true);
+
+    expect(
+      buildCliRespawnPlan({
+        argv: ["node", "genesis", "node", "run"],
+        env: {},
+        execArgv: [],
+        autoNodeExtraCaCerts: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it("still respawns for NODE_EXTRA_CA_CERTS when warning respawn is skipped", () => {
+    shouldSkipWarningOnlyRespawnForArgvMock.mockReturnValueOnce(true);
+
+    const plan = buildCliRespawnPlan({
+      argv: ["node", "genesis", "node", "run"],
+      env: {},
+      execArgv: [],
+      autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
+    });
+
+    expect(plan?.argv).not.toContain(EXPERIMENTAL_WARNING_FLAG);
+    expect(plan?.env.NODE_EXTRA_CA_CERTS).toBe("/etc/ssl/certs/ca-certificates.crt");
+    expect(plan?.env[GENESIS_NODE_OPTIONS_READY]).toBeUndefined();
   });
 });

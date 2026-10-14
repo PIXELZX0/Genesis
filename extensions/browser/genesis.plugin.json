@@ -1,6 +1,9 @@
 {
   "id": "browser",
   "enabledByDefault": true,
+  "activation": {
+    "onCapabilities": ["node-host"]
+  },
   "skills": ["./skills"],
   "configSchema": {
     "type": "object",

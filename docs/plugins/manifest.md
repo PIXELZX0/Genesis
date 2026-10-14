@@ -250,13 +250,13 @@ change correctness while legacy manifest ownership fallbacks still exist.
 }
 ```
 
-| Field            | Required | Type                                                 | What it means                                                                                           |
-| ---------------- | -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `onProviders`    | No       | `string[]`                                           | Provider ids that should include this plugin in activation/load plans.                                  |
-| `onCommands`     | No       | `string[]`                                           | Command ids that should include this plugin in activation/load plans.                                   |
-| `onChannels`     | No       | `string[]`                                           | Channel ids that should include this plugin in activation/load plans.                                   |
-| `onRoutes`       | No       | `string[]`                                           | Route kinds that should include this plugin in activation/load plans.                                   |
-| `onCapabilities` | No       | `Array<"provider" \| "channel" \| "tool" \| "hook">` | Broad capability hints used by control-plane activation planning. Prefer narrower fields when possible. |
+| Field            | Required | Type                                                                | What it means                                                                                           |
+| ---------------- | -------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `onProviders`    | No       | `string[]`                                                          | Provider ids that should include this plugin in activation/load plans.                                  |
+| `onCommands`     | No       | `string[]`                                                          | Command ids that should include this plugin in activation/load plans.                                   |
+| `onChannels`     | No       | `string[]`                                                          | Channel ids that should include this plugin in activation/load plans.                                   |
+| `onRoutes`       | No       | `string[]`                                                          | Route kinds that should include this plugin in activation/load plans.                                   |
+| `onCapabilities` | No       | `Array<"provider" \| "channel" \| "tool" \| "hook" \| "node-host">` | Broad capability hints used by control-plane activation planning. Prefer narrower fields when possible. |
 
 Current live consumers:
 
@@ -267,6 +267,10 @@ Current live consumers:
 - provider-triggered setup/runtime planning falls back to legacy
   `providers[]` and top-level `cliBackends[]` ownership when explicit provider
   activation metadata is missing
+- the headless node host (`genesis node run`) loads only bundled plugins that
+  declare `onCapabilities: ["node-host"]`, plus every non-bundled plugin. A
+  bundled plugin that calls `api.registerNodeHostCommand(...)` must declare
+  this hint, or its node-host commands are not advertised.
 
 Planner diagnostics can distinguish explicit activation hints from manifest
 ownership fallback. For example, `activation-command-hint` means

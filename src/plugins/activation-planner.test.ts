@@ -182,6 +182,43 @@ describe("activation planner", () => {
     ).toEqual(["demo-channel"]);
   });
 
+  it("plans node-host capability only from explicit manifest hints", () => {
+    mocks.loadPluginManifestRegistry.mockReturnValue({
+      plugins: [
+        {
+          id: "browser",
+          activation: { onCapabilities: ["node-host"] },
+          providers: [],
+          channels: [],
+          cliBackends: [],
+          skills: [],
+          hooks: [],
+          origin: "bundled",
+        },
+        {
+          id: "openai",
+          providers: ["openai"],
+          channels: [],
+          cliBackends: [],
+          skills: [],
+          hooks: ["before_prompt"],
+          contracts: { tools: ["demo"] },
+          origin: "bundled",
+        },
+      ],
+      diagnostics: [],
+    });
+
+    expect(
+      resolveManifestActivationPlan({
+        trigger: { kind: "capability", capability: "node-host" },
+      }),
+    ).toMatchObject({
+      pluginIds: ["browser"],
+      entries: [{ pluginId: "browser", reasons: ["activation-capability-hint"] }],
+    });
+  });
+
   it("returns a richer activation plan with planner-hint reasons", () => {
     expect(
       resolveManifestActivationPlan({

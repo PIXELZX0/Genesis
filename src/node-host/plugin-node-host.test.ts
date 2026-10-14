@@ -4,7 +4,26 @@ import { resetPluginRuntimeStateForTest, setActivePluginRegistry } from "../plug
 import {
   invokeRegisteredNodeHostCommand,
   listRegisteredNodeHostCapsAndCommands,
+  resolveNodeHostPluginIds,
 } from "./plugin-node-host.js";
+
+const manifestPlugins = vi.hoisted(() => ({
+  value: [] as Array<{ id: string; origin: string; activation?: { onCapabilities?: string[] } }>,
+}));
+
+vi.mock("../plugins/manifest-registry.js", () => ({
+  loadPluginManifestRegistry: () => ({
+    plugins: manifestPlugins.value.map((plugin) => ({
+      providers: [],
+      channels: [],
+      cliBackends: [],
+      skills: [],
+      hooks: [],
+      ...plugin,
+    })),
+    diagnostics: [],
+  }),
+}));
 
 afterEach(() => {
   resetPluginRuntimeStateForTest();
@@ -75,5 +94,21 @@ describe("plugin node-host registry", () => {
     );
     await expect(invokeRegisteredNodeHostCommand("missing.command", null)).resolves.toBeNull();
     expect(handle).toHaveBeenCalledWith('{"ok":true}');
+  });
+
+  it("scopes node-host loading to hinted bundled plugins plus all external plugins", () => {
+    manifestPlugins.value = [
+      { id: "browser", origin: "bundled", activation: { onCapabilities: ["node-host"] } },
+      { id: "anthropic", origin: "bundled" },
+      { id: "telegram", origin: "bundled", activation: { onCapabilities: ["channel"] } },
+      { id: "my-sensor", origin: "global" },
+      { id: "workspace-tool", origin: "workspace" },
+    ];
+
+    expect(resolveNodeHostPluginIds({ config: {} })).toEqual([
+      "browser",
+      "my-sensor",
+      "workspace-tool",
+    ]);
   });
 });

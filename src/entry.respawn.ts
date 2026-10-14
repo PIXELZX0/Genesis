@@ -1,5 +1,8 @@
 import { resolveNodeStartupTlsEnvironment } from "./bootstrap/node-startup-env.js";
-import { shouldSkipRespawnForArgv } from "./cli/respawn-policy.js";
+import {
+  shouldSkipRespawnForArgv,
+  shouldSkipWarningOnlyRespawnForArgv,
+} from "./cli/respawn-policy.js";
 import { isTruthyEnvValue } from "./infra/env.js";
 
 export const EXPERIMENTAL_WARNING_FLAG = "--disable-warning=ExperimentalWarning";
@@ -62,7 +65,8 @@ export function buildCliRespawnPlan(
 
   if (
     !isTruthyEnvValue(env[GENESIS_NODE_OPTIONS_READY]) &&
-    !hasExperimentalWarningSuppressed({ env, execArgv })
+    !hasExperimentalWarningSuppressed({ env, execArgv }) &&
+    !shouldSkipWarningOnlyRespawnForArgv(argv)
   ) {
     childEnv[GENESIS_NODE_OPTIONS_READY] = "1";
     childExecArgv.unshift(EXPERIMENTAL_WARNING_FLAG);

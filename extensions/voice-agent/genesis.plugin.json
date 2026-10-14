@@ -5,7 +5,8 @@
   "enabledByDefault": false,
   "commandAliases": [{ "name": "voice-agent" }],
   "activation": {
-    "onCommands": ["voice-agent"]
+    "onCommands": ["voice-agent"],
+    "onCapabilities": ["node-host"]
   },
   "configSchema": {
     "type": "object",

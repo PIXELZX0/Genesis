@@ -233,6 +233,12 @@ function listCapabilityTriggerReasons(
           : null,
         hasValues(plugin.hooks) ? "manifest-hook-owner" : null,
       ]);
+    case "node-host":
+      // Node-host commands only exist at register() time, so the manifest hint
+      // is the sole cheap signal.
+      return plugin.activation?.onCapabilities?.includes(capability)
+        ? ["activation-capability-hint"]
+        : [];
   }
   const unreachableCapability: never = capability;
   return unreachableCapability;
