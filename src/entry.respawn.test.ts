@@ -81,9 +81,9 @@ describe("buildCliRespawnPlan", () => {
     expect(
       buildCliRespawnPlan({
         argv: ["node", "genesis", "node", "run"],
-        env: {},
+        env: { [GENESIS_NODE_EXTRA_CA_CERTS_READY]: "1" },
         execArgv: [],
-        autoNodeExtraCaCerts: undefined,
+        autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
       }),
     ).toBeNull();
   });

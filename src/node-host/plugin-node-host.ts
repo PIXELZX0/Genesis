@@ -18,17 +18,23 @@ async function loadPluginRegistryLoaderModule() {
  * (third-party plugins predate the hint and may register node-host commands).
  * Skipping the rest keeps provider/channel runtimes out of the node process.
  */
-export function resolveNodeHostPluginIds(params: {
+function resolveNodeHostPluginIds(params: {
   config: GenesisConfig;
+  workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): string[] {
   const declared = resolveManifestActivationPluginIds({
     trigger: { kind: "capability", capability: "node-host" },
     config: params.config,
+    workspaceDir: params.workspaceDir,
     env: params.env,
     origin: "bundled",
   });
-  const external = loadPluginManifestRegistry({ config: params.config, env: params.env })
+  const external = loadPluginManifestRegistry({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+  })
     .plugins.filter((plugin) => plugin.origin !== "bundled")
     .map((plugin) => plugin.id);
   return [...new Set([...declared, ...external])].toSorted((left, right) =>
@@ -40,15 +46,21 @@ export async function ensureNodeHostPluginRegistry(params: {
   config: GenesisConfig;
   env?: NodeJS.ProcessEnv;
 }): Promise<void> {
-  const onlyPluginIds = resolveNodeHostPluginIds(params);
+  const { ensurePluginRegistryLoaded, resolvePluginRuntimeLoadContext } =
+    await loadPluginRegistryLoaderModule();
+  // Scope ids against the same workspace the loader discovers from, or
+  // workspace plugins fall out of onlyPluginIds.
+  const context = resolvePluginRuntimeLoadContext({ config: params.config, env: params.env });
+  const onlyPluginIds = resolveNodeHostPluginIds(context);
   if (onlyPluginIds.length === 0) {
     return;
   }
-  (await loadPluginRegistryLoaderModule()).ensurePluginRegistryLoaded({
+  ensurePluginRegistryLoaded({
     scope: "all",
     config: params.config,
     activationSourceConfig: params.config,
     env: params.env,
+    workspaceDir: context.workspaceDir,
     onlyPluginIds,
   });
 }

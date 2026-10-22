@@ -16,6 +16,9 @@ import {
   resolvePluginRuntimeLoadContext,
 } from "./load-context.js";
 
+// Lets lazy callers (node host) resolve the same load context without a static import.
+export { resolvePluginRuntimeLoadContext };
+
 let pluginRegistryLoaded: "none" | "configured-channels" | "channels" | "all" = "none";
 
 export type PluginRegistryScope = "configured-channels" | "channels" | "all";
