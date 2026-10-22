@@ -678,6 +678,7 @@ export function buildAgentSystemPrompt(params: {
 
   // Sections above the cache boundary, emitted in `sectionIds` order.
   const sectionIds = orderPromptSections(SYSTEM_PROMPT_SECTION_IDS, params.sectionOrder);
+  const projectContext = buildProjectContextPrompt(params.contextFiles);
   const projectContextPlacement =
     sectionIds.indexOf("project_context") > sectionIds.indexOf("workspace_files")
       ? "below"
@@ -789,7 +790,6 @@ export function buildAgentSystemPrompt(params: {
             "After restart, Genesis pings the last active session automatically.",
           ].join("\n")
         : "",
-      hasGateway && !isMinimal ? "" : "",
       "",
     ],
     // Skip model aliases for subagent/none modes
@@ -803,7 +803,6 @@ export function buildAgentSystemPrompt(params: {
       params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
         ? params.modelAliasLines.join("\n")
         : "",
-      params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal ? "" : "",
     ],
     workspace: [
       userTimezone
@@ -880,7 +879,6 @@ export function buildAgentSystemPrompt(params: {
             .filter(Boolean)
             .join("\n")
         : "",
-      params.sandboxInfo?.enabled ? "" : "",
     ],
     authorized_senders: buildUserIdentitySection(ownerLine, isMinimal),
     time: buildTimeSection({ userTimezone }),
@@ -908,7 +906,7 @@ export function buildAgentSystemPrompt(params: {
     voice: buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }),
     reactions: buildReactionsSection(params.reactionGuidance),
     reasoning_format: reasoningHint ? ["## Reasoning Format", reasoningHint, ""] : [],
-    project_context: [buildProjectContextPrompt(params.contextFiles)],
+    project_context: projectContext ? [projectContext] : [],
     // Skip silent replies for subagent/none modes
     silent_replies: isMinimal
       ? []

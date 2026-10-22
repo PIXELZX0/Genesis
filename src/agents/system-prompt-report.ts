@@ -21,6 +21,27 @@ function parseSkillBlocks(skillsPrompt: string): Array<{ name: string; blockChar
     .filter((b) => b.blockChars > 0);
 }
 
+function measureProjectContextChars(
+  systemPrompt: string,
+  injectedFiles: EmbeddedContextFile[],
+): number {
+  // Rendered from the injected files: exact for any section order and prompt mode.
+  const projectContext = buildProjectContextPrompt(injectedFiles);
+  if (!projectContext) {
+    return 0;
+  }
+  if (systemPrompt.includes(projectContext)) {
+    return projectContext.length;
+  }
+  // Plugin text transforms rewrite the block in place: measure as many lines from its heading.
+  const start = systemPrompt.search(/^# Project Context$/m);
+  if (start === -1) {
+    return 0;
+  }
+  const lineCount = projectContext.split("\n").length;
+  return systemPrompt.slice(start).split("\n", lineCount).join("\n").length;
+}
+
 function buildToolsEntries(tools: AgentTool[]): SessionSystemPromptReport["tools"]["entries"] {
   return tools.map((tool) => {
     const name = tool.name;
@@ -70,10 +91,7 @@ export function buildSystemPromptReport(params: {
   tools: AgentTool[];
 }): SessionSystemPromptReport {
   const systemPrompt = params.systemPrompt.trim();
-  // Rendered from the injected files: exact for any section order and prompt mode.
-  const projectContext = buildProjectContextPrompt(params.injectedFiles);
-  const projectContextChars =
-    projectContext && systemPrompt.includes(projectContext) ? projectContext.length : 0;
+  const projectContextChars = measureProjectContextChars(systemPrompt, params.injectedFiles);
   const toolsEntries = buildToolsEntries(params.tools);
   const toolsSchemaChars = toolsEntries.reduce((sum, t) => sum + (t.schemaChars ?? 0), 0);
   const skillsEntries = parseSkillBlocks(params.skillsPrompt);

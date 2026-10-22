@@ -417,8 +417,40 @@ describe("buildAgentSystemPrompt", () => {
       });
 
       expect(report.systemPrompt.projectContextChars).toBe(
-        buildProjectContextPrompt(contextFiles).length,
+        buildProjectContextPrompt(contextFiles)?.length,
       );
+    }
+  });
+
+  it("reports project context size after plugin text transforms rewrite it", () => {
+    const contextFiles = [{ path: "AGENTS.md", content: "Genesis project rules\n\nShip Genesis." }];
+    const transformedContext = [
+      "# Project Context",
+      "The following project context files have been loaded:",
+      "## AGENTS.md",
+      "Acme project rules\n\nShip Acme.",
+    ].join("\n");
+    for (const promptMode of ["full", "minimal"] as const) {
+      // Same as a plugin `textTransforms.input` of { from: /Genesis/g, to: "Acme" }.
+      const systemPrompt = buildAgentSystemPrompt({
+        workspaceDir: "/tmp/genesis",
+        promptMode,
+        contextFiles,
+        extraSystemPrompt: "subagent or group context",
+      }).replaceAll("Genesis", "Acme");
+      const report = buildSystemPromptReport({
+        source: "run",
+        generatedAt: 0,
+        bootstrapMaxChars: 20_000,
+        systemPrompt,
+        bootstrapFiles: [],
+        injectedFiles: contextFiles,
+        skillsPrompt: "",
+        tools: [],
+      });
+
+      expect(systemPrompt).toContain(transformedContext);
+      expect(report.systemPrompt.projectContextChars).toBe(transformedContext.length);
     }
   });
 

@@ -40,14 +40,16 @@ function sortContextFilesForPrompt(contextFiles: EmbeddedContextFile[]): Embedde
 
 /**
  * The `# Project Context` block exactly as it appears in the assembled system prompt
- * ("" without context files). Shared with the `/context` size report.
+ * (undefined without context files). Shared with the `/context` size report.
  */
-export function buildProjectContextPrompt(contextFiles: EmbeddedContextFile[] = []): string {
+export function buildProjectContextPrompt(
+  contextFiles: EmbeddedContextFile[] = [],
+): string | undefined {
   const files = sortContextFilesForPrompt(
     contextFiles.filter((file) => typeof file.path === "string" && file.path.trim().length > 0),
   );
   if (files.length === 0) {
-    return "";
+    return undefined;
   }
   const lines = ["# Project Context", ""];
   const hasSoulFile = files.some((file) => getContextFileBasename(file.path) === "soul.md");
