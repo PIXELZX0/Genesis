@@ -740,6 +740,41 @@ describe("spawnAcpDirect", () => {
     );
   });
 
+  it("passes permissionMode into ACP session initialization", async () => {
+    const result = await spawnAcpDirect(
+      createSpawnRequest({ permissionMode: "approve-all" }),
+      createRequesterContext(),
+    );
+
+    expectAcceptedSpawn(result);
+    expect(hoisted.initializeSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ permissionMode: "approve-all" }),
+    );
+  });
+
+  it("surfaces backend permission mode rejections in the spawn result", async () => {
+    hoisted.initializeSessionMock.mockRejectedValueOnce(
+      Object.assign(
+        new Error(
+          'permissionMode "approve-all" is more permissive than the configured acpx permissionMode "approve-reads". An operator must set plugins.entries.acpx.config.allowSpawnPermissionEscalation=true to allow per-spawn escalation.',
+        ),
+        { code: "ACP_INVALID_RUNTIME_OPTION" },
+      ),
+    );
+
+    const result = await spawnAcpDirect(
+      createSpawnRequest({ permissionMode: "approve-all" }),
+      createRequesterContext(),
+    );
+
+    const failed = expectFailedSpawn(result, "error");
+    expect(failed.errorCode).toBe("spawn_failed");
+    expect(failed.error).toContain("plugins.entries.acpx.config.allowSpawnPermissionEscalation");
+    expect(hoisted.cleanupFailedAcpSpawnMock).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldDeleteSession: true }),
+    );
+  });
+
   it("inherits subagent envelope fields onto ACP children", async () => {
     replaceSpawnConfig({
       ...hoisted.state.cfg,

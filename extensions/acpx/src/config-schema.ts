@@ -28,6 +28,7 @@ export type AcpxPluginConfig = {
   stateDir?: string;
   probeAgent?: string;
   permissionMode?: AcpxPermissionMode;
+  allowSpawnPermissionEscalation?: boolean;
   nonInteractivePermissions?: AcpxNonInteractivePermissionPolicy;
   pluginToolsMcpBridge?: boolean;
   genesisToolsMcpBridge?: boolean;
@@ -43,6 +44,7 @@ export type ResolvedAcpxPluginConfig = {
   stateDir: string;
   probeAgent?: string;
   permissionMode: AcpxPermissionMode;
+  allowSpawnPermissionEscalation: boolean;
   nonInteractivePermissions: AcpxNonInteractivePermissionPolicy;
   pluginToolsMcpBridge: boolean;
   genesisToolsMcpBridge: boolean;
@@ -86,6 +88,9 @@ export const AcpxPluginConfigSchema = z.strictObject({
     .enum(ACPX_PERMISSION_MODES, {
       error: `permissionMode must be one of: ${ACPX_PERMISSION_MODES.join(", ")}`,
     })
+    .optional(),
+  allowSpawnPermissionEscalation: z
+    .boolean({ error: "allowSpawnPermissionEscalation must be a boolean" })
     .optional(),
   nonInteractivePermissions: z
     .enum(ACPX_NON_INTERACTIVE_POLICIES, {

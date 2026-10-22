@@ -381,6 +381,9 @@ describe("sessions tools", () => {
 
       callGatewayMock.mockImplementation(async (opts: unknown) => {
         const request = opts as { method?: string; params?: Record<string, unknown> };
+        if (request.method === "sessions.list" && request.params?.spawnedBy) {
+          return { sessions: [] };
+        }
         if (request.method === "sessions.list") {
           expect(request.params?.includeDerivedTitles).toBeUndefined();
           expect(request.params?.includeLastMessage).toBeUndefined();

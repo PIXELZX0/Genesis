@@ -366,6 +366,50 @@ describe("sessions_spawn tool", () => {
     expect(hoisted.spawnAcpDirectMock).not.toHaveBeenCalled();
   });
 
+  it("passes permissionMode through to ACP spawns as a flat string enum param", async () => {
+    const tool = createSessionsSpawnTool({
+      agentSessionKey: "agent:main:main",
+    });
+    const schema = tool.parameters as {
+      properties?: { permissionMode?: { type?: string; enum?: string[]; anyOf?: unknown } };
+    };
+
+    await tool.execute("call-2d", {
+      runtime: "acp",
+      task: "fix the failing tests",
+      agentId: "codex",
+      permissionMode: "approve-all",
+    });
+
+    expect(schema.properties?.permissionMode).toMatchObject({
+      type: "string",
+      enum: ["approve-all", "approve-reads", "deny-all"],
+    });
+    expect(schema.properties?.permissionMode?.anyOf).toBeUndefined();
+    expect(hoisted.spawnAcpDirectMock).toHaveBeenCalledWith(
+      expect.objectContaining({ permissionMode: "approve-all" }),
+      expect.any(Object),
+    );
+  });
+
+  it("rejects permissionMode without runtime=acp", async () => {
+    const tool = createSessionsSpawnTool({
+      agentSessionKey: "agent:main:main",
+    });
+
+    const result = await tool.execute("call-guard-permission", {
+      task: "fix the failing tests",
+      permissionMode: "approve-all",
+    });
+
+    expect(result.details).toMatchObject({
+      status: "error",
+      error: "permissionMode is only supported for runtime=acp; got runtime=subagent",
+    });
+    expect(hoisted.spawnSubagentDirectMock).not.toHaveBeenCalled();
+    expect(hoisted.spawnAcpDirectMock).not.toHaveBeenCalled();
+  });
+
   it("rejects attachments for ACP runtime", async () => {
     const tool = createSessionsSpawnTool({
       agentSessionKey: "agent:main:main",

@@ -347,6 +347,7 @@ function buildPendingAcpMeta(base: SessionAcpMeta, now: number): SessionAcpMeta 
     mode: base.mode,
     ...(base.runtimeOptions ? { runtimeOptions: base.runtimeOptions } : {}),
     ...(base.cwd ? { cwd: base.cwd } : {}),
+    ...(base.permissionMode ? { permissionMode: base.permissionMode } : {}),
     state: "idle",
     lastActivityAt: now,
   };

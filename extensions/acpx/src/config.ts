@@ -271,6 +271,7 @@ export function resolveAcpxPluginConfig(params: {
     stateDir,
     probeAgent,
     permissionMode: normalized.permissionMode ?? DEFAULT_PERMISSION_MODE,
+    allowSpawnPermissionEscalation: normalized.allowSpawnPermissionEscalation === true,
     nonInteractivePermissions:
       normalized.nonInteractivePermissions ?? DEFAULT_NON_INTERACTIVE_POLICY,
     pluginToolsMcpBridge,

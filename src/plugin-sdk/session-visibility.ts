@@ -198,6 +198,11 @@ export function createSessionVisibilityChecker(params: {
     const targetAgentId = resolveAgentIdFromSessionKey(targetSessionKey);
     const isCrossAgent = targetAgentId !== requesterAgentId;
     if (isCrossAgent) {
+      // A session the requester spawned itself (e.g. an ACP child running under the
+      // harness agent id) stays reachable: the spawn already crossed the agent boundary.
+      if (params.visibility !== "self" && spawnedKeys?.has(targetSessionKey)) {
+        return { allowed: true };
+      }
       if (params.visibility !== "all") {
         return {
           allowed: false,
@@ -257,9 +262,9 @@ export async function createSessionVisibilityGuard(params: {
   check: (targetSessionKey: string) => SessionAccessResult;
 }> {
   const spawnedKeys =
-    params.visibility === "tree"
-      ? await listSpawnedSessionKeys({ requesterSessionKey: params.requesterSessionKey })
-      : null;
+    params.visibility === "self"
+      ? null
+      : await listSpawnedSessionKeys({ requesterSessionKey: params.requesterSessionKey });
   return createSessionVisibilityChecker({
     action: params.action,
     requesterSessionKey: params.requesterSessionKey,

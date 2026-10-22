@@ -46,6 +46,8 @@ export type SessionAcpMeta = {
   mode: "persistent" | "oneshot";
   runtimeOptions?: AcpSessionRuntimeOptions;
   cwd?: string;
+  /** Backend permission policy requested at spawn; re-sent on every ensureSession. */
+  permissionMode?: string;
   state: "idle" | "running" | "error";
   lastActivityAt: number;
   lastError?: string;

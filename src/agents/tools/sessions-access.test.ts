@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GenesisConfig } from "../../config/config.js";
 import {
   createAgentToAgentPolicy,
@@ -109,6 +109,16 @@ describe("createAgentToAgentPolicy", () => {
 });
 
 describe("createSessionVisibilityGuard", () => {
+  beforeEach(() => {
+    sessionsResolutionTesting.setDepsForTest({
+      callGateway: vi.fn(async () => ({ sessions: [] })) as never,
+    });
+  });
+
+  afterEach(() => {
+    sessionsResolutionTesting.setDepsForTest();
+  });
+
   it("does not block exact same-agent spawned targets that fall past the spawned list cap", async () => {
     sessionsResolutionTesting.setDepsForTest({
       callGateway: vi.fn(async (request: { method?: string; params?: { key?: string } }) => {
@@ -172,5 +182,38 @@ describe("createSessionVisibilityGuard", () => {
       error:
         "Session history visibility is restricted to the current session (tools.sessions.visibility=self).",
     });
+  });
+
+  it("allows cross-agent sessions the requester spawned, except under self visibility", async () => {
+    sessionsResolutionTesting.setDepsForTest({
+      callGateway: vi.fn(async (request: { method?: string }) =>
+        request.method === "sessions.list"
+          ? { sessions: [{ key: "agent:claude:acp:child-1" }] }
+          : {},
+      ) as never,
+    });
+    const a2aPolicy = createAgentToAgentPolicy({} as unknown as GenesisConfig);
+
+    for (const visibility of ["tree", "agent", "all"] as const) {
+      const guard = await createSessionVisibilityGuard({
+        action: "history",
+        requesterSessionKey: "agent:main:main",
+        visibility,
+        a2aPolicy,
+      });
+      expect(guard.check("agent:claude:acp:child-1")).toEqual({ allowed: true });
+      expect(guard.check("agent:claude:acp:someone-else")).toMatchObject({
+        allowed: false,
+        status: "forbidden",
+      });
+    }
+
+    const selfGuard = await createSessionVisibilityGuard({
+      action: "history",
+      requesterSessionKey: "agent:main:main",
+      visibility: "self",
+      a2aPolicy,
+    });
+    expect(selfGuard.check("agent:claude:acp:child-1")).toMatchObject({ allowed: false });
   });
 });

@@ -1064,6 +1064,46 @@ describe("AcpSessionManager", () => {
     );
   });
 
+  it("re-ensures with the persisted permission mode after restart and keeps it on meta writes", async () => {
+    const runtimeState = createRuntime();
+    hoisted.requireAcpRuntimeBackendMock.mockReturnValue({
+      id: "acpx",
+      runtime: runtimeState.runtime,
+    });
+    const sessionKey = "agent:codex:acp:permission-restart";
+    const persistedMeta = readySessionMeta({ permissionMode: "approve-all" });
+    hoisted.readAcpSessionEntryMock.mockReturnValue({
+      sessionKey,
+      storeSessionKey: sessionKey,
+      acp: persistedMeta,
+    });
+
+    const manager = new AcpSessionManager();
+    await manager.runTurn({
+      cfg: baseCfg,
+      sessionKey,
+      text: "after restart",
+      mode: "prompt",
+      requestId: "r-permission-restart",
+    });
+
+    expect(runtimeState.ensureSession).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionKey, permissionMode: "approve-all" }),
+    );
+    const writtenModes = hoisted.upsertAcpSessionMetaMock.mock.calls.map(
+      ([payload]) =>
+        (
+          payload as {
+            mutate: (
+              current: SessionAcpMeta,
+              entry: { acp: SessionAcpMeta },
+            ) => SessionAcpMeta | null | undefined;
+          }
+        ).mutate(persistedMeta, { acp: persistedMeta })?.permissionMode,
+    );
+    expect(new Set(writtenModes)).toEqual(new Set(["approve-all"]));
+  });
+
   it("does not resume persisted ACP identity for oneshot sessions after restart", async () => {
     const runtimeState = createRuntime();
     hoisted.requireAcpRuntimeBackendMock.mockReturnValue({
@@ -1326,6 +1366,34 @@ describe("AcpSessionManager", () => {
     expect(extractRuntimeOptionsFromUpserts()).toContainEqual({
       model: "openai-codex/gpt-5.4",
     });
+  });
+
+  it("passes the requested permission mode to ensureSession and persists it on the session meta", async () => {
+    const runtimeState = createRuntime();
+    hoisted.requireAcpRuntimeBackendMock.mockReturnValue({
+      id: "acpx",
+      runtime: runtimeState.runtime,
+    });
+    hoisted.upsertAcpSessionMetaMock.mockResolvedValue({
+      sessionKey: "agent:codex:acp:session-permission",
+      storeSessionKey: "agent:codex:acp:session-permission",
+      acp: readySessionMeta({ permissionMode: "approve-all" }),
+    });
+
+    const manager = new AcpSessionManager();
+    const { meta } = await manager.initializeSession({
+      cfg: baseCfg,
+      sessionKey: "agent:codex:acp:session-permission",
+      agent: "codex",
+      mode: "oneshot",
+      permissionMode: "approve-all",
+    });
+
+    expect(runtimeState.ensureSession).toHaveBeenCalledWith(
+      expect.objectContaining({ permissionMode: "approve-all" }),
+    );
+    expect(meta.permissionMode).toBe("approve-all");
+    expect(meta.runtimeOptions).toBeUndefined();
   });
 
   it("preserves runtimeOptions cwd when initializeSession cwd is omitted", async () => {

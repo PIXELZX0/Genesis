@@ -100,6 +100,8 @@ export type SpawnAcpParams = {
   thread?: boolean;
   sandbox?: SpawnAcpSandboxMode;
   streamTo?: SpawnAcpStreamTarget;
+  /** Backend permission policy for the child session; the backend may reject escalations. */
+  permissionMode?: string;
 };
 
 export type SpawnAcpContext = {
@@ -733,6 +735,7 @@ async function initializeAcpSpawnRuntime(params: {
   resumeSessionId?: string;
   model?: string;
   cwd?: string;
+  permissionMode?: string;
 }): Promise<AcpSpawnInitializedRuntime> {
   const storePath = resolveStorePath(params.cfg.session?.store, { agentId: params.targetAgentId });
   const sessionStore = loadSessionStore(storePath);
@@ -759,6 +762,7 @@ async function initializeAcpSpawnRuntime(params: {
     runtimeOptions: params.model ? { model: params.model } : undefined,
     cwd: params.cwd,
     backendId: params.cfg.acp?.backend,
+    permissionMode: params.permissionMode,
   });
 
   return {
@@ -1097,6 +1101,7 @@ export async function spawnAcpDirect(
       resumeSessionId: params.resumeSessionId,
       model: params.model,
       cwd: runtimeCwd,
+      permissionMode: params.permissionMode,
     });
     initializedRuntime = initializedSession.runtimeCloseHandle;
     permissionNote = await resolveRestrictedPermissionNote(

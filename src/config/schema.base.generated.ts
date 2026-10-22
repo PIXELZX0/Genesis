@@ -17479,7 +17479,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 enum: ["self", "tree", "agent", "all"],
                 title: "Session Tools Visibility",
                 description:
-                  'Controls which sessions can be targeted by sessions_list/sessions_history/sessions_send. ("tree" default = current session + spawned subagent sessions; "self" = only current; "agent" = any session in the current agent id; "all" = any session; cross-agent still requires tools.agentToAgent).',
+                  'Controls which sessions can be targeted by sessions_list/sessions_history/sessions_send. ("tree" default = current session + sessions it spawned, including ACP sessions under another agent id; "self" = only current; "agent" = any session in the current agent id + sessions it spawned; "all" = any session; other cross-agent access still requires tools.agentToAgent).',
               },
             },
             additionalProperties: false,
@@ -26474,7 +26474,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "tools.sessions.visibility": {
       label: "Session Tools Visibility",
-      help: 'Controls which sessions can be targeted by sessions_list/sessions_history/sessions_send. ("tree" default = current session + spawned subagent sessions; "self" = only current; "agent" = any session in the current agent id; "all" = any session; cross-agent still requires tools.agentToAgent).',
+      help: 'Controls which sessions can be targeted by sessions_list/sessions_history/sessions_send. ("tree" default = current session + sessions it spawned, including ACP sessions under another agent id; "self" = only current; "agent" = any session in the current agent id + sessions it spawned; "all" = any session; other cross-agent access still requires tools.agentToAgent).',
       tags: ["storage", "tools"],
     },
     "tools.exec.notifyOnExit": {

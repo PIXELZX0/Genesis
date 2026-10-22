@@ -47,6 +47,8 @@ export type AcpInitializeSessionInput = {
   runtimeOptions?: Partial<AcpSessionRuntimeOptions>;
   cwd?: string;
   backendId?: string;
+  /** Backend permission policy for this session; persisted on the session's ACP meta. */
+  permissionMode?: string;
 };
 
 export type AcpTurnAttachment = {

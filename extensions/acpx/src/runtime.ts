@@ -14,7 +14,8 @@ import {
   type AcpRuntimeOptions,
   type AcpRuntimeStatus,
 } from "acpx/runtime";
-import type { AcpRuntime } from "../runtime-api.js";
+import { AcpRuntimeError, type AcpRuntime } from "../runtime-api.js";
+import type { AcpxPermissionMode } from "./config-schema.js";
 
 type AcpSessionStore = AcpRuntimeOptions["sessionStore"];
 type AcpSessionRecord = Parameters<AcpSessionStore["save"]>[0];
@@ -209,6 +210,31 @@ function shouldUseDistinctBridgeDelegate(options: AcpRuntimeOptions): boolean {
   return Array.isArray(mcpServers) && mcpServers.length > 0;
 }
 
+type AcpxDelegates = {
+  delegate: BaseAcpxRuntime;
+  bridgeSafeDelegate: BaseAcpxRuntime;
+};
+
+function createAcpxDelegates(
+  options: AcpRuntimeOptions,
+  testOptions: ConstructorParameters<typeof BaseAcpxRuntime>[1],
+): AcpxDelegates {
+  const delegate = new BaseAcpxRuntime(options, testOptions);
+  return {
+    delegate,
+    bridgeSafeDelegate: shouldUseDistinctBridgeDelegate(options)
+      ? new BaseAcpxRuntime({ ...options, mcpServers: [] }, testOptions)
+      : delegate,
+  };
+}
+
+// Least to most permissive, matching acpx's own permission rank.
+const ACPX_PERMISSION_MODE_ORDER: readonly AcpxPermissionMode[] = [
+  "deny-all",
+  "approve-reads",
+  "approve-all",
+];
+
 export class AcpxRuntime implements AcpRuntime {
   private readonly sessionStore: ResetAwareSessionStore;
   private readonly agentRegistry: AcpAgentRegistry;
@@ -216,51 +242,98 @@ export class AcpxRuntime implements AcpRuntime {
   private readonly bridgeSafeDelegate: BaseAcpxRuntime;
   private readonly probeDelegate: BaseAcpxRuntime;
   private readonly permissionMode: string | undefined;
+  private readonly allowSpawnPermissionEscalation: boolean;
+  private readonly sharedOptions: AcpRuntimeOptions;
+  private readonly testOptions: ConstructorParameters<typeof BaseAcpxRuntime>[1];
+  // acpx only takes permissionMode at construction, so each mode gets its own delegates.
+  private readonly delegatesByPermissionMode = new Map<string | undefined, AcpxDelegates>();
+  private readonly permissionModeBySessionKey = new Map<string, AcpxPermissionMode>();
 
   constructor(
-    options: AcpRuntimeOptions,
+    options: AcpRuntimeOptions & { allowSpawnPermissionEscalation?: boolean },
     testOptions?: ConstructorParameters<typeof BaseAcpxRuntime>[1],
   ) {
-    this.sessionStore = createResetAwareSessionStore(options.sessionStore);
-    this.agentRegistry = options.agentRegistry;
+    const { allowSpawnPermissionEscalation, ...runtimeOptions } = options;
+    this.sessionStore = createResetAwareSessionStore(runtimeOptions.sessionStore);
+    this.agentRegistry = runtimeOptions.agentRegistry;
     this.permissionMode =
-      typeof options.permissionMode === "string" ? options.permissionMode : undefined;
-    const sharedOptions = {
-      ...options,
+      typeof runtimeOptions.permissionMode === "string" ? runtimeOptions.permissionMode : undefined;
+    this.allowSpawnPermissionEscalation = allowSpawnPermissionEscalation === true;
+    this.sharedOptions = {
+      ...runtimeOptions,
       sessionStore: this.sessionStore,
     };
-    this.delegate = new BaseAcpxRuntime(sharedOptions, testOptions);
-    this.bridgeSafeDelegate = shouldUseDistinctBridgeDelegate(options)
-      ? new BaseAcpxRuntime(
-          {
-            ...sharedOptions,
-            mcpServers: [],
-          },
-          testOptions,
-        )
-      : this.delegate;
-    this.probeDelegate = this.resolveDelegateForAgent(resolveProbeAgentName(options));
+    this.testOptions = testOptions;
+    const defaults = createAcpxDelegates(this.sharedOptions, testOptions);
+    this.delegatesByPermissionMode.set(this.permissionMode, defaults);
+    this.delegate = defaults.delegate;
+    this.bridgeSafeDelegate = defaults.bridgeSafeDelegate;
+    this.probeDelegate = this.resolveDelegateForAgent(resolveProbeAgentName(options), defaults);
   }
 
-  private resolveDelegateForAgent(agentName: string | undefined): BaseAcpxRuntime {
+  private resolveSessionPermissionMode(sessionKey: string): string | undefined {
+    return this.permissionModeBySessionKey.get(sessionKey) ?? this.permissionMode;
+  }
+
+  private delegatesForSession(sessionKey: string): AcpxDelegates {
+    const permissionMode = this.resolveSessionPermissionMode(sessionKey);
+    let delegates = this.delegatesByPermissionMode.get(permissionMode);
+    if (!delegates) {
+      delegates = createAcpxDelegates({ ...this.sharedOptions, permissionMode }, this.testOptions);
+      this.delegatesByPermissionMode.set(permissionMode, delegates);
+    }
+    return delegates;
+  }
+
+  private validateSpawnPermissionMode(requested: string): AcpxPermissionMode {
+    const requestedRank = ACPX_PERMISSION_MODE_ORDER.indexOf(requested as AcpxPermissionMode);
+    if (requestedRank < 0) {
+      throw new AcpRuntimeError(
+        "ACP_INVALID_RUNTIME_OPTION",
+        `Unsupported acpx permissionMode "${requested}"; expected one of: ${ACPX_PERMISSION_MODE_ORDER.join(", ")}.`,
+      );
+    }
+    const configuredRank = ACPX_PERMISSION_MODE_ORDER.indexOf(
+      this.permissionMode as AcpxPermissionMode,
+    );
+    if (requestedRank > configuredRank && !this.allowSpawnPermissionEscalation) {
+      throw new AcpRuntimeError(
+        "ACP_INVALID_RUNTIME_OPTION",
+        `permissionMode "${requested}" is more permissive than the configured acpx permissionMode "${this.permissionMode}". ` +
+          "An operator must set plugins.entries.acpx.config.allowSpawnPermissionEscalation=true to allow per-spawn escalation.",
+      );
+    }
+    return requested as AcpxPermissionMode;
+  }
+
+  private resolveDelegateForAgent(
+    agentName: string | undefined,
+    delegates: AcpxDelegates,
+  ): BaseAcpxRuntime {
     const command = resolveAgentCommandForName({
       agentName,
       agentRegistry: this.agentRegistry,
     });
-    return this.resolveDelegateForCommand(command);
+    return this.resolveDelegateForCommand(command, delegates);
   }
 
-  private resolveDelegateForCommand(command: string | undefined): BaseAcpxRuntime {
-    return shouldUseBridgeSafeDelegateForCommand(command) ? this.bridgeSafeDelegate : this.delegate;
+  private resolveDelegateForCommand(
+    command: string | undefined,
+    delegates: AcpxDelegates,
+  ): BaseAcpxRuntime {
+    return shouldUseBridgeSafeDelegateForCommand(command)
+      ? delegates.bridgeSafeDelegate
+      : delegates.delegate;
   }
 
   private async resolveDelegateForHandle(handle: AcpRuntimeHandle): Promise<BaseAcpxRuntime> {
+    const delegates = this.delegatesForSession(handle.sessionKey);
     const record = await this.sessionStore.load(handle.acpxRecordId ?? handle.sessionKey);
     const recordCommand = readAgentCommandFromRecord(record);
     if (recordCommand) {
-      return this.resolveDelegateForCommand(recordCommand);
+      return this.resolveDelegateForCommand(recordCommand, delegates);
     }
-    return this.resolveDelegateForAgent(readAgentFromHandle(handle));
+    return this.resolveDelegateForAgent(readAgentFromHandle(handle), delegates);
   }
 
   isHealthy(): boolean {
@@ -275,19 +348,30 @@ export class AcpxRuntime implements AcpRuntime {
     return this.probeDelegate.doctor();
   }
 
-  ensureSession(input: Parameters<AcpRuntime["ensureSession"]>[0]): Promise<AcpRuntimeHandle> {
-    return this.resolveDelegateForAgent(input.agent).ensureSession(input);
+  async ensureSession(
+    input: Parameters<AcpRuntime["ensureSession"]>[0],
+  ): Promise<AcpRuntimeHandle> {
+    this.permissionModeBySessionKey.delete(input.sessionKey);
+    if (input.permissionMode) {
+      this.permissionModeBySessionKey.set(
+        input.sessionKey,
+        this.validateSpawnPermissionMode(input.permissionMode),
+      );
+    }
+    const delegates = this.delegatesForSession(input.sessionKey);
+    return await this.resolveDelegateForAgent(input.agent, delegates).ensureSession(input);
   }
 
   async *runTurn(input: Parameters<AcpRuntime["runTurn"]>[0]): AsyncIterable<AcpRuntimeEvent> {
     yield* (await this.resolveDelegateForHandle(input.handle)).runTurn(input);
   }
 
-  async getCapabilities(): Promise<AcpRuntimeCapabilities> {
+  async getCapabilities(input?: { handle?: AcpRuntimeHandle }): Promise<AcpRuntimeCapabilities> {
     const capabilities = await this.delegate.getCapabilities();
-    return this.permissionMode
-      ? { ...capabilities, permissionMode: this.permissionMode }
-      : capabilities;
+    const permissionMode = input?.handle
+      ? this.resolveSessionPermissionMode(input.handle.sessionKey)
+      : this.permissionMode;
+    return permissionMode ? { ...capabilities, permissionMode } : capabilities;
   }
 
   async getStatus(
@@ -326,6 +410,9 @@ export class AcpxRuntime implements AcpRuntime {
       reason: input.reason,
       discardPersistentState: input.discardPersistentState,
     });
+    // A reopened session is re-ensured with its persisted mode, so drop the entry
+    // instead of keeping one per spawn for the gateway's lifetime.
+    this.permissionModeBySessionKey.delete(input.handle.sessionKey);
     if (input.discardPersistentState) {
       this.sessionStore.markFresh(input.handle.sessionKey);
     }

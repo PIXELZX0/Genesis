@@ -452,3 +452,165 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultProbe).not.toHaveBeenCalled();
   });
 });
+
+type FakeManagerOptions = { permissionMode?: unknown; mcpServers?: unknown[] };
+
+// Fakes acpx's internal manager so tests see which permission mode each call ran under.
+function makeModeTrackingRuntime(
+  options: Partial<ConstructorParameters<typeof AcpxRuntime>[0]> = {},
+) {
+  const calls: Array<[method: string, permissionMode: unknown]> = [];
+  const managers: FakeManagerOptions[] = [];
+  const managerFactory = (managerOptions: FakeManagerOptions) => {
+    managers.push(managerOptions);
+    const track = (method: string) => {
+      calls.push([method, managerOptions.permissionMode]);
+    };
+    return {
+      ensureSession: async (input: { sessionKey: string; cwd: string }) => {
+        track("ensureSession");
+        return { acpxRecordId: input.sessionKey, acpSessionId: "backend-1", cwd: input.cwd };
+      },
+      runTurn: async function* () {
+        track("runTurn");
+        yield { type: "done" as const };
+      },
+      getStatus: async () => {
+        track("getStatus");
+        return { summary: "ok" };
+      },
+      close: async () => track("close"),
+    };
+  };
+  const runtime = new AcpxRuntime(
+    {
+      cwd: "/tmp",
+      sessionStore: { load: vi.fn(async () => undefined), save: vi.fn(async () => {}) },
+      agentRegistry: {
+        resolve: (agentName: string) => (agentName === "genesis" ? "genesis acp" : agentName),
+        list: () => ["codex", "genesis"],
+      },
+      permissionMode: "approve-reads",
+      ...options,
+    },
+    { managerFactory },
+  );
+  return { runtime, calls, managers };
+}
+
+describe("AcpxRuntime per-session permission mode", () => {
+  const spawnInput = {
+    sessionKey: "agent:codex:acp:spawn-1",
+    agent: "codex",
+    mode: "persistent" as const,
+  };
+
+  it("rejects a more permissive mode unless the operator allows escalation", async () => {
+    const { runtime, calls } = makeModeTrackingRuntime();
+
+    await expect(
+      runtime.ensureSession({ ...spawnInput, permissionMode: "approve-all" }),
+    ).rejects.toMatchObject({
+      code: "ACP_INVALID_RUNTIME_OPTION",
+      message: expect.stringContaining(
+        "plugins.entries.acpx.config.allowSpawnPermissionEscalation",
+      ),
+    });
+    expect(calls).toEqual([]);
+  });
+
+  it("rejects unknown permission modes", async () => {
+    const { runtime } = makeModeTrackingRuntime({ allowSpawnPermissionEscalation: true });
+
+    await expect(
+      runtime.ensureSession({ ...spawnInput, permissionMode: "approve-everything" }),
+    ).rejects.toMatchObject({ code: "ACP_INVALID_RUNTIME_OPTION" });
+  });
+
+  it("runs an allowed escalation and the session's follow-up calls under that mode", async () => {
+    const { runtime, calls } = makeModeTrackingRuntime({ allowSpawnPermissionEscalation: true });
+
+    const handle = await runtime.ensureSession({ ...spawnInput, permissionMode: "approve-all" });
+    const events: unknown[] = [];
+    for await (const event of runtime.runTurn({
+      handle,
+      text: "fix the tests",
+      mode: "prompt",
+      requestId: "req-1",
+    })) {
+      events.push(event);
+    }
+    await runtime.getStatus({ handle });
+    await expect(runtime.getCapabilities({ handle })).resolves.toMatchObject({
+      permissionMode: "approve-all",
+    });
+    await runtime.close({ handle, reason: "done" });
+
+    expect(events).toEqual([{ type: "done" }]);
+    expect(calls).toEqual([
+      ["ensureSession", "approve-all"],
+      ["runTurn", "approve-all"],
+      ["getStatus", "approve-all"],
+      ["close", "approve-all"],
+    ]);
+    // close releases the per-session entry; a reopened session is re-ensured with its mode.
+    await expect(runtime.getCapabilities({ handle })).resolves.toMatchObject({
+      permissionMode: "approve-reads",
+    });
+    await expect(runtime.getCapabilities()).resolves.toMatchObject({
+      permissionMode: "approve-reads",
+    });
+  });
+
+  it("always allows a less permissive mode", async () => {
+    const { runtime, calls } = makeModeTrackingRuntime();
+
+    const handle = await runtime.ensureSession({ ...spawnInput, permissionMode: "deny-all" });
+
+    expect(calls).toEqual([["ensureSession", "deny-all"]]);
+    await expect(runtime.getCapabilities({ handle })).resolves.toMatchObject({
+      permissionMode: "deny-all",
+    });
+  });
+
+  it("keeps sessions without a requested mode on the configured mode", async () => {
+    const { runtime, calls, managers } = makeModeTrackingRuntime({
+      allowSpawnPermissionEscalation: true,
+    });
+
+    const handle = await runtime.ensureSession(spawnInput);
+    await runtime.getStatus({ handle });
+
+    expect(calls).toEqual([
+      ["ensureSession", "approve-reads"],
+      ["getStatus", "approve-reads"],
+    ]);
+    expect(managers).toHaveLength(1);
+    await expect(runtime.getCapabilities({ handle })).resolves.toMatchObject({
+      permissionMode: "approve-reads",
+    });
+  });
+
+  it("keeps the bridge-safe MCP split for per-mode delegates", async () => {
+    const { runtime, managers } = makeModeTrackingRuntime({
+      allowSpawnPermissionEscalation: true,
+      mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
+    });
+
+    await runtime.ensureSession({
+      sessionKey: "agent:genesis:acp:spawn-1",
+      agent: "genesis",
+      mode: "persistent",
+      permissionMode: "approve-all",
+    });
+    await runtime.ensureSession({ ...spawnInput, permissionMode: "approve-all" });
+
+    expect(managers).toEqual([
+      expect.objectContaining({ permissionMode: "approve-all", mcpServers: [] }),
+      expect.objectContaining({
+        permissionMode: "approve-all",
+        mcpServers: [{ name: "tools", command: "mcp-tools" }],
+      }),
+    ]);
+  });
+});

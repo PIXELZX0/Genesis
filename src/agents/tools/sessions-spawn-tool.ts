@@ -27,6 +27,7 @@ const SESSIONS_SPAWN_RUNTIMES = ["subagent", "acp"] as const;
 const SESSIONS_SPAWN_SANDBOX_MODES = ["inherit", "require"] as const;
 // Keep the schema local to avoid a circular import through acp-spawn/genesis-tools.
 const SESSIONS_SPAWN_ACP_STREAM_TARGETS = ["parent"] as const;
+const SESSIONS_SPAWN_ACP_PERMISSION_MODES = ["approve-all", "approve-reads", "deny-all"] as const;
 const UNSUPPORTED_SESSIONS_SPAWN_PARAM_KEYS = [
   "target",
   "transport",
@@ -123,6 +124,10 @@ const SessionsSpawnToolSchema = Type.Object({
       'Native subagent context mode. Omit or use "isolated" for a clean child session; use "fork" only when the child needs the requester transcript context.',
   }),
   streamTo: optionalStringEnum(SESSIONS_SPAWN_ACP_STREAM_TARGETS),
+  permissionMode: optionalStringEnum(SESSIONS_SPAWN_ACP_PERMISSION_MODES, {
+    description:
+      'ACP tool-permission policy for the child session. Requires runtime="acp". Use "approve-all" when the child must write files or run commands; modes more permissive than the operator default are rejected unless the operator allows escalation.',
+  }),
   lightContext: Type.Optional(
     Type.Boolean({
       description:
@@ -196,6 +201,7 @@ export function createSessionsSpawnTool(
       const context =
         params.context === "fork" || params.context === "isolated" ? params.context : undefined;
       const streamTo = params.streamTo === "parent" ? "parent" : undefined;
+      const permissionMode = readStringParam(params, "permissionMode");
       const lightContext = params.lightContext === true;
       if (runtime === "acp" && lightContext) {
         throw new Error("lightContext is only supported for runtime='subagent'.");
@@ -242,6 +248,14 @@ export function createSessionsSpawnTool(
         });
       }
 
+      if (permissionMode && runtime !== "acp") {
+        return jsonResult({
+          status: "error",
+          error: `permissionMode is only supported for runtime=acp; got runtime=${runtime}`,
+          ...roleContext,
+        });
+      }
+
       if (runtime === "acp") {
         const { isSpawnAcpAcceptedResult, spawnAcpDirect } = await loadAcpSpawnModule();
         if (Array.isArray(attachments) && attachments.length > 0) {
@@ -264,6 +278,7 @@ export function createSessionsSpawnTool(
             thread,
             sandbox,
             streamTo,
+            permissionMode,
           },
           {
             agentSessionKey: opts?.agentSessionKey,

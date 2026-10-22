@@ -283,9 +283,24 @@ Restart the gateway after changing these values.
 
 > **Important:** Genesis currently defaults to `permissionMode=approve-reads` and `nonInteractivePermissions=fail`. In non-interactive ACP sessions, any write or exec that triggers a permission prompt can fail with `AcpRuntimeError: Permission prompt unavailable in non-interactive mode`.
 >
-> `sessions_spawn` adds a note to its accepted result whenever `permissionMode` is not `approve-all`, because denied write/exec calls do not fail the run.
+> `sessions_spawn` adds a note to its accepted result whenever the child session's effective `permissionMode` is not `approve-all`, because denied write/exec calls do not fail the run.
 >
 > If you need to restrict permissions, set `nonInteractivePermissions` to `deny` so sessions degrade gracefully instead of crashing.
+
+### Per-spawn permission mode
+
+`sessions_spawn` can request a `permissionMode` for a single ACP child session, for example `approve-all` for a coding task while the plugin default stays `approve-reads`.
+
+- A mode equal to or less permissive than the configured `permissionMode` (`deny-all` < `approve-reads` < `approve-all`) is always honored, so agents can always downgrade a child.
+- A more permissive mode fails the spawn unless the operator opts in:
+
+```bash
+genesis config set plugins.entries.acpx.config.allowSpawnPermissionEscalation true
+```
+
+With `allowSpawnPermissionEscalation=true`, any agent that can call `sessions_spawn` can run ACP children with `approve-all`, so `genesis security audit` reports it as a dangerous flag, like `permissionMode=approve-all`. Restart the gateway after changing this value.
+
+The requested mode is stored with the session and reapplied after gateway restarts. If you later turn the opt-in off, escalated sessions fail to resume until they are respawned.
 
 ## Related
 

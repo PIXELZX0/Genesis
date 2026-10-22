@@ -53,6 +53,7 @@ function createDefaultRuntime(params: AcpxRuntimeFactoryParams): AcpxRuntimeLike
     probeAgent: params.pluginConfig.probeAgent,
     mcpServers: toAcpMcpServers(params.pluginConfig.mcpServers),
     permissionMode: params.pluginConfig.permissionMode,
+    allowSpawnPermissionEscalation: params.pluginConfig.allowSpawnPermissionEscalation,
     nonInteractivePermissions: params.pluginConfig.nonInteractivePermissions,
     timeoutMs:
       params.pluginConfig.timeoutSeconds != null

@@ -14,6 +14,7 @@ describe("embedded acpx plugin config", () => {
     expect(resolved.cwd).toBe(workspaceDir);
     expect(resolved.stateDir).toBe(path.join(workspaceDir, "state"));
     expect(resolved.permissionMode).toBe("approve-reads");
+    expect(resolved.allowSpawnPermissionEscalation).toBe(false);
     expect(resolved.nonInteractivePermissions).toBe("fail");
     expect(resolved.timeoutSeconds).toBe(120);
     expect(resolved.agents).toEqual({});
@@ -28,6 +29,17 @@ describe("embedded acpx plugin config", () => {
     });
 
     expect(resolved.timeoutSeconds).toBe(300);
+  });
+
+  it("keeps explicit allowSpawnPermissionEscalation config", () => {
+    const resolved = resolveAcpxPluginConfig({
+      rawConfig: {
+        allowSpawnPermissionEscalation: true,
+      },
+      workspaceDir: "/tmp/genesis-acpx",
+    });
+
+    expect(resolved.allowSpawnPermissionEscalation).toBe(true);
   });
 
   it("keeps explicit probeAgent config", () => {
@@ -123,7 +135,7 @@ describe("embedded acpx plugin config", () => {
     const pluginRoot = resolveAcpxPluginRoot();
     const manifest = JSON.parse(
       fs.readFileSync(path.join(pluginRoot, "genesis.plugin.json"), "utf8"),
-    ) as { configSchema?: unknown };
+    ) as { configSchema?: unknown; configContracts?: { dangerousFlags?: unknown[] } };
 
     expect(manifest.configSchema).toMatchObject({
       type: "object",
@@ -138,7 +150,12 @@ describe("embedded acpx plugin config", () => {
         agents: expect.any(Object),
         mcpServers: expect.any(Object),
         genesisToolsMcpBridge: expect.any(Object),
+        allowSpawnPermissionEscalation: { type: "boolean" },
       }),
+    });
+    expect(manifest.configContracts?.dangerousFlags).toContainEqual({
+      path: "allowSpawnPermissionEscalation",
+      equals: true,
     });
   });
 });

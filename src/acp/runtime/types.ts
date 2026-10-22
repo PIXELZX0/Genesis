@@ -38,6 +38,12 @@ export type AcpRuntimeEnsureInput = {
   resumeSessionId?: string;
   cwd?: string;
   env?: Record<string, string>;
+  /**
+   * Backend-defined permission policy requested for this session (for example acpx "approve-all").
+   * Untrusted: it can come from the model via `sessions_spawn`. Backends must enforce operator
+   * policy and reject (or clamp) any mode more permissive than the operator allows.
+   */
+  permissionMode?: string;
 };
 
 export type AcpRuntimeTurnAttachment = {

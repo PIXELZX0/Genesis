@@ -417,13 +417,17 @@ describe("resolveAnnounceTarget", () => {
 describe("sessions_list gating", () => {
   beforeEach(() => {
     callGatewayMock.mockClear();
-    callGatewayMock.mockResolvedValue({
-      path: "/tmp/sessions.json",
-      sessions: [
-        { key: "agent:main:main", kind: "direct" },
-        { key: "agent:other:main", kind: "direct" },
-      ],
-    });
+    callGatewayMock.mockImplementation(async (request?: { params?: { spawnedBy?: string } }) =>
+      request?.params?.spawnedBy
+        ? { sessions: [] }
+        : {
+            path: "/tmp/sessions.json",
+            sessions: [
+              { key: "agent:main:main", kind: "direct" },
+              { key: "agent:other:main", kind: "direct" },
+            ],
+          },
+    );
   });
 
   it("filters out other agents when tools.agentToAgent.enabled is false", async () => {

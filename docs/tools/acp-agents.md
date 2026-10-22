@@ -330,6 +330,7 @@ Interface details:
 - `streamTo` (optional): `"parent"` streams initial ACP run progress summaries back to the requester session as system events.
   - When available, accepted responses include `streamLogPath` pointing to a session-scoped JSONL log (`<sessionId>.acp-stream.jsonl`) you can tail for full relay history.
 - `model` (optional): explicit model override for the ACP child session. Honored for `runtime: "acp"` so the child uses the requested model instead of silently falling back to the target agent default.
+- `permissionMode` (optional): `approve-all`, `approve-reads`, or `deny-all`. Sets the acpx harness permission policy for this child session only. Modes equal to or less permissive than `plugins.entries.acpx.config.permissionMode` are always honored; a more permissive mode fails the spawn unless the operator set `plugins.entries.acpx.config.allowSpawnPermissionEscalation: true`. Requires `runtime: "acp"`. See [Per-spawn permission mode](/tools/acp-agents-setup#per-spawn-permission-mode).
 
 ## Delivery model
 
@@ -358,7 +359,7 @@ Do not treat this path as a peer-to-peer chat between parent and child. The chil
 
 ### `sessions_send` and A2A delivery
 
-`sessions_send` can target another session after spawn. For normal peer sessions, Genesis uses an agent-to-agent (A2A) follow-up path after injecting the message:
+`sessions_send` can target another session after spawn. The parent can always read and steer the ACP children it spawned with `sessions_history` and `sessions_send`, even though they run under the harness agent id (for example `agent:claude:acp:<uuid>`); only `tools.sessions.visibility="self"` hides them. For normal peer sessions, Genesis uses an agent-to-agent (A2A) follow-up path after injecting the message:
 
 - wait for the target session's reply
 - optionally let requester and target exchange a bounded number of follow-up turns

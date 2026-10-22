@@ -24,6 +24,9 @@
         "type": "string",
         "enum": ["approve-all", "approve-reads", "deny-all"]
       },
+      "allowSpawnPermissionEscalation": {
+        "type": "boolean"
+      },
       "nonInteractivePermissions": {
         "type": "string",
         "enum": ["deny", "fail"]
@@ -102,6 +105,11 @@
       "label": "Permission Mode",
       "help": "Default permission policy for embedded ACP runtime prompts."
     },
+    "allowSpawnPermissionEscalation": {
+      "label": "Allow Per-Spawn Permission Escalation",
+      "help": "Default off. When enabled, sessions_spawn may request a per-session permissionMode more permissive than the configured permissionMode (for example approve-all). Less permissive per-spawn modes are always allowed.",
+      "advanced": true
+    },
     "nonInteractivePermissions": {
       "label": "Non-Interactive Permission Policy",
       "help": "Policy when interactive permission prompts are unavailable."
@@ -152,6 +160,10 @@
       {
         "path": "permissionMode",
         "equals": "approve-all"
+      },
+      {
+        "path": "allowSpawnPermissionEscalation",
+        "equals": true
       }
     ],
     "secretInputs": {
