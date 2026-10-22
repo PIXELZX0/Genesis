@@ -13,6 +13,12 @@ describe("terminal ansi helpers", () => {
     );
   });
 
+  it("strips APC strings such as pi-tui cursor markers", () => {
+    expect(stripAnsi("> m\u001B_pi:fc\u0007 \u001B_pi:/fc\u0007")).toBe("> m ");
+    expect(stripAnsi("a\u001B_pi:c\u001B\\b")).toBe("ab");
+    expect(visibleWidth("search: x\u001B_pi:fc\u0007 \u001B_pi:/fc\u0007")).toBe(10);
+  });
+
   it("sanitizes control characters for log-safe interpolation", () => {
     const input =
       "\u001B[31mwarn\u001B[0m" +

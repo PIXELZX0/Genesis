@@ -4,15 +4,20 @@ const ANSI_CSI_PATTERN = "\\x1b\\[[\\x20-\\x3f]*[\\x40-\\x7e]";
 // ST can be either ESC \ or BEL.
 const OSC8_PATTERN = "\\x1b\\]8;;.*?(?:\\x1b\\\\|\\x07)|\\x1b\\]8;;(?:\\x1b\\\\|\\x07)";
 
+// APC strings: ESC _ ... ST (ESC \ or BEL). pi-tui embeds its cursor markers this way
+// (for example `ESC _pi:fc BEL`), and they occupy no cells.
+const APC_PATTERN = "\\x1b_[^\\x07\\x1b]*(?:\\x07|\\x1b\\\\)";
+
 const ANSI_CSI_REGEX = new RegExp(ANSI_CSI_PATTERN, "g");
 const OSC8_REGEX = new RegExp(OSC8_PATTERN, "g");
+const APC_REGEX = new RegExp(APC_PATTERN, "g");
 const graphemeSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
     ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
     : null;
 
 export function stripAnsi(input: string): string {
-  return input.replace(OSC8_REGEX, "").replace(ANSI_CSI_REGEX, "");
+  return input.replace(OSC8_REGEX, "").replace(APC_REGEX, "").replace(ANSI_CSI_REGEX, "");
 }
 
 export function splitGraphemes(input: string): string[] {
