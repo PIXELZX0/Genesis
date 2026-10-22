@@ -240,15 +240,15 @@ export function resolveProviderHttpRequestConfig(params: {
  *
  * 2. Only auto-upgrade when `HTTP_PROXY` or `HTTPS_PROXY` (lower- or
  *    upper-case) is configured for the target protocol. `ALL_PROXY` is
- *    explicitly ignored by `EnvHttpProxyAgent`, so counting it would
- *    auto-upgrade requests that then make direct connections while skipping
- *    pinned-DNS/SSRF hostname checks.
+ *    explicitly ignored by `EnvHttpProxyAgent`, so those requests connect
+ *    directly anyway.
  *
  * 3. If `NO_PROXY` would bypass the proxy for this target, do NOT auto-upgrade.
- *    `EnvHttpProxyAgent` makes direct connections for `NO_PROXY` matches, but
- *    in `TRUSTED_ENV_PROXY` mode `fetchWithSsrFGuard` skips
- *    `resolvePinnedHostnameWithPolicy` — so those direct connections would
- *    bypass SSRF protection. Keep strict mode for `NO_PROXY` matches.
+ *    `EnvHttpProxyAgent` makes direct connections for `NO_PROXY` matches.
+ *
+ * `fetchWithSsrFGuard` also keeps pinned-DNS/SSRF checks on every hop the env
+ * proxy would not carry (2 and 3 included, redirects too); these gates just
+ * avoid the trusted mode up front when the first hop is direct.
  */
 function shouldAutoUpgradeToTrustedEnvProxy(params: {
   url: string;

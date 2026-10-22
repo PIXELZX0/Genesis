@@ -111,6 +111,8 @@ describe("fetchWithSsrFGuard hardening", () => {
     "http_proxy",
     "https_proxy",
     "all_proxy",
+    "NO_PROXY",
+    "no_proxy",
   ] as const;
 
   type LookupFn = NonNullable<Parameters<typeof fetchWithSsrFGuard>[0]["lookupFn"]>;
@@ -133,8 +135,9 @@ describe("fetchWithSsrFGuard hardening", () => {
     vi.fn(async () => [{ address: "93.184.216.34", family: 4 }]) as unknown as LookupFn;
 
   function clearProxyEnv(): void {
+    // Unset rather than "": like undici, an empty lower-case var shadows the upper-case one.
     for (const key of PROXY_ENV_KEYS) {
-      vi.stubEnv(key, "");
+      vi.stubEnv(key, undefined);
     }
   }
 
@@ -1247,6 +1250,95 @@ describe("fetchWithSsrFGuard hardening", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(lookupFn).toHaveBeenCalledOnce();
     await result.release();
+  });
+
+  it.each([
+    { name: "only ALL_PROXY is set", env: { ALL_PROXY: "http://127.0.0.1:7890" } },
+    {
+      name: "NO_PROXY covers the redirect target",
+      env: { HTTP_PROXY: "http://127.0.0.1:7890", NO_PROXY: "localhost,169.254.169.254" },
+    },
+    {
+      name: "only HTTPS_PROXY is set for an http redirect",
+      env: { HTTPS_PROXY: "http://127.0.0.1:7890" },
+    },
+  ])("blocks trusted env proxy redirects to private hosts when $name", async ({ env }) => {
+    clearProxyEnv();
+    for (const [key, value] of Object.entries(env)) {
+      vi.stubEnv(key, value);
+    }
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(redirectResponse("http://169.254.169.254/latest/meta-data/"))
+      .mockResolvedValueOnce(okResponse("instance-credentials"));
+
+    await expect(
+      fetchWithSsrFGuard({
+        url: "https://api.example.test/v1/models",
+        fetchImpl,
+        lookupFn: createPublicLookup(),
+        policy: { allowedHostnames: ["api.example.test"] },
+        mode: GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY,
+      }),
+    ).rejects.toThrow(/private|internal|blocked/i);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps proxied trusted env proxy redirects on the proxy without local DNS", async () => {
+    clearProxyEnv();
+    vi.stubEnv("HTTPS_PROXY", "http://127.0.0.1:7890");
+    vi.stubEnv("NO_PROXY", "localhost,169.254.169.254");
+    (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+      Agent: agentCtor,
+      EnvHttpProxyAgent: envHttpProxyAgentCtor,
+      ProxyAgent: proxyAgentCtor,
+      fetch: vi.fn(async () => okResponse()),
+    };
+    const lookupFn = createPublicLookup();
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(redirectResponse("https://cdn.example.test/v1/models"))
+      .mockResolvedValueOnce(okResponse());
+
+    const result = await fetchWithSsrFGuard({
+      url: "https://api.example.test/v1/models",
+      fetchImpl,
+      lookupFn,
+      policy: { allowedHostnames: ["api.example.test"] },
+      mode: GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY,
+    });
+
+    expect(result.finalUrl).toBe("https://cdn.example.test/v1/models");
+    expect(envHttpProxyAgentCtor).toHaveBeenCalledTimes(2);
+    expect(lookupFn).not.toHaveBeenCalled();
+    await result.release();
+  });
+
+  it("blocks proxied trusted env proxy redirects to literal private hosts", async () => {
+    clearProxyEnv();
+    vi.stubEnv("HTTP_PROXY", "http://127.0.0.1:7890");
+    vi.stubEnv("HTTPS_PROXY", "http://127.0.0.1:7890");
+    (globalThis as Record<string, unknown>)[TEST_UNDICI_RUNTIME_DEPS_KEY] = {
+      Agent: agentCtor,
+      EnvHttpProxyAgent: envHttpProxyAgentCtor,
+      ProxyAgent: proxyAgentCtor,
+      fetch: vi.fn(async () => okResponse()),
+    };
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(redirectResponse("http://169.254.169.254/latest/meta-data/"))
+      .mockResolvedValueOnce(okResponse());
+
+    await expect(
+      fetchWithSsrFGuard({
+        url: "https://api.example.test/v1/models",
+        fetchImpl,
+        lookupFn: createPublicLookup(),
+        policy: { allowedHostnames: ["api.example.test"] },
+        mode: GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY,
+      }),
+    ).rejects.toThrow(/blocked/i);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it("blocks .onion URLs when Tor routing is not configured", async () => {

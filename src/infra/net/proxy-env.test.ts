@@ -158,6 +158,30 @@ describe("matchesNoProxy", () => {
       expected: false,
     },
     {
+      name: "compares ports numerically like undici",
+      url: "http://api.internal/v1",
+      env: { NO_PROXY: "api.internal:080" } as NodeJS.ProcessEnv,
+      expected: true,
+    },
+    {
+      name: "port 0 matches any port like undici",
+      url: "https://api.internal:9000/v1",
+      env: { NO_PROXY: "api.internal:0" } as NodeJS.ProcessEnv,
+      expected: true,
+    },
+    {
+      name: "bare dot entry matches trailing-dot hosts like undici",
+      url: "http://metadata.google.internal./computeMetadata/v1/",
+      env: { NO_PROXY: "localhost,." } as NodeJS.ProcessEnv,
+      expected: true,
+    },
+    {
+      name: "bare dot entry does not match hosts without a trailing dot",
+      url: "https://api.openai.com/v1",
+      env: { NO_PROXY: "*." } as NodeJS.ProcessEnv,
+      expected: false,
+    },
+    {
       name: "is case-insensitive",
       url: "https://API.OpenAI.COM/v1",
       env: { no_proxy: "api.openai.com" } as NodeJS.ProcessEnv,

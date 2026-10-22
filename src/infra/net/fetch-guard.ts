@@ -2,7 +2,7 @@ import type { Dispatcher } from "undici";
 import { logWarn } from "../../logger.js";
 import { captureHttpExchange } from "../../proxy-capture/runtime.js";
 import { buildTimeoutAbortSignal } from "../../utils/fetch-timeout.js";
-import { hasProxyEnvConfigured } from "./proxy-env.js";
+import { hasEnvHttpProxyConfigured, matchesNoProxy } from "./proxy-env.js";
 import { retainSafeHeadersForCrossOriginRedirect as retainSafeRedirectHeaders } from "./redirect-headers.js";
 import {
   fetchWithRuntimeDispatcher,
@@ -358,8 +358,13 @@ export async function fetchWithSsrFGuard(params: GuardedFetchOptions): Promise<G
         usesTrustedExplicitProxyMode ? false : params.pinDns,
       );
       await assertExplicitProxyAllowed(params.dispatcherPolicy, params.lookupFn, params.policy);
+      // Only skip target checks when EnvHttpProxyAgent will really proxy this hop: it
+      // dials directly for ALL_PROXY-only envs, NO_PROXY matches, and protocols without
+      // an HTTP(S)_PROXY, so those hops (including redirects) stay on the strict path.
       const canUseTrustedEnvProxy =
-        mode === GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY && hasProxyEnvConfigured();
+        mode === GUARDED_FETCH_MODE.TRUSTED_ENV_PROXY &&
+        hasEnvHttpProxyConfigured(parsedUrl.protocol === "http:" ? "http" : "https") &&
+        !matchesNoProxy(parsedUrl.href);
       const timeoutMs = resolveDispatcherTimeoutMs(params.timeoutMs);
       if (isOnionHostname(parsedUrl.hostname)) {
         if (!params.torProxyUrl) {
@@ -368,6 +373,11 @@ export async function fetchWithSsrFGuard(params: GuardedFetchOptions): Promise<G
         assertHostnameAllowedWithPolicy(parsedUrl.hostname, params.policy);
         dispatcher = createSocks5ProxyAgent(params.torProxyUrl, timeoutMs);
       } else if (canUseTrustedEnvProxy) {
+        // The proxy resolves DNS, but a redirect target is server-chosen: still reject
+        // literal private/metadata hosts the caller's policy does not allow.
+        if (redirectCount > 0) {
+          assertHostnameAllowedWithPolicy(parsedUrl.hostname, params.policy);
+        }
         dispatcher = createHttp1EnvHttpProxyAgent(undefined, timeoutMs);
       } else if (usesTrustedExplicitProxyMode) {
         // Explicit proxy targets are still checked against the caller's hostname

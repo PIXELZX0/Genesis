@@ -97,13 +97,8 @@ export function matchesNoProxy(targetUrl: string, env: NodeJS.ProcessEnv = proce
   }
 
   const targetPort =
-    parsed.port !== ""
-      ? parsed.port
-      : parsed.protocol === "https:"
-        ? "443"
-        : parsed.protocol === "http:"
-          ? "80"
-          : "";
+    Number.parseInt(parsed.port, 10) ||
+    (parsed.protocol === "https:" ? 443 : parsed.protocol === "http:" ? 80 : 0);
 
   // Undici tokenizes NO_PROXY on BOTH commas and whitespace (single-char
   // class, empty entries filtered below). Values like `"localhost *.corp"`
@@ -118,34 +113,33 @@ export function matchesNoProxy(targetUrl: string, env: NodeJS.ProcessEnv = proce
     }
 
     let entryHost: string;
-    let entryPort: string | undefined;
+    let entryPort = 0;
     if (entry.startsWith("[")) {
       const m = entry.match(/^\[([^\]]+)\](?::(\d+))?$/);
       if (!m) {
         continue;
       }
       entryHost = m[1];
-      entryPort = m[2];
+      entryPort = m[2] ? Number.parseInt(m[2], 10) : 0;
     } else {
       const colonIdx = entry.lastIndexOf(":");
       if (colonIdx > 0 && /^\d+$/.test(entry.slice(colonIdx + 1))) {
         entryHost = entry.slice(0, colonIdx);
-        entryPort = entry.slice(colonIdx + 1);
+        entryPort = Number.parseInt(entry.slice(colonIdx + 1), 10);
       } else {
         entryHost = entry;
       }
     }
 
+    // Mirror undici: ports compare numerically, and port 0 matches any port.
     if (entryPort && entryPort !== targetPort) {
       continue;
     }
 
     // Mirror undici: strip optional leading `*` followed by `.` so both
-    // `.example.com` and `*.example.com` normalize to `example.com`.
+    // `.example.com` and `*.example.com` normalize to `example.com`. A bare `.`
+    // or `*.` normalizes to "" and, like undici, matches every trailing-dot host.
     const normalizedEntry = entryHost.replace(/^\*?\./, "");
-    if (!normalizedEntry) {
-      continue;
-    }
 
     if (targetHost === normalizedEntry) {
       return true;
