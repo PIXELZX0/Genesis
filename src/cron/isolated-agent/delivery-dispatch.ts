@@ -709,7 +709,16 @@ export async function dispatchCronDelivery(
           runStartedAt: params.runStartedAt,
         })
       : undefined;
-    const hadDescendants = activeSubagentRuns > 0 || Boolean(completedDescendantReply);
+    // Ask the registry rather than the fallback reply: descendants that all
+    // stayed silent leave no reply, but their parent's interim text is stale.
+    const hadDescendants =
+      activeSubagentRuns > 0 ||
+      (shouldCheckCompletedDescendants &&
+        subagentRegistryRuntime
+          .listDescendantRunsForRequester(params.agentSessionKey)
+          .some(
+            (entry) => typeof entry.endedAt === "number" && entry.endedAt >= params.runStartedAt,
+          ));
     if (activeSubagentRuns > 0 || expectedSubagentFollowup) {
       let finalReply = await subagentFollowupRuntime?.waitForDescendantSubagentSummary({
         sessionKey: params.agentSessionKey,

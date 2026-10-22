@@ -1,6 +1,10 @@
 import { readLatestAssistantReply, waitForAgentRunsToDrain } from "../../agents/run-wait.js";
 import { listDescendantRunsForRequester } from "../../agents/subagent-registry-read.js";
-import { SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
+import {
+  SILENT_REPLY_TOKEN,
+  startsWithSilentTokenDeclaration,
+  stripSilentToken,
+} from "../../auto-reply/tokens.js";
 import { expectsSubagentFollowup, isLikelyInterimCronMessage } from "./subagent-followup-hints.js";
 export { expectsSubagentFollowup, isLikelyInterimCronMessage } from "./subagent-followup-hints.js";
 
@@ -52,7 +56,14 @@ export async function readDescendantSubagentFallbackReply(params: {
     if (!reply && typeof entry.frozenResultText === "string" && entry.frozenResultText.trim()) {
       reply = entry.frozenResultText.trim();
     }
-    if (!reply || reply.toUpperCase() === SILENT_REPLY_TOKEN.toUpperCase()) {
+    // Drop silent children one by one: once joined, a leading declaration or a
+    // trailing token would make delivery treat every sibling's output as silent.
+    if (
+      !reply ||
+      reply.toUpperCase() === SILENT_REPLY_TOKEN.toUpperCase() ||
+      startsWithSilentTokenDeclaration(reply) ||
+      stripSilentToken(reply) !== reply
+    ) {
       continue;
     }
     replies.push(reply);
@@ -116,6 +127,7 @@ export async function waitForDescendantSubagentSummary(params: {
     if (
       latest &&
       latest.toUpperCase() !== SILENT_REPLY_TOKEN.toUpperCase() &&
+      !startsWithSilentTokenDeclaration(latest) &&
       (latest !== initialReply || !isLikelyInterimCronMessage(latest))
     ) {
       return latest;
