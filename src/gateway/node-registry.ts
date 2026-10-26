@@ -88,6 +88,12 @@ export class NodeRegistry {
       return null;
     }
     this.nodesByConn.delete(connId);
+    // A node that reconnects before the gateway notices its old socket is dead
+    // re-registers under a new connId. The stale close must not evict the live
+    // session or fail invokes the node can still answer over the new socket.
+    if (this.nodesById.get(nodeId)?.connId !== connId) {
+      return null;
+    }
     this.nodesById.delete(nodeId);
     for (const [id, pending] of this.pendingInvokes.entries()) {
       if (pending.nodeId !== nodeId) {
