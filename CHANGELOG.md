@@ -2,10 +2,11 @@
 
 Docs: https://genesis.pixelzx.com/docs
 
-## Unreleased
+## 2026.10.26
 
 ### Changes
 
+- Agents: upgraded the embedded agent runtime (`@earendil-works/pi-*`) to 1.4.0. Compaction summaries use the model's output limit, so long reasoning no longer makes them fail; sessions recover after a response cut off at the output limit; whitespace-only tool output no longer makes OpenAI and Google requests fail; and more transient gateway and Vertex OAuth errors are retried automatically.
 - ACP: `sessions_spawn` accepts `permissionMode` (`approve-all`, `approve-reads`, `deny-all`) for `runtime: "acp"` children, so a coding task can ask for write/exec approval instead of silently doing nothing. A mode less permissive than `plugins.entries.acpx.config.permissionMode` always works. A more permissive one needs the new operator opt-in `plugins.entries.acpx.config.allowSpawnPermissionEscalation`, which `genesis security audit` reports as a dangerous flag. (#34)
 
 ### Fixes
